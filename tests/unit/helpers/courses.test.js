@@ -36,7 +36,6 @@ const {
   INTER_B2B,
   OPERATIONS,
   PEDAGOGY,
-  LESSON,
 } = require('../../../src/helpers/constants');
 const CourseRepository = require('../../../src/repositories/CourseRepository');
 const CourseHistoriesHelper = require('../../../src/helpers/courseHistories');
@@ -717,14 +716,11 @@ describe('listUserCourses', () => {
 
 describe('getCourse', () => {
   let findOne;
-  let getCourseForPedagogy;
   beforeEach(() => {
     findOne = sinon.stub(Course, 'findOne');
-    getCourseForPedagogy = sinon.stub(CourseHelper, 'getCourseForPedagogy');
   });
   afterEach(() => {
     findOne.restore();
-    getCourseForPedagogy.restore();
   });
 
   it('should return inter b2b course without trainees filtering (operations)', async () => {
@@ -804,7 +800,6 @@ describe('getCourse', () => {
         { query: 'lean' },
       ]
     );
-    sinon.assert.notCalled(getCourseForPedagogy);
   });
 
   it('should return inter b2b course with trainees filtering (operations)', async () => {
@@ -893,29 +888,121 @@ describe('getCourse', () => {
         { query: 'lean' },
       ]
     );
-    sinon.assert.notCalled(getCourseForPedagogy);
   });
 
   it('should return course as trainer (pedagogy)', async () => {
     const authCompanyId = new ObjectId();
-    const loggedUser = { role: { client: { name: 'client_admin' } }, company: { _id: authCompanyId } };
+    const loggedUser = { _id: ObjectId(), role: { client: { name: 'client_admin' } }, company: { _id: authCompanyId } };
     const courseId = new ObjectId();
     const course = {
       _id: courseId,
-      misc: 'groupe 1',
-      trainer: { _id: loggedUser._id },
       subProgram: {
-        steps: [{ activities: { name: 'test', type: LESSON } }, { activities: { name: 'test 2', type: LESSON } }],
+        isStrictlyELearning: false,
+        steps: [{
+          activities: [{ activityHistories: [{ user: loggedUser._id }, { user: loggedUser._id }] }],
+          name: 'Développement personnel full stack',
+          type: 'e_learning',
+          areActivitiesValid: false,
+          theoreticalHours: 0.5,
+        },
+        {
+          activities: [],
+          name: 'Développer des équipes agiles et autonomes',
+          type: 'on_site',
+          areActivitiesValid: true,
+          theoreticalHours: 3.5,
+        },
+        ],
       },
       slots: [{ startDate: '2020-11-03T09:00:00.000Z', endDate: '2020-11-03T12:00:00.000Z' }],
+      trainer: { _id: loggedUser._id },
     };
-    getCourseForPedagogy.returns(course);
+
+    findOne.returns(SinonMongoose.stubChainedQueries(course, ['populate', 'select', 'lean']));
 
     const result = await CourseHelper.getCourse({ action: PEDAGOGY }, { _id: course._id }, loggedUser);
 
-    expect(result).toMatchObject(course);
-    sinon.assert.calledOnceWithExactly(getCourseForPedagogy, courseId, loggedUser);
-    sinon.assert.notCalled(findOne);
+    expect(result).toMatchObject({
+      _id: courseId,
+      subProgram: {
+        isStrictlyELearning: false,
+        steps: [{
+          activities: [{ }],
+          name: 'Développement personnel full stack',
+          type: 'e_learning',
+          areActivitiesValid: false,
+          theoreticalHours: 0.5,
+        },
+        {
+          activities: [],
+          name: 'Développer des équipes agiles et autonomes',
+          type: 'on_site',
+          areActivitiesValid: true,
+          theoreticalHours: 3.5,
+        },
+        ],
+      },
+      slots: [{ startDate: '2020-11-03T09:00:00.000Z', endDate: '2020-11-03T12:00:00.000Z' }],
+      trainer: { _id: loggedUser._id },
+    });
+
+    SinonMongoose.calledOnceWithExactly(
+      findOne,
+      [
+        { query: 'findOne', args: [{ _id: course._id }] },
+        {
+          query: 'populate',
+          args: [{
+            path: 'subProgram',
+            select: 'program steps',
+            populate: [
+              { path: 'program', select: 'name image description learningGoals' },
+              {
+                path: 'steps',
+                select: 'name type activities theoreticalHours',
+                populate: {
+                  path: 'activities',
+                  select: 'name type cards activityHistories',
+                  populate: [
+                    { path: 'activityHistories', match: { user: loggedUser._id } },
+                    { path: 'cards', select: 'template' },
+                  ],
+                },
+              },
+            ],
+          }],
+        },
+        {
+          query: 'populate',
+          args: [
+            {
+              path: 'slots',
+              select: 'startDate endDate step address meetingLink',
+              populate: [
+                { path: 'step', select: 'type' },
+                { path: 'attendances', match: { trainee: loggedUser._id } },
+              ],
+            },
+          ],
+        },
+        {
+          query: 'populate',
+          args: [{
+            path: 'trainer',
+            select: 'identity.firstname identity.lastname biography picture',
+          }],
+        },
+        {
+          query: 'populate',
+          args: [{
+            path: 'contact',
+            select: 'identity.firstname identity.lastname contact.phone local.email',
+          }],
+        },
+        { query: 'select', args: ['_id misc'] },
+        { query: 'lean', args: [{ virtuals: true, autopopulate: true }] },
+      ]
+    );
   });
 });
 
@@ -1695,143 +1782,6 @@ describe('getCourseForPedagogy', () => {
 
     sinon.assert.calledWithExactly(formatCourseWithProgress, { ...course, areLastSlotAttendancesValidated: false });
     sinon.assert.calledOnceWithExactly(attendanceCountDocuments, { courseSlot: lastSlotId });
-  });
-
-  it('should return blended course for trainer', async () => {
-    const stepId = new ObjectId();
-    const lastSlotId = new ObjectId();
-    const credentials = { _id: new ObjectId() };
-    const course = {
-      _id: new ObjectId(),
-      subProgram: {
-        isStrictlyELearning: false,
-        steps: [{
-          _id: new ObjectId(),
-          activities: [{ activityHistories: [{}, {}] }],
-          name: 'Développement personnel full stack',
-          type: 'e_learning',
-          areActivitiesValid: false,
-          theoreticalHours: 0.5,
-        },
-        {
-          _id: stepId,
-          activities: [],
-          name: 'Développer des équipes agiles et autonomes',
-          type: 'on_site',
-          areActivitiesValid: true,
-          theoreticalHours: 3.5,
-        },
-        ],
-      },
-      slots: [
-        {
-          _id: new ObjectId(),
-          startDate: '2020-11-03T09:00:00.000Z',
-          endDate: '2020-11-03T12:00:00.000Z',
-          step: stepId,
-          attendances: [{ _id: new ObjectId() }],
-        },
-        {
-          _id: lastSlotId,
-          startDate: '2020-11-04T09:00:00.000Z',
-          endDate: '2020-11-04T16:01:00.000Z',
-          step: stepId,
-          attendances: [],
-        },
-      ],
-      trainer: { _id: credentials._id },
-    };
-
-    const coursesWithoutHistories = {
-      ...course,
-      subProgram: {
-        ...course.subProgram,
-        steps: [
-          {
-            _id: course.subProgram.steps[0]._id,
-            activities: [{ activityHistories: [] }],
-            name: 'Développement personnel full stack',
-            type: 'e_learning',
-            areActivitiesValid: false,
-            theoreticalHours: 0.5,
-          },
-          {
-            _id: stepId,
-            activities: [],
-            name: 'Développer des équipes agiles et autonomes',
-            type: 'on_site',
-            areActivitiesValid: true,
-            theoreticalHours: 3.5,
-          },
-        ],
-      },
-    };
-
-    courseFindOne.returns(SinonMongoose.stubChainedQueries(course, ['populate', 'select', 'lean']));
-    formatCourseWithProgress.returns({ ...coursesWithoutHistories, progress: { blended: 0.5 } });
-
-    const result = await CourseHelper.getCourseForPedagogy(course._id, credentials);
-    expect(result).toMatchObject({ ...coursesWithoutHistories, progress: { blended: 0.5 } });
-
-    SinonMongoose.calledOnceWithExactly(
-      courseFindOne,
-      [
-        { query: 'findOne', args: [{ _id: course._id }] },
-        {
-          query: 'populate',
-          args: [{
-            path: 'subProgram',
-            select: 'program steps',
-            populate: [
-              { path: 'program', select: 'name image description learningGoals' },
-              {
-                path: 'steps',
-                select: 'name type activities theoreticalHours',
-                populate: {
-                  path: 'activities',
-                  select: 'name type cards activityHistories',
-                  populate: [
-                    { path: 'activityHistories', match: { user: credentials._id } },
-                    { path: 'cards', select: 'template' },
-                  ],
-                },
-              },
-            ],
-          }],
-        },
-        {
-          query: 'populate',
-          args: [
-            {
-              path: 'slots',
-              select: 'startDate endDate step address meetingLink',
-              populate: [
-                { path: 'step', select: 'type' },
-                { path: 'attendances', match: { trainee: credentials._id } },
-              ],
-            },
-          ],
-        },
-        {
-          query: 'populate',
-          args: [{
-            path: 'trainer',
-            select: 'identity.firstname identity.lastname biography picture',
-          }],
-        },
-        {
-          query: 'populate',
-          args: [{
-            path: 'contact',
-            select: 'identity.firstname identity.lastname contact.phone local.email',
-          }],
-        },
-        { query: 'select', args: ['_id misc'] },
-        { query: 'lean', args: [{ virtuals: true, autopopulate: true }] },
-      ]
-    );
-    sinon.assert.calledWithExactly(formatCourseWithProgress, coursesWithoutHistories);
-    sinon.assert.notCalled(attendanceCountDocuments);
   });
 });
 

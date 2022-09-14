@@ -266,12 +266,11 @@ const getCourseForOperations = async (courseId, loggedUser) => {
   };
 };
 
-exports.getCourse = async (query, params, loggedUser) => {
-  if (query.action === OPERATIONS) {
-    return getCourseForOperations(params._id, loggedUser);
-  }
-  return exports.getCourseForPedagogy(params._id, loggedUser);
-};
+exports.getCourse = async (query, params, loggedUser) => (
+  query.action === OPERATIONS
+    ? getCourseForOperations(params._id, loggedUser)
+    : exports.getCourseForPedagogy(params._id, loggedUser)
+);
 
 exports.selectUserHistory = (histories) => {
   const groupedHistories = Object.values(groupBy(histories, 'user'));
@@ -424,17 +423,18 @@ exports.getCourseForPedagogy = async (courseId, credentials) => {
     .lean({ autopopulate: true, virtuals: true });
 
   if (course.trainer && UtilsHelper.areObjectIdsEquals(course.trainer._id, credentials._id)) {
-    return exports.formatCourseWithProgress({
+    return {
       ...course,
       subProgram: {
         ...course.subProgram,
         steps: course.subProgram.steps.map(step => ({
           ...step,
-          activities: step.activities.map(activity => ({ ...activity, activityHistories: [] })),
+          activities: step.activities.map(activity => ({ ...omit(activity, 'activityHistories') })),
         })),
       },
-    });
+    };
   }
+
   if (!course.subProgram.isStrictlyELearning) {
     const lastSlot = course.slots.sort(DatesHelper.descendingSort('startDate'))[0];
     const areLastSlotAttendancesValidated = !!(lastSlot &&
