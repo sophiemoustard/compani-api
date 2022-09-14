@@ -1742,17 +1742,14 @@ describe('getCourseForPedagogy', () => {
       trainer: { _id: credentials._id },
     };
 
-    courseFindOne.returns(SinonMongoose.stubChainedQueries(course, ['populate', 'select', 'lean']));
-
-    const result = await CourseHelper.getCourseForPedagogy(course._id, credentials);
-    expect(result).toMatchObject({
+    const coursesWithoutHistories = {
       ...course,
       subProgram: {
         ...course.subProgram,
         steps: [
           {
             _id: course.subProgram.steps[0]._id,
-            activities: [{ }],
+            activities: [{ activityHistories: [] }],
             name: 'Développement personnel full stack',
             type: 'e_learning',
             areActivitiesValid: false,
@@ -1768,7 +1765,13 @@ describe('getCourseForPedagogy', () => {
           },
         ],
       },
-    });
+    };
+
+    courseFindOne.returns(SinonMongoose.stubChainedQueries(course, ['populate', 'select', 'lean']));
+    formatCourseWithProgress.returns({ ...coursesWithoutHistories, progress: { blended: 0.5 } });
+
+    const result = await CourseHelper.getCourseForPedagogy(course._id, credentials);
+    expect(result).toMatchObject({ ...coursesWithoutHistories, progress: { blended: 0.5 } });
 
     SinonMongoose.calledOnceWithExactly(
       courseFindOne,
@@ -1827,7 +1830,7 @@ describe('getCourseForPedagogy', () => {
         { query: 'lean', args: [{ virtuals: true, autopopulate: true }] },
       ]
     );
-    sinon.assert.notCalled(formatCourseWithProgress);
+    sinon.assert.calledWithExactly(formatCourseWithProgress, coursesWithoutHistories);
     sinon.assert.notCalled(attendanceCountDocuments);
   });
 });

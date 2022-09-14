@@ -424,16 +424,16 @@ exports.getCourseForPedagogy = async (courseId, credentials) => {
     .lean({ autopopulate: true, virtuals: true });
 
   if (course.trainer && UtilsHelper.areObjectIdsEquals(course.trainer._id, credentials._id)) {
-    return {
+    return exports.formatCourseWithProgress({
       ...course,
       subProgram: {
         ...course.subProgram,
         steps: course.subProgram.steps.map(step => ({
           ...step,
-          activities: step.activities.map(activity => ({ ...omit(activity, 'activityHistories') })),
+          activities: step.activities.map(activity => ({ ...activity, activityHistories: [] })),
         })),
       },
-    };
+    });
   }
   if (!course.subProgram.isStrictlyELearning) {
     const lastSlot = course.slots.sort(DatesHelper.descendingSort('startDate'))[0];
