@@ -216,6 +216,7 @@ describe('exportWorkingEventsHistory', () => {
     'Statut de l\'annulation',
     'Raison de l\'annulation',
   ];
+  const credentials = { company: { _id: '1234567890' } };
   const auxiliaryId = new ObjectId();
   const auxiliaries = [
     {
@@ -243,11 +244,11 @@ describe('exportWorkingEventsHistory', () => {
         identity: { title: 'mrs', firstname: 'Mimi', lastname: 'Mathy' },
       },
       auxiliary: auxiliaryId,
-      startDate: '2019-05-20T08:00:00.000Z',
-      endDate: '2019-05-20T10:00:00.000Z',
+      startDate: '2019-05-18T08:00:00.000Z',
+      endDate: '2019-05-18T10:00:00.000Z',
       histories: [
         {
-          update: { startHour: { from: '2019-05-20T08:00:00.000Z', to: '2019-05-20T08:01:18.000Z' } },
+          update: { startHour: { from: '2019-05-18T08:00:00.000Z', to: '2019-05-18T08:01:18.000Z' } },
           event: { type: 'intervention', auxiliary: auxiliaryId },
           auxiliaries: [auxiliaryId],
           action: 'manual_time_stamping',
@@ -302,8 +303,8 @@ describe('exportWorkingEventsHistory', () => {
         _id: new ObjectId(),
         identity: { title: 'mr', firstname: 'Bojack', lastname: 'Horseman' },
       },
-      startDate: '2019-05-20T08:00:00.000Z',
-      endDate: '2019-05-20T10:00:00.000Z',
+      startDate: '2019-05-24T08:00:00.000Z',
+      endDate: '2019-05-24T10:00:00.000Z',
       misc: 'brbr',
       histories: [],
     },
@@ -323,32 +324,38 @@ describe('exportWorkingEventsHistory', () => {
   });
 
   it('should return an array containing just the header', async () => {
+    const start = '2019-06-16T08:00:00.000Z';
+    const end = '2019-06-24T22:00:00.000Z';
+
     getWorkingEventsForExport.returns([]);
     getAuxiliariesWithSectorHistory.returns([]);
-    const exportArray = await ExportHelper.exportWorkingEventsHistory(null, null);
+    const exportArray = await ExportHelper.exportWorkingEventsHistory(start, end, credentials);
 
     expect(exportArray).toEqual([header]);
   });
 
   it('should return an array with the header and 3 rows', async () => {
+    const start = '2019-05-16T08:00:00.000Z';
+    const end = '2019-05-24T22:00:00.000Z';
+
     getWorkingEventsForExport.returns(events);
     getAuxiliariesWithSectorHistory.returns(auxiliaries);
 
     getLastVersion.callsFake(ver => ver[0]);
 
-    const exportArray = await ExportHelper.exportWorkingEventsHistory(null, null);
+    const exportArray = await ExportHelper.exportWorkingEventsHistory(start, end, credentials);
 
     expect(exportArray).toEqual([
       header,
-      ['Intervention', '', 'Lala', '2019/05/20 10:00:00', '2019/05/20 10:01:18', 'Manuel', 'QR Code manquant',
-        '2019/05/20 12:00:00', '', '', '', '2,00', 'Une fois par semaine', '667,00', 'Transports en commun / À pied',
+      ['Intervention', '', 'Lala', '2019/05/18 10:00:00', '2019/05/18 10:01:18', 'Manuel', 'QR Code manquant',
+        '2019/05/18 12:00:00', '', '', '', '2,00', 'Une fois par semaine', '667,00', 'Transports en commun / À pied',
         'Girafes - 75', expect.any(ObjectId), '', 'Jean-Claude', 'VAN DAMME', 'Non', expect.any(ObjectId), 'Mme',
         'MATHY', 'Mimi', '', 'Oui', 'Non', '', ''],
       ['Intervention', '', 'Lala', '2019/05/20 10:00:00', '2019/05/20 10:01:18', 'Manuel', 'QR Code manquant',
         '2019/05/20 12:00:00', '2019/05/20 12:03:24', 'Manuel', 'Problème de caméra', '2,00', 'Une fois par semaine',
         '', '', 'Girafes - 75', '', '', '', '', 'Oui', expect.any(ObjectId), 'Mme', 'MATHY', 'Mimi', '',
         'Oui', 'Non', '', ''],
-      ['Heure interne', 'Formation', '', '2019/05/20 10:00:00', '', '', '', '2019/05/20 12:00:00', '', '', '',
+      ['Heure interne', 'Formation', '', '2019/05/24 10:00:00', '', '', '', '2019/05/24 12:00:00', '', '', '',
         '2,00', '', '4124,00', 'Véhicule d\'entreprise', 'Etoiles - 75', '', '', '', '', 'Oui', expect.any(ObjectId), 'M.',
         'HORSEMAN', 'Bojack', 'brbr', 'Non', 'Oui', 'Facturée & non payée', 'Initiative de l\'intervenant(e)'],
     ]);
