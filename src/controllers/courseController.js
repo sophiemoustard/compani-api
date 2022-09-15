@@ -56,7 +56,7 @@ const create = async (req) => {
 
 const getById = async (req) => {
   try {
-    const course = await CoursesHelper.getCourse(req.pre.course, req.auth.credentials);
+    const course = await CoursesHelper.getCourse(req.query, req.params, req.auth.credentials);
 
     return {
       message: translate[language].courseFound,
@@ -98,7 +98,7 @@ const getQuestionnaireAnswers = async (req) => {
 
 const getTraineeCourse = async (req) => {
   try {
-    const course = await CoursesHelper.getTraineeCourse(req.params._id, req.auth.credentials);
+    const course = await CoursesHelper.getCourseForPedagogy(req.params._id, req.auth.credentials);
 
     return {
       message: translate[language].courseFound,

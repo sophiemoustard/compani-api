@@ -108,6 +108,10 @@ exports.authorizeCourseEdit = async (req) => {
       return Boom.forbidden();
     }
 
+    const traineeIdsList = course.trainees.map(trainee => trainee._id);
+    const trainerIsTrainee = UtilsHelper.doesArrayIncludeId(traineeIdsList, get(req, 'payload.trainer'));
+    if (trainerIsTrainee) throw Boom.forbidden();
+
     if (get(req, 'payload.maxTrainees')) {
       if (!isRofOrAdmin) throw Boom.forbidden();
       if ((req.payload.maxTrainees < course.trainees.length)) {
@@ -184,7 +188,7 @@ exports.getCourseTrainee = async (req) => {
   try {
     const { payload } = req;
     const course = await Course
-      .findOne({ _id: req.params._id }, { type: 1, trainees: 1, company: 1, maxTrainees: 1 })
+      .findOne({ _id: req.params._id }, { type: 1, trainees: 1, company: 1, maxTrainees: 1, trainer: 1 })
       .lean();
     if (!course) throw Boom.notFound();
 
@@ -192,6 +196,9 @@ exports.getCourseTrainee = async (req) => {
 
     const traineeExist = await User.countDocuments({ _id: payload.trainee });
     if (!traineeExist) throw Boom.forbidden();
+
+    const traineeIsTrainer = UtilsHelper.areObjectIdsEquals(course.trainer, payload.trainee);
+    if (traineeIsTrainer) throw Boom.forbidden();
 
     const userCompanyQuery = { user: payload.trainee, ...(course.type === INTRA && { company: course.company }) };
     const userCompanyExists = await UserCompany.countDocuments(userCompanyQuery);
@@ -254,10 +261,20 @@ exports.authorizeGetCourse = async (req) => {
     const userVendorRole = get(credentials, 'role.vendor.name');
     const userClientRole = get(credentials, 'role.client.name');
 
-    const isTrainee = course.trainees.includes(credentials._id);
     const isAdminVendor = userVendorRole === VENDOR_ADMIN;
     const isTOM = userVendorRole === TRAINING_ORGANISATION_MANAGER;
-    if (isTrainee || isTOM || isAdminVendor) return null;
+    if (isTOM || isAdminVendor) return null;
+
+    const courseTrainees = course.trainees.map(trainee => trainee._id);
+    const isTrainee = UtilsHelper.doesArrayIncludeId(courseTrainees, credentials._id);
+    const companyHasAccess = !course.accessRules.length ||
+      UtilsHelper.doesArrayIncludeId(course.accessRules, userCompany);
+    if (isTrainee) {
+      if (!companyHasAccess) {
+        throw Boom.forbidden();
+      }
+      return null;
+    }
 
     const isTrainerAndAuthorized = userVendorRole === TRAINER &&
       UtilsHelper.areObjectIdsEquals(course.trainer, credentials._id);
@@ -265,8 +282,6 @@ exports.authorizeGetCourse = async (req) => {
 
     if (!userClientRole || ![COACH, CLIENT_ADMIN].includes(userClientRole)) throw Boom.forbidden();
 
-    const companyHasAccess = !course.accessRules.length ||
-      UtilsHelper.doesArrayIncludeId(course.accessRules, userCompany);
     if (course.format === STRICTLY_E_LEARNING && !companyHasAccess) throw Boom.forbidden();
 
     if (course.type === INTRA) {
