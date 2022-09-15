@@ -113,7 +113,7 @@ exports.plugin = {
           params: Joi.object({ _id: Joi.objectId().required() }),
           query: Joi.object({ action: Joi.string().required().valid(OPERATIONS, PEDAGOGY) }),
         },
-        auth: { scope: ['courses:read'] },
+        auth: { mode: 'required' },
         pre: [{ method: getCourse, assign: 'course' }, { method: authorizeGetCourse }],
       },
       handler: getById,

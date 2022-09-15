@@ -586,6 +586,28 @@ describe('COURSES ROUTES - GET /courses/{_id}', () => {
         expect(response.statusCode).toBe(role.expectedCode);
       });
     });
+
+    it('should get course if has access authorization', async () => {
+      authToken = await getTokenByCredentials(traineeFromOtherCompany.local);
+      const response = await app.inject({
+        method: 'GET',
+        url: `/courses/${coursesList[11]._id.toHexString()}?action=pedagogy`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(200);
+    });
+
+    it('should not get course if has not access authorization', async () => {
+      authToken = await getTokenByCredentials(traineeFromOtherCompany.local);
+      const response = await app.inject({
+        method: 'GET',
+        url: `/courses/${coursesList[8]._id.toHexString()}?action=pedagogy`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
   });
 });
 
