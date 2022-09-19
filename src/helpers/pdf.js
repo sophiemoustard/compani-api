@@ -39,10 +39,10 @@ const fonts = () => {
   const fontAbsolutePath = path.resolve(__dirname, '../data/pdf/fonts');
 
   return {
-    Avenir: {
-      normal: `${fontAbsolutePath}/Avenir-Regular.otf`,
-      bold: `${fontAbsolutePath}/Avenir-Bold.otf`,
-      italics: `${fontAbsolutePath}/Avenir-Italic.otf`,
+    SourceSans: {
+      normal: `${fontAbsolutePath}/SourceSansPro-Regular.ttf`,
+      bold: `${fontAbsolutePath}/SourceSansPro-Bold.ttf`,
+      italics: `${fontAbsolutePath}/SourceSansPro-Italic.ttf`,
     },
     Calibri: {
       normal: `${fontAbsolutePath}/Calibri-Regular.ttf`,

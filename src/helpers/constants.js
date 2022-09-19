@@ -347,6 +347,8 @@ module.exports = {
   STRICTLY_E_LEARNING: 'strictly_e_learning',
   CONVOCATION: 'convocation',
   REMINDER: 'reminder',
+  OPERATIONS: 'operations',
+  PEDAGOGY: 'pedagogy',
   // PROGRAMS
   DRAFT: 'draft',
   PUBLISHED: 'published',

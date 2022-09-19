@@ -30,6 +30,7 @@ const courseList = [
   { // 0 - linked to bill 2
     _id: new ObjectId(),
     type: INTRA,
+    maxTrainees: 8,
     company: authCompany._id,
     subProgram: subProgramList[0]._id,
     misc: 'group 1',

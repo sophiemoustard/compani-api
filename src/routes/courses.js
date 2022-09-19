@@ -45,7 +45,7 @@ const {
   authorizeAttendanceSheetsGetAndAssignCourse,
   authorizeSmsSending,
 } = require('./preHandlers/courses');
-const { INTRA } = require('../helpers/constants');
+const { INTRA, OPERATIONS, MOBILE, WEBAPP, PEDAGOGY } = require('../helpers/constants');
 const { ORIGIN_OPTIONS } = require('../models/User');
 const { dateToISOString } = require('./validations/utils');
 
@@ -59,8 +59,10 @@ exports.plugin = {
         auth: { scope: ['courses:read'] },
         validate: {
           query: Joi.object({
-            trainer: Joi.objectId(),
-            company: Joi.objectId(),
+            action: Joi.string().required().valid(OPERATIONS),
+            origin: Joi.string().required().valid(WEBAPP, MOBILE),
+            trainer: Joi.objectId().when('origin', { is: MOBILE, then: Joi.required() }),
+            company: Joi.objectId().when('origin', { is: MOBILE, then: Joi.forbidden() }),
             format: Joi.string().valid(...COURSE_FORMATS),
           }),
         },
@@ -94,6 +96,7 @@ exports.plugin = {
             company: Joi.objectId().when('type', { is: INTRA, then: Joi.required(), otherwise: Joi.forbidden() }),
             salesRepresentative: Joi.objectId().required(),
             estimatedStartDate: dateToISOString,
+            maxTrainees: Joi.number().when('type', { is: INTRA, then: Joi.required(), otherwise: Joi.forbidden() }),
           }),
         },
         auth: { scope: ['courses:create'] },
@@ -108,8 +111,9 @@ exports.plugin = {
       options: {
         validate: {
           params: Joi.object({ _id: Joi.objectId().required() }),
+          query: Joi.object({ action: Joi.string().required().valid(OPERATIONS, PEDAGOGY) }),
         },
-        auth: { scope: ['courses:read'] },
+        auth: { mode: 'required' },
         pre: [{ method: getCourse, assign: 'course' }, { method: authorizeGetCourse }],
       },
       handler: getById,
@@ -186,6 +190,7 @@ exports.plugin = {
             companyRepresentative: Joi.objectId(),
             archivedAt: Joi.date(),
             estimatedStartDate: dateToISOString,
+            maxTrainees: Joi.number().positive().integer(),
           }),
         },
         pre: [{ method: getCourse, assign: 'course' }, { method: authorizeCourseEdit }],

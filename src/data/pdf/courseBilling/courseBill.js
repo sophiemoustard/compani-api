@@ -16,7 +16,7 @@ exports.getPdfContent = async (bill) => {
 
   return {
     content: content.flat(),
-    defaultStyle: { font: 'Avenir', fontSize: 12 },
+    defaultStyle: { font: 'SourceSans', fontSize: 12 },
     styles: {
       header: { fillColor: COPPER_600, color: 'white' },
       description: { alignment: 'left', marginLeft: 8, fontSize: 10 },

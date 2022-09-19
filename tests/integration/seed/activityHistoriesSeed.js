@@ -8,7 +8,7 @@ const Card = require('../../../src/models/Card');
 const ActivityHistory = require('../../../src/models/ActivityHistory');
 const User = require('../../../src/models/User');
 const UserCompany = require('../../../src/models/UserCompany');
-const { STRICTLY_E_LEARNING, WEBAPP } = require('../../../src/helpers/constants');
+const { STRICTLY_E_LEARNING, WEBAPP, INTRA } = require('../../../src/helpers/constants');
 const { deleteNonAuthenticationSeeds } = require('../helpers/authentication');
 const { vendorAdminRoleId } = require('../../seed/authRolesSeed');
 const { authCompany } = require('../../seed/authCompaniesSeed');
@@ -56,7 +56,7 @@ const activitiesList = [
 
 const stepsList = [{
   _id: new ObjectId(),
-  type: 'on_site',
+  type: 'e_learning',
   name: 'c\'est une étape',
   activities: [activitiesList[0]._id],
 }];
@@ -69,7 +69,8 @@ const coursesList = [
     subProgram: subProgramsList[0]._id,
     company: new ObjectId(),
     misc: 'first session',
-    type: 'intra',
+    type: INTRA,
+    maxTrainees: 8,
     trainer: new ObjectId(),
     trainees: [userList[1]._id],
     salesRepresentative: userList[0]._id,

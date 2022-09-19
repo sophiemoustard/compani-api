@@ -1,23 +1,39 @@
 const get = require('lodash/get');
 const Course = require('../models/Course');
 const CourseSlot = require('../models/CourseSlot');
+const { WEBAPP, MOBILE } = require('../helpers/constants');
 
-exports.findCourseAndPopulate = (query, populateVirtual = false) => Course.find(query)
-  .populate({ path: 'company', select: 'name' })
-  .populate({
-    path: 'subProgram',
-    select: 'program',
-    populate: [{ path: 'program', select: 'name image' }, { path: 'steps', select: 'theoreticalHours' }],
-  })
-  .populate({ path: 'slots', select: 'startDate endDate' })
-  .populate({ path: 'slotsToPlan', select: '_id' })
-  .populate({ path: 'trainer', select: 'identity.firstname identity.lastname' })
-  .populate({
-    path: 'trainees',
-    select: '_id',
-    populate: { path: 'company', populate: { path: 'company', select: 'name' } },
-  })
-  .populate({ path: 'salesRepresentative', select: 'identity.firstname identity.lastname' })
+exports.findCourseAndPopulate = (query, origin, populateVirtual = false) => Course
+  .find(query, origin === WEBAPP ? 'misc type archivedAt estimatedStartDate createdAt' : 'misc')
+  .populate([
+    { path: 'company', select: 'name' },
+    {
+      path: 'subProgram',
+      select: 'program',
+      populate: [
+        { path: 'program', select: origin === WEBAPP ? 'name' : 'name image description' },
+        { path: 'steps', select: 'theoreticalHours type' },
+      ],
+    },
+    {
+      path: 'slots',
+      select: origin === MOBILE ? 'startDate endDate step' : 'startDate endDate',
+      ...(origin === MOBILE && { populate: { path: 'step', select: 'type' } }),
+    },
+    { path: 'slotsToPlan', select: '_id' },
+    ...(origin === WEBAPP
+      ? [
+        { path: 'trainer', select: 'identity.firstname identity.lastname' },
+        {
+          path: 'trainees',
+          select: '_id',
+          populate: { path: 'company', populate: { path: 'company', select: 'name' } },
+        },
+        { path: 'salesRepresentative', select: 'identity.firstname identity.lastname' },
+      ]
+      : []
+    ),
+  ])
   .lean({ virtuals: populateVirtual });
 
 exports.findCoursesForExport = async (startDate, endDate, credentials) => {

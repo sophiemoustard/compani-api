@@ -37,6 +37,7 @@ const {
   TRAINING_ORGANISATION_MANAGER,
   TRAINER,
   REMOTE,
+  OPERATIONS,
 } = require('./constants');
 const CourseHistoriesHelper = require('./courseHistories');
 const NotificationHelper = require('./notifications');
@@ -70,48 +71,57 @@ exports.getTotalTheoreticalHours = course => (course.subProgram.steps.length
   : 0
 );
 
-exports.list = async (query) => {
-  if (query.company) {
-    if (query.format === STRICTLY_E_LEARNING) {
-      const courses = await CourseRepository.findCourseAndPopulate({
-        format: query.format,
-        accessRules: { $in: [query.company, []] },
-      });
+const listStrictlyElearningForCompany = async (query, origin) => {
+  const courses = await CourseRepository.findCourseAndPopulate(
+    { ...omit(query, 'company'), accessRules: { $in: [query.company, []] } },
+    origin
+  );
 
-      return courses.map(course => ({
-        ...course,
-        totalTheoreticalHours: exports.getTotalTheoreticalHours(course),
+  return courses.map(course => ({
+    ...course,
+    totalTheoreticalHours: exports.getTotalTheoreticalHours(course),
+    trainees: course.trainees.filter(t =>
+      (t.company ? UtilsHelper.areObjectIdsEquals(t.company._id, query.company) : false)),
+  }));
+};
+
+const listBlendedForCompany = async (query, origin) => {
+  const intraCourse = await CourseRepository.findCourseAndPopulate({ ...query, type: INTRA }, origin);
+  const interCourse = await CourseRepository.findCourseAndPopulate(
+    { ...omit(query, ['company']), type: INTER_B2B },
+    origin,
+    true
+  );
+
+  return [
+    ...intraCourse,
+    ...interCourse.filter(course => course.companies && course.companies.includes(query.company))
+      .map(course => ({
+        ...omit(course, ['companies']),
         trainees: course.trainees.filter(t =>
           (t.company ? UtilsHelper.areObjectIdsEquals(t.company._id, query.company) : false)),
-      }));
-    }
-    const intraCourse = await CourseRepository.findCourseAndPopulate({ ...query, type: INTRA });
-    const interCourse = await CourseRepository.findCourseAndPopulate(
-      { ...omit(query, ['company']), type: INTER_B2B },
-      true
-    );
+      })),
+  ];
+};
 
-    return [
-      ...intraCourse,
-      ...interCourse.filter(course => course.companies && course.companies.includes(query.company))
-        .map(course => ({
-          ...omit(course, ['companies']),
-          trainees: course.trainees.filter(t =>
-            (t.company ? UtilsHelper.areObjectIdsEquals(t.company._id, query.company) : false)),
-        })),
-    ];
+const listForOperation = async (query, origin) => {
+  if (query.company && query.format === STRICTLY_E_LEARNING) {
+    return listStrictlyElearningForCompany(query, origin);
   }
+  if (query.company) return listBlendedForCompany(query, origin);
 
-  const courses = await CourseRepository.findCourseAndPopulate(query);
+  const courses = await CourseRepository.findCourseAndPopulate(query, origin);
 
   if (query.format === STRICTLY_E_LEARNING) {
-    return courses.map(course => ({
-      ...course,
-      totalTheoreticalHours: exports.getTotalTheoreticalHours(course),
-    }));
+    return courses.map(course => ({ ...course, totalTheoreticalHours: exports.getTotalTheoreticalHours(course) }));
   }
 
   return courses;
+};
+
+exports.list = async (query) => {
+  const filteredQuery = omit(query, ['origin', 'action']);
+  return listForOperation(filteredQuery, query.origin);
 };
 
 const getStepProgress = (step) => {
@@ -200,8 +210,8 @@ exports.listUserCourses = async (trainee) => {
   return courses.map(course => exports.formatCourseWithProgress(course));
 };
 
-exports.getCourse = async (course, loggedUser) => {
-  const fetchedCourse = await Course.findOne({ _id: course._id })
+const getCourseForOperations = async (courseId, loggedUser) => {
+  const fetchedCourse = await Course.findOne({ _id: courseId })
     .populate({ path: 'company', select: 'name' })
     .populate({
       path: 'subProgram',
@@ -255,6 +265,12 @@ exports.getCourse = async (course, loggedUser) => {
       .filter(t => UtilsHelper.areObjectIdsEquals(get(t, 'company._id'), get(loggedUser, 'company._id'))),
   };
 };
+
+exports.getCourse = async (query, params, loggedUser) => (
+  query.action === OPERATIONS
+    ? getCourseForOperations(params._id, loggedUser)
+    : exports.getCourseForPedagogy(params._id, loggedUser)
+);
 
 exports.selectUserHistory = (histories) => {
   const groupedHistories = Object.values(groupBy(histories, 'user'));
@@ -375,7 +391,7 @@ exports.getTraineeElearningProgress = (traineeId, steps) => {
   return { steps: formattedSteps, progress: exports.getCourseProgress(formattedSteps) };
 };
 
-exports.getTraineeCourse = async (courseId, credentials) => {
+exports.getCourseForPedagogy = async (courseId, credentials) => {
   const course = await Course.findOne({ _id: courseId })
     .populate({
       path: 'subProgram',
@@ -405,6 +421,19 @@ exports.getTraineeCourse = async (courseId, credentials) => {
     .populate({ path: 'contact', select: 'identity.firstname identity.lastname contact.phone local.email' })
     .select('_id misc')
     .lean({ autopopulate: true, virtuals: true });
+
+  if (course.trainer && UtilsHelper.areObjectIdsEquals(course.trainer._id, credentials._id)) {
+    return {
+      ...course,
+      subProgram: {
+        ...course.subProgram,
+        steps: course.subProgram.steps.map(step => ({
+          ...step,
+          activities: step.activities.map(activity => ({ ...omit(activity, 'activityHistories') })),
+        })),
+      },
+    };
+  }
 
   if (!course.subProgram.isStrictlyELearning) {
     const lastSlot = course.slots.sort(DatesHelper.descendingSort('startDate'))[0];

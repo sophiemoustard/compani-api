@@ -4,6 +4,7 @@ const Course = require('../../../src/models/Course');
 const Card = require('../../../src/models/Card');
 const { userList } = require('../../seed/authUsersSeed');
 const { deleteNonAuthenticationSeeds } = require('../helpers/authentication');
+const { INTER_B2B } = require('../../../src/helpers/constants');
 
 const questionnaireHistoriesUsersList = [userList[6]._id, userList[5]._id];
 
@@ -31,7 +32,7 @@ const coursesList = [
     _id: new ObjectId(),
     format: 'blended',
     subProgram: new ObjectId(),
-    type: 'inter_b2b',
+    type: INTER_B2B,
     salesRepresentative: new ObjectId(),
     trainees: [questionnaireHistoriesUsersList[0]],
   },
@@ -39,7 +40,7 @@ const coursesList = [
     _id: new ObjectId(),
     format: 'blended',
     subProgram: new ObjectId(),
-    type: 'inter_b2b',
+    type: INTER_B2B,
     salesRepresentative: new ObjectId(),
     trainees: [questionnaireHistoriesUsersList[1]],
   },

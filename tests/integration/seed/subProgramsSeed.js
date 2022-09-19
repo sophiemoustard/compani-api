@@ -10,7 +10,7 @@ const CourseSlot = require('../../../src/models/CourseSlot');
 const User = require('../../../src/models/User');
 const { vendorAdmin } = require('../../seed/authUsersSeed');
 const { deleteNonAuthenticationSeeds } = require('../helpers/authentication');
-const { WEBAPP } = require('../../../src/helpers/constants');
+const { WEBAPP, INTRA } = require('../../../src/helpers/constants');
 
 const tester = {
   _id: new ObjectId(),
@@ -100,7 +100,8 @@ const coursesList = [{
   _id: new ObjectId(),
   format: 'strictly_e_learning',
   subProgram: subProgramsList[7]._id,
-  type: 'intra',
+  type: INTRA,
+  maxTrainees: 8,
   company: new ObjectId(),
   salesRepresentative: vendorAdmin._id,
 }];

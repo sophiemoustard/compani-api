@@ -122,65 +122,24 @@ describe('getElearningStepProgress', () => {
 });
 
 describe('getLiveStepProgress', () => {
-  let eLearningStepProgressStub;
-  beforeEach(() => {
-    eLearningStepProgressStub = sinon.stub(StepHelper, 'getElearningStepProgress');
-  });
-
-  afterEach(() => {
-    eLearningStepProgressStub.restore();
-  });
-
   it('should get live steps progress', async () => {
     const stepId = new ObjectId();
-    const step = {
-      _id: stepId,
-      activities: [],
-    };
 
     const slots = [
       { endDate: '2020-11-03T09:00:00.000Z', step: stepId },
       { endDate: '2020-11-04T16:01:00.000Z', step: stepId },
     ];
 
-    const result = await StepHelper.getLiveStepProgress(step, slots);
+    const result = await StepHelper.getLiveStepProgress(slots);
     expect(result).toBe(1);
-    sinon.assert.notCalled(eLearningStepProgressStub);
-  });
-
-  it('should get live steps progress with progress of elearning activities', async () => {
-    const stepId = new ObjectId();
-    const step = {
-      _id: stepId,
-      activities: [{ _id: new ObjectId() }],
-    };
-
-    const slots = [
-      { endDate: '2020-11-03T09:00:00.000Z', step: stepId },
-      { endDate: '2020-11-04T16:01:00.000Z', step: stepId },
-    ];
-
-    eLearningStepProgressStub.returns(0.5);
-
-    const result = await StepHelper.getLiveStepProgress(step, slots);
-    expect(result).toBe(0.95);
-    sinon.assert.calledOnceWithExactly(eLearningStepProgressStub, step);
   });
 
   it('should return 0 if no slots', async () => {
-    const stepId = new ObjectId();
-    const step = {
-      _id: stepId,
-      activities: [{ _id: new ObjectId() }],
-    };
-
     const slots = [];
-    eLearningStepProgressStub.returns(0.5);
 
-    const result = await StepHelper.getLiveStepProgress(step, slots);
+    const result = await StepHelper.getLiveStepProgress(slots);
 
-    expect(result).toBe(0.05);
-    sinon.assert.calledOnceWithExactly(eLearningStepProgressStub, step);
+    expect(result).toBe(0);
   });
 });
 
@@ -261,7 +220,7 @@ describe('getProgress', () => {
 
     const result = await StepHelper.getProgress(step, slots);
     expect(result).toEqual({ live: 1, presence: { attendanceDuration: 421, maxDuration: 601 } });
-    sinon.assert.calledOnceWithExactly(getLiveStepProgress, step, slots);
+    sinon.assert.calledOnceWithExactly(getLiveStepProgress, slots);
     sinon.assert.calledOnceWithExactly(getPresenceStepProgress, slots);
   });
 });
