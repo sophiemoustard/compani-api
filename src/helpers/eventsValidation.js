@@ -103,12 +103,13 @@ exports.isUpdateAllowed = async (eventFromDB, payload) => {
   if ([ABSENCE, UNAVAILABILITY].includes(eventFromDB.type) && isAuxiliaryUpdated(payload, eventFromDB)) return false;
 
   if (payload.shouldUpdateRepetition && isAuxiliaryUpdated(payload, eventFromDB)) {
-    const hasNotEndedContract = await Contract.countDocuments({
+    const eventDate = payload.startDate || eventFromDB.startDate;
+    const hasContractWithEndDateOnEventDate = await Contract.countDocuments({
       user: payload.auxiliary,
-      endDate: { $exists: false },
-      startDate: { $lte: CompaniDate(payload.startDate || eventFromDB.startDate).toDate() },
+      endDate: { $exists: true, $gte: CompaniDate(eventDate).toDate() },
+      startDate: { $lte: CompaniDate(eventDate).toDate() },
     });
-    if (!hasNotEndedContract) return false;
+    if (hasContractWithEndDateOnEventDate) return false;
   }
 
   const keysToOmit = payload.auxiliary ? ['repetition'] : ['auxiliary', 'repetition'];

@@ -789,7 +789,7 @@ describe('isUpdateAllowed', () => {
       repetition: { frequency: 'every_week' },
     };
 
-    countDocuments.returns(0);
+    countDocuments.returns(1);
 
     const result = await EventsValidationHelper.isUpdateAllowed(eventFromDB, payload);
 
@@ -800,7 +800,7 @@ describe('isUpdateAllowed', () => {
       countDocuments,
       {
         user: payload.auxiliary,
-        endDate: { $exists: false },
+        endDate: { $exists: true, $gte: CompaniDate('2019-04-13T09:00:00.000Z').toDate() },
         startDate: { $lte: CompaniDate('2019-04-13T09:00:00.000Z').toDate() },
       }
     );
@@ -823,7 +823,7 @@ describe('isUpdateAllowed', () => {
     };
     hasConflicts.returns(false);
     isEditionAllowed.returns(true);
-    countDocuments.returns(1);
+    countDocuments.returns(0);
 
     const result = await EventsValidationHelper.isUpdateAllowed(eventFromDB, payload);
 
@@ -832,7 +832,7 @@ describe('isUpdateAllowed', () => {
       countDocuments,
       {
         user: payload.auxiliary,
-        endDate: { $exists: false },
+        endDate: { $exists: true, $gte: CompaniDate('2019-04-13T09:00:00.000Z').toDate() },
         startDate: { $lte: CompaniDate('2019-04-13T09:00:00.000Z').toDate() },
       }
     );
