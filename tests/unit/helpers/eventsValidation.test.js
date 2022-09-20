@@ -807,7 +807,7 @@ describe('isUpdateAllowed', () => {
     );
   });
 
-  it('should return false as repetition and auxiliary are updated and auxiliary\'s contract is ended', async () => {
+  it('should return true as repetition and auxiliary are updated and auxiliary\'s contract is not ended', async () => {
     const auxiliaryId = new ObjectId();
     const payload = {
       auxiliary: new ObjectId(),
