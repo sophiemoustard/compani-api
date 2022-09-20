@@ -87,7 +87,7 @@ exports.isCreationAllowed = async (event, credentials) => {
   return exports.isEditionAllowed(event, credentials);
 };
 
-exports.isUpdateAllowed = async (eventFromDB, payload, credentials) => {
+exports.isUpdateAllowed = async (eventFromDB, payload) => {
   const updateStartDate = payload.startDate && !CompaniDate(eventFromDB.startDate).isSame(payload.startDate);
   const updateEndDate = payload.endDate && !CompaniDate(eventFromDB.endDate).isSame(payload.endDate);
   const updateAuxiliary = payload.auxiliary &&
@@ -116,7 +116,7 @@ exports.isUpdateAllowed = async (eventFromDB, payload, credentials) => {
     throw Boom.conflict(translate[language].eventsConflict);
   }
 
-  return exports.isEditionAllowed(event, credentials);
+  return exports.isEditionAllowed(event);
 };
 
 exports.checkDeletionIsAllowed = async (events) => {
