@@ -780,12 +780,7 @@ describe('isUpdateAllowed', () => {
   });
 
   it('should return false as repetition and auxiliary are updated and auxiliary\'s contract is ended', async () => {
-    const payload = {
-      auxiliary: new ObjectId(),
-      startDate: '2019-04-13T09:00:00.000Z',
-      endDate: '2019-04-13T11:00:00.000Z',
-      shouldUpdateRepetition: true,
-    };
+    const payload = { auxiliary: new ObjectId(), shouldUpdateRepetition: true };
     const eventFromDB = {
       startDate: '2019-04-13T09:00:00.000Z',
       endDate: '2019-04-13T11:00:00.000Z',
@@ -803,7 +798,11 @@ describe('isUpdateAllowed', () => {
     sinon.assert.notCalled(isEditionAllowed);
     sinon.assert.calledOnceWithExactly(
       countDocuments,
-      { user: payload.auxiliary, endDate: { $exists: false }, startDate: { $lte: CompaniDate().endOf('day').toDate() } }
+      {
+        user: payload.auxiliary,
+        endDate: { $exists: false },
+        startDate: { $lte: CompaniDate('2019-04-13T09:00:00.000Z').toDate() },
+      }
     );
   });
 
@@ -831,7 +830,11 @@ describe('isUpdateAllowed', () => {
     expect(result).toBeTruthy();
     sinon.assert.calledOnceWithExactly(
       countDocuments,
-      { user: payload.auxiliary, endDate: { $exists: false }, startDate: { $lte: CompaniDate().endOf('day').toDate() } }
+      {
+        user: payload.auxiliary,
+        endDate: { $exists: false },
+        startDate: { $lte: CompaniDate('2019-04-13T09:00:00.000Z').toDate() },
+      }
     );
     sinon.assert.calledOnceWithExactly(
       hasConflicts,

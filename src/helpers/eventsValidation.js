@@ -106,7 +106,7 @@ exports.isUpdateAllowed = async (eventFromDB, payload) => {
     const hasNotEndedContract = await Contract.countDocuments({
       user: payload.auxiliary,
       endDate: { $exists: false },
-      startDate: { $lte: CompaniDate().endOf('day').toDate() },
+      startDate: { $lte: CompaniDate(payload.startDate || eventFromDB.startDate).toDate() },
     });
     if (!hasNotEndedContract) return false;
   }
