@@ -11,6 +11,7 @@ const {
 } = require('./constants');
 const User = require('../models/User');
 const Customer = require('../models/Customer');
+const Contract = require('../models/Contract');
 const EventHistory = require('../models/EventHistory');
 const ContractsHelper = require('./contracts');
 const CustomerAbsencesHelper = require('./customerAbsences');
@@ -100,6 +101,15 @@ exports.isUpdateAllowed = async (eventFromDB, payload) => {
 
   if (eventFromDB.type === INTERVENTION && eventFromDB.isBilled) return false;
   if ([ABSENCE, UNAVAILABILITY].includes(eventFromDB.type) && isAuxiliaryUpdated(payload, eventFromDB)) return false;
+
+  if (payload.shouldUpdateRepetition && isAuxiliaryUpdated(payload, eventFromDB)) {
+    const hasNotEndedContract = await Contract.countDocuments({
+      user: payload.auxiliary,
+      endDate: { $exists: false },
+      startDate: { $lte: CompaniDate().endOf('day').toDate() },
+    });
+    if (!hasNotEndedContract) return false;
+  }
 
   const keysToOmit = payload.auxiliary ? ['repetition'] : ['auxiliary', 'repetition'];
   const frequency = get(payload, 'repetition.frequency') || get(eventFromDB, 'repetition.frequency');

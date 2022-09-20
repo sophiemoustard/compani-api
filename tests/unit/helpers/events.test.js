@@ -318,7 +318,7 @@ describe('updateEvent', () => {
       expect(e.output.statusCode).toBe(422);
     } finally {
       sinon.assert.calledOnceWithExactly(isRepetitionValid, { frequency: 'every_week' });
-      sinon.assert.calledOnceWithExactly(isUpdateAllowed, event, payload, credentials);
+      sinon.assert.calledOnceWithExactly(isUpdateAllowed, event, payload);
       sinon.assert.notCalled(createEventHistoryOnUpdate);
       sinon.assert.notCalled(userFindOne);
       sinon.assert.notCalled(updateRepetition);
@@ -358,7 +358,7 @@ describe('updateEvent', () => {
     await EventHelper.updateEvent(event, payload, credentials);
 
     sinon.assert.calledOnceWithExactly(isRepetitionValid, { frequency: 'every_week', parentId });
-    sinon.assert.calledOnceWithExactly(isUpdateAllowed, event, payload, credentials);
+    sinon.assert.calledOnceWithExactly(isUpdateAllowed, event, payload);
     sinon.assert.calledOnceWithExactly(createEventHistoryOnUpdate, payload, event, credentials);
     sinon.assert.calledOnceWithExactly(updateRepetition, event, payload, credentials, sectorId);
     SinonMongoose.calledOnceWithExactly(
@@ -431,7 +431,7 @@ describe('updateEvent', () => {
     await EventHelper.updateEvent(event, payload, credentials);
 
     sinon.assert.calledOnceWithExactly(isRepetitionValid, { frequency: 'every_week', parentId });
-    sinon.assert.calledOnceWithExactly(isUpdateAllowed, event, payload, credentials);
+    sinon.assert.calledOnceWithExactly(isUpdateAllowed, event, payload);
     sinon.assert.calledOnceWithExactly(createEventHistoryOnUpdate, payload, event, credentials);
     sinon.assert.calledOnceWithExactly(updateRepetition, event, payload, credentials, sectorId);
     SinonMongoose.calledOnceWithExactly(
@@ -485,7 +485,7 @@ describe('updateEvent', () => {
       expect(e.output.statusCode).toBe(422);
     } finally {
       sinon.assert.notCalled(isRepetitionValid);
-      sinon.assert.calledOnceWithExactly(isUpdateAllowed, event, { _id: eventId }, credentials);
+      sinon.assert.calledOnceWithExactly(isUpdateAllowed, event, { _id: eventId });
       sinon.assert.notCalled(createEventHistoryOnUpdate);
       sinon.assert.notCalled(userFindOne);
       sinon.assert.notCalled(updateRepetition);
@@ -524,7 +524,7 @@ describe('updateEvent', () => {
     sinon.assert.notCalled(isRepetitionValid);
     sinon.assert.notCalled(updateRepetition);
     sinon.assert.notCalled(userFindOne);
-    sinon.assert.calledOnceWithExactly(isUpdateAllowed, event, { _id: eventId }, credentials);
+    sinon.assert.calledOnceWithExactly(isUpdateAllowed, event, { _id: eventId });
     sinon.assert.calledOnceWithExactly(isRepetition, event);
     sinon.assert.calledOnceWithExactly(shouldDetachFromRepetition, event, payload);
     sinon.assert.calledOnceWithExactly(formatEditionPayload, event, payload, true);
@@ -580,7 +580,7 @@ describe('updateEvent', () => {
     sinon.assert.notCalled(isRepetitionValid);
     sinon.assert.notCalled(updateRepetition);
     sinon.assert.notCalled(userFindOne);
-    sinon.assert.calledOnceWithExactly(isUpdateAllowed, event, { _id: eventId }, credentials);
+    sinon.assert.calledOnceWithExactly(isUpdateAllowed, event, { _id: eventId });
     sinon.assert.calledOnceWithExactly(isRepetition, event);
     sinon.assert.notCalled(shouldDetachFromRepetition);
     sinon.assert.calledOnceWithExactly(formatEditionPayload, event, payload, false);
