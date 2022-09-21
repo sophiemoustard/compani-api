@@ -18,6 +18,7 @@ const {
   BLENDED,
   ON_SITE,
   MOBILE,
+  OTHER,
 } = require('../../helpers/constants');
 const translate = require('../../helpers/translate');
 const UtilsHelper = require('../../helpers/utils');
@@ -406,7 +407,7 @@ exports.authorizeSmsSending = async (req) => {
 
   const noSlotToCome = !course.slots || !course.slots.some(slot => moment().isBefore(slot.startDate));
   const noReceiver = !course.trainees || !course.trainees.some(trainee => get(trainee, 'contact.phone'));
-  if (noSlotToCome || noReceiver) throw Boom.forbidden();
+  if ((noSlotToCome && req.payload.type !== OTHER) || noReceiver) throw Boom.forbidden();
 
   return null;
 };
