@@ -277,7 +277,7 @@ exports.updateEvent = async (event, eventPayload, credentials) => {
       throw Boom.badData(translate[language].invalidRepetition);
     }
 
-    const isUpdateAllowed = await EventsValidationHelper.isUpdateAllowed(event, eventPayload, credentials);
+    const isUpdateAllowed = await EventsValidationHelper.isUpdateAllowed(event, eventPayload);
     if (!isUpdateAllowed) throw Boom.badData();
 
     await EventHistoriesHelper.createEventHistoryOnUpdate(eventPayload, event, credentials);
@@ -290,7 +290,7 @@ exports.updateEvent = async (event, eventPayload, credentials) => {
     const detachFromRepetition = exports.isRepetition(event) && exports.shouldDetachFromRepetition(event, eventPayload);
     const payload = exports.formatEditionPayload(event, eventPayload, detachFromRepetition);
 
-    const isUpdateAllowed = await EventsValidationHelper.isUpdateAllowed(event, payload.$set, credentials);
+    const isUpdateAllowed = await EventsValidationHelper.isUpdateAllowed(event, payload.$set);
     if (!isUpdateAllowed) throw Boom.badData();
 
     await EventHistoriesHelper.createEventHistoryOnUpdate(payload.$set, event, credentials);

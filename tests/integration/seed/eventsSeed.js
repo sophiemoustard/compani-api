@@ -33,6 +33,7 @@ const {
 } = require('../../../src/helpers/constants');
 const UserCompany = require('../../../src/models/UserCompany');
 const { auxiliaryRoleId, clientAdminRoleId, helperRoleId } = require('../../seed/authRolesSeed');
+const { CompaniDate } = require('../../../src/helpers/dates/companiDates');
 
 const auxiliariesIds = [new ObjectId(), new ObjectId(), new ObjectId(), new ObjectId(), new ObjectId()];
 
@@ -846,8 +847,8 @@ const eventsList = [
     company: authCompany._id,
     type: INTERVENTION,
     repetition: { frequency: EVERY_WEEK, parentId: new ObjectId() },
-    startDate: (new Date()),
-    endDate: (new Date()).setHours((new Date()).getHours() + 2),
+    startDate: CompaniDate().toISO(),
+    endDate: CompaniDate().add({ hours: 2 }).toISO(),
     auxiliary: auxiliaries[0]._id,
     customer: customerAuxiliaries[1]._id,
     subscription: customerAuxiliaries[1].subscriptions[2]._id,
@@ -867,8 +868,8 @@ const eventsList = [
     type: ABSENCE,
     absence: PARENTAL_LEAVE,
     absenceNature: DAILY,
-    startDate: (new Date()),
-    endDate: (new Date()).setHours((new Date()).getHours() + 2),
+    startDate: CompaniDate().toISO(),
+    endDate: CompaniDate().add({ hours: 2 }).toISO(),
     auxiliary: auxiliaries[1]._id,
     createdAt: '2019-01-11T08:38:18.653Z',
   },
@@ -877,8 +878,8 @@ const eventsList = [
     company: authCompany._id,
     type: INTERVENTION,
     repetition: { frequency: EVERY_WEEK, parentId: new ObjectId() },
-    startDate: (new Date()),
-    endDate: (new Date()).setHours((new Date()).getHours() + 2),
+    startDate: CompaniDate().toISO(),
+    endDate: CompaniDate().add({ hours: 2 }).toISO(),
     auxiliary: auxiliaries[3]._id,
     customer: customerAuxiliaries[1]._id,
     subscription: customerAuxiliaries[1].subscriptions[2]._id,
@@ -897,8 +898,8 @@ const eventsList = [
     company: authCompany._id,
     type: INTERVENTION,
     repetition: { frequency: NEVER },
-    startDate: (new Date()).setHours((new Date()).getHours() - 2),
-    endDate: (new Date()),
+    startDate: CompaniDate().subtract({ hours: 3 }).toISO(),
+    endDate: CompaniDate().subtract({ hours: 1 }).toISO(),
     auxiliary: auxiliaries[3]._id,
     customer: customerAuxiliaries[1]._id,
     subscription: customerAuxiliaries[1].subscriptions[2]._id,
@@ -917,8 +918,8 @@ const eventsList = [
     company: authCompany._id,
     type: INTERVENTION,
     repetition: { frequency: NEVER },
-    startDate: (new Date()),
-    endDate: (new Date()).setHours((new Date()).getHours() + 2),
+    startDate: CompaniDate().toISO(),
+    endDate: CompaniDate().add({ hours: 2 }).toISO(),
     auxiliary: auxiliaries[2]._id,
     customer: customerAuxiliaries[1]._id,
     subscription: customerAuxiliaries[1].subscriptions[2]._id,
@@ -939,8 +940,8 @@ const eventsList = [
     company: authCompany._id,
     type: INTERVENTION,
     repetition: { frequency: EVERY_WEEK, parentId: new ObjectId() },
-    startDate: (new Date()),
-    endDate: (new Date()).setHours((new Date()).getHours() + 2),
+    startDate: CompaniDate().toISO(),
+    endDate: CompaniDate().add({ hours: 2 }).toISO(),
     auxiliary: auxiliaries[4]._id,
     customer: customerAuxiliaries[2]._id,
     subscription: customerAuxiliaries[2].subscriptions[2]._id,
@@ -1026,7 +1027,7 @@ const helpersList = [
   { customer: customerAuxiliaries[0]._id, user: helpersCustomer._id, company: authCompany._id, referent: true },
 ];
 
-const timeStampingDate = new Date();
+const timeStampingDate = CompaniDate().toISO();
 const eventHistoriesList = [
   {
     event: { eventId: eventsList[23]._id, startDate: timeStampingDate, type: INTERVENTION },

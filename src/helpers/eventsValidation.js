@@ -11,6 +11,7 @@ const {
 } = require('./constants');
 const User = require('../models/User');
 const Customer = require('../models/Customer');
+const Contract = require('../models/Contract');
 const EventHistory = require('../models/EventHistory');
 const ContractsHelper = require('./contracts');
 const CustomerAbsencesHelper = require('./customerAbsences');
@@ -87,7 +88,7 @@ exports.isCreationAllowed = async (event, credentials) => {
   return exports.isEditionAllowed(event, credentials);
 };
 
-exports.isUpdateAllowed = async (eventFromDB, payload, credentials) => {
+exports.isUpdateAllowed = async (eventFromDB, payload) => {
   const updateStartDate = payload.startDate && !CompaniDate(eventFromDB.startDate).isSame(payload.startDate);
   const updateEndDate = payload.endDate && !CompaniDate(eventFromDB.endDate).isSame(payload.endDate);
   const updateAuxiliary = payload.auxiliary &&
@@ -100,6 +101,16 @@ exports.isUpdateAllowed = async (eventFromDB, payload, credentials) => {
 
   if (eventFromDB.type === INTERVENTION && eventFromDB.isBilled) return false;
   if ([ABSENCE, UNAVAILABILITY].includes(eventFromDB.type) && isAuxiliaryUpdated(payload, eventFromDB)) return false;
+
+  if (payload.shouldUpdateRepetition && isAuxiliaryUpdated(payload, eventFromDB)) {
+    const eventDate = payload.startDate || eventFromDB.startDate;
+    const hasContractWithEndDateOnEventDate = await Contract.countDocuments({
+      user: payload.auxiliary,
+      endDate: { $exists: true, $gte: CompaniDate(eventDate).toDate() },
+      startDate: { $lte: CompaniDate(eventDate).toDate() },
+    });
+    if (hasContractWithEndDateOnEventDate) return false;
+  }
 
   const keysToOmit = payload.auxiliary ? ['repetition'] : ['auxiliary', 'repetition'];
   const frequency = get(payload, 'repetition.frequency') || get(eventFromDB, 'repetition.frequency');
@@ -116,7 +127,7 @@ exports.isUpdateAllowed = async (eventFromDB, payload, credentials) => {
     throw Boom.conflict(translate[language].eventsConflict);
   }
 
-  return exports.isEditionAllowed(event, credentials);
+  return exports.isEditionAllowed(event);
 };
 
 exports.checkDeletionIsAllowed = async (events) => {

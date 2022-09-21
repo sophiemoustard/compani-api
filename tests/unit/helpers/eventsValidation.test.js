@@ -4,6 +4,7 @@ const Boom = require('@hapi/boom');
 const { ObjectId } = require('mongodb');
 const User = require('../../../src/models/User');
 const Customer = require('../../../src/models/Customer');
+const Contract = require('../../../src/models/Contract');
 const EventHistory = require('../../../src/models/EventHistory');
 const EventsValidationHelper = require('../../../src/helpers/eventsValidation');
 const CustomerAbsencesHelper = require('../../../src/helpers/customerAbsences');
@@ -17,6 +18,7 @@ const {
   TIME_STAMPING_ACTIONS,
 } = require('../../../src/helpers/constants');
 const SinonMongoose = require('../sinonMongoose');
+const { CompaniDate } = require('../../../src/helpers/dates/companiDates');
 
 describe('isCustomerSubscriptionValid', () => {
   let countDocuments;
@@ -553,14 +555,16 @@ describe('isCreationAllowed', () => {
 describe('isUpdateAllowed', () => {
   let isEditionAllowed;
   let hasConflicts;
-  const credentials = { company: { _id: new ObjectId() } };
+  let countDocuments;
   beforeEach(() => {
     isEditionAllowed = sinon.stub(EventsValidationHelper, 'isEditionAllowed');
     hasConflicts = sinon.stub(EventsValidationHelper, 'hasConflicts');
+    countDocuments = sinon.stub(Contract, 'countDocuments');
   });
   afterEach(() => {
     isEditionAllowed.restore();
     hasConflicts.restore();
+    countDocuments.restore();
   });
 
   it('should return true if everything is ok', async () => {
@@ -576,7 +580,7 @@ describe('isUpdateAllowed', () => {
     hasConflicts.returns(false);
     isEditionAllowed.returns(true);
 
-    const result = await EventsValidationHelper.isUpdateAllowed(eventFromDB, payload, credentials);
+    const result = await EventsValidationHelper.isUpdateAllowed(eventFromDB, payload);
 
     expect(result).toBeTruthy();
     sinon.assert.calledOnceWithExactly(
@@ -595,8 +599,7 @@ describe('isUpdateAllowed', () => {
         startDate: '2019-04-13T09:00:00.000Z',
         endDate: '2019-04-13T11:00:00.000Z',
         repetition: { frequency: 'every_week' },
-      },
-      credentials
+      }
     );
   });
 
@@ -615,7 +618,7 @@ describe('isUpdateAllowed', () => {
       startDateTimeStamp: 1,
     };
 
-    const result = await EventsValidationHelper.isUpdateAllowed(eventFromDB, payload, credentials);
+    const result = await EventsValidationHelper.isUpdateAllowed(eventFromDB, payload);
 
     expect(result).toBe(false);
     sinon.assert.notCalled(hasConflicts);
@@ -636,7 +639,7 @@ describe('isUpdateAllowed', () => {
       startDateTimeStamp: 1,
     };
 
-    const result = await EventsValidationHelper.isUpdateAllowed(eventFromDB, payload, credentials);
+    const result = await EventsValidationHelper.isUpdateAllowed(eventFromDB, payload);
 
     expect(result).toBe(false);
     sinon.assert.notCalled(hasConflicts);
@@ -659,7 +662,7 @@ describe('isUpdateAllowed', () => {
       startDateTimeStamp: 1,
     };
 
-    const result = await EventsValidationHelper.isUpdateAllowed(eventFromDB, payload, credentials);
+    const result = await EventsValidationHelper.isUpdateAllowed(eventFromDB, payload);
 
     expect(result).toBe(false);
     sinon.assert.notCalled(hasConflicts);
@@ -681,7 +684,7 @@ describe('isUpdateAllowed', () => {
       endDateTimeStamp: 1,
     };
 
-    const result = await EventsValidationHelper.isUpdateAllowed(eventFromDB, payload, credentials);
+    const result = await EventsValidationHelper.isUpdateAllowed(eventFromDB, payload);
 
     expect(result).toBe(false);
     sinon.assert.notCalled(hasConflicts);
@@ -702,7 +705,7 @@ describe('isUpdateAllowed', () => {
       endDateTimeStamp: 1,
     };
 
-    const result = await EventsValidationHelper.isUpdateAllowed(eventFromDB, payload, credentials);
+    const result = await EventsValidationHelper.isUpdateAllowed(eventFromDB, payload);
 
     expect(result).toBe(false);
     sinon.assert.notCalled(hasConflicts);
@@ -725,7 +728,7 @@ describe('isUpdateAllowed', () => {
       endDateTimeStamp: 1,
     };
 
-    const result = await EventsValidationHelper.isUpdateAllowed(eventFromDB, payload, credentials);
+    const result = await EventsValidationHelper.isUpdateAllowed(eventFromDB, payload);
 
     expect(result).toBe(false);
     sinon.assert.notCalled(hasConflicts);
@@ -748,7 +751,7 @@ describe('isUpdateAllowed', () => {
       endDate: '2019-01-01T11:00:00.000Z',
     };
 
-    const result = await EventsValidationHelper.isUpdateAllowed(eventFromDB, payload, credentials);
+    const result = await EventsValidationHelper.isUpdateAllowed(eventFromDB, payload);
 
     expect(result).toBeFalsy();
     sinon.assert.notCalled(hasConflicts);
@@ -769,11 +772,92 @@ describe('isUpdateAllowed', () => {
       type: ABSENCE,
     };
 
-    const result = await EventsValidationHelper.isUpdateAllowed(eventFromDB, payload, credentials);
+    const result = await EventsValidationHelper.isUpdateAllowed(eventFromDB, payload);
 
     expect(result).toBeFalsy();
     sinon.assert.notCalled(hasConflicts);
     sinon.assert.notCalled(isEditionAllowed);
+  });
+
+  it('should return false as repetition and auxiliary are updated and auxiliary\'s contract is ended', async () => {
+    const payload = { auxiliary: new ObjectId(), shouldUpdateRepetition: true };
+    const eventFromDB = {
+      startDate: '2019-04-13T09:00:00.000Z',
+      endDate: '2019-04-13T11:00:00.000Z',
+      auxiliary: new ObjectId(),
+      type: INTERVENTION,
+      repetition: { frequency: 'every_week' },
+    };
+
+    countDocuments.returns(1);
+
+    const result = await EventsValidationHelper.isUpdateAllowed(eventFromDB, payload);
+
+    expect(result).toBeFalsy();
+    sinon.assert.notCalled(hasConflicts);
+    sinon.assert.notCalled(isEditionAllowed);
+    sinon.assert.calledOnceWithExactly(
+      countDocuments,
+      {
+        user: payload.auxiliary,
+        endDate: { $exists: true, $gte: CompaniDate('2019-04-13T09:00:00.000Z').toDate() },
+        startDate: { $lte: CompaniDate('2019-04-13T09:00:00.000Z').toDate() },
+      }
+    );
+  });
+
+  it('should return true as repetition and auxiliary are updated and auxiliary\'s contract is not ended', async () => {
+    const auxiliaryId = new ObjectId();
+    const payload = {
+      auxiliary: new ObjectId(),
+      startDate: '2019-04-13T09:00:00.000Z',
+      endDate: '2019-04-13T11:00:00.000Z',
+      shouldUpdateRepetition: true,
+    };
+    const eventFromDB = {
+      auxiliary: auxiliaryId,
+      type: INTERVENTION,
+      repetition: { frequency: 'every_week' },
+      startDate: '2019-01-01T09:00:00.000Z',
+      endDate: '2019-01-01T11:00:00.000Z',
+    };
+    hasConflicts.returns(false);
+    isEditionAllowed.returns(true);
+    countDocuments.returns(0);
+
+    const result = await EventsValidationHelper.isUpdateAllowed(eventFromDB, payload);
+
+    expect(result).toBeTruthy();
+    sinon.assert.calledOnceWithExactly(
+      countDocuments,
+      {
+        user: payload.auxiliary,
+        endDate: { $exists: true, $gte: CompaniDate('2019-04-13T09:00:00.000Z').toDate() },
+        startDate: { $lte: CompaniDate('2019-04-13T09:00:00.000Z').toDate() },
+      }
+    );
+    sinon.assert.calledOnceWithExactly(
+      hasConflicts,
+      {
+        type: INTERVENTION,
+        startDate: '2019-04-13T09:00:00.000Z',
+        endDate: '2019-04-13T11:00:00.000Z',
+        repetition: { frequency: 'every_week' },
+        shouldUpdateRepetition: true,
+        auxiliary: payload.auxiliary,
+      }
+    );
+    sinon.assert.calledOnceWithExactly(
+      isEditionAllowed,
+      {
+        type: INTERVENTION,
+        startDate: '2019-04-13T09:00:00.000Z',
+        endDate: '2019-04-13T11:00:00.000Z',
+        repetition: { frequency: 'every_week' },
+        shouldUpdateRepetition: true,
+        auxiliary: payload.auxiliary,
+      }
+    );
   });
 
   it('should return false as event is unavailability and auxiliary is updated', async () => {
@@ -790,7 +874,7 @@ describe('isUpdateAllowed', () => {
       type: UNAVAILABILITY,
     };
 
-    const result = await EventsValidationHelper.isUpdateAllowed(eventFromDB, payload, credentials);
+    const result = await EventsValidationHelper.isUpdateAllowed(eventFromDB, payload);
 
     expect(result).toBeFalsy();
     sinon.assert.notCalled(hasConflicts);
@@ -813,7 +897,7 @@ describe('isUpdateAllowed', () => {
     hasConflicts.returns(true);
 
     try {
-      await EventsValidationHelper.isUpdateAllowed(eventFromDB, payload, credentials);
+      await EventsValidationHelper.isUpdateAllowed(eventFromDB, payload);
     } catch (e) {
       expect(e.output.statusCode).toEqual(409);
     } finally {
@@ -850,7 +934,7 @@ describe('isUpdateAllowed', () => {
     hasConflicts.returns(true);
 
     try {
-      await EventsValidationHelper.isUpdateAllowed(eventFromDB, payload, credentials);
+      await EventsValidationHelper.isUpdateAllowed(eventFromDB, payload);
     } catch (e) {
       expect(e.output.statusCode).toEqual(409);
     } finally {
@@ -882,7 +966,7 @@ describe('isUpdateAllowed', () => {
     hasConflicts.returns(false);
     isEditionAllowed.returns(false);
 
-    const result = await EventsValidationHelper.isUpdateAllowed(eventFromDB, payload, credentials);
+    const result = await EventsValidationHelper.isUpdateAllowed(eventFromDB, payload);
 
     expect(result).toBeFalsy();
     sinon.assert.calledOnceWithExactly(
@@ -901,8 +985,7 @@ describe('isUpdateAllowed', () => {
         startDate: '2019-04-13T09:00:00.000Z',
         endDate: '2019-04-13T11:00:00.000Z',
         repetition: { frequency: 'every_week' },
-      },
-      credentials
+      }
     );
   });
 });
