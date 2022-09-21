@@ -806,7 +806,8 @@ describe('isUpdateAllowed', () => {
     );
   });
 
-  it('should return true as repetition and auxiliary are updated and auxiliary\'s contract is not ended', async () => {
+  it(`should return true as repetition and auxiliary (from other auxiliary) are updated and auxiliary's contract is not
+    ended`, async () => {
     const auxiliaryId = new ObjectId();
     const payload = {
       auxiliary: new ObjectId(),
@@ -859,6 +860,62 @@ describe('isUpdateAllowed', () => {
       }
     );
   });
+
+  it('should return true as repetition and auxiliary are updated (from sector) and auxiliary\'s contract is not ended',
+    async () => {
+      const payload = {
+        auxiliary: new ObjectId(),
+        startDate: '2019-04-13T09:00:00.000Z',
+        endDate: '2019-04-13T11:00:00.000Z',
+        shouldUpdateRepetition: true,
+      };
+      const eventFromDB = {
+        sector: new ObjectId(),
+        type: INTERVENTION,
+        repetition: { frequency: 'every_week' },
+        startDate: '2019-01-01T09:00:00.000Z',
+        endDate: '2019-01-01T11:00:00.000Z',
+      };
+      hasConflicts.returns(false);
+      isEditionAllowed.returns(true);
+      countDocuments.returns(0);
+
+      const result = await EventsValidationHelper.isUpdateAllowed(eventFromDB, payload);
+
+      expect(result).toBeTruthy();
+      sinon.assert.calledOnceWithExactly(
+        countDocuments,
+        {
+          user: payload.auxiliary,
+          endDate: { $exists: true, $gte: CompaniDate('2019-04-13T09:00:00.000Z').toDate() },
+          startDate: { $lte: CompaniDate('2019-04-13T09:00:00.000Z').toDate() },
+        }
+      );
+      sinon.assert.calledOnceWithExactly(
+        hasConflicts,
+        {
+          type: INTERVENTION,
+          startDate: '2019-04-13T09:00:00.000Z',
+          endDate: '2019-04-13T11:00:00.000Z',
+          repetition: { frequency: 'every_week' },
+          shouldUpdateRepetition: true,
+          auxiliary: payload.auxiliary,
+          sector: eventFromDB.sector,
+        }
+      );
+      sinon.assert.calledOnceWithExactly(
+        isEditionAllowed,
+        {
+          type: INTERVENTION,
+          startDate: '2019-04-13T09:00:00.000Z',
+          endDate: '2019-04-13T11:00:00.000Z',
+          repetition: { frequency: 'every_week' },
+          shouldUpdateRepetition: true,
+          auxiliary: payload.auxiliary,
+          sector: eventFromDB.sector,
+        }
+      );
+    });
 
   it('should return false as event is unavailability and auxiliary is updated', async () => {
     const payload = {
