@@ -861,6 +861,30 @@ describe('isUpdateAllowed', () => {
     );
   });
 
+  it('should not check contract if the repetition is assign to a sector', async () => {
+    const auxiliaryId = new ObjectId();
+    const payload = {
+      startDate: '2019-04-13T09:00:00.000Z',
+      endDate: '2019-04-13T11:00:00.000Z',
+      shouldUpdateRepetition: true,
+      sector: new ObjectId(),
+    };
+    const eventFromDB = {
+      auxiliary: auxiliaryId,
+      type: INTERVENTION,
+      repetition: { frequency: 'every_week' },
+      startDate: '2019-01-01T09:00:00.000Z',
+      endDate: '2019-01-01T11:00:00.000Z',
+    };
+    hasConflicts.returns(false);
+    isEditionAllowed.returns(true);
+    countDocuments.returns(0);
+
+    await EventsValidationHelper.isUpdateAllowed(eventFromDB, payload);
+
+    sinon.assert.notCalled(countDocuments);
+  });
+
   it('should return true as repetition and auxiliary are updated (from sector) and auxiliary\'s contract is not ended',
     async () => {
       const payload = {
