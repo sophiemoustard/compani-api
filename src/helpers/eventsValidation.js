@@ -56,7 +56,7 @@ exports.hasConflicts = async (event) => {
 
 const isOneDayEvent = event => CompaniDate(event.startDate).isSame(event.endDate, 'day');
 
-const isAuxiliaryUpdated = (payload, eventFromDB) =>
+const isAuxiliaryUpdated = (payload, eventFromDB) => payload.auxiliary &&
   !UtilsHelper.areObjectIdsEquals(payload.auxiliary, eventFromDB.auxiliary);
 
 const isRepetition = event => event.repetition && event.repetition.frequency && event.repetition.frequency !== NEVER;
