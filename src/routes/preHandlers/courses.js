@@ -405,9 +405,9 @@ exports.authorizeAttendanceSheetsGetAndAssignCourse = async (req) => {
 exports.authorizeSmsSending = async (req) => {
   const { course } = req.pre;
 
-  const noSlotToCome = !course.slots || !course.slots.some(slot => moment().isBefore(slot.startDate));
+  const isFinished = !course.slots || !course.slots.some(slot => moment().isBefore(slot.endDate));
   const noReceiver = !course.trainees || !course.trainees.some(trainee => get(trainee, 'contact.phone'));
-  if ((noSlotToCome && req.payload.type !== OTHER) || noReceiver) throw Boom.forbidden();
+  if ((isFinished && req.payload.type !== OTHER) || noReceiver) throw Boom.forbidden();
 
   return null;
 };
