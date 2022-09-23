@@ -9,7 +9,7 @@ const COURSE_FORMATS = [STRICTLY_E_LEARNING, BLENDED];
 const CourseSchema = mongoose.Schema({
   misc: { type: String },
   subProgram: { type: mongoose.Schema.Types.ObjectId, ref: 'SubProgram', required: true },
-  company: { type: mongoose.Schema.Types.ObjectId, ref: 'Company', required() { return this.type === INTRA; } },
+  companies: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Company', required() { return this.type === INTRA; } }],
   type: { type: String, required: true, enum: COURSE_TYPES },
   format: { type: String, enum: COURSE_FORMATS, default: BLENDED },
   trainer: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
@@ -26,14 +26,6 @@ const CourseSchema = mongoose.Schema({
   archivedAt: { type: Date },
   maxTrainees: { type: Number, required() { return this.type === INTRA; } },
 }, { timestamps: true });
-
-// eslint-disable-next-line consistent-return
-function getCompanies() {
-  if (this.trainees && this.trainees.some(t => t.company)) {
-    const redundantCompanies = this.trainees ? this.trainees.map(t => t.company._id.toHexString()) : [];
-    return [...new Set(redundantCompanies)];
-  }
-}
 
 CourseSchema.virtual('slots', {
   ref: 'CourseSlot',
@@ -56,7 +48,6 @@ CourseSchema.virtual('bills', {
   options: { sort: { createdAt: -1 } },
 });
 
-CourseSchema.virtual('companies').get(getCompanies);
 formatQueryMiddlewareList().map(middleware => CourseSchema.pre(middleware, formatQuery));
 
 CourseSchema.plugin(mongooseLeanVirtuals);
