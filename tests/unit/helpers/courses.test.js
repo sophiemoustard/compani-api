@@ -84,7 +84,7 @@ describe('createCourse', () => {
 
     expect(result.misc).toEqual('name');
     expect(result.subProgram).toEqual(payload.subProgram);
-    expect(result.company).toEqual(payload.company);
+    expect(result.companies).toContain(payload.company);
     expect(result.format).toEqual('blended');
     expect(result.type).toEqual(INTRA);
     expect(result.salesRepresentative).toEqual(payload.salesRepresentative);
@@ -103,7 +103,6 @@ describe('createCourse', () => {
     const subProgram = { _id: new ObjectId(), steps: [] };
     const payload = {
       misc: 'name',
-      company: new ObjectId(),
       subProgram: subProgram._id,
       type: INTER_B2B,
       salesRepresentative: new ObjectId(),
@@ -115,8 +114,8 @@ describe('createCourse', () => {
 
     expect(result.misc).toEqual('name');
     expect(result.subProgram).toEqual(payload.subProgram);
-    expect(result.company).toEqual(payload.company);
     expect(result.format).toEqual('blended');
+    expect(result.companies).toEqual([]);
     expect(result.type).toEqual(INTER_B2B);
     expect(result.salesRepresentative).toEqual(payload.salesRepresentative);
     sinon.assert.notCalled(insertManyCourseSlot);
