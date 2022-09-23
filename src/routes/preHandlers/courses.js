@@ -54,6 +54,19 @@ exports.checkSalesRepresentativeExists = async (req) => {
   return null;
 };
 
+exports.authorizeCourseCreation = async (req) => {
+  await this.checkSalesRepresentativeExists(req);
+
+  if (get(req, 'payload.company')) {
+    const { company } = req.payload;
+
+    const companyExists = await Company.countDocuments({ _id: company });
+    if (!companyExists) throw Boom.notFound();
+  }
+
+  return null;
+};
+
 exports.authorizeGetDocumentsAndSms = async (req) => {
   const { credentials } = req.auth;
   const { course } = req.pre;

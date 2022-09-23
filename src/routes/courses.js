@@ -36,7 +36,7 @@ const {
   authorizeAccessRuleDeletion,
   authorizeGetCourse,
   authorizeGetFollowUp,
-  checkSalesRepresentativeExists,
+  authorizeCourseCreation,
   authorizeGetQuestionnaires,
   authorizeAttendanceSheetsGetAndAssignCourse,
   authorizeSmsSending,
@@ -102,7 +102,7 @@ exports.plugin = {
           }),
         },
         auth: { scope: ['courses:create'] },
-        pre: [{ method: checkSalesRepresentativeExists }],
+        pre: [{ method: authorizeCourseCreation }],
       },
       handler: create,
     });
