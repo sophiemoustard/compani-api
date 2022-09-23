@@ -21,6 +21,7 @@ const {
   TRAINEE_DELETION,
   INTRA,
   INTER_B2B,
+  OTHER,
 } = require('../../src/helpers/constants');
 const {
   populateDB,
@@ -1611,6 +1612,31 @@ describe('COURSES ROUTES - POST /courses/{_id}/sms', () => {
       );
     });
 
+    it('should send a sms if type is other and course is finished', async () => {
+      SmsHelperStub.returns('SMS SENT !');
+      const smsHistoryBefore = await CourseSmsHistory.countDocuments({ course: courseIdFromAuthCompany });
+
+      const response = await app.inject({
+        method: 'POST',
+        url: `/courses/${courseIdFromAuthCompany}/sms`,
+        payload: { content: 'test', type: OTHER },
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(200);
+      const smsHistoryAfter = await CourseSmsHistory.countDocuments({ course: courseIdFromAuthCompany });
+      expect(smsHistoryAfter).toEqual(smsHistoryBefore + 1);
+      sinon.assert.calledWithExactly(
+        SmsHelperStub,
+        {
+          recipient: `+33${coach.contact.phone.substring(1)}`,
+          sender: 'Compani',
+          content: 'test',
+          tag: COURSE_SMS,
+        }
+      );
+    });
+
     it('should return a 400 error if type is invalid', async () => {
       const response = await app.inject({
         method: 'POST',
@@ -1623,7 +1649,7 @@ describe('COURSES ROUTES - POST /courses/{_id}/sms', () => {
       sinon.assert.notCalled(SmsHelperStub);
     });
 
-    it('should return a 403 if course has no slot to come', async () => {
+    it('should return a 403 if course has no slot to come and type is not other', async () => {
       momentIsBefore.returns(false);
       const response = await app.inject({
         method: 'POST',
