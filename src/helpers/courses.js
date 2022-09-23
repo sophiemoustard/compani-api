@@ -96,7 +96,8 @@ const listBlendedForCompany = async (query, origin) => {
 
   return [
     ...intraCourse,
-    ...interCourse.filter(course => course.companies && course.companies.includes(query.company))
+    ...interCourse
+      .filter(course => UtilsHelper.doesArrayIncludeId(course.trainees.map(t => t.company._id), query.company))
       .map(course => ({
         ...omit(course, ['companies']),
         trainees: course.trainees.filter(t =>
