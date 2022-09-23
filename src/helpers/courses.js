@@ -50,7 +50,11 @@ const CourseSlot = require('../models/CourseSlot');
 const CourseHistory = require('../models/CourseHistory');
 
 exports.createCourse = async (payload) => {
-  const course = await (new Course(payload)).save();
+  const coursePayload = payload.company
+    ? { ...omit(payload, 'company'), companies: [payload.company] }
+    : payload;
+
+  const course = await (new Course(coursePayload)).save();
 
   const subProgram = await SubProgram
     .findOne({ _id: course.subProgram }, { steps: 1 })
