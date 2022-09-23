@@ -33,6 +33,7 @@ const {
   ON_SITE,
   E_LEARNING,
   MOBILE,
+  WEBAPP,
   VENDOR_ADMIN,
   TRAINING_ORGANISATION_MANAGER,
   TRAINER,
@@ -210,46 +211,56 @@ exports.listUserCourses = async (trainee) => {
   return courses.map(course => exports.formatCourseWithProgress(course));
 };
 
-const getCourseForOperations = async (courseId, loggedUser) => {
+const getCourseForOperations = async (courseId, loggedUser, origin) => {
   const fetchedCourse = await Course.findOne({ _id: courseId })
-    .populate({ path: 'company', select: 'name' })
-    .populate({
-      path: 'subProgram',
-      select: 'program steps',
-      populate: [
-        { path: 'program', select: 'name learningGoals' },
-        {
-          path: 'steps',
-          select: 'name type theoreticalHours',
-          populate: {
-            path: 'activities',
-            select: 'name type',
-            populate: { path: 'activityHistories', select: 'user' },
+    .populate([
+      { path: 'company', select: 'name' },
+      {
+        path: 'trainees',
+        select: 'identity.firstname identity.lastname local.email contact picture.link',
+        populate: { path: 'company', populate: { path: 'company', select: 'name' } },
+      },
+      {
+        path: 'subProgram',
+        select: 'program steps',
+        populate: [
+          { path: 'program', select: 'name learningGoals' },
+          ...(origin === WEBAPP
+            ? [{
+              path: 'steps',
+              select: 'name type theoreticalHours',
+              populate: {
+                path: 'activities',
+                select: 'name type',
+                populate: { path: 'activityHistories', select: 'user' },
+              },
+            }]
+            : []
+          ),
+        ],
+      },
+      ...(origin === WEBAPP
+        ? [
+          { path: 'slots', select: 'step startDate endDate address meetingLink' },
+          { path: 'slotsToPlan', select: '_id step' },
+          {
+            path: 'trainer',
+            select: 'identity.firstname identity.lastname contact.phone local.email picture.link',
           },
-        },
-      ],
-    })
-    .populate({ path: 'slots', select: 'step startDate endDate address meetingLink' })
-    .populate({ path: 'slotsToPlan', select: '_id step' })
-    .populate({
-      path: 'trainees',
-      select: 'identity.firstname identity.lastname local.email contact picture.link',
-      populate: { path: 'company', populate: { path: 'company', select: 'name' } },
-    })
-    .populate({
-      path: 'trainer',
-      select: 'identity.firstname identity.lastname contact.phone local.email picture.link',
-    })
-    .populate({ path: 'accessRules', select: 'name' })
-    .populate({
-      path: 'salesRepresentative',
-      select: 'identity.firstname identity.lastname contact.phone local.email picture.link',
-    })
-    .populate({
-      path: 'companyRepresentative',
-      select: 'identity.firstname identity.lastname contact.phone local.email picture.link',
-    })
-    .populate({ path: 'contact', select: 'identity.firstname identity.lastname contact.phone' })
+          { path: 'accessRules', select: 'name' },
+          {
+            path: 'salesRepresentative',
+            select: 'identity.firstname identity.lastname contact.phone local.email picture.link',
+          },
+          {
+            path: 'companyRepresentative',
+            select: 'identity.firstname identity.lastname contact.phone local.email picture.link',
+          },
+          { path: 'contact', select: 'identity.firstname identity.lastname contact.phone' },
+        ]
+        : []
+      ),
+    ])
     .lean();
 
   // A coach/client_admin is not supposed to read infos on trainees from other companies
@@ -268,7 +279,7 @@ const getCourseForOperations = async (courseId, loggedUser) => {
 
 exports.getCourse = async (query, params, loggedUser) => (
   query.action === OPERATIONS
-    ? getCourseForOperations(params._id, loggedUser)
+    ? getCourseForOperations(params._id, loggedUser, query.origin)
     : exports.getCourseForPedagogy(params._id, loggedUser)
 );
 

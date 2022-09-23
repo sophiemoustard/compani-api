@@ -111,7 +111,12 @@ exports.plugin = {
       options: {
         validate: {
           params: Joi.object({ _id: Joi.objectId().required() }),
-          query: Joi.object({ action: Joi.string().required().valid(OPERATIONS, PEDAGOGY) }),
+          query: Joi.object({
+            action: Joi.string().required().valid(OPERATIONS, PEDAGOGY),
+            origin: Joi.string()
+              .when('action', { is: OPERATIONS, then: Joi.required(), otherwise: Joi.forbidden() })
+              .valid(WEBAPP, MOBILE),
+          }),
         },
         auth: { mode: 'required' },
         pre: [{ method: getCourse, assign: 'course' }, { method: authorizeGetCourse }],
