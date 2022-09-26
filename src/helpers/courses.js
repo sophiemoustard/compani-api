@@ -217,7 +217,7 @@ const getCourseForOperations = async (courseId, loggedUser, origin) => {
       { path: 'company', select: 'name' },
       {
         path: 'trainees',
-        select: 'identity.firstname identity.lastname local.email contact picture.link',
+        select: 'identity.firstname identity.lastname local.email contact picture.link firstMobileConnection',
         populate: { path: 'company', populate: { path: 'company', select: 'name' } },
       },
       {
