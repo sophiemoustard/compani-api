@@ -16,6 +16,7 @@ const {
   UNAVAILABILITY,
   HOURLY,
   TIME_STAMPING_ACTIONS,
+  EVERY_DAY,
 } = require('../../../src/helpers/constants');
 const SinonMongoose = require('../sinonMongoose');
 const { CompaniDate } = require('../../../src/helpers/dates/companiDates');
@@ -207,6 +208,65 @@ describe('isUserContractValidOnEventDates', () => {
     const result = await EventsValidationHelper.isUserContractValidOnEventDates(event);
 
     expect(result).toBe(true);
+    SinonMongoose.calledOnceWithExactly(
+      findOne,
+      [
+        { query: 'findOne', args: [{ _id: event.auxiliary }] },
+        { query: 'populate', args: ['contracts'] },
+        { query: 'lean' },
+      ]
+    );
+  });
+
+  it('should return true if auxiliary has non-ended contract and event is repetition', async () => {
+    const event = {
+      auxiliary: new ObjectId(),
+      startDate: '2020-04-30T09:00:00.000Z',
+      endDate: '2020-04-30T11:25:59.000Z',
+      type: INTERVENTION,
+      repetition: { parentId: new ObjectId(), frequency: EVERY_DAY },
+    };
+    const contracts = [
+      { user: event.auxiliary, startDate: '2020-01-04T00:00:00.000Z' },
+      { user: event.auxiliary, startDate: '2018-01-04T00:00:00.000Z', endDate: '2018-05-20T00:00:00.000Z' },
+    ];
+    const user = { _id: event.auxiliary, contracts };
+
+    findOne.returns(SinonMongoose.stubChainedQueries(user));
+
+    const result = await EventsValidationHelper.isUserContractValidOnEventDates(event);
+
+    expect(result).toBe(true);
+    SinonMongoose.calledOnceWithExactly(
+      findOne,
+      [
+        { query: 'findOne', args: [{ _id: event.auxiliary }] },
+        { query: 'populate', args: ['contracts'] },
+        { query: 'lean' },
+      ]
+    );
+  });
+
+  it('should return false if auxiliary has ended contract and event is repetition', async () => {
+    const event = {
+      auxiliary: new ObjectId(),
+      startDate: '2020-04-30T09:00:00.000Z',
+      endDate: '2020-04-30T11:25:59.000Z',
+      type: INTERVENTION,
+      repetition: { parentId: new ObjectId(), frequency: EVERY_DAY },
+    };
+    const contract = {
+      user: event.auxiliary,
+      startDate: '2020-01-04T00:00:00.000Z',
+      endDate: '2020-01-30T00:00:00.000Z',
+    };
+    const user = { _id: event.auxiliary, contracts: [contract] };
+
+    findOne.returns(SinonMongoose.stubChainedQueries(user));
+
+    const result = await EventsValidationHelper.isUserContractValidOnEventDates(event);
+
+    expect(result).toBe(false);
     SinonMongoose.calledOnceWithExactly(
       findOne,
       [

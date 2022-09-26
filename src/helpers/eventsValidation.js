@@ -36,9 +36,15 @@ exports.isUserContractValidOnEventDates = async (event) => {
   const user = await User.findOne({ _id: event.auxiliary }).populate('contracts').lean();
   if (!user.contracts || user.contracts.length === 0) return false;
 
-  return event.type === ABSENCE
-    ? ContractsHelper.auxiliaryHasActiveContractBetweenDates(user.contracts, event.startDate, event.endDate)
-    : ContractsHelper.auxiliaryHasActiveContractOnDay(user.contracts, event.startDate);
+  if (event.type === ABSENCE) {
+    return ContractsHelper.auxiliaryHasActiveContractBetweenDates(user.contracts, event.startDate, event.endDate);
+  }
+
+  if (isRepetition(event)) {
+    return ContractsHelper.auxiliaryHasActiveContractBetweenDates(user.contracts, event.startDate);
+  }
+
+  return ContractsHelper.auxiliaryHasActiveContractOnDay(user.contracts, event.startDate);
 };
 
 exports.hasConflicts = async (event) => {
