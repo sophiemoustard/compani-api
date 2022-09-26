@@ -213,87 +213,87 @@ describe('ATTENDANCE SHEETS ROUTES - POST /attendancesheets', () => {
   });
 });
 
-describe('ATTENDANCE SHEETS ROUTES - GET /attendancesheets', () => {
-  let authToken;
+// describe('ATTENDANCE SHEETS ROUTES - GET /attendancesheets', () => {
+//   let authToken;
 
-  describe('TRAINER', () => {
-    beforeEach(populateDB);
-    beforeEach(async () => {
-      authToken = await getToken('trainer');
-    });
+//   describe('TRAINER', () => {
+//     beforeEach(populateDB);
+//     beforeEach(async () => {
+//       authToken = await getToken('trainer');
+//     });
 
-    it('should get course\'s attendance sheets', async () => {
-      const attendanceSheetsLength = await AttendanceSheet.countDocuments({ course: coursesList[0]._id });
+//     it('should get course\'s attendance sheets', async () => {
+//       const attendanceSheetsLength = await AttendanceSheet.countDocuments({ course: coursesList[0]._id });
 
-      const response = await app.inject({
-        method: 'GET',
-        url: `/attendancesheets?course=${coursesList[0]._id}`,
-        headers: { Cookie: `alenvi_token=${authToken}` },
-      });
+//       const response = await app.inject({
+//         method: 'GET',
+//         url: `/attendancesheets?course=${coursesList[0]._id}`,
+//         headers: { Cookie: `alenvi_token=${authToken}` },
+//       });
 
-      expect(response.statusCode).toBe(200);
-      expect(response.result.data.attendanceSheets.length).toEqual(attendanceSheetsLength);
-    });
+//       expect(response.statusCode).toBe(200);
+//       expect(response.result.data.attendanceSheets.length).toEqual(attendanceSheetsLength);
+//     });
 
-    it('should return a 404 if course doesn\'t exist', async () => {
-      const response = await app.inject({
-        method: 'GET',
-        url: `/attendancesheets?course=${new ObjectId()}`,
-        headers: { Cookie: `alenvi_token=${authToken}` },
-      });
+//     it('should return a 404 if course doesn\'t exist', async () => {
+//       const response = await app.inject({
+//         method: 'GET',
+//         url: `/attendancesheets?course=${new ObjectId()}`,
+//         headers: { Cookie: `alenvi_token=${authToken}` },
+//       });
 
-      expect(response.statusCode).toBe(404);
-    });
-  });
+//       expect(response.statusCode).toBe(404);
+//     });
+//   });
 
-  describe('Other roles', () => {
-    beforeEach(populateDB);
+//   describe('Other roles', () => {
+//     beforeEach(populateDB);
 
-    it('should return a 403 if course is not from userCompany and user has no vendor role', async () => {
-      authToken = await getToken('coach');
-      const response = await app.inject({
-        method: 'GET',
-        url: `/attendancesheets?course=${coursesList[2]._id}`,
-        headers: { Cookie: `alenvi_token=${authToken}` },
-      });
+//     it('should return a 403 if course is not from userCompany and user has no vendor role', async () => {
+//       authToken = await getToken('coach');
+//       const response = await app.inject({
+//         method: 'GET',
+//         url: `/attendancesheets?course=${coursesList[2]._id}`,
+//         headers: { Cookie: `alenvi_token=${authToken}` },
+//       });
 
-      expect(response.statusCode).toBe(403);
-    });
+//       expect(response.statusCode).toBe(403);
+//     });
 
-    it('should get only authCompany\'s attendance sheets for interB2B course if user does not have vendor role',
-      async () => {
-        authToken = await getToken('coach');
+//     it('should get only authCompany\'s attendance sheets for interB2B course if user does not have vendor role',
+//       async () => {
+//         authToken = await getToken('coach');
 
-        const response = await app.inject({
-          method: 'GET',
-          url: `/attendancesheets?course=${coursesList[1]._id}`,
-          headers: { Cookie: `alenvi_token=${authToken}` },
-        });
+//         const response = await app.inject({
+//           method: 'GET',
+//           url: `/attendancesheets?course=${coursesList[1]._id}`,
+//           headers: { Cookie: `alenvi_token=${authToken}` },
+//         });
 
-        expect(response.statusCode).toBe(200);
-        expect(response.result.data.attendanceSheets.length).toEqual(1);
-      });
+//         expect(response.statusCode).toBe(200);
+//         expect(response.result.data.attendanceSheets.length).toEqual(1);
+//       });
 
-    const roles = [
-      { name: 'helper', expectedCode: 403 },
-      { name: 'planning_referent', expectedCode: 403 },
-      { name: 'coach', expectedCode: 200 },
-    ];
+//     const roles = [
+//       { name: 'helper', expectedCode: 403 },
+//       { name: 'planning_referent', expectedCode: 403 },
+//       { name: 'coach', expectedCode: 200 },
+//     ];
 
-    roles.forEach((role) => {
-      it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
-        authToken = await getToken(role.name);
-        const response = await app.inject({
-          method: 'GET',
-          url: `/attendancesheets?course=${coursesList[0]._id}`,
-          headers: { Cookie: `alenvi_token=${authToken}` },
-        });
+//     roles.forEach((role) => {
+//       it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+//         authToken = await getToken(role.name);
+//         const response = await app.inject({
+//           method: 'GET',
+//           url: `/attendancesheets?course=${coursesList[0]._id}`,
+//           headers: { Cookie: `alenvi_token=${authToken}` },
+//         });
 
-        expect(response.statusCode).toBe(role.expectedCode);
-      });
-    });
-  });
-});
+//         expect(response.statusCode).toBe(role.expectedCode);
+//       });
+//     });
+//   });
+// });
 
 describe('ATTENDANCE SHEETS ROUTES - DELETE /attendancesheets/{_id}', () => {
   let authToken;
