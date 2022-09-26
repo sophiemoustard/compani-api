@@ -6,7 +6,7 @@ const { WEBAPP, MOBILE } = require('../helpers/constants');
 exports.findCourseAndPopulate = (query, origin, populateVirtual = false) => Course
   .find(query, origin === WEBAPP ? 'misc type archivedAt estimatedStartDate createdAt' : 'misc')
   .populate([
-    { path: 'companies', select: 'name' },
+    { path: 'company', select: 'name' },
     {
       path: 'subProgram',
       select: 'program',
