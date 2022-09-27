@@ -133,6 +133,25 @@ describe('COURSES ROUTES - POST /courses', () => {
       expect(response.statusCode).toBe(403);
     });
 
+    it('should return 403 if invalid company', async () => {
+      const payload = {
+        misc: 'course',
+        type: INTRA,
+        company: new ObjectId(),
+        maxTrainees: 12,
+        subProgram: subProgramsList[0]._id,
+        salesRepresentative: vendorAdmin._id,
+      };
+      const response = await app.inject({
+        method: 'POST',
+        url: '/courses',
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload,
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
+
     it('should return 400 if invalid type', async () => {
       const payload = {
         misc: 'course',
