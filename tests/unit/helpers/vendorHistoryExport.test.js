@@ -11,9 +11,9 @@ const ExportHelper = require('../../../src/helpers/vendorHistoryExport');
 const {
   INTRA,
   INTER_B2B,
-  // ON_SITE,
-  // REMOTE,
-  // E_LEARNING,
+  ON_SITE,
+  REMOTE,
+  E_LEARNING,
   // LESSON,
   // PUBLISHED,
   // EXPECTATIONS,
@@ -25,7 +25,7 @@ const {
   CHECK,
   REFUND,
 } = require('../../../src/helpers/constants');
-// const CourseSlot = require('../../../src/models/CourseSlot');
+const CourseSlot = require('../../../src/models/CourseSlot');
 // const Course = require('../../../src/models/Course');
 // const CourseSmsHistory = require('../../../src/models/CourseSmsHistory');
 // const QuestionnaireHistory = require('../../../src/models/QuestionnaireHistory');
@@ -644,240 +644,241 @@ const CoursePayment = require('../../../src/models/CoursePayment');
 //   });
 // });
 
-// describe('exportCourseSlotHistory', () => {
-//   const courseIdList = [new ObjectId(), new ObjectId()];
+describe('exportCourseSlotHistory', () => {
+  const courseIdList = [new ObjectId(), new ObjectId()];
 
-//   const traineeList = [
-//     { _id: new ObjectId() },
-//     { _id: new ObjectId() },
-//     { _id: new ObjectId() },
-//     { _id: new ObjectId() },
-//     { _id: new ObjectId() },
-//   ];
+  const traineeList = [
+    { _id: new ObjectId() },
+    { _id: new ObjectId() },
+    { _id: new ObjectId() },
+    { _id: new ObjectId() },
+    { _id: new ObjectId() },
+  ];
 
-//   const courseList = [
-//     {
-//       _id: courseIdList[0],
-//       trainees: [traineeList[0]._id, traineeList[1]._id, traineeList[2]._id],
-//       type: INTRA,
-//       company: { _id: new ObjectId(), name: 'Enbonne Company' },
-//       subProgram: { _id: new ObjectId(), program: { _id: new ObjectId(), name: 'Program 1' } },
-//       misc: 'group 1',
-//     },
-//     {
-//       _id: courseIdList[1],
-//       trainees: [traineeList[3]._id, traineeList[4]._id],
-//       type: INTER_B2B,
-//       subProgram: { _id: new ObjectId(), program: { _id: new ObjectId(), name: 'Program 2' } },
-//       misc: 'group 2',
-//     },
-//   ];
+  const courseList = [
+    {
+      _id: courseIdList[0],
+      trainees: [traineeList[0]._id, traineeList[1]._id, traineeList[2]._id],
+      type: INTRA,
+      companies: [{ _id: new ObjectId(), name: 'Enbonne Company' }],
+      subProgram: { _id: new ObjectId(), program: { _id: new ObjectId(), name: 'Program 1' } },
+      misc: 'group 1',
+    },
+    {
+      _id: courseIdList[1],
+      trainees: [traineeList[3]._id, traineeList[4]._id],
+      type: INTER_B2B,
+      subProgram: { _id: new ObjectId(), program: { _id: new ObjectId(), name: 'Program 2' } },
+      companies: [],
+      misc: 'group 2',
+    },
+  ];
 
-//   const stepList = [
-//     { _id: new ObjectId(), name: 'étape 1', type: ON_SITE },
-//     { _id: new ObjectId(), name: 'étape 2', type: REMOTE },
-//     { _id: new ObjectId(), name: 'étape 3', type: E_LEARNING },
-//   ];
+  const stepList = [
+    { _id: new ObjectId(), name: 'étape 1', type: ON_SITE },
+    { _id: new ObjectId(), name: 'étape 2', type: REMOTE },
+    { _id: new ObjectId(), name: 'étape 3', type: E_LEARNING },
+  ];
 
-//   const slotAddress = {
-//     street: '24 Avenue Daumesnil',
-//     fullAddress: '24 Avenue Daumesnil 75012 Paris',
-//     zipCode: '75012',
-//     city: 'Paris',
-//     location: { type: 'Point', coordinates: [2.37345, 48.848024] },
-//   };
+  const slotAddress = {
+    street: '24 Avenue Daumesnil',
+    fullAddress: '24 Avenue Daumesnil 75012 Paris',
+    zipCode: '75012',
+    city: 'Paris',
+    location: { type: 'Point', coordinates: [2.37345, 48.848024] },
+  };
 
-//   const courseSlotList = [
-//     {
-//       _id: new ObjectId(),
-//       course: courseList[0],
-//       startDate: '2021-05-01T08:00:00.000Z',
-//       endDate: '2021-05-01T10:00:00.000Z',
-//       createdAt: '2020-12-12T10:00:00.000Z',
-//       step: stepList[0],
-//       address: slotAddress,
-//       attendances: [{ trainee: traineeList[0]._id }],
-//     },
-//     {
-//       _id: new ObjectId(),
-//       course: courseList[0],
-//       startDate: '2021-05-01T14:00:00.000Z',
-//       endDate: '2021-05-01T16:00:00.000Z',
-//       createdAt: '2020-12-12T10:00:01.000Z',
-//       step: stepList[1],
-//       meetingLink: 'https://meet.google.com',
-//       attendances: [{ trainee: traineeList[0]._id }, { trainee: traineeList[1]._id }],
-//     },
-//     {
-//       _id: new ObjectId(),
-//       course: courseList[1],
-//       startDate: '2021-02-01T08:00:00.000Z',
-//       endDate: '2021-02-01T10:00:00.000Z',
-//       createdAt: '2020-12-12T10:00:02.000Z',
-//       step: stepList[0],
-//       address: slotAddress,
-//       attendances: [{ trainee: traineeList[1]._id }, { trainee: traineeList[3]._id }],
-//     },
-//     {
-//       _id: new ObjectId(),
-//       course: courseList[1],
-//       startDate: '2021-02-02T08:00:00.000Z',
-//       endDate: '2021-02-02T10:00:00.000Z',
-//       createdAt: '2020-12-12T10:00:03.000Z',
-//       step: stepList[2],
-//       attendances: [{ trainee: traineeList[1]._id }, { trainee: traineeList[3]._id }],
-//     },
-//   ];
+  const courseSlotList = [
+    {
+      _id: new ObjectId(),
+      course: courseList[0],
+      startDate: '2021-05-01T08:00:00.000Z',
+      endDate: '2021-05-01T10:00:00.000Z',
+      createdAt: '2020-12-12T10:00:00.000Z',
+      step: stepList[0],
+      address: slotAddress,
+      attendances: [{ trainee: traineeList[0]._id }],
+    },
+    {
+      _id: new ObjectId(),
+      course: courseList[0],
+      startDate: '2021-05-01T14:00:00.000Z',
+      endDate: '2021-05-01T16:00:00.000Z',
+      createdAt: '2020-12-12T10:00:01.000Z',
+      step: stepList[1],
+      meetingLink: 'https://meet.google.com',
+      attendances: [{ trainee: traineeList[0]._id }, { trainee: traineeList[1]._id }],
+    },
+    {
+      _id: new ObjectId(),
+      course: courseList[1],
+      startDate: '2021-02-01T08:00:00.000Z',
+      endDate: '2021-02-01T10:00:00.000Z',
+      createdAt: '2020-12-12T10:00:02.000Z',
+      step: stepList[0],
+      address: slotAddress,
+      attendances: [{ trainee: traineeList[1]._id }, { trainee: traineeList[3]._id }],
+    },
+    {
+      _id: new ObjectId(),
+      course: courseList[1],
+      startDate: '2021-02-02T08:00:00.000Z',
+      endDate: '2021-02-02T10:00:00.000Z',
+      createdAt: '2020-12-12T10:00:03.000Z',
+      step: stepList[2],
+      attendances: [{ trainee: traineeList[1]._id }, { trainee: traineeList[3]._id }],
+    },
+  ];
 
-//   let findCourseSlot;
+  let findCourseSlot;
 
-//   beforeEach(() => {
-//     findCourseSlot = sinon.stub(CourseSlot, 'find');
-//   });
+  beforeEach(() => {
+    findCourseSlot = sinon.stub(CourseSlot, 'find');
+  });
 
-//   afterEach(() => {
-//     findCourseSlot.restore();
-//   });
+  afterEach(() => {
+    findCourseSlot.restore();
+  });
 
-//   it('should return an empty array if no course slots', async () => {
-//     findCourseSlot.returns(SinonMongoose.stubChainedQueries([]));
+  it('should return an empty array if no course slots', async () => {
+    findCourseSlot.returns(SinonMongoose.stubChainedQueries([]));
 
-//     const result = await ExportHelper.exportCourseSlotHistory('2021-01-14T23:00:00.000Z', '2022-01-20T22:59:59.000Z');
+    const result = await ExportHelper.exportCourseSlotHistory('2021-01-14T23:00:00.000Z', '2022-01-20T22:59:59.000Z');
 
-//     expect(result).toEqual([[NO_DATA]]);
-//     SinonMongoose.calledOnceWithExactly(
-//       findCourseSlot,
-//       [
-//         {
-//           query: 'find',
-//           args: [{ startDate: { $lte: '2022-01-20T22:59:59.000Z' }, endDate: { $gte: '2021-01-14T23:00:00.000Z' } }],
-//         },
-//         { query: 'populate', args: [{ path: 'step', select: 'type name' }] },
-//         {
-//           query: 'populate',
-//           args: [{
-//             path: 'course',
-//             select: 'type trainees misc subProgram company',
-//             populate: [
-//               { path: 'company', select: 'name' },
-//               { path: 'subProgram', select: 'program', populate: [{ path: 'program', select: 'name' }] },
-//             ],
-//           }],
-//         },
-//         { query: 'populate', args: [{ path: 'attendances' }] },
-//         { query: 'lean' },
-//       ]
-//     );
-//   });
+    expect(result).toEqual([[NO_DATA]]);
+    SinonMongoose.calledOnceWithExactly(
+      findCourseSlot,
+      [
+        {
+          query: 'find',
+          args: [{ startDate: { $lte: '2022-01-20T22:59:59.000Z' }, endDate: { $gte: '2021-01-14T23:00:00.000Z' } }],
+        },
+        { query: 'populate', args: [{ path: 'step', select: 'type name' }] },
+        {
+          query: 'populate',
+          args: [{
+            path: 'course',
+            select: 'type trainees misc subProgram companies',
+            populate: [
+              { path: 'companies', select: 'name' },
+              { path: 'subProgram', select: 'program', populate: [{ path: 'program', select: 'name' }] },
+            ],
+          }],
+        },
+        { query: 'populate', args: [{ path: 'attendances' }] },
+        { query: 'lean' },
+      ]
+    );
+  });
 
-//   it('should return an array with the header and 4 rows', async () => {
-//     findCourseSlot.returns(SinonMongoose.stubChainedQueries(courseSlotList));
+  it('should return an array with the header and 4 rows', async () => {
+    findCourseSlot.returns(SinonMongoose.stubChainedQueries(courseSlotList));
 
-//     const result = await ExportHelper.exportCourseSlotHistory('2021-01-14T23:00:00.000Z', '2022-01-20T22:59:59.000Z');
+    const result = await ExportHelper.exportCourseSlotHistory('2021-01-14T23:00:00.000Z', '2022-01-20T22:59:59.000Z');
 
-//     expect(result).toEqual([
-//       [
-//         'Id Créneau',
-//         'Id Formation',
-//         'Formation',
-//         'Étape',
-//         'Type',
-//         'Date de création',
-//         'Date de début',
-//         'Date de fin',
-//         'Durée',
-//         'Adresse',
-//         'Nombre de présences',
-//         'Nombre d\'absences',
-//         'Nombre de présences non prévues',
-//       ],
-//       [
-//         courseSlotList[0]._id,
-//         courseIdList[0],
-//         'Enbonne Company - Program 1 - group 1',
-//         'étape 1',
-//         'présentiel',
-//         '12/12/2020 11:00:00',
-//         '01/05/2021 10:00:00',
-//         '01/05/2021 12:00:00',
-//         '2,00',
-//         '24 Avenue Daumesnil 75012 Paris',
-//         1,
-//         2,
-//         0,
-//       ],
-//       [
-//         courseSlotList[1]._id,
-//         courseIdList[0],
-//         'Enbonne Company - Program 1 - group 1',
-//         'étape 2',
-//         'distanciel',
-//         '12/12/2020 11:00:01',
-//         '01/05/2021 16:00:00',
-//         '01/05/2021 18:00:00',
-//         '2,00',
-//         'https://meet.google.com',
-//         2,
-//         1,
-//         0,
-//       ],
-//       [
-//         courseSlotList[2]._id,
-//         courseIdList[1],
-//         'Program 2 - group 2',
-//         'étape 1',
-//         'présentiel',
-//         '12/12/2020 11:00:02',
-//         '01/02/2021 09:00:00',
-//         '01/02/2021 11:00:00',
-//         '2,00',
-//         '24 Avenue Daumesnil 75012 Paris',
-//         1,
-//         1,
-//         1,
-//       ],
-//       [
-//         courseSlotList[3]._id,
-//         courseIdList[1],
-//         'Program 2 - group 2',
-//         'étape 3',
-//         'eLearning',
-//         '12/12/2020 11:00:03',
-//         '02/02/2021 09:00:00',
-//         '02/02/2021 11:00:00',
-//         '2,00',
-//         '',
-//         1,
-//         1,
-//         1,
-//       ],
+    expect(result).toEqual([
+      [
+        'Id Créneau',
+        'Id Formation',
+        'Formation',
+        'Étape',
+        'Type',
+        'Date de création',
+        'Date de début',
+        'Date de fin',
+        'Durée',
+        'Adresse',
+        'Nombre de présences',
+        'Nombre d\'absences',
+        'Nombre de présences non prévues',
+      ],
+      [
+        courseSlotList[0]._id,
+        courseIdList[0],
+        'Enbonne Company - Program 1 - group 1',
+        'étape 1',
+        'présentiel',
+        '12/12/2020 11:00:00',
+        '01/05/2021 10:00:00',
+        '01/05/2021 12:00:00',
+        '2,00',
+        '24 Avenue Daumesnil 75012 Paris',
+        1,
+        2,
+        0,
+      ],
+      [
+        courseSlotList[1]._id,
+        courseIdList[0],
+        'Enbonne Company - Program 1 - group 1',
+        'étape 2',
+        'distanciel',
+        '12/12/2020 11:00:01',
+        '01/05/2021 16:00:00',
+        '01/05/2021 18:00:00',
+        '2,00',
+        'https://meet.google.com',
+        2,
+        1,
+        0,
+      ],
+      [
+        courseSlotList[2]._id,
+        courseIdList[1],
+        'Program 2 - group 2',
+        'étape 1',
+        'présentiel',
+        '12/12/2020 11:00:02',
+        '01/02/2021 09:00:00',
+        '01/02/2021 11:00:00',
+        '2,00',
+        '24 Avenue Daumesnil 75012 Paris',
+        1,
+        1,
+        1,
+      ],
+      [
+        courseSlotList[3]._id,
+        courseIdList[1],
+        'Program 2 - group 2',
+        'étape 3',
+        'eLearning',
+        '12/12/2020 11:00:03',
+        '02/02/2021 09:00:00',
+        '02/02/2021 11:00:00',
+        '2,00',
+        '',
+        1,
+        1,
+        1,
+      ],
 
-//     ]);
-//     SinonMongoose.calledOnceWithExactly(
-//       findCourseSlot,
-//       [
-//         {
-//           query: 'find',
-//           args: [{ startDate: { $lte: '2022-01-20T22:59:59.000Z' }, endDate: { $gte: '2021-01-14T23:00:00.000Z' } }],
-//         },
-//         { query: 'populate', args: [{ path: 'step', select: 'type name' }] },
-//         {
-//           query: 'populate',
-//           args: [{
-//             path: 'course',
-//             select: 'type trainees misc subProgram company',
-//             populate: [
-//               { path: 'company', select: 'name' },
-//               { path: 'subProgram', select: 'program', populate: [{ path: 'program', select: 'name' }] },
-//             ],
-//           }],
-//         },
-//         { query: 'populate', args: [{ path: 'attendances' }] },
-//         { query: 'lean' },
-//       ]
-//     );
-//   });
-// });
+    ]);
+    SinonMongoose.calledOnceWithExactly(
+      findCourseSlot,
+      [
+        {
+          query: 'find',
+          args: [{ startDate: { $lte: '2022-01-20T22:59:59.000Z' }, endDate: { $gte: '2021-01-14T23:00:00.000Z' } }],
+        },
+        { query: 'populate', args: [{ path: 'step', select: 'type name' }] },
+        {
+          query: 'populate',
+          args: [{
+            path: 'course',
+            select: 'type trainees misc subProgram companies',
+            populate: [
+              { path: 'companies', select: 'name' },
+              { path: 'subProgram', select: 'program', populate: [{ path: 'program', select: 'name' }] },
+            ],
+          }],
+        },
+        { query: 'populate', args: [{ path: 'attendances' }] },
+        { query: 'lean' },
+      ]
+    );
+  });
+});
 
 describe('exportEndOfCourseQuestionnaireHistory', () => {
   const cards = [
