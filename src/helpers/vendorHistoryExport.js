@@ -212,6 +212,13 @@ const getAddress = (slot) => {
   return '';
 };
 
+const composeCourseName = (course) => {
+  const companyName = course.type === INTRA ? `${course.companies[0].name} - ` : '';
+  const misc = course.misc ? ` - ${course.misc}` : '';
+
+  return companyName + course.subProgram.program.name + misc;
+};
+
 exports.exportCourseSlotHistory = async (startDate, endDate) => {
   const courseSlots = await CourseSlot.find({ startDate: { $lte: endDate }, endDate: { $gte: startDate } })
     .populate({ path: 'step', select: 'type name' })
@@ -234,14 +241,10 @@ exports.exportCourseSlotHistory = async (startDate, endDate) => {
       .filter(attendance => UtilsHelper.doesArrayIncludeId(slot.course.trainees, attendance.trainee))
       .length;
 
-    const courseName = get(slot, 'course.type') === INTRA
-      ? `${slot.course.companies[0].name} - ${slot.course.subProgram.program.name} - ${slot.course.misc}`
-      : `${slot.course.subProgram.program.name} - ${slot.course.misc}`;
-
     rows.push({
       'Id Créneau': slot._id,
       'Id Formation': slot.course._id,
-      Formation: courseName,
+      Formation: composeCourseName(slot.course),
       Étape: get(slot, 'step.name') || '',
       Type: STEP_TYPES[get(slot, 'step.type')] || '',
       'Date de création': CompaniDate(slot.createdAt).format('dd/LL/yyyy HH:mm:ss') || '',
