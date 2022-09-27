@@ -4,7 +4,6 @@ const Joi = require('joi');
 Joi.objectId = require('joi-objectid')(Joi);
 const {
   list,
-  listUserCourses,
   create,
   getById,
   getFollowUp,
@@ -35,7 +34,6 @@ const {
   getCourse,
   authorizeAccessRuleAddition,
   authorizeAccessRuleDeletion,
-  authorizeAndGetTrainee,
   authorizeGetCourse,
   authorizeGetFollowUp,
   checkSalesRepresentativeExists,
@@ -77,19 +75,6 @@ exports.plugin = {
         pre: [{ method: authorizeGetList }],
       },
       handler: list,
-    });
-
-    server.route({
-      method: 'GET',
-      path: '/user',
-      options: {
-        auth: { mode: 'required' },
-        pre: [{ method: authorizeAndGetTrainee, assign: 'trainee' }],
-        validate: {
-          query: Joi.object({ traineeId: Joi.objectId() }),
-        },
-      },
-      handler: listUserCourses,
     });
 
     server.route({

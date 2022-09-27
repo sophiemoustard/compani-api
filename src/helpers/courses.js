@@ -105,7 +105,7 @@ const listBlendedForCompany = async (query, origin) => {
   ];
 };
 
-const listForOperation = async (query, origin) => {
+const listForOperations = async (query, origin) => {
   if (query.company && query.format === STRICTLY_E_LEARNING) {
     return listStrictlyElearningForCompany(query, origin);
   }
@@ -120,9 +120,51 @@ const listForOperation = async (query, origin) => {
   return courses;
 };
 
-exports.list = async (query) => {
+const listForPedagogy = async (query, credentials) => {
+  const trainee = await User
+    .findOne({ _id: query.trainee || get(credentials, '_id') }, { company: 1 })
+    .populate({ path: 'company' })
+    .lean();
+
+  const courses = await Course.find(
+    { trainees: trainee._id, $or: [{ accessRules: [] }, { accessRules: trainee.company }] },
+    { format: 1 }
+  )
+    .populate({
+      path: 'subProgram',
+      select: 'program steps',
+      populate: [
+        { path: 'program', select: 'name image description' },
+        {
+          path: 'steps',
+          select: 'name type activities theoreticalHours',
+          populate: {
+            path: 'activities',
+            select: 'name type cards activityHistories',
+            populate: [
+              { path: 'activityHistories', match: { user: trainee._id } },
+              { path: 'cards', select: 'template' },
+            ],
+          },
+        },
+      ],
+    })
+    .populate({
+      path: 'slots',
+      select: 'startDate endDate step',
+      populate: [{ path: 'step', select: 'type' }, { path: 'attendances', match: { trainee: trainee._id } }],
+    })
+    .select('_id misc')
+    .lean({ autopopulate: true, virtuals: true });
+
+  return courses.map(course => exports.formatCourseWithProgress(course));
+};
+
+exports.list = async (query, credentials) => {
   const filteredQuery = omit(query, ['origin', 'action']);
-  return listForOperation(filteredQuery, query.origin);
+  return query.action === OPERATIONS
+    ? listForOperations(filteredQuery, query.origin)
+    : listForPedagogy(filteredQuery, credentials);
 };
 
 const getStepProgress = (step) => {
@@ -174,41 +216,6 @@ exports.formatCourseWithProgress = (course) => {
     subProgram: { ...course.subProgram, steps },
     progress: exports.getCourseProgress(steps),
   };
-};
-
-exports.listUserCourses = async (trainee) => {
-  const courses = await Course.find(
-    { trainees: trainee._id, $or: [{ accessRules: [] }, { accessRules: trainee.company }] },
-    { format: 1 }
-  )
-    .populate({
-      path: 'subProgram',
-      select: 'program steps',
-      populate: [
-        { path: 'program', select: 'name image description' },
-        {
-          path: 'steps',
-          select: 'name type activities theoreticalHours',
-          populate: {
-            path: 'activities',
-            select: 'name type cards activityHistories',
-            populate: [
-              { path: 'activityHistories', match: { user: trainee._id } },
-              { path: 'cards', select: 'template' },
-            ],
-          },
-        },
-      ],
-    })
-    .populate({
-      path: 'slots',
-      select: 'startDate endDate step',
-      populate: [{ path: 'step', select: 'type' }, { path: 'attendances', match: { trainee: trainee._id } }],
-    })
-    .select('_id misc')
-    .lean({ autopopulate: true, virtuals: true });
-
-  return courses.map(course => exports.formatCourseWithProgress(course));
 };
 
 const getCourseForOperations = async (courseId, loggedUser, origin) => {

@@ -11,24 +11,7 @@ const list = async (req) => {
     req.log('courseController - list - query', req.query);
     req.log('courseController - list - company', get(req, 'auth.credentials.company._id'));
 
-    const courses = await CoursesHelper.list(req.query);
-
-    return {
-      message: courses.length ? translate[language].coursesFound : translate[language].coursesNotFound,
-      data: { courses },
-    };
-  } catch (e) {
-    req.log('error', e);
-    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
-  }
-};
-
-const listUserCourses = async (req) => {
-  try {
-    req.log('courseController - listUserCourses - company', get(req, 'auth.credentials.company._id'));
-    req.log('courseController - listUserCourses - pre', req.pre);
-
-    const courses = await CoursesHelper.listUserCourses(req.pre.trainee);
+    const courses = await CoursesHelper.list(req.query, req.auth.credentials);
 
     return {
       message: courses.length ? translate[language].coursesFound : translate[language].coursesNotFound,
@@ -273,7 +256,6 @@ const getQuestionnaires = async (req) => {
 
 module.exports = {
   list,
-  listUserCourses,
   create,
   getById,
   getFollowUp,
