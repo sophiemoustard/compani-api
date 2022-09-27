@@ -1657,3 +1657,63 @@ describe('getStaffRegister', () => {
     sinon.assert.calledWithExactly(getStaffRegisterStub, companyId);
   });
 });
+
+describe('auxiliaryHasActiveContractBetweenDates', () => {
+  it('should return true if auxiliary has contract that start before the start date and don\'t end', () => {
+    const contracts = [{ startDate: '2019-01-01T08:38:18.000Z' }];
+    const startDate = '2020-01-01T08:38:18.000Z';
+    const endDate = '2020-01-04T08:38:18.000Z';
+
+    const result = ContractHelper.auxiliaryHasActiveContractBetweenDates(contracts, startDate, endDate);
+
+    expect(result).toBe(true);
+  });
+
+  it('should return true if auxiliary has contract that start before the start date and end after the endDate', () => {
+    const contracts = [{ startDate: '2019-01-01T08:38:18.000Z', endDate: '2021-01-04T08:38:18.000Z' }];
+    const startDate = '2020-01-01T08:38:18.000Z';
+    const endDate = '2020-01-04T08:38:18.000Z';
+
+    const result = ContractHelper.auxiliaryHasActiveContractBetweenDates(contracts, startDate, endDate);
+
+    expect(result).toBe(true);
+  });
+
+  it('should return false if auxiliary has contract that start after the start date', () => {
+    const contracts = [{ startDate: '2019-01-01T08:38:18.000Z' }];
+    const startDate = '2018-01-01T08:38:18.000Z';
+    const endDate = '2018-01-04T08:38:18.000Z';
+
+    const result = ContractHelper.auxiliaryHasActiveContractBetweenDates(contracts, startDate, endDate);
+
+    expect(result).toBe(false);
+  });
+
+  it('should return false if auxiliary has contract that end before the end date', () => {
+    const contracts = [{ startDate: '2019-01-01T08:38:18.000Z', endDate: '2019-01-03T08:38:18.000Z' }];
+    const startDate = '2019-01-01T08:38:18.000Z';
+    const endDate = '2019-01-04T08:38:18.000Z';
+
+    const result = ContractHelper.auxiliaryHasActiveContractBetweenDates(contracts, startDate, endDate);
+
+    expect(result).toBe(false);
+  });
+
+  it('should return true if auxiliary has not ending contract and endDate is not given as an argument', () => {
+    const contracts = [{ startDate: '2019-01-01T08:38:18.000Z' }];
+    const startDate = '2019-01-01T08:38:18.000Z';
+
+    const result = ContractHelper.auxiliaryHasActiveContractBetweenDates(contracts, startDate);
+
+    expect(result).toBe(true);
+  });
+
+  it('should return false if auxiliary has ending contract and endDate is not given as an argument', () => {
+    const contracts = [{ startDate: '2019-01-01T08:38:18.000Z', endDate: '2019-01-03T08:38:18.000Z' }];
+    const startDate = '2019-01-01T08:38:18.000Z';
+
+    const result = ContractHelper.auxiliaryHasActiveContractBetweenDates(contracts, startDate);
+
+    expect(result).toBe(false);
+  });
+});
