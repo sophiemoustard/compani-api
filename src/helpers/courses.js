@@ -55,7 +55,7 @@ exports.createCourse = async (payload) => {
     ? { ...omit(payload, 'company'), companies: [payload.company] }
     : payload;
 
-  const course = await (new Course(coursePayload)).save();
+  const course = await Course.create(coursePayload);
 
   const subProgram = await SubProgram
     .findOne({ _id: course.subProgram }, { steps: 1 })
