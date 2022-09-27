@@ -19,6 +19,7 @@ const {
   ON_SITE,
   MOBILE,
   OTHER,
+  OPERATIONS,
 } = require('../../helpers/constants');
 const translate = require('../../helpers/translate');
 const UtilsHelper = require('../../helpers/utils');
@@ -150,15 +151,40 @@ exports.authorizeCourseEdit = async (req) => {
   }
 };
 
-exports.authorizeGetCourseList = async (req) => {
-  const { credentials } = req.auth;
-
-  const courseTrainerId = get(req, 'query.trainer');
-  const courseCompanyId = get(req, 'query.company');
+const authorizeGetListForOperations = (credentials, query) => {
+  const courseTrainerId = query.trainer;
+  const courseCompanyId = query.company;
 
   this.checkAuthorization(credentials, courseTrainerId, courseCompanyId);
 
   return null;
+};
+
+const authorizeGetListForPedagogy = async (credentials, query) => {
+  const loggedUserCompany = get(credentials, 'company._id');
+  const loggedUserVendorRole = get(credentials, 'role.vendor.name');
+  const loggedUserClientRole = get(credentials, 'role.client.name');
+
+  if (!query.trainee) return null;
+
+  const trainee = await User.findOne({ _id: query.trainee }, { company: 1 }).populate({ path: 'company' }).lean();
+  if (!trainee) return Boom.notFound();
+  if (![VENDOR_ADMIN, TRAINING_ORGANISATION_MANAGER].includes(loggedUserVendorRole) ||
+  ![COACH, CLIENT_ADMIN].includes(loggedUserClientRole) ||
+  !UtilsHelper.areObjectIdsEquals(loggedUserCompany, trainee.company)) {
+    throw Boom.forbidden();
+  }
+
+  return null;
+};
+
+exports.authorizeGetList = async (req) => {
+  const { credentials } = req.auth;
+  const { action } = req.query;
+
+  if (action === OPERATIONS) return authorizeGetListForOperations(credentials, req.query);
+
+  return authorizeGetListForPedagogy(credentials, req.query);
 };
 
 exports.getCourseTrainee = async (req) => {

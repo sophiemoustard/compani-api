@@ -30,7 +30,7 @@ const {
   authorizeCourseEdit,
   authorizeGetDocumentsAndSms,
   authorizeCourseDeletion,
-  authorizeGetCourseList,
+  authorizeGetList,
   authorizeRegisterToELearning,
   getCourse,
   authorizeAccessRuleAddition,
@@ -74,7 +74,7 @@ exports.plugin = {
             format: Joi.string().valid(...COURSE_FORMATS),
           }),
         },
-        pre: [{ method: authorizeGetCourseList }],
+        pre: [{ method: authorizeGetList }],
       },
       handler: list,
     });

@@ -342,14 +342,14 @@ describe('COURSES ROUTES - GET /courses', () => {
       expect(response.statusCode).toBe(400);
     });
 
-    it('should return 400 if trainee doesn\'t exist for pedagogy on webapp', async () => {
+    it('should return 404 if trainee doesn\'t exist for pedagogy on webapp', async () => {
       const response = await app.inject({
         method: 'GET',
         url: `/courses?action=pedagogy&origin=webapp&trainee=${new ObjectId()}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
-      expect(response.statusCode).toBe(400);
+      expect(response.statusCode).toBe(404);
     });
 
     it('should return 400 if no trainee for pedagogy on webapp', async () => {
@@ -461,6 +461,28 @@ describe('COURSES ROUTES - GET /courses', () => {
 
       expect(response.statusCode).toBe(200);
       expect(response.result.data.courses.length).toEqual(9);
+    });
+
+    it('should return 200 if coach and same company', async () => {
+      authToken = await getToken('coach');
+      const response = await app.inject({
+        method: 'GET',
+        url: `/courses?action=pedagogy&origin=webapp&trainee=${userCompanies[1].user.toHexString()}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(200);
+    });
+
+    it('should return 403 if client admin and different company', async () => {
+      authToken = await getToken('client_admin');
+      const response = await app.inject({
+        method: 'GET',
+        url: `/courses?action=pedagogy&origin=webapp&trainee=${userCompanies[0].user.toHexString()}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(403);
     });
 
     const roles = [
