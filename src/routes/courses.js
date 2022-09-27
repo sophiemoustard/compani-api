@@ -57,7 +57,15 @@ exports.plugin = {
           query: Joi.object({
             action: Joi.string().required().valid(OPERATIONS, PEDAGOGY),
             origin: Joi.string().required().valid(WEBAPP, MOBILE),
-            trainer: Joi.objectId().when('origin', { is: MOBILE, then: Joi.required() }),
+            trainer: Joi.objectId().when(
+              'origin',
+              {
+                is: MOBILE,
+                then: Joi.when(
+                  'action',
+                  { is: OPERATIONS, then: Joi.required(), otherwise: Joi.forbidden() }
+                ),
+              }),
             trainee: Joi.objectId().when(
               'action',
               {
