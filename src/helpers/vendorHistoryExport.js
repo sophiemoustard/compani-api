@@ -217,9 +217,9 @@ exports.exportCourseSlotHistory = async (startDate, endDate) => {
     .populate({ path: 'step', select: 'type name' })
     .populate({
       path: 'course',
-      select: 'type trainees misc subProgram company',
+      select: 'type trainees misc subProgram companies',
       populate: [
-        { path: 'company', select: 'name' },
+        { path: 'companies', select: 'name' },
         { path: 'subProgram', select: 'program', populate: [{ path: 'program', select: 'name' }] },
       ],
     })
@@ -235,7 +235,7 @@ exports.exportCourseSlotHistory = async (startDate, endDate) => {
       .length;
 
     const courseName = get(slot, 'course.type') === INTRA
-      ? `${slot.course.company.name} - ${slot.course.subProgram.program.name} - ${slot.course.misc}`
+      ? `${slot.course.companies[0].name} - ${slot.course.subProgram.program.name} - ${slot.course.misc}`
       : `${slot.course.subProgram.program.name} - ${slot.course.misc}`;
 
     rows.push({
