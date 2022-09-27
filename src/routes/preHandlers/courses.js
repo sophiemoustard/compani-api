@@ -61,7 +61,7 @@ exports.authorizeCourseCreation = async (req) => {
     const { company } = req.payload;
 
     const companyExists = await Company.countDocuments({ _id: company });
-    if (!companyExists) throw Boom.notFound();
+    if (!companyExists) throw Boom.forbidden();
   }
 
   return null;
