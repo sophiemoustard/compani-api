@@ -54,12 +54,22 @@ exports.plugin = {
       method: 'GET',
       path: '/',
       options: {
-        auth: { scope: ['courses:read'] },
+        auth: { mode: 'required' },
         validate: {
           query: Joi.object({
-            action: Joi.string().required().valid(OPERATIONS),
+            action: Joi.string().required().valid(OPERATIONS, PEDAGOGY),
             origin: Joi.string().required().valid(WEBAPP, MOBILE),
             trainer: Joi.objectId().when('origin', { is: MOBILE, then: Joi.required() }),
+            trainee: Joi.objectId().when(
+              'action',
+              {
+                is: PEDAGOGY,
+                then: Joi.when(
+                  'origin',
+                  { is: WEBAPP, then: Joi.required(), otherwise: Joi.forbidden() }
+                ),
+                otherwise: Joi.forbidden(),
+              }),
             company: Joi.objectId().when('origin', { is: MOBILE, then: Joi.forbidden() }),
             format: Joi.string().valid(...COURSE_FORMATS),
           }),

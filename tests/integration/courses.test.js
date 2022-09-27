@@ -227,6 +227,19 @@ describe('COURSES ROUTES - GET /courses', () => {
   let authToken;
   beforeEach(populateDB);
 
+  it('should return 200 as user is logged in', async () => {
+    authToken = await getTokenByCredentials(noRoleNoCompany.local);
+
+    const response = await app.inject({
+      method: 'GET',
+      url: '/courses?action=pedagogy&origin=mobile',
+      headers: { 'x-access-token': authToken },
+    });
+
+    expect(response.statusCode).toBe(200);
+    expect(response.result.data.courses.length).toBe(1);
+  });
+
   describe('TRAINING_ORGANISATION_MANAGER', () => {
     beforeEach(async () => {
       authToken = await getToken('training_organisation_manager');
@@ -299,6 +312,16 @@ describe('COURSES ROUTES - GET /courses', () => {
       expect(response.result.data.courses.length).toEqual(4);
     });
 
+    it('should get all trainee courses for pedagogy on webapp', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/courses?action=pedagogy&origin=webapp&trainee${userCompanies[0].user.toHexString()}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(200);
+    });
+
     it('should return 400 if no action', async () => {
       const response = await app.inject({
         method: 'GET',
@@ -313,6 +336,46 @@ describe('COURSES ROUTES - GET /courses', () => {
       const response = await app.inject({
         method: 'GET',
         url: '/courses?action=operations',
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
+
+    it('should return 400 if trainee doesn\'t exist for pedagogy on webapp', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/courses?action=pedagogy&origin=webapp&trainee=${new ObjectId()}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
+
+    it('should return 400 if no trainee for pedagogy on webapp', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: '/courses?action=pedagogy&origin=webapp}',
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
+
+    it('should return 400 if action is operations but with trainee', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/courses?action=operations&origin=webapp&trainee${userCompanies[0].user.toHexString()}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
+
+    it('should return 400 if origin is mobile but with trainee', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/courses?action=pedagogy&origin=mobile&trainee${userCompanies[0].user.toHexString()}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
