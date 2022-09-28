@@ -3,18 +3,10 @@ const { ObjectId } = require('mongodb');
 const Attendance = require('../../src/models/Attendance');
 const Course = require('../../src/models/Course');
 const app = require('../../server');
-const {
-  populateDB,
-  attendancesList,
-  coursesList,
-  slotsList,
-  userList,
-  traineeList,
-} = require('./seed/attendancesSeed');
+const { populateDB, coursesList, slotsList, userList, traineeList } = require('./seed/attendancesSeed');
 const { getToken, getTokenByCredentials } = require('./helpers/authentication');
 const { trainerAndCoach } = require('../seed/authUsersSeed');
 const { authCompany } = require('../seed/authCompaniesSeed');
-const CourseSlot = require('../../src/models/CourseSlot');
 
 describe('NODE ENV', () => {
   it('should be \'test\'', () => {
@@ -57,11 +49,7 @@ describe('ATTENDANCES ROUTES - POST /attendances', () => {
 
       expect(response.statusCode).toBe(200);
       const courseSlotAttendancesAfter = await Attendance.countDocuments({ courseSlot: slotsList[0]._id });
-      expect(courseSlotAttendancesAfter).toBeGreaterThanOrEqual(courseSlotAttendancesBefore + 2);
-
-      const courseSlotFromBdd = await CourseSlot.findById(slotsList[0]._id);
-      const course = await Course.findById(courseSlotFromBdd.course);
-      expect(courseSlotAttendancesAfter).toBeLessThan(courseSlotAttendancesBefore + course.trainees.length);
+      expect(courseSlotAttendancesAfter).toBe(courseSlotAttendancesBefore + 2);
     });
 
     it('should return 400 if no courseSlot', async () => {
@@ -604,11 +592,7 @@ describe('ATTENDANCES ROUTES - DELETE /attendances', () => {
 
       expect(response.statusCode).toBe(200);
       const attendancesCountDocument = await Attendance.countDocuments();
-      expect(attendancesCountDocument).toBeLessThanOrEqual(attendanceCount - 2);
-
-      const courseSlotFromBdd = await CourseSlot.findById(slotsList[0]._id);
-      const course = await Course.findById(courseSlotFromBdd.course);
-      expect(attendancesCountDocument).toBeGreaterThan(attendanceCount - course.trainees.length);
+      expect(attendancesCountDocument).toBe(attendanceCount - 2);
     });
 
     it('should return a 404 if attendance does not exist', async () => {

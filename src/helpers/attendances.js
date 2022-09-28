@@ -8,8 +8,8 @@ const { BLENDED } = require('./constants');
 const CourseSlot = require('../models/CourseSlot');
 
 exports.create = async (payload) => {
-  const { courseSlot: courseSlotId, trainee } = payload;
-  if (trainee) return Attendance.create(payload);
+  const { courseSlot: courseSlotId, trainee: traineeId } = payload;
+  if (traineeId) return Attendance.create(payload);
 
   const courseSlot = await CourseSlot.findById(courseSlotId, { course: 1 })
     .populate({ path: 'course', select: 'trainees' })
