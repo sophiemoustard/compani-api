@@ -14,6 +14,7 @@ const {
 const { getToken, getTokenByCredentials } = require('./helpers/authentication');
 const { trainerAndCoach } = require('../seed/authUsersSeed');
 const { authCompany } = require('../seed/authCompaniesSeed');
+const CourseSlot = require('../../src/models/CourseSlot');
 
 describe('NODE ENV', () => {
   it('should be \'test\'', () => {
@@ -57,6 +58,10 @@ describe('ATTENDANCES ROUTES - POST /attendances', () => {
       expect(response.statusCode).toBe(200);
       const courseSlotAttendancesAfter = await Attendance.countDocuments({ courseSlot: slotsList[0]._id });
       expect(courseSlotAttendancesAfter).toBeGreaterThanOrEqual(courseSlotAttendancesBefore + 2);
+
+      const courseSlotFromBdd = await CourseSlot.findById(slotsList[0]._id);
+      const course = await Course.findById(courseSlotFromBdd.course);
+      expect(courseSlotAttendancesAfter).toBeLessThan(courseSlotAttendancesBefore + course.trainees.length);
     });
 
     it('should return 400 if no courseSlot', async () => {

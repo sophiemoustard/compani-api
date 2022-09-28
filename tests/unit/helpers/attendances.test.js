@@ -9,7 +9,7 @@ const SinonMongoose = require('../sinonMongoose');
 const { BLENDED } = require('../../../src/helpers/constants');
 const CourseSlot = require('../../../src/models/CourseSlot');
 
-describe('create #tag', () => {
+describe('create', () => {
   let create;
   let courseSlotFindById;
   let courseFindById;
