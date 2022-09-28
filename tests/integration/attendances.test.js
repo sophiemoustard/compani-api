@@ -44,7 +44,9 @@ describe('ATTENDANCES ROUTES - POST /attendances', () => {
       expect(courseSlotAttendancesAfter).toBe(courseSlotAttendancesBefore + 1);
     });
 
-    it('should return 400 if no trainee', async () => {
+    it('should add attendances for all trainee without attendance for this courseSlot', async () => {
+      const courseSlotAttendancesBefore = await Attendance.countDocuments({ courseSlot: slotsList[0]._id });
+
       const response = await app.inject({
         method: 'POST',
         url: '/attendances',
@@ -52,7 +54,9 @@ describe('ATTENDANCES ROUTES - POST /attendances', () => {
         payload: { courseSlot: slotsList[0]._id },
       });
 
-      expect(response.statusCode).toBe(400);
+      expect(response.statusCode).toBe(200);
+      const courseSlotAttendancesAfter = await Attendance.countDocuments({ courseSlot: slotsList[0]._id });
+      expect(courseSlotAttendancesAfter).toBeGreaterThanOrEqual(courseSlotAttendancesBefore + 2);
     });
 
     it('should return 400 if no courseSlot', async () => {

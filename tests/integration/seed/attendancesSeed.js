@@ -127,7 +127,7 @@ const coursesList = [
     company: authCompany._id,
     type: INTRA,
     maxTrainees: 8,
-    trainees: [userList[2]._id, traineeList[0]._id],
+    trainees: [userList[2]._id, traineeList[0]._id, traineeList[3]._id, traineeList[8]._id],
     trainer: userList[0]._id,
     salesRepresentative: userList[2]._id,
   },
