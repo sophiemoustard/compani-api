@@ -1104,7 +1104,6 @@ const courseList = [
     _id: new ObjectId(),
     type: INTER_B2B,
     subProgram: subProgramList[1]._id,
-    misc: 'group 2',
     trainer: trainer._id,
     salesRepresentative: salesRepresentative._id,
     contact: salesRepresentative._id,
