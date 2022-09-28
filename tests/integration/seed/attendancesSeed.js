@@ -234,14 +234,14 @@ const slotsList = [
 ];
 
 const attendancesList = [
-  { _id: new ObjectId(), courseSlot: slotsList[3], trainee: traineeList[2]._id },
-  { _id: new ObjectId(), courseSlot: slotsList[3], trainee: traineeList[3]._id },
-  { _id: new ObjectId(), courseSlot: slotsList[5], trainee: traineeList[7]._id },
-  { _id: new ObjectId(), courseSlot: slotsList[0], trainee: traineeList[5]._id },
-  { _id: new ObjectId(), courseSlot: slotsList[0], trainee: traineeList[0]._id },
-  { _id: new ObjectId(), courseSlot: slotsList[1], trainee: traineeList[0]._id },
-  { _id: new ObjectId(), courseSlot: slotsList[2], trainee: traineeList[9]._id },
-  { _id: new ObjectId(), courseSlot: slotsList[3], trainee: traineeList[9]._id },
+  { _id: new ObjectId(), courseSlot: slotsList[3]._id, trainee: traineeList[2]._id },
+  { _id: new ObjectId(), courseSlot: slotsList[3]._id, trainee: traineeList[3]._id },
+  { _id: new ObjectId(), courseSlot: slotsList[5]._id, trainee: traineeList[7]._id },
+  { _id: new ObjectId(), courseSlot: slotsList[0]._id, trainee: traineeList[5]._id },
+  { _id: new ObjectId(), courseSlot: slotsList[0]._id, trainee: traineeList[0]._id },
+  { _id: new ObjectId(), courseSlot: slotsList[1]._id, trainee: traineeList[0]._id },
+  { _id: new ObjectId(), courseSlot: slotsList[2]._id, trainee: traineeList[9]._id },
+  { _id: new ObjectId(), courseSlot: slotsList[3]._id, trainee: traineeList[9]._id },
 ];
 
 const userCompanyList = [

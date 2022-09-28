@@ -55,7 +55,7 @@ const create = async (req) => {
 
 const remove = async (req) => {
   try {
-    await AttendanceHelper.delete(req.params._id);
+    await AttendanceHelper.delete(req.query);
 
     return { message: translate[language].attendanceDeleted };
   } catch (e) {

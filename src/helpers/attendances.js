@@ -11,15 +11,17 @@ exports.create = async (payload) => {
   const { courseSlot: courseSlotId, trainee } = payload;
   if (trainee) return Attendance.create(payload);
 
-  const courseSlot = await CourseSlot.findById(courseSlotId);
-  const course = await Course.findById(courseSlot.course);
+  const courseSlot = await CourseSlot.findById(courseSlotId, { course: 1 })
+    .populate({ path: 'course', select: 'trainees' })
+    .lean();
+  const { course } = courseSlot;
   const attendances = await Attendance.find({ courseSlot: courseSlotId, trainee: { $in: course.trainees } });
 
   const traineesWithoutAttendance = course.trainees.filter(t =>
     !attendances.some(a => UtilsHelper.areObjectIdsEquals(t, a.trainee)));
-  const promises = traineesWithoutAttendance.map(t => Attendance.create({ courseSlot: courseSlotId, trainee: t }));
+  const attendancesToCreate = traineesWithoutAttendance.map(t => ({ courseSlot: courseSlotId, trainee: t }));
 
-  return Promise.all(promises);
+  return Attendance.insertMany(attendancesToCreate);
 };
 
 exports.list = async (query, companyId) => {
@@ -109,4 +111,14 @@ exports.getTraineeUnsubscribedAttendances = async (trainee) => {
   return groupBy(unsubscribedAttendances, 'program._id');
 };
 
-exports.delete = async attendanceId => Attendance.deleteOne({ _id: attendanceId });
+exports.delete = async (query) => {
+  const { courseSlot: courseSlotId, trainee: traineeId } = query;
+  if (traineeId) return Attendance.deleteOne(query);
+
+  const courseSlot = await CourseSlot.findById(courseSlotId, { course: 1 })
+    .populate({ path: 'course', select: 'trainees' })
+    .lean();
+  const { course } = courseSlot;
+
+  return Attendance.deleteMany({ courseSlot: courseSlotId, trainee: { $in: course.trainees } });
+};

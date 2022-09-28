@@ -60,9 +60,9 @@ exports.plugin = {
 
     server.route({
       method: 'DELETE',
-      path: '/{_id}',
+      path: '/',
       options: {
-        validate: { params: Joi.object({ _id: Joi.objectId().required() }) },
+        validate: { query: Joi.object({ trainee: Joi.string(), courseSlot: Joi.string().required() }) },
         auth: { scope: ['attendances:edit'] },
         pre: [{ method: authorizeAttendanceDeletion }],
       },

@@ -573,7 +573,7 @@ describe('ATTENDANCES ROUTES - GET /attendances/unsubscribed', () => {
   });
 });
 
-describe('ATTENDANCES ROUTES - DELETE /attendances/{_id}', () => {
+describe('ATTENDANCES ROUTES - DELETE /attendances', () => {
   let authToken;
   beforeEach(populateDB);
 
@@ -586,7 +586,7 @@ describe('ATTENDANCES ROUTES - DELETE /attendances/{_id}', () => {
       const attendanceCount = await Attendance.countDocuments();
       const response = await app.inject({
         method: 'DELETE',
-        url: `/attendances/${attendancesList[0]._id}`,
+        url: `/attendances?courseSlot=${slotsList[3]._id}&trainee=${traineeList[2]._id}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -594,10 +594,27 @@ describe('ATTENDANCES ROUTES - DELETE /attendances/{_id}', () => {
       expect(await Attendance.countDocuments()).toEqual(attendanceCount - 1);
     });
 
+    it('should delete all attendances for a courseSlot', async () => {
+      const attendanceCount = await Attendance.countDocuments();
+      const response = await app.inject({
+        method: 'DELETE',
+        url: `/attendances?courseSlot=${slotsList[3]._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(200);
+      const attendancesCountDocument = await Attendance.countDocuments();
+      expect(attendancesCountDocument).toBeLessThanOrEqual(attendanceCount - 2);
+
+      const courseSlotFromBdd = await CourseSlot.findById(slotsList[0]._id);
+      const course = await Course.findById(courseSlotFromBdd.course);
+      expect(attendancesCountDocument).toBeGreaterThan(attendanceCount - course.trainees.length);
+    });
+
     it('should return a 404 if attendance does not exist', async () => {
       const response = await app.inject({
         method: 'DELETE',
-        url: `/attendances/${new ObjectId()}`,
+        url: `/attendances?courseSlot=${slotsList[3]._id}&trainee=${traineeList[1]._id}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -607,7 +624,7 @@ describe('ATTENDANCES ROUTES - DELETE /attendances/{_id}', () => {
     it('should return 403 if course is archived', async () => {
       const response = await app.inject({
         method: 'DELETE',
-        url: `/attendances/${attendancesList[2]._id}`,
+        url: `/attendances?courseSlot=${slotsList[5]._id}&trainee=${traineeList[7]._id}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -620,7 +637,7 @@ describe('ATTENDANCES ROUTES - DELETE /attendances/{_id}', () => {
       authToken = await getTokenByCredentials(userList[0].local);
       const response = await app.inject({
         method: 'DELETE',
-        url: `/attendances/${attendancesList[0]._id}`,
+        url: `/attendances?courseSlot=${slotsList[3]._id}&trainee=${traineeList[2]._id}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -631,7 +648,7 @@ describe('ATTENDANCES ROUTES - DELETE /attendances/{_id}', () => {
       authToken = await getTokenByCredentials(userList[1].local);
       const response = await app.inject({
         method: 'DELETE',
-        url: `/attendances/${attendancesList[0]._id}`,
+        url: `/attendances?courseSlot=${slotsList[3]._id}&trainee=${traineeList[2]._id}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -648,7 +665,7 @@ describe('ATTENDANCES ROUTES - DELETE /attendances/{_id}', () => {
         authToken = await getToken(role.name);
         const response = await app.inject({
           method: 'DELETE',
-          url: `/attendances/${attendancesList[0]._id}`,
+          url: `/attendances?courseSlot=${slotsList[3]._id}&trainee=${traineeList[2]._id}`,
           headers: { Cookie: `alenvi_token=${authToken}` },
         });
 

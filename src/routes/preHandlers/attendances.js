@@ -138,17 +138,22 @@ exports.authorizeAttendanceCreation = async (req) => {
 };
 
 exports.authorizeAttendanceDeletion = async (req) => {
-  const attendance = await Attendance.findOne({ _id: req.params._id }, { courseSlot: 1 })
-    .populate({ path: 'courseSlot', select: 'course', populate: { path: 'course', select: 'trainer archivedAt' } })
-    .lean();
-  if (!attendance) throw Boom.notFound();
+  const { courseSlot: courseSlotId, trainee: traineeId } = req.query;
 
-  const { course } = attendance.courseSlot;
+  if (traineeId) {
+    const attendance = await Attendance.countDocuments(req.query);
+    if (!attendance) throw Boom.notFound();
+  }
+
+  const courseSlot = await CourseSlot.findById(courseSlotId)
+    .populate({ path: 'course', select: 'trainer archivedAt' })
+    .lean();
+  const { course } = courseSlot;
   if (course.archivedAt) throw Boom.forbidden();
 
   const { credentials } = req.auth;
   if (get(credentials, 'role.vendor.name') === TRAINER) {
-    isTrainerAuthorized(credentials._id, attendance.courseSlot.course.trainer);
+    isTrainerAuthorized(credentials._id, courseSlot.course.trainer);
   }
 
   return null;
