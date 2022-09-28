@@ -179,7 +179,7 @@ describe('list', () => {
       const result = await CourseHelper.list(query);
 
       expect(result).toMatchObject(coursesList);
-      sinon.assert.calledWithExactly(
+      sinon.assert.calledOnceWithExactly(
         findCourseAndPopulate,
         { trainer: '1234567890abcdef12345678', format: 'blended' },
         'webapp'
@@ -212,7 +212,7 @@ describe('list', () => {
       const result = await CourseHelper.list(query);
 
       expect(result).toMatchObject(formattedCourseList);
-      sinon.assert.calledWithExactly(
+      sinon.assert.calledOnceWithExactly(
         findCourseAndPopulate,
         { format: 'strictly_e_learning' },
         'webapp'
@@ -962,22 +962,9 @@ describe('getCourse', () => {
         ...course,
         subProgram: {
           ...course.subProgram,
-          steps: [
-            { ...course.subProgram.steps[0], progress: { eLearning: 1 } },
-            {
-              ...course.subProgram.steps[1],
-              progress: {
-                live: 1,
-                presence: { attendanceDuration: { minutes: 180 }, maxDuration: { minutes: 601 } },
-              },
-            },
-          ],
+          steps: [{ ...course.subProgram.steps[0], progress: { eLearning: 1 } }],
         },
-        progress: {
-          eLearning: 1,
-          live: 1,
-          presence: { attendanceDuration: { minutes: 180 }, maxDuration: { minutes: 601 } },
-        },
+        progress: { eLearning: 1 },
       });
 
       const result = await CourseHelper.getCourse({ action: PEDAGOGY }, { _id: course._id }, loggedUser);
@@ -985,22 +972,9 @@ describe('getCourse', () => {
         ...course,
         subProgram: {
           ...course.subProgram,
-          steps: [
-            { ...course.subProgram.steps[0], progress: { eLearning: 1 } },
-            {
-              ...course.subProgram.steps[1],
-              progress: {
-                live: 1,
-                presence: { attendanceDuration: { minutes: 180 }, maxDuration: { minutes: 601 } },
-              },
-            },
-          ],
+          steps: [{ ...course.subProgram.steps[0], progress: { eLearning: 1 } }],
         },
-        progress: {
-          eLearning: 1,
-          live: 1,
-          presence: { attendanceDuration: { minutes: 180 }, maxDuration: { minutes: 601 } },
-        },
+        progress: { eLearning: 1 },
       });
 
       SinonMongoose.calledOnceWithExactly(
@@ -1061,7 +1035,7 @@ describe('getCourse', () => {
         ]
       );
 
-      sinon.assert.calledWithExactly(formatCourseWithProgress, course);
+      sinon.assert.calledOnceWithExactly(formatCourseWithProgress, course);
       sinon.assert.notCalled(attendanceCountDocuments);
     });
 
@@ -1223,14 +1197,18 @@ describe('getCourse', () => {
         ]
       );
 
-      sinon.assert.calledWithExactly(formatCourseWithProgress, { ...course, areLastSlotAttendancesValidated: false });
+      sinon.assert.calledOnceWithExactly(
+        formatCourseWithProgress,
+        { ...course, areLastSlotAttendancesValidated: false }
+      );
       sinon.assert.calledOnceWithExactly(attendanceCountDocuments, { courseSlot: lastSlotId });
     });
+
     it('should return course as trainer', async () => {
       const authCompanyId = new ObjectId();
       const loggedUser = {
         _id: ObjectId(),
-        role: { client: { name: 'client_admin' } },
+        role: { vendor: { name: 'trainer' } },
         company: { _id: authCompanyId },
       };
       const courseId = new ObjectId();
@@ -1957,7 +1935,7 @@ describe('sendSMS', () => {
         { query: 'lean' },
       ]
     );
-    sinon.assert.calledWithExactly(
+    sinon.assert.calledOnceWithExactly(
       courseSmsHistoryCreate,
       {
         type: payload.type,
@@ -2108,7 +2086,7 @@ describe('registerToELearningCourse', () => {
     const courseId = new ObjectId();
     const credentials = { _id: new ObjectId() };
     await CourseHelper.registerToELearningCourse(courseId, credentials);
-    sinon.assert.calledWithExactly(updateOne, { _id: courseId }, { $addToSet: { trainees: credentials._id } });
+    sinon.assert.calledOnceWithExactly(updateOne, { _id: courseId }, { $addToSet: { trainees: credentials._id } });
   });
 });
 
@@ -2130,7 +2108,7 @@ describe('removeCourseTrainee', () => {
     const removedBy = { _id: new ObjectId() };
 
     await CourseHelper.removeCourseTrainee(course, traineeId, removedBy);
-    sinon.assert.calledWithExactly(updateOne, { _id: course }, { $pull: { trainees: traineeId } });
+    sinon.assert.calledOnceWithExactly(updateOne, { _id: course }, { $pull: { trainees: traineeId } });
     sinon.assert.calledOnceWithExactly(createHistoryOnTraineeDeletion, { course, traineeId }, removedBy._id);
   });
 });
