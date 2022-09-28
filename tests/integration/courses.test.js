@@ -618,6 +618,29 @@ describe('COURSES ROUTES - GET /courses/{_id}', () => {
       });
     });
 
+    it('should get course if trainee', async () => {
+      authToken = await getTokenByCredentials(noRoleNoCompany.local);
+      const response = await app.inject({
+        method: 'GET',
+        url: `/courses/${coursesList[5]._id.toHexString()}?action=pedagogy`,
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(200);
+      expect(response.result.data.course._id).toEqual(coursesList[5]._id);
+    });
+
+    it('should not get course if not trainee', async () => {
+      authToken = await getTokenByCredentials(noRoleNoCompany.local);
+      const response = await app.inject({
+        method: 'GET',
+        url: `/courses/${coursesList[0]._id.toHexString()}?action=pedagogy`,
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
+
     it('should get course if has access authorization', async () => {
       authToken = await getTokenByCredentials(traineeFromOtherCompany.local);
       const response = await app.inject({
@@ -966,59 +989,6 @@ describe('COURSES ROUTES - GET /courses/user', () => {
         expect(response.statusCode).toBe(role.expectedCode);
       });
     });
-  });
-});
-
-describe('COURSES ROUTES - GET /courses/{_id}/user', () => {
-  let authToken;
-  const eLearningCourseId = coursesList[8]._id;
-  beforeEach(populateDB);
-
-  it('should get course if trainee', async () => {
-    const courseId = coursesList[5]._id;
-    authToken = await getTokenByCredentials(noRoleNoCompany.local);
-    const response = await app.inject({
-      method: 'GET',
-      url: `/courses/${courseId.toHexString()}/user`,
-      headers: { 'x-access-token': authToken },
-    });
-
-    expect(response.statusCode).toBe(200);
-    expect(response.result.data.course._id).toEqual(courseId);
-  });
-
-  it('should not get course if not trainee', async () => {
-    const courseId = coursesList[0]._id;
-    authToken = await getTokenByCredentials(noRoleNoCompany.local);
-    const response = await app.inject({
-      method: 'GET',
-      url: `/courses/${courseId.toHexString()}/user`,
-      headers: { 'x-access-token': authToken },
-    });
-
-    expect(response.statusCode).toBe(403);
-  });
-
-  it('should get course if has access authorization', async () => {
-    authToken = await getTokenByCredentials(coach.local);
-    const response = await app.inject({
-      method: 'GET',
-      url: `/courses/${eLearningCourseId.toHexString()}/user`,
-      headers: { Cookie: `alenvi_token=${authToken}` },
-    });
-
-    expect(response.statusCode).toBe(200);
-  });
-
-  it('should not get course if has not access authorization', async () => {
-    authToken = await getTokenByCredentials(traineeFromOtherCompany.local);
-    const response = await app.inject({
-      method: 'GET',
-      url: `/courses/${eLearningCourseId.toHexString()}/user`,
-      headers: { Cookie: `alenvi_token=${authToken}` },
-    });
-
-    expect(response.statusCode).toBe(403);
   });
 });
 

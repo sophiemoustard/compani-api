@@ -9,7 +9,6 @@ const {
   getById,
   getFollowUp,
   getQuestionnaireAnswers,
-  getTraineeCourse,
   update,
   deleteCourse,
   addTrainee,
@@ -32,7 +31,6 @@ const {
   authorizeGetDocumentsAndSms,
   authorizeCourseDeletion,
   authorizeGetCourseList,
-  authorizeCourseGetByTrainee,
   authorizeRegisterToELearning,
   getCourse,
   authorizeAccessRuleAddition,
@@ -166,19 +164,6 @@ exports.plugin = {
         pre: [{ method: authorizeGetQuestionnaires }],
       },
       handler: getQuestionnaires,
-    });
-
-    server.route({
-      method: 'GET',
-      path: '/{_id}/user',
-      options: {
-        validate: {
-          params: Joi.object({ _id: Joi.objectId().required() }),
-        },
-        auth: { mode: 'required' },
-        pre: [{ method: authorizeCourseGetByTrainee }],
-      },
-      handler: getTraineeCourse,
     });
 
     server.route({
