@@ -7,21 +7,51 @@ const Course = require('../../../src/models/Course');
 const AttendanceHelper = require('../../../src/helpers/attendances');
 const SinonMongoose = require('../sinonMongoose');
 const { BLENDED } = require('../../../src/helpers/constants');
+const CourseSlot = require('../../../src/models/CourseSlot');
 
-describe('create', () => {
-  let save;
+describe('create #tag', () => {
+  let create;
+  let courseSlotFindById;
+  let courseFindById;
+  let attendanceFind;
   beforeEach(() => {
-    save = sinon.stub(Attendance.prototype, 'save').returnsThis();
+    create = sinon.stub(Attendance, 'create');
+    courseSlotFindById = sinon.stub(CourseSlot, 'findById');
+    courseFindById = sinon.stub(Course, 'findById');
+    attendanceFind = sinon.stub(Attendance, 'find');
   });
   afterEach(() => {
-    save.restore();
+    create.restore();
+    courseSlotFindById.restore();
+    courseFindById.restore();
+    attendanceFind.restore();
   });
 
   it('should add an attendance', async () => {
-    const newAttendance = { trainee: new ObjectId(), courseSlot: new ObjectId() };
-    const result = await AttendanceHelper.create(newAttendance);
+    const payload = { trainee: new ObjectId(), courseSlot: new ObjectId() };
+    await AttendanceHelper.create(payload);
 
-    expect(result).toMatchObject(newAttendance);
+    sinon.assert.calledOnceWithExactly(create, payload);
+  });
+
+  it('should add an attendance for every trainee without attendance', async () => {
+    const courseSlot = new ObjectId();
+    const payload = { courseSlot };
+    const course = new ObjectId();
+    const trainees = [new ObjectId(), new ObjectId(), new ObjectId()];
+
+    courseSlotFindById.returns({ course });
+    courseFindById.returns({ trainees });
+    attendanceFind.returns([{ courseSlot, trainee: trainees[0] }]);
+
+    await AttendanceHelper.create(payload);
+
+    sinon.assert.calledOnceWithExactly(courseSlotFindById, courseSlot);
+    sinon.assert.calledOnceWithExactly(courseFindById, course);
+    sinon.assert.calledOnceWithExactly(attendanceFind, { courseSlot, trainee: { $in: trainees } });
+    sinon.assert.calledWithExactly(create, { courseSlot, trainee: trainees[1] });
+    sinon.assert.calledWithExactly(create, { courseSlot, trainee: trainees[2] });
+    sinon.assert.calledTwice(create);
   });
 });
 

@@ -5,8 +5,22 @@ const Attendance = require('../models/Attendance');
 const Course = require('../models/Course');
 const UtilsHelper = require('./utils');
 const { BLENDED } = require('./constants');
+const CourseSlot = require('../models/CourseSlot');
 
-exports.create = payload => (new Attendance(payload)).save();
+exports.create = async (payload) => {
+  const { courseSlot: courseSlotId, trainee } = payload;
+  if (trainee) return Attendance.create(payload);
+
+  const courseSlot = await CourseSlot.findById(courseSlotId);
+  const course = await Course.findById(courseSlot.course);
+  const attendances = await Attendance.find({ courseSlot: courseSlotId, trainee: { $in: course.trainees } });
+
+  const traineesWithoutAttendance = course.trainees.filter(t =>
+    !attendances.some(a => UtilsHelper.areObjectIdsEquals(t, a.trainee)));
+  const promises = traineesWithoutAttendance.map(t => Attendance.create({ courseSlot: courseSlotId, trainee: t }));
+
+  return Promise.all(promises);
+};
 
 exports.list = async (query, companyId) => {
   const attendances = await Attendance.find({ courseSlot: { $in: query } })

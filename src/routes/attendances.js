@@ -50,7 +50,7 @@ exports.plugin = {
       path: '/',
       options: {
         validate: {
-          payload: Joi.object({ trainee: Joi.string().required(), courseSlot: Joi.string().required() }),
+          payload: Joi.object({ trainee: Joi.string(), courseSlot: Joi.string().required() }),
         },
         auth: { scope: ['attendances:edit'] },
         pre: [{ method: authorizeAttendanceCreation }],
