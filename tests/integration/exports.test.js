@@ -18,7 +18,7 @@ const {
   ABSENCE,
   WORKING_EVENT,
   // COURSE,
-  // COURSE_SLOT,
+  COURSE_SLOT,
   TRANSPORT,
   END_OF_COURSE,
   COURSE_BILL,
@@ -36,7 +36,7 @@ const {
   establishment,
   thirdPartyPayer,
   courseList,
-  // courseSlotList,
+  courseSlotList,
 } = require('./seed/exportsSeed');
 const { helper, userList } = require('../seed/authUsersSeed');
 const { formatPrice } = require('../../src/helpers/utils');
@@ -120,17 +120,17 @@ const vendorHistoryExportTypes = [
   //   ],
   //   query: 'startDate=2021-01-15T10:00:00.000Z&endDate=2022-01-20T10:00:00.000Z',
   // },
-  // {
-  //   exportType: COURSE_SLOT,
-  //   expectedRows: [
-  //     '\ufeff"Id Créneau";"Id Formation";"Formation";"Étape";"Type";"Date de création";"Date de début";"Date de fin";"Durée";"Adresse";"Nombre de présences";"Nombre d\'absences";"Nombre de présences non prévues"',
-  //     `${courseSlotList[0]._id};${courseList[0]._id};"Test SAS - Program 1 - group 1";"étape 1";"présentiel";"12/12/2020 11:00:00";"01/05/2021 10:00:00";"01/05/2021 12:00:00";"2,00";"24 Avenue Daumesnil 75012 Paris";1;2;0`,
-  //     `${courseSlotList[1]._id};${courseList[0]._id};"Test SAS - Program 1 - group 1";"étape 2";"distanciel";"12/12/2020 11:00:01";"01/05/2021 16:00:00";"01/05/2021 18:00:00";"2,00";"https://meet.google.com";2;1;0`,
-  //     `${courseSlotList[2]._id};${courseList[1]._id};"Program 2 - group 2";"étape 1";"présentiel";"12/12/2020 11:00:02";"01/02/2021 09:00:00";"01/02/2021 11:00:00";"2,00";"24 Avenue Daumesnil 75012 Paris";1;1;1`,
-  //     `${courseSlotList[3]._id};${courseList[1]._id};"Program 2 - group 2";"étape 3";"eLearning";"12/12/2020 11:00:03";"02/02/2021 09:00:00";"02/02/2021 11:00:00";"2,00";;1;1;1`,
-  //   ],
-  //   query: 'startDate=2021-01-15T10:00:00.000Z&endDate=2022-01-20T10:00:00.000Z',
-  // },
+  {
+    exportType: COURSE_SLOT,
+    expectedRows: [
+      '\ufeff"Id Créneau";"Id Formation";"Formation";"Étape";"Type";"Date de création";"Date de début";"Date de fin";"Durée";"Adresse";"Nombre de présences";"Nombre d\'absences";"Nombre de présences non prévues"',
+      `${courseSlotList[0]._id};${courseList[0]._id};"Test SAS - Program 1 - group 1";"étape 1";"présentiel";"12/12/2020 11:00:00";"01/05/2021 10:00:00";"01/05/2021 12:00:00";"2,00";"24 Avenue Daumesnil 75012 Paris";1;2;0`,
+      `${courseSlotList[1]._id};${courseList[0]._id};"Test SAS - Program 1 - group 1";"étape 2";"distanciel";"12/12/2020 11:00:01";"01/05/2021 16:00:00";"01/05/2021 18:00:00";"2,00";"https://meet.google.com";2;1;0`,
+      `${courseSlotList[2]._id};${courseList[1]._id};"Program 2";"étape 1";"présentiel";"12/12/2020 11:00:02";"01/02/2021 09:00:00";"01/02/2021 11:00:00";"2,00";"24 Avenue Daumesnil 75012 Paris";1;1;1`,
+      `${courseSlotList[3]._id};${courseList[1]._id};"Program 2";"étape 3";"eLearning";"12/12/2020 11:00:03";"02/02/2021 09:00:00";"02/02/2021 11:00:00";"2,00";;1;1;1`,
+    ],
+    query: 'startDate=2021-01-15T10:00:00.000Z&endDate=2022-01-20T10:00:00.000Z',
+  },
   {
     exportType: END_OF_COURSE,
     expectedRows: [
