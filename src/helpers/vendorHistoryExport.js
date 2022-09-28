@@ -164,7 +164,7 @@ exports.exportCourseHistory = async (startDate, endDate, credentials) => {
       Identifiant: course._id,
       Type: course.type,
       Payeur: payerList || '',
-      Structure: course.type === INTRA ? get(course, 'company.name') : '',
+      Structure: course.type === INTRA ? get(course, 'companies[0].name') : '',
       Programme: get(course, 'subProgram.program.name') || '',
       'Sous-Programme': get(course, 'subProgram.name') || '',
       'Infos complémentaires': course.misc,
