@@ -49,7 +49,7 @@ exports.findCoursesForExport = async (startDate, endDate, credentials) => {
       ],
       select: '_id type misc estimatedStartDate',
     })
-    .populate({ path: 'company', select: 'name' })
+    .populate({ path: 'companies', select: 'name' })
     .populate({
       path: 'subProgram',
       select: 'name steps program',
