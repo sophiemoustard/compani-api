@@ -58,13 +58,14 @@ exports.plugin = {
             action: Joi.string().required().valid(OPERATIONS, PEDAGOGY),
             origin: Joi.string().required().valid(WEBAPP, MOBILE),
             trainer: Joi.objectId().when(
-              'origin',
+              'action',
               {
-                is: MOBILE,
+                is: OPERATIONS,
                 then: Joi.when(
-                  'action',
-                  { is: OPERATIONS, then: Joi.required(), otherwise: Joi.forbidden() }
+                  'origin',
+                  { is: MOBILE, then: Joi.required() }
                 ),
+                otherwise: Joi.forbidden(),
               }),
             trainee: Joi.objectId().when(
               'action',

@@ -121,10 +121,8 @@ const listForOperations = async (query, origin) => {
 };
 
 const listForPedagogy = async (query, credentials) => {
-  const trainee = await User
-    .findOne({ _id: query.trainee || get(credentials, '_id') }, { company: 1 })
-    .populate({ path: 'company' })
-    .lean();
+  const traineeId = query.trainee || get(credentials, '_id');
+  const trainee = await User.findOne({ _id: traineeId }, { company: 1 }).populate({ path: 'company' }).lean();
 
   const courses = await Course.find(
     { trainees: trainee._id, $or: [{ accessRules: [] }, { accessRules: trainee.company }] },

@@ -5,7 +5,6 @@ const fs = require('fs');
 const os = require('os');
 const { PassThrough } = require('stream');
 const Boom = require('@hapi/boom');
-const { get } = require('lodash');
 const UtilsMock = require('../../utilsMock');
 const Course = require('../../../src/models/Course');
 const CourseBill = require('../../../src/models/CourseBill');
@@ -342,7 +341,7 @@ describe('list', () => {
     });
   });
   describe('PEDAGOGY', () => {
-    it('should return courses', async () => {
+    it('should return courses for trainee', async () => {
       const trainee = { _id: new ObjectId(), company: new ObjectId() };
       const stepId = new ObjectId();
       const coursesList = [
@@ -492,7 +491,212 @@ describe('list', () => {
       SinonMongoose.calledOnceWithExactly(
         userFindOne,
         [
-          { query: 'findOne', args: [{ _id: query.trainee || get(credentials, '_id') }, { company: 1 }] },
+          { query: 'findOne', args: [{ _id: trainee._id }, { company: 1 }] },
+          { query: 'populate', args: [{ path: 'company' }] },
+          { query: 'lean' },
+        ]
+      );
+
+      SinonMongoose.calledOnceWithExactly(
+        find,
+        [
+          {
+            query: 'find',
+            args: [
+              { trainees: trainee._id, $or: [{ accessRules: [] }, { accessRules: trainee.company }] },
+              { format: 1 },
+            ],
+          },
+          {
+            query: 'populate',
+            args: [{
+              path: 'subProgram',
+              select: 'program steps',
+              populate: [
+                { path: 'program', select: 'name image description' },
+                {
+                  path: 'steps',
+                  select: 'name type activities theoreticalHours',
+                  populate: {
+                    path: 'activities',
+                    select: 'name type cards activityHistories',
+                    populate: [
+                      { path: 'activityHistories', match: { user: trainee._id } },
+                      { path: 'cards', select: 'template' },
+                    ],
+                  },
+                },
+              ],
+            }],
+          },
+          {
+            query: 'populate',
+            args: [{
+              path: 'slots',
+              select: 'startDate endDate step',
+              populate: [{ path: 'step', select: 'type' }, { path: 'attendances', match: { trainee: trainee._id } }],
+            }],
+          },
+          { query: 'select', args: ['_id misc'] },
+          { query: 'lean', args: [{ autopopulate: true, virtuals: true }] },
+        ]
+      );
+
+      sinon.assert.calledWithExactly(formatCourseWithProgress.getCall(0), coursesList[0]);
+      sinon.assert.calledWithExactly(formatCourseWithProgress.getCall(1), coursesList[1]);
+    });
+
+    it('should return courses for loggedUser', async () => {
+      const trainee = { _id: credentials._id, company: new ObjectId() };
+      const stepId = new ObjectId();
+      const coursesList = [
+        {
+          misc: 'name',
+          _id: new ObjectId(),
+          format: BLENDED,
+          subProgram: {
+            steps: [{
+              _id: new ObjectId(),
+              activities: [{ activityHistories: [{}, {}] }],
+              name: 'Développement personnel full stack',
+              type: 'e_learning',
+              theoreticalHours: 1.5,
+              areActivitiesValid: false,
+            },
+            {
+              _id: stepId,
+              activities: [],
+              name: 'Développer des équipes agiles et autonomes',
+              type: 'on_site',
+              areActivitiesValid: true,
+            },
+            ],
+          },
+          slots: [
+            {
+              startDate: '2020-11-03T09:00:00.000Z',
+              endDate: '2020-11-03T12:00:00.000Z',
+              step: stepId,
+              attendances: [{ _id: new ObjectId() }],
+            },
+            {
+              startDate: '2020-11-04T09:01:00.000Z',
+              endDate: '2020-11-04T16:01:00.000Z',
+              step: stepId,
+              attendances: [],
+            },
+          ],
+        },
+        {
+          misc: 'program',
+          _id: new ObjectId(),
+          format: BLENDED,
+          subProgram: {
+            steps: [{
+              _id: new ObjectId(),
+              activities: [{ activityHistories: [{}, {}] }],
+              name: 'Brochure : le mal de dos',
+              type: 'e_learning',
+              theoreticalHours: 1.5,
+              areActivitiesValid: false,
+            }, {
+              _id: stepId,
+              activities: [],
+              name: 'Enjailler son équipe autonome',
+              type: 'on_site',
+              areActivitiesValid: true,
+            }],
+          },
+          slots: [
+            {
+              startDate: '2019-11-06T09:00:00.000Z',
+              endDate: '2019-11-06T12:00:00.000Z',
+              step: stepId,
+              attendances: [{ _id: new ObjectId() }],
+            },
+            {
+              startDate: '2019-12-22T09:00:00.000Z',
+              endDate: '2019-12-22T16:01:00.000Z',
+              step: stepId,
+              attendances: [],
+            },
+          ],
+        },
+      ];
+      const query = { action: 'pedagogy', origin: 'webapp' };
+
+      userFindOne.returns(SinonMongoose.stubChainedQueries(trainee));
+      find.returns(SinonMongoose.stubChainedQueries(coursesList, ['populate', 'select', 'lean']));
+
+      formatCourseWithProgress.onCall(0).returns({
+        ...coursesList[0],
+        subProgram: {
+          ...coursesList[0].subProgram,
+          steps: [
+            { ...coursesList[0].subProgram.steps[0], progress: { eLearning: 1 } },
+            {
+              ...coursesList[0].subProgram.steps[1],
+              progress: { live: 1, presence: { attendanceDuration: { minutes: 180 }, maxDuration: { minutes: 601 } } },
+            },
+          ],
+        },
+        progress: {
+          eLearning: 1,
+          live: 1,
+          presence: { attendanceDuration: { minutes: 180 }, maxDuration: { minutes: 601 } },
+        },
+      });
+      formatCourseWithProgress.onCall(1).returns({
+        ...coursesList[1],
+        subProgram: {
+          ...coursesList[1].subProgram,
+          steps: [
+            { ...coursesList[1].subProgram.steps[0], progress: { eLearning: 1 } },
+            {
+              ...coursesList[1].subProgram.steps[1],
+              progress: { live: 1, presence: { attendanceDuration: { minutes: 180 }, maxDuration: { minutes: 601 } } },
+            },
+          ],
+        },
+        progress: {
+          eLearning: 1,
+          live: 1,
+          presence: { attendanceDuration: { minutes: 180 }, maxDuration: { minutes: 601 } },
+        },
+      });
+
+      const result = await CourseHelper.list(query, credentials);
+
+      expect(result).toMatchObject(coursesList.map(
+        course => (
+          {
+            ...course,
+            subProgram: {
+              ...course.subProgram,
+              steps: [
+                { ...course.subProgram.steps[0], progress: { eLearning: 1 } },
+                {
+                  ...course.subProgram.steps[1],
+                  progress: {
+                    live: 1,
+                    presence: { attendanceDuration: { minutes: 180 }, maxDuration: { minutes: 601 } },
+                  },
+                },
+              ],
+            },
+            progress: {
+              eLearning: 1,
+              live: 1,
+              presence: { attendanceDuration: { minutes: 180 }, maxDuration: { minutes: 601 } },
+            },
+          }
+        )
+      ));
+
+      SinonMongoose.calledOnceWithExactly(
+        userFindOne,
+        [
+          { query: 'findOne', args: [{ _id: trainee._id }, { company: 1 }] },
           { query: 'populate', args: [{ path: 'company' }] },
           { query: 'lean' },
         ]
