@@ -17,9 +17,9 @@ exports.create = async (payload) => {
   const { course } = courseSlot;
   const attendances = await Attendance.find({ courseSlot: courseSlotId, trainee: { $in: course.trainees } });
 
-  const traineesWithoutAttendance = course.trainees.filter(t =>
-    !attendances.some(a => UtilsHelper.areObjectIdsEquals(t, a.trainee)));
-  const attendancesToCreate = traineesWithoutAttendance.map(t => ({ courseSlot: courseSlotId, trainee: t }));
+  const traineesWithAttendance = attendances.map(a => a.trainee);
+  const attendancesToCreate = course.trainees.filter(t => !UtilsHelper.doesArrayIncludeId(traineesWithAttendance, t))
+    .map(t => ({ courseSlot: courseSlotId, trainee: t }));
 
   return Attendance.insertMany(attendancesToCreate);
 };
