@@ -96,20 +96,6 @@ const getQuestionnaireAnswers = async (req) => {
   }
 };
 
-const getTraineeCourse = async (req) => {
-  try {
-    const course = await CoursesHelper.getCourseForPedagogy(req.params._id, req.auth.credentials);
-
-    return {
-      message: translate[language].courseFound,
-      data: { course },
-    };
-  } catch (e) {
-    req.log('error', e);
-    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
-  }
-};
-
 const update = async (req) => {
   try {
     const course = await CoursesHelper.updateCourse(req.params._id, req.payload);
@@ -292,7 +278,6 @@ module.exports = {
   getById,
   getFollowUp,
   getQuestionnaireAnswers,
-  getTraineeCourse,
   update,
   deleteCourse,
   addTrainee,

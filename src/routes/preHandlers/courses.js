@@ -161,30 +161,6 @@ exports.authorizeGetCourseList = async (req) => {
   return null;
 };
 
-exports.authorizeCourseGetByTrainee = async (req) => {
-  try {
-    const userId = get(req, 'auth.credentials._id');
-    const companyId = get(req, 'auth.credentials.company._id');
-    const course = await Course.findOne({
-      _id: req.params._id,
-      trainees: userId,
-      $expr: {
-        $cond: {
-          if: { $eq: ['$format', STRICTLY_E_LEARNING] },
-          then: { $or: [{ $eq: ['$accessRules', []] }, { $in: [companyId, '$accessRules'] }] },
-          else: true,
-        },
-      },
-    }).lean();
-    if (!course) throw Boom.forbidden();
-
-    return null;
-  } catch (e) {
-    req.log('error', e);
-    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
-  }
-};
-
 exports.getCourseTrainee = async (req) => {
   try {
     const { payload } = req;

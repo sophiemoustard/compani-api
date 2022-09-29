@@ -280,7 +280,7 @@ const getCourseForOperations = async (courseId, loggedUser, origin) => {
 exports.getCourse = async (query, params, loggedUser) => (
   query.action === OPERATIONS
     ? getCourseForOperations(params._id, loggedUser, query.origin)
-    : exports.getCourseForPedagogy(params._id, loggedUser)
+    : getCourseForPedagogy(params._id, loggedUser)
 );
 
 exports.selectUserHistory = (histories) => {
@@ -402,7 +402,7 @@ exports.getTraineeElearningProgress = (traineeId, steps) => {
   return { steps: formattedSteps, progress: exports.getCourseProgress(formattedSteps) };
 };
 
-exports.getCourseForPedagogy = async (courseId, credentials) => {
+const getCourseForPedagogy = async (courseId, credentials) => {
   const course = await Course.findOne({ _id: courseId })
     .populate({
       path: 'subProgram',
