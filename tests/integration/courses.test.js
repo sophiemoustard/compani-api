@@ -618,7 +618,7 @@ describe('COURSES ROUTES - GET /courses/{_id}', () => {
       });
     });
 
-    it('should get course if trainee', async () => {
+    it('should get course if trainee (pedagogy)', async () => {
       authToken = await getTokenByCredentials(noRoleNoCompany.local);
       const response = await app.inject({
         method: 'GET',
@@ -641,7 +641,7 @@ describe('COURSES ROUTES - GET /courses/{_id}', () => {
       expect(response.statusCode).toBe(403);
     });
 
-    it('should get course if has access authorization', async () => {
+    it('should get course if has access authorization (pedagogy)', async () => {
       authToken = await getTokenByCredentials(traineeFromOtherCompany.local);
       const response = await app.inject({
         method: 'GET',
