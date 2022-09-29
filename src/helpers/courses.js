@@ -226,6 +226,10 @@ const getCourseForOperations = async (courseId, loggedUser, origin) => {
         populate: { path: 'company', populate: { path: 'company', select: 'name' } },
       },
       {
+        path: 'companyRepresentative',
+        select: 'identity.firstname identity.lastname contact.phone local.email picture.link',
+      },
+      {
         path: 'subProgram',
         select: 'program steps',
         populate: [
@@ -255,10 +259,6 @@ const getCourseForOperations = async (courseId, loggedUser, origin) => {
           { path: 'accessRules', select: 'name' },
           {
             path: 'salesRepresentative',
-            select: 'identity.firstname identity.lastname contact.phone local.email picture.link',
-          },
-          {
-            path: 'companyRepresentative',
             select: 'identity.firstname identity.lastname contact.phone local.email picture.link',
           },
           { path: 'contact', select: 'identity.firstname identity.lastname contact.phone' },

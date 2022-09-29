@@ -998,6 +998,10 @@ describe('getCourse', () => {
                 populate: { path: 'company', populate: { path: 'company', select: 'name' } },
               },
               {
+                path: 'companyRepresentative',
+                select: 'identity.firstname identity.lastname contact.phone local.email picture.link',
+              },
+              {
                 path: 'subProgram',
                 select: 'program steps',
                 populate: [
@@ -1020,10 +1024,6 @@ describe('getCourse', () => {
               { path: 'accessRules', select: 'name' },
               {
                 path: 'salesRepresentative',
-                select: 'identity.firstname identity.lastname contact.phone local.email picture.link',
-              },
-              {
-                path: 'companyRepresentative',
                 select: 'identity.firstname identity.lastname contact.phone local.email picture.link',
               },
               { path: 'contact', select: 'identity.firstname identity.lastname contact.phone' },
@@ -1081,6 +1081,10 @@ describe('getCourse', () => {
                   populate: { path: 'company', populate: { path: 'company', select: 'name' } },
                 },
                 {
+                  path: 'companyRepresentative',
+                  select: 'identity.firstname identity.lastname contact.phone local.email picture.link',
+                },
+                {
                   path: 'subProgram',
                   select: 'program steps',
                   populate: [
@@ -1105,10 +1109,6 @@ describe('getCourse', () => {
                 { path: 'accessRules', select: 'name' },
                 {
                   path: 'salesRepresentative',
-                  select: 'identity.firstname identity.lastname contact.phone local.email picture.link',
-                },
-                {
-                  path: 'companyRepresentative',
                   select: 'identity.firstname identity.lastname contact.phone local.email picture.link',
                 },
                 { path: 'contact', select: 'identity.firstname identity.lastname contact.phone' },
@@ -1150,6 +1150,10 @@ describe('getCourse', () => {
                 path: 'trainees',
                 select: 'identity.firstname identity.lastname local.email contact picture.link firstMobileConnection',
                 populate: { path: 'company', populate: { path: 'company', select: 'name' } },
+              },
+              {
+                path: 'companyRepresentative',
+                select: 'identity.firstname identity.lastname contact.phone local.email picture.link',
               },
               {
                 path: 'subProgram',
