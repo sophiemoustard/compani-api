@@ -5,8 +5,25 @@ const Attendance = require('../models/Attendance');
 const Course = require('../models/Course');
 const UtilsHelper = require('./utils');
 const { BLENDED } = require('./constants');
+const CourseSlot = require('../models/CourseSlot');
 
-exports.create = payload => (new Attendance(payload)).save();
+exports.create = async (payload) => {
+  const { courseSlot: courseSlotId, trainee: traineeId } = payload;
+  if (traineeId) return Attendance.create(payload);
+
+  const courseSlot = await CourseSlot.findById(courseSlotId, { course: 1 })
+    .populate({ path: 'course', select: 'trainees' })
+    .lean();
+  const { course } = courseSlot;
+  const existingAttendances = await Attendance.find({ courseSlot: courseSlotId, trainee: { $in: course.trainees } });
+
+  const traineesWithAttendance = existingAttendances.map(a => a.trainee);
+  const newAttendances = course.trainees
+    .filter(t => !UtilsHelper.doesArrayIncludeId(traineesWithAttendance, t))
+    .map(t => ({ courseSlot: courseSlotId, trainee: t }));
+
+  return Attendance.insertMany(newAttendances);
+};
 
 exports.list = async (query, companyId) => {
   const attendances = await Attendance.find({ courseSlot: { $in: query } })
@@ -95,4 +112,14 @@ exports.getTraineeUnsubscribedAttendances = async (trainee) => {
   return groupBy(unsubscribedAttendances, 'program._id');
 };
 
-exports.delete = async attendanceId => Attendance.deleteOne({ _id: attendanceId });
+exports.delete = async (query) => {
+  const { courseSlot: courseSlotId, trainee: traineeId } = query;
+  if (traineeId) return Attendance.deleteOne(query);
+
+  const courseSlot = await CourseSlot.findById(courseSlotId, { course: 1 })
+    .populate({ path: 'course', select: 'trainees' })
+    .lean();
+  const { course } = courseSlot;
+
+  return Attendance.deleteMany({ courseSlot: courseSlotId, trainee: { $in: course.trainees } });
+};
