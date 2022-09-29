@@ -173,7 +173,7 @@ const authorizeGetListForPedagogy = async (credentials, query) => {
   const isRofOrAdmin = [VENDOR_ADMIN, TRAINING_ORGANISATION_MANAGER].includes(loggedUserVendorRole);
   const isClientRoleFromSameCompany = [COACH, CLIENT_ADMIN].includes(loggedUserClientRole) &&
     UtilsHelper.areObjectIdsEquals(loggedUserCompany, trainee.company);
-  if (!(isRofOrAdmin || isClientRoleFromSameCompany)) throw Boom.forbidden();
+  if (!isRofOrAdmin && !isClientRoleFromSameCompany) throw Boom.forbidden();
 
   return null;
 };

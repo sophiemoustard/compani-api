@@ -340,6 +340,7 @@ describe('list', () => {
       sinon.assert.notCalled(formatCourseWithProgress);
     });
   });
+
   describe('PEDAGOGY', () => {
     it('should return courses for trainee', async () => {
       const trainee = { _id: new ObjectId(), company: new ObjectId() };
@@ -623,7 +624,7 @@ describe('list', () => {
           ],
         },
       ];
-      const query = { action: 'pedagogy', origin: 'webapp' };
+      const query = { action: 'pedagogy', origin: 'mobile' };
 
       userFindOne.returns(SinonMongoose.stubChainedQueries(trainee));
       find.returns(SinonMongoose.stubChainedQueries(coursesList, ['populate', 'select', 'lean']));
