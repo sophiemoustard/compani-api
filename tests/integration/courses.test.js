@@ -474,6 +474,17 @@ describe('COURSES ROUTES - GET /courses', () => {
       expect(response.statusCode).toBe(200);
     });
 
+    it('should return 200 if coach and trainer and same company (pedagogy webapp)', async () => {
+      authToken = await getTokenByCredentials(trainerAndCoach.local);
+      const response = await app.inject({
+        method: 'GET',
+        url: `/courses?action=pedagogy&origin=webapp&trainee=${userCompanies[1].user.toHexString()}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(200);
+    });
+
     it('should return 403 if client admin and different company (pedagogy webapp)', async () => {
       authToken = await getToken('client_admin');
       const response = await app.inject({
