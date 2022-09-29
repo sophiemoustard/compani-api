@@ -4,7 +4,6 @@ const Joi = require('joi');
 Joi.objectId = require('joi-objectid')(Joi);
 const {
   list,
-  listUserCourses,
   create,
   getById,
   getFollowUp,
@@ -30,12 +29,11 @@ const {
   authorizeCourseEdit,
   authorizeGetDocumentsAndSms,
   authorizeCourseDeletion,
-  authorizeGetCourseList,
+  authorizeGetList,
   authorizeRegisterToELearning,
   getCourse,
   authorizeAccessRuleAddition,
   authorizeAccessRuleDeletion,
-  authorizeAndGetTrainee,
   authorizeGetCourse,
   authorizeGetFollowUp,
   checkSalesRepresentativeExists,
@@ -54,32 +52,38 @@ exports.plugin = {
       method: 'GET',
       path: '/',
       options: {
-        auth: { scope: ['courses:read'] },
+        auth: { mode: 'required' },
         validate: {
           query: Joi.object({
-            action: Joi.string().required().valid(OPERATIONS),
+            action: Joi.string().required().valid(OPERATIONS, PEDAGOGY),
             origin: Joi.string().required().valid(WEBAPP, MOBILE),
-            trainer: Joi.objectId().when('origin', { is: MOBILE, then: Joi.required() }),
+            trainer: Joi.objectId().when(
+              'action',
+              {
+                is: OPERATIONS,
+                then: Joi.when(
+                  'origin',
+                  { is: MOBILE, then: Joi.required() }
+                ),
+                otherwise: Joi.forbidden(),
+              }),
+            trainee: Joi.objectId().when(
+              'action',
+              {
+                is: PEDAGOGY,
+                then: Joi.when(
+                  'origin',
+                  { is: WEBAPP, then: Joi.required(), otherwise: Joi.forbidden() }
+                ),
+                otherwise: Joi.forbidden(),
+              }),
             company: Joi.objectId().when('origin', { is: MOBILE, then: Joi.forbidden() }),
             format: Joi.string().valid(...COURSE_FORMATS),
           }),
         },
-        pre: [{ method: authorizeGetCourseList }],
+        pre: [{ method: authorizeGetList }],
       },
       handler: list,
-    });
-
-    server.route({
-      method: 'GET',
-      path: '/user',
-      options: {
-        auth: { mode: 'required' },
-        pre: [{ method: authorizeAndGetTrainee, assign: 'trainee' }],
-        validate: {
-          query: Joi.object({ traineeId: Joi.objectId() }),
-        },
-      },
-      handler: listUserCourses,
     });
 
     server.route({

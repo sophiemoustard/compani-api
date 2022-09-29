@@ -19,6 +19,7 @@ const {
   ON_SITE,
   MOBILE,
   OTHER,
+  OPERATIONS,
 } = require('../../helpers/constants');
 const translate = require('../../helpers/translate');
 const UtilsHelper = require('../../helpers/utils');
@@ -150,15 +151,40 @@ exports.authorizeCourseEdit = async (req) => {
   }
 };
 
-exports.authorizeGetCourseList = async (req) => {
-  const { credentials } = req.auth;
-
-  const courseTrainerId = get(req, 'query.trainer');
-  const courseCompanyId = get(req, 'query.company');
+const authorizeGetListForOperations = (credentials, query) => {
+  const courseTrainerId = query.trainer;
+  const courseCompanyId = query.company;
 
   this.checkAuthorization(credentials, courseTrainerId, courseCompanyId);
 
   return null;
+};
+
+const authorizeGetListForPedagogy = async (credentials, query) => {
+  const loggedUserCompany = get(credentials, 'company._id');
+  const loggedUserVendorRole = get(credentials, 'role.vendor.name');
+  const loggedUserClientRole = get(credentials, 'role.client.name');
+
+  if (!query.trainee) return null;
+
+  const trainee = await User.findOne({ _id: query.trainee }, { company: 1 }).populate({ path: 'company' }).lean();
+  if (!trainee) return Boom.notFound();
+
+  const isRofOrAdmin = [VENDOR_ADMIN, TRAINING_ORGANISATION_MANAGER].includes(loggedUserVendorRole);
+  const isClientRoleFromSameCompany = [COACH, CLIENT_ADMIN].includes(loggedUserClientRole) &&
+    UtilsHelper.areObjectIdsEquals(loggedUserCompany, trainee.company);
+  if (!isRofOrAdmin && !isClientRoleFromSameCompany) throw Boom.forbidden();
+
+  return null;
+};
+
+exports.authorizeGetList = async (req) => {
+  const { credentials } = req.auth;
+  const { action } = req.query;
+
+  if (action === OPERATIONS) return authorizeGetListForOperations(credentials, req.query);
+
+  return authorizeGetListForPedagogy(credentials, req.query);
 };
 
 exports.getCourseTrainee = async (req) => {
@@ -291,38 +317,6 @@ exports.getCourse = async (req) => {
   if (!course) throw Boom.notFound();
 
   return course;
-};
-
-exports.authorizeAndGetTrainee = async (req) => {
-  const credentials = get(req, 'auth.credentials');
-  const traineeId = get(req, 'query.traineeId');
-  if (!traineeId) return { _id: get(credentials, '_id'), company: get(credentials, 'company._id') };
-
-  const user = await User.countDocuments({ _id: traineeId });
-  if (!user) return Boom.notFound(translate[language].userNotFound);
-
-  const loggedUserVendorRole = get(credentials, 'role.vendor.name');
-  const loggedUserClientRole = get(credentials, 'role.client.name');
-
-  const userCompany = await UserCompany.findOne({ user: traineeId }, { company: 1 }).lean();
-  if (!userCompany) {
-    if (![VENDOR_ADMIN, TRAINING_ORGANISATION_MANAGER].includes(loggedUserVendorRole)) return Boom.notFound();
-    return { _id: traineeId };
-  }
-
-  const trainee = { _id: traineeId, company: userCompany.company };
-  if ([VENDOR_ADMIN, TRAINING_ORGANISATION_MANAGER].includes(loggedUserVendorRole)) return trainee;
-
-  if (loggedUserClientRole) {
-    if (![COACH, CLIENT_ADMIN].includes(loggedUserClientRole)) return Boom.notFound();
-
-    const isSameCompany = UtilsHelper.areObjectIdsEquals(userCompany.company, get(credentials, 'company._id'));
-    if (!isSameCompany) return Boom.notFound();
-
-    return trainee;
-  }
-
-  return Boom.notFound();
 };
 
 exports.authorizeAccessRuleAddition = async (req) => {
