@@ -50,7 +50,7 @@ exports.plugin = {
       path: '/',
       options: {
         validate: {
-          payload: Joi.object({ trainee: Joi.string(), courseSlot: Joi.string().required() }),
+          payload: Joi.object({ trainee: Joi.objectId(), courseSlot: Joi.objectId().required() }),
         },
         auth: { scope: ['attendances:edit'] },
         pre: [{ method: authorizeAttendanceCreation }],
@@ -62,7 +62,7 @@ exports.plugin = {
       method: 'DELETE',
       path: '/',
       options: {
-        validate: { query: Joi.object({ trainee: Joi.string(), courseSlot: Joi.string().required() }) },
+        validate: { query: Joi.object({ trainee: Joi.objectId(), courseSlot: Joi.objectId().required() }) },
         auth: { scope: ['attendances:edit'] },
         pre: [{ method: authorizeAttendanceDeletion }],
       },
