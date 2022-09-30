@@ -137,7 +137,7 @@ const coursesList = [
   { // 0
     _id: new ObjectId(),
     subProgram: subProgramsList[0]._id,
-    company: authCompany._id,
+    companies: [authCompany._id],
     misc: 'first session',
     trainer: trainer._id,
     trainees: [coach._id, helper._id, clientAdmin._id, vendorAdmin._id],
@@ -151,7 +151,7 @@ const coursesList = [
     _id: new ObjectId(),
     subProgram: subProgramsList[0]._id,
     contact: vendorAdmin._id,
-    company: otherCompany._id,
+    companies: [otherCompany._id],
     misc: 'team formation',
     trainer: new ObjectId(),
     trainees: [traineeFromOtherCompany._id],
@@ -163,7 +163,7 @@ const coursesList = [
     _id: new ObjectId(),
     subProgram: subProgramsList[0]._id,
     contact: vendorAdmin._id,
-    company: authCompany._id,
+    companies: [authCompany._id],
     misc: 'second session',
     trainer: trainer._id,
     type: INTRA,
@@ -181,7 +181,7 @@ const coursesList = [
   { // 3
     _id: new ObjectId(),
     subProgram: subProgramsList[0]._id,
-    company: otherCompany._id,
+    companies: [otherCompany._id],
     misc: 'second team formation',
     type: INTRA,
     maxTrainees: 2,
@@ -289,7 +289,7 @@ const coursesList = [
   { // 14 archived course
     _id: new ObjectId(),
     subProgram: subProgramsList[0]._id,
-    company: authCompany._id,
+    companies: [authCompany._id],
     misc: 'old session',
     trainer: trainer._id,
     trainees: [coach._id, helper._id, clientAdmin._id, trainer._id],
@@ -307,7 +307,7 @@ const coursesList = [
     maxTrainees: 8,
     format: 'blended',
     salesRepresentative: vendorAdmin._id,
-    company: authCompany._id,
+    companies: [authCompany._id],
   },
   { // 16 course without trainee and with slots to plan
     _id: new ObjectId(),
