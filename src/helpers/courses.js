@@ -576,7 +576,7 @@ exports.formatIntraCourseForPdf = (course) => {
   const courseData = {
     name,
     duration: UtilsHelper.getTotalDuration(course.slots),
-    company: course.company.name,
+    company: course.companies[0].name,
     trainer: course.trainer ? UtilsHelper.formatIdentity(course.trainer.identity, 'FL') : '',
   };
 
@@ -625,7 +625,7 @@ exports.formatInterCourseForPdf = (course) => {
 exports.generateAttendanceSheets = async (courseId) => {
   const course = await Course
     .findOne({ _id: courseId }, { misc: 1, type: 1 })
-    .populate({ path: 'company', select: 'name' })
+    .populate({ path: 'companies', select: 'name' })
     .populate({ path: 'slots', select: 'step startDate endDate address', populate: { path: 'step', select: 'type' } })
     .populate({
       path: 'trainees',
