@@ -2450,7 +2450,7 @@ describe('computeSurcharge', () => {
         surcharges: [{
           _id: new ObjectId(),
           startHour: '2019-09-15T20:00:00.000+00:00',
-          endHour: '2019-09-15T21:15:00.000+00:00',
+          endHour: '2019-09-15T21:15:15.000+00:00',
           percentage: 25,
           name: 'Soirée',
         }],
@@ -2459,7 +2459,7 @@ describe('computeSurcharge', () => {
 
     const totalSurcharge = BillHelper.computeSurcharge(subscription);
 
-    expect(totalSurcharge).toEqual('7.646875');
+    expect(totalSurcharge).toEqual('7.672364583333333333353725');
   });
 
   it('should not compute totalSurcharges if there is no surcharge in a subscription', () => {
