@@ -2864,104 +2864,104 @@ describe('COURSES ROUTES - POST /courses/{_id}/register-e-learning', () => {
 //   });
 // });
 
-// describe('COURSES ROUTES - GET /:_id/attendance-sheets', () => {
-//   let authToken;
-//   const courseIdFromAuthCompany = coursesList[2]._id;
-//   const courseIdWithoutOnSiteSlotFromAuth = coursesList[12]._id;
-//   const courseIdFromOtherCompany = coursesList[1]._id;
-//   beforeEach(populateDB);
+describe('COURSES ROUTES - GET /:_id/attendance-sheets', () => {
+  let authToken;
+  const courseIdFromAuthCompany = coursesList[2]._id;
+  const courseIdWithoutOnSiteSlotFromAuth = coursesList[12]._id;
+  const courseIdFromOtherCompany = coursesList[1]._id;
+  beforeEach(populateDB);
 
-//   describe('TRAINING_ORGANISATION_MANAGER', () => {
-//     beforeEach(async () => {
-//       authToken = await getToken('training_organisation_manager');
-//     });
+  describe('TRAINING_ORGANISATION_MANAGER', () => {
+    beforeEach(async () => {
+      authToken = await getToken('training_organisation_manager');
+    });
 
-//     it('should return 200', async () => {
-//       const response = await app.inject({
-//         method: 'GET',
-//         url: `/courses/${courseIdFromAuthCompany}/attendance-sheets`,
-//         headers: { Cookie: `alenvi_token=${authToken}` },
-//       });
+    it('should return 200', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/courses/${courseIdFromAuthCompany}/attendance-sheets`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
 
-//       expect(response.statusCode).toBe(200);
-//     });
+      expect(response.statusCode).toBe(200);
+    });
 
-//     it('should return a 404 if course does not exist', async () => {
-//       const invalidId = (new ObjectId()).toHexString();
-//       const response = await app.inject({
-//         method: 'GET',
-//         url: `/courses/${invalidId}/attendance-sheets`,
-//         headers: { Cookie: `alenvi_token=${authToken}` },
-//       });
+    it('should return a 404 if course does not exist', async () => {
+      const invalidId = (new ObjectId()).toHexString();
+      const response = await app.inject({
+        method: 'GET',
+        url: `/courses/${invalidId}/attendance-sheets`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
 
-//       expect(response.statusCode).toBe(404);
-//     });
+      expect(response.statusCode).toBe(404);
+    });
 
-//     it('should return a 404 if no on-site slot', async () => {
-//       const response = await app.inject({
-//         method: 'GET',
-//         url: `/courses/${courseIdWithoutOnSiteSlotFromAuth}/attendance-sheets`,
-//         headers: { Cookie: `alenvi_token=${authToken}` },
-//       });
+    it('should return a 404 if no on-site slot', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/courses/${courseIdWithoutOnSiteSlotFromAuth}/attendance-sheets`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
 
-//       expect(response.statusCode).toBe(404);
-//       expect(response.result.message).toBeDefined();
-//     });
-//   });
+      expect(response.statusCode).toBe(404);
+      expect(response.result.message).toBeDefined();
+    });
+  });
 
-//   describe('Other roles', () => {
-//     const roles = [
-//       { name: 'helper', expectedCode: 403 },
-//       { name: 'planning_referent', expectedCode: 403 },
-//       { name: 'coach', expectedCode: 200 },
-//     ];
-//     roles.forEach((role) => {
-//       it(`should return ${role.expectedCode} as user is ${role.name}, requesting on his company`, async () => {
-//         authToken = await getToken(role.name);
-//         const response = await app.inject({
-//           method: 'GET',
-//           url: `/courses/${courseIdFromAuthCompany}/attendance-sheets`,
-//           headers: { Cookie: `alenvi_token=${authToken}` },
-//         });
+  describe('Other roles', () => {
+    const roles = [
+      { name: 'helper', expectedCode: 403 },
+      { name: 'planning_referent', expectedCode: 403 },
+      { name: 'coach', expectedCode: 200 },
+    ];
+    roles.forEach((role) => {
+      it(`should return ${role.expectedCode} as user is ${role.name}, requesting on his company`, async () => {
+        authToken = await getToken(role.name);
+        const response = await app.inject({
+          method: 'GET',
+          url: `/courses/${courseIdFromAuthCompany}/attendance-sheets`,
+          headers: { Cookie: `alenvi_token=${authToken}` },
+        });
 
-//         expect(response.statusCode).toBe(role.expectedCode);
-//       });
-//     });
+        expect(response.statusCode).toBe(role.expectedCode);
+      });
+    });
 
-//     it('should return 403 as user is trainer if not one of his courses', async () => {
-//       authToken = await getToken('trainer');
-//       const response = await app.inject({
-//         method: 'GET',
-//         url: `/courses/${coursesList[1]._id}/attendance-sheets`,
-//         headers: { Cookie: `alenvi_token=${authToken}` },
-//       });
+    it('should return 403 as user is trainer if not one of his courses', async () => {
+      authToken = await getToken('trainer');
+      const response = await app.inject({
+        method: 'GET',
+        url: `/courses/${coursesList[1]._id}/attendance-sheets`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
 
-//       expect(response.statusCode).toBe(403);
-//     });
+      expect(response.statusCode).toBe(403);
+    });
 
-//     it('should return 200 as user is the course trainer', async () => {
-//       authToken = await getTokenByCredentials(trainer.local);
-//       const response = await app.inject({
-//         method: 'GET',
-//         url: `/courses/${courseIdFromAuthCompany}/attendance-sheets`,
-//         headers: { Cookie: `alenvi_token=${authToken}` },
-//       });
+    it('should return 200 as user is the course trainer', async () => {
+      authToken = await getTokenByCredentials(trainer.local);
+      const response = await app.inject({
+        method: 'GET',
+        url: `/courses/${courseIdFromAuthCompany}/attendance-sheets`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
 
-//       expect(response.statusCode).toBe(200);
-//     });
+      expect(response.statusCode).toBe(200);
+    });
 
-//     it('should return 403 as user is client_admin requesting on an other company', async () => {
-//       authToken = await getToken('client_admin');
-//       const response = await app.inject({
-//         method: 'GET',
-//         url: `/courses/${courseIdFromOtherCompany}/attendance-sheets`,
-//         headers: { Cookie: `alenvi_token=${authToken}` },
-//       });
+    it('should return 403 as user is client_admin requesting on an other company', async () => {
+      authToken = await getToken('client_admin');
+      const response = await app.inject({
+        method: 'GET',
+        url: `/courses/${courseIdFromOtherCompany}/attendance-sheets`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
 
-//       expect(response.statusCode).toBe(403);
-//     });
-//   });
-// });
+      expect(response.statusCode).toBe(403);
+    });
+  });
+});
 
 describe('COURSES ROUTES - GET /{_id}/completion-certificates', () => {
   let authToken;
