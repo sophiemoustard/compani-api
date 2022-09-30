@@ -38,6 +38,7 @@ const {
   authorizeCourseCreation,
   authorizeGetQuestionnaires,
   authorizeGetAttendanceSheets,
+  authorizeGetDocumentsAndSms,
   authorizeSmsSending,
 } = require('./preHandlers/courses');
 const { INTRA, OPERATIONS, MOBILE, WEBAPP, PEDAGOGY } = require('../helpers/constants');
@@ -234,7 +235,7 @@ exports.plugin = {
         validate: {
           params: Joi.object({ _id: Joi.objectId().required() }),
         },
-        pre: [{ method: authorizeGetAttendanceSheets }],
+        pre: [{ method: authorizeGetDocumentsAndSms }],
       },
       handler: getSMSHistory,
     });
@@ -299,7 +300,7 @@ exports.plugin = {
           params: Joi.object({ _id: Joi.objectId().required() }),
           query: Joi.object({ origin: Joi.string().valid(...ORIGIN_OPTIONS) }),
         },
-        pre: [{ method: authorizeGetAttendanceSheets }],
+        pre: [{ method: authorizeGetDocumentsAndSms }],
       },
       handler: downloadCompletionCertificates,
     });
