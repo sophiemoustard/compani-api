@@ -27,13 +27,12 @@ const CourseBill = require('../../models/CourseBill');
 
 const { language } = translate;
 
-exports.checkAuthorization = (credentials, courseTrainerId, courseCompanyId, traineeCompanyIds = []) => {
+exports.checkAuthorization = (credentials, courseTrainerId, companies) => {
   const userVendorRole = get(credentials, 'role.vendor.name');
   const userClientRole = get(credentials, 'role.client.name');
   const userCompanyId = credentials.company ? credentials.company._id.toHexString() : null;
   const userId = get(credentials, '_id');
-  const areCompaniesMatching = UtilsHelper.areObjectIdsEquals(userCompanyId, courseCompanyId) ||
-    traineeCompanyIds.find(traineeCompanyId => UtilsHelper.areObjectIdsEquals(userCompanyId, traineeCompanyId));
+  const areCompaniesMatching = UtilsHelper.doesArrayIncludeId(companies, userCompanyId);
 
   const isAdminVendor = userVendorRole === VENDOR_ADMIN;
   const isTOM = userVendorRole === TRAINING_ORGANISATION_MANAGER;
@@ -69,14 +68,17 @@ exports.authorizeCourseCreation = async (req) => {
 
 exports.authorizeGetDocumentsAndSms = async (req) => {
   const { credentials } = req.auth;
-  const { course } = req.pre;
+  const course = await Course
+    .findOne({ _id: req.params._id }, { trainees: 1, type: 1, companies: 1, trainer: 1 })
+    .lean();
 
   const isTrainee = UtilsHelper.doesArrayIncludeId(course.trainees.map(t => t._id), get(credentials, '_id'));
   if (isTrainee && get(req, 'query.origin') === MOBILE) return null;
 
-  const courseTrainerId = course.trainer ? course.trainer.toHexString() : null;
-  const courseCompanyId = course.company ? course.company.toHexString() : null;
-  this.checkAuthorization(credentials, courseTrainerId, courseCompanyId, course.trainees.map(t => t.company));
+  const courseTrainerId = get(course, 'trainer') || null;
+  const companies = course.type === INTRA ? course.companies : [];
+
+  this.checkAuthorization(credentials, courseTrainerId, companies);
 
   return null;
 };
@@ -375,14 +377,14 @@ exports.authorizeGetQuestionnaires = async (req) => {
   return null;
 };
 
-exports.authorizeAttendanceSheetsGetAndAssignCourse = async (req) => {
-  const course = await Course.findById(req.params._id).populate({ path: 'slots', select: '_id' }).lean();
+exports.authorizeGetAttendanceSheets = async (req) => {
+  const course = await Course.countDocuments(req.params._id);
   if (!course) throw Boom.notFound();
 
-  const slots = await CourseSlot.find({ _id: { $in: course.slots } }).populate({ path: 'step', select: 'type' }).lean();
+  const slots = await CourseSlot.find({ course: req.params._id }).populate({ path: 'step', select: 'type' }).lean();
   if (!slots.some(s => s.step.type === ON_SITE)) throw Boom.notFound(translate[language].courseAttendanceNotGenerated);
 
-  return course;
+  return exports.authorizeGetDocumentsAndSms(req);
 };
 
 exports.authorizeSmsSending = async (req) => {
