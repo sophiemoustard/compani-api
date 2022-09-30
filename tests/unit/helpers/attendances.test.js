@@ -7,21 +7,60 @@ const Course = require('../../../src/models/Course');
 const AttendanceHelper = require('../../../src/helpers/attendances');
 const SinonMongoose = require('../sinonMongoose');
 const { BLENDED } = require('../../../src/helpers/constants');
+const CourseSlot = require('../../../src/models/CourseSlot');
 
 describe('create', () => {
-  let save;
+  let insertMany;
+  let create;
+  let courseSlotFindById;
+  let find;
   beforeEach(() => {
-    save = sinon.stub(Attendance.prototype, 'save').returnsThis();
+    insertMany = sinon.stub(Attendance, 'insertMany');
+    create = sinon.stub(Attendance, 'create');
+    courseSlotFindById = sinon.stub(CourseSlot, 'findById');
+    find = sinon.stub(Attendance, 'find');
   });
   afterEach(() => {
-    save.restore();
+    create.restore();
+    insertMany.restore();
+    courseSlotFindById.restore();
+    find.restore();
   });
 
   it('should add an attendance', async () => {
-    const newAttendance = { trainee: new ObjectId(), courseSlot: new ObjectId() };
-    const result = await AttendanceHelper.create(newAttendance);
+    const payload = { trainee: new ObjectId(), courseSlot: new ObjectId() };
+    await AttendanceHelper.create(payload);
 
-    expect(result).toMatchObject(newAttendance);
+    sinon.assert.calledOnceWithExactly(create, payload);
+    sinon.assert.notCalled(insertMany);
+    sinon.assert.notCalled(courseSlotFindById);
+    sinon.assert.notCalled(find);
+  });
+
+  it('should add an attendance for every trainee without attendance', async () => {
+    const courseSlot = new ObjectId();
+    const payload = { courseSlot };
+    const course = { _id: new ObjectId(), trainees: [new ObjectId(), new ObjectId(), new ObjectId()] };
+
+    courseSlotFindById.returns(SinonMongoose.stubChainedQueries({ course }));
+    find.returns([{ courseSlot, trainee: course.trainees[0] }]);
+
+    await AttendanceHelper.create(payload);
+
+    sinon.assert.notCalled(create);
+    SinonMongoose.calledOnceWithExactly(
+      courseSlotFindById,
+      [
+        { query: 'findById', args: [courseSlot, { course: 1 }] },
+        { query: 'populate', args: [{ path: 'course', select: 'trainees' }] },
+        { query: 'lean' },
+      ]
+    );
+    sinon.assert.calledOnceWithExactly(find, { courseSlot, trainee: { $in: course.trainees } });
+    sinon.assert.calledOnceWithExactly(
+      insertMany,
+      [{ courseSlot, trainee: course.trainees[1] }, { courseSlot, trainee: course.trainees[2] }]
+    );
   });
 });
 
@@ -458,17 +497,45 @@ describe('getTraineeUnsubscribedAttendances', () => {
 
 describe('delete', () => {
   let deleteOne;
+  let courseSlotFindById;
+  let deleteMany;
   beforeEach(() => {
     deleteOne = sinon.stub(Attendance, 'deleteOne');
+    courseSlotFindById = sinon.stub(CourseSlot, 'findById');
+    deleteMany = sinon.stub(Attendance, 'deleteMany');
   });
   afterEach(() => {
     deleteOne.restore();
+    courseSlotFindById.restore();
+    deleteMany.restore();
   });
 
-  it('should remove a category', async () => {
-    const attendanceId = new ObjectId();
-    await AttendanceHelper.delete(attendanceId);
+  it('should remove an attendance', async () => {
+    const query = { courseSlot: new ObjectId(), trainee: new ObjectId() };
 
-    sinon.assert.calledOnceWithExactly(deleteOne, { _id: attendanceId });
+    await AttendanceHelper.delete(query);
+
+    sinon.assert.calledOnceWithExactly(deleteOne, query);
+    sinon.assert.notCalled(courseSlotFindById);
+    sinon.assert.notCalled(deleteMany);
+  });
+
+  it('should remove all attendances for a courseSlot', async () => {
+    const courseSlot = new ObjectId();
+    const trainees = [new ObjectId(), new ObjectId(), new ObjectId()];
+    courseSlotFindById.returns(SinonMongoose.stubChainedQueries({ course: { trainees } }));
+
+    await AttendanceHelper.delete({ courseSlot });
+
+    sinon.assert.notCalled(deleteOne);
+    SinonMongoose.calledOnceWithExactly(
+      courseSlotFindById,
+      [
+        { query: 'findById', args: [courseSlot, { course: 1 }] },
+        { query: 'populate', args: [{ path: 'course', select: 'trainees' }] },
+        { query: 'lean' },
+      ]
+    );
+    sinon.assert.calledOnceWithExactly(deleteMany, { courseSlot, trainee: { $in: trainees } });
   });
 });

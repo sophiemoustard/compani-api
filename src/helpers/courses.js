@@ -33,6 +33,7 @@ const {
   ON_SITE,
   E_LEARNING,
   MOBILE,
+  WEBAPP,
   VENDOR_ADMIN,
   TRAINING_ORGANISATION_MANAGER,
   TRAINER,
@@ -104,7 +105,7 @@ const listBlendedForCompany = async (query, origin) => {
   ];
 };
 
-const listForOperation = async (query, origin) => {
+const listForOperations = async (query, origin) => {
   if (query.company && query.format === STRICTLY_E_LEARNING) {
     return listStrictlyElearningForCompany(query, origin);
   }
@@ -119,9 +120,49 @@ const listForOperation = async (query, origin) => {
   return courses;
 };
 
-exports.list = async (query) => {
+const listForPedagogy = async (query, credentials) => {
+  const traineeId = query.trainee || get(credentials, '_id');
+  const trainee = await User.findOne({ _id: traineeId }, { company: 1 }).populate({ path: 'company' }).lean();
+
+  const courses = await Course.find(
+    { trainees: trainee._id, $or: [{ accessRules: [] }, { accessRules: trainee.company }] },
+    { format: 1 }
+  )
+    .populate({
+      path: 'subProgram',
+      select: 'program steps',
+      populate: [
+        { path: 'program', select: 'name image description' },
+        {
+          path: 'steps',
+          select: 'name type activities theoreticalHours',
+          populate: {
+            path: 'activities',
+            select: 'name type cards activityHistories',
+            populate: [
+              { path: 'activityHistories', match: { user: trainee._id } },
+              { path: 'cards', select: 'template' },
+            ],
+          },
+        },
+      ],
+    })
+    .populate({
+      path: 'slots',
+      select: 'startDate endDate step',
+      populate: [{ path: 'step', select: 'type' }, { path: 'attendances', match: { trainee: trainee._id } }],
+    })
+    .select('_id misc')
+    .lean({ autopopulate: true, virtuals: true });
+
+  return courses.map(course => exports.formatCourseWithProgress(course));
+};
+
+exports.list = async (query, credentials) => {
   const filteredQuery = omit(query, ['origin', 'action']);
-  return listForOperation(filteredQuery, query.origin);
+  return query.action === OPERATIONS
+    ? listForOperations(filteredQuery, query.origin)
+    : listForPedagogy(filteredQuery, credentials);
 };
 
 const getStepProgress = (step) => {
@@ -175,81 +216,56 @@ exports.formatCourseWithProgress = (course) => {
   };
 };
 
-exports.listUserCourses = async (trainee) => {
-  const courses = await Course.find(
-    { trainees: trainee._id, $or: [{ accessRules: [] }, { accessRules: trainee.company }] },
-    { format: 1 }
-  )
-    .populate({
-      path: 'subProgram',
-      select: 'program steps',
-      populate: [
-        { path: 'program', select: 'name image description' },
-        {
-          path: 'steps',
-          select: 'name type activities theoreticalHours',
-          populate: {
-            path: 'activities',
-            select: 'name type cards activityHistories',
-            populate: [
-              { path: 'activityHistories', match: { user: trainee._id } },
-              { path: 'cards', select: 'template' },
-            ],
-          },
-        },
-      ],
-    })
-    .populate({
-      path: 'slots',
-      select: 'startDate endDate step',
-      populate: [{ path: 'step', select: 'type' }, { path: 'attendances', match: { trainee: trainee._id } }],
-    })
-    .select('_id misc')
-    .lean({ autopopulate: true, virtuals: true });
-
-  return courses.map(course => exports.formatCourseWithProgress(course));
-};
-
-const getCourseForOperations = async (courseId, loggedUser) => {
+const getCourseForOperations = async (courseId, loggedUser, origin) => {
   const fetchedCourse = await Course.findOne({ _id: courseId })
-    .populate({ path: 'company', select: 'name' })
-    .populate({
-      path: 'subProgram',
-      select: 'program steps',
-      populate: [
-        { path: 'program', select: 'name learningGoals' },
-        {
-          path: 'steps',
-          select: 'name type theoreticalHours',
-          populate: {
-            path: 'activities',
-            select: 'name type',
-            populate: { path: 'activityHistories', select: 'user' },
+    .populate([
+      { path: 'company', select: 'name' },
+      {
+        path: 'trainees',
+        select: 'identity.firstname identity.lastname local.email contact picture.link firstMobileConnection',
+        populate: { path: 'company', populate: { path: 'company', select: 'name' } },
+      },
+      {
+        path: 'companyRepresentative',
+        select: 'identity.firstname identity.lastname contact.phone local.email picture.link',
+      },
+      {
+        path: 'subProgram',
+        select: 'program steps',
+        populate: [
+          { path: 'program', select: 'name learningGoals' },
+          ...(origin === WEBAPP
+            ? [{
+              path: 'steps',
+              select: 'name type theoreticalHours',
+              populate: {
+                path: 'activities',
+                select: 'name type',
+                populate: { path: 'activityHistories', select: 'user' },
+              },
+            }]
+            : []
+          ),
+        ],
+      },
+      ...(origin === WEBAPP
+        ? [
+          { path: 'slots', select: 'step startDate endDate address meetingLink' },
+          { path: 'slotsToPlan', select: '_id step' },
+          {
+            path: 'trainer',
+            select: 'identity.firstname identity.lastname contact.phone local.email picture.link',
           },
-        },
-      ],
-    })
-    .populate({ path: 'slots', select: 'step startDate endDate address meetingLink' })
-    .populate({ path: 'slotsToPlan', select: '_id step' })
-    .populate({
-      path: 'trainees',
-      select: 'identity.firstname identity.lastname local.email contact picture.link',
-      populate: { path: 'company', populate: { path: 'company', select: 'name' } },
-    })
-    .populate({
-      path: 'trainer',
-      select: 'identity.firstname identity.lastname contact.phone local.email picture.link',
-    })
-    .populate({ path: 'accessRules', select: 'name' })
-    .populate({
-      path: 'salesRepresentative',
-      select: 'identity.firstname identity.lastname contact.phone local.email picture.link',
-    })
-    .populate({
-      path: 'companyRepresentative',
-      select: 'identity.firstname identity.lastname contact.phone local.email picture.link',
-    })
-    .populate({ path: 'contact', select: 'identity.firstname identity.lastname contact.phone' })
+          { path: 'accessRules', select: 'name' },
+          {
+            path: 'salesRepresentative',
+            select: 'identity.firstname identity.lastname contact.phone local.email picture.link',
+          },
+          { path: 'contact', select: 'identity.firstname identity.lastname contact.phone' },
+        ]
+        : []
+      ),
+    ])
     .lean();
 
   // A coach/client_admin is not supposed to read infos on trainees from other companies
@@ -268,8 +284,8 @@ const getCourseForOperations = async (courseId, loggedUser) => {
 
 exports.getCourse = async (query, params, loggedUser) => (
   query.action === OPERATIONS
-    ? getCourseForOperations(params._id, loggedUser)
-    : exports.getCourseForPedagogy(params._id, loggedUser)
+    ? getCourseForOperations(params._id, loggedUser, query.origin)
+    : getCourseForPedagogy(params._id, loggedUser)
 );
 
 exports.selectUserHistory = (histories) => {
@@ -391,7 +407,7 @@ exports.getTraineeElearningProgress = (traineeId, steps) => {
   return { steps: formattedSteps, progress: exports.getCourseProgress(formattedSteps) };
 };
 
-exports.getCourseForPedagogy = async (courseId, credentials) => {
+const getCourseForPedagogy = async (courseId, credentials) => {
   const course = await Course.findOne({ _id: courseId })
     .populate({
       path: 'subProgram',

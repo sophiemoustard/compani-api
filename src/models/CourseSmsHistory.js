@@ -1,8 +1,8 @@
 const mongoose = require('mongoose');
-const { CONVOCATION, REMINDER } = require('../helpers/constants');
+const { CONVOCATION, REMINDER, OTHER } = require('../helpers/constants');
 const { formatQuery, formatQueryMiddlewareList } = require('./preHooks/validate');
 
-const MESSAGE_TYPE = [CONVOCATION, REMINDER];
+const MESSAGE_TYPE = [CONVOCATION, REMINDER, OTHER];
 
 const CourseSmsHistorySchema = mongoose.Schema({
   type: { type: String, required: true, enum: MESSAGE_TYPE },

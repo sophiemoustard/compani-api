@@ -372,8 +372,8 @@ exports.computeSurcharge = (subscription) => {
 
     for (const surcharge of event.surcharges) {
       const duration = surcharge.startHour
-        ? NumbersHelper.divide(moment(surcharge.endHour).diff(surcharge.startHour, 'm'), 60)
-        : NumbersHelper.divide(moment(event.endDate).diff(event.startDate, 'm'), 60);
+        ? NumbersHelper.divide(moment(surcharge.endHour).diff(surcharge.startHour, 'm', true), 60)
+        : NumbersHelper.divide(moment(event.endDate).diff(event.startDate, 'm', true), 60);
 
       const surchargePrice = NumbersHelper.multiply(
         duration,
