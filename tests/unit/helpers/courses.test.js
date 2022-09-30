@@ -116,7 +116,6 @@ describe('createCourse', () => {
     expect(result.misc).toEqual('name');
     expect(result.subProgram).toEqual(payload.subProgram);
     expect(result.format).toEqual('blended');
-    expect(result.companies).toEqual([]);
     expect(result.type).toEqual(INTER_B2B);
     expect(result.salesRepresentative).toEqual(payload.salesRepresentative);
     sinon.assert.notCalled(insertManyCourseSlot);
@@ -2600,7 +2599,7 @@ describe('formatIntraCourseForPdf', () => {
         { startDate: '2020-04-12T14:00:00', endDate: '2020-04-12T17:30:00', step: { type: 'on_site' } },
         { startDate: '2020-04-14T18:00:00', endDate: '2020-04-14T19:30:00', step: { type: 'remote' } },
       ],
-      company: { name: 'alenvi' },
+      companies: [{ name: 'alenvi' }],
     };
 
     getTotalDuration.returns('8h');
@@ -2769,7 +2768,7 @@ describe('generateAttendanceSheets', () => {
 
     SinonMongoose.calledOnceWithExactly(courseFindOne, [
       { query: 'findOne', args: [{ _id: courseId }, { misc: 1, type: 1 }] },
-      { query: 'populate', args: [{ path: 'company', select: 'name' }] },
+      { query: 'populate', args: [{ path: 'companies', select: 'name' }] },
       {
         query: 'populate',
         args: [{ path: 'slots', select: 'step startDate endDate address', populate: { path: 'step', select: 'type' } }],
@@ -2808,7 +2807,7 @@ describe('generateAttendanceSheets', () => {
 
     SinonMongoose.calledOnceWithExactly(courseFindOne, [
       { query: 'findOne', args: [{ _id: courseId }, { misc: 1, type: 1 }] },
-      { query: 'populate', args: [{ path: 'company', select: 'name' }] },
+      { query: 'populate', args: [{ path: 'companies', select: 'name' }] },
       {
         query: 'populate',
         args: [{ path: 'slots', select: 'step startDate endDate address', populate: { path: 'step', select: 'type' } }],
