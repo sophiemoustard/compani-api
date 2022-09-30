@@ -1,4 +1,5 @@
 const sinon = require('sinon');
+const omit = require('lodash/omit');
 const expect = require('expect');
 const { ObjectId } = require('mongodb');
 const fs = require('fs');
@@ -47,16 +48,16 @@ const CourseConvocation = require('../../../src/data/pdf/courseConvocation');
 const CompletionCertificate = require('../../../src/data/pdf/completionCertificate');
 
 describe('createCourse', () => {
-  let save;
+  let create;
   let findOneSubProgram;
   let insertManyCourseSlot;
   beforeEach(() => {
-    save = sinon.stub(Course.prototype, 'save').returnsThis();
+    create = sinon.stub(Course, 'create');
     findOneSubProgram = sinon.stub(SubProgram, 'findOne');
     insertManyCourseSlot = sinon.stub(CourseSlot, 'insertMany');
   });
   afterEach(() => {
-    save.restore();
+    create.restore();
     findOneSubProgram.restore();
     insertManyCourseSlot.restore();
   });
@@ -78,6 +79,7 @@ describe('createCourse', () => {
     };
 
     findOneSubProgram.returns(SinonMongoose.stubChainedQueries(subProgram));
+    create.returns({ ...omit(payload, 'company'), companies: [payload.company], format: 'blended' });
 
     const result = await CourseHelper.createCourse(payload);
 
@@ -89,6 +91,7 @@ describe('createCourse', () => {
     expect(result.format).toEqual('blended');
     expect(result.type).toEqual(INTRA);
     expect(result.salesRepresentative).toEqual(payload.salesRepresentative);
+    sinon.assert.calledOnceWithExactly(create, { ...omit(payload, 'company'), companies: [payload.company] });
     sinon.assert.calledOnceWithExactly(insertManyCourseSlot, slots);
     SinonMongoose.calledOnceWithExactly(
       findOneSubProgram,
@@ -110,6 +113,7 @@ describe('createCourse', () => {
     };
 
     findOneSubProgram.returns(SinonMongoose.stubChainedQueries(subProgram));
+    create.returns({ ...payload, format: 'blended', companies: [] });
 
     const result = await CourseHelper.createCourse(payload);
 
@@ -118,6 +122,7 @@ describe('createCourse', () => {
     expect(result.format).toEqual('blended');
     expect(result.type).toEqual(INTER_B2B);
     expect(result.salesRepresentative).toEqual(payload.salesRepresentative);
+    sinon.assert.calledOnceWithExactly(create, payload);
     sinon.assert.notCalled(insertManyCourseSlot);
     SinonMongoose.calledOnceWithExactly(
       findOneSubProgram,
