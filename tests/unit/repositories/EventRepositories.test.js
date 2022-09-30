@@ -2,7 +2,9 @@ const expect = require('expect');
 const sinon = require('sinon');
 const { ObjectId } = require('mongodb');
 const UtilsHelper = require('../../../src/helpers/utils');
+const SinonMongoose = require('../sinonMongoose');
 const EventRepository = require('../../../src/repositories/EventRepository');
+const Event = require('../../../src/models/Event');
 const { INTERVENTION } = require('../../../src/helpers/constants');
 
 describe('formatEvents', () => {
@@ -88,5 +90,100 @@ describe('formatEvents', () => {
       endDateTimeStamp: false,
     });
     sinon.assert.notCalled(getMatchingObject);
+  });
+});
+
+describe('getAuxiliaryEventsBetweenDates', () => {
+  let find;
+  const eventIds = [
+    new ObjectId(),
+    new ObjectId(),
+    new ObjectId(),
+    new ObjectId(),
+    new ObjectId(),
+    new ObjectId(),
+    new ObjectId(),
+    new ObjectId(),
+  ];
+  const events = [
+    { _id: eventIds[0] },
+    { _id: eventIds[1], isBilled: true },
+    { _id: eventIds[2], isBilled: false },
+    { _id: eventIds[3], startDateTimeStamp: 1 },
+    { _id: eventIds[4], startDateTimeStamp: 0 },
+    { _id: eventIds[5], endDateTimeStamp: 0 },
+    { _id: eventIds[6], endDateTimeStamp: 1 },
+    { _id: eventIds[7], type: 'absence' },
+  ];
+
+  beforeEach(() => {
+    find = sinon.stub(Event, 'find');
+  });
+
+  afterEach(() => {
+    find.restore();
+  });
+
+  it('should return events if type is not specified', async () => {
+    const startDate = '2022-09-12T00:00:00.000Z';
+    const endDate = '2022-09-14T00:00:00.000Z';
+    const auxiliary = new ObjectId();
+    const companyId = new ObjectId();
+    find.returns(SinonMongoose.stubChainedQueries(events));
+
+    const result = await EventRepository.getAuxiliaryEventsBetweenDates(auxiliary, startDate, endDate, companyId);
+
+    expect(result).toEqual(events);
+    SinonMongoose.calledOnceWithExactly(
+      find,
+      [
+        {
+          query: 'find',
+          args: [{
+            auxiliary,
+            startDate: { $lt: new Date(endDate) },
+            endDate: { $gt: new Date(startDate) },
+            company: companyId,
+          }],
+        },
+        { query: 'populate', args: [{ path: 'startDateTimeStamp' }] },
+        { query: 'populate', args: [{ path: 'endDateTimeStamp' }] },
+        { query: 'lean' },
+      ]
+    );
+  });
+
+  it('should return events from type, or billed or timestamped, if type specified', async () => {
+    const startDate = '2022-09-12T00:00:00.000Z';
+    const endDate = '2022-09-14T00:00:00.000Z';
+    const auxiliary = new ObjectId();
+    const companyId = new ObjectId();
+    find.returns(SinonMongoose.stubChainedQueries(events));
+
+    const result = await EventRepository.getAuxiliaryEventsBetweenDates(
+      auxiliary,
+      startDate,
+      endDate,
+      companyId,
+      'absence');
+
+    expect(result).toEqual([events[1], events[3], events[6], events[7]]);
+    SinonMongoose.calledOnceWithExactly(
+      find,
+      [
+        {
+          query: 'find',
+          args: [{
+            auxiliary,
+            startDate: { $lt: new Date(endDate) },
+            endDate: { $gt: new Date(startDate) },
+            company: companyId,
+          }],
+        },
+        { query: 'populate', args: [{ path: 'startDateTimeStamp' }] },
+        { query: 'populate', args: [{ path: 'endDateTimeStamp' }] },
+        { query: 'lean' },
+      ]
+    );
   });
 });

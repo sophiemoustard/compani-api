@@ -120,6 +120,7 @@ exports.getAuxiliaryEventsBetweenDates = async (auxiliary, startDate, endDate, c
     .populate({ path: 'startDateTimeStamp' })
     .populate({ path: 'endDateTimeStamp' })
     .lean();
+
   if (!type) return eventList;
 
   return eventList.filter(event =>
