@@ -118,9 +118,9 @@ exports.authorizeCourseEdit = async (req) => {
     const { course } = req.pre;
     if (course.archivedAt) throw Boom.forbidden();
 
-    const courseTrainerId = course.trainer ? course.trainer.toHexString() : null;
-    const courseCompanyId = course.company ? course.company.toHexString() : null;
-    this.checkAuthorization(credentials, courseTrainerId, courseCompanyId);
+    const courseTrainerId = get(course, 'trainer') || null;
+    const companies = course.type === INTRA ? course.companies : [];
+    this.checkAuthorization(credentials, courseTrainerId, companies);
     const userVendorRole = get(req, 'auth.credentials.role.vendor.name');
     const isRofOrAdmin = [TRAINING_ORGANISATION_MANAGER, VENDOR_ADMIN].includes(userVendorRole);
 
@@ -139,7 +139,7 @@ exports.authorizeCourseEdit = async (req) => {
       }
     }
 
-    await this.checkInterlocutors(req, courseCompanyId);
+    await this.checkInterlocutors(req, companies[0]);
 
     if (get(req, 'payload.contact')) {
       const isCompanyRepContactAndUpdated = !!get(req, 'payload.companyRepresentative') &&
@@ -175,9 +175,8 @@ exports.authorizeCourseEdit = async (req) => {
 
 const authorizeGetListForOperations = (credentials, query) => {
   const courseTrainerId = query.trainer;
-  const courseCompanyId = query.company;
 
-  this.checkAuthorization(credentials, courseTrainerId, courseCompanyId);
+  this.checkAuthorization(credentials, courseTrainerId, [query.company]);
 
   return null;
 };
