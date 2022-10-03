@@ -978,6 +978,25 @@ const eventsList = [
       location: { type: 'Point', coordinates: [2.377133, 48.801389] },
     },
   },
+  { // 28
+    _id: new ObjectId(),
+    company: authCompany._id,
+    type: INTERVENTION,
+    repetition: { frequency: NEVER },
+    startDate: '2019-01-18T10:30:18.653Z',
+    endDate: '2019-01-18T12:00:18.653Z',
+    auxiliary: auxiliaries[0]._id,
+    customer: customerAuxiliaries[0]._id,
+    subscription: customerAuxiliaries[0].subscriptions[0]._id,
+    createdAt: '2022-01-05T15:24:18.653Z',
+    address: {
+      fullAddress: '4 rue du test 92160 Antony',
+      street: '4 rue du test',
+      zipCode: '92160',
+      city: 'Antony',
+      location: { type: 'Point', coordinates: [2.377133, 48.801389] },
+    },
+  },
 ];
 
 const eventFromOtherCompany = {
@@ -1044,6 +1063,14 @@ const eventHistoriesList = [
     manualTimeStampingReason: 'qrcode_missing',
     auxiliaries: [eventsList[24].auxiliary],
     update: { endHour: { from: eventsList[24].endDate, to: timeStampingDate } },
+  },
+  {
+    event: { eventId: eventsList[28]._id, endDate: eventsList[28].endDate, type: INTERVENTION },
+    company: eventsList[28].company,
+    action: 'manual_time_stamping',
+    manualTimeStampingReason: 'qrcode_missing',
+    auxiliaries: [eventsList[28].auxiliary],
+    update: { endHour: { from: eventsList[28].endDate, to: eventsList[28].endDate } },
   },
 ];
 
