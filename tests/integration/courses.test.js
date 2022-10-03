@@ -1836,6 +1836,16 @@ describe('COURSES ROUTES - GET /courses/{_id}/sms', () => {
       expect(response.result.data.sms.every(sms => UtilsHelper.areObjectIdsEquals(sms.course, courseIdFromAuthCompany)))
         .toBeTruthy();
     });
+
+    it('should return a 404 error if course does not exist', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/courses/${new ObjectId()}/sms`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(404);
+    });
   });
 
   describe('OTHER ROLES', () => {
@@ -1857,17 +1867,6 @@ describe('COURSES ROUTES - GET /courses/{_id}/sms', () => {
       });
     });
 
-    it('should return 403 as user is trainer if not one of his courses', async () => {
-      authToken = await getToken('trainer');
-      const response = await app.inject({
-        method: 'GET',
-        url: `/courses/${coursesList[1]._id}/sms`,
-        headers: { Cookie: `alenvi_token=${authToken}` },
-      });
-
-      expect(response.statusCode).toBe(403);
-    });
-
     it('should return a 200 as user is course trainer', async () => {
       authToken = await getTokenByCredentials(trainer.local);
       const response = await app.inject({
@@ -1877,6 +1876,17 @@ describe('COURSES ROUTES - GET /courses/{_id}/sms', () => {
       });
 
       expect(response.statusCode).toBe(200);
+    });
+
+    it('should return 403 as user is trainer if not one of his courses', async () => {
+      authToken = await getToken('trainer');
+      const response = await app.inject({
+        method: 'GET',
+        url: `/courses/${coursesList[1]._id}/sms`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(403);
     });
 
     it('should return 403 as user is client_admin requesting on an other company', async () => {
