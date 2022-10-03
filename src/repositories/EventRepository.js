@@ -115,8 +115,16 @@ exports.getAuxiliaryEventsBetweenDates = async (auxiliary, startDate, endDate, c
     endDate: { $gt: new Date(startDate) },
     company: companyId,
   };
-  if (type) query.type = type;
-  return Event.find(query);
+
+  const eventList = await Event.find(query)
+    .populate({ path: 'startDateTimeStamp' })
+    .populate({ path: 'endDateTimeStamp' })
+    .lean();
+
+  if (!type) return eventList;
+
+  return eventList.filter(event =>
+    event.type === type || event.isBilled || event.startDateTimeStamp || event.endDateTimeStamp);
 };
 
 exports.getEvent = async (eventId, credentials) => Event.findOne({ _id: eventId })
