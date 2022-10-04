@@ -284,14 +284,10 @@ describe('removeCourseSlot', () => {
   });
 
   it('should remove a course slot without dates', async () => {
-    const returnedCourseSlot = {
-      _id: new ObjectId(),
-      course: new ObjectId(),
-      address: { fullAddress: '55 rue du sku, Skuville' },
-    };
+    const courseSlotId = new ObjectId();
 
-    await CourseSlotsHelper.removeCourseSlot(returnedCourseSlot);
+    await CourseSlotsHelper.removeCourseSlot(courseSlotId);
 
-    sinon.assert.calledOnceWithExactly(deleteOne, { _id: returnedCourseSlot._id });
+    sinon.assert.calledOnceWithExactly(deleteOne, { _id: courseSlotId });
   });
 });
