@@ -2,7 +2,6 @@ const Boom = require('@hapi/boom');
 const pick = require('lodash/pick');
 const translate = require('./translate');
 const CourseSlot = require('../models/CourseSlot');
-const Step = require('../models/Step');
 const CourseHistoriesHelper = require('./courseHistories');
 const { ON_SITE, REMOTE } = require('./constants');
 
@@ -43,7 +42,7 @@ exports.updateCourseSlot = async (courseSlotId, payload, user) => {
     ]);
   } else {
     const updatePayload = { $set: payload };
-    const step = await Step.findById(courseSlot.step._id).lean();
+    const { step } = courseSlot;
 
     if (step.type === ON_SITE || !payload.meetingLink) updatePayload.$unset = { meetingLink: '' };
     if (step.type === REMOTE || !payload.address) updatePayload.$unset = { ...updatePayload.$unset, address: '' };
