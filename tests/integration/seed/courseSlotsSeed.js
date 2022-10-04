@@ -47,7 +47,7 @@ const coursesList = [
   {
     _id: new ObjectId(),
     subProgram: subProgramsList[0]._id,
-    company: authCompany._id,
+    companies: [authCompany._id],
     misc: 'first session',
     type: INTRA,
     maxTrainees: 8,
@@ -57,7 +57,7 @@ const coursesList = [
   {
     _id: new ObjectId(),
     subProgram: subProgramsList[0]._id,
-    company: otherCompany._id,
+    companies: [otherCompany._id],
     misc: 'team formation',
     type: INTRA,
     maxTrainees: 8,
@@ -67,7 +67,7 @@ const coursesList = [
   {
     _id: new ObjectId(),
     subProgram: subProgramsList[0]._id,
-    company: authCompany._id,
+    companies: [authCompany._id],
     misc: 'old session',
     type: INTRA,
     maxTrainees: 8,
