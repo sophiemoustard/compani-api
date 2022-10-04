@@ -54,4 +54,4 @@ exports.updateCourseSlot = async (courseSlotId, payload, user) => {
   }
 };
 
-exports.removeCourseSlot = async courseSlot => CourseSlot.deleteOne({ _id: courseSlot._id });
+exports.removeCourseSlot = async courseSlotId => CourseSlot.deleteOne({ _id: courseSlotId });

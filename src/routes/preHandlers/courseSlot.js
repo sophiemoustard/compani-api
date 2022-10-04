@@ -12,21 +12,6 @@ const { CompaniDate } = require('../../helpers/dates/companiDates');
 
 const { language } = translate;
 
-exports.getCourseSlot = async (req) => {
-  try {
-    const courseSlot = await CourseSlot
-      .findOne({ _id: req.params._id })
-      .populate({ path: 'step', select: '_id type' })
-      .lean();
-    if (!courseSlot) throw Boom.notFound(translate[language].courseSlotNotFound);
-
-    return courseSlot;
-  } catch (e) {
-    req.log('error', e);
-    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
-  }
-};
-
 const canEditCourse = async (courseId) => {
   const course = await Course.findOne({ _id: courseId }, { archivedAt: 1, trainer: 1, type: 1, companies: 1 }).lean();
   if (!course) throw Boom.notFound();
@@ -108,7 +93,11 @@ exports.authorizeUpdate = async (req) => {
 
 exports.authorizeDeletion = async (req) => {
   try {
-    const { courseSlot } = req.pre;
+    const courseSlot = await CourseSlot
+      .findOne({ _id: req.params._id })
+      .populate({ path: 'step', select: '_id type' })
+      .lean();
+    if (!courseSlot) throw Boom.notFound(translate[language].courseSlotNotFound);
 
     await canEditCourse(courseSlot.course);
 
