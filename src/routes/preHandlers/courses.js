@@ -380,13 +380,12 @@ exports.authorizeGetQuestionnaires = async (req) => {
 };
 
 exports.authorizeGetAttendanceSheets = async (req) => {
-  const course = await Course.countDocuments(req.params._id);
-  if (!course) throw Boom.notFound();
+  await exports.authorizeGetDocumentsAndSms(req);
 
   const slots = await CourseSlot.find({ course: req.params._id }).populate({ path: 'step', select: 'type' }).lean();
   if (!slots.some(s => s.step.type === ON_SITE)) throw Boom.notFound(translate[language].courseAttendanceNotGenerated);
 
-  return exports.authorizeGetDocumentsAndSms(req);
+  return null;
 };
 
 exports.authorizeSmsSending = async (req) => {
