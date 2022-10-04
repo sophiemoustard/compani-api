@@ -1485,6 +1485,20 @@ describe('COURSES ROUTES - PUT /courses/{_id}', () => {
 
       expect(response.statusCode).toBe(403);
     });
+
+    it('should return 403 if try to update contact and company representative from other company', async () => {
+      const payload = { contact: clientAdmin._id, companyRepresentative: clientAdmin._id };
+      authToken = await getToken('trainer');
+
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/courses/${courseIdFromAuthCompany}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload,
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
   });
 });
 

@@ -125,7 +125,8 @@ exports.authorizeCourseEdit = async (req) => {
 
     if (get(req, 'payload.contact')) {
       const isCompanyRepresentativeUpdate = !!get(req, 'payload.companyRepresentative') &&
-        UtilsHelper.areObjectIdsEquals(course.companyRepresentative, course.contact._id);
+        UtilsHelper.areObjectIdsEquals(course.companyRepresentative, course.contact._id) &&
+        UtilsHelper.areObjectIdsEquals(course.company, get(credentials, 'company._id'));
       if (!isRofOrAdmin && !isCompanyRepresentativeUpdate) throw Boom.forbidden();
       const payloadInterlocutors = pick(req.payload, ['salesRepresentative', 'trainer', 'companyRepresentative']);
       const courseInterlocutors = pick(course, ['salesRepresentative', 'trainer', 'companyRepresentative']);
