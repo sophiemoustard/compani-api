@@ -27,13 +27,12 @@ const CourseBill = require('../../models/CourseBill');
 
 const { language } = translate;
 
-exports.checkAuthorization = (credentials, courseTrainerId, courseCompanyId, traineeCompanyIds = []) => {
+exports.checkAuthorization = (credentials, courseTrainerId, companies) => {
   const userVendorRole = get(credentials, 'role.vendor.name');
   const userClientRole = get(credentials, 'role.client.name');
   const userCompanyId = credentials.company ? credentials.company._id.toHexString() : null;
   const userId = get(credentials, '_id');
-  const areCompaniesMatching = UtilsHelper.areObjectIdsEquals(userCompanyId, courseCompanyId) ||
-    traineeCompanyIds.find(traineeCompanyId => UtilsHelper.areObjectIdsEquals(userCompanyId, traineeCompanyId));
+  const areCompaniesMatching = UtilsHelper.doesArrayIncludeId(companies, userCompanyId);
 
   const isAdminVendor = userVendorRole === VENDOR_ADMIN;
   const isTOM = userVendorRole === TRAINING_ORGANISATION_MANAGER;
@@ -69,14 +68,20 @@ exports.authorizeCourseCreation = async (req) => {
 
 exports.authorizeGetDocumentsAndSms = async (req) => {
   const { credentials } = req.auth;
-  const { course } = req.pre;
+
+  const course = await Course
+    .findOne({ _id: req.params._id }, { trainees: 1, type: 1, companies: 1, trainer: 1 })
+    .populate({ path: 'trainees', select: '_id company', populate: { path: 'company' } })
+    .lean();
+  if (!course) throw Boom.notFound();
 
   const isTrainee = UtilsHelper.doesArrayIncludeId(course.trainees.map(t => t._id), get(credentials, '_id'));
   if (isTrainee && get(req, 'query.origin') === MOBILE) return null;
 
-  const courseTrainerId = course.trainer ? course.trainer.toHexString() : null;
-  const courseCompanyId = course.company ? course.company.toHexString() : null;
-  this.checkAuthorization(credentials, courseTrainerId, courseCompanyId, course.trainees.map(t => t.company));
+  const courseTrainerId = get(course, 'trainer') || null;
+  const companies = course.type === INTRA ? course.companies : course.trainees.map(t => t.company);
+
+  this.checkAuthorization(credentials, courseTrainerId, companies);
 
   return null;
 };
@@ -113,9 +118,9 @@ exports.authorizeCourseEdit = async (req) => {
     const { course } = req.pre;
     if (course.archivedAt) throw Boom.forbidden();
 
-    const courseTrainerId = course.trainer ? course.trainer.toHexString() : null;
-    const courseCompanyId = course.company ? course.company.toHexString() : null;
-    this.checkAuthorization(credentials, courseTrainerId, courseCompanyId);
+    const courseTrainerId = get(course, 'trainer') || null;
+    const companies = course.type === INTRA ? course.companies : [];
+    this.checkAuthorization(credentials, courseTrainerId, companies);
     const userVendorRole = get(req, 'auth.credentials.role.vendor.name');
     const isRofOrAdmin = [TRAINING_ORGANISATION_MANAGER, VENDOR_ADMIN].includes(userVendorRole);
 
@@ -134,7 +139,7 @@ exports.authorizeCourseEdit = async (req) => {
       }
     }
 
-    await this.checkInterlocutors(req, courseCompanyId);
+    await this.checkInterlocutors(req, companies[0]);
 
     if (get(req, 'payload.contact')) {
       if (!isRofOrAdmin) throw Boom.forbidden();
@@ -166,9 +171,8 @@ exports.authorizeCourseEdit = async (req) => {
 
 const authorizeGetListForOperations = (credentials, query) => {
   const courseTrainerId = query.trainer;
-  const courseCompanyId = query.company;
 
-  this.checkAuthorization(credentials, courseTrainerId, courseCompanyId);
+  this.checkAuthorization(credentials, courseTrainerId, [query.company]);
 
   return null;
 };
@@ -375,14 +379,13 @@ exports.authorizeGetQuestionnaires = async (req) => {
   return null;
 };
 
-exports.authorizeAttendanceSheetsGetAndAssignCourse = async (req) => {
-  const course = await Course.findById(req.params._id).populate({ path: 'slots', select: '_id' }).lean();
-  if (!course) throw Boom.notFound();
+exports.authorizeGetAttendanceSheets = async (req) => {
+  await exports.authorizeGetDocumentsAndSms(req);
 
-  const slots = await CourseSlot.find({ _id: { $in: course.slots } }).populate({ path: 'step', select: 'type' }).lean();
+  const slots = await CourseSlot.find({ course: req.params._id }).populate({ path: 'step', select: 'type' }).lean();
   if (!slots.some(s => s.step.type === ON_SITE)) throw Boom.notFound(translate[language].courseAttendanceNotGenerated);
 
-  return course;
+  return null;
 };
 
 exports.authorizeSmsSending = async (req) => {

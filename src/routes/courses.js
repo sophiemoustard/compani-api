@@ -27,7 +27,6 @@ const { COURSE_TYPES, COURSE_FORMATS } = require('../models/Course');
 const {
   getCourseTrainee,
   authorizeCourseEdit,
-  authorizeGetDocumentsAndSms,
   authorizeCourseDeletion,
   authorizeGetList,
   authorizeRegisterToELearning,
@@ -38,7 +37,8 @@ const {
   authorizeGetFollowUp,
   authorizeCourseCreation,
   authorizeGetQuestionnaires,
-  authorizeAttendanceSheetsGetAndAssignCourse,
+  authorizeGetAttendanceSheets,
+  authorizeGetDocumentsAndSms,
   authorizeSmsSending,
 } = require('./preHandlers/courses');
 const { INTRA, OPERATIONS, MOBILE, WEBAPP, PEDAGOGY } = require('../helpers/constants');
@@ -235,7 +235,7 @@ exports.plugin = {
         validate: {
           params: Joi.object({ _id: Joi.objectId().required() }),
         },
-        pre: [{ method: getCourse, assign: 'course' }, { method: authorizeGetDocumentsAndSms }],
+        pre: [{ method: authorizeGetDocumentsAndSms }],
       },
       handler: getSMSHistory,
     });
@@ -286,10 +286,7 @@ exports.plugin = {
         validate: {
           params: Joi.object({ _id: Joi.objectId().required() }),
         },
-        pre: [
-          { method: authorizeAttendanceSheetsGetAndAssignCourse, assign: 'course' },
-          { method: authorizeGetDocumentsAndSms },
-        ],
+        pre: [{ method: authorizeGetAttendanceSheets }],
       },
       handler: downloadAttendanceSheets,
     });
@@ -303,7 +300,7 @@ exports.plugin = {
           params: Joi.object({ _id: Joi.objectId().required() }),
           query: Joi.object({ origin: Joi.string().valid(...ORIGIN_OPTIONS) }),
         },
-        pre: [{ method: getCourse, assign: 'course' }, { method: authorizeGetDocumentsAndSms }],
+        pre: [{ method: authorizeGetDocumentsAndSms }],
       },
       handler: downloadCompletionCertificates,
     });

@@ -1,4 +1,5 @@
 const sinon = require('sinon');
+const omit = require('lodash/omit');
 const expect = require('expect');
 const { ObjectId } = require('mongodb');
 const fs = require('fs');
@@ -47,16 +48,16 @@ const CourseConvocation = require('../../../src/data/pdf/courseConvocation');
 const CompletionCertificate = require('../../../src/data/pdf/completionCertificate');
 
 describe('createCourse', () => {
-  let save;
+  let create;
   let findOneSubProgram;
   let insertManyCourseSlot;
   beforeEach(() => {
-    save = sinon.stub(Course.prototype, 'save').returnsThis();
+    create = sinon.stub(Course, 'create');
     findOneSubProgram = sinon.stub(SubProgram, 'findOne');
     insertManyCourseSlot = sinon.stub(CourseSlot, 'insertMany');
   });
   afterEach(() => {
-    save.restore();
+    create.restore();
     findOneSubProgram.restore();
     insertManyCourseSlot.restore();
   });
@@ -78,6 +79,7 @@ describe('createCourse', () => {
     };
 
     findOneSubProgram.returns(SinonMongoose.stubChainedQueries(subProgram));
+    create.returns({ ...omit(payload, 'company'), companies: [payload.company], format: 'blended' });
 
     const result = await CourseHelper.createCourse(payload);
 
@@ -89,6 +91,7 @@ describe('createCourse', () => {
     expect(result.format).toEqual('blended');
     expect(result.type).toEqual(INTRA);
     expect(result.salesRepresentative).toEqual(payload.salesRepresentative);
+    sinon.assert.calledOnceWithExactly(create, { ...omit(payload, 'company'), companies: [payload.company] });
     sinon.assert.calledOnceWithExactly(insertManyCourseSlot, slots);
     SinonMongoose.calledOnceWithExactly(
       findOneSubProgram,
@@ -110,15 +113,16 @@ describe('createCourse', () => {
     };
 
     findOneSubProgram.returns(SinonMongoose.stubChainedQueries(subProgram));
+    create.returns({ ...payload, format: 'blended', companies: [] });
 
     const result = await CourseHelper.createCourse(payload);
 
     expect(result.misc).toEqual('name');
     expect(result.subProgram).toEqual(payload.subProgram);
     expect(result.format).toEqual('blended');
-    expect(result.companies).toEqual([]);
     expect(result.type).toEqual(INTER_B2B);
     expect(result.salesRepresentative).toEqual(payload.salesRepresentative);
+    sinon.assert.calledOnceWithExactly(create, payload);
     sinon.assert.notCalled(insertManyCourseSlot);
     SinonMongoose.calledOnceWithExactly(
       findOneSubProgram,
@@ -2599,7 +2603,7 @@ describe('formatIntraCourseForPdf', () => {
         { startDate: '2020-04-12T14:00:00', endDate: '2020-04-12T17:30:00', step: { type: 'on_site' } },
         { startDate: '2020-04-14T18:00:00', endDate: '2020-04-14T19:30:00', step: { type: 'remote' } },
       ],
-      company: { name: 'alenvi' },
+      companies: [{ name: 'alenvi' }],
     };
 
     getTotalDuration.returns('8h');
@@ -2769,7 +2773,7 @@ describe('generateAttendanceSheets', () => {
 
     SinonMongoose.calledOnceWithExactly(courseFindOne, [
       { query: 'findOne', args: [{ _id: courseId }, { misc: 1, type: 1 }] },
-      { query: 'populate', args: [{ path: 'company', select: 'name' }] },
+      { query: 'populate', args: [{ path: 'companies', select: 'name' }] },
       {
         query: 'populate',
         args: [{ path: 'slots', select: 'step startDate endDate address', populate: { path: 'step', select: 'type' } }],
@@ -2810,7 +2814,7 @@ describe('generateAttendanceSheets', () => {
 
     SinonMongoose.calledOnceWithExactly(courseFindOne, [
       { query: 'findOne', args: [{ _id: courseId }, { misc: 1, type: 1 }] },
-      { query: 'populate', args: [{ path: 'company', select: 'name' }] },
+      { query: 'populate', args: [{ path: 'companies', select: 'name' }] },
       {
         query: 'populate',
         args: [{ path: 'slots', select: 'step startDate endDate address', populate: { path: 'step', select: 'type' } }],
