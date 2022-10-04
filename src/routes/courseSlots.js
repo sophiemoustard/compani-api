@@ -38,7 +38,7 @@ exports.plugin = {
             meetingLink: Joi.string().allow(''),
           }),
         },
-        pre: [{ method: getCourseSlot, assign: 'courseSlot' }, { method: authorizeUpdate }],
+        pre: [{ method: authorizeUpdate }],
         auth: { scope: ['courses:edit'] },
       },
       handler: update,
