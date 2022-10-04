@@ -39,6 +39,31 @@ describe('CompaniDuration', () => {
       sinon.assert.calledWithExactly(_formatMiscToCompaniDuration.getCall(0), duration);
     });
 
+    it('should return duration from iso', () => {
+      const result = CompaniDurationsHelper.CompaniDuration('P1Y2M2DT3H4M2S');
+
+      expect(result)
+        .toEqual(expect.objectContaining({
+          _getDuration: expect.any(luxon.Duration),
+          format: expect.any(Function),
+          add: expect.any(Function),
+          asHours: expect.any(Function),
+        }));
+      sinon.assert.calledWithExactly(_formatMiscToCompaniDuration.getCall(0), 'P1Y2M2DT3H4M2S');
+    });
+
+    it('should return error if invalid iso string', () => {
+      try {
+        CompaniDurationsHelper.CompaniDuration('P1Y2M2D3H4M2S');
+
+        expect(true).toBe(false);
+      } catch (e) {
+        console.error(e);
+      } finally {
+        sinon.assert.calledOnceWithExactly(_formatMiscToCompaniDuration, 'P1Y2M2D3H4M2S');
+      }
+    });
+
     it('should return error if invalid argument', () => {
       try {
         CompaniDurationsHelper.CompaniDuration(null);

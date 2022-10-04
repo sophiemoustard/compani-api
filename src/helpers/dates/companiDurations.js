@@ -38,6 +38,8 @@ exports._formatMiscToCompaniDuration = (...args) => {
   if (args.length === 0) return luxon.Duration.fromObject({});
 
   if (args.length === 1) {
+    if (typeof args[0] === 'string') return luxon.Duration.fromISO(args[0]);
+
     if (args[0] instanceof Object) {
       if (args[0]._getDuration && args[0]._getDuration instanceof luxon.Duration) return args[0]._getDuration;
       if (Object.keys(args[0]).every(key => DURATION_UNITS.includes(key))) return luxon.Duration.fromObject(args[0]);
