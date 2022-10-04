@@ -3,7 +3,6 @@ const expect = require('expect');
 const omit = require('lodash/omit');
 const { ObjectId } = require('mongodb');
 const CourseSlot = require('../../../src/models/CourseSlot');
-const Step = require('../../../src/models/Step');
 const CourseSlotsHelper = require('../../../src/helpers/courseSlots');
 const CourseHistoriesHelper = require('../../../src/helpers/courseHistories');
 const SinonMongoose = require('../sinonMongoose');
@@ -85,33 +84,39 @@ describe('updateCourseSlot', () => {
   let hasConflicts;
   let createHistoryOnSlotEdition;
   let createHistoryOnSlotDeletion;
-  let findByIdStep;
+  let findOne;
   beforeEach(() => {
     updateOne = sinon.stub(CourseSlot, 'updateOne');
+    findOne = sinon.stub(CourseSlot, 'findOne');
     hasConflicts = sinon.stub(CourseSlotsHelper, 'hasConflicts');
     createHistoryOnSlotEdition = sinon.stub(CourseHistoriesHelper, 'createHistoryOnSlotEdition');
     createHistoryOnSlotDeletion = sinon.stub(CourseHistoriesHelper, 'createHistoryOnSlotDeletion');
-    findByIdStep = sinon.stub(Step, 'findById');
   });
   afterEach(() => {
     updateOne.restore();
+    findOne.restore();
     hasConflicts.restore();
     createHistoryOnSlotEdition.restore();
     createHistoryOnSlotDeletion.restore();
-    findByIdStep.restore();
   });
 
   it('should update a remote course slot with meetingLink', async () => {
-    const slot = { _id: new ObjectId(), step: { _id: new ObjectId() } };
+    const slotId = new ObjectId();
+    const slot = { _id: slotId, step: { _id: new ObjectId(), type: REMOTE } };
     const user = { _id: new ObjectId() };
-    const payload = { startDate: '2020-03-03T22:00:00', meetingLink: 'https://github.com' };
+    const payload = { startDate: '2020-03-03T22:00:00.000Z', meetingLink: 'https://github.com' };
     hasConflicts.returns(false);
-    findByIdStep.returns(SinonMongoose.stubChainedQueries({ _id: payload.step, type: REMOTE }, ['lean']));
+    findOne.returns(SinonMongoose.stubChainedQueries(slot));
 
-    await CourseSlotsHelper.updateCourseSlot(slot, payload, user);
+    await CourseSlotsHelper.updateCourseSlot(slotId, payload, user);
+
     SinonMongoose.calledOnceWithExactly(
-      findByIdStep,
-      [{ query: 'findById', args: [slot.step._id] }, { query: 'lean' }]
+      findOne,
+      [
+        { query: 'findOne', args: [{ _id: slotId }] },
+        { query: 'populate', args: [{ path: 'step', select: '_id type' }] },
+        { query: 'lean' },
+      ]
     );
     sinon.assert.notCalled(createHistoryOnSlotDeletion);
     sinon.assert.calledOnceWithExactly(hasConflicts, { ...slot, ...payload });
@@ -124,16 +129,22 @@ describe('updateCourseSlot', () => {
   });
 
   it('should update a remote course slot without meetingLink', async () => {
-    const slot = { _id: new ObjectId(), step: { _id: new ObjectId() } };
+    const slotId = new ObjectId();
+    const slot = { _id: slotId, step: { _id: new ObjectId(), type: REMOTE } };
     const user = { _id: new ObjectId() };
-    const payload = { startDate: '2020-03-03T22:00:00' };
+    const payload = { startDate: '2020-03-03T22:00:00.000Z' };
     hasConflicts.returns(false);
-    findByIdStep.returns(SinonMongoose.stubChainedQueries({ _id: payload.step, type: REMOTE }, ['lean']));
+    findOne.returns(SinonMongoose.stubChainedQueries(slot));
 
-    await CourseSlotsHelper.updateCourseSlot(slot, payload, user);
+    await CourseSlotsHelper.updateCourseSlot(slotId, payload, user);
+
     SinonMongoose.calledOnceWithExactly(
-      findByIdStep,
-      [{ query: 'findById', args: [slot.step._id] }, { query: 'lean' }]
+      findOne,
+      [
+        { query: 'findOne', args: [{ _id: slotId }] },
+        { query: 'populate', args: [{ path: 'step', select: '_id type' }] },
+        { query: 'lean' },
+      ]
     );
     sinon.assert.notCalled(createHistoryOnSlotDeletion);
     sinon.assert.calledOnceWithExactly(hasConflicts, { ...slot, ...payload });
@@ -146,16 +157,22 @@ describe('updateCourseSlot', () => {
   });
 
   it('should update an on site course slot with address', async () => {
-    const slot = { _id: new ObjectId(), step: { _id: new ObjectId() } };
+    const slotId = new ObjectId();
+    const slot = { _id: slotId, step: { _id: new ObjectId(), type: ON_SITE } };
     const user = { _id: new ObjectId() };
-    const payload = { startDate: '2020-03-03T22:00:00', address: { fullAddress: '24 avenue Daumesnil' } };
+    const payload = { startDate: '2020-03-03T22:00:00.000Z', address: { fullAddress: '24 avenue Daumesnil' } };
     hasConflicts.returns(false);
-    findByIdStep.returns(SinonMongoose.stubChainedQueries({ _id: payload.step, type: ON_SITE }, ['lean']));
+    findOne.returns(SinonMongoose.stubChainedQueries(slot));
 
-    await CourseSlotsHelper.updateCourseSlot(slot, payload, user);
+    await CourseSlotsHelper.updateCourseSlot(slotId, payload, user);
+
     SinonMongoose.calledOnceWithExactly(
-      findByIdStep,
-      [{ query: 'findById', args: [slot.step._id] }, { query: 'lean' }]
+      findOne,
+      [
+        { query: 'findOne', args: [{ _id: slotId }] },
+        { query: 'populate', args: [{ path: 'step', select: '_id type' }] },
+        { query: 'lean' },
+      ]
     );
     sinon.assert.notCalled(createHistoryOnSlotDeletion);
     sinon.assert.calledOnceWithExactly(hasConflicts, { ...slot, ...payload });
@@ -168,16 +185,22 @@ describe('updateCourseSlot', () => {
   });
 
   it('should update an on site course slot without address', async () => {
-    const slot = { _id: new ObjectId(), step: { _id: new ObjectId() } };
+    const slotId = new ObjectId();
+    const slot = { _id: slotId, step: { _id: new ObjectId(), type: ON_SITE } };
     const user = { _id: new ObjectId() };
-    const payload = { startDate: '2020-03-03T22:00:00' };
+    const payload = { startDate: '2020-03-03T22:00:00.000Z' };
     hasConflicts.returns(false);
-    findByIdStep.returns(SinonMongoose.stubChainedQueries({ _id: payload.step, type: ON_SITE }, ['lean']));
+    findOne.returns(SinonMongoose.stubChainedQueries(slot));
 
-    await CourseSlotsHelper.updateCourseSlot(slot, payload, user);
+    await CourseSlotsHelper.updateCourseSlot(slotId, payload, user);
+
     SinonMongoose.calledOnceWithExactly(
-      findByIdStep,
-      [{ query: 'findById', args: [slot.step._id] }, { query: 'lean' }]
+      findOne,
+      [
+        { query: 'findOne', args: [{ _id: slotId }] },
+        { query: 'populate', args: [{ path: 'step', select: '_id type' }] },
+        { query: 'lean' },
+      ]
     );
     sinon.assert.notCalled(createHistoryOnSlotDeletion);
     sinon.assert.calledOnceWithExactly(hasConflicts, { ...slot, ...payload });
@@ -190,18 +213,28 @@ describe('updateCourseSlot', () => {
   });
 
   it('should remove dates', async () => {
+    const slotId = new ObjectId();
     const slot = {
-      _id: new ObjectId(),
-      startDate: '2020-03-03T20:00:00',
-      endDate: '2020-03-03T22:00:00',
+      _id: slotId,
+      startDate: '2020-03-03T20:00:00.000Z',
+      endDate: '2020-03-03T22:00:00.000Z',
       meetingLink: 'test.com',
     };
     const user = { _id: new ObjectId() };
     const payload = { startDate: '', endDate: '' };
     hasConflicts.returns(false);
+    findOne.returns(SinonMongoose.stubChainedQueries(slot));
 
-    await CourseSlotsHelper.updateCourseSlot(slot, payload, user);
-    sinon.assert.notCalled(findByIdStep);
+    await CourseSlotsHelper.updateCourseSlot(slotId, payload, user);
+
+    SinonMongoose.calledOnceWithExactly(
+      findOne,
+      [
+        { query: 'findOne', args: [{ _id: slotId }] },
+        { query: 'populate', args: [{ path: 'step', select: '_id type' }] },
+        { query: 'lean' },
+      ]
+    );
     sinon.assert.notCalled(createHistoryOnSlotEdition);
     sinon.assert.calledOnceWithExactly(hasConflicts, { ...slot, ...payload });
     sinon.assert.calledOnceWithExactly(createHistoryOnSlotDeletion, omit(slot, '_id'), user._id);
@@ -213,18 +246,28 @@ describe('updateCourseSlot', () => {
   });
 
   it('should throw an error if conflicts', async () => {
-    const slot = { _id: new ObjectId(), step: { _id: new ObjectId() } };
-    const payload = { startDate: '2020-03-03T22:00:00' };
+    const slotId = new ObjectId();
+    const slot = { _id: slotId, step: { _id: new ObjectId() } };
+    const payload = { startDate: '2020-03-03T22:00:00.000Z' };
     const user = { _id: new ObjectId() };
     hasConflicts.returns(true);
+    findOne.returns(SinonMongoose.stubChainedQueries(slot));
 
     try {
-      await CourseSlotsHelper.updateCourseSlot(slot, payload, user);
+      await CourseSlotsHelper.updateCourseSlot(slotId, payload, user);
+
+      SinonMongoose.calledOnceWithExactly(
+        findOne,
+        [
+          { query: 'findOne', args: [{ _id: slotId }] },
+          { query: 'populate', args: [{ path: 'step', select: '_id type' }] },
+          { query: 'lean' },
+        ]
+      );
+      sinon.assert.calledOnceWithExactly(hasConflicts, { ...slot, ...payload });
     } catch (e) {
       expect(e.output.statusCode).toEqual(409);
     } finally {
-      sinon.assert.calledOnceWithExactly(hasConflicts, { ...slot, ...payload });
-      sinon.assert.notCalled(findByIdStep);
       sinon.assert.notCalled(updateOne);
       sinon.assert.notCalled(createHistoryOnSlotEdition);
     }
