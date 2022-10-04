@@ -22,30 +22,35 @@ exports.hasConflicts = async (slot) => {
 
 exports.createCourseSlot = async payload => (new CourseSlot(payload)).save();
 
-exports.updateCourseSlot = async (slotFromDb, payload, user) => {
-  const hasConflicts = await exports.hasConflicts({ ...slotFromDb, ...payload });
+exports.updateCourseSlot = async (courseSlotId, payload, user) => {
+  const courseSlot = await CourseSlot
+    .findOne({ _id: courseSlotId })
+    .populate({ path: 'step', select: '_id type' })
+    .lean();
+
+  const hasConflicts = await exports.hasConflicts({ ...courseSlot, ...payload });
   if (hasConflicts) throw Boom.conflict(translate[language].courseSlotConflict);
 
   const shouldEmptyDates = !payload.endDate && !payload.startDate;
   if (shouldEmptyDates) {
-    const historyPayload = pick(slotFromDb, ['course', 'startDate', 'endDate', 'address', 'meetingLink']);
+    const historyPayload = pick(courseSlot, ['course', 'startDate', 'endDate', 'address', 'meetingLink']);
     await Promise.all([
       CourseHistoriesHelper.createHistoryOnSlotDeletion(historyPayload, user._id),
       CourseSlot.updateOne(
-        { _id: slotFromDb._id },
+        { _id: courseSlot._id },
         { $unset: { startDate: '', endDate: '', meetingLink: '', address: '' } }
       ),
     ]);
   } else {
     const updatePayload = { $set: payload };
-    const step = await Step.findById(slotFromDb.step._id).lean();
+    const step = await Step.findById(courseSlot.step._id).lean();
 
     if (step.type === ON_SITE || !payload.meetingLink) updatePayload.$unset = { meetingLink: '' };
     if (step.type === REMOTE || !payload.address) updatePayload.$unset = { ...updatePayload.$unset, address: '' };
 
     await Promise.all([
-      CourseHistoriesHelper.createHistoryOnSlotEdition(slotFromDb, payload, user._id),
-      CourseSlot.updateOne({ _id: slotFromDb._id }, updatePayload),
+      CourseHistoriesHelper.createHistoryOnSlotEdition(courseSlot, payload, user._id),
+      CourseSlot.updateOne({ _id: courseSlot._id }, updatePayload),
     ]);
   }
 };
