@@ -61,20 +61,14 @@ exports.plugin = {
               'action',
               {
                 is: OPERATIONS,
-                then: Joi.when(
-                  'origin',
-                  { is: MOBILE, then: Joi.required() }
-                ),
+                then: Joi.when('origin', { is: MOBILE, then: Joi.required() }),
                 otherwise: Joi.forbidden(),
               }),
             trainee: Joi.objectId().when(
               'action',
               {
                 is: PEDAGOGY,
-                then: Joi.when(
-                  'origin',
-                  { is: WEBAPP, then: Joi.required(), otherwise: Joi.forbidden() }
-                ),
+                then: Joi.when('origin', { is: WEBAPP, then: Joi.required(), otherwise: Joi.forbidden() }),
                 otherwise: Joi.forbidden(),
               }),
             company: Joi.objectId().when('origin', { is: MOBILE, then: Joi.forbidden() }),
