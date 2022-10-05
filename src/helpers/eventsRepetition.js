@@ -38,7 +38,7 @@ const { CompaniDate } = require('./dates/companiDates');
 const { language } = translate;
 
 exports.formatRepeatedPayload = async (event, sector, date) => {
-  const step = CompaniDate(date).diff(event.startDate, 'days');
+  const step = CompaniDate(date).oldDiff(event.startDate, 'days');
   const isIntervention = event.type === INTERVENTION;
   let payload = {
     ...cloneDeep(omit(event, '_id')), // cloneDeep necessary to copy repetition

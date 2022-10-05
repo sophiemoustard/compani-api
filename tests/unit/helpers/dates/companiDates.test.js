@@ -48,7 +48,7 @@ describe('CompaniDate', () => {
           isBusinessDay: expect.any(Function),
           startOf: expect.any(Function),
           endOf: expect.any(Function),
-          diff: expect.any(Function),
+          oldDiff: expect.any(Function),
           add: expect.any(Function),
           subtract: expect.any(Function),
           set: expect.any(Function),
@@ -716,91 +716,6 @@ describe('MANIPULATE', () => {
     });
   });
 
-  describe('diff', () => {
-    let _formatMiscToCompaniDate;
-    const companiDate = CompaniDatesHelper.CompaniDate('2021-11-24T10:00:00.000Z');
-
-    beforeEach(() => {
-      _formatMiscToCompaniDate = sinon.spy(CompaniDatesHelper, '_formatMiscToCompaniDate');
-    });
-
-    afterEach(() => {
-      _formatMiscToCompaniDate.restore();
-    });
-
-    it('should return difference in positive days', () => {
-      const otherDate = '2021-11-20T10:00:00.000Z';
-      const result = companiDate.diff(otherDate, 'days');
-
-      expect(result).toStrictEqual({ days: 4 });
-      sinon.assert.calledOnceWithExactly(_formatMiscToCompaniDate, otherDate);
-    });
-
-    it('should return difference in days. Result should be 0 if difference is less then 24h', () => {
-      const otherDate = '2021-11-23T21:00:00.000Z';
-      const result = companiDate.diff(otherDate, 'days');
-
-      expect(result).toStrictEqual({ days: 0 });
-      sinon.assert.calledOnceWithExactly(_formatMiscToCompaniDate, otherDate);
-    });
-
-    it('should return difference in positive days', () => {
-      const otherDate = '2021-11-22T21:00:00.000Z';
-      const result = companiDate.diff(otherDate, 'days');
-
-      expect(result).toStrictEqual({ days: 1 });
-      sinon.assert.calledOnceWithExactly(_formatMiscToCompaniDate, otherDate);
-    });
-
-    it('should return difference in negative days', () => {
-      const otherDate = '2021-11-30T10:00:00.000Z';
-      const result = companiDate.diff(otherDate, 'days');
-
-      expect(result).toStrictEqual({ days: -6 });
-      sinon.assert.calledOnceWithExactly(_formatMiscToCompaniDate, otherDate);
-    });
-
-    it('should return difference in float if typeFloat param', () => {
-      const otherDate = '2021-11-20T22:00:00.000Z';
-      const result = companiDate.diff(otherDate, 'days', true);
-
-      expect(result).toStrictEqual({ days: 3.5 });
-      sinon.assert.calledOnceWithExactly(_formatMiscToCompaniDate, otherDate);
-    });
-
-    it('should return error if invalid otherDate', () => {
-      try {
-        companiDate.diff(null, 'days');
-      } catch (e) {
-        expect(e).toEqual(new Error('Invalid DateTime: wrong arguments'));
-      } finally {
-        sinon.assert.calledOnceWithExactly(_formatMiscToCompaniDate, null);
-      }
-    });
-
-    it('should return error if invalid unit', () => {
-      const otherDate = '2021-11-30T08:00:00.000Z';
-      try {
-        companiDate.diff(otherDate, 'jour');
-      } catch (e) {
-        expect(e).toEqual(new Error('Invalid unit jour'));
-      } finally {
-        sinon.assert.calledOnceWithExactly(_formatMiscToCompaniDate, otherDate);
-      }
-    });
-
-    it('should return error if missing unit', () => {
-      const otherDate = '2021-11-30T08:00:00.000Z';
-      try {
-        companiDate.diff(otherDate);
-      } catch (e) {
-        expect(e).toEqual(new Error('Invalid unit undefined'));
-      } finally {
-        sinon.assert.calledOnceWithExactly(_formatMiscToCompaniDate, otherDate);
-      }
-    });
-  });
-
   describe('add', () => {
     const companiDate = CompaniDatesHelper.CompaniDate('2021-12-01T07:00:00.000Z');
 
@@ -870,6 +785,93 @@ describe('MANIPULATE', () => {
         companiDate.set({ day: 1, hours: 2 });
       } catch (e) {
         expect(e).toEqual(new Error('Invalid unit hours'));
+      }
+    });
+  });
+});
+
+describe('Old functions to be deleted', () => {
+  describe('oldDiff', () => {
+    let _formatMiscToCompaniDate;
+    const companiDate = CompaniDatesHelper.CompaniDate('2021-11-24T10:00:00.000Z');
+
+    beforeEach(() => {
+      _formatMiscToCompaniDate = sinon.spy(CompaniDatesHelper, '_formatMiscToCompaniDate');
+    });
+
+    afterEach(() => {
+      _formatMiscToCompaniDate.restore();
+    });
+
+    it('should return difference in positive days', () => {
+      const otherDate = '2021-11-20T10:00:00.000Z';
+      const result = companiDate.oldDiff(otherDate, 'days');
+
+      expect(result).toStrictEqual({ days: 4 });
+      sinon.assert.calledOnceWithExactly(_formatMiscToCompaniDate, otherDate);
+    });
+
+    it('should return difference in days. Result should be 0 if difference is less then 24h', () => {
+      const otherDate = '2021-11-23T21:00:00.000Z';
+      const result = companiDate.oldDiff(otherDate, 'days');
+
+      expect(result).toStrictEqual({ days: 0 });
+      sinon.assert.calledOnceWithExactly(_formatMiscToCompaniDate, otherDate);
+    });
+
+    it('should return difference in positive days', () => {
+      const otherDate = '2021-11-22T21:00:00.000Z';
+      const result = companiDate.oldDiff(otherDate, 'days');
+
+      expect(result).toStrictEqual({ days: 1 });
+      sinon.assert.calledOnceWithExactly(_formatMiscToCompaniDate, otherDate);
+    });
+
+    it('should return difference in negative days', () => {
+      const otherDate = '2021-11-30T10:00:00.000Z';
+      const result = companiDate.oldDiff(otherDate, 'days');
+
+      expect(result).toStrictEqual({ days: -6 });
+      sinon.assert.calledOnceWithExactly(_formatMiscToCompaniDate, otherDate);
+    });
+
+    it('should return difference in float if typeFloat param', () => {
+      const otherDate = '2021-11-20T22:00:00.000Z';
+      const result = companiDate.oldDiff(otherDate, 'days', true);
+
+      expect(result).toStrictEqual({ days: 3.5 });
+      sinon.assert.calledOnceWithExactly(_formatMiscToCompaniDate, otherDate);
+    });
+
+    it('should return error if invalid otherDate', () => {
+      try {
+        companiDate.oldDiff(null, 'days');
+      } catch (e) {
+        expect(e).toEqual(new Error('Invalid DateTime: wrong arguments'));
+      } finally {
+        sinon.assert.calledOnceWithExactly(_formatMiscToCompaniDate, null);
+      }
+    });
+
+    it('should return error if invalid unit', () => {
+      const otherDate = '2021-11-30T08:00:00.000Z';
+      try {
+        companiDate.oldDiff(otherDate, 'jour');
+      } catch (e) {
+        expect(e).toEqual(new Error('Invalid unit jour'));
+      } finally {
+        sinon.assert.calledOnceWithExactly(_formatMiscToCompaniDate, otherDate);
+      }
+    });
+
+    it('should return error if missing unit', () => {
+      const otherDate = '2021-11-30T08:00:00.000Z';
+      try {
+        companiDate.oldDiff(otherDate);
+      } catch (e) {
+        expect(e).toEqual(new Error('Invalid unit undefined'));
+      } finally {
+        sinon.assert.calledOnceWithExactly(_formatMiscToCompaniDate, otherDate);
       }
     });
   });

@@ -102,7 +102,8 @@ const CompaniDateFactory = (inputDate) => {
       return CompaniDateFactory(_date.endOf(unit));
     },
 
-    diff(miscTypeOtherDate, unit, typeFloat = false) {
+    // fct to be deleted
+    oldDiff(miscTypeOtherDate, unit, typeFloat = false) {
       const otherDate = exports._formatMiscToCompaniDate(miscTypeOtherDate);
       const floatedDiff = _date.diff(otherDate, unit).as(unit);
 
