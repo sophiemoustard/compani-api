@@ -58,7 +58,8 @@ describe('CompaniDuration', () => {
 
         expect(true).toBe(false);
       } catch (e) {
-        console.error(e);
+        expect(e)
+          .toEqual(new Error('Invalid Duration: unparsable: the input "P1Y2M2D3H4M2S" can\'t be parsed as ISO 8601'));
       } finally {
         sinon.assert.calledOnceWithExactly(_formatMiscToCompaniDuration, 'P1Y2M2D3H4M2S');
       }
