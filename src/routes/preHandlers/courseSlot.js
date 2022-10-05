@@ -94,7 +94,7 @@ exports.authorizeUpdate = async (req) => {
 exports.authorizeDeletion = async (req) => {
   try {
     const courseSlot = await CourseSlot
-      .findOne({ _id: req.params._id })
+      .findOne({ _id: req.params._id }, { course: 1, step: 1 })
       .populate({ path: 'step', select: '_id type' })
       .lean();
     if (!courseSlot) throw Boom.notFound(translate[language].courseSlotNotFound);
