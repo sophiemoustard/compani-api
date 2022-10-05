@@ -263,7 +263,7 @@ const getCourseForOperations = async (courseId, loggedUser, origin) => {
           },
           { path: 'contact', select: 'identity.firstname identity.lastname contact.phone' },
         ]
-        : []
+        : [{ path: 'slots', select: 'startDate' }]
       ),
     ])
     .lean();
