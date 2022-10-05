@@ -39,32 +39,6 @@ describe('CompaniDuration', () => {
       sinon.assert.calledWithExactly(_formatMiscToCompaniDuration.getCall(0), duration);
     });
 
-    it('should return duration from iso', () => {
-      const result = CompaniDurationsHelper.CompaniDuration('P1Y2M2DT3H4M2S');
-
-      expect(result)
-        .toEqual(expect.objectContaining({
-          _getDuration: expect.any(luxon.Duration),
-          format: expect.any(Function),
-          add: expect.any(Function),
-          asHours: expect.any(Function),
-        }));
-      sinon.assert.calledWithExactly(_formatMiscToCompaniDuration.getCall(0), 'P1Y2M2DT3H4M2S');
-    });
-
-    it('should return error if invalid iso string', () => {
-      try {
-        CompaniDurationsHelper.CompaniDuration('P1Y2M2D3H4M2S');
-
-        expect(true).toBe(false);
-      } catch (e) {
-        expect(e)
-          .toEqual(new Error('Invalid Duration: unparsable: the input "P1Y2M2D3H4M2S" can\'t be parsed as ISO 8601'));
-      } finally {
-        sinon.assert.calledOnceWithExactly(_formatMiscToCompaniDuration, 'P1Y2M2D3H4M2S');
-      }
-    });
-
     it('should return error if invalid argument', () => {
       try {
         CompaniDurationsHelper.CompaniDuration(null);
@@ -188,17 +162,20 @@ describe('_formatMiscToCompaniDuration', () => {
   let fromObject;
   let fromMillis;
   let invalid;
+  let fromISO;
 
   beforeEach(() => {
     fromObject = sinon.spy(luxon.Duration, 'fromObject');
     fromMillis = sinon.spy(luxon.Duration, 'fromMillis');
     invalid = sinon.spy(luxon.Duration, 'invalid');
+    fromISO = sinon.spy(luxon.Duration, 'fromISO');
   });
 
   afterEach(() => {
     fromObject.restore();
     fromMillis.restore();
     invalid.restore();
+    fromISO.restore();
   });
 
   it('should return duration being worth 0 if no args', () => {
@@ -228,9 +205,35 @@ describe('_formatMiscToCompaniDuration', () => {
     const result = CompaniDurationsHelper._formatMiscToCompaniDuration(payload);
 
     expect(result instanceof luxon.Duration).toBe(true);
-    expect(new luxon.Duration(result).toMillis()).toEqual(3 * 60 * 60 * 1000 + 35 * 60 * 1000 + 12 * 1000);
+    expect(result.toMillis()).toEqual(3 * 60 * 60 * 1000 + 35 * 60 * 1000 + 12 * 1000);
     sinon.assert.calledOnce(fromObject);
     sinon.assert.notCalled(invalid);
+  });
+
+  it('should return duration from iso', () => {
+    const result = CompaniDurationsHelper.CompaniDuration('P1Y2M2DT3H4M2S');
+    expect(result)
+      .toEqual(expect.objectContaining({
+        _getDuration: expect.any(luxon.Duration),
+        format: expect.any(Function),
+        add: expect.any(Function),
+        asHours: expect.any(Function),
+      }));
+    expect(result.toObject()).toEqual({ years: 1, months: 2, days: 2, hours: 3, minutes: 4, seconds: 2 });
+    sinon.assert.calledOnceWithExactly(fromISO, 'P1Y2M2DT3H4M2S');
+  });
+
+  it('should return error if invalid iso string', () => {
+    try {
+      CompaniDurationsHelper.CompaniDuration('P1Y2M2D3H4M2S');
+
+      expect(true).toBe(false);
+    } catch (e) {
+      expect(e)
+        .toEqual(new Error('Invalid Duration: unparsable: the input "P1Y2M2D3H4M2S" can\'t be parsed as ISO 8601'));
+    } finally {
+      sinon.assert.calledOnceWithExactly(fromISO, 'P1Y2M2D3H4M2S');
+    }
   });
 
   it('should return invalid if wrong input', () => {
