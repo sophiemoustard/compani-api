@@ -24,9 +24,9 @@ const formatAndCheckAuthorization = async (courseId, credentials) => {
   const course = await canEditCourse(courseId);
 
   const courseTrainerId = get(course, 'trainer');
-  const courseCompanyId = course.type === INTRA ? course.companies : [];
+  const courseCompanies = course.type === INTRA ? course.companies : [];
 
-  checkAuthorization(credentials, courseTrainerId, courseCompanyId);
+  checkAuthorization(credentials, courseTrainerId, courseCompanies);
 };
 
 const checkPayload = async (courseSlot, payload) => {
