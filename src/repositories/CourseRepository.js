@@ -3,10 +3,10 @@ const Course = require('../models/Course');
 const CourseSlot = require('../models/CourseSlot');
 const { WEBAPP, MOBILE } = require('../helpers/constants');
 
-exports.findCourseAndPopulate = (query, origin, populateVirtual = false) => Course
+exports.findCourseAndPopulate = (query, origin) => Course
   .find(query, origin === WEBAPP ? 'misc type archivedAt estimatedStartDate createdAt' : 'misc')
   .populate([
-    { path: 'company', select: 'name' },
+    { path: 'companies', select: 'name' },
     {
       path: 'subProgram',
       select: 'program',
@@ -26,7 +26,7 @@ exports.findCourseAndPopulate = (query, origin, populateVirtual = false) => Cour
         { path: 'trainer', select: 'identity.firstname identity.lastname' },
         {
           path: 'trainees',
-          select: '_id',
+          select: '_id company',
           populate: { path: 'company', populate: { path: 'company', select: 'name' } },
         },
         { path: 'salesRepresentative', select: 'identity.firstname identity.lastname' },
@@ -34,7 +34,7 @@ exports.findCourseAndPopulate = (query, origin, populateVirtual = false) => Cour
       : []
     ),
   ])
-  .lean({ virtuals: populateVirtual });
+  .lean();
 
 exports.findCoursesForExport = async (startDate, endDate, credentials) => {
   const slots = await CourseSlot.find({ startDate: { $lte: endDate }, endDate: { $gte: startDate } }).lean();
