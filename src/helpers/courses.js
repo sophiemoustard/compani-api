@@ -91,7 +91,10 @@ const listStrictlyElearningForCompany = async (query, origin) => {
 };
 
 const listBlendedForCompany = async (query, origin) => {
-  const intraCourse = await CourseRepository.findCourseAndPopulate({ ...query, type: INTRA }, origin);
+  const intraCourse = await CourseRepository.findCourseAndPopulate(
+    { ...omit(query, ['company']), companies: [query.company], type: INTRA },
+    origin
+  );
   const interCourse = await CourseRepository.findCourseAndPopulate(
     { ...omit(query, ['company']), type: INTER_B2B },
     origin,
