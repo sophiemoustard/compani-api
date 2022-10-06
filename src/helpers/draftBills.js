@@ -15,7 +15,7 @@ const NumbersHelper = require('./numbers');
 const FundingsHelper = require('./fundings');
 const { CompaniDate } = require('./dates/companiDates');
 
-exports.getDurationInMinutes = (startDate, endDate) => CompaniDate(endDate).diff(startDate, 'minutes', true).minutes;
+exports.getDurationInMinutes = (startDate, endDate) => CompaniDate(endDate).oldDiff(startDate, 'minutes', true).minutes;
 
 const populateSurchargeAndBillingItem = (serviceVersions, surcharges, billingItems) => serviceVersions
   .map(v => ({

@@ -27,7 +27,7 @@ const getMonthCareHours = (events, funding) => {
       (acc, event) => (!isInCareDays(funding.careDays, event.startDate) ||
       isNotStarted(event.startDate, funding.startDate) || isEnded(event.startDate, funding.endDate)
         ? acc
-        : acc.add(CompaniDuration(CompaniDate(event.endDate).diff(event.startDate, 'minutes')))),
+        : acc.add(CompaniDuration(CompaniDate(event.endDate).oldDiff(event.startDate, 'minutes')))),
       CompaniDuration()
     )
     .asHours();
