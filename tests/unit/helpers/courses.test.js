@@ -253,7 +253,6 @@ describe('list', () => {
         {
           misc: 'program',
           type: INTER_B2B,
-          companies: ['1234567890abcdef12345678', authCompany.toHexString()],
           trainees: [
             { identity: { firstname: 'Bonjour' }, company: { _id: authCompany } },
             { identity: { firstname: 'Au revoir' }, company: { _id: new ObjectId() } },
@@ -278,7 +277,7 @@ describe('list', () => {
       expect(result).toMatchObject(coursesList);
       sinon.assert.calledWithExactly(
         findCourseAndPopulate.getCall(0),
-        { company: authCompany.toHexString(), trainer: '1234567890abcdef12345678', format: 'blended', type: INTRA },
+        { companies: [authCompany.toHexString()], trainer: '1234567890abcdef12345678', format: 'blended', type: INTRA },
         'webapp'
       );
       sinon.assert.calledWithExactly(
