@@ -242,7 +242,7 @@ describe('COURSES ROUTES - POST /courses', () => {
   });
 });
 
-describe('COURSES ROUTES - GET /courses #tag', () => {
+describe('COURSES ROUTES - GET /courses', () => {
   let authToken;
   beforeEach(populateDB);
 
