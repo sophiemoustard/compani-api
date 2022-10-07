@@ -788,6 +788,122 @@ describe('MANIPULATE', () => {
       }
     });
   });
+
+  describe('diff #tag', () => {
+    let _formatMiscToCompaniDate;
+    const companiDate = CompaniDatesHelper.CompaniDate('2021-11-24T10:00:00.000Z');
+
+    beforeEach(() => {
+      _formatMiscToCompaniDate = sinon.spy(CompaniDatesHelper, '_formatMiscToCompaniDate');
+    });
+
+    afterEach(() => {
+      _formatMiscToCompaniDate.restore();
+    });
+
+    it('should return difference in positive days', () => {
+      const otherDate = '2021-11-20T10:00:00.000Z';
+      const result = companiDate.diff(otherDate, 'days');
+
+      expect(result).toStrictEqual('P4D');
+      sinon.assert.calledOnceWithExactly(_formatMiscToCompaniDate, otherDate);
+    });
+
+    it('should return difference in positive minutes', () => {
+      const otherDate = '2021-11-20T10:00:00.000Z';
+      const result = companiDate.diff(otherDate, 'minutes');
+
+      expect(result).toStrictEqual('PT5760M');
+      sinon.assert.calledOnceWithExactly(_formatMiscToCompaniDate, otherDate);
+    });
+
+    it('should return difference in days. Result should be 1 if difference is between 24h and 48h', () => {
+      const otherDate = '2021-11-22T21:00:00.000Z';
+      const result = companiDate.diff(otherDate, 'days');
+
+      expect(result).toStrictEqual('P1D');
+      sinon.assert.calledOnceWithExactly(_formatMiscToCompaniDate, otherDate);
+    });
+
+    it('should return difference in days. Result should be 0 if difference is less than 24h', () => {
+      const otherDate = '2021-11-23T21:00:00.000Z';
+      const result = companiDate.diff(otherDate, 'days');
+
+      expect(result).toStrictEqual('PT0S');
+      sinon.assert.calledOnceWithExactly(_formatMiscToCompaniDate, otherDate);
+    });
+
+    it('should return difference in negative days', () => {
+      const otherDate = '2021-11-30T10:00:00.000Z';
+      const result = companiDate.diff(otherDate, 'days');
+
+      expect(result).toStrictEqual('P-6D');
+      sinon.assert.calledOnceWithExactly(_formatMiscToCompaniDate, otherDate);
+    });
+
+    it('should return difference in float if typeFloat param', () => {
+      const otherDate = '2021-11-20T22:00:00.000Z';
+      const result = companiDate.diff(otherDate, 'days', true);
+
+      expect(result).toStrictEqual('P3.5D');
+      sinon.assert.calledOnceWithExactly(_formatMiscToCompaniDate, otherDate);
+    });
+
+    it('should return difference in positive day (singular) /!\\ bad practice to use singular', () => {
+      const otherDate = '2021-11-20T10:00:00.000Z';
+      const result = companiDate.diff(otherDate, 'day');
+
+      expect(result).toStrictEqual('P4D');
+      sinon.assert.calledOnceWithExactly(_formatMiscToCompaniDate, otherDate);
+    });
+
+    it('should return error if invalid otherDate', () => {
+      try {
+        companiDate.diff(null, 'days');
+
+        expect(true).toBe(false);
+      } catch (e) {
+        expect(e).toEqual(new Error('Invalid DateTime: wrong arguments'));
+      } finally {
+        sinon.assert.calledOnceWithExactly(_formatMiscToCompaniDate, null);
+      }
+    });
+
+    it('should return error if many units', () => {
+      const otherDate = '2021-11-30T08:00:00.000Z';
+      try {
+        companiDate.diff(otherDate, ['days', 'minutes']);
+
+        expect(true).toBe(false);
+      } catch (e) {
+        expect(e).toEqual(new Error('Invalid argument: expected unit to be a string'));
+      }
+    });
+
+    it('should return error if invalid unit', () => {
+      const otherDate = '2021-11-30T08:00:00.000Z';
+      try {
+        companiDate.diff(otherDate, 'jour');
+
+        expect(true).toBe(false);
+      } catch (e) {
+        expect(e).toEqual(new Error('Invalid unit jour'));
+      } finally {
+        sinon.assert.calledOnceWithExactly(_formatMiscToCompaniDate, otherDate);
+      }
+    });
+
+    it('should return error if missing unit', () => {
+      const otherDate = '2021-11-30T08:00:00.000Z';
+      try {
+        companiDate.diff(otherDate);
+
+        expect(true).toBe(false);
+      } catch (e) {
+        expect(e).toEqual(new Error('Invalid argument: expected unit to be a string'));
+      }
+    });
+  });
 });
 
 describe('Old functions to be deleted', () => {
