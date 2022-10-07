@@ -112,18 +112,13 @@ const CompaniDateFactory = (inputDate) => {
       return { [unit]: floatedDiff > 0 ? Math.floor(floatedDiff) : Math.ceil(floatedDiff) };
     },
 
-    diff(miscTypeOtherDate, unit, typeFloat = false) {
+    diff(miscTypeOtherDate, unit) {
       if (typeof unit !== 'string') throw Error('Invalid argument: expected unit to be a string');
 
       const otherDate = exports._formatMiscToCompaniDate(miscTypeOtherDate);
       const floatedDiff = _date.diff(otherDate, unit);
 
-      if (typeFloat) return floatedDiff.toISO();
-
-      const diffAsUnit = floatedDiff.as(unit);
-      const intDiff = diffAsUnit > 0 ? Math.floor(diffAsUnit) : Math.ceil(diffAsUnit);
-
-      return floatedDiff.set({ [unit]: intDiff }).toISO();
+      return floatedDiff.toISO();
     },
 
     add(amount) {

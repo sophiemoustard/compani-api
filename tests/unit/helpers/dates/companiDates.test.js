@@ -817,35 +817,11 @@ describe('MANIPULATE', () => {
       sinon.assert.calledOnceWithExactly(_formatMiscToCompaniDate, otherDate);
     });
 
-    it('should return difference in days. Result should be 1 if difference is between 24h and 48h', () => {
-      const otherDate = '2021-11-22T21:00:00.000Z';
-      const result = companiDate.diff(otherDate, 'days');
-
-      expect(result).toStrictEqual('P1D');
-      sinon.assert.calledOnceWithExactly(_formatMiscToCompaniDate, otherDate);
-    });
-
-    it('should return difference in days. Result should be 0 if difference is less than 24h', () => {
-      const otherDate = '2021-11-23T21:00:00.000Z';
-      const result = companiDate.diff(otherDate, 'days');
-
-      expect(result).toStrictEqual('PT0S');
-      sinon.assert.calledOnceWithExactly(_formatMiscToCompaniDate, otherDate);
-    });
-
     it('should return difference in negative days', () => {
       const otherDate = '2021-11-30T10:00:00.000Z';
       const result = companiDate.diff(otherDate, 'days');
 
       expect(result).toStrictEqual('P-6D');
-      sinon.assert.calledOnceWithExactly(_formatMiscToCompaniDate, otherDate);
-    });
-
-    it('should return difference in float if typeFloat param', () => {
-      const otherDate = '2021-11-20T22:00:00.000Z';
-      const result = companiDate.diff(otherDate, 'days', true);
-
-      expect(result).toStrictEqual('P3.5D');
       sinon.assert.calledOnceWithExactly(_formatMiscToCompaniDate, otherDate);
     });
 
