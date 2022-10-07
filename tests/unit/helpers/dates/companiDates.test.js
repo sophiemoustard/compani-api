@@ -789,7 +789,7 @@ describe('MANIPULATE', () => {
     });
   });
 
-  describe('diff #tag', () => {
+  describe('diff', () => {
     let _formatMiscToCompaniDate;
     const companiDate = CompaniDatesHelper.CompaniDate('2021-11-24T10:00:00.000Z');
 
