@@ -91,7 +91,10 @@ const listStrictlyElearningForCompany = async (query, origin) => {
 };
 
 const listBlendedForCompany = async (query, origin) => {
-  const intraCourse = await CourseRepository.findCourseAndPopulate({ ...query, type: INTRA }, origin);
+  const intraCourse = await CourseRepository.findCourseAndPopulate(
+    { ...omit(query, ['company']), companies: [query.company], type: INTRA },
+    origin
+  );
   const interCourse = await CourseRepository.findCourseAndPopulate(
     { ...omit(query, ['company']), type: INTER_B2B },
     origin,
@@ -101,8 +104,9 @@ const listBlendedForCompany = async (query, origin) => {
   return [
     ...intraCourse,
     ...interCourse
-      .filter(course => UtilsHelper.doesArrayIncludeId(course.trainees.map(t => t.company._id), query.company))
-      .map(course => ({
+      .filter(course => UtilsHelper.doesArrayIncludeId(
+        course.trainees.map(t => (t.company ? t.company._id : '')), query.company)
+      ).map(course => ({
         ...omit(course, ['companies']),
         trainees: course.trainees.filter(t =>
           (t.company ? UtilsHelper.areObjectIdsEquals(t.company._id, query.company) : false)),
