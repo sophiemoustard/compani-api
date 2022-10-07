@@ -225,6 +225,7 @@ const coursesList = [
     subProgram: subProgramsList[0]._id,
     misc: 'inter b2b session NOT concerning auth company',
     type: INTER_B2B,
+    trainees: [],
     format: 'strictly_e_learning',
     salesRepresentative: vendorAdmin._id,
   },
@@ -296,6 +297,7 @@ const coursesList = [
     type: INTER_B2B,
     format: 'blended',
     trainer: trainer._id,
+    trainees: [],
     salesRepresentative: vendorAdmin._id,
   },
   { // 14 archived course
