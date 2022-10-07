@@ -825,6 +825,13 @@ describe('MANIPULATE', () => {
       sinon.assert.calledOnceWithExactly(_formatMiscToCompaniDate, otherDate);
     });
 
+    it('should return difference 0', () => {
+      const result = companiDate.diff(companiDate, 'days');
+
+      expect(result).toStrictEqual('PT0S');
+      sinon.assert.calledOnceWithExactly(_formatMiscToCompaniDate, companiDate);
+    });
+
     it('should return difference in positive day (singular) /!\\ bad practice to use singular', () => {
       const otherDate = '2021-11-20T10:00:00.000Z';
       const result = companiDate.diff(otherDate, 'day');
