@@ -825,7 +825,7 @@ describe('MANIPULATE', () => {
       sinon.assert.calledOnceWithExactly(_formatMiscToCompaniDate, otherDate);
     });
 
-    it('should return difference 0', () => {
+    it('should return difference 0 expressed in second (despite that diff was made in days)', () => {
       const result = companiDate.diff(companiDate, 'days');
 
       expect(result).toStrictEqual('PT0S');
