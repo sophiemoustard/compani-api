@@ -993,7 +993,7 @@ describe('getCourse', () => {
           {
             query: 'populate',
             args: [[
-              { path: 'company', select: 'name' },
+              { path: 'companies', select: 'name' },
               {
                 path: 'trainees',
                 select: 'identity.firstname identity.lastname local.email contact picture.link firstMobileConnection',
@@ -1076,7 +1076,7 @@ describe('getCourse', () => {
             query: 'populate',
             args: [
               [
-                { path: 'company', select: 'name' },
+                { path: 'companies', select: 'name' },
                 {
                   path: 'trainees',
                   select: 'identity.firstname identity.lastname local.email contact picture.link firstMobileConnection',
@@ -1147,7 +1147,7 @@ describe('getCourse', () => {
           {
             query: 'populate',
             args: [[
-              { path: 'company', select: 'name' },
+              { path: 'companies', select: 'name' },
               {
                 path: 'trainees',
                 select: 'identity.firstname identity.lastname local.email contact picture.link firstMobileConnection',
