@@ -115,7 +115,7 @@ exports.plugin = {
           }),
         },
         auth: { mode: 'required' },
-        pre: [{ method: getCourse, assign: 'course' }, { method: authorizeGetCourse }],
+        pre: [{ method: authorizeGetCourse }],
       },
       handler: getById,
     });
