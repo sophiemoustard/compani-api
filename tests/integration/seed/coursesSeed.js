@@ -19,6 +19,7 @@ const { deleteNonAuthenticationSeeds } = require('../helpers/authentication');
 const {
   vendorAdmin,
   noRoleNoCompany,
+  noRole,
   auxiliary,
   helper,
   auxiliaryWithoutCompany,
@@ -205,7 +206,7 @@ const coursesList = [
     misc: 'inter b2b session NOT concerning auth company',
     type: INTER_B2B,
     format: 'blended',
-    trainees: [noRoleNoCompany._id],
+    trainees: [noRole._id],
     salesRepresentative: vendorAdmin._id,
   },
   { // 6 course without trainees and slots
