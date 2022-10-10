@@ -279,11 +279,16 @@ exports.authorizeRegisterToELearning = async (req) => {
 
 exports.authorizeGetCourse = async (req) => {
   try {
-    const { course } = req.pre;
     const credentials = get(req, 'auth.credentials');
     const userCompany = get(credentials, 'company._id');
     const userVendorRole = get(credentials, 'role.vendor.name');
     const userClientRole = get(credentials, 'role.client.name');
+
+    const course = await Course
+      .findById({ _id: req.params._id }, { trainer: 1, format: 1, type: 1, trainees: 1, companies: 1, accessRules: 1 })
+      .populate({ path: 'trainees', select: 'contact.phone company', populate: { path: 'company' } })
+      .lean();
+    if (!course) throw Boom.notFound();
 
     const isAdminVendor = userVendorRole === VENDOR_ADMIN;
     const isTOM = userVendorRole === TRAINING_ORGANISATION_MANAGER;
@@ -293,12 +298,9 @@ exports.authorizeGetCourse = async (req) => {
     const isTrainee = UtilsHelper.doesArrayIncludeId(courseTrainees, credentials._id);
     const companyHasAccess = !course.accessRules.length ||
       UtilsHelper.doesArrayIncludeId(course.accessRules, userCompany);
-    if (isTrainee) {
-      if (!companyHasAccess) {
-        throw Boom.forbidden();
-      }
-      return null;
-    }
+
+    if (isTrainee && !companyHasAccess) throw Boom.forbidden();
+    else if (isTrainee) return null;
 
     const isTrainerAndAuthorized = userVendorRole === TRAINER &&
       UtilsHelper.areObjectIdsEquals(course.trainer, credentials._id);
@@ -309,15 +311,11 @@ exports.authorizeGetCourse = async (req) => {
     if (course.format === STRICTLY_E_LEARNING && !companyHasAccess) throw Boom.forbidden();
 
     if (course.type === INTRA) {
-      if (!UtilsHelper.areObjectIdsEquals(course.company, userCompany)) throw Boom.forbidden();
-
+      if (!UtilsHelper.doesArrayIncludeId(course.companies, userCompany)) throw Boom.forbidden();
       return null;
     }
 
-    const courseWithTrainees = await Course.findById(req.params._id)
-      .populate({ path: 'trainees', select: 'company', populate: { path: 'company' } })
-      .lean();
-    const someTraineesAreInCompany = courseWithTrainees.trainees
+    const someTraineesAreInCompany = course.trainees
       .some(trainee => UtilsHelper.areObjectIdsEquals(trainee.company, userCompany));
     if (course.format === BLENDED && !someTraineesAreInCompany) throw Boom.forbidden();
 
