@@ -256,19 +256,19 @@ exports.exportAbsencesHistory = async (start, end, credentials) => {
 
       const monthsDiff = CompaniDate(event.endDate).oldDiff(event.startDate, 'months').months;
       for (let i = 1; i <= monthsDiff; i++) {
-        const endOfMonth = CompaniDate(event.startDate).add({ months: i }).endOf('month').toISO();
+        const endOfMonth = CompaniDate(event.startDate).oldAdd({ months: i }).endOf('month').toISO();
         rows.push(exports.formatAbsence({
           ...event,
           endDate: CompaniDate(event.endDate).isBefore(endOfMonth) ? event.endDate : endOfMonth,
-          startDate: CompaniDate(event.startDate).add({ months: i }).startOf('month').toISO(),
+          startDate: CompaniDate(event.startDate).oldAdd({ months: i }).startOf('month').toISO(),
         }));
       }
 
-      if (CompaniDate(event.startDate).add({ months: monthsDiff }).endOf('month').isBefore(event.endDate)) {
+      if (CompaniDate(event.startDate).oldAdd({ months: monthsDiff }).endOf('month').isBefore(event.endDate)) {
         rows.push(exports.formatAbsence({
           ...event,
           endDate: event.endDate,
-          startDate: CompaniDate(event.startDate).add({ months: monthsDiff + 1 }).startOf('month').toISO(),
+          startDate: CompaniDate(event.startDate).oldAdd({ months: monthsDiff + 1 }).startOf('month').toISO(),
         }));
       }
     }

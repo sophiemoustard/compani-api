@@ -322,7 +322,7 @@ describe('updateHistoryOnSectorUpdate', () => {
 
   it('should update sector history and create new one if existing history has endDate in the futur', async () => {
     const yesterday = moment().subtract(1, 'day').endOf('day').toDate();
-    const contractEndDate = CompaniDate().add(4, 'days').toDate();
+    const contractEndDate = CompaniDate().oldAdd(4, 'days').toDate();
     const sectorHistory = {
       _id: new ObjectId(),
       sector: new ObjectId(),

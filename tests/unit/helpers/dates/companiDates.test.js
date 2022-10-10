@@ -50,7 +50,7 @@ describe('CompaniDate', () => {
           endOf: expect.any(Function),
           diff: expect.any(Function),
           oldDiff: expect.any(Function),
-          add: expect.any(Function),
+          oldAdd: expect.any(Function),
           oldSubtract: expect.any(Function),
           set: expect.any(Function),
         }));
@@ -717,11 +717,11 @@ describe('MANIPULATE', () => {
     });
   });
 
-  describe('add', () => {
+  describe('oldAdd', () => {
     const companiDate = CompaniDatesHelper.CompaniDate('2021-12-01T07:00:00.000Z');
 
     it('should return a newly constructed companiDate, increased by amount', () => {
-      const result = companiDate.add({ months: 1, hours: 2 });
+      const result = companiDate.oldAdd({ months: 1, hours: 2 });
 
       expect(result).toEqual(expect.objectContaining({ _getDate: expect.any(luxon.DateTime) }));
       expect(result._getDate.toUTC().toISO()).toEqual('2022-01-01T09:00:00.000Z');
@@ -729,7 +729,7 @@ describe('MANIPULATE', () => {
 
     it('should return error if invalid unit', () => {
       try {
-        companiDate.add({ jour: 1, hours: 2 });
+        companiDate.oldAdd({ jour: 1, hours: 2 });
       } catch (e) {
         expect(e).toEqual(new Error('Invalid unit jour'));
       }
@@ -737,7 +737,7 @@ describe('MANIPULATE', () => {
 
     it('should return error if amount is number', () => {
       try {
-        companiDate.add(11111);
+        companiDate.oldAdd(11111);
       } catch (e) {
         expect(e).toEqual(new Error('Invalid argument: expected to be an object, got number'));
       }

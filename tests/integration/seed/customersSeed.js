@@ -1204,8 +1204,8 @@ const eventList = [
     type: 'intervention',
     sector: sectorsList[0]._id,
     subscription: subIdList[4],
-    startDate: CompaniDate().add({ days: 1 }).toISO(),
-    endDate: CompaniDate().add({ days: 1, hours: 1 }).toISO(),
+    startDate: CompaniDate().oldAdd({ days: 1 }).toISO(),
+    endDate: CompaniDate().oldAdd({ days: 1, hours: 1 }).toISO(),
     address: {
       fullAddress: '37 rue de ponthieu 75008 Paris',
       zipCode: '75008',
@@ -1222,8 +1222,8 @@ const eventList = [
     type: 'intervention',
     sector: sectorsList[2]._id,
     subscription: otherCompanyCustomers[0].subscriptions[0]._id,
-    startDate: CompaniDate().add({ days: 1 }).toISO(),
-    endDate: CompaniDate().add({ days: 1, hours: 1 }).toISO(),
+    startDate: '2019-01-16T14:30:19',
+    endDate: '2019-01-16T16:30:19',
     address: {
       fullAddress: '37 rue de ponthieu 75008 Paris',
       zipCode: '75008',
@@ -1238,8 +1238,8 @@ const customerAbsenceList = [
   {
     company: authCompany._id,
     customer: customersList[0]._id,
-    startDate: CompaniDate().add({ days: 1 }).toISO(),
-    endDate: CompaniDate().add({ days: 1, hours: 1 }).toISO(),
+    startDate: CompaniDate().oldAdd({ days: 1 }).toISO(),
+    endDate: CompaniDate().oldAdd({ days: 1, hours: 1 }).toISO(),
     absenceType: HOSPITALIZATION,
   },
   {
