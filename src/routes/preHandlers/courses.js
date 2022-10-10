@@ -285,7 +285,7 @@ exports.authorizeGetCourse = async (req) => {
     const userClientRole = get(credentials, 'role.client.name');
 
     const course = await Course
-      .findById({ _id: req.params._id }, { trainer: 1, format: 1, type: 1, trainees: 1, companies: 1, accessRules: 1 })
+      .findOne({ _id: req.params._id }, { trainer: 1, format: 1, type: 1, trainees: 1, companies: 1, accessRules: 1 })
       .populate({ path: 'trainees', select: 'contact.phone company', populate: { path: 'company' } })
       .lean();
     if (!course) throw Boom.notFound();
