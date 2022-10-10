@@ -159,8 +159,8 @@ const customerList = [
         versions: [
           {
             _id: new ObjectId(),
-            startDate: CompaniDate().startOf('month').subtract({ months: 2 }).toDate(),
-            createdAt: CompaniDate().startOf('month').subtract({ months: 2 }).toDate(),
+            startDate: CompaniDate().startOf('month').oldSubtract({ months: 2 }).toDate(),
+            createdAt: CompaniDate().startOf('month').oldSubtract({ months: 2 }).toDate(),
             unitTTCRate: 20,
             customerParticipationRate: 60,
             careHours: 40,
@@ -176,8 +176,8 @@ const customerList = [
         versions: [
           {
             _id: new ObjectId(),
-            startDate: CompaniDate().startOf('month').subtract({ months: 2 }).toDate(),
-            createdAt: CompaniDate().startOf('month').subtract({ months: 2 }).toDate(),
+            startDate: CompaniDate().startOf('month').oldSubtract({ months: 2 }).toDate(),
+            createdAt: CompaniDate().startOf('month').oldSubtract({ months: 2 }).toDate(),
             unitTTCRate: 20,
             customerParticipationRate: 60,
             careHours: 40,
@@ -193,8 +193,8 @@ const customerList = [
         versions: [
           {
             _id: new ObjectId(),
-            startDate: CompaniDate().startOf('month').subtract({ months: 2 }).toDate(),
-            createdAt: CompaniDate().startOf('month').subtract({ months: 2 }).toDate(),
+            startDate: CompaniDate().startOf('month').oldSubtract({ months: 2 }).toDate(),
+            createdAt: CompaniDate().startOf('month').oldSubtract({ months: 2 }).toDate(),
             unitTTCRate: 20,
             customerParticipationRate: 60,
             careHours: 40,
@@ -241,7 +241,7 @@ const customerList = [
             _id: new ObjectId(),
             startDate: '2019-07-01T08:00:00.000Z',
             endDate: '2019-07-01T10:00:00.000Z',
-            createdAt: CompaniDate().startOf('month').subtract({ months: 2 }).toDate(),
+            createdAt: CompaniDate().startOf('month').oldSubtract({ months: 2 }).toDate(),
             unitTTCRate: 20,
             customerParticipationRate: 60,
             careHours: 40,
@@ -498,7 +498,7 @@ const tuesdayOfCurrentMonth = dayOfCurrentMonth(2);
 const sundayOfCurrentMonth = dayOfCurrentMonth(0);
 
 const dayOfPreviousMonth = (day) => {
-  const startOfMonth = CompaniDate().subtract({ months: 1 }).startOf('month');
+  const startOfMonth = CompaniDate().oldSubtract({ months: 1 }).startOf('month');
 
   if (!startOfMonth.add({ days: 7 }).set({ weekDay: day }).startOf('day').isHoliday()) {
     return startOfMonth.add({ days: 7 }).set({ weekDay: day });

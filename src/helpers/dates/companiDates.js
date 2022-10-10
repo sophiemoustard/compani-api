@@ -126,7 +126,8 @@ const CompaniDateFactory = (inputDate) => {
       return CompaniDateFactory(_date.plus(amount));
     },
 
-    subtract(amount) {
+    // fct to be deleted
+    oldSubtract(amount) {
       if (amount instanceof Number) throw Error('Invalid argument: expected to be an object, got number');
       return CompaniDateFactory(_date.minus(amount));
     },
