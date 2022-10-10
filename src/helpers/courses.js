@@ -225,10 +225,10 @@ exports.formatCourseWithProgress = (course) => {
   };
 };
 
-const getCourseForOperations = async (courseId, loggedUser, origin) => {
+const getCourseForOperations = async (courseId, credentials, origin) => {
   const fetchedCourse = await Course.findOne({ _id: courseId })
     .populate([
-      { path: 'company', select: 'name' },
+      { path: 'companies', select: 'name' },
       {
         path: 'trainees',
         select: 'identity.firstname identity.lastname local.email contact picture.link firstMobileConnection',
@@ -279,7 +279,7 @@ const getCourseForOperations = async (courseId, loggedUser, origin) => {
 
   // A coach/client_admin is not supposed to read infos on trainees from other companies
   // espacially for INTER_B2B courses.
-  if (get(loggedUser, 'role.vendor')) {
+  if (get(credentials, 'role.vendor')) {
     return { ...fetchedCourse, totalTheoreticalHours: exports.getTotalTheoreticalHours(fetchedCourse) };
   }
 
@@ -287,14 +287,14 @@ const getCourseForOperations = async (courseId, loggedUser, origin) => {
     ...fetchedCourse,
     totalTheoreticalHours: exports.getTotalTheoreticalHours(fetchedCourse),
     trainees: fetchedCourse.trainees
-      .filter(t => UtilsHelper.areObjectIdsEquals(get(t, 'company._id'), get(loggedUser, 'company._id'))),
+      .filter(t => UtilsHelper.areObjectIdsEquals(get(t, 'company._id'), get(credentials, 'company._id'))),
   };
 };
 
-exports.getCourse = async (query, params, loggedUser) => (
+exports.getCourse = async (query, params, credentials) => (
   query.action === OPERATIONS
-    ? getCourseForOperations(params._id, loggedUser, query.origin)
-    : getCourseForPedagogy(params._id, loggedUser)
+    ? getCourseForOperations(params._id, credentials, query.origin)
+    : getCourseForPedagogy(params._id, credentials)
 );
 
 exports.selectUserHistory = (histories) => {
