@@ -717,33 +717,6 @@ describe('MANIPULATE', () => {
     });
   });
 
-  describe('oldAdd', () => {
-    const companiDate = CompaniDatesHelper.CompaniDate('2021-12-01T07:00:00.000Z');
-
-    it('should return a newly constructed companiDate, increased by amount', () => {
-      const result = companiDate.oldAdd({ months: 1, hours: 2 });
-
-      expect(result).toEqual(expect.objectContaining({ _getDate: expect.any(luxon.DateTime) }));
-      expect(result._getDate.toUTC().toISO()).toEqual('2022-01-01T09:00:00.000Z');
-    });
-
-    it('should return error if invalid unit', () => {
-      try {
-        companiDate.oldAdd({ jour: 1, hours: 2 });
-      } catch (e) {
-        expect(e).toEqual(new Error('Invalid unit jour'));
-      }
-    });
-
-    it('should return error if amount is number', () => {
-      try {
-        companiDate.oldAdd(11111);
-      } catch (e) {
-        expect(e).toEqual(new Error('Invalid argument: expected to be an object, got number'));
-      }
-    });
-  });
-
   describe('subtract', () => {
     const companiDate = CompaniDatesHelper.CompaniDate('2021-12-01T07:00:00.000Z');
 
@@ -972,6 +945,33 @@ describe('Old functions to be deleted', () => {
         expect(e).toEqual(new Error('Invalid unit undefined'));
       } finally {
         sinon.assert.calledOnceWithExactly(_formatMiscToCompaniDate, otherDate);
+      }
+    });
+  });
+
+  describe('oldAdd', () => {
+    const companiDate = CompaniDatesHelper.CompaniDate('2021-12-01T07:00:00.000Z');
+
+    it('should return a newly constructed companiDate, increased by amount', () => {
+      const result = companiDate.oldAdd({ months: 1, hours: 2 });
+
+      expect(result).toEqual(expect.objectContaining({ _getDate: expect.any(luxon.DateTime) }));
+      expect(result._getDate.toUTC().toISO()).toEqual('2022-01-01T09:00:00.000Z');
+    });
+
+    it('should return error if invalid unit', () => {
+      try {
+        companiDate.oldAdd({ jour: 1, hours: 2 });
+      } catch (e) {
+        expect(e).toEqual(new Error('Invalid unit jour'));
+      }
+    });
+
+    it('should return error if amount is number', () => {
+      try {
+        companiDate.oldAdd(11111);
+      } catch (e) {
+        expect(e).toEqual(new Error('Invalid argument: expected to be an object, got number'));
       }
     });
   });
