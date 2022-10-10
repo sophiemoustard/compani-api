@@ -42,6 +42,7 @@ const {
   clientAdmin,
   vendorAdmin,
   trainerAndCoach,
+  noRole,
 } = require('../seed/authUsersSeed');
 const SmsHelper = require('../../src/helpers/sms');
 const DocxHelper = require('../../src/helpers/docx');
@@ -247,7 +248,7 @@ describe('COURSES ROUTES - GET /courses', () => {
   beforeEach(populateDB);
 
   it('should return 200 as user is logged in (pedagogy mobile)', async () => {
-    authToken = await getTokenByCredentials(noRoleNoCompany.local);
+    authToken = await getTokenByCredentials(noRole.local);
 
     const response = await app.inject({
       method: 'GET',
@@ -737,7 +738,7 @@ describe('COURSES ROUTES - GET /courses/{_id}', () => {
     });
 
     it('should get course if trainee (pedagogy)', async () => {
-      authToken = await getTokenByCredentials(noRoleNoCompany.local);
+      authToken = await getTokenByCredentials(noRole.local);
       const response = await app.inject({
         method: 'GET',
         url: `/courses/${coursesList[5]._id.toHexString()}?action=pedagogy`,
@@ -749,7 +750,7 @@ describe('COURSES ROUTES - GET /courses/{_id}', () => {
     });
 
     it('should not get course if not trainee', async () => {
-      authToken = await getTokenByCredentials(noRoleNoCompany.local);
+      authToken = await getTokenByCredentials(noRole.local);
       const response = await app.inject({
         method: 'GET',
         url: `/courses/${coursesList[0]._id.toHexString()}?action=pedagogy`,
@@ -3020,10 +3021,10 @@ describe('COURSES ROUTES - GET /{_id}/completion-certificates', () => {
     });
   });
 
-  describe('NO_ROLE_NO_COMPANY', () => {
+  describe('NO_ROLE', () => {
     beforeEach(populateDB);
     beforeEach(async () => {
-      authToken = await getTokenByCredentials(noRoleNoCompany.local);
+      authToken = await getTokenByCredentials(noRole.local);
     });
 
     it('should return 200 if user is course trainee', async () => {
