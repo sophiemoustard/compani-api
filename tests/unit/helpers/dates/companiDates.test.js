@@ -48,9 +48,10 @@ describe('CompaniDate', () => {
           isBusinessDay: expect.any(Function),
           startOf: expect.any(Function),
           endOf: expect.any(Function),
+          diff: expect.any(Function),
           oldDiff: expect.any(Function),
           add: expect.any(Function),
-          subtract: expect.any(Function),
+          oldSubtract: expect.any(Function),
           set: expect.any(Function),
         }));
       sinon.assert.calledOnceWithExactly(_formatMiscToCompaniDate, date);
@@ -747,7 +748,7 @@ describe('MANIPULATE', () => {
     const companiDate = CompaniDatesHelper.CompaniDate('2021-12-01T07:00:00.000Z');
 
     it('should return a newly constructed companiDate, decreased by amount', () => {
-      const result = companiDate.subtract({ months: 1, hours: 2 });
+      const result = companiDate.oldSubtract({ months: 1, hours: 2 });
 
       expect(result).toEqual(expect.objectContaining({ _getDate: expect.any(luxon.DateTime) }));
       expect(result._getDate.toUTC().toISO()).toEqual('2021-11-01T05:00:00.000Z');
@@ -755,7 +756,7 @@ describe('MANIPULATE', () => {
 
     it('should return error if invalid unit', () => {
       try {
-        companiDate.subtract({ jour: 1, hours: 2 });
+        companiDate.oldSubtract({ jour: 1, hours: 2 });
       } catch (e) {
         expect(e).toEqual(new Error('Invalid unit jour'));
       }
@@ -763,7 +764,7 @@ describe('MANIPULATE', () => {
 
     it('should return error if amount is number', () => {
       try {
-        companiDate.subtract(11111);
+        companiDate.oldSubtract(11111);
       } catch (e) {
         expect(e).toEqual(new Error('Invalid argument: expected to be an object, got number'));
       }
