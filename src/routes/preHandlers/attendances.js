@@ -33,10 +33,10 @@ const checkPermissionOnCourse = (course, credentials) => {
 
   let isClientAndAuthorized;
   if (course.type === INTRA) {
-    if (!course.company) throw Boom.badData();
+    if (!course.companies[0]) throw Boom.badData();
 
     isClientAndAuthorized = [COACH, CLIENT_ADMIN].includes(loggedUserClientRole) &&
-      UtilsHelper.areObjectIdsEquals(loggedUserCompany, course.company);
+      UtilsHelper.areObjectIdsEquals(loggedUserCompany, course.companies[0]);
   } else {
     const traineeCompanies = course.trainees.map(trainee => trainee.company);
     isClientAndAuthorized = [COACH, CLIENT_ADMIN].includes(loggedUserClientRole) &&
@@ -53,7 +53,7 @@ exports.authorizeAttendancesGet = async (req) => {
   const courseSlots = await CourseSlot.find(courseSlotsQuery, { course: 1 })
     .populate({
       path: 'course',
-      select: 'trainer trainees company type',
+      select: 'trainer trainees companies type',
       populate: { path: 'trainees', select: 'company', populate: { path: 'company' } },
     })
     .lean();
