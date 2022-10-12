@@ -120,24 +120,27 @@ describe('getCustomerFundingsMonitoring', () => {
       createdAt: '2019-10-01T14:06:16.089Z',
       currentMonthEvents: [
         {
-          startDate: CompaniDate().startOf('month').add({ hours: 14 }),
-          endDate: CompaniDate().startOf('month').add({ hours: 16 }),
+          startDate: CompaniDate().startOf('month').oldAdd({ hours: 14 }),
+          endDate: CompaniDate().startOf('month').oldAdd({ hours: 16 }),
         },
         {
-          startDate: CompaniDate().startOf('month').add({ days: 1, hours: 11 }),
-          endDate: CompaniDate().startOf('month').add({ days: 1, hours: 15 }),
+          startDate: CompaniDate().startOf('month').oldAdd({ days: 1, hours: 11 }),
+          endDate: CompaniDate().startOf('month').oldAdd({ days: 1, hours: 15 }),
         },
       ],
       prevMonthEvents: [
         {
           type: 'intervention',
-          startDate: CompaniDate().startOf('month').oldSubtract({ months: 1 }).add({ hours: 10 }),
-          endDate: CompaniDate().startOf('month').oldSubtract({ months: 1 }).add({ hours: 12 }),
+          startDate: CompaniDate().startOf('month').oldSubtract({ months: 1 }).oldAdd({ hours: 10 }),
+          endDate: CompaniDate().startOf('month').oldSubtract({ months: 1 }).oldAdd({ hours: 12 }),
         },
         {
           type: 'intervention',
-          startDate: CompaniDate().startOf('month').oldSubtract({ months: 1 }).add({ days: 1, hours: 9 }),
-          endDate: CompaniDate().startOf('month').oldSubtract({ months: 1 }).add({ days: 1, hours: 10, minutes: 30 }),
+          startDate: CompaniDate().startOf('month').oldSubtract({ months: 1 }).oldAdd({ days: 1, hours: 9 }),
+          endDate: CompaniDate()
+            .startOf('month')
+            .oldSubtract({ months: 1 })
+            .oldAdd({ days: 1, hours: 10, minutes: 30 }),
         },
       ],
     }];
@@ -173,26 +176,26 @@ describe('getCustomerFundingsMonitoring', () => {
       currentMonthEvents: [
         {
           type: 'intervention',
-          startDate: CompaniDate().startOf('month').add({ days: 2, hours: 14 }).toISO(),
-          endDate: CompaniDate().startOf('month').add({ days: 2, hours: 16 }).toISO(),
+          startDate: CompaniDate().startOf('month').oldAdd({ days: 2, hours: 14 }).toISO(),
+          endDate: CompaniDate().startOf('month').oldAdd({ days: 2, hours: 16 }).toISO(),
         },
         {
           type: 'intervention',
-          startDate: CompaniDate().startOf('month').add({ hours: 11 }).toISO(),
-          endDate: CompaniDate().startOf('month').add({ hours: 15 }).toISO(),
+          startDate: CompaniDate().startOf('month').oldAdd({ hours: 11 }).toISO(),
+          endDate: CompaniDate().startOf('month').oldAdd({ hours: 15 }).toISO(),
         },
       ],
       prevMonthEvents: [
         {
           type: 'intervention',
-          startDate: CompaniDate().oldSubtract({ months: 1 }).add({ hours: 10 }).toISO(),
-          endDate: CompaniDate().oldSubtract({ months: 1 }).add({ hours: 12 }).toISO(),
+          startDate: CompaniDate().oldSubtract({ months: 1 }).oldAdd({ hours: 10 }).toISO(),
+          endDate: CompaniDate().oldSubtract({ months: 1 }).oldAdd({ hours: 12 }).toISO(),
         },
         {
           type: 'intervention',
-          startDate: CompaniDate().oldSubtract({ months: 1 }).startOf('month').add({ hours: 10 })
+          startDate: CompaniDate().oldSubtract({ months: 1 }).startOf('month').oldAdd({ hours: 10 })
             .toISO(),
-          endDate: CompaniDate().oldSubtract({ months: 1 }).startOf('month').add({ hours: 12 })
+          endDate: CompaniDate().oldSubtract({ months: 1 }).startOf('month').oldAdd({ hours: 12 })
             .toISO(),
         },
       ],
@@ -227,7 +230,7 @@ describe('getAllCustomersFundingsMonitoring', () => {
   };
   const eventsDate = {
     minDate: CompaniDate().oldSubtract({ months: 1 }).startOf('month').toISO(),
-    maxDate: CompaniDate().add({ months: 1 }).endOf('month').toISO(),
+    maxDate: CompaniDate().oldAdd({ months: 1 }).endOf('month').toISO(),
   };
   const companyId = new ObjectId();
   const credentials = { company: { _id: companyId } };
@@ -310,36 +313,39 @@ describe('getAllCustomersFundingsMonitoring', () => {
       sector: { name: 'equipe', _id: sectorId },
       currentMonthEvents: [
         {
-          startDate: CompaniDate().startOf('month').add({ hours: 14 }),
-          endDate: CompaniDate().startOf('month').add({ hours: 16 }),
+          startDate: CompaniDate().startOf('month').oldAdd({ hours: 14 }),
+          endDate: CompaniDate().startOf('month').oldAdd({ hours: 16 }),
         },
         {
-          startDate: CompaniDate().startOf('month').add({ days: 1, hours: 11 }),
-          endDate: CompaniDate().startOf('month').add({ days: 1, hours: 15 }),
+          startDate: CompaniDate().startOf('month').oldAdd({ days: 1, hours: 11 }),
+          endDate: CompaniDate().startOf('month').oldAdd({ days: 1, hours: 15 }),
         },
       ],
       prevMonthEvents: [
         {
           type: 'intervention',
-          startDate: CompaniDate().startOf('month').oldSubtract({ months: 1 }).add({ hours: 10 }),
-          endDate: CompaniDate().startOf('month').oldSubtract({ months: 1 }).add({ hours: 12 }),
+          startDate: CompaniDate().startOf('month').oldSubtract({ months: 1 }).oldAdd({ hours: 10 }),
+          endDate: CompaniDate().startOf('month').oldSubtract({ months: 1 }).oldAdd({ hours: 12 }),
         },
         {
           type: 'intervention',
-          startDate: CompaniDate().startOf('month').oldSubtract({ months: 1 }).add({ days: 1, hours: 9 }),
-          endDate: CompaniDate().startOf('month').oldSubtract({ months: 1 }).add({ days: 1, hours: 10, minutes: 30 }),
+          startDate: CompaniDate().startOf('month').oldSubtract({ months: 1 }).oldAdd({ days: 1, hours: 9 }),
+          endDate: CompaniDate()
+            .startOf('month')
+            .oldSubtract({ months: 1 })
+            .oldAdd({ days: 1, hours: 10, minutes: 30 }),
         },
       ],
       nextMonthEvents: [
         {
           type: 'intervention',
-          startDate: CompaniDate().startOf('month').add({ months: 1, hours: 8 }),
-          endDate: CompaniDate().startOf('month').add({ months: 1, hours: 10 }),
+          startDate: CompaniDate().startOf('month').oldAdd({ months: 1, hours: 8 }),
+          endDate: CompaniDate().startOf('month').oldAdd({ months: 1, hours: 10 }),
         },
         {
           type: 'intervention',
-          startDate: CompaniDate().startOf('month').add({ months: 1, days: 1, hours: 9 }),
-          endDate: CompaniDate().startOf('month').add({ months: 1, days: 1, hours: 10 }),
+          startDate: CompaniDate().startOf('month').oldAdd({ months: 1, days: 1, hours: 9 }),
+          endDate: CompaniDate().startOf('month').oldAdd({ months: 1, days: 1, hours: 10 }),
         },
       ],
     }];
@@ -383,36 +389,39 @@ describe('getAllCustomersFundingsMonitoring', () => {
       sector: { name: 'equipe', _id: sectorId },
       currentMonthEvents: [
         {
-          startDate: CompaniDate().startOf('month').add({ hours: 14 }),
-          endDate: CompaniDate().startOf('month').add({ hours: 16 }),
+          startDate: CompaniDate().startOf('month').oldAdd({ hours: 14 }),
+          endDate: CompaniDate().startOf('month').oldAdd({ hours: 16 }),
         },
         {
-          startDate: CompaniDate().startOf('month').add({ days: 1, hours: 11 }),
-          endDate: CompaniDate().startOf('month').add({ days: 1, hours: 15 }),
+          startDate: CompaniDate().startOf('month').oldAdd({ days: 1, hours: 11 }),
+          endDate: CompaniDate().startOf('month').oldAdd({ days: 1, hours: 15 }),
         },
       ],
       prevMonthEvents: [
         {
           type: 'intervention',
-          startDate: CompaniDate().startOf('month').oldSubtract({ months: 1 }).add({ hours: 10 }),
-          endDate: CompaniDate().startOf('month').oldSubtract({ months: 1 }).add({ hours: 12 }),
+          startDate: CompaniDate().startOf('month').oldSubtract({ months: 1 }).oldAdd({ hours: 10 }),
+          endDate: CompaniDate().startOf('month').oldSubtract({ months: 1 }).oldAdd({ hours: 12 }),
         },
         {
           type: 'intervention',
-          startDate: CompaniDate().startOf('month').oldSubtract({ months: 1 }).add({ days: 1, hours: 9 }),
-          endDate: CompaniDate().startOf('month').oldSubtract({ months: 1 }).add({ days: 1, hours: 10, minutes: 30 }),
+          startDate: CompaniDate().startOf('month').oldSubtract({ months: 1 }).oldAdd({ days: 1, hours: 9 }),
+          endDate: CompaniDate()
+            .startOf('month')
+            .oldSubtract({ months: 1 })
+            .oldAdd({ days: 1, hours: 10, minutes: 30 }),
         },
       ],
       nextMonthEvents: [
         {
           type: 'intervention',
-          startDate: CompaniDate().startOf('month').add({ months: 1, hours: 8 }),
-          endDate: CompaniDate().startOf('month').add({ months: 1, hours: 10 }),
+          startDate: CompaniDate().startOf('month').oldAdd({ months: 1, hours: 8 }),
+          endDate: CompaniDate().startOf('month').oldAdd({ months: 1, hours: 10 }),
         },
         {
           type: 'intervention',
-          startDate: CompaniDate().startOf('month').add({ months: 1, days: 1, hours: 9 }),
-          endDate: CompaniDate().startOf('month').add({ months: 1, days: 1, hours: 10 }),
+          startDate: CompaniDate().startOf('month').oldAdd({ months: 1, days: 1, hours: 9 }),
+          endDate: CompaniDate().startOf('month').oldAdd({ months: 1, days: 1, hours: 10 }),
         },
       ],
     }];
@@ -457,36 +466,39 @@ describe('getAllCustomersFundingsMonitoring', () => {
       createdAt: '2019-10-01T14:06:16.089Z',
       currentMonthEvents: [
         {
-          startDate: CompaniDate().startOf('month').add({ hours: 14 }),
-          endDate: CompaniDate().startOf('month').add({ hours: 16 }),
+          startDate: CompaniDate().startOf('month').oldAdd({ hours: 14 }),
+          endDate: CompaniDate().startOf('month').oldAdd({ hours: 16 }),
         },
         {
-          startDate: CompaniDate().startOf('month').add({ days: 1, hours: 11 }),
-          endDate: CompaniDate().startOf('month').add({ days: 1, hours: 15 }),
+          startDate: CompaniDate().startOf('month').oldAdd({ days: 1, hours: 11 }),
+          endDate: CompaniDate().startOf('month').oldAdd({ days: 1, hours: 15 }),
         },
       ],
       prevMonthEvents: [
         {
           type: 'intervention',
-          startDate: CompaniDate().startOf('month').oldSubtract({ months: 1 }).add({ hours: 10 }),
-          endDate: CompaniDate().startOf('month').oldSubtract({ months: 1 }).add({ hours: 12 }),
+          startDate: CompaniDate().startOf('month').oldSubtract({ months: 1 }).oldAdd({ hours: 10 }),
+          endDate: CompaniDate().startOf('month').oldSubtract({ months: 1 }).oldAdd({ hours: 12 }),
         },
         {
           type: 'intervention',
-          startDate: CompaniDate().startOf('month').oldSubtract({ months: 1 }).add({ days: 1, hours: 9 }),
-          endDate: CompaniDate().startOf('month').oldSubtract({ months: 1 }).add({ days: 1, hours: 10, minutes: 30 }),
+          startDate: CompaniDate().startOf('month').oldSubtract({ months: 1 }).oldAdd({ days: 1, hours: 9 }),
+          endDate: CompaniDate()
+            .startOf('month')
+            .oldSubtract({ months: 1 })
+            .oldAdd({ days: 1, hours: 10, minutes: 30 }),
         },
       ],
       nextMonthEvents: [
         {
           type: 'intervention',
-          startDate: CompaniDate().startOf('month').add({ months: 1, hours: 10 }),
-          endDate: CompaniDate().startOf('month').add({ months: 1, hours: 12 }),
+          startDate: CompaniDate().startOf('month').oldAdd({ months: 1, hours: 10 }),
+          endDate: CompaniDate().startOf('month').oldAdd({ months: 1, hours: 12 }),
         },
         {
           type: 'intervention',
-          startDate: CompaniDate().startOf('month').add({ months: 1, days: 1, hours: 9 }),
-          endDate: CompaniDate().startOf('month').add({ months: 1, days: 1, hours: 10, minutes: 30 }),
+          startDate: CompaniDate().startOf('month').oldAdd({ months: 1, days: 1, hours: 9 }),
+          endDate: CompaniDate().startOf('month').oldAdd({ months: 1, days: 1, hours: 10, minutes: 30 }),
         },
       ],
     }];

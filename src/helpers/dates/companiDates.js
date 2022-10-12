@@ -121,7 +121,7 @@ const CompaniDateFactory = (inputDate) => {
       return floatedDiff.toISO();
     },
 
-    add(amount) {
+    oldAdd(amount) {
       if (amount instanceof Number) throw Error('Invalid argument: expected to be an object, got number');
       return CompaniDateFactory(_date.plus(amount));
     },

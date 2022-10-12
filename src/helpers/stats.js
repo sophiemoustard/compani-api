@@ -75,7 +75,7 @@ exports.getAllCustomersFundingsMonitoring = async (credentials) => {
   };
   const eventsDate = {
     minDate: CompaniDate().oldSubtract({ months: 1 }).startOf('month').toISO(),
-    maxDate: CompaniDate().add({ months: 1 }).endOf('month').toISO(),
+    maxDate: CompaniDate().oldAdd({ months: 1 }).endOf('month').toISO(),
   };
   const eventsGroupedByFundingsforAllCustomers = await StatRepository.getEventsGroupedByFundingsforAllCustomers(
     fundingsDate,
