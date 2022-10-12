@@ -131,6 +131,7 @@ describe('getCustomerFundingsMonitoring', () => {
       prevMonthEvents: [
         {
           type: 'intervention',
+          startDate: CompaniDate().startOf('month').oldSubtract({ months: 1 }).oldAdd({ hours: 10 }),
           endDate: CompaniDate().startOf('month').oldSubtract({ months: 1 }).oldAdd({ hours: 12 }),
         },
         {
