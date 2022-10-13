@@ -219,7 +219,7 @@ exports.getCourseTrainee = async (req) => {
   try {
     const { payload } = req;
     const course = await Course
-      .findOne({ _id: req.params._id }, { type: 1, trainees: 1, company: 1, maxTrainees: 1, trainer: 1 })
+      .findOne({ _id: req.params._id }, { type: 1, trainees: 1, companies: 1, maxTrainees: 1, trainer: 1 })
       .lean();
     if (!course) throw Boom.notFound();
 
@@ -231,7 +231,7 @@ exports.getCourseTrainee = async (req) => {
     const traineeIsTrainer = UtilsHelper.areObjectIdsEquals(course.trainer, payload.trainee);
     if (traineeIsTrainer) throw Boom.forbidden();
 
-    const userCompanyQuery = { user: payload.trainee, ...(course.type === INTRA && { company: course.company }) };
+    const userCompanyQuery = { user: payload.trainee, ...(course.type === INTRA && { company: course.companies[0] }) };
     const userCompanyExists = await UserCompany.countDocuments(userCompanyQuery);
     if (!userCompanyExists) throw Boom.notFound();
 
