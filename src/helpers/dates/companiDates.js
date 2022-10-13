@@ -121,6 +121,11 @@ const CompaniDateFactory = (inputDate) => {
       return floatedDiff.toISO();
     },
 
+    add(amount) {
+      const isoDuration = luxon.Duration.fromISO(amount);
+      return CompaniDateFactory(_date.plus(isoDuration));
+    },
+
     oldAdd(amount) {
       if (amount instanceof Number) throw Error('Invalid argument: expected to be an object, got number');
       return CompaniDateFactory(_date.plus(amount));

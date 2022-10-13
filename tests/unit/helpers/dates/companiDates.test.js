@@ -3,6 +3,7 @@ const sinon = require('sinon');
 const luxon = require('../../../../src/helpers/dates/luxon');
 const CompaniDatesHelper = require('../../../../src/helpers/dates/companiDates');
 const { WEDNESDAY } = require('../../../../src/helpers/constants');
+const { CompaniDuration } = require('../../../../src/helpers/dates/companiDurations');
 
 describe('CompaniDate', () => {
   let _formatMiscToCompaniDate;
@@ -858,6 +859,50 @@ describe('MANIPULATE', () => {
         expect(true).toBe(false);
       } catch (e) {
         expect(e).toEqual(new Error('Invalid argument: expected unit to be a string'));
+      }
+    });
+  });
+
+  describe('add', () => {
+    it('should add iso amount to date', () => {
+      const result = CompaniDatesHelper.CompaniDate('2022-01-01T00:00:00.000Z').add('P1DT2H32M2.5S');
+
+      expect(result.toISO()).toBe('2022-01-02T02:32:02.500Z');
+    });
+
+    it('should return error if invalid iso duration', () => {
+      try {
+        CompaniDatesHelper.CompaniDate('2022-01-01T00:00:00.000Z').add('P1D2H32M2.5S');
+
+        expect(true).toBe(false);
+      } catch (e) {
+        expect(e).toEqual(
+          new Error('Invalid Duration: unparsable: the input "P1D2H32M2.5S" can\'t be parsed as ISO 8601')
+        );
+      }
+    });
+
+    it('should return error if instance of CompaniDuration', () => {
+      try {
+        CompaniDatesHelper.CompaniDate('2022-01-01T00:00:00.000Z').add(CompaniDuration('PT1M'));
+
+        expect(true).toBe(false);
+      } catch (e) {
+        expect(e).toEqual(
+          new Error('Invalid Duration: unparsable: the input "[object Object]" can\'t be parsed as ISO 8601')
+        );
+      }
+    });
+
+    it('should return error if object', () => {
+      try {
+        CompaniDatesHelper.CompaniDate('2022-01-01T00:00:00.000Z').add({ minute: 1 });
+
+        expect(true).toBe(false);
+      } catch (e) {
+        expect(e).toEqual(
+          new Error('Invalid Duration: unparsable: the input "[object Object]" can\'t be parsed as ISO 8601')
+        );
       }
     });
   });
