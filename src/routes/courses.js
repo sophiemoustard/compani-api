@@ -181,7 +181,7 @@ exports.plugin = {
             maxTrainees: Joi.number().positive().integer(),
           }),
         },
-        pre: [{ method: getCourse, assign: 'course' }, { method: authorizeCourseEdit }],
+        pre: [{ method: authorizeCourseEdit }],
         auth: { scope: ['courses:edit'] },
       },
       handler: update,
