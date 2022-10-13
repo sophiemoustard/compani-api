@@ -18,7 +18,7 @@ const {
   CONVOCATION,
   COURSE_SMS,
   TRAINEE_ADDITION,
-  // TRAINEE_DELETION,
+  TRAINEE_DELETION,
   INTRA,
   INTER_B2B,
   OTHER,
@@ -2623,103 +2623,103 @@ describe('COURSES ROUTES - POST /courses/{_id}/register-e-learning', () => {
   });
 });
 
-// describe('COURSES ROUTES - DELETE /courses/{_id}/trainee/{traineeId}', () => {
-//   let authToken;
-//   const courseIdFromAuthCompany = coursesList[2]._id;
-//   const courseIdFromOtherCompany = coursesList[1]._id;
-//   const archivedCourse = coursesList[14]._id;
-//   const traineeId = coach._id;
+describe('COURSES ROUTES - DELETE /courses/{_id}/trainee/{traineeId}', () => {
+  let authToken;
+  const courseIdFromAuthCompany = coursesList[2]._id;
+  const courseIdFromOtherCompany = coursesList[1]._id;
+  const archivedCourse = coursesList[14]._id;
+  const traineeId = coach._id;
 
-//   beforeEach(populateDB);
+  beforeEach(populateDB);
 
-//   describe('TRAINING_ORAGANISATION_MANAGER', () => {
-//     beforeEach(async () => {
-//       authToken = await getToken('training_organisation_manager');
-//     });
+  describe('TRAINING_ORAGANISATION_MANAGER', () => {
+    beforeEach(async () => {
+      authToken = await getToken('training_organisation_manager');
+    });
 
-//     it('should delete course trainee', async () => {
-//       const response = await app.inject({
-//         method: 'DELETE',
-//         url: `/courses/${courseIdFromAuthCompany.toHexString()}/trainees/${traineeId.toHexString()}`,
-//         headers: { Cookie: `alenvi_token=${authToken}` },
-//       });
+    it('should delete course trainee', async () => {
+      const response = await app.inject({
+        method: 'DELETE',
+        url: `/courses/${courseIdFromAuthCompany.toHexString()}/trainees/${traineeId.toHexString()}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
 
-//       expect(response.statusCode).toBe(200);
-//       const course = await Course.findById(courseIdFromAuthCompany).lean();
-//       expect(course.trainees).toHaveLength(coursesList[2].trainees.length - 1);
+      expect(response.statusCode).toBe(200);
+      const course = await Course.findById(courseIdFromAuthCompany).lean();
+      expect(course.trainees).toHaveLength(coursesList[2].trainees.length - 1);
 
-//       const courseHistory = await CourseHistory.countDocuments({
-//         course: courseIdFromAuthCompany,
-//         trainee: traineeId,
-//         action: TRAINEE_DELETION,
-//       });
-//       expect(courseHistory).toEqual(1);
-//     });
+      const courseHistory = await CourseHistory.countDocuments({
+        course: courseIdFromAuthCompany,
+        trainee: traineeId,
+        action: TRAINEE_DELETION,
+      });
+      expect(courseHistory).toEqual(1);
+    });
 
-//     it('should return 403 if course is archived', async () => {
-//       const response = await app.inject({
-//         method: 'DELETE',
-//         url: `/courses/${archivedCourse.toHexString()}/trainees/${traineeId.toHexString()}`,
-//         headers: { Cookie: `alenvi_token=${authToken}` },
-//       });
+    it('should return 403 if course is archived', async () => {
+      const response = await app.inject({
+        method: 'DELETE',
+        url: `/courses/${archivedCourse.toHexString()}/trainees/${traineeId.toHexString()}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
 
-//       expect(response.statusCode).toBe(403);
-//     });
-//   });
+      expect(response.statusCode).toBe(403);
+    });
+  });
 
-//   describe('Other roles', () => {
-//     const roles = [
-//       { name: 'helper', expectedCode: 403 },
-//       { name: 'planning_referent', expectedCode: 403 },
-//       { name: 'coach', expectedCode: 200 },
-//     ];
-//     roles.forEach((role) => {
-//       it(`should return ${role.expectedCode} as user is ${role.name}, requesting on his company`, async () => {
-//         authToken = await getToken(role.name);
-//         const response = await app.inject({
-//           method: 'DELETE',
-//           url: `/courses/${courseIdFromAuthCompany.toHexString()}/trainees/${traineeId.toHexString()}`,
-//           headers: { Cookie: `alenvi_token=${authToken}` },
-//         });
+  describe('Other roles', () => {
+    const roles = [
+      { name: 'helper', expectedCode: 403 },
+      { name: 'planning_referent', expectedCode: 403 },
+      { name: 'coach', expectedCode: 200 },
+    ];
+    roles.forEach((role) => {
+      it(`should return ${role.expectedCode} as user is ${role.name}, requesting on his company`, async () => {
+        authToken = await getToken(role.name);
+        const response = await app.inject({
+          method: 'DELETE',
+          url: `/courses/${courseIdFromAuthCompany.toHexString()}/trainees/${traineeId.toHexString()}`,
+          headers: { Cookie: `alenvi_token=${authToken}` },
+        });
 
-//         expect(response.statusCode).toBe(role.expectedCode);
-//       });
-//     });
+        expect(response.statusCode).toBe(role.expectedCode);
+      });
+    });
 
-//     it('should return 403 as user is trainer if not one of his courses', async () => {
-//       authToken = await getToken('trainer');
-//       const response = await app.inject({
-//         method: 'DELETE',
-//         url: `/courses/${coursesList[1]._id}/trainees/${traineeFromOtherCompany._id.toHexString()}`,
-//         headers: { Cookie: `alenvi_token=${authToken}` },
-//       });
+    it('should return 403 as user is trainer if not one of his courses', async () => {
+      authToken = await getToken('trainer');
+      const response = await app.inject({
+        method: 'DELETE',
+        url: `/courses/${coursesList[1]._id}/trainees/${traineeFromOtherCompany._id.toHexString()}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
 
-//       expect(response.statusCode).toBe(403);
-//     });
+      expect(response.statusCode).toBe(403);
+    });
 
-//     it('should return 200 as user is the course trainer', async () => {
-//       authToken = await getTokenByCredentials(trainer.local);
-//       const response = await app.inject({
-//         method: 'DELETE',
-//         url: `/courses/${courseIdFromAuthCompany.toHexString()}/trainees/${traineeId.toHexString()}`,
-//         headers: { Cookie: `alenvi_token=${authToken}` },
-//       });
+    it('should return 200 as user is the course trainer', async () => {
+      authToken = await getTokenByCredentials(trainer.local);
+      const response = await app.inject({
+        method: 'DELETE',
+        url: `/courses/${courseIdFromAuthCompany.toHexString()}/trainees/${traineeId.toHexString()}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
 
-//       expect(response.statusCode).toBe(200);
-//     });
+      expect(response.statusCode).toBe(200);
+    });
 
-//     it('should return 403 as user is client_admin requesting on an other company', async () => {
-//       authToken = await getToken('client_admin');
-//       const response = await app.inject({
-//         method: 'DELETE',
-//         url: `/courses/${courseIdFromOtherCompany.toHexString()}/trainees/${traineeId.toHexString()}`,
-//         headers: { Cookie: `alenvi_token=${authToken}` },
-//       });
+    it('should return 403 as user is client_admin requesting on an other company', async () => {
+      authToken = await getToken('client_admin');
+      const response = await app.inject({
+        method: 'DELETE',
+        url: `/courses/${courseIdFromOtherCompany.toHexString()}/trainees/${traineeId.toHexString()}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
 
-//       expect(response.statusCode).toBe(403);
-//     });
-//   });
-// });
+      expect(response.statusCode).toBe(403);
+    });
+  });
+});
 
 describe('COURSES ROUTES - GET /:_id/attendance-sheets', () => {
   let authToken;
