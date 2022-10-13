@@ -115,12 +115,19 @@ exports.checkInterlocutors = async (req, courseCompanyId) => {
 exports.authorizeCourseEdit = async (req) => {
   try {
     const { credentials } = req.auth;
-    const { course } = req.pre;
-    if (course.archivedAt) throw Boom.forbidden();
+    const course = await Course
+      .findOne({ _id: req.params._id })
+      .populate({ path: 'slots', select: 'startDate endDate' })
+      .populate({ path: 'trainees', select: 'contact.phone', populate: { path: 'company' } })
+      .populate({ path: 'slotsToPlan' })
+      .populate({ path: 'contact' })
+      .lean();
+    if (!course || course.archivedAt) throw Boom.forbidden();
 
     const courseTrainerId = get(course, 'trainer') || null;
     const companies = course.type === INTRA ? course.companies : [];
     this.checkAuthorization(credentials, courseTrainerId, companies);
+
     const userVendorRole = get(req, 'auth.credentials.role.vendor.name');
     const isRofOrAdmin = [TRAINING_ORGANISATION_MANAGER, VENDOR_ADMIN].includes(userVendorRole);
 
@@ -144,7 +151,7 @@ exports.authorizeCourseEdit = async (req) => {
     if (get(req, 'payload.contact')) {
       const isCompanyRepContactAndUpdated = !!get(req, 'payload.companyRepresentative') &&
         UtilsHelper.areObjectIdsEquals(course.companyRepresentative, get(course, 'contact._id'));
-      const isUserFromCourseCompany = UtilsHelper.areObjectIdsEquals(course.company, get(credentials, 'company._id'));
+      const isUserFromCourseCompany = UtilsHelper.doesArrayIncludeId(course.companies, get(credentials, 'company._id'));
       if (!isRofOrAdmin && !(isCompanyRepContactAndUpdated && isUserFromCourseCompany)) throw Boom.forbidden();
 
       const payloadInterlocutors = pick(req.payload, ['salesRepresentative', 'trainer', 'companyRepresentative']);
