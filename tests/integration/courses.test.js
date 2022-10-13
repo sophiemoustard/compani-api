@@ -17,7 +17,7 @@ const CourseHistory = require('../../src/models/CourseHistory');
 const {
   CONVOCATION,
   COURSE_SMS,
-  // TRAINEE_ADDITION,
+  TRAINEE_ADDITION,
   // TRAINEE_DELETION,
   INTRA,
   INTER_B2B,
@@ -28,9 +28,9 @@ const {
   coursesList,
   subProgramsList,
   programsList,
-  // traineeWithoutCompany,
+  traineeWithoutCompany,
   traineeFromOtherCompany,
-  // traineeFromAuthCompanyWithFormationExpoToken,
+  traineeFromAuthCompanyWithFormationExpoToken,
   userCompanies,
   // coachFromOtherCompany,
 } = require('./seed/coursesSeed');
@@ -47,7 +47,7 @@ const {
 } = require('../seed/authUsersSeed');
 const SmsHelper = require('../../src/helpers/sms');
 const DocxHelper = require('../../src/helpers/docx');
-// const NotificationHelper = require('../../src/helpers/notifications');
+const NotificationHelper = require('../../src/helpers/notifications');
 const UtilsHelper = require('../../src/helpers/utils');
 const UtilsMock = require('../utilsMock');
 const { CompaniDate } = require('../../src/helpers/dates/companiDates');
@@ -1936,160 +1936,205 @@ describe('COURSES ROUTES - GET /courses/{_id}/sms', () => {
   });
 });
 
-// describe('COURSES ROUTES - PUT /courses/{_id}/trainees', () => {
-//   let authToken;
-//   let sendNotificationToUser;
-//   const intraCourseIdFromAuthCompany = coursesList[0]._id;
-//   const archivedCourse = coursesList[14]._id;
-//   const intraCourseIdFromOtherCompany = coursesList[1]._id;
-//   const intraCourseIdWithTrainee = coursesList[2]._id;
-//   const interb2bCourseIdFromAuthCompany = coursesList[4]._id;
+describe('COURSES ROUTES - PUT /courses/{_id}/trainees', () => {
+  let authToken;
+  let sendNotificationToUser;
+  const intraCourseIdFromAuthCompany = coursesList[0]._id;
+  const archivedCourse = coursesList[14]._id;
+  const intraCourseIdFromOtherCompany = coursesList[1]._id;
+  const intraCourseIdWithTrainee = coursesList[2]._id;
+  const interb2bCourseIdFromAuthCompany = coursesList[4]._id;
 
-//   beforeEach(populateDB);
+  beforeEach(populateDB);
 
-//   beforeEach(() => {
-//     sendNotificationToUser = sinon.stub(NotificationHelper, 'sendNotificationToUser');
-//   });
-//   afterEach(() => {
-//     sendNotificationToUser.restore();
-//   });
+  beforeEach(() => {
+    sendNotificationToUser = sinon.stub(NotificationHelper, 'sendNotificationToUser');
+  });
+  afterEach(() => {
+    sendNotificationToUser.restore();
+  });
 
-//   describe('TRAINING_ORGANISATION_MANAGER intra', () => {
-//     beforeEach(async () => {
-//       authToken = await getToken('training_organisation_manager');
-//     });
+  describe('TRAINING_ORGANISATION_MANAGER intra', () => {
+    beforeEach(async () => {
+      authToken = await getToken('training_organisation_manager');
+    });
 
-//     it('should add existing user to course trainees', async () => {
-//       const response = await app.inject({
-//         method: 'PUT',
-//         url: `/courses/${intraCourseIdFromAuthCompany}/trainees`,
-//         headers: { Cookie: `alenvi_token=${authToken}` },
-//         payload: { trainee: traineeFromAuthCompanyWithFormationExpoToken._id },
-//       });
+    it('should add existing user to course trainees', async () => {
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/courses/${intraCourseIdFromAuthCompany}/trainees`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload: { trainee: traineeFromAuthCompanyWithFormationExpoToken._id },
+      });
 
-//       expect(response.statusCode).toBe(200);
+      expect(response.statusCode).toBe(200);
 
-//       const courseHistory = await CourseHistory.countDocuments({
-//         course: intraCourseIdFromAuthCompany,
-//         trainee: traineeFromAuthCompanyWithFormationExpoToken._id,
-//         action: TRAINEE_ADDITION,
-//       });
-//       expect(courseHistory).toEqual(1);
+      const courseHistory = await CourseHistory.countDocuments({
+        course: intraCourseIdFromAuthCompany,
+        trainee: traineeFromAuthCompanyWithFormationExpoToken._id,
+        action: TRAINEE_ADDITION,
+      });
+      expect(courseHistory).toEqual(1);
 
-//       const course = await Course.countDocuments({
-//         _id: intraCourseIdFromAuthCompany,
-//         trainees: traineeFromAuthCompanyWithFormationExpoToken._id,
-//       });
-//       expect(course).toEqual(1);
-//     });
+      const course = await Course.countDocuments({
+        _id: intraCourseIdFromAuthCompany,
+        trainees: traineeFromAuthCompanyWithFormationExpoToken._id,
+      });
+      expect(course).toEqual(1);
+    });
 
-//     it('should return a 403 if course is archived', async () => {
-//       const response = await app.inject({
-//         method: 'PUT',
-//         url: `/courses/${archivedCourse}/trainees`,
-//         headers: { Cookie: `alenvi_token=${authToken}` },
-//         payload: { trainee: traineeFromAuthCompanyWithFormationExpoToken._id },
-//       });
+    it('should return a 403 if course is archived', async () => {
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/courses/${archivedCourse}/trainees`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload: { trainee: traineeFromAuthCompanyWithFormationExpoToken._id },
+      });
 
-//       expect(response.statusCode).toBe(403);
-//     });
+      expect(response.statusCode).toBe(403);
+    });
 
-//     it('should return a 403 if course has already reached max trainees', async () => {
-//       const response = await app.inject({
-//         method: 'PUT',
-//         url: `/courses/${coursesList[3]._id}/trainees`,
-//         headers: { Cookie: `alenvi_token=${authToken}` },
-//         payload: { trainee: traineeFromAuthCompanyWithFormationExpoToken._id },
-//       });
+    it('should return a 403 if course has already reached max trainees', async () => {
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/courses/${coursesList[3]._id}/trainees`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload: { trainee: traineeFromAuthCompanyWithFormationExpoToken._id },
+      });
 
-//       expect(response.statusCode).toBe(403);
-//     });
+      expect(response.statusCode).toBe(403);
+    });
 
-//     it('should return a 404 if user is not from the course company', async () => {
-//       const response = await app.inject({
-//         method: 'PUT',
-//         url: `/courses/${intraCourseIdFromOtherCompany}/trainees`,
-//         headers: { Cookie: `alenvi_token=${authToken}` },
-//         payload: { trainee: traineeFromAuthCompanyWithFormationExpoToken._id },
-//       });
+    it('should return a 404 if user is not from the course company', async () => {
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/courses/${intraCourseIdFromOtherCompany}/trainees`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload: { trainee: traineeFromAuthCompanyWithFormationExpoToken._id },
+      });
 
-//       expect(response.statusCode).toBe(404);
-//     });
+      expect(response.statusCode).toBe(404);
+    });
 
-//     it('should return a 403 if user is already course trainer', async () => {
-//       const response = await app.inject({
-//         method: 'PUT',
-//         url: `/courses/${intraCourseIdWithTrainee}/trainees`,
-//         headers: { Cookie: `alenvi_token=${authToken}` },
-//         payload: { trainee: trainer._id },
-//       });
+    it('should return a 403 if user is already course trainer', async () => {
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/courses/${intraCourseIdWithTrainee}/trainees`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload: { trainee: trainer._id },
+      });
 
-//       expect(response.statusCode).toBe(403);
-//     });
+      expect(response.statusCode).toBe(403);
+    });
 
-//     it('should return a 409 if user is already registered to course', async () => {
-//       const response = await app.inject({
-//         method: 'PUT',
-//         url: `/courses/${intraCourseIdWithTrainee}/trainees`,
-//         headers: { Cookie: `alenvi_token=${authToken}` },
-//         payload: { trainee: traineeFromAuthCompanyWithFormationExpoToken._id },
-//       });
+    it('should return a 409 if user is already registered to course', async () => {
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/courses/${intraCourseIdWithTrainee}/trainees`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload: { trainee: traineeFromAuthCompanyWithFormationExpoToken._id },
+      });
 
-//       expect(response.statusCode).toBe(409);
-//     });
+      expect(response.statusCode).toBe(409);
+    });
 
-//     it('should return a 400 if trainee is missing in payload', async () => {
-//       const response = await app.inject({
-//         method: 'GET',
-//         url: `/courses/${new ObjectId()}/questionnaires`,
-//         headers: { Cookie: `alenvi_token=${authToken}` },
-//       });
+    it('should return a 400 if trainee is missing in payload', async () => {
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/courses/${intraCourseIdFromAuthCompany}/trainees`,
+        payload: {},
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
 
-//       expect(response.statusCode).toBe(404);
-//     });
+      expect(response.statusCode).toBe(400);
+    });
+  });
 
-//     it('should return 404 if course is strictly e-learning', async () => {
-//       const response = await app.inject({
-//         method: 'GET',
-//         url: `/courses/${coursesList[8]._id.toHexString()}/questionnaires`,
-//         headers: { Cookie: `alenvi_token=${authToken}` },
-//       });
+  describe('TRAINING_ORGANISATION_MANAGER inter_b2b', () => {
+    beforeEach(async () => {
+      authToken = await getToken('training_organisation_manager');
+    });
 
-//       expect(response.statusCode).toBe(404);
-//     });
+    it('should add user to inter b2b course', async () => {
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/courses/${interb2bCourseIdFromAuthCompany}/trainees`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload: { trainee: traineeFromAuthCompanyWithFormationExpoToken._id },
+      });
 
-//     it('should return 404 as user is trainer, but not course trainer', async () => {
-//       const response = await app.inject({
-//         method: 'GET',
-//         url: `/courses/${coursesList[1]._id.toHexString()}/questionnaires`,
-//         headers: { Cookie: `alenvi_token=${authToken}` },
-//       });
+      expect(response.statusCode).toBe(200);
+    });
 
-//       expect(response.statusCode).toBe(404);
-//     });
-//   });
+    it('should return a 403 if trainee has no company', async () => {
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/courses/${interb2bCourseIdFromAuthCompany}/trainees`,
+        payload: { trainee: traineeWithoutCompany._id },
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
 
-//   describe('Other roles', () => {
-//     const roles = [
-//       { name: 'helper', expectedCode: 403 },
-//       { name: 'planning_referent', expectedCode: 403 },
-//       { name: 'client_admin', expectedCode: 403 },
-//     ];
-//     roles.forEach((role) => {
-//       it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
-//         authToken = await getToken(role.name);
+      expect(response.statusCode).toBe(404);
+    });
+  });
 
-//         const response = await app.inject({
-//           method: 'GET',
-//           url: `/courses/${coursesList[0]._id.toHexString()}/questionnaires`,
-//           headers: { Cookie: `alenvi_token=${authToken}` },
-//         });
+  describe('Other roles', () => {
+    const roles = [
+      { name: 'helper', expectedCode: 403 },
+      { name: 'planning_referent', expectedCode: 403 },
+      { name: 'coach', expectedCode: 200 },
+    ];
+    roles.forEach((role) => {
+      it(`should return ${role.expectedCode} as user is ${role.name}, requesting on his company`, async () => {
+        authToken = await getToken(role.name);
+        const response = await app.inject({
+          method: 'PUT',
+          url: `/courses/${intraCourseIdFromAuthCompany}/trainees`,
+          headers: { Cookie: `alenvi_token=${authToken}` },
+          payload: { trainee: traineeFromAuthCompanyWithFormationExpoToken._id },
+        });
 
-//         expect(response.statusCode).toBe(role.expectedCode);
-//       });
-//     });
-//   });
-// });
+        expect(response.statusCode).toBe(role.expectedCode);
+      });
+    });
+
+    it('should return 403 as user is trainer but not of this course', async () => {
+      authToken = await getToken('trainer');
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/courses/${coursesList[1]._id}/trainees`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload: { trainee: traineeFromAuthCompanyWithFormationExpoToken._id },
+      });
+
+      expect(response.statusCode).toBe(404);
+    });
+
+    it('should return a 200 as user is course trainer', async () => {
+      authToken = await getTokenByCredentials(trainer.local);
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/courses/${intraCourseIdFromAuthCompany}/trainees`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload: { trainee: traineeFromAuthCompanyWithFormationExpoToken._id },
+      });
+
+      expect(response.statusCode).toBe(200);
+    });
+
+    it('should return 403 as user is client_admin requesting on an other company', async () => {
+      authToken = await getToken('client_admin');
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/courses/${intraCourseIdFromOtherCompany}/trainees`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload: { trainee: traineeFromAuthCompanyWithFormationExpoToken._id },
+      });
+
+      expect(response.statusCode).toBe(404);
+    });
+  });
+});
 
 describe('COURSES ROUTES - DELETE /courses/{_id}', () => {
   let authToken;
@@ -2509,205 +2554,6 @@ describe('COURSES ROUTES - GET /courses/{_id}/sms', () => {
     });
   });
 });
-
-//   let authToken;
-//   let sendNotificationToUser;
-//   const intraCourseIdFromAuthCompany = coursesList[0]._id;
-//   const archivedCourse = coursesList[14]._id;
-//   const intraCourseIdFromOtherCompany = coursesList[1]._id;
-//   const intraCourseIdWithTrainee = coursesList[2]._id;
-//   const interb2bCourseIdFromAuthCompany = coursesList[4]._id;
-
-//   beforeEach(populateDB);
-
-//   beforeEach(() => {
-//     sendNotificationToUser = sinon.stub(NotificationHelper, 'sendNotificationToUser');
-//   });
-//   afterEach(() => {
-//     sendNotificationToUser.restore();
-//   });
-
-//   describe('TRAINING_ORGANISATION_MANAGER intra', () => {
-//     beforeEach(async () => {
-//       authToken = await getToken('training_organisation_manager');
-//     });
-
-//     it('should add existing user to course trainees', async () => {
-//       const response = await app.inject({
-//         method: 'PUT',
-//         url: `/courses/${intraCourseIdFromAuthCompany}/trainees`,
-//         headers: { Cookie: `alenvi_token=${authToken}` },
-//         payload: { trainee: traineeFromAuthCompanyWithFormationExpoToken._id },
-//       });
-
-//       expect(response.statusCode).toBe(200);
-
-//       const courseHistory = await CourseHistory.countDocuments({
-//         course: intraCourseIdFromAuthCompany,
-//         trainee: traineeFromAuthCompanyWithFormationExpoToken._id,
-//         action: TRAINEE_ADDITION,
-//       });
-//       expect(courseHistory).toEqual(1);
-
-//       const course = await Course.countDocuments({
-//         _id: intraCourseIdFromAuthCompany,
-//         trainees: traineeFromAuthCompanyWithFormationExpoToken._id,
-//       });
-//       expect(course).toEqual(1);
-//     });
-
-//     it('should return a 403 if course is archived', async () => {
-//       const response = await app.inject({
-//         method: 'PUT',
-//         url: `/courses/${archivedCourse}/trainees`,
-//         headers: { Cookie: `alenvi_token=${authToken}` },
-//         payload: { trainee: traineeFromAuthCompanyWithFormationExpoToken._id },
-//       });
-
-//       expect(response.statusCode).toBe(403);
-//     });
-
-//     it('should return a 403 if course has already reached max trainees', async () => {
-//       const response = await app.inject({
-//         method: 'PUT',
-//         url: `/courses/${coursesList[3]._id}/trainees`,
-//         headers: { Cookie: `alenvi_token=${authToken}` },
-//         payload: { trainee: traineeFromAuthCompanyWithFormationExpoToken._id },
-//       });
-
-//       expect(response.statusCode).toBe(403);
-//     });
-
-//     it('should return a 404 if user is not from the course company', async () => {
-//       const response = await app.inject({
-//         method: 'PUT',
-//         url: `/courses/${intraCourseIdFromOtherCompany}/trainees`,
-//         headers: { Cookie: `alenvi_token=${authToken}` },
-//         payload: { trainee: traineeFromAuthCompanyWithFormationExpoToken._id },
-//       });
-
-//       expect(response.statusCode).toBe(404);
-//     });
-
-//     it('should return a 403 if user is already course trainer', async () => {
-//       const response = await app.inject({
-//         method: 'PUT',
-//         url: `/courses/${intraCourseIdWithTrainee}/trainees`,
-//         headers: { Cookie: `alenvi_token=${authToken}` },
-//         payload: { trainee: trainer._id },
-//       });
-
-//       expect(response.statusCode).toBe(403);
-//     });
-
-//     it('should return a 409 if user is already registered to course', async () => {
-//       const response = await app.inject({
-//         method: 'PUT',
-//         url: `/courses/${intraCourseIdWithTrainee}/trainees`,
-//         headers: { Cookie: `alenvi_token=${authToken}` },
-//         payload: { trainee: traineeFromAuthCompanyWithFormationExpoToken._id },
-//       });
-
-//       expect(response.statusCode).toBe(409);
-//     });
-
-//     it('should return a 400 if trainee is missing in payload', async () => {
-//       const response = await app.inject({
-//         method: 'PUT',
-//         url: `/courses/${intraCourseIdFromAuthCompany}/trainees`,
-//         payload: {},
-//         headers: { Cookie: `alenvi_token=${authToken}` },
-//       });
-
-//       expect(response.statusCode).toBe(400);
-//     });
-//   });
-
-//   describe('TRAINING_ORGANISATION_MANAGER inter_b2b', () => {
-//     beforeEach(async () => {
-//       authToken = await getToken('training_organisation_manager');
-//     });
-
-//     it('should add user to inter b2b course', async () => {
-//       const response = await app.inject({
-//         method: 'PUT',
-//         url: `/courses/${interb2bCourseIdFromAuthCompany}/trainees`,
-//         headers: { Cookie: `alenvi_token=${authToken}` },
-//         payload: { trainee: traineeFromAuthCompanyWithFormationExpoToken._id },
-//       });
-
-//       expect(response.statusCode).toBe(200);
-//     });
-
-//     it('should return a 403 if trainee has no company', async () => {
-//       const response = await app.inject({
-//         method: 'PUT',
-//         url: `/courses/${interb2bCourseIdFromAuthCompany}/trainees`,
-//         payload: { trainee: traineeWithoutCompany._id },
-//         headers: { Cookie: `alenvi_token=${authToken}` },
-//       });
-
-//       expect(response.statusCode).toBe(404);
-//     });
-//   });
-
-//   describe('Other roles', () => {
-//     const roles = [
-//       { name: 'helper', expectedCode: 403 },
-//       { name: 'planning_referent', expectedCode: 403 },
-//       { name: 'coach', expectedCode: 200 },
-//     ];
-//     roles.forEach((role) => {
-//       it(`should return ${role.expectedCode} as user is ${role.name}, requesting on his company`, async () => {
-//         authToken = await getToken(role.name);
-//         const response = await app.inject({
-//           method: 'PUT',
-//           url: `/courses/${intraCourseIdFromAuthCompany}/trainees`,
-//           headers: { Cookie: `alenvi_token=${authToken}` },
-//           payload: { trainee: traineeFromAuthCompanyWithFormationExpoToken._id },
-//         });
-
-//         expect(response.statusCode).toBe(role.expectedCode);
-//       });
-//     });
-
-//     it('should return 403 as user is trainer but not of this course', async () => {
-//       authToken = await getToken('trainer');
-//       const response = await app.inject({
-//         method: 'PUT',
-//         url: `/courses/${coursesList[1]._id}/trainees`,
-//         headers: { Cookie: `alenvi_token=${authToken}` },
-//         payload: { trainee: traineeFromAuthCompanyWithFormationExpoToken._id },
-//       });
-
-//       expect(response.statusCode).toBe(404);
-//     });
-
-//     it('should return a 200 as user is course trainer', async () => {
-//       authToken = await getTokenByCredentials(trainer.local);
-//       const response = await app.inject({
-//         method: 'PUT',
-//         url: `/courses/${intraCourseIdFromAuthCompany}/trainees`,
-//         headers: { Cookie: `alenvi_token=${authToken}` },
-//         payload: { trainee: traineeFromAuthCompanyWithFormationExpoToken._id },
-//       });
-
-//       expect(response.statusCode).toBe(200);
-//     });
-
-//     it('should return 403 as user is client_admin requesting on an other company', async () => {
-//       authToken = await getToken('client_admin');
-//       const response = await app.inject({
-//         method: 'PUT',
-//         url: `/courses/${intraCourseIdFromOtherCompany}/trainees`,
-//         headers: { Cookie: `alenvi_token=${authToken}` },
-//         payload: { trainee: traineeFromAuthCompanyWithFormationExpoToken._id },
-//       });
-
-//       expect(response.statusCode).toBe(404);
-//     });
-//   });
-// });
 
 describe('COURSES ROUTES - POST /courses/{_id}/register-e-learning', () => {
   let authToken;
