@@ -38,13 +38,4 @@
 
 - [ ] Je replie cette section car mes modifications n'ont pas d'impact sur les applications mobiles
 
----
-
-### POUR TESTER LA PR  :white_check_mark:
-- Périmètre interfaces / rôles :
-
-- Cas d'usage :
-
-- Comment tester ? :
-
 _Si tu as lu cette description, pense à réagir avec un :eye:_

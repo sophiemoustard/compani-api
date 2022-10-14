@@ -34,7 +34,7 @@ describe('list', () => {
       find,
       [
         { query: 'find', args: [{ course: courseId }] },
-        { query: 'populate', args: [{ path: 'trainee', select: 'company', populate: { path: 'company' } }] },
+        { query: 'populate', args: [{ path: 'trainee', select: 'identity company', populate: { path: 'company' } }] },
         { query: 'lean' },
       ]
     );
@@ -48,12 +48,12 @@ describe('list', () => {
       {
         course: courseId,
         file: { publicId: 'mon upload avec un trainne de authCompany', link: 'www.test.com' },
-        trainee: { _id: new ObjectId(), company: authCompanyId },
+        trainee: { _id: new ObjectId(), company: authCompanyId, identity: { firstname: 'Helo', name: 'World' } },
       },
       {
         course: courseId,
         file: { publicId: 'mon upload avec un trainne de otherCompany', link: 'www.test.com' },
-        trainee: { _id: new ObjectId(), company: otherCompanyId },
+        trainee: { _id: new ObjectId(), company: otherCompanyId, identity: { firstname: 'Aline', name: 'Opiné' } },
       },
     ];
 
@@ -66,7 +66,7 @@ describe('list', () => {
       find,
       [
         { query: 'find', args: [{ course: courseId }] },
-        { query: 'populate', args: [{ path: 'trainee', select: 'company', populate: { path: 'company' } }] },
+        { query: 'populate', args: [{ path: 'trainee', select: 'identity company', populate: { path: 'company' } }] },
         { query: 'lean' },
       ]
     );
