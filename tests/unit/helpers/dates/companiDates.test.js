@@ -905,6 +905,18 @@ describe('MANIPULATE', () => {
         );
       }
     });
+
+    it('should return error if number', () => {
+      try {
+        CompaniDatesHelper.CompaniDate('2022-01-01T00:00:00.000Z').add(12);
+
+        expect(true).toBe(false);
+      } catch (e) {
+        expect(e).toEqual(
+          new Error('Invalid Duration: unparsable: the input "12" can\'t be parsed as ISO 8601')
+        );
+      }
+    });
   });
 });
 
