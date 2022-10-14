@@ -40,7 +40,7 @@ exports.authorizeRepetitionDeletion = async (req) => {
   if (req.query.startDate) {
     const today = CompaniDate().startOf('day');
     const invalidDate = CompaniDate(req.query.startDate).isBefore(today) ||
-      CompaniDate(req.query.startDate).isAfter(today.add({ days: 90 }));
+      CompaniDate(req.query.startDate).isAfter(today.oldAdd({ days: 90 }));
 
     if (invalidDate) throw Boom.badRequest();
   }

@@ -479,7 +479,7 @@ exports.getTaxCertificateInterventions = async (taxCertificate, companyId) => {
     duration: parseFloat(ev.eventList.reduce((acc, event) =>
       NumbersHelper.add(
         acc,
-        CompaniDuration(CompaniDate(event.endDate).diff(event.startDate, 'minutes')).asHours()
+        CompaniDuration(CompaniDate(event.endDate).oldDiff(event.startDate, 'minutes')).asHours()
       ), NumbersHelper.toString(0))),
   }));
 

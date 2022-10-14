@@ -185,7 +185,7 @@ exports.getPaidTransportInfo = async (event, prevEvent, dm) => {
     transportMode.specific || transportMode.default,
     event.company
   );
-  const breakDuration = CompaniDate(event.startDate).diff(prevEvent.endDate, 'minutes').minutes;
+  const breakDuration = CompaniDate(event.startDate).oldDiff(prevEvent.endDate, 'minutes').minutes;
   const pickTransportDuration = breakDuration > (transport.duration + 15);
 
   return {
@@ -338,7 +338,7 @@ exports.getHoursFromDailyAbsence = (absence, contract, query = absence) => {
 
 exports.getAbsenceHours = (absence, contracts, query = absence) => {
   if (absence.absenceNature === HOURLY) {
-    const absenceDuration = CompaniDate(absence.endDate).diff(absence.startDate, 'minutes');
+    const absenceDuration = CompaniDate(absence.endDate).oldDiff(absence.startDate, 'minutes');
     return absenceDuration.minutes / 60;
   }
 

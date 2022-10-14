@@ -159,8 +159,8 @@ const customerList = [
         versions: [
           {
             _id: new ObjectId(),
-            startDate: CompaniDate().startOf('month').subtract({ months: 2 }).toDate(),
-            createdAt: CompaniDate().startOf('month').subtract({ months: 2 }).toDate(),
+            startDate: CompaniDate().startOf('month').oldSubtract({ months: 2 }).toDate(),
+            createdAt: CompaniDate().startOf('month').oldSubtract({ months: 2 }).toDate(),
             unitTTCRate: 20,
             customerParticipationRate: 60,
             careHours: 40,
@@ -176,8 +176,8 @@ const customerList = [
         versions: [
           {
             _id: new ObjectId(),
-            startDate: CompaniDate().startOf('month').subtract({ months: 2 }).toDate(),
-            createdAt: CompaniDate().startOf('month').subtract({ months: 2 }).toDate(),
+            startDate: CompaniDate().startOf('month').oldSubtract({ months: 2 }).toDate(),
+            createdAt: CompaniDate().startOf('month').oldSubtract({ months: 2 }).toDate(),
             unitTTCRate: 20,
             customerParticipationRate: 60,
             careHours: 40,
@@ -193,8 +193,8 @@ const customerList = [
         versions: [
           {
             _id: new ObjectId(),
-            startDate: CompaniDate().startOf('month').subtract({ months: 2 }).toDate(),
-            createdAt: CompaniDate().startOf('month').subtract({ months: 2 }).toDate(),
+            startDate: CompaniDate().startOf('month').oldSubtract({ months: 2 }).toDate(),
+            createdAt: CompaniDate().startOf('month').oldSubtract({ months: 2 }).toDate(),
             unitTTCRate: 20,
             customerParticipationRate: 60,
             careHours: 40,
@@ -241,7 +241,7 @@ const customerList = [
             _id: new ObjectId(),
             startDate: '2019-07-01T08:00:00.000Z',
             endDate: '2019-07-01T10:00:00.000Z',
-            createdAt: CompaniDate().startOf('month').subtract({ months: 2 }).toDate(),
+            createdAt: CompaniDate().startOf('month').oldSubtract({ months: 2 }).toDate(),
             unitTTCRate: 20,
             customerParticipationRate: 60,
             careHours: 40,
@@ -258,27 +258,27 @@ const referentList = [
     auxiliary: userList[0]._id,
     customer: customerList[0]._id,
     company: customerList[0].company,
-    startDate: new Date('2019-03-12'),
-    endDate: new Date('2020-01-10'),
+    startDate: '2019-03-12T00:00:00.000Z',
+    endDate: '2020-01-10T00:00:00.000Z',
   },
   {
     auxiliary: userList[1]._id,
     customer: customerList[0]._id,
     company: customerList[0].company,
-    startDate: new Date('2020-01-11'),
-    endDate: CompaniDate().add({ days: 1 }).toDate(),
+    startDate: '2020-01-11T00:00:00.000Z',
+    endDate: CompaniDate().oldAdd({ days: 1 }).toDate(),
   },
   {
     auxiliary: userList[2]._id,
     customer: customerList[0]._id,
     company: customerList[0].company,
-    startDate: CompaniDate().add({ days: 2 }).toDate(),
+    startDate: CompaniDate().oldAdd({ days: 2 }).toDate(),
   },
   {
     auxiliary: userList[0]._id,
     customer: customerList[1]._id,
     company: customerList[1].company,
-    startDate: new Date('2018-03-12'),
+    startDate: '2018-03-12T00:00:00.000Z',
   },
 ];
 
@@ -484,13 +484,13 @@ const eventListForFollowUp = [
 const dayOfCurrentMonth = (day) => {
   const startOfMonth = CompaniDate().startOf('month');
 
-  if (!startOfMonth.add({ days: 7 }).set({ weekDay: day }).startOf('day').isHoliday()) {
-    return startOfMonth.add({ days: 7 }).set({ weekDay: day });
+  if (!startOfMonth.oldAdd({ days: 7 }).set({ weekDay: day }).startOf('day').isHoliday()) {
+    return startOfMonth.oldAdd({ days: 7 }).set({ weekDay: day });
   }
-  if (!startOfMonth.add({ days: 14 }).set({ weekDay: day }).startOf('day').isHoliday()) {
-    return startOfMonth.add({ days: 14 }).set({ weekDay: day });
+  if (!startOfMonth.oldAdd({ days: 14 }).set({ weekDay: day }).startOf('day').isHoliday()) {
+    return startOfMonth.oldAdd({ days: 14 }).set({ weekDay: day });
   }
-  return startOfMonth.add({ days: 21 }).set({ weekDay: day });
+  return startOfMonth.oldAdd({ days: 21 }).set({ weekDay: day });
 };
 
 const mondayOfCurrentMonth = dayOfCurrentMonth(1);
@@ -498,15 +498,15 @@ const tuesdayOfCurrentMonth = dayOfCurrentMonth(2);
 const sundayOfCurrentMonth = dayOfCurrentMonth(0);
 
 const dayOfPreviousMonth = (day) => {
-  const startOfMonth = CompaniDate().subtract({ months: 1 }).startOf('month');
+  const startOfMonth = CompaniDate().oldSubtract({ months: 1 }).startOf('month');
 
-  if (!startOfMonth.add({ days: 7 }).set({ weekDay: day }).startOf('day').isHoliday()) {
-    return startOfMonth.add({ days: 7 }).set({ weekDay: day });
+  if (!startOfMonth.oldAdd({ days: 7 }).set({ weekDay: day }).startOf('day').isHoliday()) {
+    return startOfMonth.oldAdd({ days: 7 }).set({ weekDay: day });
   }
-  if (!startOfMonth.add({ days: 14 }).set({ weekDay: day }).startOf('day').isHoliday()) {
-    return startOfMonth.add({ days: 14 }).set({ weekDay: day });
+  if (!startOfMonth.oldAdd({ days: 14 }).set({ weekDay: day }).startOf('day').isHoliday()) {
+    return startOfMonth.oldAdd({ days: 14 }).set({ weekDay: day });
   }
-  return startOfMonth.add({ days: 21 }).set({ weekDay: day });
+  return startOfMonth.oldAdd({ days: 21 }).set({ weekDay: day });
 };
 
 const tuesdayOfPreviousMonth = dayOfPreviousMonth(2);

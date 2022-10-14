@@ -323,7 +323,7 @@ exports.getEvents = async (query, credentials) => {
     .map(f => f.subscription);
 
   const startDate = CompaniDate(month, 'MM-yyyy').startOf('month').toDate();
-  const yesterday = CompaniDate().subtract({ days: 1 }).endOf('day');
+  const yesterday = CompaniDate().oldSubtract({ days: 1 }).endOf('day');
   const endOfMonth = CompaniDate(month, 'MM-yyyy').endOf('month');
   const endDate = onlyPastEvents && yesterday.isBefore(endOfMonth) ? yesterday.toDate() : endOfMonth.toDate();
 

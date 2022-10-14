@@ -372,7 +372,7 @@ describe('getEvents', () => {
       month: CompaniDate().format('MM-yyyy'),
       onlyPastEvents: true,
     };
-    const endDate = CompaniDate().subtract({ days: 1 }).endOf('day').toDate();
+    const endDate = CompaniDate().oldSubtract({ days: 1 }).endOf('day').toDate();
     const customers = [{ _id: '321', fundings: [{ thirdPartyPayer: tpp1, subscription: '987' }] }];
     const events = [{ isBilled: true, _id: eventId, bills: { thirdPartyPayer: tpp1 } }];
 

@@ -398,7 +398,7 @@ describe('EVENTS ROUTES - GET /events/working-stats', () => {
 
       expect(response.statusCode).toEqual(200);
       expect(response.result.data.workingStats[auxiliaries[0]._id].hoursToWork).toEqual(2);
-      expect(response.result.data.workingStats[auxiliaries[0]._id].workedHours).toEqual(5.5);
+      expect(response.result.data.workingStats[auxiliaries[0]._id].workedHours).toEqual(7);
     });
 
     it('should return working stats for all auxiliaries', async () => {
@@ -1208,6 +1208,46 @@ describe('EVENTS ROUTES - POST /events', () => {
       });
 
       expect(response.statusCode).toEqual(403);
+    });
+
+    it('should return 409 if try to create absence on billed event', async () => {
+      const payload = {
+        type: ABSENCE,
+        startDate: '2019-01-16T00:00:00.000Z',
+        endDate: '2019-01-16T22:59:00.000Z',
+        auxiliary: eventsList[4].auxiliary,
+        absenceNature: DAILY,
+        absence: PARENTAL_LEAVE,
+      };
+
+      const response = await app.inject({
+        method: 'POST',
+        url: '/events',
+        payload,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toEqual(409);
+    });
+
+    it('should return 409 if try to create absence on timestamped event', async () => {
+      const payload = {
+        type: ABSENCE,
+        startDate: '2019-01-17T00:00:00.000Z',
+        endDate: '2019-01-17T22:59:00.000Z',
+        auxiliary: eventsList[28].auxiliary,
+        absenceNature: DAILY,
+        absence: PARENTAL_LEAVE,
+      };
+
+      const response = await app.inject({
+        method: 'POST',
+        url: '/events',
+        payload,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toEqual(409);
     });
   });
 

@@ -224,7 +224,7 @@ exports.computeExclTaxesWithDiscount = (inclTaxes, discount, vat) => {
 
 exports.getTotalDuration = (timePeriods) => {
   const totalDuration = timePeriods.reduce(
-    (acc, tp) => acc.add(CompaniDuration(CompaniDate(tp.endDate).diff(tp.startDate, 'minutes'))),
+    (acc, tp) => acc.add(CompaniDuration(CompaniDate(tp.endDate).oldDiff(tp.startDate, 'minutes'))),
     CompaniDuration()
   );
 
@@ -233,7 +233,7 @@ exports.getTotalDuration = (timePeriods) => {
 
 exports.getTotalDurationForExport = (timePeriods) => {
   const totalDuration = timePeriods.reduce(
-    (acc, tp) => acc.add(CompaniDuration(CompaniDate(tp.endDate).diff(tp.startDate, 'minutes'))),
+    (acc, tp) => acc.add(CompaniDuration(CompaniDate(tp.endDate).oldDiff(tp.startDate, 'minutes'))),
     CompaniDuration()
   );
 
@@ -241,10 +241,10 @@ exports.getTotalDurationForExport = (timePeriods) => {
 };
 
 exports.getDuration = (startDate, endDate) =>
-  CompaniDuration(CompaniDate(endDate).diff(startDate, 'minutes')).format();
+  CompaniDuration(CompaniDate(endDate).oldDiff(startDate, 'minutes')).format();
 
 exports.getDurationForExport = (startDate, endDate) =>
-  exports.formatFloatForExport(CompaniDuration(CompaniDate(endDate).diff(startDate, 'minutes')).asHours());
+  exports.formatFloatForExport(CompaniDuration(CompaniDate(endDate).oldDiff(startDate, 'minutes')).asHours());
 
 exports.computeDuration = durations => durations
   .reduce((acc, duration) => acc.add(duration), CompaniDuration());

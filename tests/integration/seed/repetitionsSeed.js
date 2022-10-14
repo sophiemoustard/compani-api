@@ -1,6 +1,5 @@
 const { ObjectId } = require('mongodb');
 const { v4: uuidv4 } = require('uuid');
-const { CompaniDate } = require('../../../src/helpers/dates/companiDates');
 const Repetition = require('../../../src/models/Repetition');
 const User = require('../../../src/models/User');
 const Event = require('../../../src/models/Event');
@@ -19,6 +18,7 @@ const UserCompany = require('../../../src/models/UserCompany');
 const { authCompany } = require('../../seed/authCompaniesSeed');
 const { auxiliaryRoleId } = require('../../seed/authRolesSeed');
 const { deleteNonAuthenticationSeeds } = require('../helpers/authentication');
+const { CompaniDate } = require('../../../src/helpers/dates/companiDates');
 
 const auxiliariesIdList = [new ObjectId(), new ObjectId()];
 const customersIdList = [new ObjectId()];
@@ -140,8 +140,8 @@ const eventList = [
   },
   {
     repetition: { parentId: repetitionList[0].parentId, frequency: EVERY_WEEK },
-    startDate: CompaniDate().add({ days: 3 }).set({ hours: 10, minutes: 30 }).toDate(),
-    endDate: CompaniDate().add({ days: 3 }).set({ hours: 12, minutes: 30 }).toDate(),
+    startDate: CompaniDate().oldAdd({ days: 3 }).set({ hours: 10, minutes: 30 }).toDate(),
+    endDate: CompaniDate().oldAdd({ days: 3 }).set({ hours: 12, minutes: 30 }).toDate(),
     company: authCompany._id,
     auxiliary: auxiliariesIdList[0],
     customer: customersIdList[0],

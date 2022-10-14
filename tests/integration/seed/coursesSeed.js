@@ -144,6 +144,8 @@ const coursesList = [
     type: INTRA,
     maxTrainees: 8,
     salesRepresentative: vendorAdmin._id,
+    companyRepresentative: trainerAndCoach._id,
+    contact: trainerAndCoach._id,
   },
   { // 1
     _id: new ObjectId(),

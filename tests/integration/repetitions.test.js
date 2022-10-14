@@ -139,11 +139,12 @@ describe('REPETITIONS ROUTES - GET /repetitions', () => {
 
 describe('REPETITIONS ROUTES - DELETE /{_id}', () => {
   let authToken;
-  const tomorrow = CompaniDate().add({ days: 1 }).toDate();
+  const tomorrow = CompaniDate().oldAdd({ days: 1 }).toDate();
 
   describe('PLANNING_REFERENT', () => {
     beforeEach(populateDB);
     beforeEach(async () => { authToken = await getToken('planning_referent'); });
+
     it('should delete a repetition', async () => {
       const eventsCountBefore = await Event.countDocuments({ 'repetition.parentId': repetitionList[0].parentId });
       const response = await app.inject({
@@ -192,7 +193,7 @@ describe('REPETITIONS ROUTES - DELETE /{_id}', () => {
     });
 
     it('should return a 400 if startDate is after today + 90 days', async () => {
-      const startDate = CompaniDate(tomorrow).add({ days: 93 }).toDate();
+      const startDate = CompaniDate(tomorrow).oldAdd({ days: 93 }).toDate();
       const response = await app.inject({
         method: 'DELETE',
         url: `/repetitions/${repetitionList[0]._id}?startDate=${startDate}`,

@@ -72,7 +72,7 @@ const getConflictsInfo = (query, repetitionsGroupedByDay) => {
             const firstRepetitionDate = CompaniDate(repetitionList[i].startDate).startOf('day');
             const secondRepetitionDate = CompaniDate(repetitionList[j].startDate).startOf('day');
 
-            const startDateDiff = firstRepetitionDate.diff(secondRepetitionDate, 'weeks');
+            const startDateDiff = firstRepetitionDate.oldDiff(secondRepetitionDate, 'weeks');
             if (get(startDateDiff, 'weeks') % 2 !== 0) continue;
           }
 

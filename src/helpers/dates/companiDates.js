@@ -102,7 +102,8 @@ const CompaniDateFactory = (inputDate) => {
       return CompaniDateFactory(_date.endOf(unit));
     },
 
-    diff(miscTypeOtherDate, unit, typeFloat = false) {
+    // fct to be deleted
+    oldDiff(miscTypeOtherDate, unit, typeFloat = false) {
       const otherDate = exports._formatMiscToCompaniDate(miscTypeOtherDate);
       const floatedDiff = _date.diff(otherDate, unit).as(unit);
 
@@ -111,12 +112,27 @@ const CompaniDateFactory = (inputDate) => {
       return { [unit]: floatedDiff > 0 ? Math.floor(floatedDiff) : Math.ceil(floatedDiff) };
     },
 
+    diff(miscTypeOtherDate, unit) {
+      if (typeof unit !== 'string') throw Error('Invalid argument: expected unit to be a string');
+
+      const otherDate = exports._formatMiscToCompaniDate(miscTypeOtherDate);
+      const floatedDiff = _date.diff(otherDate, unit);
+
+      return floatedDiff.toISO();
+    },
+
     add(amount) {
+      const isoDuration = luxon.Duration.fromISO(amount);
+      return CompaniDateFactory(_date.plus(isoDuration));
+    },
+
+    oldAdd(amount) {
       if (amount instanceof Number) throw Error('Invalid argument: expected to be an object, got number');
       return CompaniDateFactory(_date.plus(amount));
     },
 
-    subtract(amount) {
+    // fct to be deleted
+    oldSubtract(amount) {
       if (amount instanceof Number) throw Error('Invalid argument: expected to be an object, got number');
       return CompaniDateFactory(_date.minus(amount));
     },

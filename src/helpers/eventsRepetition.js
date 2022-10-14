@@ -38,12 +38,12 @@ const { CompaniDate } = require('./dates/companiDates');
 const { language } = translate;
 
 exports.formatRepeatedPayload = async (event, sector, date) => {
-  const step = CompaniDate(date).diff(event.startDate, 'days');
+  const step = CompaniDate(date).oldDiff(event.startDate, 'days');
   const isIntervention = event.type === INTERVENTION;
   let payload = {
     ...cloneDeep(omit(event, '_id')), // cloneDeep necessary to copy repetition
-    startDate: CompaniDate(event.startDate).add(step).toISO(),
-    endDate: CompaniDate(event.endDate).add(step).toISO(),
+    startDate: CompaniDate(event.startDate).oldAdd(step).toISO(),
+    endDate: CompaniDate(event.endDate).oldAdd(step).toISO(),
   };
   const hasConflicts = await EventsValidationHelper.hasConflicts(payload);
 
@@ -81,8 +81,8 @@ exports.getRange = (startDate, stepDuration) => {
   const companiStartDate = CompaniDate(startDate);
   const lastestDate = companiCurrentDate.isAfter(startDate) ? companiCurrentDate : companiStartDate;
 
-  const start = companiStartDate.add(stepDuration).toISO();
-  const end = lastestDate.startOf('day').add(FORCAST_PERIOD_FOR_CREATING_EVENTS).toISO();
+  const start = companiStartDate.oldAdd(stepDuration).toISO();
+  const end = lastestDate.startOf('day').oldAdd(FORCAST_PERIOD_FOR_CREATING_EVENTS).toISO();
 
   return CompaniInterval(start, end).rangeBy(stepDuration);
 };

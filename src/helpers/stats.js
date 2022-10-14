@@ -27,7 +27,7 @@ const getMonthCareHours = (events, funding) => {
       (acc, event) => (!isInCareDays(funding.careDays, event.startDate) ||
       isNotStarted(event.startDate, funding.startDate) || isEnded(event.startDate, funding.endDate)
         ? acc
-        : acc.add(CompaniDuration(CompaniDate(event.endDate).diff(event.startDate, 'minutes')))),
+        : acc.add(CompaniDuration(CompaniDate(event.endDate).oldDiff(event.startDate, 'minutes')))),
       CompaniDuration()
     )
     .asHours();
@@ -44,7 +44,7 @@ exports.getCustomerFundingsMonitoring = async (customerId, credentials) => {
     minEndDate: CompaniDate().startOf('month').toISO(),
   };
   const eventsDate = {
-    minDate: CompaniDate().subtract({ months: 1 }).startOf('month').toISO(),
+    minDate: CompaniDate().oldSubtract({ months: 1 }).startOf('month').toISO(),
     maxDate: CompaniDate().endOf('month').toISO(),
   };
   const eventsGroupedByFundings = await StatRepository.getEventsGroupedByFundings(
@@ -74,8 +74,8 @@ exports.getAllCustomersFundingsMonitoring = async (credentials) => {
     minEndDate: CompaniDate().startOf('month').toISO(),
   };
   const eventsDate = {
-    minDate: CompaniDate().subtract({ months: 1 }).startOf('month').toISO(),
-    maxDate: CompaniDate().add({ months: 1 }).endOf('month').toISO(),
+    minDate: CompaniDate().oldSubtract({ months: 1 }).startOf('month').toISO(),
+    maxDate: CompaniDate().oldAdd({ months: 1 }).endOf('month').toISO(),
   };
   const eventsGroupedByFundingsforAllCustomers = await StatRepository.getEventsGroupedByFundingsforAllCustomers(
     fundingsDate,

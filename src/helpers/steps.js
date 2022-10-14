@@ -36,17 +36,20 @@ exports.getLiveStepProgress = (slots) => {
 exports.getPresenceStepProgress = (slots) => {
   if (!slots.length) return { attendanceDuration: { minutes: 0 }, maxDuration: { minutes: 0 } };
 
-  return {
-    attendanceDuration: slots
+  const slotsWithDuration = slots.map(s => ({ ...s, duration: CompaniDate(s.endDate).diff(s.startDate, 'minutes') }));
+
+  const attendanceDuration = slotsWithDuration.some(s => s.attendances.length)
+    ? slotsWithDuration
       .reduce(
-        (acc, slot) => (slot.attendances.length
-          ? acc.add(CompaniDate(slot.endDate).diff(slot.startDate, 'minutes'))
-          : acc),
-        CompaniDuration({ minutes: 0 })
-      )
-      .toObject(),
-    maxDuration: slots
-      .reduce((acc, slot) => acc.add(CompaniDate(slot.endDate).diff(slot.startDate, 'minutes')), CompaniDuration())
+        (acc, slot) => (slot.attendances.length ? acc.add(slot.duration) : acc),
+        CompaniDuration()
+      ).toObject()
+    : { minutes: 0 };
+
+  return {
+    attendanceDuration,
+    maxDuration: slotsWithDuration
+      .reduce((acc, s) => acc.add(s.duration), CompaniDuration())
       .toObject(),
   };
 };
