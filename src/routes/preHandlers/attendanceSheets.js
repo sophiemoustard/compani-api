@@ -4,19 +4,32 @@ const { CompaniDate } = require('../../helpers/dates/companiDates');
 const UtilsHelper = require('../../helpers/utils');
 const Course = require('../../models/Course');
 const AttendanceSheet = require('../../models/AttendanceSheet');
-const { INTRA, INTER_B2B } = require('../../helpers/constants');
+const { INTRA, INTER_B2B, TRAINER } = require('../../helpers/constants');
+
+const isTrainerAuthorized = (courseTrainer, credentials) => {
+  const loggedUserId = get(credentials, '_id');
+  const vendorRole = get(credentials, 'role.vendor');
+  const courseTrainerIsFromOtherCompany = courseTrainer && !UtilsHelper.areObjectIdsEquals(loggedUserId, courseTrainer);
+
+  if (get(vendorRole, 'name') === TRAINER && courseTrainerIsFromOtherCompany) {
+    throw Boom.forbidden();
+  }
+
+  return null;
+};
 
 exports.authorizeAttendanceSheetsGet = async (req) => {
-  const course = await Course.findOne({ _id: req.query.course }).lean();
+  const course = await Course.findOne({ _id: req.query.course }, { type: 1, companies: 1, trainer: 1 }).lean();
   if (!course) throw Boom.notFound();
 
   const { credentials } = req.auth;
+  isTrainerAuthorized(course.trainer, credentials);
+
+  const loggedUserCompany = get(credentials, 'company._id');
   const loggedUserHasVendorRole = get(credentials, 'role.vendor');
   if (loggedUserHasVendorRole) return null;
 
-  const loggedUserCompany = get(credentials, 'company._id');
-
-  if (course.type === INTRA && !UtilsHelper.areObjectIdsEquals(loggedUserCompany, course.company)) {
+  if (course.type === INTRA && !UtilsHelper.areObjectIdsEquals(loggedUserCompany, course.companies[0])) {
     throw Boom.forbidden();
   }
 
