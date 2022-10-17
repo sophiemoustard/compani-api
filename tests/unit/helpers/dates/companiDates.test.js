@@ -51,6 +51,7 @@ describe('CompaniDate', () => {
           endOf: expect.any(Function),
           diff: expect.any(Function),
           oldDiff: expect.any(Function),
+          add: expect.any(Function),
           oldAdd: expect.any(Function),
           oldSubtract: expect.any(Function),
           set: expect.any(Function),
@@ -718,33 +719,6 @@ describe('MANIPULATE', () => {
     });
   });
 
-  describe('subtract', () => {
-    const companiDate = CompaniDatesHelper.CompaniDate('2021-12-01T07:00:00.000Z');
-
-    it('should return a newly constructed companiDate, decreased by amount', () => {
-      const result = companiDate.oldSubtract({ months: 1, hours: 2 });
-
-      expect(result).toEqual(expect.objectContaining({ _getDate: expect.any(luxon.DateTime) }));
-      expect(result._getDate.toUTC().toISO()).toEqual('2021-11-01T05:00:00.000Z');
-    });
-
-    it('should return error if invalid unit', () => {
-      try {
-        companiDate.oldSubtract({ jour: 1, hours: 2 });
-      } catch (e) {
-        expect(e).toEqual(new Error('Invalid unit jour'));
-      }
-    });
-
-    it('should return error if amount is number', () => {
-      try {
-        companiDate.oldSubtract(11111);
-      } catch (e) {
-        expect(e).toEqual(new Error('Invalid argument: expected to be an object, got number'));
-      }
-    });
-  });
-
   describe('set', () => {
     const companiDate = CompaniDatesHelper.CompaniDate('2021-12-20T07:00:00.000Z');
 
@@ -1027,6 +1001,33 @@ describe('Old functions to be deleted', () => {
     it('should return error if amount is number', () => {
       try {
         companiDate.oldAdd(11111);
+      } catch (e) {
+        expect(e).toEqual(new Error('Invalid argument: expected to be an object, got number'));
+      }
+    });
+  });
+
+  describe('oldSubtract', () => {
+    const companiDate = CompaniDatesHelper.CompaniDate('2021-12-01T07:00:00.000Z');
+
+    it('should return a newly constructed companiDate, decreased by amount', () => {
+      const result = companiDate.oldSubtract({ months: 1, hours: 2 });
+
+      expect(result).toEqual(expect.objectContaining({ _getDate: expect.any(luxon.DateTime) }));
+      expect(result._getDate.toUTC().toISO()).toEqual('2021-11-01T05:00:00.000Z');
+    });
+
+    it('should return error if invalid unit', () => {
+      try {
+        companiDate.oldSubtract({ jour: 1, hours: 2 });
+      } catch (e) {
+        expect(e).toEqual(new Error('Invalid unit jour'));
+      }
+    });
+
+    it('should return error if amount is number', () => {
+      try {
+        companiDate.oldSubtract(11111);
       } catch (e) {
         expect(e).toEqual(new Error('Invalid argument: expected to be an object, got number'));
       }
