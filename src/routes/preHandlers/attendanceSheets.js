@@ -11,9 +11,7 @@ const isTrainerAuthorized = (courseTrainer, credentials) => {
   const vendorRole = get(credentials, 'role.vendor');
   const courseTrainerIsFromOtherCompany = courseTrainer && !UtilsHelper.areObjectIdsEquals(loggedUserId, courseTrainer);
 
-  if (get(vendorRole, 'name') === TRAINER && courseTrainerIsFromOtherCompany) {
-    throw Boom.forbidden();
-  }
+  if (get(vendorRole, 'name') === TRAINER && courseTrainerIsFromOtherCompany) throw Boom.forbidden();
 
   return null;
 };
@@ -64,10 +62,12 @@ exports.authorizeAttendanceSheetCreation = async (req) => {
 exports.authorizeAttendanceSheetDeletion = async (req) => {
   const attendanceSheet = await AttendanceSheet
     .findOne({ _id: req.params._id })
-    .populate({ path: 'course', select: 'archivedAt' })
+    .populate({ path: 'course', select: 'archivedAt trainer' })
     .lean();
-
   if (get(attendanceSheet, 'course.archivedAt')) throw Boom.forbidden();
+
+  const { credentials } = req.auth;
+  isTrainerAuthorized(get(attendanceSheet, 'course.trainer'), credentials);
 
   return attendanceSheet || Boom.notFound();
 };
