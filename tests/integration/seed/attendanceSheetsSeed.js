@@ -119,6 +119,7 @@ const attendanceSheetsList = [
 
 const slotsList = [
   { startDate: '2020-01-23T09:00:00', endDate: '2020-01-23T11:00:00', course: coursesList[0], step: new ObjectId() },
+  { startDate: '2020-01-25T09:00:00', endDate: '2020-01-25T11:00:00', course: coursesList[2], step: new ObjectId() },
 ];
 
 const populateDB = async () => {
