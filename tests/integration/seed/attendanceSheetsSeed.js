@@ -115,6 +115,12 @@ const attendanceSheetsList = [
     file: { publicId: 'mon upload', link: 'www.test.com' },
     trainee: userList[1]._id,
   },
+  {
+    _id: new ObjectId(),
+    course: coursesList[2],
+    file: { publicId: 'fromOtherCompany', link: 'www.test.com' },
+    trainee: userList[3]._id,
+  },
 ];
 
 const slotsList = [
