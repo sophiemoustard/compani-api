@@ -1049,7 +1049,7 @@ describe('COURSES ROUTES - PUT /courses/{_id}', () => {
       expect(course).toEqual(1);
     });
 
-    it('should update company representative and set as contact directly', async () => {
+    it('should update company representative and set as contact directly for INTRA course', async () => {
       const payload = { companyRepresentative: coachFromOtherCompany._id, contact: coachFromOtherCompany._id };
       const response = await app.inject({
         method: 'PUT',
@@ -1463,6 +1463,20 @@ describe('COURSES ROUTES - PUT /courses/{_id}', () => {
       expect(response.statusCode).toBe(403);
     });
 
+    it('should return 403 if try to update contact and company representative from other company', async () => {
+      const payload = { contact: clientAdmin._id, companyRepresentative: clientAdmin._id };
+      authToken = await getToken('trainer');
+
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/courses/${courseIdFromAuthCompany}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload,
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
+
     it('should return 403 as user is client_admin but not in the company of the course', async () => {
       const payload = {
         misc: 'new name',
@@ -1473,6 +1487,19 @@ describe('COURSES ROUTES - PUT /courses/{_id}', () => {
       const response = await app.inject({
         method: 'PUT',
         url: `/courses/${coursesList[1]._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload,
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
+
+    it('should return 403 as user is client_admin and try to update maxTrainees', async () => {
+      const payload = { maxTrainees: 9 };
+      authToken = await getToken('client_admin');
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/courses/${courseIdFromAuthCompany}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
         payload,
       });
@@ -1511,20 +1538,6 @@ describe('COURSES ROUTES - PUT /courses/{_id}', () => {
     it('should return 403 if coach try to update contact only', async () => {
       const payload = { contact: vendorAdmin._id };
       authToken = await getToken('coach');
-
-      const response = await app.inject({
-        method: 'PUT',
-        url: `/courses/${courseIdFromAuthCompany}`,
-        headers: { Cookie: `alenvi_token=${authToken}` },
-        payload,
-      });
-
-      expect(response.statusCode).toBe(403);
-    });
-
-    it('should return 403 if try to update contact and company representative from other company', async () => {
-      const payload = { contact: clientAdmin._id, companyRepresentative: clientAdmin._id };
-      authToken = await getToken('trainer');
 
       const response = await app.inject({
         method: 'PUT',
