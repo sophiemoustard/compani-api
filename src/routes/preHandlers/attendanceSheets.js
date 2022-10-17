@@ -39,19 +39,24 @@ exports.authorizeAttendanceSheetsGet = async (req) => {
 };
 
 exports.authorizeAttendanceSheetCreation = async (req) => {
-  const course = await Course.findOne({ _id: req.payload.course }).populate('slots').lean();
-
+  const course = await Course
+    .findOne({ _id: req.payload.course }, { archivedAt: 1, type: 1, slots: 1, trainees: 1, trainer: 1 })
+    .populate('slots')
+    .lean();
   if (course.archivedAt) throw Boom.forbidden();
 
+  const { credentials } = req.auth;
+  isTrainerAuthorized(course.trainer, credentials);
+
   if (course.type === INTRA) {
-    if (req.payload.trainee) return Boom.badRequest();
+    if (req.payload.trainee) throw Boom.badRequest();
     const courseDates = course.slots.filter(slot => CompaniDate(slot.startDate).isSame(req.payload.date, 'day'));
-    if (!courseDates.length) return Boom.forbidden();
+    if (!courseDates.length) throw Boom.forbidden();
 
     return null;
   }
-  if (req.payload.date) return Boom.badRequest();
-  if (!course.trainees.some(t => UtilsHelper.areObjectIdsEquals(t, req.payload.trainee))) return Boom.forbidden();
+  if (req.payload.date) throw Boom.badRequest();
+  if (!course.trainees.some(t => UtilsHelper.areObjectIdsEquals(t, req.payload.trainee))) throw Boom.forbidden();
 
   return null;
 };
