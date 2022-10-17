@@ -32,19 +32,26 @@ const userList = [
     local: { email: 'traineeFromINTERB2B@alenvi.io' },
     origin: WEBAPP,
   },
+  {
+    _id: new ObjectId(),
+    identity: { firstname: 'trainer', lastname: 'FromOtherCompany' },
+    local: { email: 'trainerFromOtherCompany@compani.fr' },
+    origin: WEBAPP,
+  },
 ];
 
 const userCompaniesList = [
   { _id: new ObjectId(), user: userList[0]._id, company: authCompany._id },
   { _id: new ObjectId(), user: userList[1]._id, company: authCompany._id },
   { _id: new ObjectId(), user: userList[2]._id, company: otherCompany._id },
+  { _id: new ObjectId(), user: userList[3]._id, company: otherCompany._id },
 ];
 
 const coursesList = [
   { // 0
     _id: new ObjectId(),
     subProgram: new ObjectId(),
-    company: authCompany._id,
+    companies: [authCompany._id],
     type: INTRA,
     maxTrainees: 8,
     trainees: [userList[1]._id],
@@ -53,7 +60,6 @@ const coursesList = [
   { // 1
     _id: new ObjectId(),
     subProgram: new ObjectId(),
-    company: authCompany._id,
     type: INTER_B2B,
     trainees: [userList[1]._id],
     salesRepresentative: userList[0]._id,
@@ -63,8 +69,9 @@ const coursesList = [
     subProgram: new ObjectId(),
     type: INTRA,
     maxTrainees: 8,
-    company: otherCompany._id,
+    companies: [otherCompany._id],
     trainees: [userList[1]._id],
+    trainer: userList[3]._id,
     salesRepresentative: userList[0]._id,
   },
   { // 3 - archived
@@ -72,7 +79,6 @@ const coursesList = [
     subProgram: new ObjectId(),
     type: INTER_B2B,
     archivedAt: new Date(),
-    company: otherCompany._id,
     trainees: [userList[1]._id],
     salesRepresentative: userList[0]._id,
   },
