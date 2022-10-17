@@ -53,6 +53,7 @@ describe('CompaniDate', () => {
           oldDiff: expect.any(Function),
           add: expect.any(Function),
           oldAdd: expect.any(Function),
+          subtract: expect.any(Function),
           oldSubtract: expect.any(Function),
           set: expect.any(Function),
         }));
@@ -883,6 +884,62 @@ describe('MANIPULATE', () => {
     it('should return error if number', () => {
       try {
         CompaniDatesHelper.CompaniDate('2022-01-01T00:00:00.000Z').add(12);
+
+        expect(true).toBe(false);
+      } catch (e) {
+        expect(e).toEqual(
+          new Error('Invalid Duration: unparsable: the input "12" can\'t be parsed as ISO 8601')
+        );
+      }
+    });
+  });
+
+  describe('subtract', () => {
+    it('should subtract iso amount to date', () => {
+      const result = CompaniDatesHelper.CompaniDate('2022-01-01T00:00:00.000Z').subtract('P1Y2M3DT1H15M33S');
+
+      expect(result.toISO()).toBe('2020-10-28T22:44:27.000Z');
+    });
+
+    it('should return error if invalid iso duration', () => {
+      try {
+        CompaniDatesHelper.CompaniDate('2022-01-01T00:00:00.000Z').subtract('P1M3Y');
+
+        expect(true).toBe(false);
+      } catch (e) {
+        expect(e).toEqual(
+          new Error('Invalid Duration: unparsable: the input "P1M3Y" can\'t be parsed as ISO 8601')
+        );
+      }
+    });
+
+    it('should return error if instance of CompaniDuration', () => {
+      try {
+        CompaniDatesHelper.CompaniDate('2022-01-01T00:00:00.000Z').subtract(CompaniDuration('PT1M'));
+
+        expect(true).toBe(false);
+      } catch (e) {
+        expect(e).toEqual(
+          new Error('Invalid Duration: unparsable: the input "[object Object]" can\'t be parsed as ISO 8601')
+        );
+      }
+    });
+
+    it('should return error if object', () => {
+      try {
+        CompaniDatesHelper.CompaniDate('2022-01-01T00:00:00.000Z').subtract({ minute: 1 });
+
+        expect(true).toBe(false);
+      } catch (e) {
+        expect(e).toEqual(
+          new Error('Invalid Duration: unparsable: the input "[object Object]" can\'t be parsed as ISO 8601')
+        );
+      }
+    });
+
+    it('should return error if number', () => {
+      try {
+        CompaniDatesHelper.CompaniDate('2022-01-01T00:00:00.000Z').subtract(12);
 
         expect(true).toBe(false);
       } catch (e) {
