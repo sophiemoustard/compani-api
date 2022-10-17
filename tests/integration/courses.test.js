@@ -1076,6 +1076,18 @@ describe('COURSES ROUTES - PUT /courses/{_id}', () => {
       expect(response.statusCode).toBe(400);
     });
 
+    it('should return 404 if course doesn\'t exist', async () => {
+      const payload = { maxTrainees: 12 };
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/courses/${new ObjectId()}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload,
+      });
+
+      expect(response.statusCode).toBe(404);
+    });
+
     const payloads = [
       { misc: 'new name' },
       { trainer: new ObjectId() },
@@ -1715,6 +1727,17 @@ describe('COURSES ROUTES - POST /courses/{_id}/sms', () => {
       sinon.assert.notCalled(SmsHelperStub);
     });
 
+    it('should return 404 if course doesn\'t exist', async () => {
+      const response = await app.inject({
+        method: 'POST',
+        url: `/courses/${new ObjectId()}/sms`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload,
+      });
+
+      expect(response.statusCode).toBe(404);
+    });
+
     it('should return a 403 if course has no slot to come and type is not other', async () => {
       momentIsBefore.returns(false);
       const response = await app.inject({
@@ -1980,6 +2003,17 @@ describe('COURSES ROUTES - PUT /courses/{_id}/trainees', () => {
         trainees: traineeFromAuthCompanyWithFormationExpoToken._id,
       });
       expect(course).toEqual(1);
+    });
+
+    it('should return 404 if course doesn\'t exist', async () => {
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/courses/${new ObjectId()}/trainees`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload: { trainee: traineeFromAuthCompanyWithFormationExpoToken._id },
+      });
+
+      expect(response.statusCode).toBe(404);
     });
 
     it('should return a 403 if course is archived', async () => {
@@ -2654,6 +2688,16 @@ describe('COURSES ROUTES - DELETE /courses/{_id}/trainee/{traineeId}', () => {
         action: TRAINEE_DELETION,
       });
       expect(courseHistory).toEqual(1);
+    });
+
+    it('should return 404 if course doesn\'t exist', async () => {
+      const response = await app.inject({
+        method: 'DELETE',
+        url: `/courses/${new ObjectId()}/trainees/${traineeId}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(404);
     });
 
     it('should return 403 if course is archived', async () => {

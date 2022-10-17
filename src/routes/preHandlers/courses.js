@@ -122,7 +122,8 @@ exports.authorizeCourseEdit = async (req) => {
       .populate({ path: 'slotsToPlan' })
       .populate({ path: 'contact' })
       .lean();
-    if (!course || course.archivedAt) throw Boom.forbidden();
+    if (!course) throw Boom.notFound();
+    if (course.archivedAt) throw Boom.forbidden();
 
     const courseTrainerId = get(course, 'trainer') || null;
     const companies = course.type === INTRA ? course.companies : [];
