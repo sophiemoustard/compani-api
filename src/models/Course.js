@@ -9,7 +9,12 @@ const COURSE_FORMATS = [STRICTLY_E_LEARNING, BLENDED];
 const CourseSchema = mongoose.Schema({
   misc: { type: String },
   subProgram: { type: mongoose.Schema.Types.ObjectId, ref: 'SubProgram', required: true },
-  companies: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Company', required() { return this.type === INTRA; } }],
+  companies: {
+    type: [mongoose.Schema.Types.ObjectId],
+    default: undefined,
+    ref: 'Company',
+    required() { return this.type === INTRA; },
+  },
   type: { type: String, required: true, enum: COURSE_TYPES },
   format: { type: String, enum: COURSE_FORMATS, default: BLENDED },
   trainer: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
