@@ -10,9 +10,7 @@ const list = async (req) => {
     const courseBills = await CourseBillHelper.list(req.query, req.auth.credentials);
 
     return {
-      message: courseBills.length
-        ? translate[language].courseBillsFound
-        : translate[language].courseBillsNotFound,
+      message: courseBills.length ? translate[language].courseBillsFound : translate[language].courseBillsNotFound,
       data: { courseBills },
     };
   } catch (e) {
