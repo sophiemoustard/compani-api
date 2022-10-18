@@ -533,8 +533,7 @@ exports.generateBillPdf = async (params, credentials) => {
     )
     .lean();
   const data = exports.formatPdf(bill, company);
-  const template = await BillPdf.getPdfContent(data);
-  const pdf = await PdfHelper.generatePdf(template);
+  const pdf = await BillPdf.getPdf(data);
 
   return { pdf, billNumber: bill.number };
 };

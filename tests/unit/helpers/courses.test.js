@@ -3364,20 +3364,17 @@ describe('formatCourseForConvocationPdf', () => {
 
 describe('generateConvocationPdf', () => {
   let formatCourseForConvocationPdf;
-  let generatePdf;
   let courseFindOne;
-  let getPdfContent;
+  let getPdf;
   beforeEach(() => {
     formatCourseForConvocationPdf = sinon.stub(CourseHelper, 'formatCourseForConvocationPdf');
-    generatePdf = sinon.stub(PdfHelper, 'generatePdf');
     courseFindOne = sinon.stub(Course, 'findOne');
-    getPdfContent = sinon.stub(CourseConvocation, 'getPdfContent');
+    getPdf = sinon.stub(CourseConvocation, 'getPdf');
   });
   afterEach(() => {
     formatCourseForConvocationPdf.restore();
-    generatePdf.restore();
     courseFindOne.restore();
-    getPdfContent.restore();
+    getPdf.restore();
   });
 
   it('should return pdf', async () => {
@@ -3413,8 +3410,7 @@ describe('generateConvocationPdf', () => {
       }],
     });
 
-    generatePdf.returns('pdf');
-    getPdfContent.returns({ content: 'test' });
+    getPdf.returns('pdf');
 
     const result = await CourseHelper.generateConvocationPdf(courseId);
 
@@ -3452,9 +3448,8 @@ describe('generateConvocationPdf', () => {
         }],
       }
     );
-    sinon.assert.calledOnceWithExactly(generatePdf, { content: 'test' });
     sinon.assert.calledOnceWithExactly(
-      getPdfContent,
+      getPdf,
       {
         _id: courseId,
         subProgram: { program: { name: 'Comment attraper des Pokemons' } },

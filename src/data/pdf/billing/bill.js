@@ -3,10 +3,11 @@ const { BILL, AUTOMATIC } = require('../../../helpers/constants');
 const UtilsPdfHelper = require('./utils');
 const UtilsHelper = require('../../../helpers/utils');
 const NumbersHelper = require('../../../helpers/numbers');
+const PdfHelper = require('../../../helpers/pdf');
 
 exports.getPdfContent = async (data) => {
   const { bill } = data;
-  const header = await UtilsPdfHelper.getHeader(bill.company, bill, BILL);
+  const { header, images } = await UtilsPdfHelper.getHeader(bill.company, bill, BILL);
 
   const billDetailsTableBody = [
     [
@@ -66,8 +67,17 @@ exports.getPdfContent = async (data) => {
   ];
 
   return {
-    content: content.flat(),
-    defaultStyle: { font: 'SourceSans', fontSize: 12 },
-    styles: { marginRightLarge: { marginRight: 40 } },
+    template: {
+      content: content.flat(),
+      defaultStyle: { font: 'SourceSans', fontSize: 12 },
+      styles: { marginRightLarge: { marginRight: 40 } },
+    },
+    images,
   };
+};
+
+exports.getPdf = async (data) => {
+  const { template, images } = await exports.getPdfContent(data);
+
+  return PdfHelper.generatePdf(template, images);
 };

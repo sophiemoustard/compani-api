@@ -784,9 +784,9 @@ exports.generateConvocationPdf = async (courseId) => {
 
   const courseName = get(course, 'subProgram.program.name', '').split(' ').join('-') || 'Formation';
 
-  const template = await CourseConvocation.getPdfContent(exports.formatCourseForConvocationPdf(course));
+  const pdf = await CourseConvocation.getPdf(exports.formatCourseForConvocationPdf(course));
 
-  return { pdf: await PdfHelper.generatePdf(template), courseName };
+  return { pdf, courseName };
 };
 
 exports.getQuestionnaires = async (courseId) => {
