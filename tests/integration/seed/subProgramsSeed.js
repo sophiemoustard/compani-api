@@ -102,7 +102,7 @@ const coursesList = [{
   subProgram: subProgramsList[7]._id,
   type: INTRA,
   maxTrainees: 8,
-  company: new ObjectId(),
+  companies: [new ObjectId()],
   salesRepresentative: vendorAdmin._id,
 }];
 
