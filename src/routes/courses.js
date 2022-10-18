@@ -181,7 +181,7 @@ exports.plugin = {
             maxTrainees: Joi.number().positive().integer(),
           }),
         },
-        pre: [{ method: getCourse, assign: 'course' }, { method: authorizeCourseEdit }],
+        pre: [{ method: authorizeCourseEdit }],
         auth: { scope: ['courses:edit'] },
       },
       handler: update,
@@ -242,7 +242,7 @@ exports.plugin = {
           params: Joi.object({ _id: Joi.objectId().required() }),
           payload: Joi.object({ trainee: Joi.objectId().required() }),
         },
-        pre: [{ method: getCourseTrainee }, { method: getCourse, assign: 'course' }, { method: authorizeCourseEdit }],
+        pre: [{ method: getCourseTrainee }, { method: authorizeCourseEdit }],
         auth: { scope: ['courses:edit'] },
       },
       handler: addTrainee,
@@ -267,7 +267,7 @@ exports.plugin = {
         validate: {
           params: Joi.object({ _id: Joi.objectId().required(), traineeId: Joi.objectId().required() }),
         },
-        pre: [{ method: getCourse, assign: 'course' }, { method: authorizeCourseEdit }],
+        pre: [{ method: authorizeCourseEdit }],
       },
       handler: removeTrainee,
     });
