@@ -59,7 +59,7 @@ exports.saveSignedMandate = async (customerId, mandateId) => {
 
   const finalPdf = await ESign.downloadFinalDocument(mandate.everSignId);
   const tmpPath = path.join(os.tmpdir(), `signedDoc-${moment().format('DDMMYYYY-HHmm')}.pdf`);
-  const file = await FileHelper.createAndReadFile(finalPdf.data, tmpPath);
+  const file = await FileHelper.createReadAndReturnFile(finalPdf.data, tmpPath);
   const uploadedFile = await GDriveStorageHelper.addFile({
     driveFolderId: customer.driveFolder.driveId,
     name: mandate.rum,

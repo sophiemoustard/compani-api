@@ -6,13 +6,20 @@ const axios = require('axios');
 const fsPromises = fs.promises;
 const TMP_FILES_PATH = `${path.resolve(__dirname, '../data/pdf/tmp')}/`;
 
-exports.createAndReadFile = async (stream, outputPath) => new Promise((resolve, reject) => {
-  const tmpFile = fs.createWriteStream(outputPath);
+exports.createReadAndReturnFile = async (stream, outputPath) => new Promise((resolve, reject) => {
+  const tmpFile = fs.createWriteStream(outputPath)
+    .on('finish', () => { resolve(fs.createReadStream(outputPath)); })
+    .on('error', err => reject(err));
+
   stream.pipe(tmpFile);
-  tmpFile.on('finish', () => {
-    resolve(fs.createReadStream(outputPath));
-  });
-  tmpFile.on('error', err => reject(err));
+});
+
+exports.createAndReadFile = async (stream, outputPath) => new Promise((resolve, reject) => {
+  const tmpFile = fs.createWriteStream(outputPath)
+    .on('finish', () => { resolve(outputPath); })
+    .on('error', err => reject(err));
+
+  stream.pipe(tmpFile);
 });
 
 exports.fileToBase64 = filePath => new Promise((resolve, reject) => {
