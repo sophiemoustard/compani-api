@@ -31,7 +31,7 @@ const courseList = [
     _id: new ObjectId(),
     type: INTRA,
     maxTrainees: 8,
-    company: authCompany._id,
+    companies: [authCompany._id],
     subProgram: subProgramList[0]._id,
     misc: 'group 1',
     trainer: new ObjectId(),
