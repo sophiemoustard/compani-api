@@ -9,9 +9,9 @@ const { INTRA, INTER_B2B, TRAINER } = require('../../helpers/constants');
 const isTrainerAuthorized = (courseTrainer, credentials) => {
   const loggedUserId = get(credentials, '_id');
   const vendorRole = get(credentials, 'role.vendor');
-  const courseTrainerIsFromOtherCompany = courseTrainer && !UtilsHelper.areObjectIdsEquals(loggedUserId, courseTrainer);
+  const loggedUserIsNotCourseTrainer = courseTrainer && !UtilsHelper.areObjectIdsEquals(loggedUserId, courseTrainer);
 
-  if (get(vendorRole, 'name') === TRAINER && courseTrainerIsFromOtherCompany) throw Boom.forbidden();
+  if (get(vendorRole, 'name') === TRAINER && loggedUserIsNotCourseTrainer) throw Boom.forbidden();
 
   return null;
 };
