@@ -126,9 +126,15 @@ const CompaniDateFactory = (inputDate) => {
       return CompaniDateFactory(_date.plus(isoDuration));
     },
 
+    // fct to be deleted
     oldAdd(amount) {
       if (amount instanceof Number) throw Error('Invalid argument: expected to be an object, got number');
       return CompaniDateFactory(_date.plus(amount));
+    },
+
+    subtract(amount) {
+      const isoDuration = luxon.Duration.fromISO(amount);
+      return CompaniDateFactory(_date.minus(isoDuration));
     },
 
     // fct to be deleted
