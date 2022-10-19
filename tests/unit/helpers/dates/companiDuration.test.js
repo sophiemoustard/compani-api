@@ -33,8 +33,10 @@ describe('CompaniDuration', () => {
         .toEqual(expect.objectContaining({
           _getDuration: expect.any(luxon.Duration),
           format: expect.any(Function),
-          add: expect.any(Function),
           asHours: expect.any(Function),
+          toObject: expect.any(Function),
+          toISO: expect.any(Function),
+          add: expect.any(Function),
         }));
       sinon.assert.calledWithExactly(_formatMiscToCompaniDuration.getCall(0), duration);
     });
@@ -112,30 +114,6 @@ describe('format', () => {
   });
 });
 
-describe('add', () => {
-  let _formatMiscToCompaniDuration;
-  const durationAmount = { hours: 1 };
-  const companiDuration = CompaniDurationsHelper.CompaniDuration(durationAmount);
-
-  beforeEach(() => {
-    _formatMiscToCompaniDuration = sinon.spy(CompaniDurationsHelper, '_formatMiscToCompaniDuration');
-  });
-
-  afterEach(() => {
-    _formatMiscToCompaniDuration.restore();
-  });
-
-  it('should increase a newly constructed companiDuration, increased by amount', () => {
-    const addedAmount = { hours: 2, minutes: 5 };
-    const result = companiDuration.add(addedAmount);
-
-    expect(result).toEqual(expect.objectContaining({ _getDuration: expect.any(luxon.Duration) }));
-    const amountInMs = (durationAmount.hours + addedAmount.hours) * 60 * 60 * 1000 + addedAmount.minutes * 60 * 1000;
-    expect(result._getDuration.toMillis()).toBe(amountInMs);
-    sinon.assert.calledWithExactly(_formatMiscToCompaniDuration.getCall(0), addedAmount);
-  });
-});
-
 describe('asHours', () => {
   const durationAmount = { hours: 1, minutes: 9 };
   const companiDuration = CompaniDurationsHelper.CompaniDuration(durationAmount);
@@ -162,7 +140,7 @@ describe('toISO', () => {
   const duration = 'PT2H30M';
 
   it('should return ISO string if argument is ISO string', () => {
-    const result = CompaniDurationsHelper.CompaniDuration('PT2H30M').toISO();
+    const result = CompaniDurationsHelper.CompaniDuration(duration).toISO();
 
     expect(result).toEqual(duration);
   });
@@ -177,6 +155,36 @@ describe('toISO', () => {
     const result = CompaniDurationsHelper.CompaniDuration().toISO();
 
     expect(result).toEqual('PT0S');
+  });
+
+  it('should return PT0S if duration worths 0 month', () => {
+    const result = CompaniDurationsHelper.CompaniDuration('P0M').toISO();
+
+    expect(result).toEqual('PT0S');
+  });
+});
+
+describe('add', () => {
+  let _formatMiscToCompaniDuration;
+  const durationAmount = { hours: 1 };
+  const companiDuration = CompaniDurationsHelper.CompaniDuration(durationAmount);
+
+  beforeEach(() => {
+    _formatMiscToCompaniDuration = sinon.spy(CompaniDurationsHelper, '_formatMiscToCompaniDuration');
+  });
+
+  afterEach(() => {
+    _formatMiscToCompaniDuration.restore();
+  });
+
+  it('should increase a newly constructed companiDuration, increased by amount', () => {
+    const addedAmount = { hours: 2, minutes: 5 };
+    const result = companiDuration.add(addedAmount);
+
+    expect(result).toEqual(expect.objectContaining({ _getDuration: expect.any(luxon.Duration) }));
+    const amountInMs = (durationAmount.hours + addedAmount.hours) * 60 * 60 * 1000 + addedAmount.minutes * 60 * 1000;
+    expect(result._getDuration.toMillis()).toBe(amountInMs);
+    sinon.assert.calledWithExactly(_formatMiscToCompaniDuration.getCall(0), addedAmount);
   });
 });
 

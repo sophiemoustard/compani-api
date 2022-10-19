@@ -7,21 +7,17 @@ const companiDurationFactory = (inputDuration) => {
   const _duration = inputDuration;
 
   return {
+    // GETTER
     get _getDuration() {
       return _duration;
     },
 
+    // DISPLAY
     format() {
       const durationInHoursAndMinutes = _duration.shiftTo('hours', 'minutes');
       const format = Math.floor(durationInHoursAndMinutes.get('minutes')) > 0 ? 'h\'h\'mm' : 'h\'h\'';
 
       return _duration.toFormat(format);
-    },
-
-    add(miscTypeOtherDuration) {
-      const otherDuration = exports._formatMiscToCompaniDuration(miscTypeOtherDuration);
-
-      return companiDurationFactory(_duration.plus(otherDuration));
     },
 
     asHours() {
@@ -34,6 +30,13 @@ const companiDurationFactory = (inputDuration) => {
 
     toISO() {
       return _duration.toISO();
+    },
+
+    // MANIPULATE
+    add(miscTypeOtherDuration) {
+      const otherDuration = exports._formatMiscToCompaniDuration(miscTypeOtherDuration);
+
+      return companiDurationFactory(_duration.plus(otherDuration));
     },
   };
 };
