@@ -1,4 +1,4 @@
-const { DURATION_UNITS, HH_h_MM, HH_h_MM_min } = require('../constants');
+const { DURATION_UNITS, HHhMM, HHhMMmin } = require('../constants');
 const luxon = require('./luxon');
 
 exports.CompaniDuration = (...args) => companiDurationFactory(exports._formatMiscToCompaniDuration(...args));
@@ -14,16 +14,21 @@ const companiDurationFactory = (inputDuration) => {
 
     // DISPLAY
     format(template) {
-      if (template === HH_h_MM) {
+      if (template === HHhMM) {
         const shiftedDuration = _duration.shiftTo('hours', 'minutes', 'seconds');
 
         if (shiftedDuration.get('minutes') > 0) return _duration.toFormat('h\'h\'mm');
         return _duration.toFormat('h\'h\'');
-      } if (template === HH_h_MM_min) {
+      } if (template === HHhMMmin) {
         const shiftedDuration = _duration.shiftTo('hours', 'minutes', 'seconds');
+        const minutes = shiftedDuration.get('minutes');
+        const hours = shiftedDuration.get('hours');
 
-        if (shiftedDuration.get('hours') === 0) return _duration.toFormat('mm\'min\'');
-        if (shiftedDuration.get('minutes') === 0) return _duration.toFormat('h\'h\'');
+        if (hours === 0) {
+          if (minutes === 0) return '0min';
+          return _duration.toFormat('mm\'min\'');
+        }
+        if (minutes === 0) return _duration.toFormat('h\'h\'');
         return _duration.toFormat('h\'h\' mm\'min\'');
       }
       throw Error('Invalid argument: expected specific format');
