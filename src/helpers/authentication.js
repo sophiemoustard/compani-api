@@ -17,11 +17,8 @@ const { CompaniDuration } = require('./dates/companiDurations');
 
 const { language } = translate;
 
-exports.encode = payload => jwt.sign(
-  payload,
-  process.env.TOKEN_SECRET,
-  { expiresIn: CompaniDuration(TOKEN_EXPIRE_DURATION).asSeconds() }
-);
+exports.encode = payload => jwt
+  .sign(payload, process.env.TOKEN_SECRET, { expiresIn: CompaniDuration(TOKEN_EXPIRE_DURATION).asSeconds() });
 
 exports.authenticate = async (payload) => {
   const user = await User
