@@ -109,7 +109,7 @@ exports.authorizeUnsubscribedAttendancesGet = async (req) => {
 
 exports.authorizeAttendanceCreation = async (req) => {
   const courseSlot = await CourseSlot.findOne({ _id: req.payload.courseSlot }, { course: 1 })
-    .populate({ path: 'course', select: 'trainer trainees type company archivedAt' })
+    .populate({ path: 'course', select: 'trainer trainees type companies archivedAt' })
     .lean();
   if (!courseSlot) throw Boom.notFound();
 
@@ -124,11 +124,11 @@ exports.authorizeAttendanceCreation = async (req) => {
     if (attendance) throw Boom.conflict();
 
     if (course.type === INTRA) {
-      if (!course.company) throw Boom.badData();
+      if (!course.companies[0]) throw Boom.badData();
 
       const doesTraineeBelongToCompany = await UserCompany.countDocuments({
         user: req.payload.trainee,
-        company: course.company,
+        company: course.companies[0],
       });
       if (!doesTraineeBelongToCompany) throw Boom.notFound();
     }

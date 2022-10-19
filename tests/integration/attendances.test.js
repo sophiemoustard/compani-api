@@ -20,145 +20,145 @@ describe('NODE ENV', () => {
   });
 });
 
-// describe('ATTENDANCES ROUTES - POST /attendances', () => {
-//   let authToken;
-//   beforeEach(populateDB);
+describe('ATTENDANCES ROUTES - POST /attendances', () => {
+  let authToken;
+  beforeEach(populateDB);
 
-//   describe('TRAINING_ORGANISATION_MANAGER', () => {
-//     beforeEach(async () => {
-//       authToken = await getToken('training_organisation_manager');
-//     });
+  describe('TRAINING_ORGANISATION_MANAGER', () => {
+    beforeEach(async () => {
+      authToken = await getToken('training_organisation_manager');
+    });
 
-//     it('should add an attendance', async () => {
-//       const courseSlotAttendancesBefore = await Attendance.countDocuments({ courseSlot: slotsList[0]._id });
-//       const response = await app.inject({
-//         method: 'POST',
-//         url: '/attendances',
-//         headers: { Cookie: `alenvi_token=${authToken}` },
-//         payload: { trainee: traineeList[3]._id, courseSlot: slotsList[0]._id },
-//       });
+    it('should add an attendance', async () => {
+      const courseSlotAttendancesBefore = await Attendance.countDocuments({ courseSlot: slotsList[0]._id });
+      const response = await app.inject({
+        method: 'POST',
+        url: '/attendances',
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload: { trainee: traineeList[3]._id, courseSlot: slotsList[0]._id },
+      });
 
-//       expect(response.statusCode).toBe(200);
-//       const courseSlotAttendancesAfter = await Attendance.countDocuments({ courseSlot: slotsList[0]._id });
-//       expect(courseSlotAttendancesAfter).toBe(courseSlotAttendancesBefore + 1);
-//     });
+      expect(response.statusCode).toBe(200);
+      const courseSlotAttendancesAfter = await Attendance.countDocuments({ courseSlot: slotsList[0]._id });
+      expect(courseSlotAttendancesAfter).toBe(courseSlotAttendancesBefore + 1);
+    });
 
-//     it('should add attendances for all trainee without attendance for this courseSlot', async () => {
-//       const courseSlotAttendancesBefore = await Attendance.countDocuments({ courseSlot: slotsList[0]._id });
+    it('should add attendances for all trainee without attendance for this courseSlot', async () => {
+      const courseSlotAttendancesBefore = await Attendance.countDocuments({ courseSlot: slotsList[0]._id });
 
-//       const response = await app.inject({
-//         method: 'POST',
-//         url: '/attendances',
-//         headers: { Cookie: `alenvi_token=${authToken}` },
-//         payload: { courseSlot: slotsList[0]._id },
-//       });
+      const response = await app.inject({
+        method: 'POST',
+        url: '/attendances',
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload: { courseSlot: slotsList[0]._id },
+      });
 
-//       expect(response.statusCode).toBe(200);
-//       const courseSlotAttendancesAfter = await Attendance.countDocuments({ courseSlot: slotsList[0]._id });
-//       expect(courseSlotAttendancesAfter).toBe(courseSlotAttendancesBefore + 2);
-//     });
+      expect(response.statusCode).toBe(200);
+      const courseSlotAttendancesAfter = await Attendance.countDocuments({ courseSlot: slotsList[0]._id });
+      expect(courseSlotAttendancesAfter).toBe(courseSlotAttendancesBefore + 2);
+    });
 
-//     it('should return 400 if no courseSlot', async () => {
-//       const response = await app.inject({
-//         method: 'POST',
-//         url: '/attendances',
-//         headers: { Cookie: `alenvi_token=${authToken}` },
-//         payload: { trainee: traineeList[3]._id },
-//       });
+    it('should return 400 if no courseSlot', async () => {
+      const response = await app.inject({
+        method: 'POST',
+        url: '/attendances',
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload: { trainee: traineeList[3]._id },
+      });
 
-//       expect(response.statusCode).toBe(400);
-//     });
+      expect(response.statusCode).toBe(400);
+    });
 
-//     it('should return 404 if wrong courseSlot', async () => {
-//       const response = await app.inject({
-//         method: 'POST',
-//         url: '/attendances',
-//         headers: { Cookie: `alenvi_token=${authToken}` },
-//         payload: { trainee: traineeList[0]._id, courseSlot: new ObjectId() },
-//       });
+    it('should return 404 if wrong courseSlot', async () => {
+      const response = await app.inject({
+        method: 'POST',
+        url: '/attendances',
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload: { trainee: traineeList[0]._id, courseSlot: new ObjectId() },
+      });
 
-//       expect(response.statusCode).toBe(404);
-//     });
+      expect(response.statusCode).toBe(404);
+    });
 
-//     it('should return 404 if trainee is not part of the company', async () => {
-//       const response = await app.inject({
-//         method: 'POST',
-//         url: '/attendances',
-//         headers: { Cookie: `alenvi_token=${authToken}` },
-//         payload: { trainee: traineeList[1]._id, courseSlot: slotsList[0]._id },
-//       });
+    it('should return 404 if trainee is not part of the company', async () => {
+      const response = await app.inject({
+        method: 'POST',
+        url: '/attendances',
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload: { trainee: traineeList[1]._id, courseSlot: slotsList[0]._id },
+      });
 
-//       expect(response.statusCode).toBe(404);
-//     });
+      expect(response.statusCode).toBe(404);
+    });
 
-//     it('should return 409 if trainee and courseSlot are already added', async () => {
-//       const response = await app.inject({
-//         method: 'POST',
-//         url: '/attendances',
-//         headers: { Cookie: `alenvi_token=${authToken}` },
-//         payload: { trainee: traineeList[0]._id, courseSlot: slotsList[0]._id },
-//       });
+    it('should return 409 if trainee and courseSlot are already added', async () => {
+      const response = await app.inject({
+        method: 'POST',
+        url: '/attendances',
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload: { trainee: traineeList[0]._id, courseSlot: slotsList[0]._id },
+      });
 
-//       expect(response.statusCode).toBe(409);
-//     });
+      expect(response.statusCode).toBe(409);
+    });
 
-//     it('should return 403 if course is archived', async () => {
-//       const response = await app.inject({
-//         method: 'POST',
-//         url: '/attendances',
-//         headers: { Cookie: `alenvi_token=${authToken}` },
-//         payload: { trainee: traineeList[8]._id, courseSlot: slotsList[5]._id },
-//       });
+    it('should return 403 if course is archived', async () => {
+      const response = await app.inject({
+        method: 'POST',
+        url: '/attendances',
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload: { trainee: traineeList[8]._id, courseSlot: slotsList[5]._id },
+      });
 
-//       expect(response.statusCode).toBe(403);
-//     });
-//   });
+      expect(response.statusCode).toBe(403);
+    });
+  });
 
-//   describe('Other roles', () => {
-//     it('should return 200 if courseSlot is from trainer\'s courses', async () => {
-//       authToken = await getTokenByCredentials(userList[0].local);
-//       const response = await app.inject({
-//         method: 'POST',
-//         url: '/attendances',
-//         headers: { Cookie: `alenvi_token=${authToken}` },
-//         payload: { trainee: traineeList[3]._id, courseSlot: slotsList[0]._id },
-//       });
+  describe('Other roles', () => {
+    it('should return 200 if courseSlot is from trainer\'s courses', async () => {
+      authToken = await getTokenByCredentials(userList[0].local);
+      const response = await app.inject({
+        method: 'POST',
+        url: '/attendances',
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload: { trainee: traineeList[3]._id, courseSlot: slotsList[0]._id },
+      });
 
-//       expect(response.statusCode).toBe(200);
-//     });
+      expect(response.statusCode).toBe(200);
+    });
 
-//     it('should return 403 if courseSlot is not from trainer\'s courses', async () => {
-//       authToken = await getTokenByCredentials(userList[1].local);
-//       const response = await app.inject({
-//         method: 'POST',
-//         url: '/attendances',
-//         headers: { Cookie: `alenvi_token=${authToken}` },
-//         payload: { trainee: traineeList[3]._id, courseSlot: slotsList[0]._id },
-//       });
+    it('should return 403 if courseSlot is not from trainer\'s courses', async () => {
+      authToken = await getTokenByCredentials(userList[1].local);
+      const response = await app.inject({
+        method: 'POST',
+        url: '/attendances',
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload: { trainee: traineeList[3]._id, courseSlot: slotsList[0]._id },
+      });
 
-//       expect(response.statusCode).toBe(403);
-//     });
+      expect(response.statusCode).toBe(403);
+    });
 
-//     const roles = [
-//       { name: 'helper', expectedCode: 403 },
-//       { name: 'client_admin', expectedCode: 403 },
-//       { name: 'planning_referent', expectedCode: 403 },
-//     ];
-//     roles.forEach((role) => {
-//       it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
-//         authToken = await getToken(role.name);
-//         const response = await app.inject({
-//           method: 'POST',
-//           url: '/attendances',
-//           headers: { Cookie: `alenvi_token=${authToken}` },
-//           payload: { trainee: traineeList[3]._id, courseSlot: slotsList[0]._id },
-//         });
+    const roles = [
+      { name: 'helper', expectedCode: 403 },
+      { name: 'client_admin', expectedCode: 403 },
+      { name: 'planning_referent', expectedCode: 403 },
+    ];
+    roles.forEach((role) => {
+      it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+        authToken = await getToken(role.name);
+        const response = await app.inject({
+          method: 'POST',
+          url: '/attendances',
+          headers: { Cookie: `alenvi_token=${authToken}` },
+          payload: { trainee: traineeList[3]._id, courseSlot: slotsList[0]._id },
+        });
 
-//         expect(response.statusCode).toBe(role.expectedCode);
-//       });
-//     });
-//   });
-// });
+        expect(response.statusCode).toBe(role.expectedCode);
+      });
+    });
+  });
+});
 
 describe('ATTENDANCES ROUTES - GET /attendances', () => {
   let authToken;
