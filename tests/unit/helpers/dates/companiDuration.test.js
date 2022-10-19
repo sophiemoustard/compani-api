@@ -158,6 +158,28 @@ describe('toObject', () => {
   });
 });
 
+describe('toISO', () => {
+  const duration = 'PT2H30M';
+
+  it('should return ISO string if argument is ISO string', () => {
+    const result = CompaniDurationsHelper.CompaniDuration('PT2H30M').toISO();
+
+    expect(result).toEqual(duration);
+  });
+
+  it('should return ISO string if argument is object', () => {
+    const result = CompaniDurationsHelper.CompaniDuration({ hours: 2, minutes: 30 }).toISO();
+
+    expect(result).toEqual(duration);
+  });
+
+  it('should return PT0S if no argument', () => {
+    const result = CompaniDurationsHelper.CompaniDuration().toISO();
+
+    expect(result).toEqual('PT0S');
+  });
+});
+
 describe('_formatMiscToCompaniDuration', () => {
   let fromObject;
   let fromMillis;

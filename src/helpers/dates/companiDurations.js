@@ -31,6 +31,10 @@ const companiDurationFactory = (inputDuration) => {
     toObject() {
       return _duration.toObject();
     },
+
+    toISO() {
+      return _duration.toISO();
+    },
   };
 };
 
