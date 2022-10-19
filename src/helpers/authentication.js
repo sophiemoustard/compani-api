@@ -1,23 +1,27 @@
 const jwt = require('jsonwebtoken');
 const Boom = require('@hapi/boom');
-const moment = require('moment');
 const bcrypt = require('bcrypt');
 const pickBy = require('lodash/pickBy');
 const get = require('lodash/get');
 const flat = require('flat');
 const { v4: uuidv4 } = require('uuid');
 const User = require('../models/User');
-const { TOKEN_EXPIRE_TIME } = require('../models/User');
+const { TOKEN_EXPIRE_DURATION } = require('../models/User');
+const IdentityVerification = require('../models/IdentityVerification');
 const translate = require('./translate');
 const { MOBILE, EMAIL, SECONDS_IN_AN_HOUR } = require('./constants');
 const EmailHelper = require('./email');
 const SmsHelper = require('./sms');
-const IdentityVerification = require('../models/IdentityVerification');
+const { CompaniDate } = require('./dates/companiDates');
+const { CompaniDuration } = require('./dates/companiDurations');
 
 const { language } = translate;
 
-exports.encode = (payload, expireTime) =>
-  jwt.sign(payload, process.env.TOKEN_SECRET, { expiresIn: expireTime || '24h' });
+exports.encode = payload => jwt.sign(
+  payload,
+  process.env.TOKEN_SECRET,
+  { expiresIn: CompaniDuration(TOKEN_EXPIRE_DURATION).asSeconds() }
+);
 
 exports.authenticate = async (payload) => {
   const user = await User
@@ -29,18 +33,18 @@ exports.authenticate = async (payload) => {
   if (!user || !user.refreshToken || !correctPassword || !isCorrect) throw Boom.unauthorized();
 
   const tokenPayload = { _id: user._id.toHexString() };
-  const token = exports.encode(tokenPayload, TOKEN_EXPIRE_TIME);
+  const token = exports.encode(tokenPayload);
 
   if (payload.origin === MOBILE && !user.firstMobileConnection) {
     await User.updateOne(
       { _id: user._id, firstMobileConnection: { $exists: false } },
-      { $set: { firstMobileConnection: moment().toDate() } }
+      { $set: { firstMobileConnection: CompaniDate().toISO() } }
     );
   }
 
   return {
     token,
-    tokenExpireDate: moment().add(TOKEN_EXPIRE_TIME, 'seconds').toDate(),
+    tokenExpireDate: CompaniDate().add(TOKEN_EXPIRE_DURATION).toISO(),
     refreshToken: user.refreshToken,
     user: tokenPayload,
   };
@@ -51,11 +55,11 @@ exports.refreshToken = async (refreshToken) => {
   if (!user) throw Boom.unauthorized();
 
   const tokenPayload = { _id: user._id.toHexString() };
-  const token = exports.encode(tokenPayload, TOKEN_EXPIRE_TIME);
+  const token = exports.encode(tokenPayload);
 
   return {
     token,
-    tokenExpireDate: moment().add(TOKEN_EXPIRE_TIME, 'seconds').toDate(),
+    tokenExpireDate: CompaniDate().add(TOKEN_EXPIRE_DURATION).toISO(),
     refreshToken,
     user: tokenPayload,
   };
@@ -68,11 +72,9 @@ exports.updatePassword = async (userId, userPayload) => User.findOneAndUpdate(
 ).lean();
 
 exports.sendToken = (user) => {
-  const payload = { _id: user._id, email: user.local.email };
-  const userPayload = pickBy(payload);
-  const expireTime = TOKEN_EXPIRE_TIME;
+  const payload = pickBy({ _id: user._id, email: user.local.email });
 
-  return { token: exports.encode(userPayload, expireTime), user: userPayload };
+  return { token: exports.encode(payload), user: payload };
 };
 
 exports.checkPasswordToken = async (token, email) => {

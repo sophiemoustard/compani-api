@@ -52,6 +52,7 @@ describe('CompaniDuration', () => {
     });
   });
 });
+
 describe('GETTER', () => {
   describe('getDuration', () => {
     it('should return _duration', () => {
@@ -188,6 +189,39 @@ describe('MANIPULATE', () => {
       const amountInMs = (durationAmount.hours + addedAmount.hours) * 60 * 60 * 1000 + addedAmount.minutes * 60 * 1000;
       expect(result._getDuration.toMillis()).toBe(amountInMs);
       sinon.assert.calledWithExactly(_formatMiscToCompaniDuration.getCall(0), addedAmount);
+    });
+  });
+
+  describe('asHours', () => {
+    const durationAmount = { hours: 1, minutes: 9 };
+    const companiDuration = CompaniDurationsHelper.CompaniDuration(durationAmount);
+
+    it('should return duration in hours', () => {
+      const result = companiDuration.asHours();
+
+      expect(result).toBe(1.15); // 1.15 = 1 + 9 / 60
+    });
+  });
+
+  describe('asSeconds', () => {
+    const durationAmount = { hours: 1, minutes: 9 };
+    const companiDuration = CompaniDurationsHelper.CompaniDuration(durationAmount);
+
+    it('should return duration in seconds', () => {
+      const result = companiDuration.asSeconds();
+
+      expect(result).toBe(4140);
+    });
+  });
+
+  describe('toObject', () => {
+    const durationAmount = { hours: 1, minutes: 9 };
+    const companiDuration = CompaniDurationsHelper.CompaniDuration(durationAmount);
+
+    it('should return object from CompaniDuration', () => {
+      const result = companiDuration.toObject();
+
+      expect(result).toEqual(durationAmount);
     });
   });
 });

@@ -24,6 +24,10 @@ const companiDurationFactory = (inputDuration) => {
       return _duration.as('hours');
     },
 
+    asSeconds() {
+      return _duration.as('seconds');
+    },
+
     toObject() {
       return _duration.toObject();
     },
