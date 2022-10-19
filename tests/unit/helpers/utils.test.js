@@ -468,6 +468,17 @@ describe('getTotalDuration', () => {
     expect(result).toEqual('4h');
   });
 
+  it('should return duration without hours', () => {
+    const slots = [
+      { startDate: '2020-03-20T09:00:00.000Z', endDate: '2020-03-20T09:15:00.000Z' },
+      { startDate: '2020-04-21T09:00:00.000Z', endDate: '2020-04-21T09:30:00.000Z' },
+    ];
+
+    const result = UtilsHelper.getTotalDuration(slots);
+
+    expect(result).toEqual('0h45');
+  });
+
   it('should return duration with days', () => {
     const slots = [
       { startDate: '2020-03-20T07:00:00.000Z', endDate: '2020-03-20T22:00:00.000Z' },
@@ -541,6 +552,15 @@ describe('getDuration', () => {
     const result = UtilsHelper.getDuration(startDate, endDate);
 
     expect(result).toEqual('2h');
+  });
+
+  it('should return duration without hours', () => {
+    const startDate = '2020-03-20T10:15:00.000Z';
+    const endDate = '2020-03-20T11:00:00.000Z';
+
+    const result = UtilsHelper.getDuration(startDate, endDate);
+
+    expect(result).toEqual('0h45');
   });
 
   it('should return duration with days', () => {
