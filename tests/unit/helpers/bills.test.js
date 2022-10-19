@@ -2967,21 +2967,18 @@ describe('generateBillPdf', async () => {
   let formatPdf;
   let findOneBill;
   let findOneCompany;
-  let generatePdf;
-  let getPdfContent;
+  let getPdf;
   beforeEach(() => {
     formatPdf = sinon.stub(BillHelper, 'formatPdf');
     findOneBill = sinon.stub(Bill, 'findOne');
     findOneCompany = sinon.stub(Company, 'findOne');
-    generatePdf = sinon.stub(PdfHelper, 'generatePdf');
-    getPdfContent = sinon.stub(BillPdf, 'getPdfContent');
+    getPdf = sinon.stub(BillPdf, 'getPdf');
   });
   afterEach(() => {
     formatPdf.restore();
     findOneBill.restore();
     findOneCompany.restore();
-    generatePdf.restore();
-    getPdfContent.restore();
+    getPdf.restore();
   });
 
   it('should generate pdf', async () => {
@@ -2991,15 +2988,13 @@ describe('generateBillPdf', async () => {
     findOneBill.returns(SinonMongoose.stubChainedQueries(bill));
     findOneCompany.returns(SinonMongoose.stubChainedQueries(credentials.company, ['lean']));
     formatPdf.returns({ data: 'data' });
-    generatePdf.returns({ pdf: 'pdf' });
-    getPdfContent.returns({ content: [{ text: 'data' }] });
+    getPdf.returns({ pdf: 'pdf' });
 
     const result = await BillHelper.generateBillPdf({ _id: bill._id }, credentials);
 
     expect(result).toEqual({ billNumber: bill.number, pdf: { pdf: 'pdf' } });
     sinon.assert.calledWithExactly(formatPdf, bill, credentials.company);
-    sinon.assert.calledWithExactly(generatePdf, { content: [{ text: 'data' }] });
-    sinon.assert.calledOnceWithExactly(getPdfContent, { data: 'data' });
+    sinon.assert.calledOnceWithExactly(getPdf, { data: 'data' });
     SinonMongoose.calledOnceWithExactly(findOneBill, [
       { query: 'findOne', args: [{ _id: bill._id, origin: 'compani' }] },
       { query: 'populate', args: [{ path: 'thirdPartyPayer', select: '_id name address' }] },

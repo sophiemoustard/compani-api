@@ -70,15 +70,16 @@ describe('generatePdf', () => {
     const template = { content: [{ text: 'test' }] };
     const doc = { end: sinon.stub() };
     const pdf = Buffer;
+    const images = ['/data/pdf/tmp/aux-pouce.png', '/data/pdf/tmp/doct-explication.png'];
 
     createPdfKitDocument.returns(doc);
     buffer.returns(pdf);
 
-    const result = await PdfHelper.generatePdf(template);
+    const result = await PdfHelper.generatePdf(template, images);
 
     expect(result).toBe(pdf);
     sinon.assert.calledOnceWithExactly(createPdfKitDocument, template);
     sinon.assert.calledOnceWithExactly(buffer, doc);
-    sinon.assert.calledOnceWithExactly(deleteImages);
+    sinon.assert.calledOnceWithExactly(deleteImages, images);
   });
 });

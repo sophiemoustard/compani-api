@@ -6,13 +6,20 @@ const axios = require('axios');
 const fsPromises = fs.promises;
 const TMP_FILES_PATH = `${path.resolve(__dirname, '../data/pdf/tmp')}/`;
 
-exports.createAndReadFile = async (stream, outputPath) => new Promise((resolve, reject) => {
-  const tmpFile = fs.createWriteStream(outputPath);
+exports.createReadAndReturnFile = async (stream, outputPath) => new Promise((resolve, reject) => {
+  const tmpFile = fs.createWriteStream(outputPath)
+    .on('finish', () => { resolve(fs.createReadStream(outputPath)); })
+    .on('error', err => reject(err));
+
   stream.pipe(tmpFile);
-  tmpFile.on('finish', () => {
-    resolve(fs.createReadStream(outputPath));
-  });
-  tmpFile.on('error', err => reject(err));
+});
+
+exports.createAndReadFile = async (stream, outputPath) => new Promise((resolve, reject) => {
+  const tmpFile = fs.createWriteStream(outputPath)
+    .on('finish', () => { resolve(outputPath); })
+    .on('error', err => reject(err));
+
+  stream.pipe(tmpFile);
 });
 
 exports.fileToBase64 = filePath => new Promise((resolve, reject) => {
@@ -40,8 +47,15 @@ exports.downloadImages = async (imageList) => {
   return paths;
 };
 
-exports.deleteImages = () => {
-  if (fs.existsSync(TMP_FILES_PATH)) fs.rmdirSync(TMP_FILES_PATH, { recursive: true });
+exports.deleteImages = (images = []) => {
+  if (images.length) {
+    images.forEach((i) => { fs.rmSync(i); });
+    fs.readdir(TMP_FILES_PATH, (err, data) => {
+      if (!data.length) fs.rmdirSync(TMP_FILES_PATH, { recursive: true });
+    });
+  } else if (fs.existsSync(TMP_FILES_PATH)) {
+    fs.rmdirSync(TMP_FILES_PATH, { recursive: true });
+  }
 };
 
 exports.exportToCsv = async (data) => {

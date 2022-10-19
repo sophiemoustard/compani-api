@@ -16,30 +16,33 @@ exports.getHeader = async (company, item, type) => {
     : { canvas: [{ type: 'rect', x: 0, y: 0, w: 160, h: 40, r: 0, color: 'white' }], margin: [0, 0, 0, 40] };
 
   return {
-    columns: [
-      [
-        logo,
-        { text: item.company.name },
-        { text: item.company.address.street },
-        { text: `${item.company.address.zipCode} ${item.company.address.city}` },
-        { text: item.company.rcs ? `RCS : ${item.company.rcs}` : '' },
-        { text: item.company.rna ? `RNA : ${item.company.rna}` : '' },
+    header: {
+      columns: [
+        [
+          logo,
+          { text: item.company.name },
+          { text: item.company.address.street },
+          { text: `${item.company.address.zipCode} ${item.company.address.city}` },
+          { text: item.company.rcs ? `RCS : ${item.company.rcs}` : '' },
+          { text: item.company.rna ? `RNA : ${item.company.rna}` : '' },
+        ],
+        [
+          { text: BILLING_DOCUMENTS[type], alignment: 'right' },
+          { text: item.number, alignment: 'right' },
+          { text: item.date, alignment: 'right' },
+          {
+            text: type === BILL ? 'Paiement à réception' : '',
+            alignment: 'right',
+            marginBottom: type === BILL ? 20 : 32,
+          },
+          { text: item.recipient.name, alignment: 'right' },
+          { text: item.recipient.address.street || '', alignment: 'right' },
+          { text: `${item.recipient.address.zipCode || ''} ${item.recipient.address.city || ''}`, alignment: 'right' },
+        ],
       ],
-      [
-        { text: BILLING_DOCUMENTS[type], alignment: 'right' },
-        { text: item.number, alignment: 'right' },
-        { text: item.date, alignment: 'right' },
-        {
-          text: type === BILL ? 'Paiement à réception' : '',
-          alignment: 'right',
-          marginBottom: type === BILL ? 20 : 32,
-        },
-        { text: item.recipient.name, alignment: 'right' },
-        { text: item.recipient.address.street || '', alignment: 'right' },
-        { text: `${item.recipient.address.zipCode || ''} ${item.recipient.address.city || ''}`, alignment: 'right' },
-      ],
-    ],
-    marginBottom: 20,
+      marginBottom: 20,
+    },
+    images: companyLogo ? [companyLogo] : [],
   };
 };
 

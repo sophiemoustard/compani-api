@@ -55,12 +55,12 @@ const fonts = () => {
   };
 };
 
-exports.generatePdf = async (template) => {
+exports.generatePdf = async (template, images = []) => {
   const printer = new PdfPrinter(fonts());
   const doc = printer.createPdfKitDocument(template);
   doc.end();
   const pdf = await getStream.buffer(doc);
-  FileHelper.deleteImages();
+  FileHelper.deleteImages(images);
 
   return pdf;
 };

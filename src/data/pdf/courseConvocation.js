@@ -1,5 +1,6 @@
 const get = require('lodash/get');
 const FileHelper = require('../../helpers/file');
+const PdfHelper = require('../../helpers/pdf');
 const { COPPER_500, COPPER_GREY_200 } = require('../../helpers/constants');
 
 const getImages = async () => {
@@ -142,18 +143,27 @@ exports.getPdfContent = async (data) => {
   const trainerAndContactInfo = getTrainerAndContactInfo(quizz, data.trainer, confused, data.contact);
 
   return {
-    content: [header, table, programInfo, trainerAndContactInfo].flat(),
-    defaultStyle: { font: 'SourceSans', fontSize: 10 },
-    styles: {
-      title: { fontSize: 20, bold: true, color: COPPER_500, marginLeft: 24 },
-      surtitle: { fontSize: 12, bold: true, marginTop: 24, marginLeft: 24 },
-      tableHeader: { fontSize: 12, bold: true, alignment: 'center', marginTop: 4, marginBottom: 4 },
-      tableContent: { fontSize: 12, alignment: 'center', marginTop: 4, marginBottom: 4 },
-      notes: { italics: true, marginTop: 4 },
-      infoTitle: { fontSize: 14, bold: true },
-      infoSubTitle: { fontSize: 12 },
-      infoContent: { italics: true },
-      icon: { font: 'icon' },
+    template: {
+      content: [header, table, programInfo, trainerAndContactInfo].flat(),
+      defaultStyle: { font: 'SourceSans', fontSize: 10 },
+      styles: {
+        title: { fontSize: 20, bold: true, color: COPPER_500, marginLeft: 24 },
+        surtitle: { fontSize: 12, bold: true, marginTop: 24, marginLeft: 24 },
+        tableHeader: { fontSize: 12, bold: true, alignment: 'center', marginTop: 4, marginBottom: 4 },
+        tableContent: { fontSize: 12, alignment: 'center', marginTop: 4, marginBottom: 4 },
+        notes: { italics: true, marginTop: 4 },
+        infoTitle: { fontSize: 14, bold: true },
+        infoSubTitle: { fontSize: 12 },
+        infoContent: { italics: true },
+        icon: { font: 'icon' },
+      },
     },
+    images: [thumb, explanation, quizz, confused],
   };
+};
+
+exports.getPdf = async (data) => {
+  const { template, images } = await exports.getPdfContent(data);
+
+  return PdfHelper.generatePdf(template, images);
 };

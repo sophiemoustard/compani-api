@@ -7,7 +7,7 @@ const os = require('os');
 const { PassThrough } = require('stream');
 const FileHelper = require('../../../src/helpers/file');
 
-describe('createAndReadFile', () => {
+describe('createReadAndReturnFile', () => {
   let readable;
   let writable;
   let createWriteStreamStub;
@@ -29,10 +29,8 @@ describe('createAndReadFile', () => {
   it('should rejects/errors if a write stream error occurs', async () => {
     const error = new Error('You crossed the streams!');
 
-    const resultPromise = FileHelper.createAndReadFile(readable, outputPath);
-    setTimeout(async () => {
-      writable.emit('error', error);
-    }, 100);
+    const resultPromise = FileHelper.createReadAndReturnFile(readable, outputPath);
+    setTimeout(async () => { writable.emit('error', error); }, 100);
 
     await expect(resultPromise).rejects.toEqual(error);
     sinon.assert.calledWithExactly(createWriteStreamStub, outputPath);
@@ -40,7 +38,7 @@ describe('createAndReadFile', () => {
   });
 
   it('should resolves if data writes successfully', async () => {
-    const resultPromise = FileHelper.createAndReadFile(readable, outputPath);
+    const resultPromise = FileHelper.createReadAndReturnFile(readable, outputPath);
     setTimeout(async () => {
       readable.emit('data', 'Ceci');
       readable.emit('data', 'est');
