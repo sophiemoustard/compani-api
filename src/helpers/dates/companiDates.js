@@ -116,9 +116,9 @@ const CompaniDateFactory = (inputDate) => {
       if (typeof unit !== 'string') throw Error('Invalid argument: expected unit to be a string');
 
       const otherDate = exports._formatMiscToCompaniDate(miscTypeOtherDate);
-      const diffExpressedInSecondAndInputUnit = _date.diff(otherDate, [unit, 'seconds']);
+      const diffInSecondAndInputUnit = _date.diff(otherDate, [unit, 'seconds']);
 
-      return diffExpressedInSecondAndInputUnit.toISO();
+      return diffInSecondAndInputUnit.toISO();
     },
 
     add(amount) {

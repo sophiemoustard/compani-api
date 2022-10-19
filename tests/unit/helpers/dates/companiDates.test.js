@@ -960,7 +960,7 @@ describe('MANIPULATE', () => {
     });
 
     describe('Differences on time shift', () => {
-      // please not that dates are expressed in local here (and not in UTC) in order to spotlight time shift
+      // please note that dates are expressed in local here (and not in UTC) in order to spotlight time shift
 
       it('should return difference of 1 day or 23 hours, if time shifts from winter to summer', () => {
         const date = '2021-03-28T10:00:00.000+02:00';
@@ -988,14 +988,14 @@ describe('MANIPULATE', () => {
         sinon.assert.calledWithExactly(_formatMiscToCompaniDate.getCall(1), otherDate);
       });
 
-      it('should return difference in float month or in hours, if time shifts from winter to summer', () => {
+      it('should return difference in float months or in hours, if time shifts from winter to summer', () => {
         const date = '2021-04-23T10:00:00.000+02:00';
         const otherDate = '2021-03-21T20:39:47.123+01:00';
         const diffInMonth = CompaniDatesHelper.CompaniDate(date).diff(otherDate, 'months');
         const diffInHours = CompaniDatesHelper.CompaniDate(date).diff(otherDate, 'hours');
 
         expect(diffInMonth).toStrictEqual(`P1MT${(1 * 24 * 60 * 60) + (13 * 60 * 60) + 20 * 60 + 12.877}S`);
-        // there is an hour less if computation is done in hours
+        // there is an hour less, if computation is made in hours
         expect(diffInHours).toStrictEqual(`PT${(31 + 1) * 24 + (13 - 1)}H${20 * 60 + 12.877}S`);
         sinon.assert.calledWithExactly(_formatMiscToCompaniDate.getCall(0), date);
         sinon.assert.calledWithExactly(_formatMiscToCompaniDate.getCall(1), otherDate);
@@ -1016,7 +1016,7 @@ describe('MANIPULATE', () => {
         const otherDate = '2021-02-25T10:00:00.000+01:00';
         const diffInMonth = CompaniDatesHelper.CompaniDate(date).diff(otherDate, 'months');
 
-        // there is an hour less if shift happen during the left over (as left over computation is done in seconds)
+        // there is an hour less, if shift happen during the left over (as left over computation is done in seconds)
         expect(diffInMonth).toStrictEqual(`P1MT${(5 * 24 * 60 * 60) - (1 * 60 * 60)}S`);
         sinon.assert.calledWithExactly(_formatMiscToCompaniDate.getCall(0), date);
         sinon.assert.calledWithExactly(_formatMiscToCompaniDate.getCall(1), otherDate);
