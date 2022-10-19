@@ -193,10 +193,8 @@ describe('MANIPULATE', () => {
   });
 
   describe('asHours', () => {
-    const durationAmount = { hours: 1, minutes: 9 };
-    const companiDuration = CompaniDurationsHelper.CompaniDuration(durationAmount);
-
     it('should return duration in hours', () => {
+      const companiDuration = CompaniDurationsHelper.CompaniDuration('PT1H9M');
       const result = companiDuration.asHours();
 
       expect(result).toBe(1.15); // 1.15 = 1 + 9 / 60
@@ -204,10 +202,8 @@ describe('MANIPULATE', () => {
   });
 
   describe('asSeconds', () => {
-    const durationAmount = { hours: 1, minutes: 9 };
-    const companiDuration = CompaniDurationsHelper.CompaniDuration(durationAmount);
-
     it('should return duration in seconds', () => {
+      const companiDuration = CompaniDurationsHelper.CompaniDuration('PT1H9M');
       const result = companiDuration.asSeconds();
 
       expect(result).toBe(4140);
@@ -215,13 +211,11 @@ describe('MANIPULATE', () => {
   });
 
   describe('toObject', () => {
-    const durationAmount = { hours: 1, minutes: 9 };
-    const companiDuration = CompaniDurationsHelper.CompaniDuration(durationAmount);
-
     it('should return object from CompaniDuration', () => {
+      const companiDuration = CompaniDurationsHelper.CompaniDuration('PT1H9M');
       const result = companiDuration.toObject();
 
-      expect(result).toEqual(durationAmount);
+      expect(result).toEqual({ hours: 1, minutes: 9 });
     });
   });
 });

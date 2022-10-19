@@ -16,7 +16,7 @@ describe('NODE ENV', () => {
   });
 });
 
-describe('AUTHENTICATION ROUTES - POST /users/authenticat', () => {
+describe('AUTHENTICATION ROUTES - POST /users/authenticate', () => {
   beforeEach(populateDB);
 
   it('should authenticate a user', async () => {
