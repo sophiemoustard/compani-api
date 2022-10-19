@@ -124,7 +124,7 @@ exports.authorizeAttendanceCreation = async (req) => {
     if (attendance) throw Boom.conflict();
 
     if (course.type === INTRA) {
-      if (!course.companies[0]) throw Boom.badData();
+      if (!course.companies.length) throw Boom.badData();
 
       const doesTraineeBelongToCompany = await UserCompany.countDocuments({
         user: req.payload.trainee,
