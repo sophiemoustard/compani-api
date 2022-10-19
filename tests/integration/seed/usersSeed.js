@@ -348,7 +348,7 @@ const courses = [
     subProgram: new ObjectId(),
     type: INTRA,
     maxTrainees: 8,
-    company: new ObjectId(),
+    companies: [new ObjectId()],
     trainees: [usersSeedList[0]._id],
     salesRepresentative: vendorAdmin._id,
   },
