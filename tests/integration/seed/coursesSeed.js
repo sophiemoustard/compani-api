@@ -29,7 +29,7 @@ const {
   trainerAndCoach,
 } = require('../../seed/authUsersSeed');
 const { VIDEO, WEBAPP, SLOT_CREATION, SLOT_DELETION, INTRA, INTER_B2B } = require('../../../src/helpers/constants');
-const { auxiliaryRoleId, trainerRoleId } = require('../../seed/authRolesSeed');
+const { auxiliaryRoleId, trainerRoleId, coachRoleId } = require('../../seed/authRolesSeed');
 const CourseBill = require('../../../src/models/CourseBill');
 
 const traineeFromOtherCompany = {
@@ -71,16 +71,28 @@ const contactWithoutPhone = {
   origin: WEBAPP,
 };
 
+const coachFromOtherCompany = {
+  _id: new ObjectId(),
+  identity: { firstname: 'Fred', lastname: 'Astaire' },
+  local: { email: 'coachOtherCompany@alenvi.io', password: '123456!eR' },
+  role: { client: coachRoleId },
+  contact: { phone: '0734856751' },
+  refreshToken: uuidv4(),
+  origin: WEBAPP,
+};
+
 const userList = [
   traineeFromOtherCompany,
   traineeFromAuthCompanyWithFormationExpoToken,
   traineeWithoutCompany,
   contactWithoutPhone,
+  coachFromOtherCompany,
 ];
 
 const userCompanies = [
   { _id: new ObjectId(), user: traineeFromOtherCompany._id, company: otherCompany._id },
   { _id: new ObjectId(), user: traineeFromAuthCompanyWithFormationExpoToken._id, company: authCompany._id },
+  { _id: new ObjectId(), user: coachFromOtherCompany._id, company: otherCompany._id },
 ];
 
 const cardsList = [
@@ -473,4 +485,5 @@ module.exports = {
   slots,
   traineeFromAuthCompanyWithFormationExpoToken,
   userCompanies,
+  coachFromOtherCompany,
 };

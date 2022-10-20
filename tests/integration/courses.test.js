@@ -32,6 +32,7 @@ const {
   traineeFromOtherCompany,
   traineeFromAuthCompanyWithFormationExpoToken,
   userCompanies,
+  coachFromOtherCompany,
 } = require('./seed/coursesSeed');
 const { getToken, getTokenByCredentials } = require('./helpers/authentication');
 const { otherCompany, authCompany } = require('../seed/authCompaniesSeed');
@@ -1025,18 +1026,18 @@ describe('COURSES ROUTES - PUT /courses/{_id}', () => {
       expect(course).toEqual(1);
     });
 
-    it('should update company representative', async () => {
-      const payload = { companyRepresentative: coach._id };
+    it('should update company representative and set as contact directly', async () => {
+      const payload = { companyRepresentative: coachFromOtherCompany._id, contact: coachFromOtherCompany._id };
       const response = await app.inject({
         method: 'PUT',
-        url: `/courses/${coursesList[0]._id}`,
+        url: `/courses/${coursesList[3]._id}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
         payload,
       });
 
       expect(response.statusCode).toBe(200);
 
-      const course = await Course.countDocuments({ _id: coursesList[0]._id, ...payload }).lean();
+      const course = await Course.countDocuments({ _id: coursesList[3]._id, ...payload }).lean();
       expect(course).toEqual(1);
     });
 
