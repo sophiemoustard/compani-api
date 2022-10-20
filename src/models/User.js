@@ -32,7 +32,7 @@ const {
 const { formatQuery, formatQueryMiddlewareList } = require('./preHooks/validate');
 
 const SALT_WORK_FACTOR = 10;
-const TOKEN_EXPIRE_TIME = 86400;
+const TOKEN_EXPIRE_DURATION = 'P1D';
 
 const roleSchemaDefinition = {
   type: mongoose.Schema.Types.ObjectId,
@@ -389,6 +389,6 @@ UserSchema.plugin(mongooseLeanVirtuals);
 UserSchema.plugin(autopopulate);
 
 module.exports = mongoose.model('User', UserSchema);
-module.exports.TOKEN_EXPIRE_TIME = TOKEN_EXPIRE_TIME;
+module.exports.TOKEN_EXPIRE_DURATION = TOKEN_EXPIRE_DURATION;
 module.exports.ORIGIN_OPTIONS = ORIGIN_OPTIONS;
 module.exports.USER_ROLE_LIST = USER_ROLE_LIST;
