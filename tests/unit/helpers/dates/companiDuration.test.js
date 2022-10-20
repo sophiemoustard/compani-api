@@ -1,5 +1,6 @@
 const expect = require('expect');
 const sinon = require('sinon');
+const { HhMM, HhMMmin } = require('../../../../src/helpers/constants');
 const luxon = require('../../../../src/helpers/dates/luxon');
 const CompaniDurationsHelper = require('../../../../src/helpers/dates/companiDurations');
 
@@ -68,52 +69,162 @@ describe('GETTER', () => {
 
 describe('DISPLAY', () => {
   describe('format', () => {
-    it('should return formatted duration with minutes', () => {
-      const durationAmount = { hours: 5, minutes: 16 };
-      const companiDuration = CompaniDurationsHelper.CompaniDuration(durationAmount);
-      const result = companiDuration.format();
+    describe('HhMM', () => {
+      it('should return formatted duration with minutes', () => {
+        const companiDuration = CompaniDurationsHelper.CompaniDuration('PT5H16M');
+        const result = companiDuration.format(HhMM);
 
-      expect(result).toBe('5h16');
+        expect(result).toBe('5h16');
+      });
+
+      it('should return formatted duration with minutes, leading zero on minutes', () => {
+        const companiDuration = CompaniDurationsHelper.CompaniDuration('PT5H3M');
+        const result = companiDuration.format(HhMM);
+
+        expect(result).toBe('5h03');
+      });
+
+      it('should return formatted duration without minutes', () => {
+        const companiDuration = CompaniDurationsHelper.CompaniDuration('PT13H');
+        const result = companiDuration.format(HhMM);
+
+        expect(result).toBe('13h');
+      });
+
+      it('should return formatted duration without hours', () => {
+        const companiDuration = CompaniDurationsHelper.CompaniDuration('PT34M');
+        const result = companiDuration.format(HhMM);
+
+        expect(result).toBe('0h34');
+      });
+
+      it('should return formatted duration without hours, leading zero on minutes', () => {
+        const companiDuration = CompaniDurationsHelper.CompaniDuration('PT8M');
+        const result = companiDuration.format(HhMM);
+
+        expect(result).toBe('0h08');
+      });
+
+      it('should return formatted duration, value is 0', () => {
+        const companiDuration = CompaniDurationsHelper.CompaniDuration('PT0S');
+        const result = companiDuration.format(HhMM);
+
+        expect(result).toBe('0h');
+      });
+
+      it('should return formatted duration, days are converted to hours', () => {
+        const companiDuration = CompaniDurationsHelper.CompaniDuration('P2DT1H');
+        const result = companiDuration.format(HhMM);
+
+        expect(result).toBe('49h');
+      });
+
+      it('should return formatted duration, month are converted to hours', () => {
+        const companiDuration = CompaniDurationsHelper.CompaniDuration('P1M');
+        const result = companiDuration.format(HhMM);
+
+        expect(result).toBe('720h'); // 30 * 24 = 720
+      });
+
+      it('should return formatted duration, seconds are converted to minutes', () => {
+        const companiDuration = CompaniDurationsHelper.CompaniDuration('PT2H742S');
+        const result = companiDuration.format(HhMM);
+
+        expect(result).toBe('2h12');
+      });
+
+      it('should return formatted duration with minutes, seconds have no effect under 60s', () => {
+        const companiDuration = CompaniDurationsHelper.CompaniDuration('PT1H2M32.1S');
+        const result = companiDuration.format(HhMM);
+
+        expect(result).toBe('1h02');
+      });
+
+      it('should return formatted duration without minutes, seconds have no effect under 60s', () => {
+        const companiDuration = CompaniDurationsHelper.CompaniDuration('PT1H32.1S');
+        const result = companiDuration.format(HhMM);
+
+        expect(result).toBe('1h');
+      });
     });
 
-    it('should return formatted duration with minutes, leading zero on minutes', () => {
-      const durationAmount = { hours: 5, minutes: 3 };
-      const companiDuration = CompaniDurationsHelper.CompaniDuration(durationAmount);
-      const result = companiDuration.format();
+    describe('HhMMmin', () => {
+      it('should return formatted duration with minutes', () => {
+        const companiDuration = CompaniDurationsHelper.CompaniDuration('PT5H16M');
+        const result = companiDuration.format(HhMMmin);
 
-      expect(result).toBe('5h03');
-    });
+        expect(result).toBe('5h 16min');
+      });
 
-    it('should return formatted duration without minutes', () => {
-      const durationAmount = { hours: 13 };
-      const companiDuration = CompaniDurationsHelper.CompaniDuration(durationAmount);
-      const result = companiDuration.format();
+      it('should return formatted duration with minutes, leading zero on minutes', () => {
+        const companiDuration = CompaniDurationsHelper.CompaniDuration('PT5H3M');
+        const result = companiDuration.format(HhMMmin);
 
-      expect(result).toBe('13h');
-    });
+        expect(result).toBe('5h 03min');
+      });
 
-    it('should return formatted duration, days are converted to hours', () => {
-      const durationAmount = { days: 2, hours: 1 };
-      const companiDuration = CompaniDurationsHelper.CompaniDuration(durationAmount);
-      const result = companiDuration.format();
+      it('should return formatted duration without minutes', () => {
+        const companiDuration = CompaniDurationsHelper.CompaniDuration('PT13H');
+        const result = companiDuration.format(HhMMmin);
 
-      expect(result).toBe('49h');
-    });
+        expect(result).toBe('13h');
+      });
 
-    it('should return formatted duration with minutes, seconds and milliseconds have no effect', () => {
-      const durationAmount = { hours: 1, minutes: 2, seconds: 4 };
-      const companiDuration = CompaniDurationsHelper.CompaniDuration(durationAmount);
-      const result = companiDuration.format();
+      it('should return formatted duration without hours, leading zero on minutes', () => {
+        const companiDuration = CompaniDurationsHelper.CompaniDuration('PT7M');
+        const result = companiDuration.format(HhMMmin);
 
-      expect(result).toBe('1h02');
-    });
+        expect(result).toBe('7min');
+      });
 
-    it('should return formatted duration without minutes, seconds and milliseconds have no effect', () => {
-      const durationAmount = { hours: 1, seconds: 9 };
-      const companiDuration = CompaniDurationsHelper.CompaniDuration(durationAmount);
-      const result = companiDuration.format();
+      it('should return formatted duration without hours, leading zero on minutes', () => {
+        const companiDuration = CompaniDurationsHelper.CompaniDuration('PT34M');
+        const result = companiDuration.format(HhMMmin);
 
-      expect(result).toBe('1h');
+        expect(result).toBe('34min');
+      });
+
+      it('should return formatted duration, value is 0', () => {
+        const companiDuration = CompaniDurationsHelper.CompaniDuration('PT0S');
+        const result = companiDuration.format(HhMMmin);
+
+        expect(result).toBe('0min');
+      });
+
+      it('should return formatted duration, days are converted to hours', () => {
+        const companiDuration = CompaniDurationsHelper.CompaniDuration('P2DT1H');
+        const result = companiDuration.format(HhMMmin);
+
+        expect(result).toBe('49h');
+      });
+
+      it('should return formatted duration, month are converted to hours', () => {
+        const companiDuration = CompaniDurationsHelper.CompaniDuration('P1M');
+        const result = companiDuration.format(HhMMmin);
+
+        expect(result).toBe('720h'); // 30 * 24 = 720
+      });
+
+      it('should return formatted duration, seconds are converted to minutes', () => {
+        const companiDuration = CompaniDurationsHelper.CompaniDuration('PT2H742S');
+        const result = companiDuration.format(HhMMmin);
+
+        expect(result).toBe('2h 12min');
+      });
+
+      it('should return formatted duration with minutes, seconds have no effect under 60s', () => {
+        const companiDuration = CompaniDurationsHelper.CompaniDuration('PT1H2M32.1S');
+        const result = companiDuration.format(HhMMmin);
+
+        expect(result).toBe('1h 02min');
+      });
+
+      it('should return formatted duration without minutes, seconds have no effect under 60s', () => {
+        const companiDuration = CompaniDurationsHelper.CompaniDuration('PT1H32.1S');
+        const result = companiDuration.format(HhMMmin);
+
+        expect(result).toBe('1h');
+      });
     });
   });
 

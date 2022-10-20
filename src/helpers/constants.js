@@ -450,6 +450,10 @@ module.exports = {
   PHONE: 'phone',
   // Time
   SECONDS_IN_AN_HOUR: 3600,
+  HhMMmin: 'h\'h\' mm\'min\'',
+  HhMM: 'h\'h\'mm',
+  Hh: 'h\'h\'',
+  Mmin: 'm\'min\'',
   // PARTNER
   SOCIAL_WORKER: 'social_worker',
   MEDICO_SOCIAL_ASSESSOR: 'medico_social_assessor',
