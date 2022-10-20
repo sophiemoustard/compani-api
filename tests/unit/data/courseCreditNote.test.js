@@ -187,7 +187,8 @@ describe('getPdfContent', () => {
 
     const result = await CourseCreditNote.getPdfContent(creditNote);
 
-    expect(JSON.stringify(result)).toEqual(JSON.stringify(pdf));
+    expect(JSON.stringify(result.template)).toEqual(JSON.stringify(pdf));
+    expect(result.images).toEqual(paths);
     sinon.assert.calledOnceWithExactly(downloadImages, imageList);
   });
 
@@ -327,7 +328,8 @@ describe('getPdfContent', () => {
 
     const result = await CourseCreditNote.getPdfContent(creditNote);
 
-    expect(JSON.stringify(result)).toEqual(JSON.stringify(pdf));
+    expect(JSON.stringify(result.template)).toEqual(JSON.stringify(pdf));
+    expect(result.images).toEqual(paths);
     sinon.assert.calledOnceWithExactly(downloadImages, imageList);
   });
 });

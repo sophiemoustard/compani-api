@@ -6,7 +6,6 @@ const CourseCreditNoteHelper = require('../../../src/helpers/courseCreditNotes')
 const CourseCreditNote = require('../../../src/models/CourseCreditNote');
 const CourseCreditNoteNumber = require('../../../src/models/CourseCreditNoteNumber');
 const CourseCreditNotePdf = require('../../../src/data/pdf/courseBilling/courseCreditNote');
-const PdfHelper = require('../../../src/helpers/pdf');
 const VendorCompaniesHelper = require('../../../src/helpers/vendorCompanies');
 
 describe('createCourseCreditNote', () => {
@@ -50,21 +49,18 @@ describe('createCourseCreditNote', () => {
 
 describe('generateCreditNotePdf', () => {
   let findOne;
-  let getPdfContent;
-  let generatePdf;
+  let getPdf;
   let getVendorCompany;
 
   beforeEach(() => {
     findOne = sinon.stub(CourseCreditNote, 'findOne');
-    getPdfContent = sinon.stub(CourseCreditNotePdf, 'getPdfContent');
-    generatePdf = sinon.stub(PdfHelper, 'generatePdf');
+    getPdf = sinon.stub(CourseCreditNotePdf, 'getPdf');
     getVendorCompany = sinon.stub(VendorCompaniesHelper, 'get');
   });
 
   afterEach(() => {
     findOne.restore();
-    getPdfContent.restore();
-    generatePdf.restore();
+    getPdf.restore();
     getVendorCompany.restore();
   });
 
@@ -136,13 +132,12 @@ describe('generateCreditNotePdf', () => {
 
     getVendorCompany.returns(vendorCompany);
     findOne.returns(SinonMongoose.stubChainedQueries(creditNote));
-    getPdfContent.returns({ content: [{ text: 'data' }] });
-    generatePdf.returns({ pdf: 'pdf' });
+    getPdf.returns({ pdf: 'pdf' });
 
     const result = await CourseCreditNoteHelper.generateCreditNotePdf(creditNoteId);
     expect(result).toEqual({ creditNoteNumber: creditNote.number, pdf: { pdf: 'pdf' } });
     sinon.assert.calledOnceWithExactly(
-      getPdfContent,
+      getPdf,
       {
         number: 'AV-00001',
         date: '09/03/2022',
@@ -156,7 +151,6 @@ describe('generateCreditNotePdf', () => {
         billingPurchaseList: creditNote.courseBill.billingPurchaseList,
       }
     );
-    sinon.assert.calledWithExactly(generatePdf, { content: [{ text: 'data' }] });
     SinonMongoose.calledOnceWithExactly(findOne,
       [
         { query: 'findOne', args: [{ _id: creditNoteId }] },

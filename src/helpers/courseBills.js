@@ -4,7 +4,6 @@ const omit = require('lodash/omit');
 const NumbersHelper = require('./numbers');
 const CourseBill = require('../models/CourseBill');
 const CourseBillsNumber = require('../models/CourseBillsNumber');
-const PdfHelper = require('./pdf');
 const BalanceHelper = require('./balances');
 const UtilsHelper = require('./utils');
 const VendorCompaniesHelper = require('./vendorCompanies');
@@ -182,8 +181,8 @@ exports.generateBillPdf = async (billId) => {
     mainFee,
     billingPurchaseList,
   };
-  const template = await CourseBillPdf.getPdfContent(data);
-  const pdf = await PdfHelper.generatePdf(template);
+
+  const pdf = await CourseBillPdf.getPdf(data);
 
   return { pdf, billNumber: bill.number };
 };

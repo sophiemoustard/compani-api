@@ -1,8 +1,9 @@
 const { COPPER_600 } = require('../../../helpers/constants');
 const UtilsPdfHelper = require('./utils');
+const PdfHelper = require('../../../helpers/pdf');
 
 exports.getPdfContent = async (bill) => {
-  const header = await UtilsPdfHelper.getHeader(bill, true);
+  const { header, images } = await UtilsPdfHelper.getHeader(bill, true);
   const feeTable = UtilsPdfHelper.getFeeTable(bill);
   const tableFooter = UtilsPdfHelper.getTableFooter(bill);
 
@@ -15,11 +16,20 @@ exports.getPdfContent = async (bill) => {
   const content = [header, feeTable, tableFooter, footer];
 
   return {
-    content: content.flat(),
-    defaultStyle: { font: 'SourceSans', fontSize: 12 },
-    styles: {
-      header: { fillColor: COPPER_600, color: 'white' },
-      description: { alignment: 'left', marginLeft: 8, fontSize: 10 },
+    template: {
+      content: content.flat(),
+      defaultStyle: { font: 'SourceSans', fontSize: 12 },
+      styles: {
+        header: { fillColor: COPPER_600, color: 'white' },
+        description: { alignment: 'left', marginLeft: 8, fontSize: 10 },
+      },
     },
+    images,
   };
+};
+
+exports.getPdf = async (data) => {
+  const { template, images } = await exports.getPdfContent(data);
+
+  return PdfHelper.generatePdf(template, images);
 };
