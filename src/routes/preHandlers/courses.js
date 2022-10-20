@@ -124,10 +124,10 @@ exports.authorizeCourseEdit = async (req) => {
     await this.checkInterlocutors(req, courseCompanyId);
 
     if (get(req, 'payload.contact')) {
-      const isCompanyRepresentativeUpdate = !!get(req, 'payload.companyRepresentative') &&
-        UtilsHelper.areObjectIdsEquals(course.companyRepresentative, course.contact._id);
+      const isCompanyRepContactAndUpdated = !!get(req, 'payload.companyRepresentative') &&
+        UtilsHelper.areObjectIdsEquals(course.companyRepresentative, get(course, 'contact._id'));
       const isUserFromCourseCompany = UtilsHelper.areObjectIdsEquals(course.company, get(credentials, 'company._id'));
-      if (!isRofOrAdmin && !(isCompanyRepresentativeUpdate && isUserFromCourseCompany)) throw Boom.forbidden();
+      if (!isRofOrAdmin && !(isCompanyRepContactAndUpdated && isUserFromCourseCompany)) throw Boom.forbidden();
 
       const payloadInterlocutors = pick(req.payload, ['salesRepresentative', 'trainer', 'companyRepresentative']);
       const courseInterlocutors = pick(course, ['salesRepresentative', 'trainer', 'companyRepresentative']);
