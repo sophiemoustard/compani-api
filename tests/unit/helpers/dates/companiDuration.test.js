@@ -229,11 +229,18 @@ describe('DISPLAY', () => {
   });
 
   describe('asHours', () => {
-    it('should return duration in hours', () => {
+    it('should return duration in hours, with minutes', () => {
       const companiDuration = CompaniDurationsHelper.CompaniDuration('PT1H9M');
       const result = companiDuration.asHours();
 
       expect(result).toBe(1.15); // 1.15 = 1 + 9 / 60
+    });
+
+    it('should return duration in hours, with seconds', () => {
+      const companiDuration = CompaniDurationsHelper.CompaniDuration('PT1H4S');
+      const result = companiDuration.asHours();
+
+      expect(result).toBe(1.001111111111111);
     });
   });
 
