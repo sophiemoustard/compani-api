@@ -263,7 +263,7 @@ describe('getFullTitleFromIdentity', () => {
 });
 
 describe('formatFloatForExport', () => {
-  const validCases = [[0, '0,00'], [1, '1,00'], [7.1, '7,10'], [3.56, '3,56'], [4.23506, '4,24']];
+  const validCases = [[0, '0,00'], [1, '1,00'], [7.1, '7,10'], [3.56, '3,56'], [4.23506, '4,24'], [4.23400, '4,23']];
   const invalidValues = [null, undefined, NaN, ''];
 
   validCases.forEach(([param, result]) => {
@@ -571,6 +571,15 @@ describe('getDuration', () => {
 
     expect(result).toEqual('30h');
   });
+
+  it('should return duration with meaningless second', () => {
+    const startDate = '2020-03-20T09:00:04.230Z';
+    const endDate = '2020-03-20T11:00:33.125Z';
+
+    const result = UtilsHelper.getDuration(startDate, endDate);
+
+    expect(result).toEqual('2h');
+  });
 });
 
 describe('getDurationForExport', () => {
@@ -599,6 +608,15 @@ describe('getDurationForExport', () => {
     const result = UtilsHelper.getDurationForExport(startDate, endDate);
 
     expect(result).toEqual('30,00');
+  });
+
+  it('should return duration with seconds', () => {
+    const startDate = '2020-03-20T09:00:00.000Z';
+    const endDate = '2020-03-20T11:00:31.230Z';
+
+    const result = UtilsHelper.getDurationForExport(startDate, endDate);
+
+    expect(result).toEqual('2,01');
   });
 });
 

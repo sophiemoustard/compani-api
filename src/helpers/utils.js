@@ -3,7 +3,7 @@ const isEmpty = require('lodash/isEmpty');
 const { ObjectId } = require('mongodb');
 const Intl = require('intl');
 const moment = require('../extensions/moment');
-const { CIVILITY_LIST, HhMM } = require('./constants');
+const { CIVILITY_LIST, SHORT_DURATION_H_MM } = require('./constants');
 const DatesHelper = require('./dates');
 const { CompaniDate } = require('./dates/companiDates');
 const { CompaniDuration } = require('./dates/companiDurations');
@@ -224,16 +224,16 @@ exports.computeExclTaxesWithDiscount = (inclTaxes, discount, vat) => {
 
 exports.getTotalDuration = (timePeriods) => {
   const totalDuration = timePeriods.reduce(
-    (acc, tp) => acc.add(CompaniDuration(CompaniDate(tp.endDate).oldDiff(tp.startDate, 'minutes'))),
+    (acc, tp) => acc.add(CompaniDate(tp.endDate).diff(tp.startDate, 'minutes')),
     CompaniDuration()
   );
 
-  return totalDuration.format(HhMM);
+  return totalDuration.format(SHORT_DURATION_H_MM);
 };
 
 exports.getTotalDurationForExport = (timePeriods) => {
   const totalDuration = timePeriods.reduce(
-    (acc, tp) => acc.add(CompaniDuration(CompaniDate(tp.endDate).oldDiff(tp.startDate, 'minutes'))),
+    (acc, tp) => acc.add(CompaniDate(tp.endDate).diff(tp.startDate, 'minutes')),
     CompaniDuration()
   );
 
@@ -241,10 +241,10 @@ exports.getTotalDurationForExport = (timePeriods) => {
 };
 
 exports.getDuration = (startDate, endDate) =>
-  CompaniDuration(CompaniDate(endDate).oldDiff(startDate, 'minutes')).format(HhMM);
+  CompaniDuration(CompaniDate(endDate).diff(startDate, 'minutes')).format(SHORT_DURATION_H_MM);
 
 exports.getDurationForExport = (startDate, endDate) =>
-  exports.formatFloatForExport(CompaniDuration(CompaniDate(endDate).oldDiff(startDate, 'minutes')).asHours());
+  exports.formatFloatForExport(CompaniDuration(CompaniDate(endDate).diff(startDate, 'minutes')).asHours());
 
 exports.computeDuration = durations => durations
   .reduce((acc, duration) => acc.add(duration), CompaniDuration());
