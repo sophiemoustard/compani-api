@@ -3,7 +3,6 @@ const CourseCreditNote = require('../models/CourseCreditNote');
 const CourseCreditNoteNumber = require('../models/CourseCreditNoteNumber');
 const VendorCompaniesHelper = require('./vendorCompanies');
 const { CompaniDate } = require('./dates/companiDates');
-const PdfHelper = require('./pdf');
 const CourseCreditNotePdf = require('../data/pdf/courseBilling/courseCreditNote');
 
 exports.createCourseCreditNote = async (payload) => {
@@ -56,8 +55,7 @@ exports.generateCreditNotePdf = async (creditNoteId) => {
     billingPurchaseList: creditNote.courseBill.billingPurchaseList,
   };
 
-  const template = await CourseCreditNotePdf.getPdfContent(data);
-  const pdf = await PdfHelper.generatePdf(template);
+  const pdf = await CourseCreditNotePdf.getPdf(data);
 
   return { pdf, creditNoteNumber: creditNote.number };
 };

@@ -2738,23 +2738,23 @@ describe('generateAttendanceSheets', () => {
   let formatInterCourseForPdf;
   let formatIntraCourseForPdf;
   let generatePdf;
-  let interAttendanceSheetGetPdfContent;
-  let intraAttendanceSheetGetPdfContent;
+  let interAttendanceSheetGetPdf;
+  let intraAttendanceSheetGetPdf;
   beforeEach(() => {
     courseFindOne = sinon.stub(Course, 'findOne');
     formatInterCourseForPdf = sinon.stub(CourseHelper, 'formatInterCourseForPdf');
     formatIntraCourseForPdf = sinon.stub(CourseHelper, 'formatIntraCourseForPdf');
     generatePdf = sinon.stub(PdfHelper, 'generatePdf');
-    interAttendanceSheetGetPdfContent = sinon.stub(InterAttendanceSheet, 'getPdfContent');
-    intraAttendanceSheetGetPdfContent = sinon.stub(IntraAttendanceSheet, 'getPdfContent');
+    interAttendanceSheetGetPdf = sinon.stub(InterAttendanceSheet, 'getPdf');
+    intraAttendanceSheetGetPdf = sinon.stub(IntraAttendanceSheet, 'getPdf');
   });
   afterEach(() => {
     courseFindOne.restore();
     formatInterCourseForPdf.restore();
     formatIntraCourseForPdf.restore();
     generatePdf.restore();
-    interAttendanceSheetGetPdfContent.restore();
-    intraAttendanceSheetGetPdfContent.restore();
+    interAttendanceSheetGetPdf.restore();
+    intraAttendanceSheetGetPdf.restore();
   });
 
   it('should download attendance sheet for inter b2b course', async () => {
@@ -2764,8 +2764,7 @@ describe('generateAttendanceSheets', () => {
     courseFindOne.returns(SinonMongoose.stubChainedQueries(course));
 
     formatInterCourseForPdf.returns({ name: 'la formation - des infos en plus' });
-    generatePdf.returns('pdf');
-    interAttendanceSheetGetPdfContent.returns({ content: [{ text: 'la formation - des infos en plus' }] });
+    interAttendanceSheetGetPdf.returns('pdf');
 
     await CourseHelper.generateAttendanceSheets(courseId);
 
@@ -2793,9 +2792,8 @@ describe('generateAttendanceSheets', () => {
     ]);
     sinon.assert.calledOnceWithExactly(formatInterCourseForPdf, course);
     sinon.assert.notCalled(formatIntraCourseForPdf);
-    sinon.assert.notCalled(intraAttendanceSheetGetPdfContent);
-    sinon.assert.calledOnceWithExactly(generatePdf, { content: [{ text: 'la formation - des infos en plus' }] });
-    sinon.assert.calledOnceWithExactly(interAttendanceSheetGetPdfContent, { name: 'la formation - des infos en plus' });
+    sinon.assert.notCalled(intraAttendanceSheetGetPdf);
+    sinon.assert.calledOnceWithExactly(interAttendanceSheetGetPdf, { name: 'la formation - des infos en plus' });
   });
 
   it('should download attendance sheet for intra course', async () => {
@@ -2805,8 +2803,7 @@ describe('generateAttendanceSheets', () => {
     courseFindOne.returns(SinonMongoose.stubChainedQueries(course));
 
     formatIntraCourseForPdf.returns({ name: 'la formation - des infos en plus' });
-    generatePdf.returns('pdf');
-    intraAttendanceSheetGetPdfContent.returns({ content: [{ text: 'la formation - des infos en plus' }] });
+    intraAttendanceSheetGetPdf.returns('pdf');
 
     await CourseHelper.generateAttendanceSheets(courseId);
 
@@ -2834,8 +2831,7 @@ describe('generateAttendanceSheets', () => {
     ]);
     sinon.assert.calledOnceWithExactly(formatIntraCourseForPdf, course);
     sinon.assert.notCalled(formatInterCourseForPdf);
-    sinon.assert.notCalled(interAttendanceSheetGetPdfContent);
-    sinon.assert.calledOnceWithExactly(generatePdf, { content: [{ text: 'la formation - des infos en plus' }] });
+    sinon.assert.calledOnceWithExactly(intraAttendanceSheetGetPdf, { name: 'la formation - des infos en plus' });
   });
 });
 

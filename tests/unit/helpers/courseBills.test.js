@@ -6,7 +6,6 @@ const get = require('lodash/get');
 const CourseBill = require('../../../src/models/CourseBill');
 const CourseBillHelper = require('../../../src/helpers/courseBills');
 const VendorCompaniesHelper = require('../../../src/helpers/vendorCompanies');
-const PdfHelper = require('../../../src/helpers/pdf');
 const UtilsHelper = require('../../../src/helpers/utils');
 const CourseBillPdf = require('../../../src/data/pdf/courseBilling/courseBill');
 const SinonMongoose = require('../sinonMongoose');
@@ -599,21 +598,18 @@ describe('deleteBillingPurchase', () => {
 
 describe('generateBillPdf', () => {
   let findOne;
-  let getPdfContent;
-  let generatePdf;
+  let getPdf;
   let getVendorCompany;
 
   beforeEach(() => {
     findOne = sinon.stub(CourseBill, 'findOne');
-    getPdfContent = sinon.stub(CourseBillPdf, 'getPdfContent');
-    generatePdf = sinon.stub(PdfHelper, 'generatePdf');
+    getPdf = sinon.stub(CourseBillPdf, 'getPdf');
     getVendorCompany = sinon.stub(VendorCompaniesHelper, 'get');
   });
 
   afterEach(() => {
     findOne.restore();
-    getPdfContent.restore();
-    generatePdf.restore();
+    getPdf.restore();
     getVendorCompany.restore();
   });
 
@@ -669,13 +665,12 @@ describe('generateBillPdf', () => {
 
     getVendorCompany.returns(vendorCompany);
     findOne.returns(SinonMongoose.stubChainedQueries(bill));
-    getPdfContent.returns({ content: [{ text: 'data' }] });
-    generatePdf.returns({ pdf: 'pdf' });
+    getPdf.returns({ pdf: 'pdf' });
 
     const result = await CourseBillHelper.generateBillPdf(billId);
     expect(result).toEqual({ billNumber: bill.number, pdf: { pdf: 'pdf' } });
     sinon.assert.calledOnceWithExactly(
-      getPdfContent,
+      getPdf,
       {
         number: 'FACT-00001',
         date: '08/03/2022',
@@ -687,7 +682,6 @@ describe('generateBillPdf', () => {
         billingPurchaseList: bill.billingPurchaseList,
       }
     );
-    sinon.assert.calledWithExactly(generatePdf, { content: [{ text: 'data' }] });
     SinonMongoose.calledOnceWithExactly(findOne,
       [
         { query: 'findOne', args: [{ _id: billId }] },

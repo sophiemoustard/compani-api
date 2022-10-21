@@ -38,7 +38,7 @@ exports.getHeader = async (data, isBill = false) => {
     alignment: 'right',
   };
 
-  return [
+  const header = [
     {
       columns: [
         { image: compani, width: 200, height: 42, alignment: 'right' },
@@ -81,6 +81,8 @@ exports.getHeader = async (data, isBill = false) => {
       ],
     },
   ];
+
+  return { header, images: [compani] };
 };
 
 exports.getFeeTable = (data) => {

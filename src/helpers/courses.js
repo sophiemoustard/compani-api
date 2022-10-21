@@ -631,10 +631,9 @@ exports.generateAttendanceSheets = async (courseId) => {
     .populate({ path: 'subProgram', select: 'program', populate: { path: 'program', select: 'name' } })
     .lean();
 
-  const template = course.type === INTRA
-    ? await IntraAttendanceSheet.getPdfContent(exports.formatIntraCourseForPdf(course))
-    : await InterAttendanceSheet.getPdfContent(exports.formatInterCourseForPdf(course));
-  const pdf = await PdfHelper.generatePdf(template);
+  const pdf = course.type === INTRA
+    ? await IntraAttendanceSheet.getPdf(exports.formatIntraCourseForPdf(course))
+    : await InterAttendanceSheet.getPdf(exports.formatInterCourseForPdf(course));
 
   return { fileName: 'emargement.pdf', pdf };
 };
