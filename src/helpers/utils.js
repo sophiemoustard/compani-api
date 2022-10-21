@@ -3,7 +3,7 @@ const isEmpty = require('lodash/isEmpty');
 const { ObjectId } = require('mongodb');
 const Intl = require('intl');
 const moment = require('../extensions/moment');
-const { CIVILITY_LIST, HhMM } = require('./constants');
+const { CIVILITY_LIST, SHORT_DURATION_H_MM } = require('./constants');
 const DatesHelper = require('./dates');
 const { CompaniDate } = require('./dates/companiDates');
 const { CompaniDuration } = require('./dates/companiDurations');
@@ -228,7 +228,7 @@ exports.getTotalDuration = (timePeriods) => {
     CompaniDuration()
   );
 
-  return totalDuration.format(HhMM);
+  return totalDuration.format(SHORT_DURATION_H_MM);
 };
 
 exports.getTotalDurationForExport = (timePeriods) => {
@@ -241,7 +241,7 @@ exports.getTotalDurationForExport = (timePeriods) => {
 };
 
 exports.getDuration = (startDate, endDate) =>
-  CompaniDuration(CompaniDate(endDate).diff(startDate, 'minutes')).format(HhMM);
+  CompaniDuration(CompaniDate(endDate).diff(startDate, 'minutes')).format(SHORT_DURATION_H_MM);
 
 exports.getDurationForExport = (startDate, endDate) =>
   exports.formatFloatForExport(CompaniDuration(CompaniDate(endDate).diff(startDate, 'minutes')).asHours());
