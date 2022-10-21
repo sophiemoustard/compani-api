@@ -1,6 +1,7 @@
 const sinon = require('sinon');
 const expect = require('expect');
 const FileHelper = require('../../../src/helpers/file');
+const PdfHelper = require('../../../src/helpers/pdf');
 const UtilsHelper = require('../../../src/helpers/utils');
 const CourseCreditNote = require('../../../src/data/pdf/courseBilling/courseCreditNote');
 const { COPPER_GREY_200, ORANGE_600 } = require('../../../src/helpers/constants');
@@ -331,5 +332,66 @@ describe('getPdfContent', () => {
     expect(JSON.stringify(result.template)).toEqual(JSON.stringify(pdf));
     expect(result.images).toEqual(paths);
     sinon.assert.calledOnceWithExactly(downloadImages, imageList);
+  });
+});
+
+describe('getPdf', () => {
+  let getPdfContent;
+  let generatePdf;
+
+  beforeEach(() => {
+    getPdfContent = sinon.stub(CourseCreditNote, 'getPdfContent');
+    generatePdf = sinon.stub(PdfHelper, 'generatePdf');
+  });
+
+  afterEach(() => {
+    getPdfContent.restore();
+    generatePdf.restore();
+  });
+
+  it('should get pdf', async () => {
+    const data = {
+      number: 'AV-000045',
+      date: '21/08/1998',
+      misc: 'motif',
+      company: { name: 'Test structure' },
+      courseBill: { number: 'FACT-000045', date: '18/08/1998' },
+      course: { subProgram: { program: { name: 'Test' } } },
+      mainFee: { price: 1000, count: 1, description: 'description' },
+    };
+    const template = {
+      content: [
+        {
+          columns: [
+            { stack: [{ text: 'Avoir', fontSize: 32 }, { text: 'AV-000045', bold: true }], alignment: 'right' },
+          ],
+          marginBottom: 4,
+        },
+        {
+          canvas: [{ type: 'rect', x: 0, y: 0, w: 200, h: 42, r: 0, fillOpacity: 0.5, color: 'white' }],
+          absolutePosition: { x: 40, y: 40 },
+        },
+        {
+          stack: [
+            { text: 'Auchan', bold: true },
+            { text: '32 Rue du Loup' },
+            { text: '33000 Bordeaux' },
+            { text: 'Siret : 272 727 272 74124' },
+          ],
+          marginBottom: 36,
+        },
+      ],
+      defaultStyle: { font: 'SourceSans', fontSize: 10 },
+      pageMargins: [40, 40, 40, 128],
+    };
+    const images = [{ url: 'https://storage.googleapis.com/compani-main/tsb_signature.png', name: 'signature.png' }];
+    getPdfContent.returns({ template, images });
+    generatePdf.returns('pdf');
+
+    const result = await CourseCreditNote.getPdf(data);
+
+    expect(result).toEqual('pdf');
+    sinon.assert.calledOnceWithExactly(getPdfContent, data);
+    sinon.assert.calledOnceWithExactly(generatePdf, template, images);
   });
 });

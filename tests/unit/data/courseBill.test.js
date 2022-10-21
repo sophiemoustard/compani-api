@@ -1,6 +1,7 @@
 const sinon = require('sinon');
 const expect = require('expect');
 const FileHelper = require('../../../src/helpers/file');
+const PdfHelper = require('../../../src/helpers/pdf');
 const UtilsHelper = require('../../../src/helpers/utils');
 const CourseBill = require('../../../src/data/pdf/courseBilling/courseBill');
 const { COPPER_GREY_200, COPPER_600 } = require('../../../src/helpers/constants');
@@ -331,5 +332,62 @@ describe('getPdfContent', () => {
     expect(JSON.stringify(result.template)).toEqual(JSON.stringify(pdf));
     expect(result.images).toEqual(paths);
     sinon.assert.calledOnceWithExactly(downloadImages, imageList);
+  });
+});
+
+describe('getPdf', () => {
+  let getPdfContent;
+  let generatePdf;
+
+  beforeEach(() => {
+    getPdfContent = sinon.stub(CourseBill, 'getPdfContent');
+    generatePdf = sinon.stub(PdfHelper, 'generatePdf');
+  });
+
+  afterEach(() => {
+    getPdfContent.restore();
+    generatePdf.restore();
+  });
+
+  it('should get pdf', async () => {
+    const data = {
+      number: 'FACT-000045',
+      date: '18/08/1998',
+      company: { name: 'Test structure' },
+      course: { subProgram: { program: { name: 'Test' } } },
+      mainFee: { price: 1000, count: 1, description: 'description' },
+    };
+
+    const template = {
+      content: [
+        {
+          columns: [{ stack: [{ text: 'Facture', fontSize: 32 }], alignment: 'right' }],
+          marginBottom: 4,
+        },
+        {
+          canvas: [{ type: 'rect', x: 0, y: 0, w: 200, h: 42, r: 0, fillOpacity: 0.5, color: 'white' }],
+          absolutePosition: { x: 40, y: 40 },
+        },
+        {
+          text: 'En tant qu’organisme de formation, Compani est exonéré de la Taxe sur la Valeur Ajoutée (TVA).',
+          fontSize: 8,
+          marginTop: 48,
+        },
+      ],
+      defaultStyle: { font: 'SourceSans', fontSize: 12 },
+      styles: {
+        header: { fillColor: COPPER_600, color: 'white' },
+        description: { alignment: 'left', marginLeft: 8, fontSize: 10 },
+      },
+    };
+    const images = [{ url: 'https://storage.googleapis.com/compani-main/tsb_signature.png', name: 'signature.png' }];
+    getPdfContent.returns({ template, images });
+    generatePdf.returns('pdf');
+
+    const result = await CourseBill.getPdf(data);
+
+    expect(result).toEqual('pdf');
+    sinon.assert.calledOnceWithExactly(getPdfContent, data);
+    sinon.assert.calledOnceWithExactly(generatePdf, template, images);
   });
 });
