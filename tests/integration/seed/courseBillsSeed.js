@@ -81,7 +81,6 @@ const courseList = [
     salesRepresentative: new ObjectId(),
     contact: new ObjectId(),
     trainees: [new ObjectId()],
-
   },
   { // 1 - linked to bill 1
     _id: new ObjectId(),
@@ -94,7 +93,6 @@ const courseList = [
     salesRepresentative: new ObjectId(),
     contact: new ObjectId(),
     trainees: [new ObjectId()],
-
   },
   { // 2 - without bill
     _id: new ObjectId(),
@@ -191,6 +189,7 @@ const courseList = [
     trainees: [traineeFromOtherCompany._id],
   },
 ];
+
 const courseFundingOrganisationList = [
   { _id: new ObjectId(), name: 'APA Paris', address: '1 avenue Denfert Rochereau 75014 Paris' },
   { _id: new ObjectId(), name: 'APA Lyon', address: '1 avenue Denfert Rochereau 69002 Lyon' },
