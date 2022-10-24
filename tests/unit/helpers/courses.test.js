@@ -2886,8 +2886,7 @@ describe('generateCompletionCertificate', () => {
   let createReadStream;
   let downloadFileById;
   let tmpDir;
-  let getPdfContent;
-  let generatePdf;
+  let getPdf;
   beforeEach(() => {
     courseFindOne = sinon.stub(Course, 'findOne');
     attendanceFind = sinon.stub(Attendance, 'find');
@@ -2900,8 +2899,7 @@ describe('generateCompletionCertificate', () => {
     createReadStream = sinon.stub(fs, 'createReadStream');
     downloadFileById = sinon.stub(Drive, 'downloadFileById');
     tmpDir = sinon.stub(os, 'tmpdir').returns('/path');
-    getPdfContent = sinon.stub(CompletionCertificate, 'getPdfContent');
-    generatePdf = sinon.stub(PdfHelper, 'generatePdf');
+    getPdf = sinon.stub(CompletionCertificate, 'getPdf');
   });
   afterEach(() => {
     courseFindOne.restore();
@@ -2915,8 +2913,7 @@ describe('generateCompletionCertificate', () => {
     createReadStream.restore();
     downloadFileById.restore();
     tmpDir.restore();
-    getPdfContent.restore();
-    generatePdf.restore();
+    getPdf.restore();
   });
 
   it('should download completion certificates from webapp (vendor)', async () => {
@@ -3047,8 +3044,7 @@ describe('generateCompletionCertificate', () => {
       },
       { query: 'lean' },
     ]);
-    sinon.assert.notCalled(getPdfContent);
-    sinon.assert.notCalled(generatePdf);
+    sinon.assert.notCalled(getPdf);
   });
 
   it('should download completion certificates from webapp (client)', async () => {
@@ -3136,8 +3132,7 @@ describe('generateCompletionCertificate', () => {
       },
       { query: 'lean' },
     ]);
-    sinon.assert.notCalled(getPdfContent);
-    sinon.assert.notCalled(generatePdf);
+    sinon.assert.notCalled(getPdf);
   });
 
   it('should download completion certificates from mobile', async () => {
@@ -3180,8 +3175,7 @@ describe('generateCompletionCertificate', () => {
     formatCourseForDocuments.returns(courseData);
     formatIdentity.onCall(0).returns('trainee 1');
     getTotalDuration.onCall(0).returns('4h30');
-    getPdfContent.returns({ content: 'test' });
-    generatePdf.returns('pdf');
+    getPdf.returns('pdf');
 
     const result = await CourseHelper.generateCompletionCertificates(courseId, credentials, MOBILE);
 
@@ -3189,12 +3183,11 @@ describe('generateCompletionCertificate', () => {
     sinon.assert.calledOnceWithExactly(formatCourseForDocuments, course);
     sinon.assert.calledOnceWithExactly(formatIdentity, { lastname: 'trainee 1' }, 'FL');
     sinon.assert.calledOnceWithExactly(getTotalDuration, [attendances[0].courseSlot, attendances[1].courseSlot]);
-    sinon.assert.calledOnceWithExactly(getPdfContent, {
+    sinon.assert.calledOnceWithExactly(getPdf, {
       ...courseData,
       trainee: { identity: 'trainee 1', attendanceDuration: '4h30' },
       date: '20/01/2020',
     });
-    sinon.assert.calledOnceWithExactly(generatePdf, { content: 'test' });
     SinonMongoose.calledOnceWithExactly(courseFindOne, [
       { query: 'findOne', args: [{ _id: courseId }] },
       { query: 'populate', args: [{ path: 'slots', select: 'startDate endDate' }] },

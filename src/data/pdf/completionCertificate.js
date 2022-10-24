@@ -1,4 +1,5 @@
 const FileHelper = require('../../helpers/file');
+const PdfHelper = require('../../helpers/pdf');
 const { COPPER_500, ORANGE_500, COPPER_50 } = require('../../helpers/constants');
 
 const getImages = async () => {
@@ -108,31 +109,40 @@ exports.getPdfContent = async (data) => {
   ];
 
   return {
-    content: [header, body].flat(),
-    defaultStyle: { font: 'Calibri', fontSize: 11 },
-    pageMargins: [40, 40, 40, 280],
-    styles: {
-      title: { fontSize: 18, bold: true, color: COPPER_500, marginLeft: 48, marginTop: 16 },
-      congratulations: { fontSize: 11, bold: true, color: ORANGE_500, marginBottom: 24 },
-      subTitle: { fontSize: 16, color: COPPER_500, marginTop: 16 },
-      programName: { fontSize: 12, alignment: 'center', color: COPPER_500, marginBottom: 16 },
+    template: {
+      content: [header, body].flat(),
+      defaultStyle: { font: 'Calibri', fontSize: 11 },
+      pageMargins: [40, 40, 40, 280],
+      styles: {
+        title: { fontSize: 18, bold: true, color: COPPER_500, marginLeft: 48, marginTop: 16 },
+        congratulations: { fontSize: 11, bold: true, color: ORANGE_500, marginBottom: 24 },
+        subTitle: { fontSize: 16, color: COPPER_500, marginTop: 16 },
+        programName: { fontSize: 12, alignment: 'center', color: COPPER_500, marginBottom: 16 },
+      },
+      footer(currentPage, pageCount) {
+        const style = { fontSize: 9, bold: true };
+        return {
+          stack: [
+            { text: `Fait à Paris, le ${date}` },
+            { text: 'Thibault de Saint Blancard, Directeur Compani' },
+            { image: signature, width: 120, marginBottom: 24 },
+            { text: 'Compani', style },
+            { text: '24 avenue daumesnil, 75012 Paris', style },
+            { text: 'Numéro SIRET : 90512399800015 | Numéro de déclaration d’activité : 11756363475', style },
+            { text: `PAGE ${currentPage.toString()} / ${pageCount}`, style, alignment: 'right' },
+          ],
+          marginLeft: 40,
+          marginRight: 40,
+          marginTop: 8,
+        };
+      },
     },
-    footer(currentPage, pageCount) {
-      const style = { fontSize: 9, bold: true };
-      return {
-        stack: [
-          { text: `Fait à Paris, le ${date}` },
-          { text: 'Thibault de Saint Blancard, Directeur Compani' },
-          { image: signature, width: 120, marginBottom: 24 },
-          { text: 'Compani', style },
-          { text: '24 avenue daumesnil, 75012 Paris', style },
-          { text: 'Numéro SIRET : 90512399800015 | Numéro de déclaration d’activité : 11756363475', style },
-          { text: `PAGE ${currentPage.toString()} / ${pageCount}`, style, alignment: 'right' },
-        ],
-        marginLeft: 40,
-        marginRight: 40,
-        marginTop: 8,
-      };
-    },
+    images: [thumb, compani, lighted, emoji, signature],
   };
+};
+
+exports.getPdf = async (data) => {
+  const { template, images } = await exports.getPdfContent(data);
+
+  return PdfHelper.generatePdf(template, images);
 };

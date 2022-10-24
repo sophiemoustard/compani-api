@@ -14,7 +14,6 @@ const CourseSmsHistory = require('../models/CourseSmsHistory');
 const Attendance = require('../models/Attendance');
 const SubProgram = require('../models/SubProgram');
 const CourseRepository = require('../repositories/CourseRepository');
-const PdfHelper = require('./pdf');
 const UtilsHelper = require('./utils');
 const DatesHelper = require('./dates');
 const ZipHelper = require('./zip');
@@ -663,13 +662,13 @@ const getTraineeInformations = (trainee, courseAttendances) => {
 const generateCompletionCertificatePdf = async (courseData, courseAttendances, trainee) => {
   const { traineeIdentity, attendanceDuration } = getTraineeInformations(trainee, courseAttendances);
 
-  const template = await CompletionCertificate.getPdfContent({
+  const pdf = await CompletionCertificate.getPdf({
     ...courseData,
     trainee: { identity: traineeIdentity, attendanceDuration },
     date: CompaniDate().format('dd/LL/yyyy'),
   });
 
-  return { pdf: await PdfHelper.generatePdf(template), name: `Attestation - ${traineeIdentity}.pdf` };
+  return { pdf, name: `Attestation - ${traineeIdentity}.pdf` };
 };
 
 const generateCompletionCertificateWord = async (courseData, courseAttendances, trainee, templatePath) => {
