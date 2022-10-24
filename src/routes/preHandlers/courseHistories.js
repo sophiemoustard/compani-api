@@ -26,7 +26,7 @@ exports.authorizeGetCourseHistories = async (req) => {
   if ([CLIENT_ADMIN, COACH].includes(clientRole)) {
     const course = await Course.findOne({ _id: courseId }).lean();
 
-    if (course.type !== INTRA || !UtilsHelper.areObjectIdsEquals(course.company, credentials.company._id)) {
+    if (course.type !== INTRA || !UtilsHelper.areObjectIdsEquals(course.companies[0], credentials.company._id)) {
       throw Boom.forbidden();
     }
 
