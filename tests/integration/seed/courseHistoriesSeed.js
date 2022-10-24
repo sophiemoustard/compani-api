@@ -32,7 +32,7 @@ const subProgramsList = [{ _id: new ObjectId(), name: 'sous-programme A', steps:
 const coursesList = [{
   _id: new ObjectId(),
   subProgram: subProgramsList[0]._id,
-  company: authCompany._id,
+  companies: [authCompany._id],
   misc: 'first session',
   type: INTRA,
   maxTrainees: 8,
@@ -43,7 +43,7 @@ const coursesList = [{
 {
   _id: new ObjectId(),
   subProgram: subProgramsList[0]._id,
-  company: new ObjectId(),
+  companies: [new ObjectId()],
   misc: 'first session',
   type: INTRA,
   maxTrainees: 8,
