@@ -23,18 +23,6 @@ exports.formatEventSurchargesForPdf = (eventSurcharges) => {
   return formattedSurcharges;
 };
 
-exports.formatTable = (items, options) => {
-  let out = '';
-  if (items) {
-    out = items.reduce(
-      (acc, item) => `${acc}${options.fn(item)}`,
-      ''
-    );
-  }
-
-  return out;
-};
-
 const fonts = () => {
   const fontAbsolutePath = path.resolve(__dirname, '../data/pdf/fonts');
 

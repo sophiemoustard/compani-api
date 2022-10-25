@@ -1,6 +1,7 @@
 const FileHelper = require('../../../helpers/file');
+const PdfHelper = require('../../../helpers/pdf');
 
-exports.getPdfContent = async (qrCode, customerName) => {
+exports.getPdfContent = async (data) => {
   const [pointing, fond] = await FileHelper.downloadImages([
     { url: 'https://storage.googleapis.com/compani-main/aux-pointedudoigt.png', name: 'pointing.png' },
     { url: 'https://storage.googleapis.com/compani-main/background-yellow.png', name: 'fond.png' },
@@ -9,11 +10,10 @@ exports.getPdfContent = async (qrCode, customerName) => {
   const content = [
     { canvas: [{ type: 'rect', x: 300, y: 0, w: 515, h: 500, r: 0, color: 'white' }] },
     {
-      columns:
-      [
+      columns: [
         [
-          { text: `${customerName}`, alignment: 'center', marginBottom: 24 },
-          { image: qrCode, width: 160, alignment: 'center' },
+          { text: data.customerName, alignment: 'center', marginBottom: 24 },
+          { image: data.qrCode, width: 160, alignment: 'center' },
           { image: pointing, width: 160, marginLeft: -40 },
         ],
         [],
@@ -23,10 +23,19 @@ exports.getPdfContent = async (qrCode, customerName) => {
   ];
 
   return {
-    content: content.flat(),
-    defaultStyle: { font: 'SourceSans', fontSize: 20 },
-    pageSize: 'LETTER',
-    pageMargins: [0, 0, 0, 0],
-    background: [{ image: fond, absolutePosition: { x: 48, y: 100 }, width: 320 }],
+    template: {
+      content: content.flat(),
+      defaultStyle: { font: 'SourceSans', fontSize: 20 },
+      pageSize: 'LETTER',
+      pageMargins: [0, 0, 0, 0],
+      background: [{ image: fond, absolutePosition: { x: 48, y: 100 }, width: 320 }],
+    },
+    images: [pointing, fond],
   };
+};
+
+exports.getPdf = async (data) => {
+  const { template, images } = await exports.getPdfContent(data);
+
+  return PdfHelper.generatePdf(template, images);
 };

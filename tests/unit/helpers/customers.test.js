@@ -27,7 +27,6 @@ const GDriveStorageHelper = require('../../../src/helpers/gDriveStorage');
 const CustomerAbsencesHelper = require('../../../src/helpers/customerAbsences');
 const SubscriptionsHelper = require('../../../src/helpers/subscriptions');
 const EventsHelper = require('../../../src/helpers/events');
-const PdfHelper = require('../../../src/helpers/pdf');
 const EventRepository = require('../../../src/repositories/EventRepository');
 const { CompaniDate } = require('../../../src/helpers/dates/companiDates');
 
@@ -1444,19 +1443,16 @@ describe('deleteCertificates', () => {
 describe('generateQRCode', () => {
   let findOneCustomer;
   let toDataURL;
-  let generatePdf;
-  let getPdfContent;
+  let getPdf;
   beforeEach(() => {
     findOneCustomer = sinon.stub(Customer, 'findOne');
     toDataURL = sinon.stub(QRCode, 'toDataURL');
-    generatePdf = sinon.stub(PdfHelper, 'generatePdf');
-    getPdfContent = sinon.stub(CustomerQRCode, 'getPdfContent');
+    getPdf = sinon.stub(CustomerQRCode, 'getPdf');
   });
   afterEach(() => {
     findOneCustomer.restore();
     toDataURL.restore();
-    generatePdf.restore();
-    getPdfContent.restore();
+    getPdf.restore();
   });
 
   it('should generate customer\'s qr code pdf', async () => {
@@ -1465,8 +1461,7 @@ describe('generateQRCode', () => {
 
     toDataURL.returns('my_pic_in_base_64');
     findOneCustomer.returns(SinonMongoose.stubChainedQueries(customer, ['lean']));
-    getPdfContent.returns('template');
-    generatePdf.returns('pdf');
+    getPdf.returns('pdf');
 
     const result = await CustomerHelper.generateQRCode(customerId);
 
@@ -1476,7 +1471,6 @@ describe('generateQRCode', () => {
       findOneCustomer,
       [{ query: 'findOne', args: [{ _id: customerId }, { identity: 1 }] }, { query: 'lean' }]
     );
-    sinon.assert.calledOnceWithExactly(getPdfContent, 'my_pic_in_base_64', 'N\'Golo COMPTÉ');
-    sinon.assert.calledOnceWithExactly(generatePdf, 'template');
+    sinon.assert.calledOnceWithExactly(getPdf, { qrCode: 'my_pic_in_base_64', customerName: 'N\'Golo COMPTÉ' });
   });
 });
