@@ -5,7 +5,6 @@ const moment = require('moment');
 const Boom = require('@hapi/boom');
 const TaxCertificateHelper = require('../../../src/helpers/taxCertificates');
 const TaxCertificatePdf = require('../../../src/data/pdf/taxCertificates');
-const PdfHelper = require('../../../src/helpers/pdf');
 const UtilsHelper = require('../../../src/helpers/utils');
 const SubscriptionsHelper = require('../../../src/helpers/subscriptions');
 const GDriveStorageHelper = require('../../../src/helpers/gDriveStorage');
@@ -163,23 +162,21 @@ describe('formatPdf', () => {
     const result = TaxCertificateHelper.formatPdf(taxCertificate, company, interventions, payments);
 
     expect(result).toEqual({
-      taxCertificate: {
-        cesu: '500,00€',
-        totalPaid: '1 700,00€',
-        totalHours: '25,00h',
-        interventions: [{ subscription: 'Forfait nuit' }, { subscription: 'Forfait jour' }],
-        subscriptions: 'Forfait nuit, Forfait jour',
-        company: {
-          logo: company.logo,
-          address: company.address,
-          name: company.name,
-          rcs: 'rcs',
-          legalRepresentative: { name: 'Jean Christophe TREBALAG', position: 'master' },
-        },
-        year: '2019',
-        date: '19/01/2020',
-        customer: { name: 'Mr Patate', address: taxCertificate.customer.contact.primaryAddress },
+      cesu: '500,00€',
+      totalPaid: '1 700,00€',
+      totalHours: '25,00h',
+      interventions: [{ subscription: 'Forfait nuit' }, { subscription: 'Forfait jour' }],
+      subscriptions: 'Forfait nuit, Forfait jour',
+      company: {
+        logo: company.logo,
+        address: company.address,
+        name: company.name,
+        rcs: 'rcs',
+        legalRepresentative: { name: 'Jean Christophe TREBALAG', position: 'master' },
       },
+      year: '2019',
+      date: '19/01/2020',
+      customer: { name: 'Mr Patate', address: taxCertificate.customer.contact.primaryAddress },
     });
     sinon.assert.calledWithExactly(formatIdentity.getCall(1), taxCertificate.customer.identity, 'TFL');
     sinon.assert.calledWithExactly(formatInterventions, interventions);
@@ -189,25 +186,22 @@ describe('formatPdf', () => {
 });
 
 describe('generateTaxCertificatePdf', () => {
-  let generatePdf;
   let findOne;
   let formatPdf;
-  let getPdfContent;
+  let getPdf;
   let getTaxCertificateInterventions;
   let getTaxCertificatesPayments;
   beforeEach(() => {
-    generatePdf = sinon.stub(PdfHelper, 'generatePdf');
     findOne = sinon.stub(TaxCertificate, 'findOne');
     formatPdf = sinon.stub(TaxCertificateHelper, 'formatPdf');
-    getPdfContent = sinon.stub(TaxCertificatePdf, 'getPdfContent');
+    getPdf = sinon.stub(TaxCertificatePdf, 'getPdf');
     getTaxCertificateInterventions = sinon.stub(EventRepository, 'getTaxCertificateInterventions');
     getTaxCertificatesPayments = sinon.stub(PaymentRepository, 'getTaxCertificatesPayments');
   });
   afterEach(() => {
-    generatePdf.restore();
     findOne.restore();
     formatPdf.restore();
-    getPdfContent.restore();
+    getPdf.restore();
     getTaxCertificateInterventions.restore();
     getTaxCertificatesPayments.restore();
   });
@@ -222,8 +216,7 @@ describe('generateTaxCertificatePdf', () => {
     getTaxCertificateInterventions.returns(['interventions']);
     getTaxCertificatesPayments.returns({ paid: 1200, cesu: 500 });
     formatPdf.returns('data');
-    getPdfContent.returns('templatePdfMake');
-    generatePdf.returns('pdf');
+    getPdf.returns('pdf');
 
     const result = await TaxCertificateHelper.generateTaxCertificatePdf(taxCertificateId, credentials);
 
@@ -252,8 +245,7 @@ describe('generateTaxCertificatePdf', () => {
       ['interventions'],
       { paid: 1200, cesu: 500 }
     );
-    sinon.assert.calledWithExactly(getPdfContent, 'data');
-    sinon.assert.calledWithExactly(generatePdf, 'templatePdfMake');
+    sinon.assert.calledWithExactly(getPdf, 'data');
   });
 });
 

@@ -90,9 +90,7 @@ describe('getPdf', () => {
       pageSize: 'LETTER',
       pageMargins: [0, 0, 0, 0],
     };
-    const images = [
-      { url: 'https://storage.googleapis.com/compani-main/alenvi_logo_183x50.png', name: 'logo.png' },
-    ];
+    const images = [{ url: 'https://storage.googleapis.com/compani-main/alenvi_logo_183x50.png', name: 'logo.png' }];
     getPdfContent.returns({ template, images });
     generatePdf.returns('pdf');
 
