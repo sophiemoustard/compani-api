@@ -3,7 +3,30 @@ const Boom = require('@hapi/boom');
 const get = require('lodash/get');
 const { ObjectId } = require('mongodb');
 
+const getDocListMiddlewareList = ['find'];
+
+const getDocMiddlewareList = [
+  'findOne',
+  'findOneAndDelete',
+  'findOneAndRemove',
+  'findOneAndUpdate',
+];
+
+const queryMiddlewareList = [
+  ...getDocListMiddlewareList,
+  ...getDocMiddlewareList,
+  'countDocuments',
+  'deleteMany',
+  'deleteOne',
+  'remove',
+  'updateOne',
+  'updateMany',
+];
+
 module.exports = {
+  getDocListMiddlewareList,
+  getDocMiddlewareList,
+  queryMiddlewareList,
   validateQuery(next) {
     const query = this.getQuery();
     const isPopulate = get(query, '_id.$in', null);
@@ -32,21 +55,6 @@ module.exports = {
 
     this.setQuery(flattenQuery);
     next();
-  },
-  formatQueryMiddlewareList() {
-    return [
-      'countDocuments',
-      'find',
-      'findOne',
-      'deleteMany',
-      'deleteOne',
-      'findOneAndDelete',
-      'findOneAndRemove',
-      'remove',
-      'findOneAndUpdate',
-      'updateOne',
-      'updateMany',
-    ];
   },
   validateAggregation(next) {
     if (get(this, 'options.allCompanies', null)) next();

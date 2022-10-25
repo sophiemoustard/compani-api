@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-const { formatQuery, formatQueryMiddlewareList } = require('./preHooks/validate');
+const { formatQuery, queryMiddlewareList } = require('./preHooks/validate');
 
 const AttendanceSheetSchema = mongoose.Schema({
   course: { type: mongoose.Schema.Types.ObjectId, ref: 'Course', required: true },
@@ -11,6 +11,6 @@ const AttendanceSheetSchema = mongoose.Schema({
   trainee: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
 }, { timestamps: true, id: false });
 
-formatQueryMiddlewareList().map(middleware => AttendanceSheetSchema.pre(middleware, formatQuery));
+queryMiddlewareList.map(middleware => AttendanceSheetSchema.pre(middleware, formatQuery));
 
 module.exports = mongoose.model('AttendanceSheet', AttendanceSheetSchema);

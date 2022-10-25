@@ -252,7 +252,7 @@ describe('listELearningDraft', () => {
       {
         _id: new ObjectId(),
         status: 'draft',
-        steps: [{ type: 'e_learning', theoreticalHours: 1.5 }],
+        steps: [{ type: 'e_learning', theoreticalDuration: 'PT5400S' }],
         isStrictlyELearning: true,
         program: [{ _id: new ObjectId(), name: 'name' }],
       },
@@ -274,7 +274,7 @@ describe('listELearningDraft', () => {
       [
         { query: 'find', args: [{ status: 'draft' }] },
         { query: 'populate', args: [{ path: 'program', select: '_id name description image' }] },
-        { query: 'populate', args: [{ path: 'steps', select: 'type theoreticalHours' }] },
+        { query: 'populate', args: [{ path: 'steps', select: 'type theoreticalDuration' }] },
         { query: 'lean', args: [{ virtuals: true }] },
       ]
     );
@@ -286,7 +286,7 @@ describe('listELearningDraft', () => {
       {
         _id: new ObjectId(),
         status: 'draft',
-        steps: [{ type: 'e_learning', theoreticalHours: 1.5 }],
+        steps: [{ type: 'e_learning', theoreticalDuration: 'PT5400S' }],
         isStrictlyELearning: true,
         program: [{ _id: new ObjectId(), name: 'name' }],
       },
@@ -320,7 +320,7 @@ describe('listELearningDraft', () => {
             match: { _id: { $in: testerRestrictedPrograms } },
           }],
         },
-        { query: 'populate', args: [{ path: 'steps', select: 'type theoreticalHours' }] },
+        { query: 'populate', args: [{ path: 'steps', select: 'type theoreticalDuration' }] },
         { query: 'lean', args: [{ virtuals: true }] },
       ]
     );
