@@ -4,7 +4,7 @@ const {
   validateAggregation,
   validateUpdateOne,
   formatQuery,
-  formatQueryMiddlewareList,
+  queryMiddlewareList,
 } = require('./preHooks/validate');
 const { REFUND, PAYMENT } = require('../helpers/constants');
 
@@ -18,6 +18,6 @@ const PaymentNumberSchema = mongoose.Schema({
 PaymentNumberSchema.pre('find', validateQuery);
 PaymentNumberSchema.pre('aggregate', validateAggregation);
 PaymentNumberSchema.pre('updateOne', validateUpdateOne);
-formatQueryMiddlewareList().map(middleware => PaymentNumberSchema.pre(middleware, formatQuery));
+queryMiddlewareList.map(middleware => PaymentNumberSchema.pre(middleware, formatQuery));
 
 module.exports = mongoose.model('PaymentNumber', PaymentNumberSchema);

@@ -56,21 +56,6 @@ module.exports = {
     this.setQuery(flattenQuery);
     next();
   },
-  formatQueryMiddlewareList() {
-    return [
-      'countDocuments',
-      'find',
-      'findOne',
-      'deleteMany',
-      'deleteOne',
-      'findOneAndDelete',
-      'findOneAndRemove',
-      'remove',
-      'findOneAndUpdate',
-      'updateOne',
-      'updateMany',
-    ];
-  },
   validateAggregation(next) {
     if (get(this, 'options.allCompanies', null)) next();
     else {

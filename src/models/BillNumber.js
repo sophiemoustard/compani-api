@@ -4,7 +4,7 @@ const {
   validateAggregation,
   validateUpdateOne,
   formatQuery,
-  formatQueryMiddlewareList,
+  queryMiddlewareList,
 } = require('./preHooks/validate');
 
 const BillNumberSchema = mongoose.Schema({
@@ -16,6 +16,6 @@ const BillNumberSchema = mongoose.Schema({
 BillNumberSchema.pre('find', validateQuery);
 BillNumberSchema.pre('aggregate', validateAggregation);
 BillNumberSchema.pre('updateOne', validateUpdateOne);
-formatQueryMiddlewareList().map(middleware => BillNumberSchema.pre(middleware, formatQuery));
+queryMiddlewareList.map(middleware => BillNumberSchema.pre(middleware, formatQuery));
 
 module.exports = mongoose.model('BillNumber', BillNumberSchema);
