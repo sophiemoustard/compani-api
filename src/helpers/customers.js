@@ -31,7 +31,7 @@ const ReferentHistoriesHelper = require('./referentHistories');
 const FundingsHelper = require('./fundings');
 const EventsHelper = require('./events');
 const UtilsHelper = require('./utils');
-const CustomerQRCode = require('../data/pdf/customerQRCode/customerQRCode');
+const CustomerQRCode = require('../data/pdf/customerQRCode');
 const { CompaniDate } = require('./dates/companiDates');
 
 const { language } = translate;

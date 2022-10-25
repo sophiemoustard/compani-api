@@ -1,5 +1,5 @@
-const FileHelper = require('../../../helpers/file');
-const PdfHelper = require('../../../helpers/pdf');
+const FileHelper = require('../../helpers/file');
+const PdfHelper = require('../../helpers/pdf');
 
 exports.getPdfContent = async (data) => {
   const [pointing, fond] = await FileHelper.downloadImages([

@@ -135,7 +135,7 @@ describe('downloadImages', () => {
   });
 });
 
-describe('deleteImages #tag', () => {
+describe('deleteImages', () => {
   let rmdirSync;
   let rmSync;
   let readdir;

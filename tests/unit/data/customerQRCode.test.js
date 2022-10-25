@@ -2,7 +2,7 @@ const sinon = require('sinon');
 const expect = require('expect');
 const FileHelper = require('../../../src/helpers/file');
 const PdfHelper = require('../../../src/helpers/pdf');
-const CustomerQRCode = require('../../../src/data/pdf/customerQRCode/customerQRCode');
+const CustomerQRCode = require('../../../src/data/pdf/customerQRCode');
 
 describe('getPdfContent', () => {
   let downloadImages;
