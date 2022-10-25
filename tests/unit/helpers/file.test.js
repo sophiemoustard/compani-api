@@ -135,33 +135,52 @@ describe('downloadImages', () => {
   });
 });
 
-describe('deleteImages', () => {
+describe('deleteImages #tag', () => {
   let rmdirSync;
-  let existsSync;
+  let rmSync;
+  let readdir;
 
   beforeEach(() => {
     rmdirSync = sinon.stub(fs, 'rmdirSync');
-    existsSync = sinon.stub(fs, 'existsSync');
+    rmSync = sinon.stub(fs, 'rmSync');
+    readdir = sinon.stub(fs, 'readdir');
   });
 
   afterEach(() => {
     rmdirSync.restore();
-    existsSync.restore();
+    rmSync.restore();
+    readdir.restore();
   });
 
-  it('should remove images from local', async () => {
-    existsSync.returns(true);
+  it('should do nothing if no images to delete and folder does not exist', async () => {
+    await FileHelper.deleteImages([]);
 
-    await FileHelper.deleteImages();
-
-    sinon.assert.calledOnceWithExactly(rmdirSync, sinon.match('src/data/pdf/tmp/'), { recursive: true });
+    sinon.assert.calledOnce(readdir);
+    sinon.assert.notCalled(rmSync);
+    sinon.assert.notCalled(rmdirSync);
   });
 
-  it('should not remove images from local if folder does not exist', async () => {
-    existsSync.returns(false);
+  it('should delete images and folder', async () => {
+    readdir.callsArgWith(1, null, []);
+    const images = ['src/data/pdf/tmp/toto.png', 'src/data/pdf/tmp/tata.pdf'];
+    await FileHelper.deleteImages(images);
 
-    await FileHelper.deleteImages();
+    sinon.assert.calledOnce(readdir);
+    sinon.assert.calledTwice(rmSync);
+    sinon.assert.calledWithExactly(rmSync.getCall(0), 'src/data/pdf/tmp/toto.png');
+    sinon.assert.calledWithExactly(rmSync.getCall(1), 'src/data/pdf/tmp/tata.pdf');
+    sinon.assert.calledOnceWithExactly(rmdirSync, sinon.match('src/data/pdf/tmp'), { recursive: true });
+  });
 
+  it('should delete images but not folder if not empty', async () => {
+    readdir.callsArgWith(1, null, ['src/data/pdf/tmp/titi.png']);
+    const images = ['src/data/pdf/tmp/toto.png', 'src/data/pdf/tmp/tata.pdf'];
+    await FileHelper.deleteImages(images);
+
+    sinon.assert.calledOnce(readdir);
+    sinon.assert.calledTwice(rmSync);
+    sinon.assert.calledWithExactly(rmSync.getCall(0), 'src/data/pdf/tmp/toto.png');
+    sinon.assert.calledWithExactly(rmSync.getCall(1), 'src/data/pdf/tmp/tata.pdf');
     sinon.assert.notCalled(rmdirSync);
   });
 });

@@ -7,7 +7,7 @@ const getHeader = async (taxCertificate) => {
 
   const [logo] = get(taxCertificate, 'company.logo')
     ? await FileHelper.downloadImages([{ url: taxCertificate.company.logo, name: 'logo.png' }])
-    : [''];
+    : [null];
   if (logo) header.push({ image: logo, width: 132, style: 'marginBottomMedium' });
 
   header.push(
@@ -28,7 +28,7 @@ const getHeader = async (taxCertificate) => {
     }
   );
 
-  return { header, images: [logo] };
+  return { header, images: logo ? [logo] : [] };
 };
 
 const getTableContent = (taxCertificate) => {

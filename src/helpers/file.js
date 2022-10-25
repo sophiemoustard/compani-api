@@ -48,14 +48,11 @@ exports.downloadImages = async (imageList) => {
 };
 
 exports.deleteImages = (images = []) => {
-  if (images.length) {
-    images.forEach((i) => { fs.rmSync(i); });
-    fs.readdir(TMP_FILES_PATH, (err, data) => {
-      if (!data.length) fs.rmdirSync(TMP_FILES_PATH, { recursive: true });
-    });
-  } else if (fs.existsSync(TMP_FILES_PATH)) {
-    fs.rmdirSync(TMP_FILES_PATH, { recursive: true });
-  }
+  images.forEach((i) => { fs.rmSync(i); });
+  fs.readdir(
+    TMP_FILES_PATH,
+    (err, data = []) => { if (!data.length) fs.rmdirSync(TMP_FILES_PATH, { recursive: true }); }
+  );
 };
 
 exports.exportToCsv = async (data) => {
