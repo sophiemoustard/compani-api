@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-const { validateQuery, validateAggregation, formatQuery, formatQueryMiddlewareList } = require('./preHooks/validate');
+const { validateQuery, validateAggregation, formatQuery, queryMiddlewareList } = require('./preHooks/validate');
 const { PAYMENT_NATURES, PAYMENT_TYPES } = require('./Payment');
 const { CESU } = require('../helpers/constants');
 
@@ -17,7 +17,7 @@ const CoursePaymentSchema = mongoose.Schema({
 
 CoursePaymentSchema.pre('find', validateQuery);
 CoursePaymentSchema.pre('aggregate', validateAggregation);
-formatQueryMiddlewareList().map(middleware => CoursePaymentSchema.pre(middleware, formatQuery));
+queryMiddlewareList.map(middleware => CoursePaymentSchema.pre(middleware, formatQuery));
 
 module.exports = mongoose.model('CoursePayment', CoursePaymentSchema);
 module.exports.COURSE_PAYMENT_TYPES = COURSE_PAYMENT_TYPES;

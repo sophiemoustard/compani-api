@@ -40,7 +40,7 @@ exports.listELearningDraft = async (testerRestrictedPrograms) => {
 
   const subPrograms = await SubProgram.find({ status: DRAFT })
     .populate(query)
-    .populate({ path: 'steps', select: 'type theoreticalHours' })
+    .populate({ path: 'steps', select: 'type theoreticalDuration' })
     .lean({ virtuals: true });
 
   return subPrograms.filter(sp => sp.steps.length && sp.isStrictlyELearning && sp.program);

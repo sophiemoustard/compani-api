@@ -3,7 +3,12 @@ const has = require('lodash/has');
 const mongooseLeanVirtuals = require('mongoose-lean-virtuals');
 const { E_LEARNING, ON_SITE, REMOTE, DRAFT, LIVE_STEPS } = require('../helpers/constants');
 const { STATUS_TYPES } = require('./SubProgram');
-const { formatQuery, formatQueryMiddlewareList } = require('./preHooks/validate');
+const {
+  formatQuery,
+  queryMiddlewareList,
+  getDocMiddlewareList,
+  getDocListMiddlewareList,
+} = require('./preHooks/validate');
 
 const STEP_TYPES = [E_LEARNING, ON_SITE, REMOTE];
 
@@ -12,7 +17,7 @@ const StepSchema = mongoose.Schema({
   type: { type: String, required: true, enum: STEP_TYPES },
   activities: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Activity' }],
   status: { type: String, default: DRAFT, enum: STATUS_TYPES },
-  theoreticalHours: { type: Number },
+  theoreticalDuration: { type: String },
 }, { timestamps: true, id: false });
 
 StepSchema.virtual('subPrograms', { ref: 'SubProgram', localField: '_id', foreignField: 'steps' });
@@ -30,8 +35,25 @@ function setAreActivitiesValid() {
   }
 }
 
+function formatTheoreticalDuration(doc, next) {
+  // eslint-disable-next-line no-param-reassign
+  doc.theoreticalDuration = `PT${doc.theoreticalDuration}S`;
+
+  return next();
+}
+
+function formatTheoreticalDurationList(docs, next) {
+  for (const doc of docs) {
+    formatTheoreticalDuration(doc, next);
+  }
+
+  return next();
+}
+
 StepSchema.virtual('areActivitiesValid').get(setAreActivitiesValid);
-formatQueryMiddlewareList().map(middleware => StepSchema.pre(middleware, formatQuery));
+queryMiddlewareList.map(middleware => StepSchema.pre(middleware, formatQuery));
+getDocMiddlewareList.map(middleware => StepSchema.post(middleware, formatTheoreticalDuration));
+getDocListMiddlewareList.map(middleware => StepSchema.post(middleware, formatTheoreticalDurationList));
 
 StepSchema.plugin(mongooseLeanVirtuals);
 

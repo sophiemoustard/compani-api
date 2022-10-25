@@ -4,7 +4,7 @@ const SubProgram = require('../models/SubProgram');
 const UtilsHelper = require('./utils');
 const { E_LEARNING } = require('./constants');
 const { CompaniDate } = require('./dates/companiDates');
-const { CompaniDuration } = require('./dates/companiDurations');
+const { CompaniDuration } = require('./dates/CompaniDurations');
 
 exports.updateStep = async (stepId, payload) => Step.updateOne({ _id: stepId }, { $set: payload });
 

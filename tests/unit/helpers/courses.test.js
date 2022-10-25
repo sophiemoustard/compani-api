@@ -135,25 +135,25 @@ describe('createCourse', () => {
   });
 });
 
-describe('getTotalTheoreticalHours', () => {
-  it('should return theoreticalHours sum', async () => {
+describe('getTotalTheoreticalDuration', () => {
+  it('should return theoreticalDuration sum', async () => {
     const course = {
       subProgram: {
         steps: [
-          { _id: new ObjectId(), theoreticalHours: 0.14 },
+          { _id: new ObjectId(), theoreticalDuration: 'PT504S' },
           { _id: new ObjectId() },
-          { _id: new ObjectId(), theoreticalHours: 0 },
-          { _id: new ObjectId(), theoreticalHours: 1 },
+          { _id: new ObjectId(), theoreticalDuration: 'PT0S' },
+          { _id: new ObjectId(), theoreticalDuration: 'PT3600S' },
         ],
       },
     };
-    const result = await CourseHelper.getTotalTheoreticalHours(course);
+    const result = await CourseHelper.getTotalTheoreticalDuration(course);
     expect(result).toBe(1.14);
   });
 
   it('should return 0 if no steps', async () => {
     const course = { subProgram: { steps: [] } };
-    const result = await CourseHelper.getTotalTheoreticalHours(course);
+    const result = await CourseHelper.getTotalTheoreticalDuration(course);
     expect(result).toBe(0);
   });
 });
@@ -162,7 +162,7 @@ describe('list', () => {
   let findCourseAndPopulate;
   let userFindOne;
   let find;
-  let getTotalTheoreticalHoursSpy;
+  let getTotalTheoreticalDurationSpy;
   let formatCourseWithProgress;
   const authCompany = new ObjectId();
   const credentials = { _id: new ObjectId() };
@@ -171,14 +171,14 @@ describe('list', () => {
     findCourseAndPopulate = sinon.stub(CourseRepository, 'findCourseAndPopulate');
     userFindOne = sinon.stub(User, 'findOne');
     find = sinon.stub(Course, 'find');
-    getTotalTheoreticalHoursSpy = sinon.spy(CourseHelper, 'getTotalTheoreticalHours');
+    getTotalTheoreticalDurationSpy = sinon.spy(CourseHelper, 'getTotalTheoreticalDuration');
     formatCourseWithProgress = sinon.stub(CourseHelper, 'formatCourseWithProgress');
   });
   afterEach(() => {
     findCourseAndPopulate.restore();
     userFindOne.restore();
     find.restore();
-    getTotalTheoreticalHoursSpy.restore();
+    getTotalTheoreticalDurationSpy.restore();
     formatCourseWithProgress.restore();
   });
 
@@ -197,7 +197,7 @@ describe('list', () => {
         { trainer: '1234567890abcdef12345678', format: 'blended' },
         'webapp'
       );
-      sinon.assert.notCalled(getTotalTheoreticalHoursSpy);
+      sinon.assert.notCalled(getTotalTheoreticalDurationSpy);
       sinon.assert.notCalled(userFindOne);
       sinon.assert.notCalled(find);
       sinon.assert.notCalled(formatCourseWithProgress);
@@ -209,8 +209,8 @@ describe('list', () => {
           misc: 'name',
           subProgram: {
             steps: [
-              { _id: new ObjectId(), theoreticalHours: 0.8 },
-              { _id: new ObjectId(), theoreticalHours: 0.3 },
+              { _id: new ObjectId(), theoreticalDuration: 'PT2880S' },
+              { _id: new ObjectId(), theoreticalDuration: 'PT1080S' },
               { _id: new ObjectId() },
             ],
           },
@@ -218,8 +218,8 @@ describe('list', () => {
         { misc: 'program', subProgram: { steps: [] } },
       ];
       const formattedCourseList = [
-        { misc: 'name', totalTheoreticalHours: 1.1 },
-        { misc: 'program', totalTheoreticalHours: 0 },
+        { misc: 'name', totalTheoreticalDuration: 'PT3960S' },
+        { misc: 'program', totalTheoreticalDuration: 'PT0S' },
       ];
 
       findCourseAndPopulate.returns(coursesList);
@@ -233,7 +233,7 @@ describe('list', () => {
         { format: 'strictly_e_learning' },
         'webapp'
       );
-      sinon.assert.calledTwice(getTotalTheoreticalHoursSpy);
+      sinon.assert.calledTwice(getTotalTheoreticalDurationSpy);
       sinon.assert.notCalled(userFindOne);
       sinon.assert.notCalled(find);
       sinon.assert.notCalled(formatCourseWithProgress);
@@ -286,7 +286,7 @@ describe('list', () => {
         'webapp',
         true
       );
-      sinon.assert.notCalled(getTotalTheoreticalHoursSpy);
+      sinon.assert.notCalled(getTotalTheoreticalDurationSpy);
       sinon.assert.notCalled(userFindOne);
       sinon.assert.notCalled(find);
       sinon.assert.notCalled(formatCourseWithProgress);
@@ -306,8 +306,8 @@ describe('list', () => {
           ],
           subProgram: {
             steps: [
-              { _id: new ObjectId(), theoreticalHours: 0.4 },
-              { _id: new ObjectId(), theoreticalHours: 1.4 },
+              { _id: new ObjectId(), theoreticalDuration: 'PT1440S' },
+              { _id: new ObjectId(), theoreticalDuration: 'PT5040S' },
               { _id: new ObjectId() },
             ],
           },
@@ -318,12 +318,12 @@ describe('list', () => {
         {
           accessRules: [],
           format: 'strictly_e_learning',
-          totalTheoreticalHours: 1.8,
+          totalTheoreticalDuration: 'PT6480S',
           trainees: [
             { _id: traineeId, company: { _id: companyId } },
           ],
         },
-        { accessRules: [companyId], format: 'strictly_e_learning', totalTheoreticalHours: 0, trainees: [] },
+        { accessRules: [companyId], format: 'strictly_e_learning', totalTheoreticalDuration: 'PT0S', trainees: [] },
       ];
 
       findCourseAndPopulate.returns(coursesList);
@@ -336,7 +336,7 @@ describe('list', () => {
         { format: 'strictly_e_learning', accessRules: { $in: [companyId, []] } },
         'webapp'
       );
-      sinon.assert.calledTwice(getTotalTheoreticalHoursSpy);
+      sinon.assert.calledTwice(getTotalTheoreticalDurationSpy);
       sinon.assert.notCalled(userFindOne);
       sinon.assert.notCalled(find);
       sinon.assert.notCalled(formatCourseWithProgress);
@@ -358,7 +358,7 @@ describe('list', () => {
               activities: [{ activityHistories: [{}, {}] }],
               name: 'Développement personnel full stack',
               type: 'e_learning',
-              theoreticalHours: 1.5,
+              theoreticalDuration: 'PT5400S',
               areActivitiesValid: false,
             },
             {
@@ -395,7 +395,7 @@ describe('list', () => {
               activities: [{ activityHistories: [{}, {}] }],
               name: 'Brochure : le mal de dos',
               type: 'e_learning',
-              theoreticalHours: 1.5,
+              theoreticalDuration: 'PT5400S',
               areActivitiesValid: false,
             }, {
               _id: stepId,
@@ -519,7 +519,7 @@ describe('list', () => {
                 { path: 'program', select: 'name image description' },
                 {
                   path: 'steps',
-                  select: 'name type activities theoreticalHours',
+                  select: 'name type activities theoreticalDuration',
                   populate: {
                     path: 'activities',
                     select: 'name type cards activityHistories',
@@ -563,7 +563,7 @@ describe('list', () => {
               activities: [{ activityHistories: [{}, {}] }],
               name: 'Développement personnel full stack',
               type: 'e_learning',
-              theoreticalHours: 1.5,
+              theoreticalDuration: 'PT5400S',
               areActivitiesValid: false,
             },
             {
@@ -600,7 +600,7 @@ describe('list', () => {
               activities: [{ activityHistories: [{}, {}] }],
               name: 'Brochure : le mal de dos',
               type: 'e_learning',
-              theoreticalHours: 1.5,
+              theoreticalDuration: 'PT5400S',
               areActivitiesValid: false,
             }, {
               _id: stepId,
@@ -724,7 +724,7 @@ describe('list', () => {
                 { path: 'program', select: 'name image description' },
                 {
                   path: 'steps',
-                  select: 'name type activities theoreticalHours',
+                  select: 'name type activities theoreticalDuration',
                   populate: {
                     path: 'activities',
                     select: 'name type cards activityHistories',
@@ -975,7 +975,7 @@ describe('getCourse', () => {
         _id: new ObjectId(),
         type: INTER_B2B,
         trainees: [{ _id: new ObjectId(), company: new ObjectId() }, { _id: new ObjectId(), company: new ObjectId() }],
-        subProgram: { steps: [{ theoreticalHours: 1 }, { theoreticalHours: 0.5 }] },
+        subProgram: { steps: [{ theoreticalDuration: 'PT3600S' }, { theoreticalDuration: 'PT1800S' }] },
       };
       findOne.returns(SinonMongoose.stubChainedQueries(course));
 
@@ -984,7 +984,7 @@ describe('getCourse', () => {
         { _id: course._id },
         { role: { vendor: { name: 'vendor_admin' } }, company: { _id: new ObjectId() } }
       );
-      expect(result).toMatchObject({ ...course, totalTheoreticalHours: 1.5 });
+      expect(result).toMatchObject({ ...course, totalTheoreticalDuration: 'PT5400S' });
 
       SinonMongoose.calledOnceWithExactly(
         findOne,
@@ -1010,7 +1010,7 @@ describe('getCourse', () => {
                   { path: 'program', select: 'name learningGoals' },
                   {
                     path: 'steps',
-                    select: 'name type theoreticalHours',
+                    select: 'name type theoreticalDuration',
                     populate: {
                       path: 'activities', select: 'name type', populate: { path: 'activityHistories', select: 'user' },
                     },
@@ -1057,7 +1057,7 @@ describe('getCourse', () => {
       const courseWithFilteredTrainees = {
         type: INTER_B2B,
         trainees: [{ company: authCompanyId }],
-        totalTheoreticalHours: 0,
+        totalTheoreticalDuration: 'PT0S',
       };
       findOne.returns(SinonMongoose.stubChainedQueries(courseWithAllTrainees));
 
@@ -1093,7 +1093,7 @@ describe('getCourse', () => {
                     { path: 'program', select: 'name learningGoals' },
                     {
                       path: 'steps',
-                      select: 'name type theoreticalHours',
+                      select: 'name type theoreticalDuration',
                       populate: {
                         path: 'activities',
                         select: 'name type',
@@ -1129,7 +1129,7 @@ describe('getCourse', () => {
         _id: new ObjectId(),
         type: INTER_B2B,
         trainees: [{ _id: new ObjectId(), company: new ObjectId() }, { _id: new ObjectId(), company: new ObjectId() }],
-        subProgram: { steps: [{ theoreticalHours: 1 }, { theoreticalHours: 0.5 }] },
+        subProgram: { steps: [{ theoreticalDuration: 'PT3600S' }, { theoreticalDuration: 'PT1800S' }] },
       };
       findOne.returns(SinonMongoose.stubChainedQueries(course));
 
@@ -1138,7 +1138,7 @@ describe('getCourse', () => {
         { _id: course._id },
         { role: { vendor: { name: 'trainer' } }, company: { _id: new ObjectId() } }
       );
-      expect(result).toMatchObject({ ...course, totalTheoreticalHours: 1.5 });
+      expect(result).toMatchObject({ ...course, totalTheoreticalDuration: 'PT5400S' });
 
       SinonMongoose.calledOnceWithExactly(
         findOne,
@@ -1194,7 +1194,7 @@ describe('getCourse', () => {
             name: 'Développement personnel full stack',
             type: 'e_learning',
             areActivitiesValid: false,
-            theoreticalHours: 0.5,
+            theoreticalDuration: 'PT1800S',
           },
           ],
         },
@@ -1234,7 +1234,7 @@ describe('getCourse', () => {
                 { path: 'program', select: 'name image description learningGoals' },
                 {
                   path: 'steps',
-                  select: 'name type activities theoreticalHours',
+                  select: 'name type activities theoreticalDuration',
                   populate: {
                     path: 'activities',
                     select: 'name type cards activityHistories',
@@ -1302,7 +1302,7 @@ describe('getCourse', () => {
             name: 'Développement personnel full stack',
             type: 'e_learning',
             areActivitiesValid: false,
-            theoreticalHours: 0.5,
+            theoreticalDuration: 'PT1800S',
           },
           {
             _id: stepId,
@@ -1310,7 +1310,7 @@ describe('getCourse', () => {
             name: 'Développer des équipes agiles et autonomes',
             type: 'on_site',
             areActivitiesValid: true,
-            theoreticalHours: 3.5,
+            theoreticalDuration: 'PT12600S',
           },
           ],
         },
@@ -1396,7 +1396,7 @@ describe('getCourse', () => {
                 { path: 'program', select: 'name image description learningGoals' },
                 {
                   path: 'steps',
-                  select: 'name type activities theoreticalHours',
+                  select: 'name type activities theoreticalDuration',
                   populate: {
                     path: 'activities',
                     select: 'name type cards activityHistories',
@@ -1467,7 +1467,7 @@ describe('getCourse', () => {
             name: 'Développement personnel full stack',
             type: 'e_learning',
             areActivitiesValid: false,
-            theoreticalHours: 0.5,
+            theoreticalDuration: 'PT1800S',
           },
           {
             _id: stepId,
@@ -1475,7 +1475,7 @@ describe('getCourse', () => {
             name: 'Développer des équipes agiles et autonomes',
             type: 'on_site',
             areActivitiesValid: true,
-            theoreticalHours: 3.5,
+            theoreticalDuration: 'PT12600S',
           },
           ],
         },
@@ -1561,7 +1561,7 @@ describe('getCourse', () => {
                 { path: 'program', select: 'name image description learningGoals' },
                 {
                   path: 'steps',
-                  select: 'name type activities theoreticalHours',
+                  select: 'name type activities theoreticalDuration',
                   populate: {
                     path: 'activities',
                     select: 'name type cards activityHistories',
@@ -1630,14 +1630,14 @@ describe('getCourse', () => {
             name: 'Développement personnel full stack',
             type: 'e_learning',
             areActivitiesValid: false,
-            theoreticalHours: 0.5,
+            theoreticalDuration: 'PT1800S',
           },
           {
             activities: [],
             name: 'Développer des équipes agiles et autonomes',
             type: 'on_site',
             areActivitiesValid: true,
-            theoreticalHours: 3.5,
+            theoreticalDuration: 'PT12600S',
           },
           ],
         },
@@ -1658,14 +1658,14 @@ describe('getCourse', () => {
             name: 'Développement personnel full stack',
             type: 'e_learning',
             areActivitiesValid: false,
-            theoreticalHours: 0.5,
+            theoreticalDuration: 'PT1800S',
           },
           {
             activities: [],
             name: 'Développer des équipes agiles et autonomes',
             type: 'on_site',
             areActivitiesValid: true,
-            theoreticalHours: 3.5,
+            theoreticalDuration: 'PT12600S',
           },
           ],
         },
@@ -1686,7 +1686,7 @@ describe('getCourse', () => {
                 { path: 'program', select: 'name image description learningGoals' },
                 {
                   path: 'steps',
-                  select: 'name type activities theoreticalHours',
+                  select: 'name type activities theoreticalDuration',
                   populate: {
                     path: 'activities',
                     select: 'name type cards activityHistories',

@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-const { validateQuery, validateAggregation, formatQuery, formatQueryMiddlewareList } = require('./preHooks/validate');
+const { validateQuery, validateAggregation, formatQuery, queryMiddlewareList } = require('./preHooks/validate');
 
 const CustomerPartnerSchema = mongoose.Schema({
   partner: { type: mongoose.Schema.Types.ObjectId, ref: 'Partner', required: true },
@@ -10,6 +10,6 @@ const CustomerPartnerSchema = mongoose.Schema({
 
 CustomerPartnerSchema.pre('find', validateQuery);
 CustomerPartnerSchema.pre('aggregate', validateAggregation);
-formatQueryMiddlewareList().map(middleware => CustomerPartnerSchema.pre(middleware, formatQuery));
+queryMiddlewareList.map(middleware => CustomerPartnerSchema.pre(middleware, formatQuery));
 
 module.exports = mongoose.model('CustomerPartner', CustomerPartnerSchema);

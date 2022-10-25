@@ -3,7 +3,7 @@ const sinon = require('sinon');
 const luxon = require('../../../../src/helpers/dates/luxon');
 const CompaniDatesHelper = require('../../../../src/helpers/dates/companiDates');
 const { WEDNESDAY } = require('../../../../src/helpers/constants');
-const { CompaniDuration } = require('../../../../src/helpers/dates/companiDurations');
+const { CompaniDuration } = require('../../../../src/helpers/dates/CompaniDurations');
 
 describe('CompaniDate', () => {
   let _formatMiscToCompaniDate;

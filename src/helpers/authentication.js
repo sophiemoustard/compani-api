@@ -13,7 +13,7 @@ const { MOBILE, EMAIL, SECONDS_IN_AN_HOUR } = require('./constants');
 const EmailHelper = require('./email');
 const SmsHelper = require('./sms');
 const { CompaniDate } = require('./dates/companiDates');
-const { CompaniDuration } = require('./dates/companiDurations');
+const { CompaniDuration } = require('./dates/CompaniDurations');
 
 const { language } = translate;
 

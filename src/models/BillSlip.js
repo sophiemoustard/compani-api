@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-const { validateQuery, validateAggregation, formatQuery, formatQueryMiddlewareList } = require('./preHooks/validate');
+const { validateQuery, validateAggregation, formatQuery, queryMiddlewareList } = require('./preHooks/validate');
 
 const BillSlipSchema = mongoose.Schema({
   thirdPartyPayer: { type: mongoose.Schema.Types.ObjectId, ref: 'ThirdPartyPayer', required: true },
@@ -10,6 +10,6 @@ const BillSlipSchema = mongoose.Schema({
 
 BillSlipSchema.pre('find', validateQuery);
 BillSlipSchema.pre('aggregate', validateAggregation);
-formatQueryMiddlewareList().map(middleware => BillSlipSchema.pre(middleware, formatQuery));
+queryMiddlewareList.map(middleware => BillSlipSchema.pre(middleware, formatQuery));
 
 module.exports = mongoose.model('BillSlip', BillSlipSchema);
