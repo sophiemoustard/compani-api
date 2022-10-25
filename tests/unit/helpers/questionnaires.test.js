@@ -549,7 +549,7 @@ describe('getFollowUp', () => {
     const companyId = new ObjectId();
     const course = {
       _id: courseId,
-      company: { name: 'company' },
+      companies: [{ name: 'company' }],
       subProgram: { program: { name: 'test' } },
       misc: 'infos',
     };
@@ -652,12 +652,12 @@ describe('getFollowUp', () => {
       courseFindOne,
       [
         { query: 'findOne', args: [{ _id: courseId }] },
-        { query: 'select', args: ['subProgram company misc'] },
+        { query: 'select', args: ['subProgram companies misc'] },
         {
           query: 'populate',
           args: [{ path: 'subProgram', select: 'program', populate: [{ path: 'program', select: 'name' }] }],
         },
-        { query: 'populate', args: [{ path: 'company', select: 'name' }] },
+        { query: 'populate', args: [{ path: 'companies', select: 'name' }] },
         { query: 'lean' },
       ]
     );
@@ -799,12 +799,12 @@ describe('getFollowUp', () => {
       courseFindOne,
       [
         { query: 'findOne', args: [{ _id: courseId }] },
-        { query: 'select', args: ['subProgram company misc'] },
+        { query: 'select', args: ['subProgram companies misc'] },
         {
           query: 'populate',
           args: [{ path: 'subProgram', select: 'program', populate: [{ path: 'program', select: 'name' }] }],
         },
-        { query: 'populate', args: [{ path: 'company', select: 'name' }] },
+        { query: 'populate', args: [{ path: 'companies', select: 'name' }] },
         { query: 'lean' },
       ]
     );
@@ -964,7 +964,7 @@ describe('getFollowUp', () => {
     const companyId = new ObjectId();
     const course = {
       _id: courseId,
-      company: { name: 'company' },
+      companies: [{ name: 'company' }],
       subProgram: { program: { name: 'test' } },
       misc: 'infos',
     };
@@ -1001,12 +1001,12 @@ describe('getFollowUp', () => {
       courseFindOne,
       [
         { query: 'findOne', args: [{ _id: courseId }] },
-        { query: 'select', args: ['subProgram company misc'] },
+        { query: 'select', args: ['subProgram companies misc'] },
         {
           query: 'populate',
           args: [{ path: 'subProgram', select: 'program', populate: [{ path: 'program', select: 'name' }] }],
         },
-        { query: 'populate', args: [{ path: 'company', select: 'name' }] },
+        { query: 'populate', args: [{ path: 'companies', select: 'name' }] },
         { query: 'lean' },
       ]
     );
@@ -1044,7 +1044,7 @@ describe('getFollowUp', () => {
     const courseId = new ObjectId();
     const course = {
       _id: courseId,
-      company: { name: 'company' },
+      companies: [{ name: 'company' }],
       subProgram: { program: { name: 'test' } },
       misc: 'infos',
     };
@@ -1073,12 +1073,12 @@ describe('getFollowUp', () => {
       courseFindOne,
       [
         { query: 'findOne', args: [{ _id: courseId }] },
-        { query: 'select', args: ['subProgram company misc'] },
+        { query: 'select', args: ['subProgram companies misc'] },
         {
           query: 'populate',
           args: [{ path: 'subProgram', select: 'program', populate: [{ path: 'program', select: 'name' }] }],
         },
-        { query: 'populate', args: [{ path: 'company', select: 'name' }] },
+        { query: 'populate', args: [{ path: 'companies', select: 'name' }] },
         { query: 'lean' },
       ]
     );
@@ -1117,7 +1117,7 @@ describe('getFollowUp', () => {
     const companyId = new ObjectId();
     const course = {
       _id: courseId,
-      company: { name: 'company' },
+      companies: [{ name: 'company' }],
       subProgram: { program: { name: 'test' } },
       misc: 'infos',
     };
@@ -1151,12 +1151,12 @@ describe('getFollowUp', () => {
       courseFindOne,
       [
         { query: 'findOne', args: [{ _id: courseId }] },
-        { query: 'select', args: ['subProgram company misc'] },
+        { query: 'select', args: ['subProgram companies misc'] },
         {
           query: 'populate',
           args: [{ path: 'subProgram', select: 'program', populate: [{ path: 'program', select: 'name' }] }],
         },
-        { query: 'populate', args: [{ path: 'company', select: 'name' }] },
+        { query: 'populate', args: [{ path: 'companies', select: 'name' }] },
         { query: 'lean' },
       ]
     );
