@@ -33,6 +33,7 @@ module.exports = {
   HOURS: 'hours',
   MINUTES: 'minutes',
   SECONDS: 'seconds',
+  MILLISECONDS: 'milliseconds',
   get DURATION_UNITS() {
     return [
       this.YEARS,
@@ -43,6 +44,7 @@ module.exports = {
       this.HOURS,
       this.MINUTES,
       this.SECONDS,
+      this.MILLISECONDS,
     ];
   },
   // EVENTS

@@ -26,7 +26,16 @@ describe('CompaniDuration', () => {
 
   describe('Constructor', () => {
     it('should return duration', () => {
-      const duration = { days: 13, hours: 19, minutes: 12 };
+      const duration = {
+        years: 3,
+        months: 1,
+        weeks: 2,
+        days: 13,
+        hours: 19,
+        minutes: 12,
+        seconds: 9,
+        milliseconds: 452,
+      };
 
       const result = CompaniDurationsHelper.CompaniDuration(duration);
 
