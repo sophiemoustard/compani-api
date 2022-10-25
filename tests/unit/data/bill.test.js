@@ -222,9 +222,7 @@ describe('getPdfContent', () => {
       defaultStyle: { font: 'SourceSans', fontSize: 12 },
       styles: { marginRightLarge: { marginRight: 40 } },
     };
-    const imageList = [
-      { url: 'https://storage.googleapis.com/compani-main/alenvi_logo_183x50.png', name: 'logo.png' },
-    ];
+    const imageList = [{ url: 'https://storage.googleapis.com/compani-main/alenvi_logo_183x50.png', name: 'logo.png' }];
 
     downloadImages.returns(paths);
     formatPrice.onCall(0).returns('19,67 €');
@@ -377,9 +375,7 @@ describe('getPdfContent', () => {
       defaultStyle: { font: 'SourceSans', fontSize: 12 },
       styles: { marginRightLarge: { marginRight: 40 } },
     };
-    const imageList = [
-      { url: 'https://storage.googleapis.com/compani-main/alenvi_logo_183x50.png', name: 'logo.png' },
-    ];
+    const imageList = [{ url: 'https://storage.googleapis.com/compani-main/alenvi_logo_183x50.png', name: 'logo.png' }];
 
     downloadImages.returns(paths);
     formatPrice.onCall(0).returns('30,00 €');
@@ -600,9 +596,7 @@ describe('getPdfContent', () => {
       defaultStyle: { font: 'SourceSans', fontSize: 12 },
       styles: { marginRightLarge: { marginRight: 40 } },
     };
-    const imageList = [
-      { url: 'https://storage.googleapis.com/compani-main/alenvi_logo_183x50.png', name: 'logo.png' },
-    ];
+    const imageList = [{ url: 'https://storage.googleapis.com/compani-main/alenvi_logo_183x50.png', name: 'logo.png' }];
 
     downloadImages.returns(paths);
     formatPrice.onCall(0).returns('19,67 €');

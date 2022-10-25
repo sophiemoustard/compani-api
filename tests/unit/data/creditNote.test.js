@@ -166,9 +166,7 @@ describe('getPdfContent', () => {
       defaultStyle: { font: 'SourceSans', fontSize: 12 },
       styles: { marginRightLarge: { marginRight: 40 } },
     };
-    const imageList = [
-      { url: 'https://storage.googleapis.com/compani-main/alenvi_logo_183x50.png', name: 'logo.png' },
-    ];
+    const imageList = [{ url: 'https://storage.googleapis.com/compani-main/alenvi_logo_183x50.png', name: 'logo.png' }];
 
     downloadImages.returns(paths);
 
@@ -275,9 +273,7 @@ describe('getPdfContent', () => {
       defaultStyle: { font: 'SourceSans', fontSize: 12 },
       styles: { marginRightLarge: { marginRight: 40 } },
     };
-    const imageList = [
-      { url: 'https://storage.googleapis.com/compani-main/alenvi_logo_183x50.png', name: 'logo.png' },
-    ];
+    const imageList = [{ url: 'https://storage.googleapis.com/compani-main/alenvi_logo_183x50.png', name: 'logo.png' }];
 
     downloadImages.returns(paths);
 
@@ -401,9 +397,7 @@ describe('getPdfContent', () => {
       defaultStyle: { font: 'SourceSans', fontSize: 12 },
       styles: { marginRightLarge: { marginRight: 40 } },
     };
-    const imageList = [
-      { url: 'https://storage.googleapis.com/compani-main/alenvi_logo_183x50.png', name: 'logo.png' },
-    ];
+    const imageList = [{ url: 'https://storage.googleapis.com/compani-main/alenvi_logo_183x50.png', name: 'logo.png' }];
 
     downloadImages.returns(paths);
 
@@ -449,9 +443,7 @@ describe('getPdf', () => {
       ],
       defaultStyle: { font: 'SourceSans', fontSize: 12 },
     };
-    const images = [
-      { url: 'https://storage.googleapis.com/compani-main/alenvi_logo_183x50.png', name: 'logo.png' },
-    ];
+    const images = [{ url: 'https://storage.googleapis.com/compani-main/alenvi_logo_183x50.png', name: 'logo.png' }];
     getPdfContent.returns({ template, images });
     generatePdf.returns('pdf');
 

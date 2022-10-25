@@ -1,6 +1,7 @@
 const sinon = require('sinon');
 const expect = require('expect');
 const FileHelper = require('../../../src/helpers/file');
+const PdfHelper = require('../../../src/helpers/pdf');
 const TaxCertificatePdf = require('../../../src/data/pdf/taxCertificates');
 
 describe('getPdfContent', () => {
@@ -15,6 +16,7 @@ describe('getPdfContent', () => {
   });
 
   it('it should format and return pdf content', async () => {
+    const paths = ['src/data/pdf/tmp/skusku.png'];
     const taxCertificate = {
       totalHours: '60,25h',
       totalPaid: '8 888,88 €',
@@ -158,14 +160,63 @@ describe('getPdfContent', () => {
       styles: { marginBottomMedium: { marginBottom: 24 } },
     };
 
-    downloadImages.returns(['src/data/pdf/tmp/skusku.png']);
+    downloadImages.returns(paths);
 
-    const result = await TaxCertificatePdf.getPdfContent({ taxCertificate });
+    const result = await TaxCertificatePdf.getPdfContent(taxCertificate);
 
-    expect(JSON.stringify(result)).toBe(JSON.stringify(pdf));
+    expect(JSON.stringify(result.template)).toEqual(JSON.stringify(pdf));
+    expect(result.images).toEqual(paths);
     sinon.assert.calledOnceWithExactly(
       downloadImages,
       [{ url: 'https://storage.googleapis.com/bucket-kfc/skusku.png', name: 'logo.png' }]
     );
+  });
+});
+
+describe('getPdf', () => {
+  let getPdfContent;
+  let generatePdf;
+
+  beforeEach(() => {
+    getPdfContent = sinon.stub(TaxCertificatePdf, 'getPdfContent');
+    generatePdf = sinon.stub(PdfHelper, 'generatePdf');
+  });
+
+  afterEach(() => {
+    getPdfContent.restore();
+    generatePdf.restore();
+  });
+
+  it('should get pdf', async () => {
+    const data = {
+      totalHours: '60,25h',
+      totalPaid: '8 888,88 €',
+      cesu: 25,
+      subscriptions: 'Temps de qualité - autonomie',
+      year: '2020',
+      date: '29/01/2021',
+      customer: { name: 'Mme Maoui Lin', address: { fullAddress: '65 Rue du test 92230 Issy-les-Moulineaux' } },
+    };
+    const template = {
+      content: [
+        { image: 'src/data/pdf/tmp/skusku.png', width: 132, style: 'marginBottomMedium' },
+        { text: 'Compakenni SAS', bold: true, marginBottom: 8, fontSize: 12 },
+        { text: 'Fait pour valoir ce que de droit,' },
+        { text: '29/01/2021', alignment: 'right' },
+        { text: 'Clément SACRÉ TOM', alignment: 'right' },
+        { text: 'Directeur général', alignment: 'right' },
+      ],
+      defaultStyle: { font: 'SourceSans', fontSize: 11, alignment: 'justify' },
+      styles: { marginBottomMedium: { marginBottom: 24 } },
+    };
+    const images = [{ url: 'https://storage.googleapis.com/compani-main/alenvi_logo_183x50.png', name: 'logo.png' }];
+    getPdfContent.returns({ template, images });
+    generatePdf.returns('pdf');
+
+    const result = await TaxCertificatePdf.getPdf(data);
+
+    expect(result).toEqual('pdf');
+    sinon.assert.calledOnceWithExactly(getPdfContent, data);
+    sinon.assert.calledOnceWithExactly(generatePdf, template, images);
   });
 });

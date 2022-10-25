@@ -1,12 +1,13 @@
 const get = require('lodash/get');
 const FileHelper = require('../../helpers/file');
+const PdfHelper = require('../../helpers/pdf');
 
 const getHeader = async (taxCertificate) => {
   const header = [];
 
   const [logo] = get(taxCertificate, 'company.logo')
     ? await FileHelper.downloadImages([{ url: taxCertificate.company.logo, name: 'logo.png' }])
-    : [''];
+    : [null];
   if (logo) header.push({ image: logo, width: 132, style: 'marginBottomMedium' });
 
   header.push(
@@ -27,7 +28,7 @@ const getHeader = async (taxCertificate) => {
     }
   );
 
-  return header;
+  return { header, images: logo ? [logo] : [] };
 };
 
 const getTableContent = (taxCertificate) => {
@@ -125,10 +126,8 @@ const getBody = taxCertificate => [
   },
 ];
 
-exports.getPdfContent = async (data) => {
-  const { taxCertificate } = data;
-
-  const header = await getHeader(taxCertificate);
+exports.getPdfContent = async (taxCertificate) => {
+  const { header, images } = await getHeader(taxCertificate);
 
   const body = getBody(taxCertificate);
 
@@ -142,8 +141,17 @@ exports.getPdfContent = async (data) => {
   const content = [header, body, footer];
 
   return {
-    content: content.flat(),
-    defaultStyle: { font: 'SourceSans', fontSize: 11, alignment: 'justify' },
-    styles: { marginBottomMedium: { marginBottom: 24 } },
+    template: {
+      content: content.flat(),
+      defaultStyle: { font: 'SourceSans', fontSize: 11, alignment: 'justify' },
+      styles: { marginBottomMedium: { marginBottom: 24 } },
+    },
+    images,
   };
+};
+
+exports.getPdf = async (data) => {
+  const { template, images } = await exports.getPdfContent(data);
+
+  return PdfHelper.generatePdf(template, images);
 };
