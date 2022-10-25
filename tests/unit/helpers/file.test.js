@@ -136,52 +136,38 @@ describe('downloadImages', () => {
 });
 
 describe('deleteImages', () => {
-  let rmdirSync;
   let rmSync;
-  let readdir;
 
   beforeEach(() => {
-    rmdirSync = sinon.stub(fs, 'rmdirSync');
     rmSync = sinon.stub(fs, 'rmSync');
-    readdir = sinon.stub(fs, 'readdir');
   });
 
   afterEach(() => {
-    rmdirSync.restore();
     rmSync.restore();
-    readdir.restore();
   });
 
-  it('should do nothing if no images to delete and folder does not exist', async () => {
+  it('should do nothing if no images to delete', async () => {
     await FileHelper.deleteImages([]);
 
-    sinon.assert.calledOnce(readdir);
     sinon.assert.notCalled(rmSync);
-    sinon.assert.notCalled(rmdirSync);
   });
 
-  it('should delete images and folder', async () => {
-    readdir.callsArgWith(1, null, []);
+  it('should delete images', async () => {
     const images = ['src/data/pdf/tmp/toto.png', 'src/data/pdf/tmp/tata.pdf'];
     await FileHelper.deleteImages(images);
 
-    sinon.assert.calledOnce(readdir);
     sinon.assert.calledTwice(rmSync);
     sinon.assert.calledWithExactly(rmSync.getCall(0), 'src/data/pdf/tmp/toto.png');
     sinon.assert.calledWithExactly(rmSync.getCall(1), 'src/data/pdf/tmp/tata.pdf');
-    sinon.assert.calledOnceWithExactly(rmdirSync, sinon.match('src/data/pdf/tmp'), { recursive: true });
   });
 
   it('should delete images but not folder if not empty', async () => {
-    readdir.callsArgWith(1, null, ['src/data/pdf/tmp/titi.png']);
     const images = ['src/data/pdf/tmp/toto.png', 'src/data/pdf/tmp/tata.pdf'];
     await FileHelper.deleteImages(images);
 
-    sinon.assert.calledOnce(readdir);
     sinon.assert.calledTwice(rmSync);
     sinon.assert.calledWithExactly(rmSync.getCall(0), 'src/data/pdf/tmp/toto.png');
     sinon.assert.calledWithExactly(rmSync.getCall(1), 'src/data/pdf/tmp/tata.pdf');
-    sinon.assert.notCalled(rmdirSync);
   });
 });
 
