@@ -160,15 +160,6 @@ describe('deleteImages', () => {
     sinon.assert.calledWithExactly(rmSync.getCall(0), 'src/data/pdf/tmp/toto.png');
     sinon.assert.calledWithExactly(rmSync.getCall(1), 'src/data/pdf/tmp/tata.pdf');
   });
-
-  it('should delete images but not folder if not empty', async () => {
-    const images = ['src/data/pdf/tmp/toto.png', 'src/data/pdf/tmp/tata.pdf'];
-    await FileHelper.deleteImages(images);
-
-    sinon.assert.calledTwice(rmSync);
-    sinon.assert.calledWithExactly(rmSync.getCall(0), 'src/data/pdf/tmp/toto.png');
-    sinon.assert.calledWithExactly(rmSync.getCall(1), 'src/data/pdf/tmp/tata.pdf');
-  });
 });
 
 describe('exportToCsv', () => {
