@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 const { CONVOCATION, REMINDER, OTHER } = require('../helpers/constants');
-const { formatQuery, formatQueryMiddlewareList } = require('./preHooks/validate');
+const { formatQuery, queryMiddlewareList } = require('./preHooks/validate');
 
 const MESSAGE_TYPE = [CONVOCATION, REMINDER, OTHER];
 
@@ -13,7 +13,7 @@ const CourseSmsHistorySchema = mongoose.Schema({
   missingPhones: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
 }, { timestamps: true });
 
-formatQueryMiddlewareList().map(middleware => CourseSmsHistorySchema.pre(middleware, formatQuery));
+queryMiddlewareList.map(middleware => CourseSmsHistorySchema.pre(middleware, formatQuery));
 
 module.exports = mongoose.model('CourseSmsHistory', CourseSmsHistorySchema);
 module.exports.MESSAGE_TYPE = MESSAGE_TYPE;

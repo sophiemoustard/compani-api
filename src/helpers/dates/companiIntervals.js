@@ -1,5 +1,5 @@
 const luxon = require('./luxon');
-const { CompaniDuration } = require('./companiDurations');
+const { CompaniDuration } = require('./CompaniDurations');
 
 exports.CompaniInterval = (...args) => CompaniIntervalFactory(exports._formatMiscToCompaniInterval(...args));
 

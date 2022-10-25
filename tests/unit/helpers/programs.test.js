@@ -105,7 +105,7 @@ describe('listELearning', () => {
               { path: 'courses', select: '_id trainees', match: { format: 'strictly_e_learning' } },
               {
                 path: 'steps',
-                select: 'activities theoreticalHours',
+                select: 'activities theoreticalDuration',
                 populate: {
                   path: 'activities',
                   select: 'activityHistories',
@@ -161,7 +161,7 @@ describe('listELearning', () => {
               { path: 'courses', select: '_id trainees', match: { format: 'strictly_e_learning' } },
               {
                 path: 'steps',
-                select: 'activities theoreticalHours',
+                select: 'activities theoreticalDuration',
                 populate: {
                   path: 'activities',
                   select: 'activityHistories',

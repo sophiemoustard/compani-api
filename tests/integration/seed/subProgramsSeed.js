@@ -43,18 +43,36 @@ const activitiesList = [
 ];
 
 const stepsList = [
-  { _id: new ObjectId(), name: 'step 0', type: 'on_site', theoreticalHours: 1 },
-  { _id: new ObjectId(), name: 'step 1', type: 'e_learning', activities: [activitiesList[0]._id], theoreticalHours: 1 },
-  { _id: new ObjectId(), name: 'step 2', type: 'e_learning', activities: [activitiesList[0]._id], theoreticalHours: 1 },
-  { _id: new ObjectId(), name: 'step 3', type: 'e_learning', theoreticalHours: 1 },
-  { _id: new ObjectId(), name: 'step 4', type: 'e_learning', activities: [activitiesList[1]._id], theoreticalHours: 1 },
-  { _id: new ObjectId(), name: 'step 5 - linked to courseSlot', type: 'on_site', theoreticalHours: 0.5 },
-  { // 6 - on site without theoreticalHours
+  { _id: new ObjectId(), name: 'step 0', type: 'on_site', theoreticalDuration: 1 },
+  {
+    _id: new ObjectId(),
+    name: 'step 1',
+    type: 'e_learning',
+    activities: [activitiesList[0]._id],
+    theoreticalDuration: 1,
+  },
+  {
+    _id: new ObjectId(),
+    name: 'step 2',
+    type: 'e_learning',
+    activities: [activitiesList[0]._id],
+    theoreticalDuration: 1,
+  },
+  { _id: new ObjectId(), name: 'step 3', type: 'e_learning', theoreticalDuration: 1 },
+  {
+    _id: new ObjectId(),
+    name: 'step 4',
+    type: 'e_learning',
+    activities: [activitiesList[1]._id],
+    theoreticalDuration: 1,
+  },
+  { _id: new ObjectId(), name: 'step 5 - linked to courseSlot', type: 'on_site', theoreticalDuration: 0.5 },
+  { // 6 - on site without theoreticalDuration
     _id: new ObjectId(),
     name: 'step 6',
     type: 'on_site',
   },
-  { // 7 - elearning without theoreticalHours
+  { // 7 - elearning without theoreticalDuration
     _id: new ObjectId(),
     name: 'step 7',
     type: 'e_learning',
@@ -71,13 +89,13 @@ const subProgramsList = [
   { _id: new ObjectId(), name: 'subProgram 5', status: 'draft', steps: [stepsList[3]._id] },
   { _id: new ObjectId(), name: 'subProgram 6', status: 'draft', steps: [stepsList[4]._id, stepsList[5]._id] },
   { _id: new ObjectId(), name: 'subProgram 7', status: 'draft', steps: [stepsList[0]._id, stepsList[5]._id] },
-  { // 8 on site without theoreticalHours
+  { // 8 on site without theoreticalDuration
     _id: new ObjectId(),
     name: 'subProgram 8',
     status: 'draft',
     steps: [stepsList[6]._id],
   },
-  { // 9 eLearning without theoreticalHours
+  { // 9 eLearning without theoreticalDuration
     _id: new ObjectId(),
     name: 'subProgram 9',
     status: 'draft',
