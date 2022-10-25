@@ -229,6 +229,13 @@ describe('DISPLAY', () => {
   });
 
   describe('asDays', () => {
+    it('should return duration in days', () => {
+      const companiDuration = CompaniDurationsHelper.CompaniDuration('P3D');
+      const result = companiDuration.asDays();
+
+      expect(result).toBe(3);
+    });
+
     it('should return duration in days, with hours', () => {
       const companiDuration = CompaniDurationsHelper.CompaniDuration('P1DT9H');
       const result = companiDuration.asDays();
@@ -252,6 +259,20 @@ describe('DISPLAY', () => {
   });
 
   describe('asHours', () => {
+    it('should return duration in hours', () => {
+      const companiDuration = CompaniDurationsHelper.CompaniDuration('PT3H');
+      const result = companiDuration.asHours();
+
+      expect(result).toBe(3);
+    });
+
+    it('should return duration in hours, with days', () => {
+      const companiDuration = CompaniDurationsHelper.CompaniDuration('P2DT3H');
+      const result = companiDuration.asHours();
+
+      expect(result).toBe(51);
+    });
+
     it('should return duration in hours, with minutes', () => {
       const companiDuration = CompaniDurationsHelper.CompaniDuration('PT1H9M');
       const result = companiDuration.asHours();
