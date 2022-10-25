@@ -52,7 +52,7 @@ const coursesList = [
     type: INTER_B2B,
     salesRepresentative: new ObjectId(),
     trainer: courseTrainer._id,
-    company: authCompany._id,
+    companies: [authCompany._id],
   },
   {
     _id: new ObjectId(),
