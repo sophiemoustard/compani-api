@@ -15,6 +15,13 @@ module.exports = {
   IDENTIFICATION: 'identification',
   CONTRACT_END: 'contract_end',
   REJECTED: 'rejected',
+  // Time
+  SECONDS_IN_AN_HOUR: 3600,
+  // COMPANIDURATION FORMATS
+  LONG_DURATION_H_MM: 'h\'h\' mm\'min\'',
+  SHORT_DURATION_H_MM: 'h\'h\'mm',
+  // COMPANIDATE FORMATS
+  HHhMM: 'HH\'h\'mm',
   // DATE INDEX
   MONDAY: 0,
   TUESDAY: 1,
@@ -450,11 +457,6 @@ module.exports = {
   // Type
   EMAIL: 'email',
   PHONE: 'phone',
-  // Time
-  SECONDS_IN_AN_HOUR: 3600,
-  // COMPANIDURATION FORMATS
-  LONG_DURATION_H_MM: 'h\'h\' mm\'min\'',
-  SHORT_DURATION_H_MM: 'h\'h\'mm',
   // PARTNER
   SOCIAL_WORKER: 'social_worker',
   MEDICO_SOCIAL_ASSESSOR: 'medico_social_assessor',
