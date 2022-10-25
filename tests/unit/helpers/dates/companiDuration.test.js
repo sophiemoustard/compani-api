@@ -368,11 +368,11 @@ describe('_formatMiscToCompaniDuration', () => {
   });
 
   it('should return duration if arg is an object with luxon duration keys', () => {
-    const payload = { hours: 3, minutes: 35, seconds: 12 };
+    const payload = { years: 1, months: 2, weeks: 3, days: 4, hours: 5, minutes: 35, seconds: 12, milliseconds: 873 };
     const result = CompaniDurationsHelper._formatMiscToCompaniDuration(payload);
 
     expect(result instanceof luxon.Duration).toBe(true);
-    expect(result.toMillis()).toEqual(3 * 60 * 60 * 1000 + 35 * 60 * 1000 + 12 * 1000);
+    expect(result.toMillis()).toEqual(((((1 * 365 + 2 * 30 + 3 * 7 + 4) * 24 + 5) * 60 + 35) * 60 + 12) * 1000 + 873);
     sinon.assert.calledOnce(fromObject);
     sinon.assert.notCalled(invalid);
   });
