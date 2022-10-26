@@ -75,10 +75,10 @@ exports.createCourse = async (payload) => {
 
 exports.getTotalTheoreticalDuration = course => (course.subProgram.steps.length
   ? course.subProgram.steps.reduce(
-    (acc, value) => (value.theoreticalDuration ? acc.add(acc, value.theoreticalDuration) : acc),
+    (acc, value) => (value.theoreticalDuration ? acc.add(value.theoreticalDuration) : acc),
     CompaniDuration()
-  )
-  : CompaniDuration()
+  ).toISO()
+  : CompaniDuration().toISO()
 );
 
 const listStrictlyElearningForCompany = async (query, origin) => {
