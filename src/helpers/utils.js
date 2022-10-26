@@ -6,7 +6,7 @@ const moment = require('../extensions/moment');
 const { CIVILITY_LIST, SHORT_DURATION_H_MM, HHhMM } = require('./constants');
 const DatesHelper = require('./dates');
 const { CompaniDate } = require('./dates/companiDates');
-const { CompaniDuration } = require('./dates/CompaniDurations');
+const { CompaniDuration } = require('./dates/companiDurations');
 const NumbersHelper = require('./numbers');
 
 exports.getLastVersion = (versions, dateKey) => {
