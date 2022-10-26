@@ -17,7 +17,7 @@ const {
   NOT_INVOICED_AND_NOT_PAID,
   INVOICED_AND_NOT_PAID,
 } = require('../helpers/constants');
-const { CompaniDuration } = require('../helpers/dates/CompaniDurations');
+const { CompaniDuration } = require('../helpers/dates/companiDurations');
 const { CompaniDate } = require('../helpers/dates/companiDates');
 
 exports.formatEvent = (event) => {

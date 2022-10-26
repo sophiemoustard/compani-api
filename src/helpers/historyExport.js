@@ -26,7 +26,7 @@ const {
 } = require('./constants');
 const DatesHelper = require('./dates');
 const { CompaniDate } = require('./dates/companiDates');
-const { CompaniDuration } = require('./dates/CompaniDurations');
+const { CompaniDuration } = require('./dates/companiDurations');
 const UtilsHelper = require('./utils');
 const NumbersHelper = require('./numbers');
 const DraftPayHelper = require('./draftPay');
