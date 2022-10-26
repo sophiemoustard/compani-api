@@ -48,7 +48,7 @@ const CompletionCertificate = require('../data/pdf/completionCertificate');
 const CourseBill = require('../models/CourseBill');
 const CourseSlot = require('../models/CourseSlot');
 const CourseHistory = require('../models/CourseHistory');
-const { CompaniDuration } = require('./dates/CompaniDurations');
+const { CompaniDuration } = require('./dates/companiDurations');
 
 exports.createCourse = async (payload) => {
   const coursePayload = payload.company
