@@ -38,6 +38,7 @@ const {
   TRAINER,
   REMOTE,
   OPERATIONS,
+  HHhMM,
 } = require('./constants');
 const CourseHistoriesHelper = require('./courseHistories');
 const NotificationHelper = require('./notifications');
@@ -542,8 +543,8 @@ exports.removeCourseTrainee = async (courseId, traineeId, user) => Promise.all([
 ]);
 
 exports.formatIntraCourseSlotsForPdf = slot => ({
-  startHour: UtilsHelper.formatHourWithMinutes(slot.startDate),
-  endHour: UtilsHelper.formatHourWithMinutes(slot.endDate),
+  startHour: CompaniDate(slot.startDate).format(HHhMM),
+  endHour: CompaniDate(slot.endDate).format(HHhMM),
 });
 
 exports.formatInterCourseSlotsForPdf = (slot) => {
@@ -737,8 +738,7 @@ exports.deleteAccessRule = async (courseId, accessRuleId) => Course.updateOne(
 
 exports.formatHoursForConvocation = slots => slots.reduce(
   (acc, slot) => {
-    const slotHours =
-      `${UtilsHelper.formatHourWithMinutes(slot.startDate)} - ${UtilsHelper.formatHourWithMinutes(slot.endDate)}`;
+    const slotHours = UtilsHelper.formatIntervalHourly(slot);
 
     return acc === '' ? slotHours : `${acc} / ${slotHours}`;
   },

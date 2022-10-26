@@ -3,7 +3,7 @@ const isEmpty = require('lodash/isEmpty');
 const { ObjectId } = require('mongodb');
 const Intl = require('intl');
 const moment = require('../extensions/moment');
-const { CIVILITY_LIST, SHORT_DURATION_H_MM } = require('./constants');
+const { CIVILITY_LIST, SHORT_DURATION_H_MM, HHhMM } = require('./constants');
 const DatesHelper = require('./dates');
 const { CompaniDate } = require('./dates/companiDates');
 const { CompaniDuration } = require('./dates/companiDurations');
@@ -102,10 +102,6 @@ exports.roundFrenchNumber = (number, digits) => {
 };
 
 exports.formatHour = val => (val ? `${exports.roundFrenchNumber(val, 2)}h` : `${exports.roundFrenchNumber(0, 2)}h`);
-
-exports.formatHourWithMinutes = hour => (moment(hour).minutes()
-  ? moment(hour).format('HH[h]mm')
-  : moment(hour).format('HH[h]'));
 
 const roundFrenchPercentage = (number) => {
   const nf = new Intl.NumberFormat('fr-FR', { minimumFractionDigits: 2, style: 'percent' });
@@ -256,3 +252,6 @@ exports.getKeysOf2DepthObject = object => Object.entries(object).reduce((acc, [k
 
   return [...acc, key];
 }, []);
+
+exports.formatIntervalHourly = slot => `${CompaniDate(slot.startDate).format(HHhMM)} - `
+  + `${CompaniDate(slot.endDate).format(HHhMM)}`;
