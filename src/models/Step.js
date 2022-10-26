@@ -17,7 +17,7 @@ const StepSchema = mongoose.Schema({
   type: { type: String, required: true, enum: STEP_TYPES },
   activities: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Activity' }],
   status: { type: String, default: DRAFT, enum: STATUS_TYPES },
-  theoreticalDuration: { type: String },
+  theoreticalDuration: { type: Number },
 }, { timestamps: true, id: false });
 
 StepSchema.virtual('subPrograms', { ref: 'SubProgram', localField: '_id', foreignField: 'steps' });
