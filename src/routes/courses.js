@@ -27,7 +27,6 @@ const { COURSE_TYPES, COURSE_FORMATS } = require('../models/Course');
 const {
   getCourseTrainee,
   authorizeCourseEdit,
-  authorizeGetDocumentsAndSms,
   authorizeCourseDeletion,
   authorizeGetList,
   authorizeRegisterToELearning,
@@ -36,9 +35,10 @@ const {
   authorizeAccessRuleDeletion,
   authorizeGetCourse,
   authorizeGetFollowUp,
-  checkSalesRepresentativeExists,
+  authorizeCourseCreation,
   authorizeGetQuestionnaires,
-  authorizeAttendanceSheetsGetAndAssignCourse,
+  authorizeGetAttendanceSheets,
+  authorizeGetDocumentsAndSms,
   authorizeSmsSending,
 } = require('./preHandlers/courses');
 const { INTRA, OPERATIONS, MOBILE, WEBAPP, PEDAGOGY } = require('../helpers/constants');
@@ -61,20 +61,14 @@ exports.plugin = {
               'action',
               {
                 is: OPERATIONS,
-                then: Joi.when(
-                  'origin',
-                  { is: MOBILE, then: Joi.required() }
-                ),
+                then: Joi.when('origin', { is: MOBILE, then: Joi.required() }),
                 otherwise: Joi.forbidden(),
               }),
             trainee: Joi.objectId().when(
               'action',
               {
                 is: PEDAGOGY,
-                then: Joi.when(
-                  'origin',
-                  { is: WEBAPP, then: Joi.required(), otherwise: Joi.forbidden() }
-                ),
+                then: Joi.when('origin', { is: WEBAPP, then: Joi.required(), otherwise: Joi.forbidden() }),
                 otherwise: Joi.forbidden(),
               }),
             company: Joi.objectId().when('origin', { is: MOBILE, then: Joi.forbidden() }),
@@ -102,7 +96,7 @@ exports.plugin = {
           }),
         },
         auth: { scope: ['courses:create'] },
-        pre: [{ method: checkSalesRepresentativeExists }],
+        pre: [{ method: authorizeCourseCreation }],
       },
       handler: create,
     });
@@ -121,7 +115,7 @@ exports.plugin = {
           }),
         },
         auth: { mode: 'required' },
-        pre: [{ method: getCourse, assign: 'course' }, { method: authorizeGetCourse }],
+        pre: [{ method: authorizeGetCourse }],
       },
       handler: getById,
     });
@@ -187,7 +181,7 @@ exports.plugin = {
             maxTrainees: Joi.number().positive().integer(),
           }),
         },
-        pre: [{ method: getCourse, assign: 'course' }, { method: authorizeCourseEdit }],
+        pre: [{ method: authorizeCourseEdit }],
         auth: { scope: ['courses:edit'] },
       },
       handler: update,
@@ -235,7 +229,7 @@ exports.plugin = {
         validate: {
           params: Joi.object({ _id: Joi.objectId().required() }),
         },
-        pre: [{ method: getCourse, assign: 'course' }, { method: authorizeGetDocumentsAndSms }],
+        pre: [{ method: authorizeGetDocumentsAndSms }],
       },
       handler: getSMSHistory,
     });
@@ -248,7 +242,7 @@ exports.plugin = {
           params: Joi.object({ _id: Joi.objectId().required() }),
           payload: Joi.object({ trainee: Joi.objectId().required() }),
         },
-        pre: [{ method: getCourseTrainee }, { method: getCourse, assign: 'course' }, { method: authorizeCourseEdit }],
+        pre: [{ method: getCourseTrainee }, { method: authorizeCourseEdit }],
         auth: { scope: ['courses:edit'] },
       },
       handler: addTrainee,
@@ -273,7 +267,7 @@ exports.plugin = {
         validate: {
           params: Joi.object({ _id: Joi.objectId().required(), traineeId: Joi.objectId().required() }),
         },
-        pre: [{ method: getCourse, assign: 'course' }, { method: authorizeCourseEdit }],
+        pre: [{ method: authorizeCourseEdit }],
       },
       handler: removeTrainee,
     });
@@ -286,10 +280,7 @@ exports.plugin = {
         validate: {
           params: Joi.object({ _id: Joi.objectId().required() }),
         },
-        pre: [
-          { method: authorizeAttendanceSheetsGetAndAssignCourse, assign: 'course' },
-          { method: authorizeGetDocumentsAndSms },
-        ],
+        pre: [{ method: authorizeGetAttendanceSheets }],
       },
       handler: downloadAttendanceSheets,
     });
@@ -303,7 +294,7 @@ exports.plugin = {
           params: Joi.object({ _id: Joi.objectId().required() }),
           query: Joi.object({ origin: Joi.string().valid(...ORIGIN_OPTIONS) }),
         },
-        pre: [{ method: getCourse, assign: 'course' }, { method: authorizeGetDocumentsAndSms }],
+        pre: [{ method: authorizeGetDocumentsAndSms }],
       },
       handler: downloadCompletionCertificates,
     });

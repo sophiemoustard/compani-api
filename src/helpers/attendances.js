@@ -76,14 +76,15 @@ exports.listUnsubscribed = async (courseId, companyId) => {
     .populate({ path: 'trainer', select: 'identity' })
     .lean();
 
-  const unsubscribedAttendances = coursesWithSameProgram.map(c =>
-    formatCourseWithAttendances(c, course.trainees, companyId));
+  const unsubscribedAttendances = coursesWithSameProgram
+    .map(c => formatCourseWithAttendances(c, course.trainees, companyId));
 
   return groupBy(unsubscribedAttendances.flat(3), 'trainee._id');
 };
 
 exports.getTraineeUnsubscribedAttendances = async (trainee) => {
-  const attendances = await Attendance.find({ trainee })
+  const attendances = await Attendance
+    .find({ trainee })
     .populate({
       path: 'courseSlot',
       select: 'course startDate endDate',

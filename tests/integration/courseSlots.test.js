@@ -389,7 +389,7 @@ describe('COURSE SLOTS ROUTES - PUT /courseslots/{_id}', () => {
   describe('Other roles', () => {
     it('should a 200 as user is course trainer', async () => {
       authToken = await getTokenByCredentials(trainer.local);
-      const payload = { startDate: '2020-03-04T09:00:00', endDate: '2020-03-04T11:00:00' };
+      const payload = { startDate: '2020-03-04T09:00:00.000Z', endDate: '2020-03-04T11:00:00.000Z' };
       const response = await app.inject({
         method: 'PUT',
         url: `/courseslots/${courseSlotsList[2]._id}`,
@@ -402,7 +402,7 @@ describe('COURSE SLOTS ROUTES - PUT /courseslots/{_id}', () => {
 
     it('should return 200 as user is client admin from course company', async () => {
       authToken = await getToken('client_admin');
-      const payload = { startDate: '2020-03-04T09:00:00', endDate: '2020-03-04T11:00:00' };
+      const payload = { startDate: '2020-03-04T09:00:00.000Z', endDate: '2020-03-04T11:00:00.000Z' };
       const response = await app.inject({
         method: 'PUT',
         url: `/courseslots/${courseSlotsList[0]._id}`,
@@ -422,7 +422,7 @@ describe('COURSE SLOTS ROUTES - PUT /courseslots/{_id}', () => {
 
     roles.forEach((role) => {
       it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
-        const payload = { startDate: '2020-03-04T09:00:00', endDate: '2020-03-04T11:00:00' };
+        const payload = { startDate: '2020-03-04T09:00:00.000Z', endDate: '2020-03-04T11:00:00.000Z' };
         authToken = await getToken(role.name);
         const response = await app.inject({
           method: 'PUT',

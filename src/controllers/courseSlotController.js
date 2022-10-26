@@ -20,7 +20,7 @@ const create = async (req) => {
 
 const update = async (req) => {
   try {
-    await CourseSlotsHelper.updateCourseSlot(req.pre.courseSlot, req.payload, req.auth.credentials);
+    await CourseSlotsHelper.updateCourseSlot(req.params._id, req.payload, req.auth.credentials);
 
     return {
       message: translate[language].courseSlotUpdated,
@@ -33,7 +33,7 @@ const update = async (req) => {
 
 const remove = async (req) => {
   try {
-    await CourseSlotsHelper.removeCourseSlot(req.pre.courseSlot);
+    await CourseSlotsHelper.removeCourseSlot(req.params._id);
 
     return {
       message: translate[language].courseSlotDeleted,

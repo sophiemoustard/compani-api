@@ -124,7 +124,7 @@ const coursesList = [
   { // 0
     _id: new ObjectId(),
     subProgram: subProgramList[0]._id,
-    company: authCompany._id,
+    companies: [authCompany._id],
     type: INTRA,
     maxTrainees: 8,
     trainees: [traineeList[0]._id, traineeList[3]._id, traineeList[8]._id],
@@ -134,7 +134,7 @@ const coursesList = [
   { // 1
     _id: new ObjectId(),
     subProgram: new ObjectId(),
-    company: authCompany._id,
+    companies: [authCompany._id],
     type: INTRA,
     maxTrainees: 8,
     trainees: [traineeList[0]._id],
@@ -144,7 +144,7 @@ const coursesList = [
   { // 2
     _id: new ObjectId(),
     subProgram: subProgramList[1]._id,
-    company: otherCompany._id,
+    companies: [otherCompany._id],
     type: INTRA,
     maxTrainees: 8,
     trainees: [traineeList[9]._id, traineeList[2]._id],
@@ -170,7 +170,7 @@ const coursesList = [
   { // 5 archived
     _id: new ObjectId(),
     subProgram: new ObjectId(),
-    company: authCompany._id,
+    companies: [authCompany._id],
     type: INTRA,
     maxTrainees: 8,
     trainees: [traineeList[0]._id, traineeList[8]._id],

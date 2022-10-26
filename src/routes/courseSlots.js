@@ -4,7 +4,7 @@ const Joi = require('joi');
 Joi.objectId = require('joi-objectid')(Joi);
 const { create, update, remove } = require('../controllers/courseSlotController');
 const { addressValidation, requiredDateToISOString } = require('./validations/utils');
-const { getCourseSlot, authorizeCreate, authorizeUpdate, authorizeDeletion } = require('./preHandlers/courseSlot');
+const { authorizeCreate, authorizeUpdate, authorizeDeletion } = require('./preHandlers/courseSlot');
 
 exports.plugin = {
   name: 'routes-course-slots',
@@ -38,7 +38,7 @@ exports.plugin = {
             meetingLink: Joi.string().allow(''),
           }),
         },
-        pre: [{ method: getCourseSlot, assign: 'courseSlot' }, { method: authorizeUpdate }],
+        pre: [{ method: authorizeUpdate }],
         auth: { scope: ['courses:edit'] },
       },
       handler: update,
@@ -51,7 +51,7 @@ exports.plugin = {
         validate: {
           params: Joi.object({ _id: Joi.objectId().required() }),
         },
-        pre: [{ method: getCourseSlot, assign: 'courseSlot' }, { method: authorizeDeletion }],
+        pre: [{ method: authorizeDeletion }],
         auth: { scope: ['courses:create'] },
       },
       handler: remove,
