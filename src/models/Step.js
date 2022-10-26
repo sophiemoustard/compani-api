@@ -36,8 +36,10 @@ function setAreActivitiesValid() {
 }
 
 function formatTheoreticalDuration(doc, next) {
-  // eslint-disable-next-line no-param-reassign
-  doc.theoreticalDuration = `PT${doc.theoreticalDuration}S`;
+  if (doc && doc.theoreticalDuration) {
+    // eslint-disable-next-line no-param-reassign
+    doc.theoreticalDuration = `PT${doc.theoreticalDuration}S`;
+  }
 
   return next();
 }
