@@ -148,13 +148,13 @@ describe('getTotalTheoreticalDuration', () => {
       },
     };
     const result = await CourseHelper.getTotalTheoreticalDuration(course);
-    expect(result).toBe(1.14);
+    expect(result).toBe('PT4104S');
   });
 
   it('should return 0 if no steps', async () => {
     const course = { subProgram: { steps: [] } };
     const result = await CourseHelper.getTotalTheoreticalDuration(course);
-    expect(result).toBe(0);
+    expect(result).toBe('PT0S');
   });
 });
 

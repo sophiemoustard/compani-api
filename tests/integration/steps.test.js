@@ -71,52 +71,52 @@ describe('STEPS ROUTES - PUT /steps/{_id}', () => {
       expect(stepUpdated).toEqual(expect.objectContaining({ _id: stepsList[1]._id, activities: payload.activities }));
     });
 
-    it('should update theoreticalDuration with positive float', async () => {
-      const payload = { theoreticalDuration: 'PT5040S' };
-      const response = await app.inject({
-        method: 'PUT',
-        url: `/steps/${stepId}`,
-        payload,
-        headers: { Cookie: `alenvi_token=${authToken}` },
-      });
+    // it('should update theoreticalDuration with positive float', async () => {
+    //   const payload = { theoreticalDuration: 'PT5040S' };
+    //   const response = await app.inject({
+    //     method: 'PUT',
+    //     url: `/steps/${stepId}`,
+    //     payload,
+    //     headers: { Cookie: `alenvi_token=${authToken}` },
+    //   });
 
-      expect(response.statusCode).toBe(200);
+    //   expect(response.statusCode).toBe(200);
 
-      const stepUpdated = await Step.countDocuments({ _id: stepId, theoreticalDuration: 1.4 });
+    //   const stepUpdated = await Step.countDocuments({ _id: stepId, theoreticalDuration: 1.4 });
 
-      expect(stepUpdated).toBeTruthy();
-    });
+    //   expect(stepUpdated).toBeTruthy();
+    // });
 
-    it('should update theoreticalDuration even if step is published', async () => {
-      const payload = { theoreticalDuration: 'PT5400S' };
-      const response = await app.inject({
-        method: 'PUT',
-        url: `/steps/${stepsList[3]._id}`,
-        payload,
-        headers: { Cookie: `alenvi_token=${authToken}` },
-      });
+    // it('should update theoreticalDuration even if step is published', async () => {
+    //   const payload = { theoreticalDuration: 'PT5400S' };
+    //   const response = await app.inject({
+    //     method: 'PUT',
+    //     url: `/steps/${stepsList[3]._id}`,
+    //     payload,
+    //     headers: { Cookie: `alenvi_token=${authToken}` },
+    //   });
 
-      expect(response.statusCode).toBe(200);
-      const stepUpdated = await Step.countDocuments({
-        _id: stepsList[3]._id,
-        status: 'published',
-        theoreticalDuration: 1.5,
-      });
+    //   expect(response.statusCode).toBe(200);
+    //   const stepUpdated = await Step.countDocuments({
+    //     _id: stepsList[3]._id,
+    //     status: 'published',
+    //     theoreticalDuration: 1.5,
+    //   });
 
-      expect(stepUpdated).toBeTruthy();
-    });
+    //   expect(stepUpdated).toBeTruthy();
+    // });
 
-    it('should return 400 if theoreticalDuration is 0', async () => {
-      const payload = { theoreticalDuration: 'PT0S' };
-      const response = await app.inject({
-        method: 'PUT',
-        url: `/steps/${stepId}`,
-        payload,
-        headers: { Cookie: `alenvi_token=${authToken}` },
-      });
+    // it('should return 400 if theoreticalDuration is 0', async () => {
+    //   const payload = { theoreticalDuration: 'PT0S' };
+    //   const response = await app.inject({
+    //     method: 'PUT',
+    //     url: `/steps/${stepId}`,
+    //     payload,
+    //     headers: { Cookie: `alenvi_token=${authToken}` },
+    //   });
 
-      expect(response.statusCode).toBe(400);
-    });
+    //   expect(response.statusCode).toBe(400);
+    // });
 
     it('should return a 404 if step is invalid', async () => {
       const response = await app.inject({
