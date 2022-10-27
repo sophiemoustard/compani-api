@@ -76,7 +76,7 @@ exports.getTotalTheoreticalDuration = course => (course.subProgram.steps.length
     (acc, value) => (value.theoreticalDuration ? acc.add(value.theoreticalDuration) : acc),
     CompaniDuration()
   ).toISO()
-  : CompaniDuration().toISO()
+  : 'PT0S'
 );
 
 const listStrictlyElearningForCompany = async (query, origin) => {
