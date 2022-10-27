@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-const { validateQuery, validateAggregation, formatQuery, queryMiddlewareList } = require('./preHooks/validate');
+const { validateQuery, validateAggregation, formatQuery, formatQueryMiddlewareList } = require('./preHooks/validate');
 
 const {
   PAYMENT,
@@ -29,7 +29,7 @@ const PaymentSchema = mongoose.Schema({
 
 PaymentSchema.pre('find', validateQuery);
 PaymentSchema.pre('aggregate', validateAggregation);
-queryMiddlewareList.map(middleware => PaymentSchema.pre(middleware, formatQuery));
+formatQueryMiddlewareList().map(middleware => PaymentSchema.pre(middleware, formatQuery));
 
 module.exports = mongoose.model('Payment', PaymentSchema);
 module.exports.PAYMENT_NATURES = PAYMENT_NATURES;

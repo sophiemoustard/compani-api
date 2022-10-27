@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-const { validateQuery, validateAggregation, formatQuery, queryMiddlewareList } = require('./preHooks/validate');
+const { validateQuery, validateAggregation, formatQuery, formatQueryMiddlewareList } = require('./preHooks/validate');
 
 const FundingHistorySchema = mongoose.Schema({
   company: { type: mongoose.Schema.Types.ObjectId, ref: 'Company', required: true },
@@ -11,6 +11,6 @@ const FundingHistorySchema = mongoose.Schema({
 
 FundingHistorySchema.pre('aggregate', validateAggregation);
 FundingHistorySchema.pre('find', validateQuery);
-queryMiddlewareList.map(middleware => FundingHistorySchema.pre(middleware, formatQuery));
+formatQueryMiddlewareList().map(middleware => FundingHistorySchema.pre(middleware, formatQuery));
 
 module.exports = mongoose.model('FundingHistory', FundingHistorySchema);

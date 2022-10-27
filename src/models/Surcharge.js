@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-const { validateQuery, validateAggregation, formatQuery, queryMiddlewareList } = require('./preHooks/validate');
+const { validateQuery, validateAggregation, formatQuery, formatQueryMiddlewareList } = require('./preHooks/validate');
 
 const SurchargeSchema = mongoose.Schema({
   name: { type: String, required: true },
@@ -20,6 +20,6 @@ const SurchargeSchema = mongoose.Schema({
 
 SurchargeSchema.pre('find', validateQuery);
 SurchargeSchema.pre('aggregate', validateAggregation);
-queryMiddlewareList.map(middleware => SurchargeSchema.pre(middleware, formatQuery));
+formatQueryMiddlewareList().map(middleware => SurchargeSchema.pre(middleware, formatQuery));
 
 module.exports = mongoose.model('Surcharge', SurchargeSchema);
