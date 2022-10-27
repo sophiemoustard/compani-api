@@ -20,7 +20,6 @@ const ZipHelper = require('./zip');
 const SmsHelper = require('./sms');
 const DocxHelper = require('./docx');
 const StepsHelper = require('./steps');
-const NumbersHelper = require('./numbers');
 const drive = require('../models/Google/Drive');
 const {
   INTRA,
@@ -49,6 +48,7 @@ const CompletionCertificate = require('../data/pdf/completionCertificate');
 const CourseBill = require('../models/CourseBill');
 const CourseSlot = require('../models/CourseSlot');
 const CourseHistory = require('../models/CourseHistory');
+const { CompaniDuration } = require('./dates/companiDurations');
 
 exports.createCourse = async (payload) => {
   const coursePayload = payload.company
@@ -71,9 +71,12 @@ exports.createCourse = async (payload) => {
   return course;
 };
 
-exports.getTotalTheoreticalHours = course => (course.subProgram.steps.length
-  ? course.subProgram.steps.reduce((acc, value) => NumbersHelper.oldAdd(acc, value.theoreticalHours || 0), 0)
-  : 0
+exports.getTotalTheoreticalDuration = course => (course.subProgram.steps.length
+  ? course.subProgram.steps.reduce(
+    (acc, value) => (value.theoreticalDuration ? acc.add(value.theoreticalDuration) : acc),
+    CompaniDuration()
+  ).toISO()
+  : 'PT0S'
 );
 
 const listStrictlyElearningForCompany = async (query, origin) => {
@@ -84,7 +87,7 @@ const listStrictlyElearningForCompany = async (query, origin) => {
 
   return courses.map(course => ({
     ...course,
-    totalTheoreticalHours: exports.getTotalTheoreticalHours(course),
+    totalTheoreticalDuration: exports.getTotalTheoreticalDuration(course),
     trainees: course.trainees.filter(t =>
       (t.company ? UtilsHelper.areObjectIdsEquals(t.company._id, query.company) : false)),
   }));
@@ -123,7 +126,8 @@ const listForOperations = async (query, origin) => {
   const courses = await CourseRepository.findCourseAndPopulate(query, origin);
 
   if (query.format === STRICTLY_E_LEARNING) {
-    return courses.map(course => ({ ...course, totalTheoreticalHours: exports.getTotalTheoreticalHours(course) }));
+    return courses
+      .map(course => ({ ...course, totalTheoreticalDuration: exports.getTotalTheoreticalDuration(course) }));
   }
 
   return courses;
@@ -144,7 +148,7 @@ const listForPedagogy = async (query, credentials) => {
         { path: 'program', select: 'name image description' },
         {
           path: 'steps',
-          select: 'name type activities theoreticalHours',
+          select: 'name type activities theoreticalDuration',
           populate: {
             path: 'activities',
             select: 'name type cards activityHistories',
@@ -246,7 +250,7 @@ const getCourseForOperations = async (courseId, credentials, origin) => {
           ...(origin === WEBAPP
             ? [{
               path: 'steps',
-              select: 'name type theoreticalHours',
+              select: 'name type theoreticalDuration',
               populate: {
                 path: 'activities',
                 select: 'name type',
@@ -280,12 +284,12 @@ const getCourseForOperations = async (courseId, credentials, origin) => {
   // A coach/client_admin is not supposed to read infos on trainees from other companies
   // espacially for INTER_B2B courses.
   if (get(credentials, 'role.vendor')) {
-    return { ...fetchedCourse, totalTheoreticalHours: exports.getTotalTheoreticalHours(fetchedCourse) };
+    return { ...fetchedCourse, totalTheoreticalDuration: exports.getTotalTheoreticalDuration(fetchedCourse) };
   }
 
   return {
     ...fetchedCourse,
-    totalTheoreticalHours: exports.getTotalTheoreticalHours(fetchedCourse),
+    totalTheoreticalDuration: exports.getTotalTheoreticalDuration(fetchedCourse),
     trainees: fetchedCourse.trainees
       .filter(t => UtilsHelper.areObjectIdsEquals(get(t, 'company._id'), get(credentials, 'company._id'))),
   };
@@ -425,7 +429,7 @@ const getCourseForPedagogy = async (courseId, credentials) => {
         { path: 'program', select: 'name image description learningGoals' },
         {
           path: 'steps',
-          select: 'name type activities theoreticalHours',
+          select: 'name type activities theoreticalDuration',
           populate: {
             path: 'activities',
             select: 'name type cards activityHistories',

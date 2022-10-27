@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-const { formatQuery, formatQueryMiddlewareList } = require('./preHooks/validate');
+const { formatQuery, queryMiddlewareList } = require('./preHooks/validate');
 
 const CourseFundingOrganisationSchema = mongoose.Schema({
   // unique mongo index on 'name' (with case and diacritics insensitive collation) has been added manually in mep58
@@ -14,6 +14,6 @@ CourseFundingOrganisationSchema.virtual('courseBillCount', {
   count: true,
 });
 
-formatQueryMiddlewareList().map(middleware => CourseFundingOrganisationSchema.pre(middleware, formatQuery));
+queryMiddlewareList.map(middleware => CourseFundingOrganisationSchema.pre(middleware, formatQuery));
 
 module.exports = mongoose.model('CourseFundingOrganisation', CourseFundingOrganisationSchema);

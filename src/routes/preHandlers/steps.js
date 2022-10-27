@@ -7,7 +7,8 @@ const { PUBLISHED, E_LEARNING } = require('../../helpers/constants');
 exports.authorizeStepUpdate = async (req) => {
   const step = await Step.findOne({ _id: req.params._id }, { activities: 1, status: 1 }).lean();
   if (!step) throw Boom.notFound();
-  if (step.status === PUBLISHED && Object.keys(req.payload).some(key => !['name', 'theoreticalHours'].includes(key))) {
+  if (step.status === PUBLISHED &&
+    Object.keys(req.payload).some(key => !['name', 'theoreticalDuration'].includes(key))) {
     throw Boom.forbidden();
   }
 

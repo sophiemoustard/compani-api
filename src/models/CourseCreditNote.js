@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-const { validateQuery, validateAggregation, formatQuery, formatQueryMiddlewareList } = require('./preHooks/validate');
+const { validateQuery, validateAggregation, formatQuery, queryMiddlewareList } = require('./preHooks/validate');
 
 const CourseCreditNoteSchema = mongoose.Schema({
   number: { type: String, required: true, immutable: true, unique: true },
@@ -11,6 +11,6 @@ const CourseCreditNoteSchema = mongoose.Schema({
 
 CourseCreditNoteSchema.pre('find', validateQuery);
 CourseCreditNoteSchema.pre('aggregate', validateAggregation);
-formatQueryMiddlewareList().map(middleware => CourseCreditNoteSchema.pre(middleware, formatQuery));
+queryMiddlewareList.map(middleware => CourseCreditNoteSchema.pre(middleware, formatQuery));
 
 module.exports = mongoose.model('CourseCreditNote', CourseCreditNoteSchema);
