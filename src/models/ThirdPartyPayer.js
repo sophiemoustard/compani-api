@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 
-const { validateQuery, validateAggregation, formatQuery, queryMiddlewareList } = require('./preHooks/validate');
+const { validateQuery, validateAggregation, formatQuery, formatQueryMiddlewareList } = require('./preHooks/validate');
 const { BILLING_DIRECT, BILLING_INDIRECT, APA, AM, PCH } = require('../helpers/constants');
 const addressSchemaDefinition = require('./schemaDefinitions/address');
 const Customer = require('./Customer');
@@ -35,7 +35,7 @@ const countFundings = async (docs) => {
 ThirdPartyPayerSchema.pre('find', validateQuery);
 ThirdPartyPayerSchema.pre('aggregate', validateAggregation);
 ThirdPartyPayerSchema.post('find', countFundings);
-queryMiddlewareList.map(middleware => ThirdPartyPayerSchema.pre(middleware, formatQuery));
+formatQueryMiddlewareList().map(middleware => ThirdPartyPayerSchema.pre(middleware, formatQuery));
 
 module.exports = mongoose.model('ThirdPartyPayer', ThirdPartyPayerSchema);
 module.exports.TELETRANSMISSION_TYPES = TELETRANSMISSION_TYPES;

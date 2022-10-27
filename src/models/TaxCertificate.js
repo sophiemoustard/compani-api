@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-const { validateAggregation, validateQuery, formatQuery, queryMiddlewareList } = require('./preHooks/validate');
+const { validateAggregation, validateQuery, formatQuery, formatQueryMiddlewareList } = require('./preHooks/validate');
 const driveResourceSchemaDefinition = require('./schemaDefinitions/driveResource');
 
 const YEAR_VALIDATION = /^[2]{1}[0]{1}[0-9]{2}$/;
@@ -14,7 +14,7 @@ const TaxCertificateSchema = mongoose.Schema({
 
 TaxCertificateSchema.pre('find', validateQuery);
 TaxCertificateSchema.pre('aggregate', validateAggregation);
-queryMiddlewareList.map(middleware => TaxCertificateSchema.pre(middleware, formatQuery));
+formatQueryMiddlewareList().map(middleware => TaxCertificateSchema.pre(middleware, formatQuery));
 
 module.exports = mongoose.model('TaxCertificate', TaxCertificateSchema);
 module.exports.YEAR_VALIDATION = YEAR_VALIDATION;

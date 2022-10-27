@@ -38,7 +38,7 @@ const {
 const driveResourceSchemaDefinition = require('./schemaDefinitions/driveResource');
 const addressSchemaDefinition = require('./schemaDefinitions/address');
 const { billEventSurchargesSchemaDefinition, billingItemsInEventDefinition } = require('./schemaDefinitions/billing');
-const { validateQuery, validateAggregation, formatQuery, queryMiddlewareList } = require('./preHooks/validate');
+const { validateQuery, validateAggregation, formatQuery, formatQueryMiddlewareList } = require('./preHooks/validate');
 
 const EVENT_TYPES = [ABSENCE, INTERNAL_HOUR, INTERVENTION, UNAVAILABILITY];
 const ABSENCE_NATURES = [HOURLY, DAILY, HALF_DAILY];
@@ -189,7 +189,7 @@ EventSchema.methods.isEndDateTimeStamped = function () {
 
 EventSchema.pre('find', validateQuery);
 EventSchema.pre('aggregate', validateAggregation);
-queryMiddlewareList.map(middleware => EventSchema.pre(middleware, formatQuery));
+formatQueryMiddlewareList().map(middleware => EventSchema.pre(middleware, formatQuery));
 
 module.exports = mongoose.model('Event', EventSchema);
 module.exports.EVENT_TYPES = EVENT_TYPES;

@@ -4,7 +4,7 @@ const Boom = require('@hapi/boom');
 const get = require('lodash/get');
 const has = require('lodash/has');
 const moment = require('../extensions/moment');
-const { validateQuery, validateAggregation, formatQuery, queryMiddlewareList } = require('./preHooks/validate');
+const { validateQuery, validateAggregation, formatQuery, formatQueryMiddlewareList } = require('./preHooks/validate');
 const {
   MONTHLY,
   ONCE,
@@ -249,7 +249,7 @@ CustomerSchema.pre('validate', validate);
 CustomerSchema.pre('aggregate', validateAggregation);
 CustomerSchema.pre('find', validateQuery);
 CustomerSchema.pre('findOneAndUpdate', validateAddress);
-queryMiddlewareList.map(middleware => CustomerSchema.pre(middleware, formatQuery));
+formatQueryMiddlewareList().map(middleware => CustomerSchema.pre(middleware, formatQuery));
 
 CustomerSchema.post('findOne', isSubscriptionUsedInEvents);
 CustomerSchema.post('findOne', populateHelpers);
