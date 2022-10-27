@@ -5,7 +5,7 @@ const {
   validateAggregation,
   validateUpdateOne,
   formatQuery,
-  queryMiddlewareList,
+  formatQueryMiddlewareList,
 } = require('./preHooks/validate');
 
 const BILLING_ITEM_TYPES = [MANUAL, PER_INTERVENTION];
@@ -23,7 +23,7 @@ const BillingItemSchema = mongoose.Schema({
 BillingItemSchema.pre('find', validateQuery);
 BillingItemSchema.pre('aggregate', validateAggregation);
 BillingItemSchema.pre('updateOne', validateUpdateOne);
-queryMiddlewareList.map(middleware => BillingItemSchema.pre(middleware, formatQuery));
+formatQueryMiddlewareList().map(middleware => BillingItemSchema.pre(middleware, formatQuery));
 
 module.exports = mongoose.model('BillingItem', BillingItemSchema);
 module.exports.BILLING_ITEM_TYPES = BILLING_ITEM_TYPES;

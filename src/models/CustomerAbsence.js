@@ -5,7 +5,7 @@ const {
   validateAggregation,
   validateUpdateOne,
   formatQuery,
-  queryMiddlewareList,
+  formatQueryMiddlewareList,
 } = require('./preHooks/validate');
 
 const CUSTOMER_ABSENCE_TYPE = [HOSPITALIZATION, LEAVE, OTHER];
@@ -21,7 +21,7 @@ const CustomerAbsenceSchema = mongoose.Schema({
 CustomerAbsenceSchema.pre('find', validateQuery);
 CustomerAbsenceSchema.pre('aggregate', validateAggregation);
 CustomerAbsenceSchema.pre('updateOne', validateUpdateOne);
-queryMiddlewareList.map(middleware => CustomerAbsenceSchema.pre(middleware, formatQuery));
+formatQueryMiddlewareList().map(middleware => CustomerAbsenceSchema.pre(middleware, formatQuery));
 
 module.exports = mongoose.model('CustomerAbsence', CustomerAbsenceSchema);
 module.exports.CUSTOMER_ABSENCE_TYPE = CUSTOMER_ABSENCE_TYPE;
