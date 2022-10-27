@@ -4,7 +4,7 @@ const {
   validateAggregation,
   validateUpdateOne,
   formatQuery,
-  queryMiddlewareList,
+  formatQueryMiddlewareList,
 } = require('./preHooks/validate');
 
 const RumSchema = mongoose.Schema({
@@ -16,6 +16,6 @@ const RumSchema = mongoose.Schema({
 RumSchema.pre('find', validateQuery);
 RumSchema.pre('aggregate', validateAggregation);
 RumSchema.pre('updateOne', validateUpdateOne);
-queryMiddlewareList.map(middleware => RumSchema.pre(middleware, formatQuery));
+formatQueryMiddlewareList().map(middleware => RumSchema.pre(middleware, formatQuery));
 
 module.exports = mongoose.model('Rum', RumSchema);
