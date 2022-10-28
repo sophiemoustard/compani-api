@@ -87,8 +87,14 @@ describe('rangeBy', () => {
   const endDateISO = '2022-02-13T10:30:00.000Z';
   const interval = CompaniIntervalsHelper.CompaniInterval(startDateISO, endDateISO);
 
-  it('should return sequence of dates, endDate is not included', () => {
+  it('should accept duration object as argument. TO BE removed after spliting "outil" from "formation"', () => {
     const result = interval.rangeBy({ days: 1 });
+
+    expect(result).toEqual(['2022-02-11T09:00:00.000Z', '2022-02-12T09:00:00.000Z', '2022-02-13T09:00:00.000Z']);
+  });
+
+  it('should return sequence of dates, endDate is not included', () => {
+    const result = interval.rangeBy('P1D');
 
     expect(result).toEqual(['2022-02-11T09:00:00.000Z', '2022-02-12T09:00:00.000Z', '2022-02-13T09:00:00.000Z']);
   });
@@ -96,26 +102,26 @@ describe('rangeBy', () => {
   it('should return sequence of dates, endDate is the last element of the sequence', () => {
     const otherEndDateISO = '2022-02-13T09:00:00.000Z';
     const otherInterval = CompaniIntervalsHelper.CompaniInterval(startDateISO, otherEndDateISO);
-    const result = otherInterval.rangeBy({ days: 1 });
+    const result = otherInterval.rangeBy('P1D');
 
     expect(result).toEqual(['2022-02-11T09:00:00.000Z', '2022-02-12T09:00:00.000Z', '2022-02-13T09:00:00.000Z']);
   });
 
   it('should return sequence of dates, last element is excluded', () => {
-    const result = interval.rangeBy({ days: 1 }, true);
+    const result = interval.rangeBy('P1D', true);
 
     expect(result).toEqual(['2022-02-11T09:00:00.000Z', '2022-02-12T09:00:00.000Z']);
   });
 
   it('should return sequence of dates, step is not 1', () => {
-    const result = interval.rangeBy({ days: 1.5 });
+    const result = interval.rangeBy('P1.5D');
 
     expect(result).toEqual(['2022-02-11T09:00:00.000Z', '2022-02-12T21:00:00.000Z']);
   });
 
   it('should return error if duration is zero', () => {
     try {
-      interval.rangeBy({});
+      interval.rangeBy('PT0S');
     } catch (e) {
       expect(e).toEqual(new Error('invalid argument : duration is zero'));
     }
@@ -183,7 +189,7 @@ describe('_formatMiscToCompaniInterval', () => {
     }
   });
 
-  it('should return error if 2 args of type DateTime #tag', () => {
+  it('should return error if 2 args of type DateTime', () => {
     const companiStartDate = CompaniDatesHelper.CompaniDate('2021-11-24T09:00:00.000+01:00');
     const companiEndDate = CompaniDatesHelper.CompaniDate('2021-11-30T10:30:00.000+01:00');
     try {

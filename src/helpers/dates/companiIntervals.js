@@ -12,6 +12,8 @@ const CompaniIntervalFactory = (inputInterval) => {
     },
 
     rangeBy(miscTypeDurationStep, excludeEnd = false) {
+      // after spliting "outil" from "formation", first argument should be only duration in string ISO
+      // const luxonDurationStep = luxon.Duration.fromISO(durationISO);
       const luxonDurationStep = CompaniDuration(miscTypeDurationStep)._getDuration;
       if (luxonDurationStep.toMillis() === 0) throw new Error('invalid argument : duration is zero');
 
