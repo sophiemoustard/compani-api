@@ -1,4 +1,3 @@
-const { fn: momentProto } = require('moment');
 const expect = require('expect');
 const sinon = require('sinon');
 const app = require('../../server');
@@ -9,6 +8,7 @@ const { noRoleNoCompany } = require('../seed/authUsersSeed');
 const EmailHelper = require('../../src/helpers/email');
 const SmsHelper = require('../../src/helpers/sms');
 const { MOBILE, EMAIL, PHONE } = require('../../src/helpers/constants');
+const UtilsMock = require('../utilsMock');
 
 describe('NODE ENV', () => {
   it('should be \'test\'', () => {
@@ -31,8 +31,7 @@ describe('AUTHENTICATION ROUTES - POST /users/authenticate', () => {
   });
 
   it('should authenticate a user and set firstMobileConnection', async () => {
-    const momentToDate = sinon.stub(momentProto, 'toDate');
-    momentToDate.returns('2020-12-08T13:45:25.437Z');
+    UtilsMock.mockCurrentDate('2020-12-08T13:45:25.437Z');
 
     const response = await app.inject({
       method: 'POST',
@@ -43,7 +42,7 @@ describe('AUTHENTICATION ROUTES - POST /users/authenticate', () => {
     expect(response.statusCode).toBe(200);
     const user = await User.findOne({ _id: response.result.data.user._id }).lean();
     expect(user.firstMobileConnection).toEqual(new Date('2020-12-08T13:45:25.437Z'));
-    momentToDate.restore();
+    UtilsMock.unmockCurrentDate();
   });
 
   it('should not authenticate a user if missing parameter', async () => {

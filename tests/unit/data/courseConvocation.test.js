@@ -2,6 +2,7 @@ const sinon = require('sinon');
 const expect = require('expect');
 const { ObjectId } = require('mongodb');
 const FileHelper = require('../../../src/helpers/file');
+const PdfHelper = require('../../../src/helpers/pdf');
 const CourseConvocation = require('../../../src/data/pdf/courseConvocation');
 const { COPPER_GREY_200, COPPER_500 } = require('../../../src/helpers/constants');
 
@@ -155,7 +156,8 @@ describe('getPdfContent', () => {
         icon: { font: 'icon' },
       },
     };
-    expect(JSON.stringify(result)).toEqual(JSON.stringify(pdf));
+    expect(JSON.stringify(result.template)).toEqual(JSON.stringify(pdf));
+    expect(result.images).toEqual(paths);
 
     const imageList = [
       { url: 'https://storage.googleapis.com/compani-main/aux-pouce.png', name: 'aux-pouce.png' },
@@ -302,7 +304,8 @@ describe('getPdfContent', () => {
         icon: { font: 'icon' },
       },
     };
-    expect(JSON.stringify(result)).toEqual(JSON.stringify(pdf));
+    expect(JSON.stringify(result.template)).toEqual(JSON.stringify(pdf));
+    expect(result.images).toEqual(paths);
 
     const imageList = [
       { url: 'https://storage.googleapis.com/compani-main/aux-pouce.png', name: 'aux-pouce.png' },
@@ -311,5 +314,77 @@ describe('getPdfContent', () => {
       { url: 'https://storage.googleapis.com/compani-main/aux-perplexite.png', name: 'aux-perplexite.png' },
     ];
     sinon.assert.calledOnceWithExactly(downloadImages, imageList);
+  });
+});
+
+describe('getPdf', () => {
+  let getPdfContent;
+  let generatePdf;
+
+  beforeEach(() => {
+    getPdfContent = sinon.stub(CourseConvocation, 'getPdfContent');
+    generatePdf = sinon.stub(PdfHelper, 'generatePdf');
+  });
+
+  afterEach(() => {
+    getPdfContent.restore();
+    generatePdf.restore();
+  });
+
+  it('should get pdf', async () => {
+    const data = {
+      misc: 'groupe 3',
+      subProgram: { program: { name: 'test', description: 'on va apprendre' } },
+      slots: [
+        { date: '23/12/2020', hours: '12h - 14h', address: '' },
+        { date: '14/01/2020', hours: '12h - 14h', address: '24 avenue du test' },
+        { date: '15/01/2020', hours: '12h - 14h', meetingLink: 'https://pointerpointer.com/' },
+      ],
+      slotsToPlan: [{ _id: new ObjectId() }],
+      trainer: { formattedIdentity: 'test OK', biography: 'Voici ma bio' },
+      contact: { formattedIdentity: 'Ca roule', formattedPhone: '09 87 65 43 21', email: 'test@test.fr' },
+    };
+    const template = {
+      content: [
+        {
+          columns: [
+            { image: 'src/data/pdf/tmp/aux-pouce.png', width: 64, style: 'img' },
+            [
+              { text: 'Vous êtes convoqué(e) à la formation', style: 'surtitle' },
+              { text: 'test', style: 'title' },
+            ],
+          ],
+        },
+        {
+          columns: [
+            { image: 'src/data/pdf/tmp/doct-explication.png', width: 64, style: 'img' },
+            [{ text: 'Programme de la formation', style: 'infoTitle' }, { text: '', style: 'infoContent' }],
+          ],
+          marginTop: 24,
+          columnGap: 12,
+        },
+      ].flat(),
+      defaultStyle: { font: 'SourceSans', fontSize: 10 },
+      styles: {
+        title: { fontSize: 20, bold: true, color: COPPER_500, marginLeft: 24 },
+        surtitle: { fontSize: 12, bold: true, marginTop: 24, marginLeft: 24 },
+        infoTitle: { fontSize: 14, bold: true },
+        infoContent: { italics: true },
+      },
+    };
+    const images = [
+      { url: 'https://storage.googleapis.com/compani-main/aux-pouce.png', name: 'aux-pouce.png' },
+      { url: 'https://storage.googleapis.com/compani-main/doct-explication.png', name: 'doct-explication.png' },
+      { url: 'https://storage.googleapis.com/compani-main/doct-quizz.png', name: 'doct-quizz.png' },
+      { url: 'https://storage.googleapis.com/compani-main/aux-perplexite.png', name: 'aux-perplexite.png' },
+    ];
+    getPdfContent.returns({ template, images });
+    generatePdf.returns('pdf');
+
+    const result = await CourseConvocation.getPdf(data);
+
+    expect(result).toEqual('pdf');
+    sinon.assert.calledOnceWithExactly(getPdfContent, data);
+    sinon.assert.calledOnceWithExactly(generatePdf, template, images);
   });
 });

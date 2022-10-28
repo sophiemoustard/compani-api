@@ -1,6 +1,7 @@
 const sinon = require('sinon');
 const expect = require('expect');
 const FileHelper = require('../../../src/helpers/file');
+const PdfHelper = require('../../../src/helpers/pdf');
 const UtilsHelper = require('../../../src/helpers/utils');
 const Bill = require('../../../src/data/pdf/billing/bill');
 
@@ -21,7 +22,7 @@ describe('getPdfContent', () => {
     formatPercentage.restore();
   });
 
-  it('it should format and return pdf content with eventsTable details', async () => {
+  it('it should format and return pdf content with eventsTable details and images', async () => {
     const paths = ['src/data/pdf/tmp/logo.png'];
 
     const formattedEvents = [
@@ -221,9 +222,7 @@ describe('getPdfContent', () => {
       defaultStyle: { font: 'SourceSans', fontSize: 12 },
       styles: { marginRightLarge: { marginRight: 40 } },
     };
-    const imageList = [
-      { url: 'https://storage.googleapis.com/compani-main/alenvi_logo_183x50.png', name: 'logo.png' },
-    ];
+    const imageList = [{ url: 'https://storage.googleapis.com/compani-main/alenvi_logo_183x50.png', name: 'logo.png' }];
 
     downloadImages.returns(paths);
     formatPrice.onCall(0).returns('19,67 €');
@@ -234,11 +233,12 @@ describe('getPdfContent', () => {
 
     const result = await Bill.getPdfContent(data);
 
-    expect(JSON.stringify(result)).toEqual(JSON.stringify(pdf));
+    expect(JSON.stringify(result.template)).toEqual(JSON.stringify(pdf));
+    expect(result.images).toEqual(paths);
     sinon.assert.calledOnceWithExactly(downloadImages, imageList);
   });
 
-  it('it should format and return pdf content without eventsTable details', async () => {
+  it('it should format and return pdf content without eventsTable details and images', async () => {
     const paths = ['src/data/pdf/tmp/logo.png'];
 
     const data = {
@@ -375,9 +375,7 @@ describe('getPdfContent', () => {
       defaultStyle: { font: 'SourceSans', fontSize: 12 },
       styles: { marginRightLarge: { marginRight: 40 } },
     };
-    const imageList = [
-      { url: 'https://storage.googleapis.com/compani-main/alenvi_logo_183x50.png', name: 'logo.png' },
-    ];
+    const imageList = [{ url: 'https://storage.googleapis.com/compani-main/alenvi_logo_183x50.png', name: 'logo.png' }];
 
     downloadImages.returns(paths);
     formatPrice.onCall(0).returns('30,00 €');
@@ -392,7 +390,8 @@ describe('getPdfContent', () => {
 
     const result = await Bill.getPdfContent(data);
 
-    expect(JSON.stringify(result)).toEqual(JSON.stringify(pdf));
+    expect(JSON.stringify(result.template)).toEqual(JSON.stringify(pdf));
+    expect(result.images).toEqual(paths);
     sinon.assert.calledOnceWithExactly(downloadImages, imageList);
   });
 
@@ -597,9 +596,7 @@ describe('getPdfContent', () => {
       defaultStyle: { font: 'SourceSans', fontSize: 12 },
       styles: { marginRightLarge: { marginRight: 40 } },
     };
-    const imageList = [
-      { url: 'https://storage.googleapis.com/compani-main/alenvi_logo_183x50.png', name: 'logo.png' },
-    ];
+    const imageList = [{ url: 'https://storage.googleapis.com/compani-main/alenvi_logo_183x50.png', name: 'logo.png' }];
 
     downloadImages.returns(paths);
     formatPrice.onCall(0).returns('19,67 €');
@@ -610,7 +607,56 @@ describe('getPdfContent', () => {
 
     const result = await Bill.getPdfContent(data);
 
-    expect(JSON.stringify(result)).toEqual(JSON.stringify(pdf));
+    expect(JSON.stringify(result.template)).toEqual(JSON.stringify(pdf));
+    expect(result.images).toEqual(paths);
     sinon.assert.calledOnceWithExactly(downloadImages, imageList);
+  });
+});
+
+describe('getPdf', () => {
+  let getPdfContent;
+  let generatePdf;
+
+  beforeEach(() => {
+    getPdfContent = sinon.stub(Bill, 'getPdfContent');
+    generatePdf = sinon.stub(PdfHelper, 'generatePdf');
+  });
+
+  afterEach(() => {
+    getPdfContent.restore();
+    generatePdf.restore();
+  });
+
+  it('should get pdf', async () => {
+    const data = {
+      bill: {
+        number: 'FACT-101042100271',
+        type: 'automatic',
+        customer: { identity: { title: 'mr', lastname: 'TERIEUR', firstname: 'Alain' } },
+        netInclTaxes: '10,00 €',
+        date: '30/06/2022',
+        forTpp: true,
+        totalExclTaxes: '9,48 €',
+        totalVAT: '0,52 €',
+      },
+    };
+    const template = {
+      content: [
+        { width: 'auto', text: 'Le montant maximum de prise en charge par le tiers-payeur est de 10,00 €.' },
+        { text: 'Prestations réalisées chez M. Alain TERIEUR, 124 Avenue Daumesnil 75012 Paris.' },
+        { text: 'Sku skusku', fontSize: 9, marginTop: 12, alignment: 'justify' },
+      ],
+      defaultStyle: { font: 'SourceSans', fontSize: 12 },
+      styles: { marginRightLarge: { marginRight: 40 } },
+    };
+    const images = [{ url: 'https://storage.googleapis.com/compani-main/alenvi_logo_183x50.png', name: 'logo.png' }];
+    getPdfContent.returns({ template, images });
+    generatePdf.returns('pdf');
+
+    const result = await Bill.getPdf(data);
+
+    expect(result).toEqual('pdf');
+    sinon.assert.calledOnceWithExactly(getPdfContent, data);
+    sinon.assert.calledOnceWithExactly(generatePdf, template, images);
   });
 });

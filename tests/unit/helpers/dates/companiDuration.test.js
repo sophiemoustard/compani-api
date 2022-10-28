@@ -1,5 +1,6 @@
 const expect = require('expect');
 const sinon = require('sinon');
+const { SHORT_DURATION_H_MM, LONG_DURATION_H_MM } = require('../../../../src/helpers/constants');
 const luxon = require('../../../../src/helpers/dates/luxon');
 const CompaniDurationsHelper = require('../../../../src/helpers/dates/companiDurations');
 
@@ -25,7 +26,16 @@ describe('CompaniDuration', () => {
 
   describe('Constructor', () => {
     it('should return duration', () => {
-      const duration = { days: 13, hours: 19, minutes: 12 };
+      const duration = {
+        years: 3,
+        months: 1,
+        weeks: 2,
+        days: 13,
+        hours: 19,
+        minutes: 12,
+        seconds: 9,
+        milliseconds: 452,
+      };
 
       const result = CompaniDurationsHelper.CompaniDuration(duration);
 
@@ -33,8 +43,10 @@ describe('CompaniDuration', () => {
         .toEqual(expect.objectContaining({
           _getDuration: expect.any(luxon.Duration),
           format: expect.any(Function),
-          add: expect.any(Function),
           asHours: expect.any(Function),
+          toObject: expect.any(Function),
+          toISO: expect.any(Function),
+          add: expect.any(Function),
         }));
       sinon.assert.calledWithExactly(_formatMiscToCompaniDuration.getCall(0), duration);
     });
@@ -51,110 +63,309 @@ describe('CompaniDuration', () => {
   });
 });
 
-describe('getDuration', () => {
-  it('should return _duration', () => {
-    const durationObject = { hours: 3, minutes: 22, seconds: 57 };
-    const companiDuration = CompaniDurationsHelper.CompaniDuration(durationObject);
-    const result = companiDuration._getDuration;
+describe('GETTER', () => {
+  describe('getDuration', () => {
+    it('should return _duration', () => {
+      const durationObject = { hours: 3, minutes: 22, seconds: 57 };
+      const companiDuration = CompaniDurationsHelper.CompaniDuration(durationObject);
+      const result = companiDuration._getDuration;
 
-    expect(result).toEqual(expect.any(luxon.Duration));
-    expect(result).toEqual(luxon.Duration.fromObject(durationObject));
+      expect(result).toEqual(expect.any(luxon.Duration));
+      expect(result).toEqual(luxon.Duration.fromObject(durationObject));
+    });
   });
 });
 
-describe('format', () => {
-  it('should return formatted duration with minutes', () => {
-    const durationAmount = { hours: 5, minutes: 16 };
-    const companiDuration = CompaniDurationsHelper.CompaniDuration(durationAmount);
-    const result = companiDuration.format();
+describe('DISPLAY', () => {
+  describe('format', () => {
+    describe('SHORT_DURATION_H_MM', () => {
+      it('should return formatted duration with minutes', () => {
+        const companiDuration = CompaniDurationsHelper.CompaniDuration('PT5H16M');
+        const result = companiDuration.format(SHORT_DURATION_H_MM);
 
-    expect(result).toBe('5h16');
+        expect(result).toBe('5h16');
+      });
+
+      it('should return formatted duration with minutes, leading zero on minutes', () => {
+        const companiDuration = CompaniDurationsHelper.CompaniDuration('PT5H3M');
+        const result = companiDuration.format(SHORT_DURATION_H_MM);
+
+        expect(result).toBe('5h03');
+      });
+
+      it('should return formatted duration without minutes', () => {
+        const companiDuration = CompaniDurationsHelper.CompaniDuration('PT13H');
+        const result = companiDuration.format(SHORT_DURATION_H_MM);
+
+        expect(result).toBe('13h');
+      });
+
+      it('should return formatted duration without hours', () => {
+        const companiDuration = CompaniDurationsHelper.CompaniDuration('PT34M');
+        const result = companiDuration.format(SHORT_DURATION_H_MM);
+
+        expect(result).toBe('0h34');
+      });
+
+      it('should return formatted duration without hours, leading zero on minutes', () => {
+        const companiDuration = CompaniDurationsHelper.CompaniDuration('PT8M');
+        const result = companiDuration.format(SHORT_DURATION_H_MM);
+
+        expect(result).toBe('0h08');
+      });
+
+      it('should return formatted duration, value is 0', () => {
+        const companiDuration = CompaniDurationsHelper.CompaniDuration('PT0S');
+        const result = companiDuration.format(SHORT_DURATION_H_MM);
+
+        expect(result).toBe('0h');
+      });
+
+      it('should return formatted duration, days are converted to hours', () => {
+        const companiDuration = CompaniDurationsHelper.CompaniDuration('P2DT1H');
+        const result = companiDuration.format(SHORT_DURATION_H_MM);
+
+        expect(result).toBe('49h');
+      });
+
+      it('should return formatted duration, month are converted to hours', () => {
+        const companiDuration = CompaniDurationsHelper.CompaniDuration('P1M');
+        const result = companiDuration.format(SHORT_DURATION_H_MM);
+
+        expect(result).toBe('720h'); // 30 * 24 = 720
+      });
+
+      it('should return formatted duration, seconds are converted to minutes', () => {
+        const companiDuration = CompaniDurationsHelper.CompaniDuration('PT2H742S');
+        const result = companiDuration.format(SHORT_DURATION_H_MM);
+
+        expect(result).toBe('2h12');
+      });
+
+      it('should return formatted duration with minutes, seconds have no effect under 60s', () => {
+        const companiDuration = CompaniDurationsHelper.CompaniDuration('PT1H2M32.1S');
+        const result = companiDuration.format(SHORT_DURATION_H_MM);
+
+        expect(result).toBe('1h02');
+      });
+
+      it('should return formatted duration without minutes, seconds have no effect under 60s', () => {
+        const companiDuration = CompaniDurationsHelper.CompaniDuration('PT1H32.1S');
+        const result = companiDuration.format(SHORT_DURATION_H_MM);
+
+        expect(result).toBe('1h');
+      });
+    });
+
+    describe('LONG_DURATION_H_MM', () => {
+      it('should return formatted duration with minutes', () => {
+        const companiDuration = CompaniDurationsHelper.CompaniDuration('PT5H16M');
+        const result = companiDuration.format(LONG_DURATION_H_MM);
+
+        expect(result).toBe('5h 16min');
+      });
+
+      it('should return formatted duration with minutes, leading zero on minutes', () => {
+        const companiDuration = CompaniDurationsHelper.CompaniDuration('PT5H3M');
+        const result = companiDuration.format(LONG_DURATION_H_MM);
+
+        expect(result).toBe('5h 03min');
+      });
+
+      it('should return formatted duration without minutes', () => {
+        const companiDuration = CompaniDurationsHelper.CompaniDuration('PT13H');
+        const result = companiDuration.format(LONG_DURATION_H_MM);
+
+        expect(result).toBe('13h');
+      });
+
+      it('should return formatted duration without hours, leading zero on minutes', () => {
+        const companiDuration = CompaniDurationsHelper.CompaniDuration('PT7M');
+        const result = companiDuration.format(LONG_DURATION_H_MM);
+
+        expect(result).toBe('7min');
+      });
+
+      it('should return formatted duration without hours, leading zero on minutes', () => {
+        const companiDuration = CompaniDurationsHelper.CompaniDuration('PT34M');
+        const result = companiDuration.format(LONG_DURATION_H_MM);
+
+        expect(result).toBe('34min');
+      });
+
+      it('should return formatted duration, value is 0', () => {
+        const companiDuration = CompaniDurationsHelper.CompaniDuration('PT0S');
+        const result = companiDuration.format(LONG_DURATION_H_MM);
+
+        expect(result).toBe('0min');
+      });
+
+      it('should return formatted duration, days are converted to hours', () => {
+        const companiDuration = CompaniDurationsHelper.CompaniDuration('P2DT1H');
+        const result = companiDuration.format(LONG_DURATION_H_MM);
+
+        expect(result).toBe('49h');
+      });
+
+      it('should return formatted duration, month are converted to hours', () => {
+        const companiDuration = CompaniDurationsHelper.CompaniDuration('P1M');
+        const result = companiDuration.format(LONG_DURATION_H_MM);
+
+        expect(result).toBe('720h'); // 30 * 24 = 720
+      });
+
+      it('should return formatted duration, seconds are converted to minutes', () => {
+        const companiDuration = CompaniDurationsHelper.CompaniDuration('PT2H742S');
+        const result = companiDuration.format(LONG_DURATION_H_MM);
+
+        expect(result).toBe('2h 12min');
+      });
+
+      it('should return formatted duration with minutes, seconds have no effect under 60s', () => {
+        const companiDuration = CompaniDurationsHelper.CompaniDuration('PT1H2M32.1S');
+        const result = companiDuration.format(LONG_DURATION_H_MM);
+
+        expect(result).toBe('1h 02min');
+      });
+
+      it('should return formatted duration without minutes, seconds have no effect under 60s', () => {
+        const companiDuration = CompaniDurationsHelper.CompaniDuration('PT1H32.1S');
+        const result = companiDuration.format(LONG_DURATION_H_MM);
+
+        expect(result).toBe('1h');
+      });
+    });
   });
 
-  it('should return formatted duration with minutes, leading zero on minutes', () => {
-    const durationAmount = { hours: 5, minutes: 3 };
-    const companiDuration = CompaniDurationsHelper.CompaniDuration(durationAmount);
-    const result = companiDuration.format();
+  describe('asDays', () => {
+    it('should return duration in days', () => {
+      const companiDuration = CompaniDurationsHelper.CompaniDuration('P3D');
+      const result = companiDuration.asDays();
 
-    expect(result).toBe('5h03');
+      expect(result).toBe(3);
+    });
+
+    it('should return duration in days, with hours', () => {
+      const companiDuration = CompaniDurationsHelper.CompaniDuration('P1DT9H');
+      const result = companiDuration.asDays();
+
+      expect(result).toBe(1.375); // 1.375 = 1 + 9 / 24
+    });
+
+    it('should return duration in days, with minutes', () => {
+      const companiDuration = CompaniDurationsHelper.CompaniDuration('P1DT9M');
+      const result = companiDuration.asDays();
+
+      expect(result).toBe(1.00625); // 1.00625 = 1 + 9 / 1440
+    });
+
+    it('should return duration in days, with seconds', () => {
+      const companiDuration = CompaniDurationsHelper.CompaniDuration('P1DT27S');
+      const result = companiDuration.asDays();
+
+      expect(result).toBe(1.0003125); // 1.0003125 = 1 + 27 / 86400
+    });
   });
 
-  it('should return formatted duration without minutes', () => {
-    const durationAmount = { hours: 13 };
-    const companiDuration = CompaniDurationsHelper.CompaniDuration(durationAmount);
-    const result = companiDuration.format();
+  describe('asHours', () => {
+    it('should return duration in hours', () => {
+      const companiDuration = CompaniDurationsHelper.CompaniDuration('PT3H');
+      const result = companiDuration.asHours();
 
-    expect(result).toBe('13h');
+      expect(result).toBe(3);
+    });
+
+    it('should return duration in hours, with days', () => {
+      const companiDuration = CompaniDurationsHelper.CompaniDuration('P2DT3H');
+      const result = companiDuration.asHours();
+
+      expect(result).toBe(51);
+    });
+
+    it('should return duration in hours, with minutes', () => {
+      const companiDuration = CompaniDurationsHelper.CompaniDuration('PT1H9M');
+      const result = companiDuration.asHours();
+
+      expect(result).toBe(1.15); // 1.15 = 1 + 9 / 60
+    });
+
+    it('should return duration in hours, with seconds', () => {
+      const companiDuration = CompaniDurationsHelper.CompaniDuration('PT1H4S');
+      const result = companiDuration.asHours();
+
+      expect(result).toBe(1.001111111111111);
+    });
   });
 
-  it('should return formatted duration, days are converted to hours', () => {
-    const durationAmount = { days: 2, hours: 1 };
-    const companiDuration = CompaniDurationsHelper.CompaniDuration(durationAmount);
-    const result = companiDuration.format();
+  describe('asSeconds', () => {
+    it('should return duration in seconds', () => {
+      const companiDuration = CompaniDurationsHelper.CompaniDuration('PT1H9M');
+      const result = companiDuration.asSeconds();
 
-    expect(result).toBe('49h');
+      expect(result).toBe(4140);
+    });
   });
 
-  it('should return formatted duration with minutes, seconds and milliseconds have no effect', () => {
-    const durationAmount = { hours: 1, minutes: 2, seconds: 4 };
-    const companiDuration = CompaniDurationsHelper.CompaniDuration(durationAmount);
-    const result = companiDuration.format();
+  describe('toObject', () => {
+    it('should return object from CompaniDuration', () => {
+      const companiDuration = CompaniDurationsHelper.CompaniDuration('PT1H9M');
+      const result = companiDuration.toObject();
 
-    expect(result).toBe('1h02');
+      expect(result).toEqual({ hours: 1, minutes: 9 });
+    });
   });
 
-  it('should return formatted duration without minutes, seconds and milliseconds have no effect', () => {
-    const durationAmount = { hours: 1, seconds: 9 };
-    const companiDuration = CompaniDurationsHelper.CompaniDuration(durationAmount);
-    const result = companiDuration.format();
+  describe('toISO', () => {
+    it('should return ISO string if argument is ISO string', () => {
+      const duration = 'PT2H30M';
+      const result = CompaniDurationsHelper.CompaniDuration(duration).toISO();
 
-    expect(result).toBe('1h');
+      expect(result).toEqual(duration);
+    });
+
+    it('should return ISO string if argument is object', () => {
+      const result = CompaniDurationsHelper.CompaniDuration({ hours: 2, minutes: 30 }).toISO();
+
+      expect(result).toEqual('PT2H30M');
+    });
+
+    it('should return PT0S if no argument', () => {
+      const result = CompaniDurationsHelper.CompaniDuration().toISO();
+
+      expect(result).toEqual('PT0S');
+    });
+
+    it('should return PT0S if duration worths 0 month', () => {
+      const result = CompaniDurationsHelper.CompaniDuration('P0M').toISO();
+
+      expect(result).toEqual('PT0S');
+    });
   });
 });
 
-describe('add', () => {
-  let _formatMiscToCompaniDuration;
-  const durationAmount = { hours: 1 };
-  const companiDuration = CompaniDurationsHelper.CompaniDuration(durationAmount);
+describe('MANIPULATE', () => {
+  describe('add', () => {
+    let _formatMiscToCompaniDuration;
+    const durationAmount = { hours: 1 };
+    const companiDuration = CompaniDurationsHelper.CompaniDuration(durationAmount);
 
-  beforeEach(() => {
-    _formatMiscToCompaniDuration = sinon.spy(CompaniDurationsHelper, '_formatMiscToCompaniDuration');
-  });
+    beforeEach(() => {
+      _formatMiscToCompaniDuration = sinon.spy(CompaniDurationsHelper, '_formatMiscToCompaniDuration');
+    });
 
-  afterEach(() => {
-    _formatMiscToCompaniDuration.restore();
-  });
+    afterEach(() => {
+      _formatMiscToCompaniDuration.restore();
+    });
 
-  it('should increase a newly constructed companiDuration, increased by amount', () => {
-    const addedAmount = { hours: 2, minutes: 5 };
-    const result = companiDuration.add(addedAmount);
+    it('should increase a newly constructed companiDuration, increased by amount', () => {
+      const addedAmount = { hours: 2, minutes: 5 };
+      const result = companiDuration.add(addedAmount);
 
-    expect(result).toEqual(expect.objectContaining({ _getDuration: expect.any(luxon.Duration) }));
-    const amountInMs = (durationAmount.hours + addedAmount.hours) * 60 * 60 * 1000 + addedAmount.minutes * 60 * 1000;
-    expect(result._getDuration.toMillis()).toBe(amountInMs);
-    sinon.assert.calledWithExactly(_formatMiscToCompaniDuration.getCall(0), addedAmount);
-  });
-});
-
-describe('asHours', () => {
-  const durationAmount = { hours: 1, minutes: 9 };
-  const companiDuration = CompaniDurationsHelper.CompaniDuration(durationAmount);
-
-  it('should return duration in hours', () => {
-    const result = companiDuration.asHours();
-
-    expect(result).toBe(1.15); // 1.15 = 1 + 9 / 60
-  });
-});
-
-describe('toObject', () => {
-  const durationAmount = { hours: 1, minutes: 9 };
-  const companiDuration = CompaniDurationsHelper.CompaniDuration(durationAmount);
-
-  it('should return object from CompaniDuration', () => {
-    const result = companiDuration.toObject();
-
-    expect(result).toEqual(durationAmount);
+      expect(result).toEqual(expect.objectContaining({ _getDuration: expect.any(luxon.Duration) }));
+      const amountInMs = (durationAmount.hours + addedAmount.hours) * 60 * 60 * 1000 + addedAmount.minutes * 60 * 1000;
+      expect(result._getDuration.toMillis()).toBe(amountInMs);
+      sinon.assert.calledWithExactly(_formatMiscToCompaniDuration.getCall(0), addedAmount);
+    });
   });
 });
 
@@ -201,11 +412,11 @@ describe('_formatMiscToCompaniDuration', () => {
   });
 
   it('should return duration if arg is an object with luxon duration keys', () => {
-    const payload = { hours: 3, minutes: 35, seconds: 12 };
+    const payload = { years: 1, months: 2, weeks: 3, days: 4, hours: 5, minutes: 35, seconds: 12, milliseconds: 873 };
     const result = CompaniDurationsHelper._formatMiscToCompaniDuration(payload);
 
     expect(result instanceof luxon.Duration).toBe(true);
-    expect(result.toMillis()).toEqual(3 * 60 * 60 * 1000 + 35 * 60 * 1000 + 12 * 1000);
+    expect(result.toMillis()).toEqual(((((1 * 365 + 2 * 30 + 3 * 7 + 4) * 24 + 5) * 60 + 35) * 60 + 12) * 1000 + 873);
     sinon.assert.calledOnce(fromObject);
     sinon.assert.notCalled(invalid);
   });

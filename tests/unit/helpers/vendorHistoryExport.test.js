@@ -141,7 +141,7 @@ describe('exportCourseHistory', () => {
     {
       _id: courseIdList[0],
       type: INTRA,
-      company,
+      companies: [company],
       subProgram: subProgramList[0],
       misc: 'group 1',
       trainer,
@@ -319,7 +319,7 @@ describe('exportCourseHistory', () => {
             select: '_id type misc estimatedStartDate',
           }],
         },
-        { query: 'populate', args: [{ path: 'company', select: 'name' }] },
+        { query: 'populate', args: [{ path: 'companies', select: 'name' }] },
         {
           query: 'populate',
           args: [
@@ -577,7 +577,7 @@ describe('exportCourseHistory', () => {
             select: '_id type misc estimatedStartDate',
           }],
         },
-        { query: 'populate', args: [{ path: 'company', select: 'name' }] },
+        { query: 'populate', args: [{ path: 'companies', select: 'name' }] },
         {
           query: 'populate',
           args: [
@@ -660,7 +660,7 @@ describe('exportCourseSlotHistory', () => {
       _id: courseIdList[0],
       trainees: [traineeList[0]._id, traineeList[1]._id, traineeList[2]._id],
       type: INTRA,
-      company: { _id: new ObjectId(), name: 'Enbonne Company' },
+      companies: [{ _id: new ObjectId(), name: 'Enbonne Company' }],
       subProgram: { _id: new ObjectId(), program: { _id: new ObjectId(), name: 'Program 1' } },
       misc: 'group 1',
     },
@@ -669,6 +669,7 @@ describe('exportCourseSlotHistory', () => {
       trainees: [traineeList[3]._id, traineeList[4]._id],
       type: INTER_B2B,
       subProgram: { _id: new ObjectId(), program: { _id: new ObjectId(), name: 'Program 2' } },
+      companies: [],
       misc: 'group 2',
     },
   ];
@@ -757,9 +758,9 @@ describe('exportCourseSlotHistory', () => {
           query: 'populate',
           args: [{
             path: 'course',
-            select: 'type trainees misc subProgram company',
+            select: 'type trainees misc subProgram companies',
             populate: [
-              { path: 'company', select: 'name' },
+              { path: 'companies', select: 'name' },
               { path: 'subProgram', select: 'program', populate: [{ path: 'program', select: 'name' }] },
             ],
           }],
@@ -865,9 +866,9 @@ describe('exportCourseSlotHistory', () => {
           query: 'populate',
           args: [{
             path: 'course',
-            select: 'type trainees misc subProgram company',
+            select: 'type trainees misc subProgram companies',
             populate: [
-              { path: 'company', select: 'name' },
+              { path: 'companies', select: 'name' },
               { path: 'subProgram', select: 'program', populate: [{ path: 'program', select: 'name' }] },
             ],
           }],

@@ -182,7 +182,7 @@ describe('saveSignedMandate', () => {
   let findOneAndUpdateCustomer;
   let getDocument;
   let downloadFinalDocument;
-  let createAndReadFile;
+  let createReadAndReturnFile;
   let addFile;
   let getFileById;
   let momentToDate;
@@ -191,7 +191,7 @@ describe('saveSignedMandate', () => {
     findOneAndUpdateCustomer = sinon.stub(Customer, 'findOneAndUpdate');
     getDocument = sinon.stub(ESign, 'getDocument');
     downloadFinalDocument = sinon.stub(ESign, 'downloadFinalDocument');
-    createAndReadFile = sinon.stub(FileHelper, 'createAndReadFile');
+    createReadAndReturnFile = sinon.stub(FileHelper, 'createReadAndReturnFile');
     addFile = sinon.stub(GDriveStorageHelper, 'addFile');
     getFileById = sinon.stub(Drive, 'getFileById');
     momentToDate = sinon.stub(momentProto, 'toDate');
@@ -201,7 +201,7 @@ describe('saveSignedMandate', () => {
     findOneAndUpdateCustomer.restore();
     getDocument.restore();
     downloadFinalDocument.restore();
-    createAndReadFile.restore();
+    createReadAndReturnFile.restore();
     addFile.restore();
     getFileById.restore();
     momentToDate.restore();
@@ -221,7 +221,7 @@ describe('saveSignedMandate', () => {
     findOneAndUpdateCustomer.returns(SinonMongoose.stubChainedQueries(null, ['lean']));
     getDocument.returns({ data: { log: [{ event: 'document_signed' }] } });
     downloadFinalDocument.returns({ data: 'data' });
-    createAndReadFile.returns('file');
+    createReadAndReturnFile.returns('file');
     addFile.returns({ id: 'fileId' });
     getFileById.returns({ webViewLink: 'webViewLink' });
     momentToDate.returns('2020-12-08T13:45:25.437Z');
@@ -230,7 +230,7 @@ describe('saveSignedMandate', () => {
 
     sinon.assert.calledWithExactly(getDocument, 'everSignId');
     sinon.assert.calledWithExactly(downloadFinalDocument, 'everSignId');
-    sinon.assert.called(createAndReadFile);
+    sinon.assert.called(createReadAndReturnFile);
     sinon.assert.calledWithExactly(
       addFile,
       { driveFolderId: 'driveFolder', name: 'rum', type: 'application/pdf', body: 'file' }
@@ -274,7 +274,7 @@ describe('saveSignedMandate', () => {
     } finally {
       sinon.assert.calledWithExactly(getDocument, 'everSignId');
       sinon.assert.notCalled(downloadFinalDocument);
-      sinon.assert.notCalled(createAndReadFile);
+      sinon.assert.notCalled(createReadAndReturnFile);
       sinon.assert.notCalled(addFile);
       sinon.assert.notCalled(getFileById);
       sinon.assert.notCalled(findOneAndUpdateCustomer);
@@ -304,7 +304,7 @@ describe('saveSignedMandate', () => {
     } finally {
       sinon.assert.calledWithExactly(getDocument, 'everSignId');
       sinon.assert.notCalled(downloadFinalDocument);
-      sinon.assert.notCalled(createAndReadFile);
+      sinon.assert.notCalled(createReadAndReturnFile);
       sinon.assert.notCalled(addFile);
       sinon.assert.notCalled(getFileById);
       sinon.assert.notCalled(findOneAndUpdateCustomer);

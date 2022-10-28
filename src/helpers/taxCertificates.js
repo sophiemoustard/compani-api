@@ -1,7 +1,6 @@
 const get = require('lodash/get');
 const pick = require('lodash/pick');
 const Boom = require('@hapi/boom');
-const PdfHelper = require('./pdf');
 const UtilsHelper = require('./utils');
 const SubscriptionsHelper = require('./subscriptions');
 const moment = require('../extensions/moment');
@@ -35,33 +34,31 @@ exports.formatPdf = (taxCertificate, company, interventions, payments) => {
   const totalPaid = payments ? NumbersHelper.add(payments.paid, payments.cesu) : 0;
 
   return {
-    taxCertificate: {
-      totalHours: UtilsHelper.formatHour(NumbersHelper.toFixedToFloat(totalHours)),
-      totalPaid: UtilsHelper.formatPrice(NumbersHelper.toFixedToFloat(totalPaid)),
-      cesu: payments && !NumbersHelper.isEqualTo(payments.cesu, '0')
-        ? UtilsHelper.formatPrice(NumbersHelper.toFixedToFloat(payments.cesu))
-        : 0,
-      subscriptions: [...subscriptions].join(', '),
-      interventions: formattedInterventions,
-      company: {
-        ...pick(company, ['logo', 'name', 'address', 'rcs']),
-        legalRepresentative: {
-          name: UtilsHelper.formatIdentity(company.legalRepresentative, 'FL'),
-          position: get(company, 'legalRepresentative.position') || '',
-        },
+    totalHours: UtilsHelper.formatHour(NumbersHelper.toFixedToFloat(totalHours)),
+    totalPaid: UtilsHelper.formatPrice(NumbersHelper.toFixedToFloat(totalPaid)),
+    cesu: payments && !NumbersHelper.isEqualTo(payments.cesu, '0')
+      ? UtilsHelper.formatPrice(NumbersHelper.toFixedToFloat(payments.cesu))
+      : 0,
+    subscriptions: [...subscriptions].join(', '),
+    interventions: formattedInterventions,
+    company: {
+      ...pick(company, ['logo', 'name', 'address', 'rcs']),
+      legalRepresentative: {
+        name: UtilsHelper.formatIdentity(company.legalRepresentative, 'FL'),
+        position: get(company, 'legalRepresentative.position') || '',
       },
-      year: taxCertificate.year,
-      date: moment(taxCertificate.date).format('DD/MM/YYYY'),
-      customer: {
-        name: UtilsHelper.formatIdentity(taxCertificate.customer.identity, 'TFL'),
-        address: get(taxCertificate, 'customer.contact.primaryAddress', {}),
-      },
+    },
+    year: taxCertificate.year,
+    date: moment(taxCertificate.date).format('DD/MM/YYYY'),
+    customer: {
+      name: UtilsHelper.formatIdentity(taxCertificate.customer.identity, 'TFL'),
+      address: get(taxCertificate, 'customer.contact.primaryAddress', {}),
     },
   };
 };
 
 exports.generateTaxCertificatePdf = async (taxCertificateId, credentials) => {
-  const companyId = get(credentials, 'company._id', null);
+  const companyId = get(credentials, 'company._id');
   const taxCertificate = await TaxCertificate.findOne({ _id: taxCertificateId })
     .populate({
       path: 'customer',
@@ -72,12 +69,9 @@ exports.generateTaxCertificatePdf = async (taxCertificateId, credentials) => {
   const interventions = await EventRepository.getTaxCertificateInterventions(taxCertificate, companyId);
   const payments = await PaymentRepository.getTaxCertificatesPayments(taxCertificate, companyId);
 
-  const template = await TaxCertificatePdf.getPdfContent(
-    exports.formatPdf(taxCertificate, credentials.company, interventions, payments)
-  );
-  const pdf = await PdfHelper.generatePdf(template);
+  const data = exports.formatPdf(taxCertificate, credentials.company, interventions, payments);
 
-  return pdf;
+  return TaxCertificatePdf.getPdf(data);
 };
 
 exports.remove = async (taxCertificateId) => {

@@ -116,9 +116,9 @@ const CompaniDateFactory = (inputDate) => {
       if (typeof unit !== 'string') throw Error('Invalid argument: expected unit to be a string');
 
       const otherDate = exports._formatMiscToCompaniDate(miscTypeOtherDate);
-      const floatedDiff = _date.diff(otherDate, unit);
+      const diffInSecondAndInputUnit = _date.diff(otherDate, [unit, 'seconds']);
 
-      return floatedDiff.toISO();
+      return diffInSecondAndInputUnit.toISO();
     },
 
     add(amount) {
@@ -126,9 +126,15 @@ const CompaniDateFactory = (inputDate) => {
       return CompaniDateFactory(_date.plus(isoDuration));
     },
 
+    // fct to be deleted
     oldAdd(amount) {
       if (amount instanceof Number) throw Error('Invalid argument: expected to be an object, got number');
       return CompaniDateFactory(_date.plus(amount));
+    },
+
+    subtract(amount) {
+      const isoDuration = luxon.Duration.fromISO(amount);
+      return CompaniDateFactory(_date.minus(isoDuration));
     },
 
     // fct to be deleted

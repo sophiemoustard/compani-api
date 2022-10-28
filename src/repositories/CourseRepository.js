@@ -6,7 +6,7 @@ const { WEBAPP, MOBILE } = require('../helpers/constants');
 exports.findCourseAndPopulate = (query, origin, populateVirtual = false) => Course
   .find(query, origin === WEBAPP ? 'misc type archivedAt estimatedStartDate createdAt' : 'misc')
   .populate([
-    { path: 'company', select: 'name' },
+    { path: 'companies', select: 'name' },
     {
       path: 'subProgram',
       select: 'program',
@@ -26,7 +26,7 @@ exports.findCourseAndPopulate = (query, origin, populateVirtual = false) => Cour
         { path: 'trainer', select: 'identity.firstname identity.lastname' },
         {
           path: 'trainees',
-          select: '_id',
+          select: '_id company',
           populate: { path: 'company', populate: { path: 'company', select: 'name' } },
         },
         { path: 'salesRepresentative', select: 'identity.firstname identity.lastname' },
@@ -49,7 +49,7 @@ exports.findCoursesForExport = async (startDate, endDate, credentials) => {
       ],
       select: '_id type misc estimatedStartDate',
     })
-    .populate({ path: 'company', select: 'name' })
+    .populate({ path: 'companies', select: 'name' })
     .populate({
       path: 'subProgram',
       select: 'name steps program',

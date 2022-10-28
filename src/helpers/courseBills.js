@@ -4,7 +4,6 @@ const omit = require('lodash/omit');
 const NumbersHelper = require('./numbers');
 const CourseBill = require('../models/CourseBill');
 const CourseBillsNumber = require('../models/CourseBillsNumber');
-const PdfHelper = require('./pdf');
 const BalanceHelper = require('./balances');
 const UtilsHelper = require('./utils');
 const VendorCompaniesHelper = require('./vendorCompanies');
@@ -55,7 +54,7 @@ const balance = async (company, credentials) => {
     .find({ $or: [{ company }, { 'payer.company': company }], billedAt: { $exists: true, $type: 'date' } })
     .populate({
       path: 'course',
-      select: 'misc slots slotsToPlan subProgram company',
+      select: 'misc slots slotsToPlan subProgram companies type',
       populate: [
         { path: 'slots' },
         { path: 'slotsToPlan' },
@@ -182,8 +181,8 @@ exports.generateBillPdf = async (billId) => {
     mainFee,
     billingPurchaseList,
   };
-  const template = await CourseBillPdf.getPdfContent(data);
-  const pdf = await PdfHelper.generatePdf(template);
+
+  const pdf = await CourseBillPdf.getPdf(data);
 
   return { pdf, billNumber: bill.number };
 };

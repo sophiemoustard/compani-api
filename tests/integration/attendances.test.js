@@ -3,7 +3,13 @@ const { ObjectId } = require('mongodb');
 const Attendance = require('../../src/models/Attendance');
 const Course = require('../../src/models/Course');
 const app = require('../../server');
-const { populateDB, coursesList, slotsList, userList, traineeList } = require('./seed/attendancesSeed');
+const {
+  populateDB,
+  coursesList,
+  slotsList,
+  userList,
+  traineeList,
+} = require('./seed/attendancesSeed');
 const { getToken, getTokenByCredentials } = require('./helpers/authentication');
 const { trainerAndCoach } = require('../seed/authUsersSeed');
 const { authCompany } = require('../seed/authCompaniesSeed');

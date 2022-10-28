@@ -290,8 +290,7 @@ exports.generateCreditNotePdf = async (params, credentials) => {
 
   const company = await Company.findOne({ _id: get(credentials, 'company._id', null) }).lean();
   const data = exports.formatPdf(creditNote, company);
-  const template = await CreditNotePdf.getPdfContent(data);
-  const pdf = await PdfHelper.generatePdf(template);
+  const pdf = await CreditNotePdf.getPdf(data);
 
   return { pdf, creditNoteNumber: creditNote.number };
 };

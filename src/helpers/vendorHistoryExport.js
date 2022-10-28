@@ -164,7 +164,7 @@ exports.exportCourseHistory = async (startDate, endDate, credentials) => {
       Identifiant: course._id,
       Type: course.type,
       Payeur: payerList || '',
-      Structure: course.type === INTRA ? get(course, 'company.name') : '',
+      Structure: course.type === INTRA ? get(course, 'companies[0].name') : '',
       Programme: get(course, 'subProgram.program.name') || '',
       'Sous-Programme': get(course, 'subProgram.name') || '',
       'Infos complémentaires': course.misc,
@@ -212,14 +212,21 @@ const getAddress = (slot) => {
   return '';
 };
 
+const composeCourseName = (course) => {
+  const companyName = course.type === INTRA ? `${course.companies[0].name} - ` : '';
+  const misc = course.misc ? ` - ${course.misc}` : '';
+
+  return companyName + course.subProgram.program.name + misc;
+};
+
 exports.exportCourseSlotHistory = async (startDate, endDate) => {
   const courseSlots = await CourseSlot.find({ startDate: { $lte: endDate }, endDate: { $gte: startDate } })
     .populate({ path: 'step', select: 'type name' })
     .populate({
       path: 'course',
-      select: 'type trainees misc subProgram company',
+      select: 'type trainees misc subProgram companies',
       populate: [
-        { path: 'company', select: 'name' },
+        { path: 'companies', select: 'name' },
         { path: 'subProgram', select: 'program', populate: [{ path: 'program', select: 'name' }] },
       ],
     })
@@ -234,14 +241,10 @@ exports.exportCourseSlotHistory = async (startDate, endDate) => {
       .filter(attendance => UtilsHelper.doesArrayIncludeId(slot.course.trainees, attendance.trainee))
       .length;
 
-    const courseName = get(slot, 'course.type') === INTRA
-      ? `${slot.course.company.name} - ${slot.course.subProgram.program.name} - ${slot.course.misc}`
-      : `${slot.course.subProgram.program.name} - ${slot.course.misc}`;
-
     rows.push({
       'Id Créneau': slot._id,
       'Id Formation': slot.course._id,
-      Formation: courseName,
+      Formation: composeCourseName(slot.course),
       Étape: get(slot, 'step.name') || '',
       Type: STEP_TYPES[get(slot, 'step.type')] || '',
       'Date de création': CompaniDate(slot.createdAt).format('dd/LL/yyyy HH:mm:ss') || '',

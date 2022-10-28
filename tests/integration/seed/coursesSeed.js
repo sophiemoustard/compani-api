@@ -19,6 +19,7 @@ const { deleteNonAuthenticationSeeds } = require('../helpers/authentication');
 const {
   vendorAdmin,
   noRoleNoCompany,
+  noRole,
   auxiliary,
   helper,
   auxiliaryWithoutCompany,
@@ -29,7 +30,7 @@ const {
   trainerAndCoach,
 } = require('../../seed/authUsersSeed');
 const { VIDEO, WEBAPP, SLOT_CREATION, SLOT_DELETION, INTRA, INTER_B2B } = require('../../../src/helpers/constants');
-const { auxiliaryRoleId, trainerRoleId } = require('../../seed/authRolesSeed');
+const { auxiliaryRoleId, trainerRoleId, coachRoleId } = require('../../seed/authRolesSeed');
 const CourseBill = require('../../../src/models/CourseBill');
 
 const traineeFromOtherCompany = {
@@ -71,16 +72,28 @@ const contactWithoutPhone = {
   origin: WEBAPP,
 };
 
+const coachFromOtherCompany = {
+  _id: new ObjectId(),
+  identity: { firstname: 'Fred', lastname: 'Astaire' },
+  local: { email: 'coachOtherCompany@alenvi.io', password: '123456!eR' },
+  role: { client: coachRoleId },
+  contact: { phone: '0734856751' },
+  refreshToken: uuidv4(),
+  origin: WEBAPP,
+};
+
 const userList = [
   traineeFromOtherCompany,
   traineeFromAuthCompanyWithFormationExpoToken,
   traineeWithoutCompany,
   contactWithoutPhone,
+  coachFromOtherCompany,
 ];
 
 const userCompanies = [
   { _id: new ObjectId(), user: traineeFromOtherCompany._id, company: otherCompany._id },
   { _id: new ObjectId(), user: traineeFromAuthCompanyWithFormationExpoToken._id, company: authCompany._id },
+  { _id: new ObjectId(), user: coachFromOtherCompany._id, company: otherCompany._id },
 ];
 
 const cardsList = [
@@ -137,7 +150,7 @@ const coursesList = [
   { // 0
     _id: new ObjectId(),
     subProgram: subProgramsList[0]._id,
-    company: authCompany._id,
+    companies: [authCompany._id],
     misc: 'first session',
     trainer: trainer._id,
     trainees: [coach._id, helper._id, clientAdmin._id, vendorAdmin._id],
@@ -151,7 +164,7 @@ const coursesList = [
     _id: new ObjectId(),
     subProgram: subProgramsList[0]._id,
     contact: vendorAdmin._id,
-    company: otherCompany._id,
+    companies: [otherCompany._id],
     misc: 'team formation',
     trainer: new ObjectId(),
     trainees: [traineeFromOtherCompany._id],
@@ -163,7 +176,7 @@ const coursesList = [
     _id: new ObjectId(),
     subProgram: subProgramsList[0]._id,
     contact: vendorAdmin._id,
-    company: authCompany._id,
+    companies: [authCompany._id],
     misc: 'second session',
     trainer: trainer._id,
     type: INTRA,
@@ -181,7 +194,7 @@ const coursesList = [
   { // 3
     _id: new ObjectId(),
     subProgram: subProgramsList[0]._id,
-    company: otherCompany._id,
+    companies: [otherCompany._id],
     misc: 'second team formation',
     type: INTRA,
     maxTrainees: 2,
@@ -205,7 +218,7 @@ const coursesList = [
     misc: 'inter b2b session NOT concerning auth company',
     type: INTER_B2B,
     format: 'blended',
-    trainees: [noRoleNoCompany._id],
+    trainees: [noRole._id],
     salesRepresentative: vendorAdmin._id,
   },
   { // 6 course without trainees and slots
@@ -213,6 +226,7 @@ const coursesList = [
     subProgram: subProgramsList[0]._id,
     misc: 'inter b2b session NOT concerning auth company',
     type: INTER_B2B,
+    trainees: [],
     format: 'strictly_e_learning',
     salesRepresentative: vendorAdmin._id,
   },
@@ -284,12 +298,13 @@ const coursesList = [
     type: INTER_B2B,
     format: 'blended',
     trainer: trainer._id,
+    trainees: [],
     salesRepresentative: vendorAdmin._id,
   },
   { // 14 archived course
     _id: new ObjectId(),
     subProgram: subProgramsList[0]._id,
-    company: authCompany._id,
+    companies: [authCompany._id],
     misc: 'old session',
     trainer: trainer._id,
     trainees: [coach._id, helper._id, clientAdmin._id, trainer._id],
@@ -307,7 +322,7 @@ const coursesList = [
     maxTrainees: 8,
     format: 'blended',
     salesRepresentative: vendorAdmin._id,
-    company: authCompany._id,
+    companies: [authCompany._id],
   },
   { // 16 course without trainee and with slots to plan
     _id: new ObjectId(),
@@ -473,4 +488,5 @@ module.exports = {
   slots,
   traineeFromAuthCompanyWithFormationExpoToken,
   userCompanies,
+  coachFromOtherCompany,
 };

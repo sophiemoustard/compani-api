@@ -63,16 +63,16 @@ exports.getUserQuestionnaires = async (courseId, credentials) => {
 
 const formatQuestionnaireAnswersWithCourse = async (courseId, questionnaireAnswers) => {
   const course = await Course.findOne({ _id: courseId })
-    .select('subProgram company misc')
+    .select('subProgram companies misc')
     .populate({ path: 'subProgram', select: 'program', populate: [{ path: 'program', select: 'name' }] })
-    .populate({ path: 'company', select: 'name' })
+    .populate({ path: 'companies', select: 'name' })
     .lean();
 
   return {
     ...questionnaireAnswers,
     course: {
       programName: course.subProgram.program.name,
-      companyName: get(course, 'company.name') || '',
+      companyName: get(course, 'companies[0].name') || '',
       misc: course.misc,
     },
   };

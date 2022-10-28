@@ -21,7 +21,7 @@ const UtilsHelper = require('./utils');
 const DatesHelper = require('./dates');
 const GDriveStorageHelper = require('./gDriveStorage');
 const { AUXILIARY, TIME_STAMPING_ACTIONS } = require('./constants');
-const { createAndReadFile } = require('./file');
+const FileHelper = require('./file');
 const ESignHelper = require('./eSign');
 const UserHelper = require('./users');
 const EventRepository = require('../repositories/EventRepository');
@@ -355,7 +355,7 @@ exports.addFile = async (fileInfo) => {
 exports.saveCompletedContract = async (everSignDoc) => {
   const finalPdf = await ESign.downloadFinalDocument(everSignDoc.data.document_hash);
   const tmpPath = path.join(os.tmpdir(), `signedDoc-${moment().format('DDMMYYYY-HHmm')}.pdf`);
-  const file = await createAndReadFile(finalPdf.data, tmpPath);
+  const file = await FileHelper.createReadAndReturnFile(finalPdf.data, tmpPath);
 
   const payload = await exports.addFile({
     auxiliaryDriveId: everSignDoc.data.meta.auxiliaryDriveId,

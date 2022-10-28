@@ -14,7 +14,6 @@ const CourseSmsHistory = require('../models/CourseSmsHistory');
 const Attendance = require('../models/Attendance');
 const SubProgram = require('../models/SubProgram');
 const CourseRepository = require('../repositories/CourseRepository');
-const PdfHelper = require('./pdf');
 const UtilsHelper = require('./utils');
 const DatesHelper = require('./dates');
 const ZipHelper = require('./zip');
@@ -39,6 +38,7 @@ const {
   TRAINER,
   REMOTE,
   OPERATIONS,
+  HHhMM,
 } = require('./constants');
 const CourseHistoriesHelper = require('./courseHistories');
 const NotificationHelper = require('./notifications');
@@ -51,7 +51,11 @@ const CourseSlot = require('../models/CourseSlot');
 const CourseHistory = require('../models/CourseHistory');
 
 exports.createCourse = async (payload) => {
-  const course = await (new Course(payload)).save();
+  const coursePayload = payload.company
+    ? { ...omit(payload, 'company'), companies: [payload.company] }
+    : payload;
+
+  const course = await Course.create(coursePayload);
 
   const subProgram = await SubProgram
     .findOne({ _id: course.subProgram }, { steps: 1 })
@@ -87,7 +91,10 @@ const listStrictlyElearningForCompany = async (query, origin) => {
 };
 
 const listBlendedForCompany = async (query, origin) => {
-  const intraCourse = await CourseRepository.findCourseAndPopulate({ ...query, type: INTRA }, origin);
+  const intraCourse = await CourseRepository.findCourseAndPopulate(
+    { ...omit(query, ['company']), companies: [query.company], type: INTRA },
+    origin
+  );
   const interCourse = await CourseRepository.findCourseAndPopulate(
     { ...omit(query, ['company']), type: INTER_B2B },
     origin,
@@ -96,8 +103,10 @@ const listBlendedForCompany = async (query, origin) => {
 
   return [
     ...intraCourse,
-    ...interCourse.filter(course => course.companies && course.companies.includes(query.company))
-      .map(course => ({
+    ...interCourse
+      .filter(course => UtilsHelper.doesArrayIncludeId(
+        course.trainees.map(t => (t.company ? t.company._id : '')), query.company)
+      ).map(course => ({
         ...omit(course, ['companies']),
         trainees: course.trainees.filter(t =>
           (t.company ? UtilsHelper.areObjectIdsEquals(t.company._id, query.company) : false)),
@@ -216,10 +225,10 @@ exports.formatCourseWithProgress = (course) => {
   };
 };
 
-const getCourseForOperations = async (courseId, loggedUser, origin) => {
+const getCourseForOperations = async (courseId, credentials, origin) => {
   const fetchedCourse = await Course.findOne({ _id: courseId })
     .populate([
-      { path: 'company', select: 'name' },
+      { path: 'companies', select: 'name' },
       {
         path: 'trainees',
         select: 'identity.firstname identity.lastname local.email contact picture.link firstMobileConnection',
@@ -270,7 +279,7 @@ const getCourseForOperations = async (courseId, loggedUser, origin) => {
 
   // A coach/client_admin is not supposed to read infos on trainees from other companies
   // espacially for INTER_B2B courses.
-  if (get(loggedUser, 'role.vendor')) {
+  if (get(credentials, 'role.vendor')) {
     return { ...fetchedCourse, totalTheoreticalHours: exports.getTotalTheoreticalHours(fetchedCourse) };
   }
 
@@ -278,14 +287,14 @@ const getCourseForOperations = async (courseId, loggedUser, origin) => {
     ...fetchedCourse,
     totalTheoreticalHours: exports.getTotalTheoreticalHours(fetchedCourse),
     trainees: fetchedCourse.trainees
-      .filter(t => UtilsHelper.areObjectIdsEquals(get(t, 'company._id'), get(loggedUser, 'company._id'))),
+      .filter(t => UtilsHelper.areObjectIdsEquals(get(t, 'company._id'), get(credentials, 'company._id'))),
   };
 };
 
-exports.getCourse = async (query, params, loggedUser) => (
+exports.getCourse = async (query, params, credentials) => (
   query.action === OPERATIONS
-    ? getCourseForOperations(params._id, loggedUser, query.origin)
-    : getCourseForPedagogy(params._id, loggedUser)
+    ? getCourseForOperations(params._id, credentials, query.origin)
+    : getCourseForPedagogy(params._id, credentials)
 );
 
 exports.selectUserHistory = (histories) => {
@@ -543,8 +552,8 @@ exports.removeCourseTrainee = async (courseId, traineeId, user) => Promise.all([
 ]);
 
 exports.formatIntraCourseSlotsForPdf = slot => ({
-  startHour: UtilsHelper.formatHourWithMinutes(slot.startDate),
-  endHour: UtilsHelper.formatHourWithMinutes(slot.endDate),
+  startHour: CompaniDate(slot.startDate).format(HHhMM),
+  endHour: CompaniDate(slot.endDate).format(HHhMM),
 });
 
 exports.formatInterCourseSlotsForPdf = (slot) => {
@@ -571,7 +580,7 @@ exports.formatIntraCourseForPdf = (course) => {
   const courseData = {
     name,
     duration: UtilsHelper.getTotalDuration(course.slots),
-    company: course.company.name,
+    company: course.companies[0].name,
     trainer: course.trainer ? UtilsHelper.formatIdentity(course.trainer.identity, 'FL') : '',
   };
 
@@ -620,7 +629,7 @@ exports.formatInterCourseForPdf = (course) => {
 exports.generateAttendanceSheets = async (courseId) => {
   const course = await Course
     .findOne({ _id: courseId }, { misc: 1, type: 1 })
-    .populate({ path: 'company', select: 'name' })
+    .populate({ path: 'companies', select: 'name' })
     .populate({ path: 'slots', select: 'step startDate endDate address', populate: { path: 'step', select: 'type' } })
     .populate({
       path: 'trainees',
@@ -631,10 +640,9 @@ exports.generateAttendanceSheets = async (courseId) => {
     .populate({ path: 'subProgram', select: 'program', populate: { path: 'program', select: 'name' } })
     .lean();
 
-  const template = course.type === INTRA
-    ? await IntraAttendanceSheet.getPdfContent(exports.formatIntraCourseForPdf(course))
-    : await InterAttendanceSheet.getPdfContent(exports.formatInterCourseForPdf(course));
-  const pdf = await PdfHelper.generatePdf(template);
+  const pdf = course.type === INTRA
+    ? await IntraAttendanceSheet.getPdf(exports.formatIntraCourseForPdf(course))
+    : await InterAttendanceSheet.getPdf(exports.formatInterCourseForPdf(course));
 
   return { fileName: 'emargement.pdf', pdf };
 };
@@ -664,13 +672,13 @@ const getTraineeInformations = (trainee, courseAttendances) => {
 const generateCompletionCertificatePdf = async (courseData, courseAttendances, trainee) => {
   const { traineeIdentity, attendanceDuration } = getTraineeInformations(trainee, courseAttendances);
 
-  const template = await CompletionCertificate.getPdfContent({
+  const pdf = await CompletionCertificate.getPdf({
     ...courseData,
     trainee: { identity: traineeIdentity, attendanceDuration },
     date: CompaniDate().format('dd/LL/yyyy'),
   });
 
-  return { pdf: await PdfHelper.generatePdf(template), name: `Attestation - ${traineeIdentity}.pdf` };
+  return { pdf, name: `Attestation - ${traineeIdentity}.pdf` };
 };
 
 const generateCompletionCertificateWord = async (courseData, courseAttendances, trainee, templatePath) => {
@@ -739,8 +747,7 @@ exports.deleteAccessRule = async (courseId, accessRuleId) => Course.updateOne(
 
 exports.formatHoursForConvocation = slots => slots.reduce(
   (acc, slot) => {
-    const slotHours =
-      `${UtilsHelper.formatHourWithMinutes(slot.startDate)} - ${UtilsHelper.formatHourWithMinutes(slot.endDate)}`;
+    const slotHours = UtilsHelper.formatIntervalHourly(slot);
 
     return acc === '' ? slotHours : `${acc} / ${slotHours}`;
   },
@@ -784,9 +791,9 @@ exports.generateConvocationPdf = async (courseId) => {
 
   const courseName = get(course, 'subProgram.program.name', '').split(' ').join('-') || 'Formation';
 
-  const template = await CourseConvocation.getPdfContent(exports.formatCourseForConvocationPdf(course));
+  const pdf = await CourseConvocation.getPdf(exports.formatCourseForConvocationPdf(course));
 
-  return { pdf: await PdfHelper.generatePdf(template), courseName };
+  return { pdf, courseName };
 };
 
 exports.getQuestionnaires = async (courseId) => {

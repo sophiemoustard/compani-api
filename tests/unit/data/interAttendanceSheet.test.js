@@ -1,6 +1,7 @@
 const sinon = require('sinon');
 const expect = require('expect');
 const FileHelper = require('../../../src/helpers/file');
+const PdfHelper = require('../../../src/helpers/pdf');
 const InterAttendanceSheet = require('../../../src/data/pdf/attendanceSheet/interAttendanceSheet');
 const { PEACH_100, COPPER_500 } = require('../../../src/helpers/constants');
 
@@ -161,7 +162,64 @@ describe('getPdfContent', () => {
 
     const result = await InterAttendanceSheet.getPdfContent(data);
 
-    expect(JSON.stringify(result)).toEqual(JSON.stringify(pdf));
+    expect(JSON.stringify(result.template)).toEqual(JSON.stringify(pdf));
+    expect(result.images).toEqual(paths);
     sinon.assert.calledOnceWithExactly(downloadImages, imageList);
+  });
+});
+
+describe('getPdf', () => {
+  let getPdfContent;
+  let generatePdf;
+
+  beforeEach(() => {
+    getPdfContent = sinon.stub(InterAttendanceSheet, 'getPdfContent');
+    generatePdf = sinon.stub(PdfHelper, 'generatePdf');
+  });
+
+  afterEach(() => {
+    getPdfContent.restore();
+    generatePdf.restore();
+  });
+
+  it('should get pdf', async () => {
+    const data = {
+      trainees: [
+        { traineeName: 'Alain TÉRIEUR', company: 'Alenvi Home SAS' },
+        { traineeName: 'Alex TÉRIEUR', company: 'APEF Rouen' },
+      ],
+    };
+    const template = {
+      content: [
+        {
+          canvas: [{ type: 'rect', x: 0, y: 0, w: 515, h: 108, r: 0, color: PEACH_100 }],
+          absolutePosition: { x: 40, y: 150 },
+        },
+        {
+          canvas: [{ type: 'rect', x: 0, y: 0, w: 515, h: 108, r: 0, color: PEACH_100 }],
+          absolutePosition: { x: 40, y: 150 },
+        },
+      ],
+      defaultStyle: { font: 'SourceSans', fontSize: 10 },
+      pageMargins: [40, 40, 40, 128],
+      styles: {
+        header: { bold: true, fillColor: COPPER_500, color: 'white', alignment: 'center' },
+      },
+      footer: [{
+        columns: [{ text: 'Signature et tampon de l\'organisme de formation :', bold: true }],
+        unbreakable: true,
+        marginLeft: 40,
+        marginRight: 40,
+      }],
+    };
+    const images = [{ url: 'https://storage.googleapis.com/compani-main/tsb_signature.png', name: 'signature.png' }];
+    getPdfContent.returns({ template, images });
+    generatePdf.returns('pdf');
+
+    const result = await InterAttendanceSheet.getPdf(data);
+
+    expect(result).toEqual('pdf');
+    sinon.assert.calledOnceWithExactly(getPdfContent, data);
+    sinon.assert.calledOnceWithExactly(generatePdf, template, images);
   });
 });

@@ -1,4 +1,5 @@
 const UtilsPdfHelper = require('./utils');
+const PdfHelper = require('../../../helpers/pdf');
 const { COPPER_500 } = require('../../../helpers/constants');
 
 const getSlotTableContent = slot => [
@@ -47,13 +48,22 @@ exports.getPdfContent = async (data) => {
   });
 
   return {
-    content: content.flat(),
-    defaultStyle: { font: 'SourceSans', fontSize: 10 },
-    pageMargins: [40, 40, 40, 128],
-    styles: {
-      header: { bold: true, fillColor: COPPER_500, color: 'white', alignment: 'center' },
-      title: { fontSize: 16, bold: true, margin: [8, 32, 0, 0], alignment: 'left', color: COPPER_500 },
+    template: {
+      content: content.flat(),
+      defaultStyle: { font: 'SourceSans', fontSize: 10 },
+      pageMargins: [40, 40, 40, 128],
+      styles: {
+        header: { bold: true, fillColor: COPPER_500, color: 'white', alignment: 'center' },
+        title: { fontSize: 16, bold: true, margin: [8, 32, 0, 0], alignment: 'left', color: COPPER_500 },
+      },
+      footer: UtilsPdfHelper.getFooter(signature),
     },
-    footer: UtilsPdfHelper.getFooter(signature),
+    images: [conscience, compani, decision, signature],
   };
+};
+
+exports.getPdf = async (data) => {
+  const { template, images } = await exports.getPdfContent(data);
+
+  return PdfHelper.generatePdf(template, images);
 };

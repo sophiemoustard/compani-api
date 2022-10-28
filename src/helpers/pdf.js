@@ -23,18 +23,6 @@ exports.formatEventSurchargesForPdf = (eventSurcharges) => {
   return formattedSurcharges;
 };
 
-exports.formatTable = (items, options) => {
-  let out = '';
-  if (items) {
-    out = items.reduce(
-      (acc, item) => `${acc}${options.fn(item)}`,
-      ''
-    );
-  }
-
-  return out;
-};
-
 const fonts = () => {
   const fontAbsolutePath = path.resolve(__dirname, '../data/pdf/fonts');
 
@@ -55,12 +43,12 @@ const fonts = () => {
   };
 };
 
-exports.generatePdf = async (template) => {
+exports.generatePdf = async (template, images = []) => {
   const printer = new PdfPrinter(fonts());
   const doc = printer.createPdfKitDocument(template);
   doc.end();
   const pdf = await getStream.buffer(doc);
-  FileHelper.deleteImages();
+  FileHelper.deleteImages(images);
 
   return pdf;
 };

@@ -6,29 +6,14 @@ const Step = require('../../models/Step');
 const Attendance = require('../../models/Attendance');
 const translate = require('../../helpers/translate');
 const { checkAuthorization } = require('./courses');
-const { E_LEARNING, ON_SITE, REMOTE } = require('../../helpers/constants');
+const { E_LEARNING, ON_SITE, REMOTE, INTRA } = require('../../helpers/constants');
 const UtilsHelper = require('../../helpers/utils');
 const { CompaniDate } = require('../../helpers/dates/companiDates');
 
 const { language } = translate;
 
-exports.getCourseSlot = async (req) => {
-  try {
-    const courseSlot = await CourseSlot
-      .findOne({ _id: req.params._id })
-      .populate({ path: 'step', select: '_id type' })
-      .lean();
-    if (!courseSlot) throw Boom.notFound(translate[language].courseSlotNotFound);
-
-    return courseSlot;
-  } catch (e) {
-    req.log('error', e);
-    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
-  }
-};
-
 const canEditCourse = async (courseId) => {
-  const course = await Course.findById(courseId).lean();
+  const course = await Course.findOne({ _id: courseId }, { archivedAt: 1, trainer: 1, type: 1, companies: 1 }).lean();
   if (!course) throw Boom.notFound();
   if (course.archivedAt) throw Boom.forbidden();
 
@@ -38,10 +23,10 @@ const canEditCourse = async (courseId) => {
 const formatAndCheckAuthorization = async (courseId, credentials) => {
   const course = await canEditCourse(courseId);
 
-  const courseTrainerId = course.trainer ? course.trainer.toHexString() : null;
-  const courseCompanyId = course.company ? course.company.toHexString() : null;
+  const courseTrainerId = get(course, 'trainer');
+  const courseCompanies = course.type === INTRA ? course.companies : [];
 
-  checkAuthorization(credentials, courseTrainerId, courseCompanyId);
+  checkAuthorization(credentials, courseTrainerId, courseCompanies);
 };
 
 const checkPayload = async (courseSlot, payload) => {
@@ -89,8 +74,13 @@ exports.authorizeCreate = async (req) => {
 
 exports.authorizeUpdate = async (req) => {
   try {
-    const { courseSlot } = req.pre;
-    const courseId = get(req, 'pre.courseSlot.course') || '';
+    const courseSlot = await CourseSlot
+      .findOne({ _id: req.params._id }, { course: 1, step: 1 })
+      .populate({ path: 'step', select: 'type' })
+      .lean();
+    if (!courseSlot) throw Boom.notFound(translate[language].courseSlotNotFound);
+
+    const courseId = get(courseSlot, 'course') || '';
     await formatAndCheckAuthorization(courseId, req.auth.credentials);
     await checkPayload(courseSlot, req.payload);
 
@@ -103,7 +93,11 @@ exports.authorizeUpdate = async (req) => {
 
 exports.authorizeDeletion = async (req) => {
   try {
-    const { courseSlot } = req.pre;
+    const courseSlot = await CourseSlot
+      .findOne({ _id: req.params._id }, { course: 1, step: 1 })
+      .populate({ path: 'step', select: '_id type' })
+      .lean();
+    if (!courseSlot) throw Boom.notFound(translate[language].courseSlotNotFound);
 
     await canEditCourse(courseSlot.course);
 

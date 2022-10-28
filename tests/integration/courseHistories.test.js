@@ -111,16 +111,17 @@ describe('COURSE HISTORIES ROUTES - GET /coursehistories', () => {
     ];
 
     roles.forEach((role) => {
-      it(`should return ${role.expectedCode} as user is ${role.name} and course is from another company`, async () => {
-        authToken = await getToken(role.name);
-        const response = await app.inject({
-          method: 'GET',
-          url: `/coursehistories?course=${coursesList[1]._id}`,
-          headers: { Cookie: `alenvi_token=${authToken}` },
-        });
+      it(`should return ${role.expectedCode} as user is ${role.name} and course is from another company`,
+        async () => {
+          authToken = await getToken(role.name);
+          const response = await app.inject({
+            method: 'GET',
+            url: `/coursehistories?course=${coursesList[1]._id}`,
+            headers: { Cookie: `alenvi_token=${authToken}` },
+          });
 
-        expect(response.statusCode).toBe(role.expectedCode);
-      });
+          expect(response.statusCode).toBe(role.expectedCode);
+        });
     });
   });
 });

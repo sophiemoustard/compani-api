@@ -1,4 +1,5 @@
 const sinon = require('sinon');
+const omit = require('lodash/omit');
 const expect = require('expect');
 const { ObjectId } = require('mongodb');
 const fs = require('fs');
@@ -47,16 +48,16 @@ const CourseConvocation = require('../../../src/data/pdf/courseConvocation');
 const CompletionCertificate = require('../../../src/data/pdf/completionCertificate');
 
 describe('createCourse', () => {
-  let save;
+  let create;
   let findOneSubProgram;
   let insertManyCourseSlot;
   beforeEach(() => {
-    save = sinon.stub(Course.prototype, 'save').returnsThis();
+    create = sinon.stub(Course, 'create');
     findOneSubProgram = sinon.stub(SubProgram, 'findOne');
     insertManyCourseSlot = sinon.stub(CourseSlot, 'insertMany');
   });
   afterEach(() => {
-    save.restore();
+    create.restore();
     findOneSubProgram.restore();
     insertManyCourseSlot.restore();
   });
@@ -78,6 +79,7 @@ describe('createCourse', () => {
     };
 
     findOneSubProgram.returns(SinonMongoose.stubChainedQueries(subProgram));
+    create.returns({ ...omit(payload, 'company'), companies: [payload.company], format: 'blended' });
 
     const result = await CourseHelper.createCourse(payload);
 
@@ -85,10 +87,11 @@ describe('createCourse', () => {
 
     expect(result.misc).toEqual('name');
     expect(result.subProgram).toEqual(payload.subProgram);
-    expect(result.company).toEqual(payload.company);
+    expect(result.companies).toContain(payload.company);
     expect(result.format).toEqual('blended');
     expect(result.type).toEqual(INTRA);
     expect(result.salesRepresentative).toEqual(payload.salesRepresentative);
+    sinon.assert.calledOnceWithExactly(create, { ...omit(payload, 'company'), companies: [payload.company] });
     sinon.assert.calledOnceWithExactly(insertManyCourseSlot, slots);
     SinonMongoose.calledOnceWithExactly(
       findOneSubProgram,
@@ -104,22 +107,22 @@ describe('createCourse', () => {
     const subProgram = { _id: new ObjectId(), steps: [] };
     const payload = {
       misc: 'name',
-      company: new ObjectId(),
       subProgram: subProgram._id,
       type: INTER_B2B,
       salesRepresentative: new ObjectId(),
     };
 
     findOneSubProgram.returns(SinonMongoose.stubChainedQueries(subProgram));
+    create.returns({ ...payload, format: 'blended', companies: [] });
 
     const result = await CourseHelper.createCourse(payload);
 
     expect(result.misc).toEqual('name');
     expect(result.subProgram).toEqual(payload.subProgram);
-    expect(result.company).toEqual(payload.company);
     expect(result.format).toEqual('blended');
     expect(result.type).toEqual(INTER_B2B);
     expect(result.salesRepresentative).toEqual(payload.salesRepresentative);
+    sinon.assert.calledOnceWithExactly(create, payload);
     sinon.assert.notCalled(insertManyCourseSlot);
     SinonMongoose.calledOnceWithExactly(
       findOneSubProgram,
@@ -250,7 +253,6 @@ describe('list', () => {
         {
           misc: 'program',
           type: INTER_B2B,
-          companies: ['1234567890abcdef12345678', authCompany.toHexString()],
           trainees: [
             { identity: { firstname: 'Bonjour' }, company: { _id: authCompany } },
             { identity: { firstname: 'Au revoir' }, company: { _id: new ObjectId() } },
@@ -275,7 +277,7 @@ describe('list', () => {
       expect(result).toMatchObject(coursesList);
       sinon.assert.calledWithExactly(
         findCourseAndPopulate.getCall(0),
-        { company: authCompany.toHexString(), trainer: '1234567890abcdef12345678', format: 'blended', type: INTRA },
+        { companies: [authCompany.toHexString()], trainer: '1234567890abcdef12345678', format: 'blended', type: INTRA },
         'webapp'
       );
       sinon.assert.calledWithExactly(
@@ -991,7 +993,7 @@ describe('getCourse', () => {
           {
             query: 'populate',
             args: [[
-              { path: 'company', select: 'name' },
+              { path: 'companies', select: 'name' },
               {
                 path: 'trainees',
                 select: 'identity.firstname identity.lastname local.email contact picture.link firstMobileConnection',
@@ -1074,7 +1076,7 @@ describe('getCourse', () => {
             query: 'populate',
             args: [
               [
-                { path: 'company', select: 'name' },
+                { path: 'companies', select: 'name' },
                 {
                   path: 'trainees',
                   select: 'identity.firstname identity.lastname local.email contact picture.link firstMobileConnection',
@@ -1145,7 +1147,7 @@ describe('getCourse', () => {
           {
             query: 'populate',
             args: [[
-              { path: 'company', select: 'name' },
+              { path: 'companies', select: 'name' },
               {
                 path: 'trainees',
                 select: 'identity.firstname identity.lastname local.email contact picture.link firstMobileConnection',
@@ -2601,7 +2603,7 @@ describe('formatIntraCourseForPdf', () => {
         { startDate: '2020-04-12T14:00:00', endDate: '2020-04-12T17:30:00', step: { type: 'on_site' } },
         { startDate: '2020-04-14T18:00:00', endDate: '2020-04-14T19:30:00', step: { type: 'remote' } },
       ],
-      company: { name: 'alenvi' },
+      companies: [{ name: 'alenvi' }],
     };
 
     getTotalDuration.returns('8h');
@@ -2738,23 +2740,23 @@ describe('generateAttendanceSheets', () => {
   let formatInterCourseForPdf;
   let formatIntraCourseForPdf;
   let generatePdf;
-  let interAttendanceSheetGetPdfContent;
-  let intraAttendanceSheetGetPdfContent;
+  let interAttendanceSheetGetPdf;
+  let intraAttendanceSheetGetPdf;
   beforeEach(() => {
     courseFindOne = sinon.stub(Course, 'findOne');
     formatInterCourseForPdf = sinon.stub(CourseHelper, 'formatInterCourseForPdf');
     formatIntraCourseForPdf = sinon.stub(CourseHelper, 'formatIntraCourseForPdf');
     generatePdf = sinon.stub(PdfHelper, 'generatePdf');
-    interAttendanceSheetGetPdfContent = sinon.stub(InterAttendanceSheet, 'getPdfContent');
-    intraAttendanceSheetGetPdfContent = sinon.stub(IntraAttendanceSheet, 'getPdfContent');
+    interAttendanceSheetGetPdf = sinon.stub(InterAttendanceSheet, 'getPdf');
+    intraAttendanceSheetGetPdf = sinon.stub(IntraAttendanceSheet, 'getPdf');
   });
   afterEach(() => {
     courseFindOne.restore();
     formatInterCourseForPdf.restore();
     formatIntraCourseForPdf.restore();
     generatePdf.restore();
-    interAttendanceSheetGetPdfContent.restore();
-    intraAttendanceSheetGetPdfContent.restore();
+    interAttendanceSheetGetPdf.restore();
+    intraAttendanceSheetGetPdf.restore();
   });
 
   it('should download attendance sheet for inter b2b course', async () => {
@@ -2764,14 +2766,13 @@ describe('generateAttendanceSheets', () => {
     courseFindOne.returns(SinonMongoose.stubChainedQueries(course));
 
     formatInterCourseForPdf.returns({ name: 'la formation - des infos en plus' });
-    generatePdf.returns('pdf');
-    interAttendanceSheetGetPdfContent.returns({ content: [{ text: 'la formation - des infos en plus' }] });
+    interAttendanceSheetGetPdf.returns('pdf');
 
     await CourseHelper.generateAttendanceSheets(courseId);
 
     SinonMongoose.calledOnceWithExactly(courseFindOne, [
       { query: 'findOne', args: [{ _id: courseId }, { misc: 1, type: 1 }] },
-      { query: 'populate', args: [{ path: 'company', select: 'name' }] },
+      { query: 'populate', args: [{ path: 'companies', select: 'name' }] },
       {
         query: 'populate',
         args: [{ path: 'slots', select: 'step startDate endDate address', populate: { path: 'step', select: 'type' } }],
@@ -2793,9 +2794,8 @@ describe('generateAttendanceSheets', () => {
     ]);
     sinon.assert.calledOnceWithExactly(formatInterCourseForPdf, course);
     sinon.assert.notCalled(formatIntraCourseForPdf);
-    sinon.assert.notCalled(intraAttendanceSheetGetPdfContent);
-    sinon.assert.calledOnceWithExactly(generatePdf, { content: [{ text: 'la formation - des infos en plus' }] });
-    sinon.assert.calledOnceWithExactly(interAttendanceSheetGetPdfContent, { name: 'la formation - des infos en plus' });
+    sinon.assert.notCalled(intraAttendanceSheetGetPdf);
+    sinon.assert.calledOnceWithExactly(interAttendanceSheetGetPdf, { name: 'la formation - des infos en plus' });
   });
 
   it('should download attendance sheet for intra course', async () => {
@@ -2805,14 +2805,13 @@ describe('generateAttendanceSheets', () => {
     courseFindOne.returns(SinonMongoose.stubChainedQueries(course));
 
     formatIntraCourseForPdf.returns({ name: 'la formation - des infos en plus' });
-    generatePdf.returns('pdf');
-    intraAttendanceSheetGetPdfContent.returns({ content: [{ text: 'la formation - des infos en plus' }] });
+    intraAttendanceSheetGetPdf.returns('pdf');
 
     await CourseHelper.generateAttendanceSheets(courseId);
 
     SinonMongoose.calledOnceWithExactly(courseFindOne, [
       { query: 'findOne', args: [{ _id: courseId }, { misc: 1, type: 1 }] },
-      { query: 'populate', args: [{ path: 'company', select: 'name' }] },
+      { query: 'populate', args: [{ path: 'companies', select: 'name' }] },
       {
         query: 'populate',
         args: [{ path: 'slots', select: 'step startDate endDate address', populate: { path: 'step', select: 'type' } }],
@@ -2834,8 +2833,7 @@ describe('generateAttendanceSheets', () => {
     ]);
     sinon.assert.calledOnceWithExactly(formatIntraCourseForPdf, course);
     sinon.assert.notCalled(formatInterCourseForPdf);
-    sinon.assert.notCalled(interAttendanceSheetGetPdfContent);
-    sinon.assert.calledOnceWithExactly(generatePdf, { content: [{ text: 'la formation - des infos en plus' }] });
+    sinon.assert.calledOnceWithExactly(intraAttendanceSheetGetPdf, { name: 'la formation - des infos en plus' });
   });
 });
 
@@ -2890,8 +2888,7 @@ describe('generateCompletionCertificate', () => {
   let createReadStream;
   let downloadFileById;
   let tmpDir;
-  let getPdfContent;
-  let generatePdf;
+  let getPdf;
   beforeEach(() => {
     courseFindOne = sinon.stub(Course, 'findOne');
     attendanceFind = sinon.stub(Attendance, 'find');
@@ -2904,8 +2901,7 @@ describe('generateCompletionCertificate', () => {
     createReadStream = sinon.stub(fs, 'createReadStream');
     downloadFileById = sinon.stub(Drive, 'downloadFileById');
     tmpDir = sinon.stub(os, 'tmpdir').returns('/path');
-    getPdfContent = sinon.stub(CompletionCertificate, 'getPdfContent');
-    generatePdf = sinon.stub(PdfHelper, 'generatePdf');
+    getPdf = sinon.stub(CompletionCertificate, 'getPdf');
   });
   afterEach(() => {
     courseFindOne.restore();
@@ -2919,8 +2915,7 @@ describe('generateCompletionCertificate', () => {
     createReadStream.restore();
     downloadFileById.restore();
     tmpDir.restore();
-    getPdfContent.restore();
-    generatePdf.restore();
+    getPdf.restore();
   });
 
   it('should download completion certificates from webapp (vendor)', async () => {
@@ -3051,8 +3046,7 @@ describe('generateCompletionCertificate', () => {
       },
       { query: 'lean' },
     ]);
-    sinon.assert.notCalled(getPdfContent);
-    sinon.assert.notCalled(generatePdf);
+    sinon.assert.notCalled(getPdf);
   });
 
   it('should download completion certificates from webapp (client)', async () => {
@@ -3140,8 +3134,7 @@ describe('generateCompletionCertificate', () => {
       },
       { query: 'lean' },
     ]);
-    sinon.assert.notCalled(getPdfContent);
-    sinon.assert.notCalled(generatePdf);
+    sinon.assert.notCalled(getPdf);
   });
 
   it('should download completion certificates from mobile', async () => {
@@ -3184,8 +3177,7 @@ describe('generateCompletionCertificate', () => {
     formatCourseForDocuments.returns(courseData);
     formatIdentity.onCall(0).returns('trainee 1');
     getTotalDuration.onCall(0).returns('4h30');
-    getPdfContent.returns({ content: 'test' });
-    generatePdf.returns('pdf');
+    getPdf.returns('pdf');
 
     const result = await CourseHelper.generateCompletionCertificates(courseId, credentials, MOBILE);
 
@@ -3193,12 +3185,11 @@ describe('generateCompletionCertificate', () => {
     sinon.assert.calledOnceWithExactly(formatCourseForDocuments, course);
     sinon.assert.calledOnceWithExactly(formatIdentity, { lastname: 'trainee 1' }, 'FL');
     sinon.assert.calledOnceWithExactly(getTotalDuration, [attendances[0].courseSlot, attendances[1].courseSlot]);
-    sinon.assert.calledOnceWithExactly(getPdfContent, {
+    sinon.assert.calledOnceWithExactly(getPdf, {
       ...courseData,
       trainee: { identity: 'trainee 1', attendanceDuration: '4h30' },
       date: '20/01/2020',
     });
-    sinon.assert.calledOnceWithExactly(generatePdf, { content: 'test' });
     SinonMongoose.calledOnceWithExactly(courseFindOne, [
       { query: 'findOne', args: [{ _id: courseId }] },
       { query: 'populate', args: [{ path: 'slots', select: 'startDate endDate' }] },
@@ -3364,20 +3355,17 @@ describe('formatCourseForConvocationPdf', () => {
 
 describe('generateConvocationPdf', () => {
   let formatCourseForConvocationPdf;
-  let generatePdf;
   let courseFindOne;
-  let getPdfContent;
+  let getPdf;
   beforeEach(() => {
     formatCourseForConvocationPdf = sinon.stub(CourseHelper, 'formatCourseForConvocationPdf');
-    generatePdf = sinon.stub(PdfHelper, 'generatePdf');
     courseFindOne = sinon.stub(Course, 'findOne');
-    getPdfContent = sinon.stub(CourseConvocation, 'getPdfContent');
+    getPdf = sinon.stub(CourseConvocation, 'getPdf');
   });
   afterEach(() => {
     formatCourseForConvocationPdf.restore();
-    generatePdf.restore();
     courseFindOne.restore();
-    getPdfContent.restore();
+    getPdf.restore();
   });
 
   it('should return pdf', async () => {
@@ -3413,8 +3401,7 @@ describe('generateConvocationPdf', () => {
       }],
     });
 
-    generatePdf.returns('pdf');
-    getPdfContent.returns({ content: 'test' });
+    getPdf.returns('pdf');
 
     const result = await CourseHelper.generateConvocationPdf(courseId);
 
@@ -3452,9 +3439,8 @@ describe('generateConvocationPdf', () => {
         }],
       }
     );
-    sinon.assert.calledOnceWithExactly(generatePdf, { content: 'test' });
     sinon.assert.calledOnceWithExactly(
-      getPdfContent,
+      getPdf,
       {
         _id: courseId,
         subProgram: { program: { name: 'Comment attraper des Pokemons' } },

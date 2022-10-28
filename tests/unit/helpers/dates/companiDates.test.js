@@ -51,7 +51,9 @@ describe('CompaniDate', () => {
           endOf: expect.any(Function),
           diff: expect.any(Function),
           oldDiff: expect.any(Function),
+          add: expect.any(Function),
           oldAdd: expect.any(Function),
+          subtract: expect.any(Function),
           oldSubtract: expect.any(Function),
           set: expect.any(Function),
         }));
@@ -718,33 +720,6 @@ describe('MANIPULATE', () => {
     });
   });
 
-  describe('subtract', () => {
-    const companiDate = CompaniDatesHelper.CompaniDate('2021-12-01T07:00:00.000Z');
-
-    it('should return a newly constructed companiDate, decreased by amount', () => {
-      const result = companiDate.oldSubtract({ months: 1, hours: 2 });
-
-      expect(result).toEqual(expect.objectContaining({ _getDate: expect.any(luxon.DateTime) }));
-      expect(result._getDate.toUTC().toISO()).toEqual('2021-11-01T05:00:00.000Z');
-    });
-
-    it('should return error if invalid unit', () => {
-      try {
-        companiDate.oldSubtract({ jour: 1, hours: 2 });
-      } catch (e) {
-        expect(e).toEqual(new Error('Invalid unit jour'));
-      }
-    });
-
-    it('should return error if amount is number', () => {
-      try {
-        companiDate.oldSubtract(11111);
-      } catch (e) {
-        expect(e).toEqual(new Error('Invalid argument: expected to be an object, got number'));
-      }
-    });
-  });
-
   describe('set', () => {
     const companiDate = CompaniDatesHelper.CompaniDate('2021-12-20T07:00:00.000Z');
 
@@ -766,7 +741,7 @@ describe('MANIPULATE', () => {
 
   describe('diff', () => {
     let _formatMiscToCompaniDate;
-    const companiDate = CompaniDatesHelper.CompaniDate('2021-11-24T10:00:00.000Z');
+    const companiDate = CompaniDatesHelper.CompaniDate('2021-10-18T10:00:00.000Z');
 
     beforeEach(() => {
       _formatMiscToCompaniDate = sinon.spy(CompaniDatesHelper, '_formatMiscToCompaniDate');
@@ -776,28 +751,288 @@ describe('MANIPULATE', () => {
       _formatMiscToCompaniDate.restore();
     });
 
-    it('should return difference in positive days', () => {
-      const otherDate = '2021-11-20T10:00:00.000Z';
-      const result = companiDate.diff(otherDate, 'days');
+    describe('Difference in int', () => {
+      it('should return difference in int years', () => {
+        const otherDate = '2019-10-18T10:00:00.000Z';
+        const result = companiDate.diff(otherDate, 'years');
 
-      expect(result).toStrictEqual('P4D');
-      sinon.assert.calledOnceWithExactly(_formatMiscToCompaniDate, otherDate);
+        expect(result).toStrictEqual('P2Y');
+        sinon.assert.calledOnceWithExactly(_formatMiscToCompaniDate, otherDate);
+      });
+
+      it('should return difference in int month', () => {
+        const otherDate = '2021-08-18T10:00:00.000Z';
+        const result = companiDate.diff(otherDate, 'months');
+
+        expect(result).toStrictEqual('P2M');
+        sinon.assert.calledOnceWithExactly(_formatMiscToCompaniDate, otherDate);
+      });
+
+      it('should return difference in int weeks', () => {
+        const otherDate = '2021-08-09T10:00:00.000Z';
+        const result = companiDate.diff(otherDate, 'weeks');
+
+        expect(result).toStrictEqual('P10W');
+        sinon.assert.calledOnceWithExactly(_formatMiscToCompaniDate, otherDate);
+      });
+
+      it('should return difference in int days', () => {
+        const otherDate = '2021-10-14T10:00:00.000Z';
+        const result = companiDate.diff(otherDate, 'days');
+
+        expect(result).toStrictEqual('P4D');
+        sinon.assert.calledOnceWithExactly(_formatMiscToCompaniDate, otherDate);
+      });
+
+      it('should return difference in int minutes', () => {
+        const otherDate = '2021-10-14T10:00:00.000Z';
+        const result = companiDate.diff(otherDate, 'minutes');
+
+        expect(result).toStrictEqual('PT5760M');
+        sinon.assert.calledOnceWithExactly(_formatMiscToCompaniDate, otherDate);
+      });
+
+      it('should return difference in int seconds', () => {
+        const otherDate = '2021-10-18T09:45:55.000Z';
+        const result = companiDate.diff(otherDate, 'seconds');
+
+        expect(result).toStrictEqual(`PT${14 * 60 + 5}S`);
+        sinon.assert.calledOnceWithExactly(_formatMiscToCompaniDate, otherDate);
+      });
+
+      it('should return difference in int negative days', () => {
+        const otherDate = '2021-10-24T10:00:00.000Z';
+        const result = companiDate.diff(otherDate, 'days');
+
+        expect(result).toStrictEqual('P-6D');
+        sinon.assert.calledOnceWithExactly(_formatMiscToCompaniDate, otherDate);
+      });
     });
 
-    it('should return difference in positive minutes', () => {
-      const otherDate = '2021-11-20T10:00:00.000Z';
-      const result = companiDate.diff(otherDate, 'minutes');
+    describe('Difference in float', () => {
+      it('should return difference in float years', () => {
+        const otherDate = '2019-09-12T03:31:09.120Z';
+        const result = companiDate.diff(otherDate, 'years');
 
-      expect(result).toStrictEqual('PT5760M');
-      sinon.assert.calledOnceWithExactly(_formatMiscToCompaniDate, otherDate);
+        expect(result).toStrictEqual(`P2YT${36 * 24 * 60 * 60 + 6 * 60 * 60 + 28 * 60 + 50.880}S`);
+        sinon.assert.calledOnceWithExactly(_formatMiscToCompaniDate, otherDate);
+      });
+
+      it('should return difference in float month', () => {
+        const otherDate = '2021-07-28T17:03:38.108Z';
+        const result = companiDate.diff(otherDate, 'months');
+
+        expect(result).toStrictEqual(`P2MT${19 * 24 * 60 * 60 + 16 * 60 * 60 + 56 * 60 + 21.892}S`);
+        sinon.assert.calledOnceWithExactly(_formatMiscToCompaniDate, otherDate);
+      });
+
+      it('should return difference in float weeks', () => {
+        const otherDate = '2021-07-16T01:54:23.811Z';
+        const result = companiDate.diff(otherDate, 'weeks');
+
+        expect(result).toStrictEqual(`P13WT${3 * 24 * 60 * 60 + 8 * 60 * 60 + 5 * 60 + 36.189}S`);
+        sinon.assert.calledOnceWithExactly(_formatMiscToCompaniDate, otherDate);
+      });
+
+      it('should return difference in float days', () => {
+        const otherDate = '2021-09-01T23:28:11.020Z';
+        const result = companiDate.diff(otherDate, 'days');
+
+        expect(result).toStrictEqual(`P46DT${10 * 60 * 60 + 31 * 60 + 48.980}S`);
+        sinon.assert.calledOnceWithExactly(_formatMiscToCompaniDate, otherDate);
+      });
+
+      it('should return difference in float minutes', () => {
+        const otherDate = '2021-10-17T14:40:33.179Z';
+        const result = companiDate.diff(otherDate, 'minutes');
+
+        expect(result).toStrictEqual(`PT${19 * 60 + 19}M26.821S`);
+        sinon.assert.calledOnceWithExactly(_formatMiscToCompaniDate, otherDate);
+      });
+
+      it('should return difference in float seconds', () => {
+        const otherDate = '2021-10-18T09:30:39.019Z';
+        const result = companiDate.diff(otherDate, 'seconds');
+
+        expect(result).toStrictEqual(`PT${29 * 60 + 20}.981S`);
+        sinon.assert.calledOnceWithExactly(_formatMiscToCompaniDate, otherDate);
+      });
     });
 
-    it('should return difference in negative days', () => {
-      const otherDate = '2021-11-30T10:00:00.000Z';
-      const result = companiDate.diff(otherDate, 'days');
+    describe('Specific calendar differences in month', () => {
+      it('should return difference of 1 month or 30 days, in may, compute between same day of month', () => {
+        const date = '2021-05-03T00:00:00.000Z';
+        const otherDate = '2021-04-03T00:00:00.000Z';
+        const diffInMonths = CompaniDatesHelper.CompaniDate(date).diff(otherDate, 'months');
+        const diffInDays = CompaniDatesHelper.CompaniDate(date).diff(otherDate, 'days');
 
-      expect(result).toStrictEqual('P-6D');
-      sinon.assert.calledOnceWithExactly(_formatMiscToCompaniDate, otherDate);
+        expect(diffInMonths).toStrictEqual('P1M');
+        expect(diffInDays).toStrictEqual('P30D');
+        sinon.assert.calledWithExactly(_formatMiscToCompaniDate.getCall(0), date);
+        sinon.assert.calledWithExactly(_formatMiscToCompaniDate.getCall(1), otherDate);
+      });
+
+      it('should return difference of 1 month or 31 days, in jun, compute between same day of month', () => {
+        const date = '2021-06-03T00:00:00.000Z';
+        const otherDate = '2021-05-03T00:00:00.000Z';
+        const diffInMonths = CompaniDatesHelper.CompaniDate(date).diff(otherDate, 'months');
+        const diffInDays = CompaniDatesHelper.CompaniDate(date).diff(otherDate, 'days');
+
+        expect(diffInMonths).toStrictEqual('P1M');
+        expect(diffInDays).toStrictEqual('P31D');
+        sinon.assert.calledWithExactly(_formatMiscToCompaniDate.getCall(0), date);
+        sinon.assert.calledWithExactly(_formatMiscToCompaniDate.getCall(1), otherDate);
+      });
+
+      it('should return difference of 1 month or 30 days, in may, compute between ends of month', () => {
+        const date = '2021-04-30T00:00:00.000Z';
+        const otherDate = '2021-03-31T00:00:00.000Z';
+        const diffInMonths = CompaniDatesHelper.CompaniDate(date).diff(otherDate, 'months');
+        const diffInDays = CompaniDatesHelper.CompaniDate(date).diff(otherDate, 'days');
+
+        expect(diffInMonths).toStrictEqual('P1M');
+        expect(diffInDays).toStrictEqual('P30D');
+        sinon.assert.calledWithExactly(_formatMiscToCompaniDate.getCall(0), date);
+        sinon.assert.calledWithExactly(_formatMiscToCompaniDate.getCall(1), otherDate);
+      });
+
+      it('should return difference of (1 month + 1 day) or 31 days, in jun, compute between endOf of months', () => {
+        const date = '2021-05-31T00:00:00.000Z';
+        const otherDate = '2021-04-30T00:00:00.000Z';
+        const diffInMonths = CompaniDatesHelper.CompaniDate(date).diff(otherDate, 'months');
+        const diffInDays = CompaniDatesHelper.CompaniDate(date).diff(otherDate, 'days');
+
+        expect(diffInMonths).toStrictEqual(`P1MT${24 * 60 * 60}S`);
+        expect(diffInDays).toStrictEqual('P31D');
+        sinon.assert.calledWithExactly(_formatMiscToCompaniDate.getCall(0), date);
+        sinon.assert.calledWithExactly(_formatMiscToCompaniDate.getCall(1), otherDate);
+      });
+    });
+
+    describe('Differences on leap year', () => {
+      it('should return difference of 1 year or 366 days, if leap year', () => {
+        const date = '2021-01-01T10:00:00.000Z';
+        const otherDate = '2020-01-01T10:00:00.000Z';
+        const diffInYears = CompaniDatesHelper.CompaniDate(date).diff(otherDate, 'years');
+        const diffInDays = CompaniDatesHelper.CompaniDate(date).diff(otherDate, 'days');
+
+        expect(diffInYears).toStrictEqual('P1Y');
+        expect(diffInDays).toStrictEqual('P366D');
+        sinon.assert.calledWithExactly(_formatMiscToCompaniDate.getCall(0), date);
+        sinon.assert.calledWithExactly(_formatMiscToCompaniDate.getCall(1), otherDate);
+      });
+
+      it('should return difference of 1 year or 365 days, if NOT a leap year', () => {
+        const date = '2022-01-01T10:00:00.000Z';
+        const otherDate = '2021-01-01T10:00:00.000Z';
+        const diffInYears = CompaniDatesHelper.CompaniDate(date).diff(otherDate, 'years');
+        const diffInDays = CompaniDatesHelper.CompaniDate(date).diff(otherDate, 'days');
+
+        expect(diffInYears).toStrictEqual('P1Y');
+        expect(diffInDays).toStrictEqual('P365D');
+        sinon.assert.calledWithExactly(_formatMiscToCompaniDate.getCall(0), date);
+        sinon.assert.calledWithExactly(_formatMiscToCompaniDate.getCall(1), otherDate);
+      });
+
+      it('should return difference of 1 month or 29 days, if leap year', () => {
+        const date = '2020-03-01T10:00:00.000Z';
+        const otherDate = '2020-02-01T10:00:00.000Z';
+        const diffInYears = CompaniDatesHelper.CompaniDate(date).diff(otherDate, 'months');
+        const diffInDays = CompaniDatesHelper.CompaniDate(date).diff(otherDate, 'days');
+
+        expect(diffInYears).toStrictEqual('P1M');
+        expect(diffInDays).toStrictEqual('P29D');
+        sinon.assert.calledWithExactly(_formatMiscToCompaniDate.getCall(0), date);
+        sinon.assert.calledWithExactly(_formatMiscToCompaniDate.getCall(1), otherDate);
+      });
+
+      it('should return difference of 1 month or 28 days, if NOT a leap year', () => {
+        const date = '2021-03-01T10:00:00.000Z';
+        const otherDate = '2021-02-01T10:00:00.000Z';
+        const diffInYears = CompaniDatesHelper.CompaniDate(date).diff(otherDate, 'months');
+        const diffInDays = CompaniDatesHelper.CompaniDate(date).diff(otherDate, 'days');
+
+        expect(diffInYears).toStrictEqual('P1M');
+        expect(diffInDays).toStrictEqual('P28D');
+        sinon.assert.calledWithExactly(_formatMiscToCompaniDate.getCall(0), date);
+        sinon.assert.calledWithExactly(_formatMiscToCompaniDate.getCall(1), otherDate);
+      });
+    });
+
+    describe('Differences on time shift', () => {
+      // please note that dates are expressed in local here (and not in UTC) in order to spotlight time shift
+
+      it('should return difference of 1 day or 23 hours, if time shifts from winter to summer', () => {
+        const date = '2021-03-28T10:00:00.000+02:00';
+        const otherDate = '2021-03-27T10:00:00.000+01:00';
+        const diffInDays = CompaniDatesHelper.CompaniDate(date).diff(otherDate, 'days');
+        const diffInHours = CompaniDatesHelper.CompaniDate(date).diff(otherDate, 'hours');
+
+        expect(diffInDays).toStrictEqual('P1D');
+        expect(diffInHours).toStrictEqual('PT23H');
+        sinon.assert.calledWithExactly(_formatMiscToCompaniDate.getCall(0), date);
+        sinon.assert.calledWithExactly(_formatMiscToCompaniDate.getCall(1), otherDate);
+      });
+
+      it('should return difference of 1 month or (31 * 24 - 1) hours, if time shifts from winter to summer', () => {
+        const date = '2021-04-01T10:00:00.000+02:00';
+        const otherDate = '2021-03-01T10:00:00.000+01:00';
+        const diffInMonth = CompaniDatesHelper.CompaniDate(date).diff(otherDate, 'months');
+        const diffInDays = CompaniDatesHelper.CompaniDate(date).diff(otherDate, 'days');
+        const diffInHours = CompaniDatesHelper.CompaniDate(date).diff(otherDate, 'hours');
+
+        expect(diffInMonth).toStrictEqual('P1M');
+        expect(diffInDays).toStrictEqual('P31D');
+        expect(diffInHours).toStrictEqual(`PT${31 * 24 - 1}H`);
+        sinon.assert.calledWithExactly(_formatMiscToCompaniDate.getCall(0), date);
+        sinon.assert.calledWithExactly(_formatMiscToCompaniDate.getCall(1), otherDate);
+      });
+
+      it('should return difference in float months or in hours, if time shifts from winter to summer', () => {
+        const date = '2021-04-23T10:00:00.000+02:00';
+        const otherDate = '2021-03-21T20:39:47.123+01:00';
+        const diffInMonth = CompaniDatesHelper.CompaniDate(date).diff(otherDate, 'months');
+        const diffInHours = CompaniDatesHelper.CompaniDate(date).diff(otherDate, 'hours');
+
+        expect(diffInMonth).toStrictEqual(`P1MT${(1 * 24 * 60 * 60) + (13 * 60 * 60) + 20 * 60 + 12.877}S`);
+        // there is an hour less, if computation is made in hours
+        expect(diffInHours).toStrictEqual(`PT${(31 + 1) * 24 + (13 - 1)}H${20 * 60 + 12.877}S`);
+        sinon.assert.calledWithExactly(_formatMiscToCompaniDate.getCall(0), date);
+        sinon.assert.calledWithExactly(_formatMiscToCompaniDate.getCall(1), otherDate);
+      });
+
+      it('should return difference in float months, time shift is absorbed in the complete month', () => {
+        const date = '2021-04-03T10:00:00.000+02:00';
+        const otherDate = '2021-03-01T10:00:00.000+01:00';
+        const diffInMonth = CompaniDatesHelper.CompaniDate(date).diff(otherDate, 'months');
+
+        expect(diffInMonth).toStrictEqual(`P1MT${2 * 24 * 60 * 60}S`);
+        sinon.assert.calledWithExactly(_formatMiscToCompaniDate.getCall(0), date);
+        sinon.assert.calledWithExactly(_formatMiscToCompaniDate.getCall(1), otherDate);
+      });
+
+      it('should return difference in float months, time shift is present in the left over', () => {
+        const date = '2021-03-30T10:00:00.000+02:00';
+        const otherDate = '2021-02-25T10:00:00.000+01:00';
+        const diffInMonth = CompaniDatesHelper.CompaniDate(date).diff(otherDate, 'months');
+
+        // there is an hour less, if shift happen during the left over (as left over computation is done in seconds)
+        expect(diffInMonth).toStrictEqual(`P1MT${(5 * 24 * 60 * 60) - (1 * 60 * 60)}S`);
+        sinon.assert.calledWithExactly(_formatMiscToCompaniDate.getCall(0), date);
+        sinon.assert.calledWithExactly(_formatMiscToCompaniDate.getCall(1), otherDate);
+      });
+
+      it('should return difference of 1 day or 25 hours, if time shifts from summer to winter', () => {
+        const date = '2021-10-31T10:00:00.000+01:00';
+        const otherDate = '2021-10-30T10:00:00.000+02:00';
+        const diffInDays = CompaniDatesHelper.CompaniDate(date).diff(otherDate, 'days');
+        const diffInHours = CompaniDatesHelper.CompaniDate(date).diff(otherDate, 'hours');
+
+        expect(diffInDays).toStrictEqual('P1D');
+        expect(diffInHours).toStrictEqual('PT25H');
+        sinon.assert.calledWithExactly(_formatMiscToCompaniDate.getCall(0), date);
+        sinon.assert.calledWithExactly(_formatMiscToCompaniDate.getCall(1), otherDate);
+      });
     });
 
     it('should return difference 0 expressed in second (despite that diff was made in days)', () => {
@@ -808,7 +1043,7 @@ describe('MANIPULATE', () => {
     });
 
     it('should return difference in positive day (singular) /!\\ bad practice to use singular', () => {
-      const otherDate = '2021-11-20T10:00:00.000Z';
+      const otherDate = '2021-10-14T10:00:00.000Z';
       const result = companiDate.diff(otherDate, 'day');
 
       expect(result).toStrictEqual('P4D');
@@ -909,6 +1144,62 @@ describe('MANIPULATE', () => {
     it('should return error if number', () => {
       try {
         CompaniDatesHelper.CompaniDate('2022-01-01T00:00:00.000Z').add(12);
+
+        expect(true).toBe(false);
+      } catch (e) {
+        expect(e).toEqual(
+          new Error('Invalid Duration: unparsable: the input "12" can\'t be parsed as ISO 8601')
+        );
+      }
+    });
+  });
+
+  describe('subtract', () => {
+    it('should subtract iso amount to date', () => {
+      const result = CompaniDatesHelper.CompaniDate('2022-01-01T00:00:00.000Z').subtract('P1Y2M3DT1H15M33S');
+
+      expect(result.toISO()).toBe('2020-10-28T22:44:27.000Z');
+    });
+
+    it('should return error if invalid iso duration', () => {
+      try {
+        CompaniDatesHelper.CompaniDate('2022-01-01T00:00:00.000Z').subtract('P1M3Y');
+
+        expect(true).toBe(false);
+      } catch (e) {
+        expect(e).toEqual(
+          new Error('Invalid Duration: unparsable: the input "P1M3Y" can\'t be parsed as ISO 8601')
+        );
+      }
+    });
+
+    it('should return error if instance of CompaniDuration', () => {
+      try {
+        CompaniDatesHelper.CompaniDate('2022-01-01T00:00:00.000Z').subtract(CompaniDuration('PT1M'));
+
+        expect(true).toBe(false);
+      } catch (e) {
+        expect(e).toEqual(
+          new Error('Invalid Duration: unparsable: the input "[object Object]" can\'t be parsed as ISO 8601')
+        );
+      }
+    });
+
+    it('should return error if object', () => {
+      try {
+        CompaniDatesHelper.CompaniDate('2022-01-01T00:00:00.000Z').subtract({ minute: 1 });
+
+        expect(true).toBe(false);
+      } catch (e) {
+        expect(e).toEqual(
+          new Error('Invalid Duration: unparsable: the input "[object Object]" can\'t be parsed as ISO 8601')
+        );
+      }
+    });
+
+    it('should return error if number', () => {
+      try {
+        CompaniDatesHelper.CompaniDate('2022-01-01T00:00:00.000Z').subtract(12);
 
         expect(true).toBe(false);
       } catch (e) {
@@ -1027,6 +1318,33 @@ describe('Old functions to be deleted', () => {
     it('should return error if amount is number', () => {
       try {
         companiDate.oldAdd(11111);
+      } catch (e) {
+        expect(e).toEqual(new Error('Invalid argument: expected to be an object, got number'));
+      }
+    });
+  });
+
+  describe('oldSubtract', () => {
+    const companiDate = CompaniDatesHelper.CompaniDate('2021-12-01T07:00:00.000Z');
+
+    it('should return a newly constructed companiDate, decreased by amount', () => {
+      const result = companiDate.oldSubtract({ months: 1, hours: 2 });
+
+      expect(result).toEqual(expect.objectContaining({ _getDate: expect.any(luxon.DateTime) }));
+      expect(result._getDate.toUTC().toISO()).toEqual('2021-11-01T05:00:00.000Z');
+    });
+
+    it('should return error if invalid unit', () => {
+      try {
+        companiDate.oldSubtract({ jour: 1, hours: 2 });
+      } catch (e) {
+        expect(e).toEqual(new Error('Invalid unit jour'));
+      }
+    });
+
+    it('should return error if amount is number', () => {
+      try {
+        companiDate.oldSubtract(11111);
       } catch (e) {
         expect(e).toEqual(new Error('Invalid argument: expected to be an object, got number'));
       }

@@ -1,6 +1,7 @@
 const sinon = require('sinon');
 const expect = require('expect');
 const FileHelper = require('../../../src/helpers/file');
+const PdfHelper = require('../../../src/helpers/pdf');
 const CreditNotePdf = require('../../../src/data/pdf/billing/creditNote');
 
 describe('getPdfContent', () => {
@@ -165,15 +166,14 @@ describe('getPdfContent', () => {
       defaultStyle: { font: 'SourceSans', fontSize: 12 },
       styles: { marginRightLarge: { marginRight: 40 } },
     };
-    const imageList = [
-      { url: 'https://storage.googleapis.com/compani-main/alenvi_logo_183x50.png', name: 'logo.png' },
-    ];
+    const imageList = [{ url: 'https://storage.googleapis.com/compani-main/alenvi_logo_183x50.png', name: 'logo.png' }];
 
     downloadImages.returns(paths);
 
     const result = await CreditNotePdf.getPdfContent(data);
 
-    expect(JSON.stringify(result)).toEqual(JSON.stringify(pdf));
+    expect(JSON.stringify(result.template)).toEqual(JSON.stringify(pdf));
+    expect(result.images).toEqual(paths);
     sinon.assert.calledOnceWithExactly(downloadImages, imageList);
   });
 
@@ -273,15 +273,14 @@ describe('getPdfContent', () => {
       defaultStyle: { font: 'SourceSans', fontSize: 12 },
       styles: { marginRightLarge: { marginRight: 40 } },
     };
-    const imageList = [
-      { url: 'https://storage.googleapis.com/compani-main/alenvi_logo_183x50.png', name: 'logo.png' },
-    ];
+    const imageList = [{ url: 'https://storage.googleapis.com/compani-main/alenvi_logo_183x50.png', name: 'logo.png' }];
 
     downloadImages.returns(paths);
 
     const result = await CreditNotePdf.getPdfContent(data);
 
-    expect(JSON.stringify(result)).toEqual(JSON.stringify(pdf));
+    expect(JSON.stringify(result.template)).toEqual(JSON.stringify(pdf));
+    expect(result.images).toEqual(paths);
     sinon.assert.calledOnceWithExactly(downloadImages, imageList);
   });
 
@@ -398,15 +397,60 @@ describe('getPdfContent', () => {
       defaultStyle: { font: 'SourceSans', fontSize: 12 },
       styles: { marginRightLarge: { marginRight: 40 } },
     };
-    const imageList = [
-      { url: 'https://storage.googleapis.com/compani-main/alenvi_logo_183x50.png', name: 'logo.png' },
-    ];
+    const imageList = [{ url: 'https://storage.googleapis.com/compani-main/alenvi_logo_183x50.png', name: 'logo.png' }];
 
     downloadImages.returns(paths);
 
     const result = await CreditNotePdf.getPdfContent(data);
 
-    expect(JSON.stringify(result)).toEqual(JSON.stringify(pdf));
+    expect(JSON.stringify(result.template)).toEqual(JSON.stringify(pdf));
+    expect(result.images).toEqual(paths);
     sinon.assert.calledOnceWithExactly(downloadImages, imageList);
+  });
+});
+
+describe('getPdf', () => {
+  let getPdfContent;
+  let generatePdf;
+
+  beforeEach(() => {
+    getPdfContent = sinon.stub(CreditNotePdf, 'getPdfContent');
+    generatePdf = sinon.stub(PdfHelper, 'generatePdf');
+  });
+
+  afterEach(() => {
+    getPdfContent.restore();
+    generatePdf.restore();
+  });
+
+  it('should get pdf', async () => {
+    const data = {
+      creditNote: {
+        totalVAT: '17,74 €',
+        date: '30/04/2021',
+        number: 'AV-101042100271',
+        forTpp: false,
+        customer: { identity: { title: 'mr', lastname: 'TERIEUR', firstname: 'Alain' } },
+        netInclTaxes: '340,26 €',
+        totalExclTaxes: '322,52 €',
+        misc: 'Je suis le motif, d\'ailleurs Mo\'Tif ça fait un bon nom de salon de coiffure',
+      },
+    };
+    const template = {
+      content: [
+        { text: 'Motif de l\'avoir : Je suis le motif, d\'ailleurs Mo\'Tif ça fait un bon nom de salon de coiffure' },
+        { text: 'Prestations réalisées chez M. Alain TERIEUR, 124 Avenue Daumesnil 75012 Paris.' },
+      ],
+      defaultStyle: { font: 'SourceSans', fontSize: 12 },
+    };
+    const images = [{ url: 'https://storage.googleapis.com/compani-main/alenvi_logo_183x50.png', name: 'logo.png' }];
+    getPdfContent.returns({ template, images });
+    generatePdf.returns('pdf');
+
+    const result = await CreditNotePdf.getPdf(data);
+
+    expect(result).toEqual('pdf');
+    sinon.assert.calledOnceWithExactly(getPdfContent, data);
+    sinon.assert.calledOnceWithExactly(generatePdf, template, images);
   });
 });

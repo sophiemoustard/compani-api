@@ -1,6 +1,7 @@
 const sinon = require('sinon');
 const expect = require('expect');
 const FileHelper = require('../../../src/helpers/file');
+const PdfHelper = require('../../../src/helpers/pdf');
 const CompletionCertificate = require('../../../src/data/pdf/completionCertificate');
 const { COPPER_50, COPPER_500, ORANGE_500 } = require('../../../src/helpers/constants');
 
@@ -151,7 +152,8 @@ describe('getPdfContent', () => {
         };
       },
     };
-    expect(JSON.stringify(result)).toEqual(JSON.stringify(pdf));
+    expect(JSON.stringify(result.template)).toEqual(JSON.stringify(pdf));
+    expect(result.images).toEqual(paths);
 
     const imageList = [
       { url: 'https://storage.googleapis.com/compani-main/aux-pouce.png', name: 'aux-pouce.png' },
@@ -161,5 +163,61 @@ describe('getPdfContent', () => {
       { url: 'https://storage.googleapis.com/compani-main/tsb_signature.png', name: 'signature.png' },
     ];
     sinon.assert.calledOnceWithExactly(downloadImages, imageList);
+  });
+});
+
+describe('getPdf', () => {
+  let getPdfContent;
+  let generatePdf;
+
+  beforeEach(() => {
+    getPdfContent = sinon.stub(CompletionCertificate, 'getPdfContent');
+    generatePdf = sinon.stub(PdfHelper, 'generatePdf');
+  });
+
+  afterEach(() => {
+    getPdfContent.restore();
+    generatePdf.restore();
+  });
+
+  it('should get pdf', async () => {
+    const data = {
+      duration: '15h',
+      learningGoals: '- but',
+      programName: 'Programme',
+      startDate: '25/12/2021',
+      endDate: '25/02/2022',
+      trainee: { identity: 'Jean ALAIN', attendanceDuration: '14h' },
+      date: '22/03/2022',
+    };
+    const template = {
+      content: [{
+        columns: [
+          { image: 'src/data/pdf/tmp/aux-pouce.png', width: 64, marginTop: 8 },
+          [
+            { image: 'src/data/pdf/tmp/compani.png', width: 200, height: 42, alignment: 'right' },
+            { text: 'Attestation individuelle de formation', style: 'title' },
+          ],
+        ],
+        marginBottom: 20,
+      }],
+      defaultStyle: { font: 'Calibri', fontSize: 11 },
+      pageMargins: [40, 40, 40, 280],
+      styles: {
+        title: { fontSize: 18, bold: true, color: COPPER_500, marginLeft: 48, marginTop: 16 },
+        congratulations: { fontSize: 11, bold: true, color: ORANGE_500, marginBottom: 24 },
+        subTitle: { fontSize: 16, color: COPPER_500, marginTop: 16 },
+        programName: { fontSize: 12, alignment: 'center', color: COPPER_500, marginBottom: 16 },
+      },
+    };
+    const images = [{ url: 'https://storage.googleapis.com/compani-main/aux-pouce.png', name: 'logo.png' }];
+    getPdfContent.returns({ template, images });
+    generatePdf.returns('pdf');
+
+    const result = await CompletionCertificate.getPdf(data);
+
+    expect(result).toEqual('pdf');
+    sinon.assert.calledOnceWithExactly(getPdfContent, data);
+    sinon.assert.calledOnceWithExactly(generatePdf, template, images);
   });
 });

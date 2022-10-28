@@ -7,7 +7,7 @@ const os = require('os');
 const { PassThrough } = require('stream');
 const FileHelper = require('../../../src/helpers/file');
 
-describe('createAndReadFile', () => {
+describe('createReadAndReturnFile', () => {
   let readable;
   let writable;
   let createWriteStreamStub;
@@ -29,10 +29,8 @@ describe('createAndReadFile', () => {
   it('should rejects/errors if a write stream error occurs', async () => {
     const error = new Error('You crossed the streams!');
 
-    const resultPromise = FileHelper.createAndReadFile(readable, outputPath);
-    setTimeout(async () => {
-      writable.emit('error', error);
-    }, 100);
+    const resultPromise = FileHelper.createReadAndReturnFile(readable, outputPath);
+    setTimeout(async () => { writable.emit('error', error); }, 100);
 
     await expect(resultPromise).rejects.toEqual(error);
     sinon.assert.calledWithExactly(createWriteStreamStub, outputPath);
@@ -40,7 +38,7 @@ describe('createAndReadFile', () => {
   });
 
   it('should resolves if data writes successfully', async () => {
-    const resultPromise = FileHelper.createAndReadFile(readable, outputPath);
+    const resultPromise = FileHelper.createReadAndReturnFile(readable, outputPath);
     setTimeout(async () => {
       readable.emit('data', 'Ceci');
       readable.emit('data', 'est');
@@ -138,33 +136,29 @@ describe('downloadImages', () => {
 });
 
 describe('deleteImages', () => {
-  let rmdirSync;
-  let existsSync;
+  let rmSync;
 
   beforeEach(() => {
-    rmdirSync = sinon.stub(fs, 'rmdirSync');
-    existsSync = sinon.stub(fs, 'existsSync');
+    rmSync = sinon.stub(fs, 'rmSync');
   });
 
   afterEach(() => {
-    rmdirSync.restore();
-    existsSync.restore();
+    rmSync.restore();
   });
 
-  it('should remove images from local', async () => {
-    existsSync.returns(true);
+  it('should do nothing if no images to delete', async () => {
+    await FileHelper.deleteImages([]);
 
-    await FileHelper.deleteImages();
-
-    sinon.assert.calledOnceWithExactly(rmdirSync, sinon.match('src/data/pdf/tmp/'), { recursive: true });
+    sinon.assert.notCalled(rmSync);
   });
 
-  it('should not remove images from local if folder does not exist', async () => {
-    existsSync.returns(false);
+  it('should delete images', async () => {
+    const images = ['src/data/pdf/tmp/toto.png', 'src/data/pdf/tmp/tata.pdf'];
+    await FileHelper.deleteImages(images);
 
-    await FileHelper.deleteImages();
-
-    sinon.assert.notCalled(rmdirSync);
+    sinon.assert.calledTwice(rmSync);
+    sinon.assert.calledWithExactly(rmSync.getCall(0), 'src/data/pdf/tmp/toto.png');
+    sinon.assert.calledWithExactly(rmSync.getCall(1), 'src/data/pdf/tmp/tata.pdf');
   });
 });
 

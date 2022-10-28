@@ -1,5 +1,8 @@
-const { DURATION_UNITS } = require('../constants');
+const { DURATION_UNITS, LONG_DURATION_H_MM, SHORT_DURATION_H_MM } = require('../constants');
 const luxon = require('./luxon');
+
+const DURATION_HOURS = 'h\'h\'';
+const DURATION_MINUTES = 'm\'min\'';
 
 exports.CompaniDuration = (...args) => companiDurationFactory(exports._formatMiscToCompaniDuration(...args));
 
@@ -7,29 +10,55 @@ const companiDurationFactory = (inputDuration) => {
   const _duration = inputDuration;
 
   return {
+    // GETTER
     get _getDuration() {
       return _duration;
     },
 
-    format() {
-      const durationInHoursAndMinutes = _duration.shiftTo('hours', 'minutes');
-      const format = Math.floor(durationInHoursAndMinutes.get('minutes')) > 0 ? 'h\'h\'mm' : 'h\'h\'';
+    // DISPLAY
+    format(template) {
+      const shiftedDuration = _duration.shiftTo('hours', 'minutes', 'seconds');
+      const minutes = shiftedDuration.get('minutes');
+      const hours = shiftedDuration.get('hours');
 
-      return _duration.toFormat(format);
+      if (template === SHORT_DURATION_H_MM) {
+        if (minutes === 0) return _duration.toFormat(DURATION_HOURS);
+
+        return _duration.toFormat(SHORT_DURATION_H_MM);
+      } if (template === LONG_DURATION_H_MM) {
+        if (hours === 0) return _duration.toFormat(DURATION_MINUTES);
+        if (minutes === 0) return _duration.toFormat(DURATION_HOURS);
+
+        return _duration.toFormat(LONG_DURATION_H_MM);
+      }
+      throw Error('Invalid argument: expected specific format');
     },
 
-    add(miscTypeOtherDuration) {
-      const otherDuration = exports._formatMiscToCompaniDuration(miscTypeOtherDuration);
-
-      return companiDurationFactory(_duration.plus(otherDuration));
+    asDays() {
+      return _duration.as('days');
     },
 
     asHours() {
       return _duration.as('hours');
     },
 
+    asSeconds() {
+      return _duration.as('seconds');
+    },
+
     toObject() {
       return _duration.toObject();
+    },
+
+    toISO() {
+      return _duration.toISO();
+    },
+
+    // MANIPULATE
+    add(miscTypeOtherDuration) {
+      const otherDuration = exports._formatMiscToCompaniDuration(miscTypeOtherDuration);
+
+      return companiDurationFactory(_duration.plus(otherDuration));
     },
   };
 };
