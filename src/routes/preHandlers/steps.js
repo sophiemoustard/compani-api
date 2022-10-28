@@ -3,6 +3,7 @@ const Step = require('../../models/Step');
 const Activity = require('../../models/Activity');
 const Program = require('../../models/Program');
 const { PUBLISHED, E_LEARNING } = require('../../helpers/constants');
+const { CompaniDuration } = require('../../helpers/dates/companiDurations');
 
 exports.authorizeStepUpdate = async (req) => {
   const step = await Step.findOne({ _id: req.params._id }, { activities: 1, status: 1 }).lean();
@@ -12,11 +13,15 @@ exports.authorizeStepUpdate = async (req) => {
     throw Boom.forbidden();
   }
 
-  const { activities } = req.payload;
+  const { activities, theoreticalDuration } = req.payload;
   if (activities) {
     const lengthAreEquals = step.activities.length === activities.length;
     const dbActivitiesAreInPayload = step.activities.every(value => activities.includes(value.toHexString()));
     if (!lengthAreEquals || !dbActivitiesAreInPayload) return Boom.badRequest();
+  }
+
+  if (theoreticalDuration) {
+    if (!CompaniDuration(theoreticalDuration).asSeconds()) throw Boom.badRequest();
   }
 
   return null;

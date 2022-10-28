@@ -297,12 +297,30 @@ describe('DISPLAY', () => {
     });
   });
 
+  describe('asMinutes', () => {
+    it('should return duration in minutes', () => {
+      const companiDuration = CompaniDurationsHelper.CompaniDuration('PT1H9M');
+      const result = companiDuration.asMinutes();
+
+      expect(result).toBe(69);
+    });
+  });
+
   describe('asSeconds', () => {
     it('should return duration in seconds', () => {
       const companiDuration = CompaniDurationsHelper.CompaniDuration('PT1H9M');
       const result = companiDuration.asSeconds();
 
       expect(result).toBe(4140);
+    });
+  });
+
+  describe('toHoursAndMinutesObject', () => {
+    it('should return object with hours and minutes from CompaniDuration', () => {
+      const companiDuration = CompaniDurationsHelper.CompaniDuration('PT4140S');
+      const result = companiDuration.toHoursAndMinutesObject();
+
+      expect(result).toEqual({ hours: 1, minutes: 9 });
     });
   });
 
