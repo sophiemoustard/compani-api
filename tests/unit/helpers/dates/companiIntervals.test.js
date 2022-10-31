@@ -44,19 +44,6 @@ describe('CompaniInterval', () => {
       sinon.assert.calledWithExactly(_formatMiscToCompaniInterval.getCall(0), startDateISO, endDateISO);
     });
 
-    it('should return error if endDate is before startDate', () => {
-      const startDateISO = '2021-11-24T08:00:00.000Z';
-      const endDateISO = '2021-11-30T09:30:00.000Z';
-      try {
-        CompaniIntervalsHelper.CompaniInterval(startDateISO, endDateISO);
-      } catch (e) {
-        expect(e).toEqual(new Error('Invalid Interval: end before start: The end of an interval must be after '
-          + 'its start, but you had start=2021-11-24T09:00:00.000+01:00 and end=2021-11-20T10:30:00.000+01:00'));
-      } finally {
-        sinon.assert.calledOnceWithExactly(_formatMiscToCompaniInterval, startDateISO, endDateISO);
-      }
-    });
-
     it('should return error if invalid argument', () => {
       try {
         CompaniIntervalsHelper.CompaniInterval(null);
@@ -164,6 +151,22 @@ describe('_formatMiscToCompaniInterval', () => {
     sinon.assert.calledWithExactly(datefromISO.getCall(0), coupleOfDateISO[0]);
     sinon.assert.calledWithExactly(datefromISO.getCall(1), coupleOfDateISO[1]);
     sinon.assert.notCalled(intervalInvalid);
+  });
+
+  it('should return error if endDate is before startDate', () => {
+    const startDateISO = '2021-11-24T08:00:00.000Z';
+    const endDateISO = '2021-11-30T09:30:00.000Z';
+    try {
+      CompaniIntervalsHelper._formatMiscToCompaniInterval(startDateISO, endDateISO);
+    } catch (e) {
+      expect(e).toEqual(new Error('Invalid Interval: end before start: The end of an interval must be after '
+        + 'its start, but you had start=2021-11-24T09:00:00.000+01:00 and end=2021-11-20T10:30:00.000+01:00'));
+    } finally {
+      sinon.assert.calledTwice(datefromISO);
+      sinon.assert.calledWithExactly(datefromISO.getCall(0), startDateISO);
+      sinon.assert.calledWithExactly(datefromISO.getCall(1), endDateISO);
+      sinon.assert.notCalled(intervalInvalid);
+    }
   });
 
   it('should return error if no arg', () => {
