@@ -369,6 +369,37 @@ describe('MANIPULATE', () => {
   });
 });
 
+describe('QUERY', () => {
+  describe('isEqual', () => {
+    it('should return true if same durations with same units', () => {
+      const duration = 'P1DT1H2M3S';
+      const otherDuration = 'P1DT1H2M3S';
+
+      const result = CompaniDurationsHelper.CompaniDuration(duration).isEqual(otherDuration);
+
+      expect(result).toBe(true);
+    });
+
+    it('should return true if same durations with different units', () => {
+      const duration = 'P1DT1H2M3S';
+      const otherDuration = 'PT25H123S';
+
+      const result = CompaniDurationsHelper.CompaniDuration(duration).isEqual(otherDuration);
+
+      expect(result).toBe(true);
+    });
+
+    it('should return false if different durations', () => {
+      const duration = 'P1DT1H2M3S';
+      const otherDuration = 'PT24H123S';
+
+      const result = CompaniDurationsHelper.CompaniDuration(duration).isEqual(otherDuration);
+
+      expect(result).toBe(false);
+    });
+  });
+});
+
 describe('_formatMiscToCompaniDuration', () => {
   let fromObject;
   let fromMillis;
