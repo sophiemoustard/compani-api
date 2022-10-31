@@ -54,6 +54,14 @@ const companiDurationFactory = (inputDuration) => {
       return _duration.toISO();
     },
 
+    // QUERY
+    isEqual(miscTypeOtherDuration) {
+      const otherDurationInSeconds = exports._formatMiscToCompaniDuration(miscTypeOtherDuration).shiftTo('seconds');
+      const durationInSeconds = _duration.shiftTo('seconds');
+
+      return durationInSeconds.equals(otherDurationInSeconds);
+    },
+
     // MANIPULATE
     add(miscTypeOtherDuration) {
       const otherDuration = exports._formatMiscToCompaniDuration(miscTypeOtherDuration);
