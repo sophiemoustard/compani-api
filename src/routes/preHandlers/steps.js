@@ -21,7 +21,7 @@ exports.authorizeStepUpdate = async (req) => {
   }
 
   if (theoreticalDuration) {
-    if (!CompaniDuration(theoreticalDuration).asSeconds()) throw Boom.badRequest();
+    if (CompaniDuration(theoreticalDuration).asSeconds() <= 0) throw Boom.badRequest();
   }
 
   return null;
