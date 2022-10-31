@@ -118,6 +118,18 @@ describe('STEPS ROUTES - PUT /steps/{_id}', () => {
       expect(response.statusCode).toBe(400);
     });
 
+    it('should return 400 if theoreticalDuration is negative', async () => {
+      const payload = { theoreticalDuration: 'PT-432S' };
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/steps/${stepId}`,
+        payload,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
+
     it('should return a 404 if step is invalid', async () => {
       const response = await app.inject({
         method: 'PUT',
