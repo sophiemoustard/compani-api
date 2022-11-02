@@ -55,7 +55,7 @@ const companiDurationFactory = (inputDuration) => {
     },
 
     // QUERY
-    isEquivalent(miscTypeOtherDuration) {
+    isEquivalentTo(miscTypeOtherDuration) {
       const otherDurationInSeconds = exports._formatMiscToCompaniDuration(miscTypeOtherDuration).shiftTo('seconds');
       const durationInSeconds = _duration.shiftTo('seconds');
 

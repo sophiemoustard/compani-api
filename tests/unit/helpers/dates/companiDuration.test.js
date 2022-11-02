@@ -370,12 +370,12 @@ describe('MANIPULATE', () => {
 });
 
 describe('QUERY', () => {
-  describe('isEquivalent', () => {
+  describe('isEquivalentTo', () => {
     it('should return true if same durations with same units', () => {
       const duration = 'P1DT1H2M3S';
       const otherDuration = 'P1DT1H2M3S';
 
-      const result = CompaniDurationsHelper.CompaniDuration(duration).isEquivalent(otherDuration);
+      const result = CompaniDurationsHelper.CompaniDuration(duration).isEquivalentTo(otherDuration);
 
       expect(result).toBe(true);
     });
@@ -384,7 +384,7 @@ describe('QUERY', () => {
       const duration = 'P1DT1H2M3S';
       const otherDuration = 'PT25H123S';
 
-      const result = CompaniDurationsHelper.CompaniDuration(duration).isEquivalent(otherDuration);
+      const result = CompaniDurationsHelper.CompaniDuration(duration).isEquivalentTo(otherDuration);
 
       expect(result).toBe(true);
     });
@@ -393,7 +393,7 @@ describe('QUERY', () => {
       const duration = 'P1DT1H2M3S';
       const otherDuration = 'PT24H123S';
 
-      const result = CompaniDurationsHelper.CompaniDuration(duration).isEquivalent(otherDuration);
+      const result = CompaniDurationsHelper.CompaniDuration(duration).isEquivalentTo(otherDuration);
 
       expect(result).toBe(false);
     });
