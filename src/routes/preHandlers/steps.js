@@ -20,9 +20,7 @@ exports.authorizeStepUpdate = async (req) => {
     if (!lengthAreEquals || !dbActivitiesAreInPayload) return Boom.badRequest();
   }
 
-  if (theoreticalDuration) {
-    if (CompaniDuration(theoreticalDuration).asSeconds() <= 0) throw Boom.badRequest();
-  }
+  if (!!theoreticalDuration && CompaniDuration(theoreticalDuration).asSeconds() <= 0) throw Boom.badRequest();
 
   return null;
 };
