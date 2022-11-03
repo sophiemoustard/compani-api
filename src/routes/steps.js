@@ -11,6 +11,7 @@ const {
 } = require('./preHandlers/steps');
 const { update, addActivity, detachActivity, reuseActivity, list } = require('../controllers/stepController');
 const { ACTIVITY_TYPES } = require('../models/Activity');
+const { durationStrictlyPositive } = require('./validations/utils');
 
 const activityIdExists = { is: Joi.exist(), then: Joi.forbidden(), otherwise: Joi.required() };
 
@@ -26,7 +27,7 @@ exports.plugin = {
           payload: Joi.object({
             name: Joi.string(),
             activities: Joi.array().items(Joi.objectId()),
-            theoreticalDuration: Joi.string(),
+            theoreticalDuration: durationStrictlyPositive,
           }).min(1),
         },
         auth: { scope: ['programs:edit'] },
