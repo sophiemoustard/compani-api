@@ -52,9 +52,7 @@ const companiDurationFactory = (inputDuration) => {
 
     toHoursAndMinutesObject() {
       const shiftedDuration = _duration.shiftTo('hours', 'minutes');
-      const minutes = shiftedDuration.get('minutes');
-      const hours = shiftedDuration.get('hours');
-      return { hours, minutes };
+      return { hours: shiftedDuration.get('hours'), minutes: shiftedDuration.get('minutes') };
     },
 
     toObject() {

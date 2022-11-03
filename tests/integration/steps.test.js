@@ -72,11 +72,10 @@ describe('STEPS ROUTES - PUT /steps/{_id}', () => {
     });
 
     it('should update theoreticalDuration with positive float', async () => {
-      const payload = { theoreticalDuration: 'PT5040S' };
       const response = await app.inject({
         method: 'PUT',
         url: `/steps/${stepId}`,
-        payload,
+        payload: { theoreticalDuration: 'PT5040S' },
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -88,11 +87,10 @@ describe('STEPS ROUTES - PUT /steps/{_id}', () => {
     });
 
     it('should update theoreticalDuration even if step is published', async () => {
-      const payload = { theoreticalDuration: 'PT5400S' };
       const response = await app.inject({
         method: 'PUT',
         url: `/steps/${stepsList[3]._id}`,
-        payload,
+        payload: { theoreticalDuration: 'PT5400S' },
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -107,11 +105,10 @@ describe('STEPS ROUTES - PUT /steps/{_id}', () => {
     });
 
     it('should return 400 if theoreticalDuration is 0', async () => {
-      const payload = { theoreticalDuration: 'PT0S' };
       const response = await app.inject({
         method: 'PUT',
         url: `/steps/${stepId}`,
-        payload,
+        payload: { theoreticalDuration: 'PT0S' },
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -119,11 +116,10 @@ describe('STEPS ROUTES - PUT /steps/{_id}', () => {
     });
 
     it('should return 400 if theoreticalDuration is negative', async () => {
-      const payload = { theoreticalDuration: 'PT-432S' };
       const response = await app.inject({
         method: 'PUT',
         url: `/steps/${stepId}`,
-        payload,
+        payload: { theoreticalDuration: 'PT-432S' },
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
