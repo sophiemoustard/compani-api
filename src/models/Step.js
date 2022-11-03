@@ -65,6 +65,7 @@ function formatTheoreticalDurationList(docs, next) {
 StepSchema.pre('updateOne', update);
 StepSchema.pre('updateMany', update);
 StepSchema.pre('findOneAndUpdate', update);
+StepSchema.pre('save', update);
 StepSchema.virtual('areActivitiesValid').get(setAreActivitiesValid);
 queryMiddlewareList.map(middleware => StepSchema.pre(middleware, formatQuery));
 getDocMiddlewareList.map(middleware => StepSchema.post(middleware, formatTheoreticalDuration));
