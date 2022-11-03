@@ -8,7 +8,7 @@ const BalanceHelper = require('./balances');
 const UtilsHelper = require('./utils');
 const VendorCompaniesHelper = require('./vendorCompanies');
 const CourseBillPdf = require('../data/pdf/courseBilling/courseBill');
-const { LIST, TRAINING_ORGANISATION_MANAGER, VENDOR_ADMIN } = require('./constants');
+const { LIST, TRAINING_ORGANISATION_MANAGER, VENDOR_ADMIN, DD_MM_YYYY } = require('./constants');
 const { CompaniDate } = require('./dates/companiDates');
 
 exports.getNetInclTaxes = (bill) => {
@@ -173,7 +173,7 @@ exports.generateBillPdf = async (billId) => {
   const { number, billedAt, company, payer, course, mainFee, billingPurchaseList } = bill;
   const data = {
     number,
-    date: CompaniDate(billedAt).format('dd/LL/yyyy'),
+    date: CompaniDate(billedAt).format(DD_MM_YYYY),
     vendorCompany,
     company,
     payer: { name: payer.name, address: get(payer, 'address.fullAddress') || payer.address },

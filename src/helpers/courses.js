@@ -39,6 +39,8 @@ const {
   REMOTE,
   OPERATIONS,
   HHhMM,
+  DD_MM_YYYY,
+  HH_MM,
 } = require('./constants');
 const CourseHistoriesHelper = require('./courseHistories');
 const NotificationHelper = require('./notifications');
@@ -561,15 +563,15 @@ exports.formatInterCourseSlotsForPdf = (slot) => {
 
   return {
     address: get(slot, 'address.fullAddress') || null,
-    date: CompaniDate(slot.startDate).format('dd/LL/yyyy'),
-    startHour: CompaniDate(slot.startDate).format('HH:mm'),
-    endHour: CompaniDate(slot.endDate).format('HH:mm'),
+    date: CompaniDate(slot.startDate).format(DD_MM_YYYY),
+    startHour: CompaniDate(slot.startDate).format(HH_MM),
+    endHour: CompaniDate(slot.endDate).format(HH_MM),
     duration,
   };
 };
 
 exports.groupSlotsByDate = (slots) => {
-  const group = groupBy(slots, slot => CompaniDate(slot.startDate).format('dd/LL/yyyy'));
+  const group = groupBy(slots, slot => CompaniDate(slot.startDate).format(DD_MM_YYYY));
 
   return Object.values(group).sort((a, b) => DatesHelper.ascendingSort('startDate')(a[0], b[0]));
 };
@@ -592,7 +594,7 @@ exports.formatIntraCourseForPdf = (course) => {
       course: { ...courseData },
       address: get(groupedSlots[0], 'address.fullAddress') || '',
       slots: groupedSlots.map(slot => exports.formatIntraCourseSlotsForPdf(slot)),
-      date: CompaniDate(groupedSlots[0].startDate).format('dd/LL/yyyy'),
+      date: CompaniDate(groupedSlots[0].startDate).format(DD_MM_YYYY),
     })),
   };
 };
@@ -610,9 +612,9 @@ exports.formatInterCourseForPdf = (course) => {
     name,
     slots: filteredSlots.map(exports.formatInterCourseSlotsForPdf),
     trainer: course.trainer ? UtilsHelper.formatIdentity(course.trainer.identity, 'FL') : '',
-    firstDate: filteredSlots.length ? CompaniDate(filteredSlots[0].startDate).format('dd/LL/yyyy') : '',
+    firstDate: filteredSlots.length ? CompaniDate(filteredSlots[0].startDate).format(DD_MM_YYYY) : '',
     lastDate: filteredSlots.length
-      ? CompaniDate(filteredSlots[filteredSlots.length - 1].startDate).format('dd/LL/yyyy')
+      ? CompaniDate(filteredSlots[filteredSlots.length - 1].startDate).format(DD_MM_YYYY)
       : '',
     duration: UtilsHelper.getTotalDuration(filteredSlots),
   };
@@ -654,8 +656,8 @@ exports.formatCourseForDocuments = (course) => {
     duration: UtilsHelper.getTotalDuration(course.slots),
     learningGoals: get(course, 'subProgram.program.learningGoals') || '',
     programName: get(course, 'subProgram.program.name').toUpperCase() || '',
-    startDate: CompaniDate(sortedCourseSlots[0].startDate).format('dd/LL/yyyy'),
-    endDate: CompaniDate(sortedCourseSlots[sortedCourseSlots.length - 1].endDate).format('dd/LL/yyyy'),
+    startDate: CompaniDate(sortedCourseSlots[0].startDate).format(DD_MM_YYYY),
+    endDate: CompaniDate(sortedCourseSlots[sortedCourseSlots.length - 1].endDate).format(DD_MM_YYYY),
   };
 };
 
@@ -675,7 +677,7 @@ const generateCompletionCertificatePdf = async (courseData, courseAttendances, t
   const pdf = await CompletionCertificate.getPdf({
     ...courseData,
     trainee: { identity: traineeIdentity, attendanceDuration },
-    date: CompaniDate().format('dd/LL/yyyy'),
+    date: CompaniDate().format(DD_MM_YYYY),
   });
 
   return { pdf, name: `Attestation - ${traineeIdentity}.pdf` };
@@ -688,7 +690,7 @@ const generateCompletionCertificateWord = async (courseData, courseAttendances, 
     {
       ...courseData,
       trainee: { identity: traineeIdentity, attendanceDuration },
-      date: CompaniDate().format('dd/LL/yyyy'),
+      date: CompaniDate().format(DD_MM_YYYY),
     }
   );
 
@@ -761,7 +763,7 @@ exports.formatCourseForConvocationPdf = (course) => {
     ...(get(groupedSlots[0], 'address.fullAddress') && { address: get(groupedSlots[0], 'address.fullAddress') }),
     ...(groupedSlots[0].meetingLink && { meetingLink: groupedSlots[0].meetingLink }),
     hours: exports.formatHoursForConvocation(groupedSlots),
-    date: CompaniDate(groupedSlots[0].startDate).format('dd/LL/yyyy'),
+    date: CompaniDate(groupedSlots[0].startDate).format(DD_MM_YYYY),
   }));
   const contact = {
     formattedIdentity: UtilsHelper.formatIdentity(get(course, 'contact.identity'), 'FL'),

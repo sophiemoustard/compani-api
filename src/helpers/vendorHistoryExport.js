@@ -19,6 +19,8 @@ const {
   BILL,
   PAYMENT_TYPES_LIST,
   PAYMENT_NATURE_LIST,
+  DD_MM_YYYY,
+  HH_MM_SS,
 } = require('./constants');
 const { CompaniDate } = require('./dates/companiDates');
 const UtilsHelper = require('./utils');
@@ -39,13 +41,13 @@ const getEndOfCourse = (slotsGroupedByDate, slotsToPlan) => {
   if (slotsGroupedByDate.length) {
     const lastDate = slotsGroupedByDate.length - 1;
     const lastSlot = slotsGroupedByDate[lastDate].length - 1;
-    return CompaniDate(slotsGroupedByDate[lastDate][lastSlot].endDate).format('dd/LL/yyyy HH:mm:ss');
+    return CompaniDate(slotsGroupedByDate[lastDate][lastSlot].endDate).format(`${DD_MM_YYYY} ${HH_MM_SS}`);
   }
   return '';
 };
 
 const getStartOfCourse = slotsGroupedByDate => (slotsGroupedByDate.length
-  ? CompaniDate(slotsGroupedByDate[0][0].startDate).format('dd/LL/yyyy HH:mm:ss')
+  ? CompaniDate(slotsGroupedByDate[0][0].startDate).format(`${DD_MM_YYYY} ${HH_MM_SS}`)
   : '');
 
 const isSlotInInterval = (slot, startDate, endDate) => CompaniDate(slot.startDate).isAfter(startDate) &&
@@ -185,7 +187,7 @@ exports.exportCourseHistory = async (startDate, endDate, credentials) => {
       'Nombre de réponses au questionnaire de recueil des attentes': expectactionQuestionnaireAnswers,
       'Nombre de réponses au questionnaire de satisfaction': endQuestionnaireAnswers,
       'Date de démarrage souhaitée': course.estimatedStartDate
-        ? CompaniDate(course.estimatedStartDate).format('dd/LL/yyyy')
+        ? CompaniDate(course.estimatedStartDate).format(DD_MM_YYYY)
         : '',
       'Début de formation': getStartOfCourse(slotsGroupedByDate),
       'Fin de formation': getEndOfCourse(slotsGroupedByDate, course.slotsToPlan),
@@ -247,9 +249,9 @@ exports.exportCourseSlotHistory = async (startDate, endDate) => {
       Formation: composeCourseName(slot.course),
       Étape: get(slot, 'step.name') || '',
       Type: STEP_TYPES[get(slot, 'step.type')] || '',
-      'Date de création': CompaniDate(slot.createdAt).format('dd/LL/yyyy HH:mm:ss') || '',
-      'Date de début': CompaniDate(slot.startDate).format('dd/LL/yyyy HH:mm:ss') || '',
-      'Date de fin': CompaniDate(slot.endDate).format('dd/LL/yyyy HH:mm:ss') || '',
+      'Date de création': CompaniDate(slot.createdAt).format(`${DD_MM_YYYY} ${HH_MM_SS}`) || '',
+      'Date de début': CompaniDate(slot.startDate).format(`${DD_MM_YYYY} ${HH_MM_SS}`) || '',
+      'Date de fin': CompaniDate(slot.endDate).format(`${DD_MM_YYYY} ${HH_MM_SS}`) || '',
       Durée: slotDuration,
       Adresse: getAddress(slot),
       'Nombre de présences': subscribedAttendances,
@@ -320,7 +322,7 @@ exports.exportEndOfCourseQuestionnaireHistory = async (startDate, endDate) => {
       'Sous-programme': get(qHistory, 'course.subProgram.name'),
       'Prénom Nom intervenant(e)': UtilsHelper.formatIdentity(get(qHistory, 'course.trainer.identity') || '', 'FL'),
       Structure: get(qHistory, 'user.company.name'),
-      'Date de réponse': CompaniDate(qHistory.createdAt).format('dd/LL/yyyy HH:mm:ss'),
+      'Date de réponse': CompaniDate(qHistory.createdAt).format(`${DD_MM_YYYY} ${HH_MM_SS}`),
       'Prénom Nom répondant(e)': UtilsHelper.formatIdentity(get(qHistory, 'user.identity') || '', 'FL'),
       'Mail répondant(e)': get(qHistory, 'user.local.email'),
       'Numéro de tél répondant(e)': get(qHistory, 'user.contact.phone') || '',
@@ -375,7 +377,7 @@ exports.exportCourseBillAndCreditNoteHistory = async (startDate, endDate, creden
     const formattedBill = {
       Nature: BILLING_DOCUMENTS[BILL],
       Identifiant: bill.number,
-      Date: CompaniDate(bill.billedAt).format('dd/LL/yyyy'),
+      Date: CompaniDate(bill.billedAt).format(DD_MM_YYYY),
       ...commonInfos,
       'Montant réglé': bill.courseCreditNote
         ? UtilsHelper.formatFloatForExport(NumbersHelper.subtract(paid, netInclTaxes))
@@ -392,7 +394,7 @@ exports.exportCourseBillAndCreditNoteHistory = async (startDate, endDate, creden
       const formattedCreditNote = {
         Nature: BILLING_DOCUMENTS[CREDIT_NOTE],
         Identifiant: bill.courseCreditNote.number,
-        Date: CompaniDate(bill.courseCreditNote.date).format('dd/LL/yyyy'),
+        Date: CompaniDate(bill.courseCreditNote.date).format(DD_MM_YYYY),
         ...commonInfos,
         'Montant réglé': '',
         Avoir: '',
@@ -422,7 +424,7 @@ exports.exportCoursePaymentHistory = async (startDate, endDate, credentials) => 
     rows.push({
       Nature: PAYMENT_NATURE_LIST[payment.nature],
       Identifiant: payment.number,
-      Date: CompaniDate(payment.date).format('dd/LL/yyyy'),
+      Date: CompaniDate(payment.date).format(DD_MM_YYYY),
       'Facture associée': payment.courseBill.number,
       'Moyen de paiement': PAYMENT_TYPES_LIST[payment.type],
       Montant: UtilsHelper.formatFloatForExport(payment.netInclTaxes),
