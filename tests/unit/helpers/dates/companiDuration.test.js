@@ -436,6 +436,15 @@ describe('QUERY', () => {
       expect(result).toBe(true);
     });
 
+    it('should return true if comparing MAX_SAFE_INTEGER with lower value', () => {
+      const duration = `PT${Number.MAX_SAFE_INTEGER}S`;
+      const otherDuration = `PT${Number.MAX_SAFE_INTEGER - 1}S`;
+
+      const result = CompaniDurationsHelper.CompaniDuration(duration).isLongerThan(otherDuration);
+
+      expect(result).toBe(true);
+    });
+
     it('should return false if same duration with same units', () => {
       const duration = 'P1DT2H2M3S';
       const otherDuration = 'P1DT2H2M3S';
