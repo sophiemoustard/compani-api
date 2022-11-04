@@ -418,7 +418,7 @@ describe('QUERY', () => {
   });
 
   describe('isLongerThan', () => {
-    it('should return true if longer durations with same units', () => {
+    it('should return true if longer duration with same units', () => {
       const duration = 'P1DT2H2M3S';
       const otherDuration = 'P1DT1H2M3S';
 
@@ -427,7 +427,7 @@ describe('QUERY', () => {
       expect(result).toBe(true);
     });
 
-    it('should return true if longer durations with different units', () => {
+    it('should return true if longer duration with different units', () => {
       const duration = 'PT25H2M3S';
       const otherDuration = 'P1DT30S';
 
@@ -436,7 +436,7 @@ describe('QUERY', () => {
       expect(result).toBe(true);
     });
 
-    it('should return false if same durations with same units', () => {
+    it('should return false if same duration with same units', () => {
       const duration = 'P1DT2H2M3S';
       const otherDuration = 'P1DT2H2M3S';
 
@@ -445,7 +445,7 @@ describe('QUERY', () => {
       expect(result).toBe(false);
     });
 
-    it('should return false if same durations with different units', () => {
+    it('should return false if same duration with different units', () => {
       const duration = 'P1DT1H2M3S';
       const otherDuration = 'PT25H123S';
 
@@ -454,7 +454,7 @@ describe('QUERY', () => {
       expect(result).toBe(false);
     });
 
-    it('should return false if shorter durations with same units', () => {
+    it('should return false if shorter duration with same units', () => {
       const duration = 'P1DT1H1M3S';
       const otherDuration = 'P1DT2H2M3S';
 
@@ -463,7 +463,7 @@ describe('QUERY', () => {
       expect(result).toBe(false);
     });
 
-    it('should return false if same durations with different units', () => {
+    it('should return false if shorter duration with different units', () => {
       const duration = 'P1DT1H';
       const otherDuration = 'PT40H';
 
