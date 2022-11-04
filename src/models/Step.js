@@ -9,6 +9,7 @@ const {
   getDocMiddlewareList,
   getDocListMiddlewareList,
 } = require('./preHooks/validate');
+const { CompaniDuration } = require('../helpers/dates/companiDurations');
 
 const STEP_TYPES = [E_LEARNING, ON_SITE, REMOTE];
 
@@ -35,6 +36,15 @@ function setAreActivitiesValid() {
   }
 }
 
+function update(next) {
+  const { theoreticalDuration } = this.getUpdate().$set;
+  if (theoreticalDuration) {
+    this.getUpdate().$set.theoreticalDuration = CompaniDuration(theoreticalDuration).asSeconds();
+  }
+
+  return next();
+}
+
 function formatTheoreticalDuration(doc, next) {
   if (doc && doc.theoreticalDuration) {
     // eslint-disable-next-line no-param-reassign
@@ -52,6 +62,9 @@ function formatTheoreticalDurationList(docs, next) {
   return next();
 }
 
+StepSchema.pre('updateOne', update);
+StepSchema.pre('updateMany', update);
+StepSchema.pre('findOneAndUpdate', update);
 StepSchema.virtual('areActivitiesValid').get(setAreActivitiesValid);
 queryMiddlewareList.map(middleware => StepSchema.pre(middleware, formatQuery));
 getDocMiddlewareList.map(middleware => StepSchema.post(middleware, formatTheoreticalDuration));
