@@ -9,7 +9,7 @@ const durationStrictlyPositive = Joi.string().custom((value, helper) => {
   try {
     const duration = CompaniDuration(value);
 
-    return duration.asSeconds() > 0
+    return duration.isLongerThan('PT0S')
       ? value
       : helper.message('Duration should be strictly positive');
   } catch (e) {
