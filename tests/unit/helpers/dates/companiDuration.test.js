@@ -416,6 +416,62 @@ describe('QUERY', () => {
       expect(result).toBe(false);
     });
   });
+
+  describe('isLongerThan', () => {
+    it('should return true if longer durations with same units', () => {
+      const duration = 'P1DT2H2M3S';
+      const otherDuration = 'P1DT1H2M3S';
+
+      const result = CompaniDurationsHelper.CompaniDuration(duration).isLongerThan(otherDuration);
+
+      expect(result).toBe(true);
+    });
+
+    it('should return true if longer durations with different units', () => {
+      const duration = 'PT25H2M3S';
+      const otherDuration = 'P1DT30S';
+
+      const result = CompaniDurationsHelper.CompaniDuration(duration).isLongerThan(otherDuration);
+
+      expect(result).toBe(true);
+    });
+
+    it('should return false if same durations with same units', () => {
+      const duration = 'P1DT2H2M3S';
+      const otherDuration = 'P1DT2H2M3S';
+
+      const result = CompaniDurationsHelper.CompaniDuration(duration).isLongerThan(otherDuration);
+
+      expect(result).toBe(false);
+    });
+
+    it('should return false if same durations with different units', () => {
+      const duration = 'P1DT1H2M3S';
+      const otherDuration = 'PT25H123S';
+
+      const result = CompaniDurationsHelper.CompaniDuration(duration).isLongerThan(otherDuration);
+
+      expect(result).toBe(false);
+    });
+
+    it('should return false if shorter durations with same units', () => {
+      const duration = 'P1DT1H1M3S';
+      const otherDuration = 'P1DT2H2M3S';
+
+      const result = CompaniDurationsHelper.CompaniDuration(duration).isLongerThan(otherDuration);
+
+      expect(result).toBe(false);
+    });
+
+    it('should return false if same durations with different units', () => {
+      const duration = 'P1DT1H';
+      const otherDuration = 'PT40H';
+
+      const result = CompaniDurationsHelper.CompaniDuration(duration).isLongerThan(otherDuration);
+
+      expect(result).toBe(false);
+    });
+  });
 });
 
 describe('_formatMiscToCompaniDuration', () => {
