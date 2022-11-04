@@ -4,6 +4,7 @@ const CourseCreditNoteNumber = require('../models/CourseCreditNoteNumber');
 const VendorCompaniesHelper = require('./vendorCompanies');
 const { CompaniDate } = require('./dates/companiDates');
 const CourseCreditNotePdf = require('../data/pdf/courseBilling/courseCreditNote');
+const { DD_MM_YYYY } = require('./constants');
 
 exports.createCourseCreditNote = async (payload) => {
   const lastCreditNoteNumber = await CourseCreditNoteNumber
@@ -41,13 +42,13 @@ exports.generateCreditNotePdf = async (creditNoteId) => {
   const payer = get(creditNote, 'courseBill.payer');
   const data = {
     number: creditNote.number,
-    date: CompaniDate(creditNote.date).format('dd/LL/yyyy'),
+    date: CompaniDate(creditNote.date).format(DD_MM_YYYY),
     misc: creditNote.misc,
     vendorCompany,
     company: creditNote.company,
     courseBill: {
       number: creditNote.courseBill.number,
-      date: CompaniDate(creditNote.courseBill.billedAt).format('dd/LL/yyyy'),
+      date: CompaniDate(creditNote.courseBill.billedAt).format(DD_MM_YYYY),
     },
     payer: { name: payer.name, address: get(payer, 'address.fullAddress') || payer.address },
     course: creditNote.courseBill.course,
