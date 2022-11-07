@@ -81,7 +81,7 @@ exports.getBalance = (bill, customerAggregation, tppAggregation, payments, tppLi
   const balance = NumbersHelper.toFixedToFloat(NumbersHelper.subtract(paid, billedString));
 
   const lastCesu = matchingPayment && matchingPayment.payments.filter(p => p.type === CESU)
-    .sort(DatesHelper.descendingSort('date'))[0];
+    .sort(DatesHelper.oldDescendingSort('date'))[0];
 
   return {
     ...bill,

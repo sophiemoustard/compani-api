@@ -15,7 +15,7 @@ const Attendance = require('../models/Attendance');
 const SubProgram = require('../models/SubProgram');
 const CourseRepository = require('../repositories/CourseRepository');
 const UtilsHelper = require('./utils');
-const DatesHelper = require('./dates');
+const DatesUtilsHelper = require('./dates/utils');
 const ZipHelper = require('./zip');
 const SmsHelper = require('./sms');
 const DocxHelper = require('./docx');
@@ -463,7 +463,7 @@ const getCourseForPedagogy = async (courseId, credentials) => {
   }
 
   if (!course.subProgram.isStrictlyELearning) {
-    const lastSlot = course.slots.sort(DatesHelper.descendingSort('startDate'))[0];
+    const lastSlot = course.slots.sort((a, b) => DatesUtilsHelper.descendingSort(a.startDate, b.startDate))[0];
     const areLastSlotAttendancesValidated = !!(lastSlot &&
       await Attendance.countDocuments({ courseSlot: lastSlot._id }));
 
@@ -573,7 +573,7 @@ exports.formatInterCourseSlotsForPdf = (slot) => {
 exports.groupSlotsByDate = (slots) => {
   const group = groupBy(slots, slot => CompaniDate(slot.startDate).format(DD_MM_YYYY));
 
-  return Object.values(group).sort((a, b) => DatesHelper.ascendingSort('startDate')(a[0], b[0]));
+  return Object.values(group).sort((a, b) => DatesUtilsHelper.ascendingSort(a[0].startDate, b[0].startDate));
 };
 
 exports.formatIntraCourseForPdf = (course) => {
@@ -605,7 +605,7 @@ exports.formatInterCourseForPdf = (course) => {
   const filteredSlots = course.slots
     ? course.slots
       .filter(slot => slot.step.type === ON_SITE)
-      .sort((a, b) => DatesHelper.ascendingSort('startDate')(a, b))
+      .sort((a, b) => DatesUtilsHelper.ascendingSort(a.startDate, b.startDate))
     : [];
 
   const courseData = {
@@ -650,7 +650,7 @@ exports.generateAttendanceSheets = async (courseId) => {
 };
 
 exports.formatCourseForDocuments = (course) => {
-  const sortedCourseSlots = course.slots.sort((a, b) => DatesHelper.ascendingSort('startDate')(a, b));
+  const sortedCourseSlots = course.slots.sort((a, b) => DatesUtilsHelper.ascendingSort(a.startDate, b.startDate));
 
   return {
     duration: UtilsHelper.getTotalDuration(course.slots),

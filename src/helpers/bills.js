@@ -465,7 +465,7 @@ exports.formatBillDetailsForPdf = (bill) => {
 exports.formatEventsForPdf = (events, service) => {
   const formattedEvents = [];
 
-  const sortedEvents = [...events].sort(DatesHelper.ascendingSort('startDate'));
+  const sortedEvents = [...events].sort(DatesHelper.oldAscendingSort('startDate'));
   for (const ev of sortedEvents) {
     const formattedEvent = {
       identity: `${ev.auxiliary.identity.firstname.substring(0, 1)}. ${ev.auxiliary.identity.lastname}`,

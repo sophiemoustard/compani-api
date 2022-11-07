@@ -235,42 +235,42 @@ describe('format', () => {
   });
 });
 
-describe('descendingSort', () => {
+describe('oldDescendingSort', () => {
   it('should return a positive value if b > a', () => {
     const result = DatesHelper
-      .descendingSort('date')({ date: '2020-12-01T12:00:00.000Z' }, { date: '2021-01-01T12:00:00.000Z' });
+      .oldDescendingSort('date')({ date: '2020-12-01T12:00:00.000Z' }, { date: '2021-01-01T12:00:00.000Z' });
     expect(result > 0).toBe(true);
   });
 
-  it('should return a positive value if b < a', () => {
+  it('should return a negative value if b < a', () => {
     const result = DatesHelper
-      .descendingSort('date')({ date: '2021-01-01T12:00:00.000Z' }, { date: '2020-12-01T12:00:00.000Z' });
+      .oldDescendingSort('date')({ date: '2021-01-01T12:00:00.000Z' }, { date: '2020-12-01T12:00:00.000Z' });
     expect(result < 0).toBe(true);
   });
 
   it('should return 0 if b = a', () => {
     const result = DatesHelper
-      .descendingSort('date')({ date: '2021-01-01T12:00:00.000Z' }, { date: '2021-01-01T12:00:00.000Z' });
+      .oldDescendingSort('date')({ date: '2021-01-01T12:00:00.000Z' }, { date: '2021-01-01T12:00:00.000Z' });
     expect(result).toBe(0);
   });
 });
 
-describe('ascendingSort', () => {
+describe('oldAscendingSort', () => {
   it('should return a positive value if b < a', () => {
     const result = DatesHelper
-      .ascendingSort('date')({ date: '2021-01-01T12:00:00.000Z' }, { date: '2020-12-01T12:00:00.000Z' });
+      .oldAscendingSort('date')({ date: '2021-01-01T12:00:00.000Z' }, { date: '2020-12-01T12:00:00.000Z' });
     expect(result > 0).toBe(true);
   });
 
-  it('should return a positive value if b > a', () => {
+  it('should return a negative value if b > a', () => {
     const result = DatesHelper
-      .ascendingSort('date')({ date: '2020-12-01T12:00:00.000Z' }, { date: '2021-01-01T12:00:00.000Z' });
+      .oldAscendingSort('date')({ date: '2020-12-01T12:00:00.000Z' }, { date: '2021-01-01T12:00:00.000Z' });
     expect(result < 0).toBe(true);
   });
 
   it('should return 0 if b = a', () => {
     const result = DatesHelper
-      .ascendingSort('date')({ date: '2021-01-01T12:00:00.000Z' }, { date: '2021-01-01T12:00:00.000Z' });
+      .oldAscendingSort('date')({ date: '2021-01-01T12:00:00.000Z' }, { date: '2021-01-01T12:00:00.000Z' });
     expect(result).toBe(0);
   });
 });

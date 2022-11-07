@@ -4,11 +4,12 @@ const AttendanceSheet = require('../models/AttendanceSheet');
 const User = require('../models/User');
 const GCloudStorageHelper = require('./gCloudStorage');
 const UtilsHelper = require('./utils');
-const DatesHelper = require('./dates');
+const { CompaniDate } = require('./dates/companiDates');
+const { DAY_MONTH_YEAR } = require('./constants');
 
 exports.create = async (payload) => {
   let fileName;
-  if (payload.date) fileName = DatesHelper.format(payload.date, 'D MMMM YYYY');
+  if (payload.date) fileName = CompaniDate(payload.date).format(DAY_MONTH_YEAR);
   else {
     const { identity } = await User.findOne({ _id: payload.trainee }, { identity: 1 }).lean();
     fileName = UtilsHelper.formatIdentity(identity, 'FL');

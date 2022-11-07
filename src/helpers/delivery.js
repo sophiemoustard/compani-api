@@ -129,9 +129,9 @@ const getActualDespatchCISupplyChainEvent = (event, startTimeStampList, endTimeS
 
 exports.getTimeStampInfo = (event) => {
   const startTimeStampList = event.histories.filter(h => !!h.update.startHour)
-    .sort(DatesHelper.descendingSort('createdAt'));
+    .sort(DatesHelper.oldDescendingSort('createdAt'));
   const endTimeStampList = event.histories.filter(h => !!h.update.endHour)
-    .sort(DatesHelper.descendingSort('createdAt'));
+    .sort(DatesHelper.oldDescendingSort('createdAt'));
   const hasTimeStamp = event.histories.some(h => (!!h.update.endHour || !!h.update.startHour));
 
   return { startTimeStampList, endTimeStampList, hasTimeStamp };

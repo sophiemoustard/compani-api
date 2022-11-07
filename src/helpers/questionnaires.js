@@ -4,7 +4,8 @@ const Course = require('../models/Course');
 const Card = require('../models/Card');
 const CardHelper = require('./cards');
 const { EXPECTATIONS, PUBLISHED, STRICTLY_E_LEARNING, END_OF_COURSE } = require('./constants');
-const DatesHelper = require('./dates');
+const DatesUtilsHelper = require('./dates/utils');
+const { CompaniDate } = require('./dates/companiDates');
 
 exports.create = async payload => Questionnaire.create(payload);
 
@@ -40,8 +41,8 @@ exports.getUserQuestionnaires = async (courseId, credentials) => {
 
   if (course.format === STRICTLY_E_LEARNING) return [];
 
-  const sortedCourseSlots = course.slots.sort((a, b) => DatesHelper.ascendingSort('startDate')(a, b));
-  const isCourseStarted = sortedCourseSlots.length && DatesHelper.isAfter(Date.now(), sortedCourseSlots[0].startDate);
+  const sortedCourseSlots = course.slots.sort((a, b) => DatesUtilsHelper.ascendingSort(a.startDate, b.startDate));
+  const isCourseStarted = sortedCourseSlots.length && CompaniDate().isAfter(sortedCourseSlots[0].startDate);
   if (!isCourseStarted) {
     const questionnaire = await this.findQuestionnaire(course, credentials, EXPECTATIONS);
 
@@ -51,7 +52,7 @@ exports.getUserQuestionnaires = async (courseId, credentials) => {
   if (get(course, 'slotsToPlan.length')) return [];
 
   const isCourseEnded = sortedCourseSlots.length &&
-    DatesHelper.isAfter(Date.now(), sortedCourseSlots[sortedCourseSlots.length - 1].startDate);
+    CompaniDate().isAfter(sortedCourseSlots[sortedCourseSlots.length - 1].startDate);
   if (isCourseEnded) {
     const questionnaire = await this.findQuestionnaire(course, credentials, END_OF_COURSE);
 
