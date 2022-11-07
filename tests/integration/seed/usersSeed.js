@@ -335,12 +335,13 @@ const activityList = [{ _id: new ObjectId(), name: 'great activity', type: VIDEO
 const stepList = [{ _id: new ObjectId(), name: 'etape', type: 'e_learning', activities: [activityList[0]._id] }];
 const subProgram = { _id: new ObjectId(), name: 'program', steps: stepList };
 
-const courses = [
+const coursesList = [
   {
     _id: new ObjectId(),
     subProgram: new ObjectId(),
     type: INTER_B2B,
     trainees: [helperFromOtherCompany._id, usersSeedList[0]._id],
+    companies: [otherCompany._id, authCompany._id],
     salesRepresentative: vendorAdmin._id,
   },
   {
@@ -348,8 +349,8 @@ const courses = [
     subProgram: new ObjectId(),
     type: INTRA,
     maxTrainees: 8,
-    companies: [new ObjectId()],
     trainees: [usersSeedList[0]._id],
+    companies: [authCompany._id],
     salesRepresentative: vendorAdmin._id,
   },
   {
@@ -359,6 +360,7 @@ const courses = [
     type: INTER_B2B,
     format: 'strictly_e_learning',
     trainees: [usersSeedList[12]._id],
+    companies: [authCompany._id],
   },
 ];
 
@@ -379,7 +381,7 @@ const populateDB = async () => {
     Activity.create(activityList),
     ActivityHistory.create(activityHistoryList),
     Contract.create(contracts),
-    Course.create(courses),
+    Course.create(coursesList),
     Customer.create(customer, customerFromOtherCompany),
     Establishment.create(establishmentList),
     Helper.create(helpers),
