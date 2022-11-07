@@ -383,7 +383,7 @@ describe('COURSES ROUTES - GET /courses', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      expect(response.result.data.courses.length).toEqual(13);
+      expect(response.result.data.courses.length).toEqual(14);
     });
 
     it('should get strictly e-learning courses (ops webapp)', async () => {
@@ -478,7 +478,7 @@ describe('COURSES ROUTES - GET /courses', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      expect(response.result.data.courses.length).toEqual(7);
+      expect(response.result.data.courses.length).toEqual(8);
     });
 
     it('should get trainer\'s course (ops mobile)', async () => {
@@ -490,7 +490,7 @@ describe('COURSES ROUTES - GET /courses', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      expect(response.result.data.courses.length).toEqual(7);
+      expect(response.result.data.courses.length).toEqual(8);
 
       const course =
          response.result.data.courses.find(c => UtilsHelper.areObjectIdsEquals(coursesList[2]._id, c._id));
@@ -546,7 +546,7 @@ describe('COURSES ROUTES - GET /courses', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      expect(response.result.data.courses.length).toEqual(9);
+      expect(response.result.data.courses.length).toEqual(10);
     });
 
     it('should return 200 if coach and same company (pedagogy webapp)', async () => {
