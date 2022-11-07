@@ -149,7 +149,7 @@ exports.authorizeCourseEdit = async (req) => {
       }
     }
 
-    if (get(req, 'payload.billsToCreate') && course.type === INTER_B2B) throw Boom.badRequest();
+    if (get(req, 'payload.expectedBillsCount') && course.type === INTER_B2B) throw Boom.badRequest();
 
     await this.checkInterlocutors(req, companies[0]);
 
