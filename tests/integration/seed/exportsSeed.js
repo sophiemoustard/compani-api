@@ -1044,33 +1044,33 @@ const salesRepresentative = {
 };
 
 const traineeList = [
-  {
+  { // 0
     _id: new ObjectId(),
     identity: { firstname: 'Jacques', lastname: 'Trainee' },
     origin: WEBAPP,
     local: { email: 'trainee1@compani.fr' },
     firstMobileConnection: '2019-01-16T10:30:19.543Z',
   },
-  {
+  { // 1
     _id: new ObjectId(),
     identity: { firstname: 'Paul', lastname: 'Trainee' },
     origin: WEBAPP,
     local: { email: 'trainee2@compani.fr' },
     firstMobileConnection: '2019-01-16T10:30:19.543Z',
   },
-  {
+  { // 2
     _id: new ObjectId(),
     identity: { firstname: 'Marie', lastname: 'Trainee' },
     local: { email: 'trainee3@compani.fr' },
     origin: WEBAPP,
   },
-  {
+  { // 3
     _id: new ObjectId(),
     identity: { firstname: 'Annie', lastname: 'Trainee' },
     local: { email: 'trainee4@compani.fr' },
     origin: WEBAPP,
   },
-  {
+  { // 4
     _id: new ObjectId(),
     identity: { firstname: 'Luc', lastname: 'Trainee' },
     local: { email: 'trainee5@compani.fr' },
@@ -1084,21 +1084,23 @@ const userCompanies = [
   { _id: new ObjectId(), user: user._id, company: authCompany._id },
   { _id: new ObjectId(), user: traineeList[0]._id, company: authCompany._id },
   { _id: new ObjectId(), user: traineeList[1]._id, company: otherCompany._id },
+  { _id: new ObjectId(), user: traineeList[2]._id, company: authCompany._id },
+  { _id: new ObjectId(), user: traineeList[3]._id, company: authCompany._id },
+  { _id: new ObjectId(), user: traineeList[4]._id, company: otherCompany._id },
 ];
 
-const courseList = [
+const coursesList = [
   {
     _id: new ObjectId(),
     type: INTRA,
     maxTrainees: 8,
-    companies: [authCompany._id],
     subProgram: subProgramList[0]._id,
     misc: 'group 1',
     trainer: trainer._id,
     salesRepresentative: salesRepresentative._id,
     contact: salesRepresentative._id,
-    trainees: [traineeList[0]._id, traineeList[1]._id, traineeList[2]._id],
-
+    trainees: [traineeList[0]._id, traineeList[2]._id, traineeList[3]._id],
+    companies: [authCompany._id],
   },
   {
     _id: new ObjectId(),
@@ -1108,6 +1110,7 @@ const courseList = [
     salesRepresentative: salesRepresentative._id,
     contact: salesRepresentative._id,
     trainees: [traineeList[3]._id, traineeList[4]._id],
+    companies: [authCompany._id, otherCompany._id],
     estimatedStartDate: '2019-01-01T08:00:00',
   },
   {
@@ -1119,19 +1122,20 @@ const courseList = [
     salesRepresentative: salesRepresentative._id,
     contact: salesRepresentative._id,
     trainees: [traineeList[3]._id, traineeList[4]._id],
+    companies: [authCompany._id, otherCompany._id],
     estimatedStartDate: '2022-01-01T08:00:00',
   },
   {
     _id: new ObjectId(),
     type: INTRA,
     maxTrainees: 8,
-    companies: [authCompany._id],
     subProgram: subProgramList[0]._id,
     misc: 'group 4',
     trainer: trainer._id,
     salesRepresentative: salesRepresentative._id,
     contact: salesRepresentative._id,
     trainees: [traineeList[0]._id, traineeList[1]._id, traineeList[2]._id],
+    companies: [authCompany._id],
   },
   {
     _id: new ObjectId(),
@@ -1143,7 +1147,7 @@ const courseList = [
     trainer: trainer._id,
     salesRepresentative: salesRepresentative._id,
     contact: salesRepresentative._id,
-    trainees: [traineeList[0]._id, traineeList[1]._id, traineeList[2]._id],
+    trainees: [traineeList[0]._id, traineeList[2]._id],
   },
 ];
 
@@ -1156,7 +1160,7 @@ const courseFundingOrganisation = {
 const courseBillList = [
   {
     _id: new ObjectId(),
-    course: courseList[0]._id,
+    course: coursesList[0]._id,
     mainFee: { price: 1200, count: 1 },
     company: authCompany._id,
     payer: { fundingOrganisation: courseFundingOrganisation._id },
@@ -1165,7 +1169,7 @@ const courseBillList = [
   },
   {
     _id: new ObjectId(),
-    course: courseList[3]._id,
+    course: coursesList[3]._id,
     mainFee: { price: 1200, count: 1 },
     company: authCompany._id,
     payer: { fundingOrganisation: courseFundingOrganisation._id },
@@ -1174,7 +1178,7 @@ const courseBillList = [
   },
   {
     _id: new ObjectId(),
-    course: courseList[4]._id,
+    course: coursesList[4]._id,
     mainFee: { price: 1200, count: 1 },
     company: authCompany._id,
     payer: { fundingOrganisation: courseFundingOrganisation._id },
@@ -1183,7 +1187,7 @@ const courseBillList = [
   },
   {
     _id: new ObjectId(),
-    course: courseList[1]._id,
+    course: coursesList[1]._id,
     mainFee: { price: 400, count: 1 },
     company: authCompany._id,
     payer: { fundingOrganisation: courseFundingOrganisation._id },
@@ -1192,7 +1196,7 @@ const courseBillList = [
   },
   {
     _id: new ObjectId(),
-    course: courseList[1]._id,
+    course: coursesList[1]._id,
     mainFee: { price: 400, count: 1 },
     company: otherCompany._id,
     payer: { fundingOrganisation: courseFundingOrganisation._id },
@@ -1276,7 +1280,7 @@ const slotAddress = {
 const courseSlotList = [
   {
     _id: new ObjectId(),
-    course: courseList[0]._id,
+    course: coursesList[0]._id,
     step: stepList[0]._id,
     startDate: '2021-05-01T08:00:00.000Z',
     endDate: '2021-05-01T10:00:00.000Z',
@@ -1285,7 +1289,7 @@ const courseSlotList = [
   },
   {
     _id: new ObjectId(),
-    course: courseList[0]._id,
+    course: coursesList[0]._id,
     step: stepList[1]._id,
     startDate: '2021-05-01T14:00:00.000Z',
     endDate: '2021-05-01T16:00:00.000Z',
@@ -1294,7 +1298,7 @@ const courseSlotList = [
   },
   {
     _id: new ObjectId(),
-    course: courseList[1]._id,
+    course: coursesList[1]._id,
     step: stepList[0]._id,
     startDate: '2021-02-01T08:00:00.000Z',
     endDate: '2021-02-01T10:00:00.000Z',
@@ -1303,7 +1307,7 @@ const courseSlotList = [
   },
   {
     _id: new ObjectId(),
-    course: courseList[1]._id,
+    course: coursesList[1]._id,
     step: stepList[2]._id,
     startDate: '2021-02-02T08:00:00.000Z',
     endDate: '2021-02-02T10:00:00.000Z',
@@ -1311,7 +1315,7 @@ const courseSlotList = [
   },
   {
     _id: new ObjectId(),
-    course: courseList[1]._id,
+    course: coursesList[1]._id,
     step: stepList[3]._id,
     address: slotAddress,
     createdAt: '2020-12-12T10:00:04.000Z',
@@ -1329,13 +1333,31 @@ const attendanceList = [
 ];
 
 const attendanceSheetList = [
-  { course: courseList[0]._id, trainee: traineeList[0]._id, file: { link: 'link', publicId: '123' } },
+  { course: coursesList[0]._id, trainee: traineeList[0]._id, file: { link: 'link', publicId: '123' } },
 ];
 
 const smsList = [
-  { _id: new ObjectId(), type: 'convocation', message: 'SMS 1', sender: traineeList[0]._id, course: courseList[0]._id },
-  { _id: new ObjectId(), type: 'convocation', message: 'SMS 2', sender: traineeList[1]._id, course: courseList[0]._id },
-  { _id: new ObjectId(), type: 'convocation', message: 'SMS 3', sender: traineeList[3]._id, course: courseList[1]._id },
+  {
+    _id: new ObjectId(),
+    type: 'convocation',
+    message: 'SMS 1',
+    sender: traineeList[0]._id,
+    course: coursesList[0]._id,
+  },
+  {
+    _id: new ObjectId(),
+    type: 'convocation',
+    message: 'SMS 2',
+    sender: traineeList[1]._id,
+    course: coursesList[0]._id,
+  },
+  {
+    _id: new ObjectId(),
+    type: 'convocation',
+    message: 'SMS 3',
+    sender: traineeList[3]._id,
+    course: coursesList[1]._id,
+  },
 ];
 
 const cardList = [
@@ -1365,15 +1387,45 @@ const questionnaireList = [
   },
 ];
 const questionnaireHistoriesList = [
-  { _id: new ObjectId(), course: courseList[0]._id, user: traineeList[0]._id, questionnaire: questionnaireList[0]._id },
-  { _id: new ObjectId(), course: courseList[0]._id, user: traineeList[0]._id, questionnaire: questionnaireList[1]._id },
-  { _id: new ObjectId(), course: courseList[0]._id, user: traineeList[1]._id, questionnaire: questionnaireList[1]._id },
-  { _id: new ObjectId(), course: courseList[0]._id, user: traineeList[2]._id, questionnaire: questionnaireList[0]._id },
-  { _id: new ObjectId(), course: courseList[1]._id, user: traineeList[3]._id, questionnaire: questionnaireList[0]._id },
-  { _id: new ObjectId(), course: courseList[1]._id, user: traineeList[3]._id, questionnaire: questionnaireList[1]._id },
+  { // 0
+    _id: new ObjectId(),
+    course: coursesList[0]._id,
+    user: traineeList[0]._id,
+    questionnaire: questionnaireList[0]._id,
+  },
+  { // 1
+    _id: new ObjectId(),
+    course: coursesList[0]._id,
+    user: traineeList[0]._id,
+    questionnaire: questionnaireList[1]._id,
+  },
+  { // 2
+    _id: new ObjectId(),
+    course: coursesList[0]._id,
+    user: traineeList[1]._id,
+    questionnaire: questionnaireList[1]._id,
+  },
+  { // 3
+    _id: new ObjectId(),
+    course: coursesList[0]._id,
+    user: traineeList[2]._id,
+    questionnaire: questionnaireList[0]._id,
+  },
+  { // 4
+    _id: new ObjectId(),
+    course: coursesList[1]._id,
+    user: traineeList[3]._id,
+    questionnaire: questionnaireList[0]._id,
+  },
+  { // 5
+    _id: new ObjectId(),
+    course: coursesList[1]._id,
+    user: traineeList[3]._id,
+    questionnaire: questionnaireList[1]._id,
+  },
   { // 6 end of course questionnaire all questions answered
     _id: new ObjectId(),
-    course: courseList[0]._id,
+    course: coursesList[0]._id,
     user: traineeList[0]._id,
     questionnaire: questionnaireList[1]._id,
     questionnaireAnswersList: [
@@ -1385,14 +1437,14 @@ const questionnaireHistoriesList = [
   },
   { // 7 expectation questionnaire
     _id: new ObjectId(),
-    course: courseList[0]._id,
+    course: coursesList[0]._id,
     user: traineeList[0]._id,
     questionnaire: questionnaireList[0]._id,
     createdAt: '2021-02-18T10:00:00.000Z',
   },
   { // 8 end of course questionnaire only one answer
     _id: new ObjectId(),
-    course: courseList[1]._id,
+    course: coursesList[1]._id,
     user: traineeList[1]._id,
     questionnaire: questionnaireList[1]._id,
     questionnaireAnswersList: [{
@@ -1414,7 +1466,7 @@ const populateDB = async () => {
     Bill.create(billsList),
     Card.create(cardList),
     Contract.create(contractList),
-    Course.create(courseList),
+    Course.create(coursesList),
     CourseBill.create(courseBillList),
     CourseCreditNote.create(courseCreditNote),
     CourseFundingOrganisation.create(courseFundingOrganisation),
@@ -1457,7 +1509,7 @@ module.exports = {
   auxiliaryList,
   establishment,
   thirdPartyPayer,
-  courseList,
+  coursesList,
   courseSlotList,
   distanceMatrixList,
 };
