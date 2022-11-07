@@ -333,6 +333,25 @@ const coursesList = [
     trainer: trainer._id,
     salesRepresentative: vendorAdmin._id,
   },
+  { // 17 Intra course without slots
+    _id: new ObjectId(),
+    subProgram: subProgramsList[0]._id,
+    contact: vendorAdmin._id,
+    companies: [authCompany._id],
+    misc: 'third session',
+    trainer: trainer._id,
+    type: INTRA,
+    maxTrainees: 8,
+    trainees: [
+      coach._id,
+      helper._id,
+      trainerOrganisationManager._id,
+      clientAdmin._id,
+      auxiliary._id,
+      traineeFromAuthCompanyWithFormationExpoToken._id,
+    ],
+    salesRepresentative: vendorAdmin._id,
+  },
 ];
 
 const courseBillsList = [

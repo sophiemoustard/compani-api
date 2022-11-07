@@ -183,6 +183,7 @@ exports.plugin = {
             archivedAt: Joi.date(),
             estimatedStartDate: dateToISOString,
             maxTrainees: Joi.number().positive().integer(),
+            billsToCreate: Joi.number().positive().integer(),
           }),
         },
         pre: [{ method: authorizeCourseEdit }],
