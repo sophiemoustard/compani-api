@@ -67,12 +67,12 @@ const coursesList = [
   {
     _id: new ObjectId(),
     subProgram: subProgramsList[0]._id,
-    companies: [new ObjectId()],
     misc: 'first session',
     type: INTRA,
     maxTrainees: 8,
     trainer: new ObjectId(),
     trainees: [userList[1]._id],
+    companies: [authCompany._id],
     salesRepresentative: userList[0]._id,
     format: STRICTLY_E_LEARNING,
   },
