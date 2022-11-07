@@ -30,6 +30,7 @@ const CourseSchema = mongoose.Schema({
   estimatedStartDate: { type: Date },
   archivedAt: { type: Date },
   maxTrainees: { type: Number, required() { return this.type === INTRA; } },
+  billsToCreate: { type: Number, default() { return this.type === INTRA ? 0 : undefined; } },
 }, { timestamps: true });
 
 CourseSchema.virtual('slots', {
