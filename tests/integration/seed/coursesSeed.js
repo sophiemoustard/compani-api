@@ -229,7 +229,7 @@ const coursesList = [
     misc: 'inter b2b session NOT concerning auth company',
     type: INTER_B2B,
     trainees: [],
-    companies: [],
+    companies: [authCompany._id],
     format: 'strictly_e_learning',
     salesRepresentative: vendorAdmin._id,
   },
