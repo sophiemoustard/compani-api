@@ -8,7 +8,6 @@ const Program = require('../../../src/models/Program');
 const UserCompany = require('../../../src/models/UserCompany');
 const User = require('../../../src/models/User');
 const QuestionnaireHistory = require('../../../src/models/QuestionnaireHistory');
-const { authCompany } = require('../../seed/authCompaniesSeed');
 const { userList } = require('../../seed/authUsersSeed');
 const { deleteNonAuthenticationSeeds } = require('../helpers/authentication');
 const { TRANSITION, OPEN_QUESTION, INTER_B2B } = require('../../../src/helpers/constants');
@@ -52,7 +51,8 @@ const coursesList = [
     type: INTER_B2B,
     salesRepresentative: new ObjectId(),
     trainer: courseTrainer._id,
-    companies: [authCompany._id],
+    trainees: [],
+    companies: [],
   },
   {
     _id: new ObjectId(),
@@ -61,6 +61,8 @@ const coursesList = [
     type: INTER_B2B,
     salesRepresentative: new ObjectId(),
     trainer: courseTrainer._id,
+    trainees: [],
+    companies: [],
   },
   {
     _id: new ObjectId(),
@@ -69,6 +71,8 @@ const coursesList = [
     type: INTER_B2B,
     salesRepresentative: new ObjectId(),
     trainer: new ObjectId(),
+    trainees: [],
+    companies: [],
   },
 ];
 
