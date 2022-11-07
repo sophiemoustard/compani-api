@@ -1098,17 +1098,19 @@ describe('COURSES ROUTES - PUT /courses/{_id}', () => {
         contact: trainerAndCoach._id,
         estimatedStartDate: '2022-05-31T08:00:00',
         maxTrainees: 12,
+        billsToCreate: 3,
       };
+
       const response = await app.inject({
         method: 'PUT',
-        url: `/courses/${coursesList[4]._id}`,
+        url: `/courses/${coursesList[17]._id}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
         payload,
       });
 
       expect(response.statusCode).toBe(200);
 
-      const course = await Course.countDocuments({ _id: coursesList[4]._id, ...payload }).lean();
+      const course = await Course.countDocuments({ _id: coursesList[17]._id, ...payload }).lean();
       expect(course).toEqual(1);
     });
 
@@ -1156,6 +1158,8 @@ describe('COURSES ROUTES - PUT /courses/{_id}', () => {
       { trainer: new ObjectId() },
       { contact: vendorAdmin._id },
       { salesRepresentative: new ObjectId() },
+      { maxTrainees: 15 },
+      { billsToCreate: 10 },
     ];
     payloads.forEach((payload) => {
       it(`should return 403 if course is archived (update ${Object.keys(payload)})`, async () => {
@@ -1394,6 +1398,28 @@ describe('COURSES ROUTES - PUT /courses/{_id}', () => {
       });
 
       expect(response.statusCode).toBe(403);
+    });
+
+    it('should return 400 if trying to set maxTrainees for inter b2b course', async () => {
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/courses/${coursesList[4]._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload: { maxTrainees: 14 },
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
+
+    it('should return 400 if trying to set billsToCreate for inter b2b course', async () => {
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/courses/${coursesList[4]._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload: { billsToCreate: 14 },
+      });
+
+      expect(response.statusCode).toBe(400);
     });
   });
 
