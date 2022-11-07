@@ -93,6 +93,10 @@ exports.plugin = {
             salesRepresentative: Joi.objectId().required(),
             estimatedStartDate: dateToISOString,
             maxTrainees: Joi.number().when('type', { is: INTRA, then: Joi.required(), otherwise: Joi.forbidden() }),
+            billsToCreate: Joi
+              .number()
+              .integer()
+              .when('type', { is: INTRA, then: Joi.required(), otherwise: Joi.forbidden() }),
           }),
         },
         auth: { scope: ['courses:create'] },
