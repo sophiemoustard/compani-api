@@ -7,7 +7,7 @@ const app = require('../../server');
 const {
   populateDB,
   courseBillsList,
-  courseList,
+  coursesList,
   courseFundingOrganisationList,
   billingItemList,
 } = require('./seed/courseBillsSeed');
@@ -33,14 +33,14 @@ describe('COURSE BILL ROUTES - GET /coursebills', () => {
     it('should get course bill for intra course (with company as payer)', async () => {
       const response = await app.inject({
         method: 'GET',
-        url: `/coursebills?course=${courseList[0]._id}&action=list`,
+        url: `/coursebills?course=${coursesList[0]._id}&action=list`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(response.statusCode).toBe(200);
       expect(response.result.data.courseBills.length).toEqual(1);
       expect(response.result.data.courseBills[0]).toMatchObject({
-        course: courseList[0]._id,
+        course: coursesList[0]._id,
         company: authCompany._id,
         payer: pick(authCompany, ['_id', 'name']),
         mainFee: { price: 120, count: 1 },
@@ -55,14 +55,14 @@ describe('COURSE BILL ROUTES - GET /coursebills', () => {
     it('should get course bill for intra course (with funding organisation as payer)', async () => {
       const response = await app.inject({
         method: 'GET',
-        url: `/coursebills?course=${courseList[1]._id}&action=list`,
+        url: `/coursebills?course=${coursesList[1]._id}&action=list`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(response.statusCode).toBe(200);
       expect(response.result.data.courseBills.length).toEqual(1);
       expect(response.result.data.courseBills[0]).toMatchObject({
-        course: courseList[1]._id,
+        course: coursesList[1]._id,
         company: authCompany._id,
         mainFee: { price: 120, count: 1 },
         netInclTaxes: 120,
@@ -114,7 +114,7 @@ describe('COURSE BILL ROUTES - GET /coursebills', () => {
     it('should return 400 if query is course but wrong action', async () => {
       const response = await app.inject({
         method: 'GET',
-        url: `/coursebills?course=${courseList[1]._id}&action=balance`,
+        url: `/coursebills?course=${coursesList[1]._id}&action=balance`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -151,7 +151,7 @@ describe('COURSE BILL ROUTES - GET /coursebills', () => {
     it('should return 400 if wrong action in query', async () => {
       const response = await app.inject({
         method: 'GET',
-        url: `/coursebills?course=${courseList[0]._id}&action=list`,
+        url: `/coursebills?course=${coursesList[0]._id}&action=list`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -172,7 +172,7 @@ describe('COURSE BILL ROUTES - GET /coursebills', () => {
         authToken = await getToken(role.name);
         const response = await app.inject({
           method: 'GET',
-          url: `/coursebills?course=${courseList[0]._id}&action=list`,
+          url: `/coursebills?course=${coursesList[0]._id}&action=list`,
           headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
@@ -271,7 +271,7 @@ describe('COURSE BILL ROUTES - GET /coursebills/{_id}/pdfs', () => {
         authToken = await getToken(role.name);
         const response = await app.inject({
           method: 'GET',
-          url: `/coursebills/${courseList[2]._id}/pdfs`,
+          url: `/coursebills/${coursesList[2]._id}/pdfs`,
           headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
@@ -285,7 +285,7 @@ describe('COURSE BILL ROUTES - POST /coursebills', () => {
   let authToken;
   beforeEach(populateDB);
   const payload = {
-    course: courseList[2]._id,
+    course: coursesList[2]._id,
     company: otherCompany._id,
     mainFee: { price: 120, count: 1 },
     payer: { fundingOrganisation: courseFundingOrganisationList[0]._id },
@@ -329,7 +329,7 @@ describe('COURSE BILL ROUTES - POST /coursebills', () => {
         method: 'POST',
         url: '/coursebills',
         headers: { Cookie: `alenvi_token=${authToken}` },
-        payload: { ...payload, course: courseList[9]._id },
+        payload: { ...payload, course: coursesList[9]._id },
       });
 
       expect(response.statusCode).toBe(200);
@@ -420,7 +420,7 @@ describe('COURSE BILL ROUTES - POST /coursebills', () => {
       const response = await app.inject({
         method: 'POST',
         url: '/coursebills',
-        payload: { ...payload, course: courseList[0]._id },
+        payload: { ...payload, course: coursesList[0]._id },
         headers: { 'x-access-token': authToken },
       });
 
@@ -431,7 +431,7 @@ describe('COURSE BILL ROUTES - POST /coursebills', () => {
       const response = await app.inject({
         method: 'POST',
         url: '/coursebills',
-        payload: { ...payload, course: courseList[9]._id, company: authCompany._id },
+        payload: { ...payload, course: coursesList[9]._id, company: authCompany._id },
         headers: { 'x-access-token': authToken },
       });
 
