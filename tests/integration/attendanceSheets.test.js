@@ -282,7 +282,7 @@ describe('ATTENDANCE SHEETS ROUTES - GET /attendancesheets', () => {
       authToken = await getToken('coach');
       const response = await app.inject({
         method: 'GET',
-        url: `/attendancesheets?course=${coursesList[2]._id}`,
+        url: `/attendancesheets?course=${coursesList[4]._id}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
