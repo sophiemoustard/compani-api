@@ -5,6 +5,7 @@ const Card = require('../../../src/models/Card');
 const { userList } = require('../../seed/authUsersSeed');
 const { deleteNonAuthenticationSeeds } = require('../helpers/authentication');
 const { INTER_B2B } = require('../../../src/helpers/constants');
+const { authCompany } = require('../../seed/authCompaniesSeed');
 
 const questionnaireHistoriesUsersList = [userList[6]._id, userList[5]._id];
 
@@ -35,6 +36,7 @@ const coursesList = [
     type: INTER_B2B,
     salesRepresentative: new ObjectId(),
     trainees: [questionnaireHistoriesUsersList[0]],
+    companies: [authCompany._id],
   },
   {
     _id: new ObjectId(),
@@ -43,6 +45,7 @@ const coursesList = [
     type: INTER_B2B,
     salesRepresentative: new ObjectId(),
     trainees: [questionnaireHistoriesUsersList[1]],
+    companies: [authCompany._id],
   },
 ];
 
