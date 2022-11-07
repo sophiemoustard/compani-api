@@ -463,7 +463,7 @@ const getCourseForPedagogy = async (courseId, credentials) => {
   }
 
   if (!course.subProgram.isStrictlyELearning) {
-    const lastSlot = course.slots.sort((a, b) => DatesUtilsHelper.descendingSort(a.startDate, b.startDate))[0];
+    const lastSlot = course.slots.sort(DatesUtilsHelper.descendingSortBy('startDate'))[0];
     const areLastSlotAttendancesValidated = !!(lastSlot &&
       await Attendance.countDocuments({ courseSlot: lastSlot._id }));
 
@@ -603,9 +603,7 @@ exports.formatInterCourseForPdf = (course) => {
   const possibleMisc = course.misc ? ` - ${course.misc}` : '';
   const name = course.subProgram.program.name + possibleMisc;
   const filteredSlots = course.slots
-    ? course.slots
-      .filter(slot => slot.step.type === ON_SITE)
-      .sort((a, b) => DatesUtilsHelper.ascendingSort(a.startDate, b.startDate))
+    ? course.slots.filter(slot => slot.step.type === ON_SITE).sort(DatesUtilsHelper.ascendingSortBy('startDate'))
     : [];
 
   const courseData = {
@@ -650,7 +648,7 @@ exports.generateAttendanceSheets = async (courseId) => {
 };
 
 exports.formatCourseForDocuments = (course) => {
-  const sortedCourseSlots = course.slots.sort((a, b) => DatesUtilsHelper.ascendingSort(a.startDate, b.startDate));
+  const sortedCourseSlots = course.slots.sort(DatesUtilsHelper.ascendingSortBy('startDate'));
 
   return {
     duration: UtilsHelper.getTotalDuration(course.slots),

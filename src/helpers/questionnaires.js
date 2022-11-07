@@ -41,7 +41,7 @@ exports.getUserQuestionnaires = async (courseId, credentials) => {
 
   if (course.format === STRICTLY_E_LEARNING) return [];
 
-  const sortedCourseSlots = course.slots.sort((a, b) => DatesUtilsHelper.ascendingSort(a.startDate, b.startDate));
+  const sortedCourseSlots = course.slots.sort(DatesUtilsHelper.ascendingSortBy('startDate'));
   const isCourseStarted = sortedCourseSlots.length && CompaniDate().isAfter(sortedCourseSlots[0].startDate);
   if (!isCourseStarted) {
     const questionnaire = await this.findQuestionnaire(course, credentials, EXPECTATIONS);
