@@ -1536,6 +1536,19 @@ describe('COURSES ROUTES - PUT /courses/{_id}', () => {
       expect(response.statusCode).toBe(403);
     });
 
+    it('should return 403 as user is client_admin and try to update expectedBillsCount', async () => {
+      authToken = await getToken('client_admin');
+
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/courses/${courseIdFromAuthCompany}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload: { expectedBillsCount: 9 },
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
+
     it('should return 403 as user is trainer and try to update estimated start date', async () => {
       authToken = await getToken('trainer');
 
