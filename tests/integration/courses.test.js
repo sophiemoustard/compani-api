@@ -214,6 +214,46 @@ describe('COURSES ROUTES - POST /courses', () => {
       expect(response.statusCode).toBe(400);
     });
 
+    it('should return 400 if expectedBillsCount is lower than 0', async () => {
+      const payload = {
+        misc: 'course',
+        type: INTRA,
+        expectedBillsCount: -3,
+        subProgram: subProgramsList[0]._id,
+        salesRepresentative: vendorAdmin._id,
+        estimatedStartDate: '2022-05-31T08:00:00.000Z',
+      };
+
+      const response = await app.inject({
+        method: 'POST',
+        url: '/courses',
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload,
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
+
+    it('should return 400 if expectedBillsCount is float', async () => {
+      const payload = {
+        misc: 'course',
+        type: INTRA,
+        expectedBillsCount: 3.2,
+        subProgram: subProgramsList[0]._id,
+        salesRepresentative: vendorAdmin._id,
+        estimatedStartDate: '2022-05-31T08:00:00.000Z',
+      };
+
+      const response = await app.inject({
+        method: 'POST',
+        url: '/courses',
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload,
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
+
     const payload = {
       misc: 'course',
       company: authCompany._id,
@@ -1401,6 +1441,28 @@ describe('COURSES ROUTES - PUT /courses/{_id}', () => {
         url: `/courses/${coursesList[4]._id}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
         payload: { expectedBillsCount: 14 },
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
+
+    it('should return 400 if expectedBillsCount is lower than 0', async () => {
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/courses/${coursesList[17]._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload: { expectedBillsCount: -14 },
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
+
+    it('should return 400 if expectedBillsCount is float', async () => {
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/courses/${coursesList[17]._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload: { expectedBillsCount: 14.3 },
       });
 
       expect(response.statusCode).toBe(400);
