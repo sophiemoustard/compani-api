@@ -31,7 +31,16 @@ const {
   trainer,
   trainerAndCoach,
 } = require('../../seed/authUsersSeed');
-const { VIDEO, WEBAPP, SLOT_CREATION, SLOT_DELETION, INTRA, INTER_B2B } = require('../../../src/helpers/constants');
+const {
+  VIDEO,
+  WEBAPP,
+  SLOT_CREATION,
+  SLOT_DELETION,
+  INTRA,
+  INTER_B2B,
+  STRICTLY_E_LEARNING,
+  INTER_B2C,
+} = require('../../../src/helpers/constants');
 const { auxiliaryRoleId, trainerRoleId, coachRoleId } = require('../../seed/authRolesSeed');
 
 const traineeFromOtherCompany = {
@@ -133,6 +142,7 @@ const stepList = [
 const subProgramsList = [
   { _id: new ObjectId(), name: 'sous-programme 1', steps: [stepList[0]._id, stepList[1]._id] },
   { _id: new ObjectId(), name: 'sous-programme 2', steps: [stepList[1]._id, stepList[2]._id] },
+  { _id: new ObjectId(), name: 'sous-programme 3', steps: [stepList[1]._id] },
 ];
 
 const programsList = [
@@ -228,12 +238,12 @@ const coursesList = [
   },
   { // 6 course without trainees and slots
     _id: new ObjectId(),
-    subProgram: subProgramsList[0]._id,
-    misc: 'inter b2b session NOT concerning auth company',
-    type: INTER_B2B,
+    subProgram: subProgramsList[2]._id,
+    misc: 'inter b2c session NOT concerning auth company',
+    type: INTER_B2C,
     trainees: [],
     companies: [authCompany._id],
-    format: 'strictly_e_learning',
+    format: STRICTLY_E_LEARNING,
     salesRepresentative: vendorAdmin._id,
   },
   { // 7 course with slots to plan
@@ -248,12 +258,12 @@ const coursesList = [
     trainer: coach._id,
     salesRepresentative: vendorAdmin._id,
   },
-  { // 8 course with access rules
+  { // 8 eLearning course with access rules
     _id: new ObjectId(),
-    subProgram: subProgramsList[0]._id,
+    subProgram: subProgramsList[2]._id,
     contact: vendorAdmin._id,
     misc: 'inter_b2b with accessRules',
-    type: INTER_B2B,
+    type: INTER_B2C,
     format: 'strictly_e_learning',
     trainees: [coach._id, traineeFromOtherCompany._id],
     companies: [otherCompany._id, authCompany._id],
@@ -266,7 +276,7 @@ const coursesList = [
     trainer: trainer._id,
     misc: 'inter_b2b with accessRules',
     type: INTER_B2B,
-    format: 'strictly_e_learning',
+    format: 'blended',
     trainees: [coach._id, traineeFromOtherCompany._id],
     companies: [otherCompany._id, authCompany._id],
     accessRules: [authCompany._id, new ObjectId()],
@@ -285,9 +295,9 @@ const coursesList = [
   },
   { // 11 course without authCompany in access rules (11ème position)
     _id: new ObjectId(),
-    subProgram: subProgramsList[0]._id,
-    misc: 'inter_b2b',
-    type: INTER_B2B,
+    subProgram: subProgramsList[2]._id,
+    misc: 'inter_b2c',
+    type: INTER_B2C,
     format: 'strictly_e_learning',
     trainees: [traineeFromOtherCompany._id, coach._id],
     companies: [otherCompany._id, authCompany._id],
