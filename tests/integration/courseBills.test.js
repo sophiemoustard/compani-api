@@ -338,6 +338,17 @@ describe('COURSE BILL ROUTES - POST /coursebills', () => {
       expect(count).toBe(courseBillsList.length + 1);
     });
 
+    it('should create a bill if expectedBillsCount lower than number of bills without creditNote', async () => {
+      const response = await app.inject({
+        method: 'POST',
+        url: '/coursebills',
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload: { ...payload, course: courseList[1]._id, company: authCompany._id },
+      });
+
+      expect(response.statusCode).toBe(200);
+    });
+
     const missingParams = ['course', 'company', 'mainFee', 'mainFee.price', 'mainFee.count', 'payer'];
     missingParams.forEach((param) => {
       it(`should return 400 as ${param} is missing`, async () => {
@@ -436,6 +447,28 @@ describe('COURSE BILL ROUTES - POST /coursebills', () => {
       });
 
       expect(response.statusCode).toBe(404);
+    });
+
+    it('should return 409 if expectedBillsCount is 0', async () => {
+      const response = await app.inject({
+        method: 'POST',
+        url: '/coursebills',
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload: { ...payload, course: courseList[10]._id },
+      });
+
+      expect(response.statusCode).toBe(409);
+    });
+
+    it('should return 409 if expectedBillsCount is equal to number of bills without creditNote', async () => {
+      const response = await app.inject({
+        method: 'POST',
+        url: '/coursebills',
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload: { ...payload, course: courseList[0]._id, company: authCompany._id },
+      });
+
+      expect(response.statusCode).toBe(409);
     });
   });
 

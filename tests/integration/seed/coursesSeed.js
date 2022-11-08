@@ -14,6 +14,8 @@ const ActivityHistory = require('../../../src/models/ActivityHistory');
 const Card = require('../../../src/models/Card');
 const Questionnaire = require('../../../src/models/Questionnaire');
 const QuestionnaireHistory = require('../../../src/models/QuestionnaireHistory');
+const CourseBill = require('../../../src/models/CourseBill');
+const CourseCreditNote = require('../../../src/models/CourseCreditNote');
 const { authCompany, otherCompany } = require('../../seed/authCompaniesSeed');
 const { deleteNonAuthenticationSeeds } = require('../helpers/authentication');
 const {
@@ -31,8 +33,6 @@ const {
 } = require('../../seed/authUsersSeed');
 const { VIDEO, WEBAPP, SLOT_CREATION, SLOT_DELETION, INTRA, INTER_B2B } = require('../../../src/helpers/constants');
 const { auxiliaryRoleId, trainerRoleId, coachRoleId } = require('../../seed/authRolesSeed');
-const CourseBill = require('../../../src/models/CourseBill');
-const CourseCreditNote = require('../../../src/models/CourseCreditNote');
 
 const traineeFromOtherCompany = {
   _id: new ObjectId(),
