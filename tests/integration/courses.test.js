@@ -383,7 +383,7 @@ describe('COURSES ROUTES - GET /courses', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      expect(response.result.data.courses.length).toEqual(14);
+      expect(response.result.data.courses.length).toEqual(15);
     });
 
     it('should get strictly e-learning courses (ops webapp)', async () => {
@@ -394,7 +394,7 @@ describe('COURSES ROUTES - GET /courses', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      expect(response.result.data.courses.length).toEqual(4);
+      expect(response.result.data.courses.length).toEqual(3);
     });
 
     it('should get all trainee courses (pedagogy webapp)', async () => {
@@ -546,7 +546,7 @@ describe('COURSES ROUTES - GET /courses', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      expect(response.result.data.courses.length).toEqual(10);
+      expect(response.result.data.courses.length).toEqual(8);
     });
 
     it('should return 200 if coach and same company (pedagogy webapp)', async () => {
@@ -2771,7 +2771,7 @@ describe('COURSES ROUTES - GET /{_id}/completion-certificates', () => {
       authToken = await getToken('coach');
       const response = await app.inject({
         method: 'GET',
-        url: `/courses/${coursesList[8]._id}/completion-certificates`,
+        url: `/courses/${coursesList[9]._id}/completion-certificates`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -2783,8 +2783,8 @@ describe('COURSES ROUTES - GET /{_id}/completion-certificates', () => {
           duration: '2h',
           learningGoals: 'on est là',
           programName: 'PROGRAM',
-          startDate: '08/03/2020',
-          endDate: '08/03/2020',
+          startDate: '09/03/2020',
+          endDate: '09/03/2020',
           trainee: { identity: 'Coach CALIF', attendanceDuration: '0h' },
           date: '24/01/2019',
         }
