@@ -7,6 +7,7 @@ const User = require('../../models/User');
 const UserCompany = require('../../models/UserCompany');
 const CourseSlot = require('../../models/CourseSlot');
 const Company = require('../../models/Company');
+const CourseBill = require('../../models/CourseBill');
 const {
   TRAINER,
   INTRA,
@@ -24,7 +25,6 @@ const {
 } = require('../../helpers/constants');
 const translate = require('../../helpers/translate');
 const UtilsHelper = require('../../helpers/utils');
-const CourseBill = require('../../models/CourseBill');
 
 const { language } = translate;
 
@@ -153,7 +153,7 @@ exports.authorizeCourseEdit = async (req) => {
       if (!isRofOrAdmin) throw Boom.forbidden();
       if (course.type === INTER_B2B) throw Boom.badRequest();
 
-      const courseBills = await CourseBill.find({ course: course._id })
+      const courseBills = await CourseBill.find({ course: course._id }, { courseCreditNote: 1 })
         .populate({ path: 'courseCreditNote', options: { isVendorUser: true } })
         .setOptions({ isVendorUser: true })
         .lean();
