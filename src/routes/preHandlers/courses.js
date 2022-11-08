@@ -149,7 +149,18 @@ exports.authorizeCourseEdit = async (req) => {
       }
     }
 
-    if (get(req, 'payload.expectedBillsCount') && course.type === INTER_B2B) throw Boom.badRequest();
+    if (Object.keys(req.payload).includes('expectedBillsCount')) {
+      if (!isRofOrAdmin) throw Boom.forbidden();
+      if (course.type === INTER_B2B) throw Boom.badRequest();
+
+      const courseBills = await CourseBill.find({ course: course._id })
+        .populate({ path: 'courseCreditNote', options: { isVendorUser: true } })
+        .setOptions({ isVendorUser: true })
+        .lean();
+
+      const courseBillsWithoutCreditNote = courseBills.filter(cb => !cb.courseCreditNote);
+      if (courseBillsWithoutCreditNote.length > req.payload.expectedBillsCount) throw Boom.conflict();
+    }
 
     await this.checkInterlocutors(req, companies[0]);
 
