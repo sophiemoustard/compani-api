@@ -38,7 +38,7 @@ describe('COURSE BILL ROUTES - GET /coursebills', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      expect(response.result.data.courseBills.length).toEqual(1);
+      expect(response.result.data.courseBills.length).toEqual(2);
       expect(response.result.data.courseBills[0]).toMatchObject({
         course: courseList[0]._id,
         company: authCompany._id,
@@ -60,7 +60,7 @@ describe('COURSE BILL ROUTES - GET /coursebills', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      expect(response.result.data.courseBills.length).toEqual(1);
+      expect(response.result.data.courseBills.length).toEqual(2);
       expect(response.result.data.courseBills[0]).toMatchObject({
         course: courseList[1]._id,
         company: authCompany._id,
@@ -78,7 +78,7 @@ describe('COURSE BILL ROUTES - GET /coursebills', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      expect(response.result.data.courseBills.length).toEqual(3);
+      expect(response.result.data.courseBills.length).toEqual(5);
     });
 
     it('should return 404 if course doesn\'t exist', async () => {
@@ -135,7 +135,7 @@ describe('COURSE BILL ROUTES - GET /coursebills', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      expect(response.result.data.courseBills.length).toEqual(3);
+      expect(response.result.data.courseBills.length).toEqual(5);
     });
 
     it('should return 403 if wrong company', async () => {

@@ -149,7 +149,7 @@ exports.authorizeCourseEdit = async (req) => {
       }
     }
 
-    if (Object.keys(req.payload).includes('expectedBillsCount')) {
+    if (req.payload && Object.keys(req.payload).includes('expectedBillsCount')) {
       if (!isRofOrAdmin) throw Boom.forbidden();
       if (course.type === INTER_B2B) throw Boom.badRequest();
 
