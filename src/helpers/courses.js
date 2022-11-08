@@ -573,7 +573,7 @@ exports.formatInterCourseSlotsForPdf = (slot) => {
 exports.groupSlotsByDate = (slots) => {
   const group = groupBy(slots, slot => CompaniDate(slot.startDate).format(DD_MM_YYYY));
 
-  return Object.values(group).sort((a, b) => DatesUtilsHelper.ascendingSort(a[0].startDate, b[0].startDate));
+  return Object.values(group).sort((a, b) => DatesUtilsHelper.ascendingSortBy('startDate')(a[0], b[0]));
 };
 
 exports.formatIntraCourseForPdf = (course) => {
