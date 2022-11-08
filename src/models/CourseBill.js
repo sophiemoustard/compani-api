@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 const get = require('lodash/get');
-const { validateQuery, validateAggregation, formatQuery, formatQueryMiddlewareList } = require('./preHooks/validate');
+const { validateQuery, validateAggregation, formatQuery, queryMiddlewareList } = require('./preHooks/validate');
 
 const CourseBillSchema = mongoose.Schema({
   course: { type: mongoose.Schema.Types.ObjectId, ref: 'Course', required: true },
@@ -60,7 +60,7 @@ CourseBillSchema.virtual(
 
 CourseBillSchema.pre('find', validateQuery);
 CourseBillSchema.pre('aggregate', validateAggregation);
-formatQueryMiddlewareList().map(middleware => CourseBillSchema.pre(middleware, formatQuery));
+queryMiddlewareList.map(middleware => CourseBillSchema.pre(middleware, formatQuery));
 
 CourseBillSchema.post('find', formatPayers);
 CourseBillSchema.post('findOne', formatPayer);

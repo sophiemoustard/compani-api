@@ -1,8 +1,22 @@
 const Joi = require('joi');
 const { MONTH_VALIDATION, PHONE_VALIDATION, SIRET_VALIDATION } = require('../../models/utils');
+const { CompaniDuration } = require('../../helpers/dates/companiDurations');
 
 const dateToISOString = Joi.date().custom(value => value.toISOString());
 const requiredDateToISOString = Joi.date().required().custom(value => value.toISOString());
+
+const durationStrictlyPositive = Joi.string().custom((value, helper) => {
+  try {
+    const duration = CompaniDuration(value);
+
+    return duration.isLongerThan('PT0S')
+      ? value
+      : helper.message('Duration should be strictly positive');
+  } catch (e) {
+    const msg = `Error in custom joi validation durationStrictlyPositive :  ${e.message}`;
+    return helper.message(msg);
+  }
+});
 
 const monthValidation = Joi.string().regex(MONTH_VALIDATION);
 const phoneNumberValidation = Joi.string().regex(PHONE_VALIDATION);
@@ -52,4 +66,5 @@ module.exports = {
   dateToISOString,
   requiredDateToISOString,
   siretValidation,
+  durationStrictlyPositive,
 };

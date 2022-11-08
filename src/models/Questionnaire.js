@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 const mongooseLeanVirtuals = require('mongoose-lean-virtuals');
 const { DRAFT, PUBLISHED, EXPECTATIONS, END_OF_COURSE } = require('../helpers/constants');
-const { formatQuery, formatQueryMiddlewareList } = require('./preHooks/validate');
+const { formatQuery, queryMiddlewareList } = require('./preHooks/validate');
 
 const STATUS_TYPES = [DRAFT, PUBLISHED];
 const QUESTIONNAIRE_TYPES = [EXPECTATIONS, END_OF_COURSE];
@@ -36,7 +36,7 @@ function setAreCardsValid() {
 }
 
 QuestionnaireSchema.virtual('areCardsValid').get(setAreCardsValid);
-formatQueryMiddlewareList().map(middleware => QuestionnaireSchema.pre(middleware, formatQuery));
+queryMiddlewareList.map(middleware => QuestionnaireSchema.pre(middleware, formatQuery));
 
 QuestionnaireSchema.plugin(mongooseLeanVirtuals);
 module.exports = mongoose.model('Questionnaire', QuestionnaireSchema);

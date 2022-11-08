@@ -42,8 +42,17 @@ const companiDurationFactory = (inputDuration) => {
       return _duration.as('hours');
     },
 
+    asMinutes() {
+      return _duration.as('minutes');
+    },
+
     asSeconds() {
       return _duration.as('seconds');
+    },
+
+    toHoursAndMinutesObject() {
+      const shiftedDuration = _duration.shiftTo('hours', 'minutes');
+      return { hours: shiftedDuration.get('hours'), minutes: shiftedDuration.get('minutes') };
     },
 
     toObject() {
@@ -52,6 +61,21 @@ const companiDurationFactory = (inputDuration) => {
 
     toISO() {
       return _duration.toISO();
+    },
+
+    // QUERY
+    isEquivalentTo(miscTypeOtherDuration) {
+      const otherDurationInSeconds = exports._formatMiscToCompaniDuration(miscTypeOtherDuration).shiftTo('seconds');
+      const durationInSeconds = _duration.shiftTo('seconds');
+
+      return durationInSeconds.equals(otherDurationInSeconds);
+    },
+
+    isLongerThan(miscTypeOtherDuration) {
+      const otherDurationInSeconds = exports._formatMiscToCompaniDuration(miscTypeOtherDuration).as('seconds');
+      const durationInSeconds = _duration.as('seconds');
+
+      return durationInSeconds > otherDurationInSeconds;
     },
 
     // MANIPULATE

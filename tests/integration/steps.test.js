@@ -71,28 +71,26 @@ describe('STEPS ROUTES - PUT /steps/{_id}', () => {
       expect(stepUpdated).toEqual(expect.objectContaining({ _id: stepsList[1]._id, activities: payload.activities }));
     });
 
-    it('should update theoreticalHours with positive float', async () => {
-      const payload = { theoreticalHours: 1.4 };
+    it('should update theoreticalDuration with positive float', async () => {
       const response = await app.inject({
         method: 'PUT',
         url: `/steps/${stepId}`,
-        payload,
+        payload: { theoreticalDuration: 'PT5040S' },
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(response.statusCode).toBe(200);
 
-      const stepUpdated = await Step.countDocuments({ _id: stepId, theoreticalHours: 1.4 });
+      const stepUpdated = await Step.countDocuments({ _id: stepId, theoreticalDuration: 5040 });
 
       expect(stepUpdated).toBeTruthy();
     });
 
-    it('should update theoreticalHours even if step is published', async () => {
-      const payload = { theoreticalHours: 1.5 };
+    it('should update theoreticalDuration even if step is published', async () => {
       const response = await app.inject({
         method: 'PUT',
         url: `/steps/${stepsList[3]._id}`,
-        payload,
+        payload: { theoreticalDuration: 'PT5400S' },
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -100,18 +98,28 @@ describe('STEPS ROUTES - PUT /steps/{_id}', () => {
       const stepUpdated = await Step.countDocuments({
         _id: stepsList[3]._id,
         status: 'published',
-        theoreticalHours: 1.5,
+        theoreticalDuration: 5400,
       });
 
       expect(stepUpdated).toBeTruthy();
     });
 
-    it('should return 400 if theoreticalHours is 0', async () => {
-      const payload = { theoreticalHours: 0 };
+    it('should return 400 if theoreticalDuration is 0', async () => {
       const response = await app.inject({
         method: 'PUT',
         url: `/steps/${stepId}`,
-        payload,
+        payload: { theoreticalDuration: 'PT0S' },
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
+
+    it('should return 400 if theoreticalDuration is negative', async () => {
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/steps/${stepId}`,
+        payload: { theoreticalDuration: 'PT-432S' },
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
