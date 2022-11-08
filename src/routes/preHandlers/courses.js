@@ -10,6 +10,7 @@ const Company = require('../../models/Company');
 const {
   TRAINER,
   INTRA,
+  INTER_B2B,
   VENDOR_ADMIN,
   CLIENT_ADMIN,
   COACH,
@@ -142,10 +143,13 @@ exports.authorizeCourseEdit = async (req) => {
 
     if (get(req, 'payload.maxTrainees')) {
       if (!isRofOrAdmin) throw Boom.forbidden();
+      if (course.type === INTER_B2B) throw Boom.badRequest();
       if ((req.payload.maxTrainees < course.trainees.length)) {
         throw Boom.forbidden(translate[language].maxTraineesSmallerThanRegistered);
       }
     }
+
+    if (get(req, 'payload.expectedBillsCount') && course.type === INTER_B2B) throw Boom.badRequest();
 
     await this.checkInterlocutors(req, companies[0]);
 

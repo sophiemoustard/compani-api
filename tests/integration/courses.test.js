@@ -100,6 +100,7 @@ describe('COURSES ROUTES - POST /courses', () => {
         company: authCompany._id,
         subProgram: subProgramsList[0]._id,
         salesRepresentative: vendorAdmin._id,
+        expectedBillsCount: 2,
       };
       const coursesCountBefore = await Course.countDocuments({});
 
@@ -143,6 +144,7 @@ describe('COURSES ROUTES - POST /courses', () => {
         maxTrainees: 12,
         subProgram: subProgramsList[0]._id,
         salesRepresentative: vendorAdmin._id,
+        expectedBillsCount: 0,
       };
       const response = await app.inject({
         method: 'POST',
@@ -161,6 +163,7 @@ describe('COURSES ROUTES - POST /courses', () => {
         subProgram: subProgramsList[0]._id,
         salesRepresentative: vendorAdmin._id,
       };
+
       const response = await app.inject({
         method: 'POST',
         url: '/courses',
@@ -191,6 +194,26 @@ describe('COURSES ROUTES - POST /courses', () => {
       expect(response.statusCode).toBe(400);
     });
 
+    it('should return 400 if inter_b2b course and expectedBillsCount is in payload', async () => {
+      const payload = {
+        misc: 'course',
+        type: INTER_B2B,
+        expectedBillsCount: 2,
+        subProgram: subProgramsList[0]._id,
+        salesRepresentative: vendorAdmin._id,
+        estimatedStartDate: '2022-05-31T08:00:00.000Z',
+      };
+
+      const response = await app.inject({
+        method: 'POST',
+        url: '/courses',
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload,
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
+
     const payload = {
       misc: 'course',
       company: authCompany._id,
@@ -198,8 +221,9 @@ describe('COURSES ROUTES - POST /courses', () => {
       type: INTRA,
       maxTrainees: 8,
       salesRepresentative: vendorAdmin._id,
+      expectedBillsCount: 0,
     };
-    ['company', 'subProgram', 'maxTrainees'].forEach((param) => {
+    ['company', 'subProgram', 'maxTrainees', 'expectedBillsCount'].forEach((param) => {
       it(`should return a 400 error if course is intra and '${param}' parameter is missing`, async () => {
         const response = await app.inject({
           method: 'POST',
@@ -229,6 +253,7 @@ describe('COURSES ROUTES - POST /courses', () => {
           company: authCompany._id,
           subProgram: subProgramsList[0]._id,
           salesRepresentative: vendorAdmin._id,
+          expectedBillsCount: 2,
         };
         authToken = await getToken(role.name);
         const response = await app.inject({
@@ -320,7 +345,7 @@ describe('COURSES ROUTES - GET /courses', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      expect(response.result.data.courses.length).toEqual(13);
+      expect(response.result.data.courses.length).toEqual(14);
     });
 
     it('should get strictly e-learning courses (ops webapp)', async () => {
@@ -415,7 +440,7 @@ describe('COURSES ROUTES - GET /courses', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      expect(response.result.data.courses.length).toEqual(7);
+      expect(response.result.data.courses.length).toEqual(8);
     });
 
     it('should get trainer\'s course (ops mobile)', async () => {
@@ -427,7 +452,7 @@ describe('COURSES ROUTES - GET /courses', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      expect(response.result.data.courses.length).toEqual(7);
+      expect(response.result.data.courses.length).toEqual(8);
 
       const course =
          response.result.data.courses.find(c => UtilsHelper.areObjectIdsEquals(coursesList[2]._id, c._id));
@@ -483,7 +508,7 @@ describe('COURSES ROUTES - GET /courses', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      expect(response.result.data.courses.length).toEqual(9);
+      expect(response.result.data.courses.length).toEqual(10);
     });
 
     it('should return 200 if coach and same company (pedagogy webapp)', async () => {
@@ -1035,17 +1060,19 @@ describe('COURSES ROUTES - PUT /courses/{_id}', () => {
         contact: trainerAndCoach._id,
         estimatedStartDate: '2022-05-31T08:00:00',
         maxTrainees: 12,
+        expectedBillsCount: 3,
       };
+
       const response = await app.inject({
         method: 'PUT',
-        url: `/courses/${coursesList[4]._id}`,
+        url: `/courses/${coursesList[17]._id}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
         payload,
       });
 
       expect(response.statusCode).toBe(200);
 
-      const course = await Course.countDocuments({ _id: coursesList[4]._id, ...payload }).lean();
+      const course = await Course.countDocuments({ _id: coursesList[17]._id, ...payload }).lean();
       expect(course).toEqual(1);
     });
 
@@ -1093,6 +1120,8 @@ describe('COURSES ROUTES - PUT /courses/{_id}', () => {
       { trainer: new ObjectId() },
       { contact: vendorAdmin._id },
       { salesRepresentative: new ObjectId() },
+      { maxTrainees: 15 },
+      { expectedBillsCount: 10 },
     ];
     payloads.forEach((payload) => {
       it(`should return 403 if course is archived (update ${Object.keys(payload)})`, async () => {
@@ -1331,6 +1360,28 @@ describe('COURSES ROUTES - PUT /courses/{_id}', () => {
       });
 
       expect(response.statusCode).toBe(403);
+    });
+
+    it('should return 400 if trying to set maxTrainees for inter b2b course', async () => {
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/courses/${coursesList[4]._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload: { maxTrainees: 14 },
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
+
+    it('should return 400 if trying to set expectedBillsCount for inter b2b course', async () => {
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/courses/${coursesList[4]._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload: { expectedBillsCount: 14 },
+      });
+
+      expect(response.statusCode).toBe(400);
     });
   });
 
