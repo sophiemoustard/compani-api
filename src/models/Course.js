@@ -12,10 +12,7 @@ const CourseSchema = mongoose.Schema({
   companies: {
     type: [mongoose.Schema.Types.ObjectId],
     ref: 'Company',
-    validate: {
-      validator(v) { return (this.type === INTRA ? Array.isArray(v) && !!v.length : true); },
-      message: props => `${props.value} invalid field!`,
-    },
+    validate(v) { return (this.type === INTRA ? Array.isArray(v) && !!v.length : true); },
   },
   type: { type: String, required: true, enum: COURSE_TYPES },
   format: { type: String, enum: COURSE_FORMATS, default: BLENDED },
