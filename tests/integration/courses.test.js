@@ -162,7 +162,6 @@ describe('COURSES ROUTES - POST /courses', () => {
         type: 'invalid type',
         subProgram: subProgramsList[0]._id,
         salesRepresentative: vendorAdmin._id,
-        expectedBillsCount: 1,
       };
 
       const response = await app.inject({
@@ -195,50 +194,11 @@ describe('COURSES ROUTES - POST /courses', () => {
       expect(response.statusCode).toBe(400);
     });
 
-    it('should return 400 if intra course and maxTrainees is not in payload', async () => {
-      const payload = {
-        misc: 'course',
-        type: INTRA,
-        subProgram: subProgramsList[0]._id,
-        salesRepresentative: vendorAdmin._id,
-        estimatedStartDate: '2022-05-31T08:00:00.000Z',
-        expectedBillsCount: 1,
-      };
-
-      const response = await app.inject({
-        method: 'POST',
-        url: '/courses',
-        headers: { Cookie: `alenvi_token=${authToken}` },
-        payload,
-      });
-
-      expect(response.statusCode).toBe(400);
-    });
-
     it('should return 400 if inter_b2b course and expectedBillsCount is in payload', async () => {
       const payload = {
         misc: 'course',
         type: INTER_B2B,
         expectedBillsCount: 2,
-        subProgram: subProgramsList[0]._id,
-        salesRepresentative: vendorAdmin._id,
-        estimatedStartDate: '2022-05-31T08:00:00.000Z',
-      };
-
-      const response = await app.inject({
-        method: 'POST',
-        url: '/courses',
-        headers: { Cookie: `alenvi_token=${authToken}` },
-        payload,
-      });
-
-      expect(response.statusCode).toBe(400);
-    });
-
-    it('should return 400 if intra course and expectedBillsCount is not in payload', async () => {
-      const payload = {
-        misc: 'course',
-        type: INTRA,
         subProgram: subProgramsList[0]._id,
         salesRepresentative: vendorAdmin._id,
         estimatedStartDate: '2022-05-31T08:00:00.000Z',
@@ -263,7 +223,7 @@ describe('COURSES ROUTES - POST /courses', () => {
       salesRepresentative: vendorAdmin._id,
       expectedBillsCount: 0,
     };
-    ['company', 'subProgram', 'maxTrainees'].forEach((param) => {
+    ['company', 'subProgram', 'maxTrainees', 'expectedBillsCount'].forEach((param) => {
       it(`should return a 400 error if course is intra and '${param}' parameter is missing`, async () => {
         const response = await app.inject({
           method: 'POST',

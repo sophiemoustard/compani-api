@@ -74,7 +74,7 @@ const contactWithoutPhone = {
 
 const coachFromOtherCompany = {
   _id: new ObjectId(),
-  identity: { firstname: 'Fred', lastname: 'Astaire' },
+  identity: { firstname: 'What', lastname: 'Where' },
   local: { email: 'coachOtherCompany@alenvi.io', password: '123456!eR' },
   role: { client: coachRoleId },
   contact: { phone: '0734856751' },
