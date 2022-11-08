@@ -523,7 +523,7 @@ exports.getPaidTransportStatsBySector = async (query, credentials) => {
     const promises = [];
     for (const auxiliary of sector.auxiliaries) {
       for (const day of auxiliary.days) {
-        const dayEventList = [...day.events].sort(DatesHelper.oldAscendingSort('startDate'));
+        const dayEventList = [...day.events].sort(DatesHelper.ascendingSort('startDate'));
         if (dayEventList.length > 1) {
           for (let i = 1; i < dayEventList.length; i++) {
             promises.push(DraftPayHelper.getPaidTransportInfo(dayEventList[i], dayEventList[i - 1], distanceMatrix));

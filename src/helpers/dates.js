@@ -106,6 +106,6 @@ exports.formatDateAndTime = (date, format = '') => {
     .replace(', ', ' ');
 };
 
-exports.oldAscendingSort = key => (a, b) => CompaniDate(a[key]).oldDiff(b[key], 'milliseconds').milliseconds;
+exports.ascendingSort = key => (a, b) => CompaniDate(a[key]).oldDiff(b[key], 'milliseconds').milliseconds;
 
-exports.oldDescendingSort = key => (a, b) => CompaniDate(b[key]).oldDiff(a[key], 'milliseconds').milliseconds;
+exports.descendingSort = key => (a, b) => CompaniDate(b[key]).oldDiff(a[key], 'milliseconds').milliseconds;

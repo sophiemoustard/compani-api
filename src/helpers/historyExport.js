@@ -84,7 +84,7 @@ const getServiceName = (service) => {
 
 const getMatchingSector = (histories, event) => histories
   .filter(sh => CompaniDate(sh.startDate).isBefore(event.startDate))
-  .sort(DatesHelper.oldDescendingSort('startDate'))[0];
+  .sort(DatesHelper.descendingSort('startDate'))[0];
 
 const displayDate = (date) => {
   if (!date) return '';
@@ -491,7 +491,7 @@ const getHiringDate = (contracts) => {
   if (!contracts || contracts.length === 0) return null;
   if (contracts.length === 1) return contracts[0].startDate;
 
-  return [...contracts].sort(DatesHelper.oldAscendingSort('startDate'))[0].startDate;
+  return [...contracts].sort(DatesHelper.ascendingSort('startDate'))[0].startDate;
 };
 
 const formatLines = (surchargedPlanDetails, planName) => {
@@ -669,11 +669,10 @@ exports.exportTransportsHistory = async (startDate, endDate, credentials) => {
     .sort((a, b) => (a.auxiliary.identity.lastname).localeCompare(b.auxiliary.identity.lastname));
 
   for (const group of sortedEventsByAuxiliary) {
-    const sortedEventsByDayList = group.eventsByDay
-      .sort((a, b) => DatesHelper.oldAscendingSort('startDate')(a[0], b[0]));
+    const sortedEventsByDayList = group.eventsByDay.sort((a, b) => DatesHelper.ascendingSort('startDate')(a[0], b[0]));
 
     for (const eventsGroupedByDay of sortedEventsByDayList) {
-      const sortedEvents = [...eventsGroupedByDay].sort(DatesHelper.oldAscendingSort('startDate'));
+      const sortedEvents = [...eventsGroupedByDay].sort(DatesHelper.ascendingSort('startDate'));
 
       for (let i = 1; i < sortedEvents.length; i++) {
         const {

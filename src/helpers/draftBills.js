@@ -23,7 +23,7 @@ const populateSurchargeAndBillingItem = (serviceVersions, surcharges, billingIte
     ...(v.surcharge && { surcharge: surcharges.find(s => UtilsHelper.areObjectIdsEquals(s._id, v.surcharge)) }),
     billingItems: v.billingItems.map(bi => billingItems.find(bddBI => UtilsHelper.areObjectIdsEquals(bddBI._id, bi))),
   }))
-  .sort(DatesHelper.oldDescendingSort('startDate'));
+  .sort(DatesHelper.descendingSort('startDate'));
 
 exports.populateAndFormatSubscription = async (subscription, surcharges, billingItems) => ({
   ...subscription,

@@ -235,42 +235,42 @@ describe('format', () => {
   });
 });
 
-describe('oldDescendingSort', () => {
+describe('descendingSort', () => {
   it('should return a positive value if b > a', () => {
     const result = DatesHelper
-      .oldDescendingSort('date')({ date: '2020-12-01T12:00:00.000Z' }, { date: '2021-01-01T12:00:00.000Z' });
+      .descendingSort('date')({ date: '2020-12-01T12:00:00.000Z' }, { date: '2021-01-01T12:00:00.000Z' });
     expect(result > 0).toBe(true);
   });
 
   it('should return a negative value if b < a', () => {
     const result = DatesHelper
-      .oldDescendingSort('date')({ date: '2021-01-01T12:00:00.000Z' }, { date: '2020-12-01T12:00:00.000Z' });
+      .descendingSort('date')({ date: '2021-01-01T12:00:00.000Z' }, { date: '2020-12-01T12:00:00.000Z' });
     expect(result < 0).toBe(true);
   });
 
   it('should return 0 if b = a', () => {
     const result = DatesHelper
-      .oldDescendingSort('date')({ date: '2021-01-01T12:00:00.000Z' }, { date: '2021-01-01T12:00:00.000Z' });
+      .descendingSort('date')({ date: '2021-01-01T12:00:00.000Z' }, { date: '2021-01-01T12:00:00.000Z' });
     expect(result).toBe(0);
   });
 });
 
-describe('oldAscendingSort', () => {
+describe('ascendingSort', () => {
   it('should return a positive value if b < a', () => {
     const result = DatesHelper
-      .oldAscendingSort('date')({ date: '2021-01-01T12:00:00.000Z' }, { date: '2020-12-01T12:00:00.000Z' });
+      .ascendingSort('date')({ date: '2021-01-01T12:00:00.000Z' }, { date: '2020-12-01T12:00:00.000Z' });
     expect(result > 0).toBe(true);
   });
 
   it('should return a negative value if b > a', () => {
     const result = DatesHelper
-      .oldAscendingSort('date')({ date: '2020-12-01T12:00:00.000Z' }, { date: '2021-01-01T12:00:00.000Z' });
+      .ascendingSort('date')({ date: '2020-12-01T12:00:00.000Z' }, { date: '2021-01-01T12:00:00.000Z' });
     expect(result < 0).toBe(true);
   });
 
   it('should return 0 if b = a', () => {
     const result = DatesHelper
-      .oldAscendingSort('date')({ date: '2021-01-01T12:00:00.000Z' }, { date: '2021-01-01T12:00:00.000Z' });
+      .ascendingSort('date')({ date: '2021-01-01T12:00:00.000Z' }, { date: '2021-01-01T12:00:00.000Z' });
     expect(result).toBe(0);
   });
 });

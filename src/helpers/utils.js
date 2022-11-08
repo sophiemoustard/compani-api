@@ -13,14 +13,14 @@ exports.getLastVersion = (versions, dateKey) => {
   if (versions.length === 0) return null;
   if (versions.length === 1) return versions[0];
 
-  return [...versions].sort(DatesHelper.oldDescendingSort(dateKey))[0];
+  return [...versions].sort(DatesHelper.descendingSort(dateKey))[0];
 };
 
 exports.getFirstVersion = (versions, dateKey) => {
   if (versions.length === 0) return null;
   if (versions.length === 1) return versions[0];
 
-  return [...versions].sort(DatesHelper.oldAscendingSort(dateKey))[0];
+  return [...versions].sort(DatesHelper.ascendingSort(dateKey))[0];
 };
 
 exports.mergeLastVersionWithBaseObject = (baseObj, dateKey) => {
@@ -39,7 +39,7 @@ exports.getMatchingVersion = (date, obj, dateKey, filterMethod = defaultFilterMe
 
   const matchingVersion = [...obj.versions]
     .filter(filterMethod(date))
-    .sort(DatesHelper.oldDescendingSort(dateKey))[0];
+    .sort(DatesHelper.descendingSort(dateKey))[0];
   if (!matchingVersion) return null;
 
   return {
@@ -55,7 +55,7 @@ exports.getMatchingObject = (date, list, dateKey) => {
   const filteredAndSortedList = list
     .filter(h => DatesHelper.isSameOrBefore(h.startDate, date, 'd') &&
       (!h.endDate || DatesHelper.isSameOrAfter(h.endDate, date, 'd')))
-    .sort(DatesHelper.oldDescendingSort(dateKey));
+    .sort(DatesHelper.descendingSort(dateKey));
   if (!filteredAndSortedList.length) return null;
 
   return filteredAndSortedList[0];

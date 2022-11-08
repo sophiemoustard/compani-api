@@ -278,7 +278,7 @@ const incrementHours = (total, hours, surchargedKey) => {
 exports.getPayFromEvents = async (events, auxiliary, subscriptions, dm, surcharges, query) => {
   let paidHours = exports.initializePaidHours();
   for (const eventsPerDay of events) {
-    const sortedEvents = [...eventsPerDay].sort(DatesHelper.oldAscendingSort('startDate'));
+    const sortedEvents = [...eventsPerDay].sort(DatesHelper.ascendingSort('startDate'));
     for (let i = 0, l = sortedEvents.length; i < l; i++) {
       const subscription = subscriptions[sortedEvents[i].subscription];
       const paidEvent = {
