@@ -384,6 +384,7 @@ describe('getUserQuestionnaires', () => {
         { query: 'lean', args: [{ virtuals: true }] },
       ]
     );
+    UtilsMock.unmockCurrentDate();
   });
 
   it('should return an empty array if is ended and no end of course questionnaire', async () => {
@@ -418,6 +419,7 @@ describe('getUserQuestionnaires', () => {
         { query: 'lean', args: [{ virtuals: true }] },
       ]
     );
+    UtilsMock.unmockCurrentDate();
   });
 
   it('should return an empty array if end of course questionnaire is already answered', async () => {
@@ -457,6 +459,7 @@ describe('getUserQuestionnaires', () => {
         { query: 'lean', args: [{ virtuals: true }] },
       ]
     );
+    UtilsMock.unmockCurrentDate();
   });
 
   it('should return end of course questionnaire if last slot is started and questionnaire not answered', async () => {
@@ -492,6 +495,7 @@ describe('getUserQuestionnaires', () => {
         { query: 'lean', args: [{ virtuals: true }] },
       ]
     );
+    UtilsMock.unmockCurrentDate();
   });
 
   it('should return an empty array if first slot is passed but last slot isn\'t', async () => {
@@ -522,6 +526,7 @@ describe('getUserQuestionnaires', () => {
         { query: 'lean', args: [{ virtuals: true }] },
       ]
     );
+    UtilsMock.unmockCurrentDate();
   });
 });
 
