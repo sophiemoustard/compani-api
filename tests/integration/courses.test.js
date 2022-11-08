@@ -1153,7 +1153,7 @@ describe('COURSES ROUTES - PUT /courses/{_id}', () => {
       expect(response.statusCode).toBe(404);
     });
 
-    it('should set expectedBillsCount to a lower value if not lower than number of validated bills', async () => {
+    it('should set expectedBillsCount if not lower than number of validated bills', async () => {
       const response = await app.inject({
         method: 'PUT',
         url: `/courses/${coursesList[1]._id}`,

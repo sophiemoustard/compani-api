@@ -26,7 +26,7 @@ exports.authorizeCourseBillCreation = async (req) => {
     if (!UtilsHelper.areObjectIdsEquals(course.companies[0], companyId)) throw Boom.notFound();
     if (!course.expectedBillsCount) throw Boom.conflict();
 
-    const courseBills = await CourseBill.find({ course: course._id })
+    const courseBills = await CourseBill.find({ course: course._id }, { courseCreditNote: 1 })
       .populate({ path: 'courseCreditNote', options: { isVendorUser: true } })
       .setOptions({ isVendorUser: true })
       .lean();
