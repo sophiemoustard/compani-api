@@ -92,6 +92,11 @@ const companiDurationFactory = (inputDuration) => {
 
       return companiDurationFactory(_duration.plus(otherDuration));
     },
+
+    abs() {
+      if (_duration.as('seconds') > 0) return companiDurationFactory(_duration);
+      return companiDurationFactory(_duration.mapUnits(value => -value));
+    },
   };
 };
 

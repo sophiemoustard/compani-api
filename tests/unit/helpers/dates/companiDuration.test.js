@@ -445,6 +445,26 @@ describe('MANIPULATE', () => {
       sinon.assert.calledWithExactly(_formatMiscToCompaniDuration.getCall(0), addedAmount);
     });
   });
+
+  describe('abs', () => {
+    it('should return same value, as it is positive', () => {
+      const duration = CompaniDurationsHelper.CompaniDuration('P1DT-13H-4M32S'); // 39392000 ms
+      const result = duration.abs();
+
+      expect(result).toEqual(expect.objectContaining({ _getDuration: expect.any(luxon.Duration) }));
+      expect(result._getDuration.toISO()).toEqual('P1DT-13H-4M32S');
+      expect(result._getDuration.toMillis()).toBe(39392000);
+    });
+
+    it('should return opposite value, as it is negative', () => {
+      const duration = CompaniDurationsHelper.CompaniDuration('P1DT-32H-4M32S'); // -29008000 ms
+      const result = duration.abs();
+
+      expect(result).toEqual(expect.objectContaining({ _getDuration: expect.any(luxon.Duration) }));
+      expect(result._getDuration.toISO()).toEqual('P-1DT32H4M-32S');
+      expect(result._getDuration.toMillis()).toBe(29008000);
+    });
+  });
 });
 
 describe('QUERY', () => {
