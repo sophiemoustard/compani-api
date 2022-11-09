@@ -237,6 +237,66 @@ describe('DISPLAY', () => {
     });
   });
 
+  describe('asYears', () => {
+    it('should return duration in years', () => {
+      const companiDuration = CompaniDurationsHelper.CompaniDuration('P3Y');
+      const result = companiDuration.asYears();
+
+      expect(result).toBe(3);
+    });
+
+    it('should return duration in years, with months', () => {
+      const companiDuration = CompaniDurationsHelper.CompaniDuration('P1Y2M');
+      const result = companiDuration.asYears();
+
+      expect(result).toBe(1.1666666666666667); // 1.1666666666666667 = 1 + 2 / 12
+    });
+
+    it('should return duration in years, with days', () => {
+      const companiDuration = CompaniDurationsHelper.CompaniDuration('P4Y5D');
+      const result = companiDuration.asYears();
+
+      expect(result).toBe(4.013698630136986); // 4.013698630136986 = 4 + 5 / 365
+    });
+
+    it('should return duration in months, with seconds', () => {
+      const companiDuration = CompaniDurationsHelper.CompaniDuration('P7YT45S');
+      const result = companiDuration.asYears();
+
+      expect(result).toBe(7.000001426940639); //  7.000001426940639   = 7 + 4 / (3600 * 24 * 365)
+    });
+  });
+
+  describe('asMonths', () => {
+    it('should return duration in months', () => {
+      const companiDuration = CompaniDurationsHelper.CompaniDuration('P5M');
+      const result = companiDuration.asMonths();
+
+      expect(result).toBe(5);
+    });
+
+    it('should return duration in months, with days', () => {
+      const companiDuration = CompaniDurationsHelper.CompaniDuration('P1M9D');
+      const result = companiDuration.asMonths();
+
+      expect(result).toBe(1.3); // 1.2 = 1 + 9 / 30
+    });
+
+    it('should return duration in months, with hours', () => {
+      const companiDuration = CompaniDurationsHelper.CompaniDuration('P2MT9H');
+      const result = companiDuration.asMonths();
+
+      expect(result).toBe(2.0125); // 2.00625 = 2 + 9 / (24 * 30)
+    });
+
+    it('should return duration in months, with seconds', () => {
+      const companiDuration = CompaniDurationsHelper.CompaniDuration('P1MT4S');
+      const result = companiDuration.asMonths();
+
+      expect(result).toBe(1.0000015432098766); // 1.0000015432098766 = 1 + 4 / (3600 * 24 * 30)
+    });
+  });
+
   describe('asDays', () => {
     it('should return duration in days', () => {
       const companiDuration = CompaniDurationsHelper.CompaniDuration('P3D');

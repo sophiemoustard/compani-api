@@ -34,6 +34,14 @@ const companiDurationFactory = (inputDuration) => {
       throw Error('Invalid argument: expected specific format');
     },
 
+    asYears() {
+      return _duration.as('years');
+    },
+
+    asMonths() {
+      return _duration.as('months');
+    },
+
     asDays() {
       return _duration.as('days');
     },
