@@ -26,7 +26,7 @@ module.exports = {
   DAY_MONTH_YEAR: 'DDD',
   HH_MM: 'T',
   HH_MM_SS: 'HH:mm:ss',
-  UPLOAD_DATE_FORMAT: 'YYYYMMDDHHmmss',
+  UPLOAD_DATE_FORMAT: 'yyyyLLddHHmmss',
   // DATE INDEX
   MONDAY: 0,
   TUESDAY: 1,

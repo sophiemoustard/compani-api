@@ -41,7 +41,7 @@ describe('COURSE HISTORIES ROUTES - GET /coursehistories', () => {
       });
 
       const courseHistoriesFromCourse = courseHistoriesList.filter(
-        ch => ch.course === coursesList[2]._id && CompaniDate(ch.createdAt).isBefore('2020-06-25T06:00:00')
+        ch => ch.course === coursesList[2]._id && CompaniDate(ch.createdAt).isBefore('2020-06-25T06:00:00.000Z')
       );
 
       expect(response.statusCode).toBe(200);
