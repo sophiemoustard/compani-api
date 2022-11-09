@@ -1145,7 +1145,7 @@ const courseList = [
     contact: salesRepresentative._id,
     trainees: [traineeList[0]._id, traineeList[1]._id, traineeList[2]._id],
   },
-  { // 5
+  { // 5 with 3 bills and 1 creditNote
     _id: new ObjectId(),
     type: INTRA,
     maxTrainees: 8,
@@ -1157,6 +1157,19 @@ const courseList = [
     contact: salesRepresentative._id,
     trainees: [traineeList[0]._id, traineeList[1]._id, traineeList[2]._id],
     expectedBillsCount: 3,
+  },
+  { // 6 without bills
+    _id: new ObjectId(),
+    type: INTRA,
+    maxTrainees: 8,
+    companies: [authCompany._id],
+    subProgram: subProgramList[0]._id,
+    misc: 'group 7',
+    trainer: trainer._id,
+    salesRepresentative: salesRepresentative._id,
+    contact: salesRepresentative._id,
+    trainees: [],
+    expectedBillsCount: 0,
   },
 ];
 
@@ -1230,7 +1243,7 @@ const courseBillList = [
     billedAt: '2022-06-08T00:10:00.000Z',
     number: 'FACT-00007',
   },
-  { // 7
+  { // 7 cancelled with creditNote
     _id: new ObjectId(),
     course: courseList[5]._id,
     mainFee: { price: 240, count: 1 },
@@ -1405,6 +1418,15 @@ const courseSlotList = [
   {
     _id: new ObjectId(),
     course: courseList[5]._id,
+    step: stepList[0]._id,
+    address: slotAddress,
+    createdAt: '2020-12-12T10:00:04.000Z',
+    startDate: '2021-04-12T10:00:00.000Z',
+    endDate: '2021-04-12T12:00:00.000Z',
+  },
+  {
+    _id: new ObjectId(),
+    course: courseList[6]._id,
     step: stepList[0]._id,
     address: slotAddress,
     createdAt: '2020-12-12T10:00:04.000Z',
