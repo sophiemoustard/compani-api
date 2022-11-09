@@ -1,9 +1,9 @@
 const expect = require('expect');
-const moment = require('moment');
 const app = require('../../server');
 const { populateDB, coursesList, courseHistoriesList, userList } = require('./seed/courseHistoriesSeed');
 const { trainerAndCoach } = require('../seed/authUsersSeed');
 const { getToken, getTokenByCredentials } = require('./helpers/authentication');
+const { CompaniDate } = require('../../src/helpers/dates/companiDates');
 
 describe('NODE ENV', () => {
   it('should be \'test\'', () => {
@@ -41,7 +41,7 @@ describe('COURSE HISTORIES ROUTES - GET /coursehistories', () => {
       });
 
       const courseHistoriesFromCourse = courseHistoriesList.filter(
-        ch => ch.course === coursesList[2]._id && moment(ch.createdAt).isBefore(moment('2020-06-25T06:00:00'))
+        ch => ch.course === coursesList[2]._id && CompaniDate(ch.createdAt).isBefore('2020-06-25T06:00:00')
       );
 
       expect(response.statusCode).toBe(200);
