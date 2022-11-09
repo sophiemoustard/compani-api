@@ -17,12 +17,23 @@ exports.authorizeCourseBillCreation = async (req) => {
   if (!companyExists) throw Boom.notFound();
 
   const course = await Course
-    .findOne({ _id: courseId }, { type: 1, trainees: 1, companies: 1 })
+    .findOne({ _id: courseId }, { type: 1, trainees: 1, companies: 1, expectedBillsCount: 1 })
     .populate({ path: 'trainees', select: '_id company', populate: { path: 'company' } })
     .lean();
   if (!course) throw Boom.notFound();
 
-  if (course.type === INTRA && !UtilsHelper.areObjectIdsEquals(course.companies[0], companyId)) throw Boom.notFound();
+  if (course.type === INTRA) {
+    if (!UtilsHelper.areObjectIdsEquals(course.companies[0], companyId)) throw Boom.notFound();
+    if (!course.expectedBillsCount) throw Boom.conflict();
+
+    const courseBills = await CourseBill.find({ course: course._id }, { courseCreditNote: 1 })
+      .populate({ path: 'courseCreditNote', options: { isVendorUser: true } })
+      .setOptions({ isVendorUser: true })
+      .lean();
+
+    const courseBillsWithoutCreditNote = courseBills.filter(cb => !cb.courseCreditNote);
+    if (courseBillsWithoutCreditNote.length === course.expectedBillsCount) throw Boom.conflict();
+  }
 
   if (course.type === INTER_B2B &&
     !course.trainees.find(trainee => UtilsHelper.areObjectIdsEquals(companyId, trainee.company))) {

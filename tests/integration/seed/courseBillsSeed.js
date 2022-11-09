@@ -6,6 +6,7 @@ const Course = require('../../../src/models/Course');
 const CourseBill = require('../../../src/models/CourseBill');
 const CourseBillingItem = require('../../../src/models/CourseBillingItem');
 const CourseBillsNumber = require('../../../src/models/CourseBillsNumber');
+const CourseCreditNote = require('../../../src/models/CourseCreditNote');
 const CourseFundingOrganisation = require('../../../src/models/CourseFundingOrganisation');
 const Program = require('../../../src/models/Program');
 const SubProgram = require('../../../src/models/SubProgram');
@@ -70,7 +71,7 @@ const userCompanies = [
 ];
 
 const courseList = [
-  { // 0 - linked to bill 0
+  { // 0 - linked to bill 0 and 8, linked to creditNote 1, expectedBillsCount is 1
     _id: new ObjectId(),
     type: INTRA,
     maxTrainees: 8,
@@ -81,8 +82,9 @@ const courseList = [
     salesRepresentative: new ObjectId(),
     contact: new ObjectId(),
     trainees: [new ObjectId()],
+    expectedBillsCount: 1,
   },
-  { // 1 - linked to bill 1
+  { // 1 - linked to bill 1 and 7, linked to creditNote 0, expectedBillsCount is 2
     _id: new ObjectId(),
     type: INTRA,
     maxTrainees: 8,
@@ -93,8 +95,9 @@ const courseList = [
     salesRepresentative: new ObjectId(),
     contact: new ObjectId(),
     trainees: [new ObjectId()],
+    expectedBillsCount: 2,
   },
-  { // 2 - without bill
+  { // 2 - without bill, expectedBillsCount is 1
     _id: new ObjectId(),
     type: INTRA,
     maxTrainees: 8,
@@ -105,6 +108,7 @@ const courseList = [
     salesRepresentative: new ObjectId(),
     contact: new ObjectId(),
     trainees: [new ObjectId()],
+    expectedBillsCount: 1,
   },
   { // 3 - linked to bill 2
     _id: new ObjectId(),
@@ -117,6 +121,7 @@ const courseList = [
     salesRepresentative: new ObjectId(),
     contact: new ObjectId(),
     trainees: [new ObjectId()],
+    expectedBillsCount: 1,
   },
   { // 4 - linked to bill 3
     _id: new ObjectId(),
@@ -129,6 +134,7 @@ const courseList = [
     salesRepresentative: new ObjectId(),
     contact: new ObjectId(),
     trainees: [new ObjectId()],
+    expectedBillsCount: 1,
   },
   { // 5 - linked to bill 4
     _id: new ObjectId(),
@@ -141,6 +147,7 @@ const courseList = [
     salesRepresentative: new ObjectId(),
     contact: new ObjectId(),
     trainees: [new ObjectId()],
+    expectedBillsCount: 1,
   },
   { // 6 - linked to bill 5
     _id: new ObjectId(),
@@ -153,6 +160,7 @@ const courseList = [
     salesRepresentative: new ObjectId(),
     contact: new ObjectId(),
     trainees: [],
+    expectedBillsCount: 1,
   },
   { // 7 - linked to bill 6
     _id: new ObjectId(),
@@ -165,6 +173,7 @@ const courseList = [
     salesRepresentative: new ObjectId(),
     contact: new ObjectId(),
     trainees: [],
+    expectedBillsCount: 1,
   },
   { // 8 - linked to bill 7
     _id: new ObjectId(),
@@ -177,6 +186,7 @@ const courseList = [
     salesRepresentative: new ObjectId(),
     contact: new ObjectId(),
     trainees: [],
+    expectedBillsCount: 1,
   },
   { // 9 - inter without bill
     _id: new ObjectId(),
@@ -187,6 +197,19 @@ const courseList = [
     salesRepresentative: new ObjectId(),
     contact: new ObjectId(),
     trainees: [traineeFromOtherCompany._id],
+  },
+  { // 10 - without bill, expectedBillsCount is 0
+    _id: new ObjectId(),
+    type: INTRA,
+    maxTrainees: 8,
+    companies: [otherCompany._id],
+    subProgram: subProgramList[0]._id,
+    misc: 'group 7',
+    trainer: new ObjectId(),
+    salesRepresentative: new ObjectId(),
+    contact: new ObjectId(),
+    trainees: [new ObjectId()],
+    expectedBillsCount: 0,
   },
 ];
 
@@ -278,7 +301,7 @@ const courseBillsList = [
     billedAt: '2022-04-07T00:00:00.000Z',
     number: 'FACT-00003',
   },
-  { // 6 - payer and company is other company
+  { // 7 - payer and company is other company
     _id: new ObjectId(),
     course: courseList[8]._id,
     company: otherCompany._id,
@@ -289,6 +312,49 @@ const courseBillsList = [
     ],
     billedAt: '2022-04-07T00:00:00.000Z',
     number: 'FACT-00004',
+  },
+  { // 8
+    _id: new ObjectId(),
+    course: courseList[1]._id,
+    company: authCompany._id,
+    payer: { company: authCompany._id },
+    mainFee: { price: 200, count: 2, description: 'yoyo' },
+    billingPurchaseList: [
+      { _id: new ObjectId(), billingItem: billingItemList[0]._id, price: 9, count: 1 },
+    ],
+    billedAt: '2022-04-07T00:00:00.000Z',
+    number: 'FACT-00005',
+  },
+  { // 9
+    _id: new ObjectId(),
+    course: courseList[0]._id,
+    company: authCompany._id,
+    payer: { company: authCompany._id },
+    mainFee: { price: 200, count: 2, description: 'yoyo' },
+    billingPurchaseList: [
+      { _id: new ObjectId(), billingItem: billingItemList[0]._id, price: 9, count: 1 },
+    ],
+    billedAt: '2022-04-07T00:00:00.000Z',
+    number: 'FACT-00006',
+  },
+];
+
+const courseCreditNoteList = [
+  {
+    _id: new ObjectId(),
+    number: 'AV-00001',
+    courseBill: courseBillsList[1]._id,
+    date: '2022-04-15T10:00:00.000Z',
+    misc: 'wesh',
+    company: authCompany._id,
+  },
+  {
+    _id: new ObjectId(),
+    number: 'AV-00002',
+    courseBill: courseBillsList[9]._id,
+    date: '2022-04-15T10:00:00.000Z',
+    misc: 'wesh',
+    company: authCompany._id,
   },
 ];
 
@@ -301,6 +367,7 @@ const populateDB = async () => {
     CourseBill.create(courseBillsList),
     CourseBillingItem.create(billingItemList),
     CourseBillsNumber.create(courseBillNumber),
+    CourseCreditNote.create(courseCreditNoteList),
     CourseFundingOrganisation.create(courseFundingOrganisationList),
     Program.create(programList),
     SubProgram.create(subProgramList),

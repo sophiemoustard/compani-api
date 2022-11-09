@@ -1,5 +1,6 @@
 const Boom = require('@hapi/boom');
 const get = require('lodash/get');
+const has = require('lodash/has');
 const pick = require('lodash/pick');
 const moment = require('moment');
 const Course = require('../../models/Course');
@@ -7,6 +8,7 @@ const User = require('../../models/User');
 const UserCompany = require('../../models/UserCompany');
 const CourseSlot = require('../../models/CourseSlot');
 const Company = require('../../models/Company');
+const CourseBill = require('../../models/CourseBill');
 const {
   TRAINER,
   INTRA,
@@ -24,7 +26,6 @@ const {
 } = require('../../helpers/constants');
 const translate = require('../../helpers/translate');
 const UtilsHelper = require('../../helpers/utils');
-const CourseBill = require('../../models/CourseBill');
 
 const { language } = translate;
 
@@ -149,7 +150,18 @@ exports.authorizeCourseEdit = async (req) => {
       }
     }
 
-    if (get(req, 'payload.expectedBillsCount') && course.type === INTER_B2B) throw Boom.badRequest();
+    if (has(req, 'payload.expectedBillsCount')) {
+      if (!isRofOrAdmin) throw Boom.forbidden();
+      if (course.type === INTER_B2B) throw Boom.badRequest();
+
+      const courseBills = await CourseBill.find({ course: course._id }, { courseCreditNote: 1 })
+        .populate({ path: 'courseCreditNote', options: { isVendorUser: true } })
+        .setOptions({ isVendorUser: true })
+        .lean();
+
+      const courseBillsWithoutCreditNote = courseBills.filter(cb => !cb.courseCreditNote);
+      if (courseBillsWithoutCreditNote.length > req.payload.expectedBillsCount) throw Boom.conflict();
+    }
 
     await this.checkInterlocutors(req, companies[0]);
 

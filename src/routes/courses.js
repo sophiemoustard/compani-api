@@ -96,6 +96,7 @@ exports.plugin = {
             expectedBillsCount: Joi
               .number()
               .integer()
+              .min(0)
               .when('type', { is: INTRA, then: Joi.required(), otherwise: Joi.forbidden() }),
           }),
         },
@@ -183,7 +184,7 @@ exports.plugin = {
             archivedAt: Joi.date(),
             estimatedStartDate: dateToISOString,
             maxTrainees: Joi.number().positive().integer(),
-            expectedBillsCount: Joi.number().positive().integer(),
+            expectedBillsCount: Joi.number().min(0).integer(),
           }),
         },
         pre: [{ method: authorizeCourseEdit }],

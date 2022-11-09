@@ -14,6 +14,8 @@ const ActivityHistory = require('../../../src/models/ActivityHistory');
 const Card = require('../../../src/models/Card');
 const Questionnaire = require('../../../src/models/Questionnaire');
 const QuestionnaireHistory = require('../../../src/models/QuestionnaireHistory');
+const CourseBill = require('../../../src/models/CourseBill');
+const CourseCreditNote = require('../../../src/models/CourseCreditNote');
 const { authCompany, otherCompany } = require('../../seed/authCompaniesSeed');
 const { deleteNonAuthenticationSeeds } = require('../helpers/authentication');
 const {
@@ -31,7 +33,6 @@ const {
 } = require('../../seed/authUsersSeed');
 const { VIDEO, WEBAPP, SLOT_CREATION, SLOT_DELETION, INTRA, INTER_B2B } = require('../../../src/helpers/constants');
 const { auxiliaryRoleId, trainerRoleId, coachRoleId } = require('../../seed/authRolesSeed');
-const CourseBill = require('../../../src/models/CourseBill');
 
 const traineeFromOtherCompany = {
   _id: new ObjectId(),
@@ -159,6 +160,7 @@ const coursesList = [
     salesRepresentative: vendorAdmin._id,
     companyRepresentative: trainerAndCoach._id,
     contact: trainerAndCoach._id,
+    expectedBillsCount: 2,
   },
   { // 1
     _id: new ObjectId(),
@@ -171,6 +173,7 @@ const coursesList = [
     type: INTRA,
     maxTrainees: 8,
     salesRepresentative: vendorAdmin._id,
+    expectedBillsCount: 2,
   },
   { // 2
     _id: new ObjectId(),
@@ -351,6 +354,7 @@ const coursesList = [
       traineeFromAuthCompanyWithFormationExpoToken._id,
     ],
     salesRepresentative: vendorAdmin._id,
+    expectedBillsCount: 2,
   },
 ];
 
@@ -364,6 +368,75 @@ const courseBillsList = [
     billedAt: '2022-04-12T09:00:00.000Z',
     number: 'F00001',
     payer: { company: authCompany._id },
+  },
+  {
+    _id: new ObjectId(),
+    course: coursesList[0]._id,
+    mainFee: { price: 1000, count: 1, description: 'Bonjour' },
+    company: authCompany._id,
+    billingPurchaseList: [],
+    billedAt: '2022-04-12T09:00:00.000Z',
+    number: 'F00002',
+    payer: { company: authCompany._id },
+  },
+  {
+    _id: new ObjectId(),
+    course: coursesList[0]._id,
+    mainFee: { price: 1300, count: 1, description: 'Bonjour' },
+    company: authCompany._id,
+    billingPurchaseList: [],
+    billedAt: '2022-04-16T09:00:00.000Z',
+    number: 'F00003',
+    payer: { company: authCompany._id },
+  },
+  {
+    _id: new ObjectId(),
+    course: coursesList[0]._id,
+    mainFee: { price: 1500, count: 1, description: 'Bonjour' },
+    company: authCompany._id,
+    billingPurchaseList: [],
+    billedAt: '2022-04-20T09:00:00.000Z',
+    number: 'F00004',
+    payer: { company: authCompany._id },
+  },
+  {
+    _id: new ObjectId(),
+    course: coursesList[0]._id,
+    mainFee: { price: 1500, count: 1, description: 'Bonjour' },
+    company: authCompany._id,
+    billingPurchaseList: [],
+    billedAt: '2022-04-20T09:00:00.000Z',
+    number: 'F00005',
+    payer: { company: authCompany._id },
+  },
+  {
+    _id: new ObjectId(),
+    course: coursesList[0]._id,
+    mainFee: { price: 1600, count: 1, description: 'Bonjour' },
+    company: authCompany._id,
+    billingPurchaseList: [],
+    billedAt: '2022-04-20T09:00:00.000Z',
+    number: 'F00006',
+    payer: { company: authCompany._id },
+  },
+];
+
+const courseCreditNoteList = [
+  {
+    _id: new ObjectId(),
+    number: 'AV-00001',
+    courseBill: courseBillsList[1]._id,
+    date: '2022-04-15T10:00:00.000Z',
+    misc: 'wesh',
+    company: authCompany._id,
+  },
+  {
+    _id: new ObjectId(),
+    number: 'AV-00002',
+    courseBill: courseBillsList[4]._id,
+    date: '2022-04-15T10:00:00.000Z',
+    misc: 'wesh2',
+    company: authCompany._id,
   },
 ];
 
@@ -481,6 +554,7 @@ const populateDB = async () => {
     Card.create(cardsList),
     Course.create(coursesList),
     CourseBill.create(courseBillsList),
+    CourseCreditNote.create(courseCreditNoteList),
     CourseSlot.create(slots),
     CourseSmsHistory.create(courseSmsHistory),
     CourseHistory.create(courseHistories),
