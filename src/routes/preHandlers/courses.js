@@ -1,5 +1,6 @@
 const Boom = require('@hapi/boom');
 const get = require('lodash/get');
+const has = require('lodash/has');
 const pick = require('lodash/pick');
 const moment = require('moment');
 const Course = require('../../models/Course');
@@ -149,7 +150,7 @@ exports.authorizeCourseEdit = async (req) => {
       }
     }
 
-    if (req.payload && Object.keys(req.payload).includes('expectedBillsCount')) {
+    if (has(req, 'payload.expectedBillsCount')) {
       if (!isRofOrAdmin) throw Boom.forbidden();
       if (course.type === INTER_B2B) throw Boom.badRequest();
 

@@ -348,7 +348,7 @@ describe('COURSE BILL ROUTES - POST /coursebills', () => {
       expect(count).toBe(courseBillsList.length + 1);
     });
 
-    it('should create a bill if expectedBillsCount lower than number of bills without creditNote', async () => {
+    it('should create a bill if expectedBillsCount higher than number of bills without creditNote', async () => {
       const response = await app.inject({
         method: 'POST',
         url: '/coursebills',
