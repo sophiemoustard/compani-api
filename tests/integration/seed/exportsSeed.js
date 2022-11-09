@@ -1171,6 +1171,18 @@ const courseList = [
     trainees: [],
     expectedBillsCount: 0,
   },
+  { // 7 without trainee
+    _id: new ObjectId(),
+    type: INTER_B2B,
+    companies: [],
+    subProgram: subProgramList[0]._id,
+    misc: 'group 8',
+    trainer: trainer._id,
+    salesRepresentative: salesRepresentative._id,
+    contact: salesRepresentative._id,
+    trainees: [],
+    expectedBillsCount: 0,
+  },
 ];
 
 const courseFundingOrganisation = {
@@ -1432,6 +1444,15 @@ const courseSlotList = [
     createdAt: '2020-12-12T10:00:04.000Z',
     startDate: '2021-04-12T10:00:00.000Z',
     endDate: '2021-04-12T12:00:00.000Z',
+  },
+  {
+    _id: new ObjectId(),
+    course: courseList[7]._id,
+    step: stepList[0]._id,
+    address: slotAddress,
+    createdAt: '2020-12-12T10:00:04.000Z',
+    startDate: '2021-01-16T10:00:00.000Z',
+    endDate: '2021-01-16T12:00:00.000Z',
   },
 ];
 
