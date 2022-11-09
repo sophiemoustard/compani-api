@@ -119,6 +119,7 @@ const vendorHistoryExportTypes = [
       `${courseList[6]._id};"intra";;"Test SAS";"Program 1";"subProgram 1";"group 7";"Gilles FORMATEUR";"Aline CONTACT-COM";"Aline CONTACT-COM";0;1;1;0;"2,00";0;0;;0;0;;"12/04/2021 12:00:00";"12/04/2021 14:00:00";0;0;0;0;0;"1,00";"0 sur 0";"Non";;;`,
       `${courseList[1]._id};"inter_b2b";"APA Paris";;"Program 2";"subProgram 2";;"Gilles FORMATEUR";"Aline CONTACT-COM";"Aline CONTACT-COM";2;2;2;1;"4,00";1;0;"0,67";1;2;"01/01/2019";"01/02/2021 09:00:00";"à planifier";0;2;2;1;2;"0,67";"2 sur 2";"Oui";"800,00";"300,00";"-500,00"`,
       `${courseList[2]._id};"inter_b2b";;;"Program 2";"subProgram 2";"group 3";"Gilles FORMATEUR";"Aline CONTACT-COM";"Aline CONTACT-COM";2;0;0;0;"0,00";0;0;"0,67";0;0;"01/01/2022";;;0;0;0;0;0;;"0 sur 2";"Non";;;`,
+      `${courseList[7]._id};"inter_b2b";;;"Program 1";"subProgram 1";"group 8";"Gilles FORMATEUR";"Aline CONTACT-COM";"Aline CONTACT-COM";0;1;1;0;"2,00";0;0;;0;0;;"16/01/2021 11:00:00";"16/01/2021 13:00:00";0;0;0;0;0;"1,00";"0 sur 0";"Non";;;`,
     ],
     query: 'startDate=2021-01-15T10:00:00.000Z&endDate=2022-01-20T10:00:00.000Z',
   },
@@ -133,7 +134,7 @@ const vendorHistoryExportTypes = [
       `${courseSlotList[5]._id};${courseList[5]._id};"Test SAS - Program 1 - group 6";"étape 1";"présentiel";"12/12/2020 11:00:04";"12/04/2021 12:00:00";"12/04/2021 14:00:00";"2,00";"24 Avenue Daumesnil 75012 Paris";0;3;0`,
       `${courseSlotList[6]._id};${courseList[6]._id};"Test SAS - Program 1 - group 7";"étape 1";"présentiel";"12/12/2020 11:00:04";"12/04/2021 12:00:00";"12/04/2021 14:00:00";"2,00";"24 Avenue Daumesnil 75012 Paris";0;0;0`,
     ],
-    query: 'startDate=2021-01-15T10:00:00.000Z&endDate=2022-01-20T10:00:00.000Z',
+    query: 'startDate=2021-02-01T10:00:00.000Z&endDate=2022-01-20T10:00:00.000Z',
   },
   {
     exportType: END_OF_COURSE,

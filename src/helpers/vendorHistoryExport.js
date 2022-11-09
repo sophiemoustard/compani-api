@@ -98,7 +98,7 @@ const getBillsInfos = (course) => {
 
   const mainFeesCount = validatedBillList.map(bill => bill.mainFee.count).reduce((acc, value) => acc + value, 0);
   const billsCountForExport = `${mainFeesCount} sur ${course.trainees.length}`;
-  const isBilled = mainFeesCount === course.trainees.length;
+  const isBilled = course.trainees.length && mainFeesCount === course.trainees.length;
 
   return { isBilled, billsCountForExport, payerList, ...amountsInfos };
 };
