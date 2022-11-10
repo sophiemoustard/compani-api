@@ -1663,7 +1663,7 @@ describe('COURSES ROUTES - POST /courses/{_id}/sms', () => {
   beforeEach(populateDB);
   beforeEach(async () => {
     SmsHelperStub = sinon.stub(SmsHelper, 'send');
-    UtilsMock.mockCurrentDate('2020-01-24T15:00:00.000Z');
+    UtilsMock.mockCurrentDate('2020-03-03T15:00:00.000Z');
   });
   afterEach(() => {
     SmsHelperStub.restore();
@@ -1749,17 +1749,16 @@ describe('COURSES ROUTES - POST /courses/{_id}/sms', () => {
     });
 
     it('should return a 403 if course has no slot to come and type is not other', async () => {
-      UtilsMock.mockCurrentDate('2021-01-24T15:00:00.000Z');
       const response = await app.inject({
         method: 'POST',
-        url: `/courses/${courseIdFromAuthCompany}/sms`,
+        url: `/courses/${coursesList[0]._id}/sms`,
         payload,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(response.statusCode).toBe(403);
 
-      const course = await Course.findById(courseIdFromAuthCompany)
+      const course = await Course.findById(coursesList[0]._id)
         .populate({ path: 'slots', select: 'startDate endDate' })
         .populate({ path: 'slotsToPlan' })
         .populate({ path: 'trainees', select: 'contact.phone' })
@@ -1775,17 +1774,16 @@ describe('COURSES ROUTES - POST /courses/{_id}/sms', () => {
     });
 
     it('should return a 403 if course is started and type is convocation', async () => {
-      UtilsMock.mockCurrentDate('2020-03-01T18:00:00.000Z');
       const response = await app.inject({
         method: 'POST',
-        url: `/courses/${coursesList[0]._id}/sms`,
+        url: `/courses/${courseIdFromOtherCompany}/sms`,
         payload,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(response.statusCode).toBe(403);
 
-      const course = await Course.findById(coursesList[0]._id)
+      const course = await Course.findById(courseIdFromOtherCompany)
         .populate({ path: 'slots', select: 'startDate endDate' })
         .populate({ path: 'slotsToPlan' })
         .populate({ path: 'trainees', select: 'contact.phone' })
