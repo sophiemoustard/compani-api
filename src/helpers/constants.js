@@ -22,6 +22,10 @@ module.exports = {
   SHORT_DURATION_H_MM: 'h\'h\'mm',
   // COMPANIDATE FORMATS
   HHhMM: 'HH\'h\'mm',
+  DD_MM_YYYY: 'dd/LL/yyyy',
+  DAY_MONTH_YEAR: 'DDD',
+  HH_MM: 'T',
+  HH_MM_SS: 'HH:mm:ss',
   // DATE INDEX
   MONDAY: 0,
   TUESDAY: 1,

@@ -297,12 +297,30 @@ describe('DISPLAY', () => {
     });
   });
 
+  describe('asMinutes', () => {
+    it('should return duration in minutes', () => {
+      const companiDuration = CompaniDurationsHelper.CompaniDuration('PT1H9M');
+      const result = companiDuration.asMinutes();
+
+      expect(result).toBe(69);
+    });
+  });
+
   describe('asSeconds', () => {
     it('should return duration in seconds', () => {
       const companiDuration = CompaniDurationsHelper.CompaniDuration('PT1H9M');
       const result = companiDuration.asSeconds();
 
       expect(result).toBe(4140);
+    });
+  });
+
+  describe('toHoursAndMinutesObject', () => {
+    it('should return object with hours and minutes from CompaniDuration', () => {
+      const companiDuration = CompaniDurationsHelper.CompaniDuration('PT4140S');
+      const result = companiDuration.toHoursAndMinutesObject();
+
+      expect(result).toEqual({ hours: 1, minutes: 9 });
     });
   });
 
@@ -365,6 +383,102 @@ describe('MANIPULATE', () => {
       const amountInMs = (durationAmount.hours + addedAmount.hours) * 60 * 60 * 1000 + addedAmount.minutes * 60 * 1000;
       expect(result._getDuration.toMillis()).toBe(amountInMs);
       sinon.assert.calledWithExactly(_formatMiscToCompaniDuration.getCall(0), addedAmount);
+    });
+  });
+});
+
+describe('QUERY', () => {
+  describe('isEquivalentTo', () => {
+    it('should return true if same durations with same units', () => {
+      const duration = 'P1DT1H2M3S';
+      const otherDuration = 'P1DT1H2M3S';
+
+      const result = CompaniDurationsHelper.CompaniDuration(duration).isEquivalentTo(otherDuration);
+
+      expect(result).toBe(true);
+    });
+
+    it('should return true if same durations with different units', () => {
+      const duration = 'P1DT1H2M3S';
+      const otherDuration = 'PT25H123S';
+
+      const result = CompaniDurationsHelper.CompaniDuration(duration).isEquivalentTo(otherDuration);
+
+      expect(result).toBe(true);
+    });
+
+    it('should return false if different durations', () => {
+      const duration = 'P1DT1H2M3S';
+      const otherDuration = 'PT24H123S';
+
+      const result = CompaniDurationsHelper.CompaniDuration(duration).isEquivalentTo(otherDuration);
+
+      expect(result).toBe(false);
+    });
+  });
+
+  describe('isLongerThan', () => {
+    it('should return true if longer duration with same units', () => {
+      const duration = 'P1DT2H2M3S';
+      const otherDuration = 'P1DT1H2M3S';
+
+      const result = CompaniDurationsHelper.CompaniDuration(duration).isLongerThan(otherDuration);
+
+      expect(result).toBe(true);
+    });
+
+    it('should return true if longer duration with different units', () => {
+      const duration = 'PT25H2M3S';
+      const otherDuration = 'P1DT30S';
+
+      const result = CompaniDurationsHelper.CompaniDuration(duration).isLongerThan(otherDuration);
+
+      expect(result).toBe(true);
+    });
+
+    it('should return true if comparing MAX_SAFE_INTEGER with lower value', () => {
+      const duration = `PT${Number.MAX_SAFE_INTEGER}S`;
+      const otherDuration = `PT${Number.MAX_SAFE_INTEGER - 1}S`;
+
+      const result = CompaniDurationsHelper.CompaniDuration(duration).isLongerThan(otherDuration);
+
+      expect(result).toBe(true);
+    });
+
+    it('should return false if same duration with same units', () => {
+      const duration = 'P1DT2H2M3S';
+      const otherDuration = 'P1DT2H2M3S';
+
+      const result = CompaniDurationsHelper.CompaniDuration(duration).isLongerThan(otherDuration);
+
+      expect(result).toBe(false);
+    });
+
+    it('should return false if same duration with different units', () => {
+      const duration = 'P1DT1H2M3S';
+      const otherDuration = 'PT25H123S';
+
+      const result = CompaniDurationsHelper.CompaniDuration(duration).isLongerThan(otherDuration);
+
+      expect(result).toBe(false);
+    });
+
+    it('should return false if shorter duration with same units', () => {
+      const duration = 'P1DT1H1M3S';
+      const otherDuration = 'P1DT2H2M3S';
+
+      const result = CompaniDurationsHelper.CompaniDuration(duration).isLongerThan(otherDuration);
+
+      expect(result).toBe(false);
+    });
+
+    it('should return false if shorter duration with different units', () => {
+      const duration = 'P1DT1H';
+      const otherDuration = 'PT40H';
+
+      const result = CompaniDurationsHelper.CompaniDuration(duration).isLongerThan(otherDuration);
+
+      expect(result).toBe(false);
     });
   });
 });

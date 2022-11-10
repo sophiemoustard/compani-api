@@ -2,7 +2,7 @@ const expect = require('expect');
 const sinon = require('sinon');
 const luxon = require('../../../../src/helpers/dates/luxon');
 const CompaniDatesHelper = require('../../../../src/helpers/dates/companiDates');
-const { WEDNESDAY } = require('../../../../src/helpers/constants');
+const { WEDNESDAY, DD_MM_YYYY, HH_MM_SS } = require('../../../../src/helpers/constants');
 const { CompaniDuration } = require('../../../../src/helpers/dates/companiDurations');
 
 describe('CompaniDate', () => {
@@ -115,9 +115,9 @@ describe('DISPLAY', () => {
   describe('format', () => {
     it('should return formated date in a string', () => {
       const companiDate = CompaniDatesHelper.CompaniDate('2021-11-24T07:12:08.000Z');
-      const result = companiDate.format('\'Le\' cccc dd LLLL y \'à\' HH\'h\'mm \'et\' s \'secondes\'');
+      const result = companiDate.format(`'Le' ${DD_MM_YYYY} 'à' ${HH_MM_SS}`);
 
-      expect(result).toBe('Le mercredi 24 novembre 2021 à 08h12 et 8 secondes');
+      expect(result).toBe('Le 24/11/2021 à 08:12:08');
     });
   });
 

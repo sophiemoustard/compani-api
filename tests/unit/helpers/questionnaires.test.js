@@ -8,6 +8,7 @@ const QuestionnaireHelper = require('../../../src/helpers/questionnaires');
 const CardHelper = require('../../../src/helpers/cards');
 const { EXPECTATIONS, PUBLISHED, END_OF_COURSE } = require('../../../src/helpers/constants');
 const SinonMongoose = require('../sinonMongoose');
+const UtilsMock = require('../../utilsMock');
 
 describe('create', () => {
   let create;
@@ -189,16 +190,15 @@ describe('removeCard', () => {
 
 describe('getUserQuestionnaires', () => {
   let findOneQuestionnaire;
-  let nowStub;
   let findOneCourse;
   beforeEach(() => {
     findOneQuestionnaire = sinon.stub(Questionnaire, 'findOne');
-    nowStub = sinon.stub(Date, 'now');
+    UtilsMock.mockCurrentDate('2021-04-13T15:00:00.000Z');
     findOneCourse = sinon.stub(Course, 'findOne');
   });
   afterEach(() => {
     findOneQuestionnaire.restore();
-    nowStub.restore();
+    UtilsMock.unmockCurrentDate();
     findOneCourse.restore();
   });
 
@@ -208,7 +208,6 @@ describe('getUserQuestionnaires', () => {
     const course = { _id: courseId, format: 'strictly_e_learning' };
 
     findOneCourse.returns(SinonMongoose.stubChainedQueries(course));
-    nowStub.returns(new Date('2021-04-13T15:00:00'));
 
     const result = await QuestionnaireHelper.getUserQuestionnaires(courseId, credentials);
 
@@ -234,7 +233,6 @@ describe('getUserQuestionnaires', () => {
     };
 
     findOneCourse.returns(SinonMongoose.stubChainedQueries(course));
-    nowStub.returns(new Date('2021-04-13T15:00:00'));
     findOneQuestionnaire.returns(SinonMongoose.stubChainedQueries(null));
 
     const result = await QuestionnaireHelper.getUserQuestionnaires(courseId, credentials);
@@ -273,7 +271,6 @@ describe('getUserQuestionnaires', () => {
     };
 
     findOneCourse.returns(SinonMongoose.stubChainedQueries(course));
-    nowStub.returns(new Date('2021-04-13T15:00:00'));
     findOneQuestionnaire.returns(SinonMongoose.stubChainedQueries(questionnaire));
 
     const result = await QuestionnaireHelper.getUserQuestionnaires(courseId, credentials);
@@ -308,7 +305,6 @@ describe('getUserQuestionnaires', () => {
     const questionnaire = { _id: new ObjectId(), name: 'test', type: 'expectations', histories: [] };
 
     findOneCourse.returns(SinonMongoose.stubChainedQueries(course));
-    nowStub.returns(new Date('2021-04-13T15:00:00'));
     findOneQuestionnaire.returns(SinonMongoose.stubChainedQueries(questionnaire));
 
     const result = await QuestionnaireHelper.getUserQuestionnaires(courseId, credentials);
@@ -340,7 +336,6 @@ describe('getUserQuestionnaires', () => {
     const questionnaire = { _id: new ObjectId(), name: 'test', histories: [] };
 
     findOneCourse.returns(SinonMongoose.stubChainedQueries(course));
-    nowStub.returns(new Date('2021-04-13T15:00:00'));
     findOneQuestionnaire.returns(SinonMongoose.stubChainedQueries(questionnaire));
 
     const result = await QuestionnaireHelper.getUserQuestionnaires(courseId, credentials);
@@ -375,8 +370,7 @@ describe('getUserQuestionnaires', () => {
     };
 
     findOneCourse.returns(SinonMongoose.stubChainedQueries(course));
-    nowStub.returns(new Date('2021-04-23T15:00:00'));
-
+    UtilsMock.mockCurrentDate('2021-04-23T15:00:00.000Z');
     const result = await QuestionnaireHelper.getUserQuestionnaires(courseId, credentials);
 
     expect(result).toMatchObject([]);
@@ -390,6 +384,7 @@ describe('getUserQuestionnaires', () => {
         { query: 'lean', args: [{ virtuals: true }] },
       ]
     );
+    UtilsMock.unmockCurrentDate();
   });
 
   it('should return an empty array if is ended and no end of course questionnaire', async () => {
@@ -401,7 +396,7 @@ describe('getUserQuestionnaires', () => {
     };
 
     findOneCourse.returns(SinonMongoose.stubChainedQueries(course));
-    nowStub.returns(new Date('2021-04-23T15:00:00'));
+    UtilsMock.mockCurrentDate('2021-04-23T15:00:00.000Z');
     findOneQuestionnaire.returns(SinonMongoose.stubChainedQueries(null));
 
     const result = await QuestionnaireHelper.getUserQuestionnaires(courseId, credentials);
@@ -424,6 +419,7 @@ describe('getUserQuestionnaires', () => {
         { query: 'lean', args: [{ virtuals: true }] },
       ]
     );
+    UtilsMock.unmockCurrentDate();
   });
 
   it('should return an empty array if end of course questionnaire is already answered', async () => {
@@ -440,7 +436,7 @@ describe('getUserQuestionnaires', () => {
     };
 
     findOneCourse.returns(SinonMongoose.stubChainedQueries(course));
-    nowStub.returns(new Date('2021-04-23T15:00:00'));
+    UtilsMock.mockCurrentDate('2021-04-23T15:00:00.000Z');
     findOneQuestionnaire.returns(SinonMongoose.stubChainedQueries(questionnaire));
 
     const result = await QuestionnaireHelper.getUserQuestionnaires(courseId, credentials);
@@ -463,6 +459,7 @@ describe('getUserQuestionnaires', () => {
         { query: 'lean', args: [{ virtuals: true }] },
       ]
     );
+    UtilsMock.unmockCurrentDate();
   });
 
   it('should return end of course questionnaire if last slot is started and questionnaire not answered', async () => {
@@ -475,7 +472,7 @@ describe('getUserQuestionnaires', () => {
     const questionnaire = { _id: new ObjectId(), name: 'test', type: 'end_of_course', histories: [] };
 
     findOneCourse.returns(SinonMongoose.stubChainedQueries(course));
-    nowStub.returns(new Date('2021-04-23T10:00:00'));
+    UtilsMock.mockCurrentDate('2021-04-23T15:00:00.000Z');
     findOneQuestionnaire.returns(SinonMongoose.stubChainedQueries(questionnaire));
 
     const result = await QuestionnaireHelper.getUserQuestionnaires(courseId, credentials);
@@ -498,6 +495,7 @@ describe('getUserQuestionnaires', () => {
         { query: 'lean', args: [{ virtuals: true }] },
       ]
     );
+    UtilsMock.unmockCurrentDate();
   });
 
   it('should return an empty array if first slot is passed but last slot isn\'t', async () => {
@@ -513,7 +511,7 @@ describe('getUserQuestionnaires', () => {
     };
 
     findOneCourse.returns(SinonMongoose.stubChainedQueries(course));
-    nowStub.returns(new Date('2021-04-23T15:00:00'));
+    UtilsMock.mockCurrentDate('2021-04-23T15:00:00.000Z');
 
     const result = await QuestionnaireHelper.getUserQuestionnaires(courseId, credentials);
 
@@ -528,6 +526,7 @@ describe('getUserQuestionnaires', () => {
         { query: 'lean', args: [{ virtuals: true }] },
       ]
     );
+    UtilsMock.unmockCurrentDate();
   });
 });
 

@@ -15,12 +15,11 @@ const Attendance = require('../models/Attendance');
 const SubProgram = require('../models/SubProgram');
 const CourseRepository = require('../repositories/CourseRepository');
 const UtilsHelper = require('./utils');
-const DatesHelper = require('./dates');
+const DatesUtilsHelper = require('./dates/utils');
 const ZipHelper = require('./zip');
 const SmsHelper = require('./sms');
 const DocxHelper = require('./docx');
 const StepsHelper = require('./steps');
-const NumbersHelper = require('./numbers');
 const drive = require('../models/Google/Drive');
 const {
   INTRA,
@@ -39,6 +38,8 @@ const {
   REMOTE,
   OPERATIONS,
   HHhMM,
+  DD_MM_YYYY,
+  HH_MM,
 } = require('./constants');
 const CourseHistoriesHelper = require('./courseHistories');
 const NotificationHelper = require('./notifications');
@@ -49,6 +50,7 @@ const CompletionCertificate = require('../data/pdf/completionCertificate');
 const CourseBill = require('../models/CourseBill');
 const CourseSlot = require('../models/CourseSlot');
 const CourseHistory = require('../models/CourseHistory');
+const { CompaniDuration } = require('./dates/companiDurations');
 
 exports.createCourse = async (payload) => {
   const coursePayload = payload.company
@@ -71,9 +73,12 @@ exports.createCourse = async (payload) => {
   return course;
 };
 
-exports.getTotalTheoreticalHours = course => (course.subProgram.steps.length
-  ? course.subProgram.steps.reduce((acc, value) => NumbersHelper.oldAdd(acc, value.theoreticalHours || 0), 0)
-  : 0
+exports.getTotalTheoreticalDuration = course => (course.subProgram.steps.length
+  ? course.subProgram.steps.reduce(
+    (acc, value) => (value.theoreticalDuration ? acc.add(value.theoreticalDuration) : acc),
+    CompaniDuration()
+  ).toISO()
+  : 'PT0S'
 );
 
 const listStrictlyElearningForCompany = async (query, origin) => {
@@ -84,7 +89,7 @@ const listStrictlyElearningForCompany = async (query, origin) => {
 
   return courses.map(course => ({
     ...course,
-    totalTheoreticalHours: exports.getTotalTheoreticalHours(course),
+    totalTheoreticalDuration: exports.getTotalTheoreticalDuration(course),
     trainees: course.trainees.filter(t =>
       (t.company ? UtilsHelper.areObjectIdsEquals(t.company._id, query.company) : false)),
   }));
@@ -123,7 +128,8 @@ const listForOperations = async (query, origin) => {
   const courses = await CourseRepository.findCourseAndPopulate(query, origin);
 
   if (query.format === STRICTLY_E_LEARNING) {
-    return courses.map(course => ({ ...course, totalTheoreticalHours: exports.getTotalTheoreticalHours(course) }));
+    return courses
+      .map(course => ({ ...course, totalTheoreticalDuration: exports.getTotalTheoreticalDuration(course) }));
   }
 
   return courses;
@@ -144,7 +150,7 @@ const listForPedagogy = async (query, credentials) => {
         { path: 'program', select: 'name image description' },
         {
           path: 'steps',
-          select: 'name type activities theoreticalHours',
+          select: 'name type activities theoreticalDuration',
           populate: {
             path: 'activities',
             select: 'name type cards activityHistories',
@@ -246,7 +252,7 @@ const getCourseForOperations = async (courseId, credentials, origin) => {
           ...(origin === WEBAPP
             ? [{
               path: 'steps',
-              select: 'name type theoreticalHours',
+              select: 'name type theoreticalDuration',
               populate: {
                 path: 'activities',
                 select: 'name type',
@@ -280,12 +286,12 @@ const getCourseForOperations = async (courseId, credentials, origin) => {
   // A coach/client_admin is not supposed to read infos on trainees from other companies
   // espacially for INTER_B2B courses.
   if (get(credentials, 'role.vendor')) {
-    return { ...fetchedCourse, totalTheoreticalHours: exports.getTotalTheoreticalHours(fetchedCourse) };
+    return { ...fetchedCourse, totalTheoreticalDuration: exports.getTotalTheoreticalDuration(fetchedCourse) };
   }
 
   return {
     ...fetchedCourse,
-    totalTheoreticalHours: exports.getTotalTheoreticalHours(fetchedCourse),
+    totalTheoreticalDuration: exports.getTotalTheoreticalDuration(fetchedCourse),
     trainees: fetchedCourse.trainees
       .filter(t => UtilsHelper.areObjectIdsEquals(get(t, 'company._id'), get(credentials, 'company._id'))),
   };
@@ -425,7 +431,7 @@ const getCourseForPedagogy = async (courseId, credentials) => {
         { path: 'program', select: 'name image description learningGoals' },
         {
           path: 'steps',
-          select: 'name type activities theoreticalHours',
+          select: 'name type activities theoreticalDuration',
           populate: {
             path: 'activities',
             select: 'name type cards activityHistories',
@@ -461,7 +467,7 @@ const getCourseForPedagogy = async (courseId, credentials) => {
   }
 
   if (!course.subProgram.isStrictlyELearning) {
-    const lastSlot = course.slots.sort(DatesHelper.descendingSort('startDate'))[0];
+    const lastSlot = course.slots.sort(DatesUtilsHelper.descendingSortBy('startDate'))[0];
     const areLastSlotAttendancesValidated = !!(lastSlot &&
       await Attendance.countDocuments({ courseSlot: lastSlot._id }));
 
@@ -561,17 +567,17 @@ exports.formatInterCourseSlotsForPdf = (slot) => {
 
   return {
     address: get(slot, 'address.fullAddress') || null,
-    date: CompaniDate(slot.startDate).format('dd/LL/yyyy'),
-    startHour: CompaniDate(slot.startDate).format('HH:mm'),
-    endHour: CompaniDate(slot.endDate).format('HH:mm'),
+    date: CompaniDate(slot.startDate).format(DD_MM_YYYY),
+    startHour: CompaniDate(slot.startDate).format(HH_MM),
+    endHour: CompaniDate(slot.endDate).format(HH_MM),
     duration,
   };
 };
 
 exports.groupSlotsByDate = (slots) => {
-  const group = groupBy(slots, slot => CompaniDate(slot.startDate).format('dd/LL/yyyy'));
+  const group = groupBy(slots, slot => CompaniDate(slot.startDate).format(DD_MM_YYYY));
 
-  return Object.values(group).sort((a, b) => DatesHelper.ascendingSort('startDate')(a[0], b[0]));
+  return Object.values(group).sort((a, b) => DatesUtilsHelper.ascendingSortBy('startDate')(a[0], b[0]));
 };
 
 exports.formatIntraCourseForPdf = (course) => {
@@ -592,7 +598,7 @@ exports.formatIntraCourseForPdf = (course) => {
       course: { ...courseData },
       address: get(groupedSlots[0], 'address.fullAddress') || '',
       slots: groupedSlots.map(slot => exports.formatIntraCourseSlotsForPdf(slot)),
-      date: CompaniDate(groupedSlots[0].startDate).format('dd/LL/yyyy'),
+      date: CompaniDate(groupedSlots[0].startDate).format(DD_MM_YYYY),
     })),
   };
 };
@@ -601,18 +607,16 @@ exports.formatInterCourseForPdf = (course) => {
   const possibleMisc = course.misc ? ` - ${course.misc}` : '';
   const name = course.subProgram.program.name + possibleMisc;
   const filteredSlots = course.slots
-    ? course.slots
-      .filter(slot => slot.step.type === ON_SITE)
-      .sort((a, b) => DatesHelper.ascendingSort('startDate')(a, b))
+    ? course.slots.filter(slot => slot.step.type === ON_SITE).sort(DatesUtilsHelper.ascendingSortBy('startDate'))
     : [];
 
   const courseData = {
     name,
     slots: filteredSlots.map(exports.formatInterCourseSlotsForPdf),
     trainer: course.trainer ? UtilsHelper.formatIdentity(course.trainer.identity, 'FL') : '',
-    firstDate: filteredSlots.length ? CompaniDate(filteredSlots[0].startDate).format('dd/LL/yyyy') : '',
+    firstDate: filteredSlots.length ? CompaniDate(filteredSlots[0].startDate).format(DD_MM_YYYY) : '',
     lastDate: filteredSlots.length
-      ? CompaniDate(filteredSlots[filteredSlots.length - 1].startDate).format('dd/LL/yyyy')
+      ? CompaniDate(filteredSlots[filteredSlots.length - 1].startDate).format(DD_MM_YYYY)
       : '',
     duration: UtilsHelper.getTotalDuration(filteredSlots),
   };
@@ -648,14 +652,14 @@ exports.generateAttendanceSheets = async (courseId) => {
 };
 
 exports.formatCourseForDocuments = (course) => {
-  const sortedCourseSlots = course.slots.sort((a, b) => DatesHelper.ascendingSort('startDate')(a, b));
+  const sortedCourseSlots = course.slots.sort(DatesUtilsHelper.ascendingSortBy('startDate'));
 
   return {
     duration: UtilsHelper.getTotalDuration(course.slots),
     learningGoals: get(course, 'subProgram.program.learningGoals') || '',
     programName: get(course, 'subProgram.program.name').toUpperCase() || '',
-    startDate: CompaniDate(sortedCourseSlots[0].startDate).format('dd/LL/yyyy'),
-    endDate: CompaniDate(sortedCourseSlots[sortedCourseSlots.length - 1].endDate).format('dd/LL/yyyy'),
+    startDate: CompaniDate(sortedCourseSlots[0].startDate).format(DD_MM_YYYY),
+    endDate: CompaniDate(sortedCourseSlots[sortedCourseSlots.length - 1].endDate).format(DD_MM_YYYY),
   };
 };
 
@@ -675,7 +679,7 @@ const generateCompletionCertificatePdf = async (courseData, courseAttendances, t
   const pdf = await CompletionCertificate.getPdf({
     ...courseData,
     trainee: { identity: traineeIdentity, attendanceDuration },
-    date: CompaniDate().format('dd/LL/yyyy'),
+    date: CompaniDate().format(DD_MM_YYYY),
   });
 
   return { pdf, name: `Attestation - ${traineeIdentity}.pdf` };
@@ -688,7 +692,7 @@ const generateCompletionCertificateWord = async (courseData, courseAttendances, 
     {
       ...courseData,
       trainee: { identity: traineeIdentity, attendanceDuration },
-      date: CompaniDate().format('dd/LL/yyyy'),
+      date: CompaniDate().format(DD_MM_YYYY),
     }
   );
 
@@ -761,7 +765,7 @@ exports.formatCourseForConvocationPdf = (course) => {
     ...(get(groupedSlots[0], 'address.fullAddress') && { address: get(groupedSlots[0], 'address.fullAddress') }),
     ...(groupedSlots[0].meetingLink && { meetingLink: groupedSlots[0].meetingLink }),
     hours: exports.formatHoursForConvocation(groupedSlots),
-    date: CompaniDate(groupedSlots[0].startDate).format('dd/LL/yyyy'),
+    date: CompaniDate(groupedSlots[0].startDate).format(DD_MM_YYYY),
   }));
   const contact = {
     formattedIdentity: UtilsHelper.formatIdentity(get(course, 'contact.identity'), 'FL'),

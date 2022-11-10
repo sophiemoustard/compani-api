@@ -44,7 +44,7 @@ exports.authorizeSubProgramUpdate = async (req) => {
     .populate({ path: 'program', select: '_id' })
     .populate({
       path: 'steps',
-      select: '_id type theoreticalHours',
+      select: '_id type theoreticalDuration',
       populate: { path: 'activities', populate: 'cards' },
     })
     .lean({ virtuals: true });

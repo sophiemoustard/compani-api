@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 const has = require('lodash/has');
 const mongooseLeanVirtuals = require('mongoose-lean-virtuals');
 const { DRAFT, PUBLISHED, E_LEARNING } = require('../helpers/constants');
-const { formatQuery, formatQueryMiddlewareList } = require('./preHooks/validate');
+const { formatQuery, queryMiddlewareList } = require('./preHooks/validate');
 
 const STATUS_TYPES = [DRAFT, PUBLISHED];
 
@@ -40,7 +40,7 @@ function setAreStepsValid() {
   if (this.steps && this.steps.length && has(this.steps[0], 'areActivitiesValid')) {
     // if step is populated, areActivitiesValid exists
 
-    return this.steps.every(step => step.areActivitiesValid && !!step.theoreticalHours);
+    return this.steps.every(step => step.areActivitiesValid && !!step.theoreticalDuration);
   }
 }
 
@@ -48,7 +48,7 @@ SubProgramSchema.virtual('areStepsValid').get(setAreStepsValid);
 
 SubProgramSchema.virtual('isStrictlyELearning').get(setIsStrictlyELearning);
 
-formatQueryMiddlewareList().map(middleware => SubProgramSchema.pre(middleware, formatQuery));
+queryMiddlewareList.map(middleware => SubProgramSchema.pre(middleware, formatQuery));
 
 SubProgramSchema.plugin(mongooseLeanVirtuals);
 
