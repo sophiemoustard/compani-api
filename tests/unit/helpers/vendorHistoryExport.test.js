@@ -616,7 +616,7 @@ describe('exportCourseHistory', () => {
       [
         courseList[3]._id,
         'intra',
-        'APA Paris,Compani Test,Alenvi',
+        'Alenvi,APA Paris,Compani Test',
         'Test SAS',
         'Program 1',
         'subProgram 1',
