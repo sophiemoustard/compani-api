@@ -239,7 +239,10 @@ vendorHistoryExportTypes.forEach(({ exportType, expectedRows, query }) => {
         const rows = response.result.split('\r\n');
         expect(rows.length).toBe(expectedRows.length);
 
-        for (let i = 0; i < expectedRows.length; i++) expect(rows.some(r => r === expectedRows[i])).toBeTruthy();
+        for (let i = 0; i < expectedRows.length; i++) {
+          if (!rows.some(r => r === expectedRows[i])) console.log(rows, expectedRows[i]);
+          expect(rows.some(r => r === expectedRows[i])).toBeTruthy();
+        }
       });
     });
 
