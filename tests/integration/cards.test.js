@@ -1,5 +1,4 @@
 const expect = require('expect');
-const { fn: momentProto } = require('moment');
 const GetStream = require('get-stream');
 const sinon = require('sinon');
 const omit = require('lodash/omit');
@@ -797,14 +796,11 @@ describe('CARDS ROUTES - DELETE /cards/{_id}/answers/{answerId}', () => {
 describe('CARDS ROUTES - POST /cards/:id/upload', () => {
   let authToken;
   let uploadProgramMediaStub;
-  let momentFormat;
   beforeEach(() => {
     uploadProgramMediaStub = sinon.stub(GCloudStorageHelper, 'uploadProgramMedia');
-    momentFormat = sinon.stub(momentProto, 'format');
   });
   afterEach(() => {
     uploadProgramMediaStub.restore();
-    momentFormat.restore();
   });
 
   describe('TRAINING_ORGANISATION_MANAGER', () => {
@@ -815,7 +811,6 @@ describe('CARDS ROUTES - POST /cards/:id/upload', () => {
 
     it('should add a card media', async () => {
       const form = generateFormData({ fileName: 'title_text_media', file: 'true' });
-      momentFormat.returns('20200625054512');
       uploadProgramMediaStub.returns({ link: 'https://gcp/BucketKFC/my', publicId: 'media-ttm' });
 
       const payload = await GetStream(form);

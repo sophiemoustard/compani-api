@@ -1,7 +1,7 @@
 const get = require('lodash/get');
-const moment = require('moment');
 const { getStorage } = require('../models/Google/Storage');
 const { UPLOAD_DATE_FORMAT } = require('./constants');
+const { CompaniDate } = require('./dates/companiDates');
 
 exports.uploadProgramMedia = async payload => uploadMedia(payload, process.env.GCS_PROGRAM_BUCKET);
 
@@ -10,7 +10,7 @@ exports.uploadUserMedia = async payload => uploadMedia(payload, process.env.GCS_
 exports.uploadCourseFile = async payload => uploadMedia(payload, process.env.GCS_COURSE_BUCKET);
 
 const formatFileName = fileName =>
-  `media-${fileName.replace(/[^a-zA-Z0-9]/g, '')}-${moment().format(UPLOAD_DATE_FORMAT)}`;
+  `media-${fileName.replace(/[^a-zA-Z0-9]/g, '')}-${CompaniDate().format(UPLOAD_DATE_FORMAT)}`;
 
 const uploadMedia = async (payload, bucketName) => new Promise((resolve, reject) => {
   const { file } = payload;

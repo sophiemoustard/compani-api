@@ -26,6 +26,7 @@ module.exports = {
   DAY_MONTH_YEAR: 'DDD',
   HH_MM: 'T',
   HH_MM_SS: 'HH:mm:ss',
+  UPLOAD_DATE_FORMAT: 'yyyyLLddHHmmss',
   // DATE INDEX
   MONDAY: 0,
   TUESDAY: 1,
@@ -452,7 +453,6 @@ module.exports = {
   UPLOAD_IMAGE: 'image',
   UPLOAD_VIDEO: 'video',
   UPLOAD_AUDIO: 'audio',
-  UPLOAD_DATE_FORMAT: 'YYYYMMDDHHmmss',
   // ORIGIN
   MOBILE: 'mobile',
   WEBAPP: 'webapp',
