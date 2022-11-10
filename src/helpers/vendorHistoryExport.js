@@ -78,7 +78,9 @@ const getAttendancesCountInfos = (course) => {
 
 const getBillsInfos = (course) => {
   const courseBillsWithoutCreditNote = course.bills.filter(bill => !bill.courseCreditNote);
-  const payerList = [...new Set(courseBillsWithoutCreditNote.map(bill => get(bill, 'payer.name')))].toString();
+  const payerList = [...new Set(courseBillsWithoutCreditNote.map(bill => get(bill, 'payer.name')))]
+    .sort()
+    .toString();
   const validatedBillList = courseBillsWithoutCreditNote.filter(bill => bill.billedAt);
   const computedAmounts = validatedBillList.map(bill => CourseBillHelper.computeAmounts(bill));
   const amountsInfos = validatedBillList.length
