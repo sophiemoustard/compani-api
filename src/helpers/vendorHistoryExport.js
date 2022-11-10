@@ -79,7 +79,7 @@ const getAttendancesCountInfos = (course) => {
 const getBillsInfos = (course) => {
   const courseBillsWithoutCreditNote = course.bills.filter(bill => !bill.courseCreditNote);
   const payerList = [...new Set(courseBillsWithoutCreditNote.map(bill => get(bill, 'payer.name')))]
-    .sort((a, b) => (a.toLowerCase() > b.toLowerCase() ? 1 : -1))
+    .sort((a, b) => a.localeCompare(b))
     .toString();
   const validatedBillList = courseBillsWithoutCreditNote.filter(bill => bill.billedAt);
   const computedAmounts = validatedBillList.map(bill => CourseBillHelper.computeAmounts(bill));
