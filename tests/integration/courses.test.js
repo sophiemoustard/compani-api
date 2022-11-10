@@ -1774,6 +1774,33 @@ describe('COURSES ROUTES - POST /courses/{_id}/sms', () => {
       UtilsMock.unmockCurrentDate();
     });
 
+    it('should return a 403 if course is started and type is convocation', async () => {
+      UtilsMock.mockCurrentDate('2020-03-01T18:00:00.000Z');
+      const response = await app.inject({
+        method: 'POST',
+        url: `/courses/${coursesList[0]._id}/sms`,
+        payload,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(403);
+
+      const course = await Course.findById(coursesList[0]._id)
+        .populate({ path: 'slots', select: 'startDate endDate' })
+        .populate({ path: 'slotsToPlan' })
+        .populate({ path: 'trainees', select: 'contact.phone' })
+        .lean();
+
+      const IsStartedAndHasSlotToCome = course.slots.some(slot => CompaniDate().isAfter(slot.endDate)) &&
+        course.slots.some(slot => CompaniDate().isBefore(slot.startDate));
+      const hasReceiver = course.trainees && course.trainees.some(trainee => get(trainee, 'contact.phone'));
+      expect(IsStartedAndHasSlotToCome).toBeTruthy();
+      expect(hasReceiver).toBeTruthy();
+
+      sinon.assert.notCalled(SmsHelperStub);
+      UtilsMock.unmockCurrentDate();
+    });
+
     it('should return a 403 if sms have no receiver', async () => {
       const response = await app.inject({
         method: 'POST',

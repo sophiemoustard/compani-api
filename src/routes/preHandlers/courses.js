@@ -19,6 +19,7 @@ const {
   MOBILE,
   OTHER,
   OPERATIONS,
+  CONVOCATION,
 } = require('../../helpers/constants');
 const translate = require('../../helpers/translate');
 const UtilsHelper = require('../../helpers/utils');
@@ -402,8 +403,11 @@ exports.authorizeSmsSending = async (req) => {
   const { course } = req.pre;
 
   const isFinished = !course.slots || !course.slots.some(slot => CompaniDate().isBefore(slot.endDate));
+  const isStarted = course.slots && course.slots.some(slot => CompaniDate().isAfter(slot.endDate));
   const noReceiver = !course.trainees || !course.trainees.some(trainee => get(trainee, 'contact.phone'));
-  if ((isFinished && req.payload.type !== OTHER) || noReceiver) throw Boom.forbidden();
+  if ((isFinished && req.payload.type !== OTHER) || (isStarted && req.payload.type === CONVOCATION) || noReceiver) {
+    throw Boom.forbidden();
+  }
 
   return null;
 };
