@@ -201,8 +201,8 @@ describe('createHistoryOnSlotEdition', () => {
 
   it('should create history if date is updated', async () => {
     const course = new ObjectId();
-    const slotFromDb = { startDate: '2020-01-10T09:00:00', course };
-    const payload = { startDate: '2020-01-11T09:00:00' };
+    const slotFromDb = { startDate: '2020-01-10T09:00:00.000Z', endDate: '2020-01-10T11:00:00.000Z', course };
+    const payload = { startDate: '2020-01-11T09:00:00.000Z', endDate: '2020-01-10T11:00:00.000Z' };
     const userId = new ObjectId();
 
     await CourseHistoriesHelper.createHistoryOnSlotEdition(slotFromDb, payload, userId);
@@ -212,7 +212,7 @@ describe('createHistoryOnSlotEdition', () => {
       course,
       userId,
       SLOT_EDITION,
-      { update: { startDate: { from: '2020-01-10T09:00:00', to: '2020-01-11T09:00:00' } } }
+      { update: { startDate: { from: '2020-01-10T09:00:00.000Z', to: '2020-01-11T09:00:00.000Z' } } }
     );
     sinon.assert.notCalled(createHistoryOnSlotCreation);
   });
@@ -220,7 +220,7 @@ describe('createHistoryOnSlotEdition', () => {
   it('should create history with slot_creation action if not date in db', async () => {
     const course = new ObjectId();
     const slotFromDb = { course };
-    const payload = { startDate: '2020-01-11T09:00:00' };
+    const payload = { startDate: '2020-01-11T09:00:00.000Z', endDate: '2020-01-11T11:00:00.000Z' };
     const userId = new ObjectId();
 
     await CourseHistoriesHelper.createHistoryOnSlotEdition(slotFromDb, payload, userId);
@@ -231,8 +231,8 @@ describe('createHistoryOnSlotEdition', () => {
 
   it('should not create history if date is not updated', async () => {
     const course = new ObjectId();
-    const slotFromDb = { startDate: '2020-01-10T09:00:00', course };
-    const payload = { startDate: '2020-01-10T09:00:00' };
+    const slotFromDb = { startDate: '2020-01-10T09:00:00.000Z', endDate: '2020-01-10T11:00:00.000Z', course };
+    const payload = { startDate: '2020-01-10T09:00:00.000Z', endDate: '2020-01-10T11:00:00.000Z' };
     const userId = new ObjectId();
 
     await CourseHistoriesHelper.createHistoryOnSlotEdition(slotFromDb, payload, userId);
@@ -241,10 +241,10 @@ describe('createHistoryOnSlotEdition', () => {
     sinon.assert.notCalled(createHistoryOnSlotCreation);
   });
 
-  it('should create history if hour is updated', async () => {
+  it('should create history if start hour is updated', async () => {
     const course = new ObjectId();
-    const slotFromDb = { startDate: '2020-01-10T09:00:00', endDate: '2020-01-10T11:30:00', course };
-    const payload = { startDate: '2020-01-10T11:00:00', endDate: '2020-01-10T13:00:00' };
+    const slotFromDb = { startDate: '2020-01-10T09:00:00.000Z', endDate: '2020-01-10T11:30:00.000Z', course };
+    const payload = { startDate: '2020-01-10T11:00:00.000Z', endDate: '2020-01-10T11:30:00.000Z' };
     const userId = new ObjectId();
 
     await CourseHistoriesHelper.createHistoryOnSlotEdition(slotFromDb, payload, userId);
@@ -256,8 +256,31 @@ describe('createHistoryOnSlotEdition', () => {
       SLOT_EDITION,
       {
         update: {
-          startHour: { from: '2020-01-10T09:00:00', to: '2020-01-10T11:00:00' },
-          endHour: { from: '2020-01-10T11:30:00', to: '2020-01-10T13:00:00' },
+          startHour: { from: '2020-01-10T09:00:00.000Z', to: '2020-01-10T11:00:00.000Z' },
+          endHour: { from: '2020-01-10T11:30:00.000Z', to: '2020-01-10T11:30:00.000Z' },
+        },
+      }
+    );
+    sinon.assert.notCalled(createHistoryOnSlotCreation);
+  });
+
+  it('should create history if end hour is updated', async () => {
+    const course = new ObjectId();
+    const slotFromDb = { startDate: '2020-01-10T10:00:00.000Z', endDate: '2020-01-10T11:30:00.000Z', course };
+    const payload = { startDate: '2020-01-10T10:00:00.000Z', endDate: '2020-01-10T13:00:00.000Z' };
+    const userId = new ObjectId();
+
+    await CourseHistoriesHelper.createHistoryOnSlotEdition(slotFromDb, payload, userId);
+
+    sinon.assert.calledOnceWithExactly(
+      createHistory,
+      course,
+      userId,
+      SLOT_EDITION,
+      {
+        update: {
+          startHour: { from: '2020-01-10T10:00:00.000Z', to: '2020-01-10T10:00:00.000Z' },
+          endHour: { from: '2020-01-10T11:30:00.000Z', to: '2020-01-10T13:00:00.000Z' },
         },
       }
     );
