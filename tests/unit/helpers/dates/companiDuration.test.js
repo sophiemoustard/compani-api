@@ -561,6 +561,71 @@ describe('QUERY', () => {
       expect(result).toBe(false);
     });
   });
+
+  describe('isShorterThan', () => {
+    it('should return true if shorter duration with same units', () => {
+      const duration = 'P1DT1H2M6S';
+      const otherDuration = 'P1DT2H2M3S';
+
+      const result = CompaniDurationsHelper.CompaniDuration(duration).isShorterThan(otherDuration);
+
+      expect(result).toBe(true);
+    });
+
+    it('should return true if shorter duration with different units', () => {
+      const duration = 'PT22H2M3S';
+      const otherDuration = 'P1DT30S';
+
+      const result = CompaniDurationsHelper.CompaniDuration(duration).isShorterThan(otherDuration);
+
+      expect(result).toBe(true);
+    });
+
+    it('should return true if comparing with MAX_SAFE_INTEGER with lower value', () => {
+      const duration = `PT${Number.MAX_SAFE_INTEGER - 1000}S`;
+      const otherDuration = `PT${Number.MAX_SAFE_INTEGER}S`;
+
+      const result = CompaniDurationsHelper.CompaniDuration(duration).isShorterThan(otherDuration);
+
+      expect(result).toBe(true);
+    });
+
+    it('should return false if same duration with same units', () => {
+      const duration = 'P1DT2H2M3S';
+      const otherDuration = 'P1DT2H2M3S';
+
+      const result = CompaniDurationsHelper.CompaniDuration(duration).isShorterThan(otherDuration);
+
+      expect(result).toBe(false);
+    });
+
+    it('should return false if same duration with different units', () => {
+      const duration = 'P1DT1H2M3S';
+      const otherDuration = 'PT25H123S';
+
+      const result = CompaniDurationsHelper.CompaniDuration(duration).isShorterThan(otherDuration);
+
+      expect(result).toBe(false);
+    });
+
+    it('should return false if longer duration with same units', () => {
+      const duration = 'P1DT3H1M3S';
+      const otherDuration = 'P1DT2H2M3S';
+
+      const result = CompaniDurationsHelper.CompaniDuration(duration).isShorterThan(otherDuration);
+
+      expect(result).toBe(false);
+    });
+
+    it('should return false if longer duration with different units', () => {
+      const duration = 'P1DT30H';
+      const otherDuration = 'PT40H';
+
+      const result = CompaniDurationsHelper.CompaniDuration(duration).isShorterThan(otherDuration);
+
+      expect(result).toBe(false);
+    });
+  });
 });
 
 describe('_formatMiscToCompaniDuration', () => {

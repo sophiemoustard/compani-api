@@ -86,6 +86,13 @@ const companiDurationFactory = (inputDuration) => {
       return durationInSeconds > otherDurationInSeconds;
     },
 
+    isShorterThan(miscTypeOtherDuration) {
+      const otherDurationInSeconds = exports._formatMiscToCompaniDuration(miscTypeOtherDuration).as('seconds');
+      const durationInSeconds = _duration.as('seconds');
+
+      return durationInSeconds < otherDurationInSeconds;
+    },
+
     // MANIPULATE
     add(miscTypeOtherDuration) {
       const otherDuration = exports._formatMiscToCompaniDuration(miscTypeOtherDuration);
