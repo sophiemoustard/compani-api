@@ -79,7 +79,7 @@ const getAttendancesCountInfos = (course) => {
 const getBillsInfos = (course) => {
   const courseBillsWithoutCreditNote = course.bills.filter(bill => !bill.courseCreditNote);
   const payerList = [...new Set(courseBillsWithoutCreditNote.map(bill => get(bill, 'payer.name')))]
-    .sort()
+    .sort((a, b) => (a.toLowerCase() > b.toLowerCase() ? 1 : -1))
     .toString();
   const validatedBillList = courseBillsWithoutCreditNote.filter(bill => bill.billedAt);
   const computedAmounts = validatedBillList.map(bill => CourseBillHelper.computeAmounts(bill));
@@ -100,7 +100,7 @@ const getBillsInfos = (course) => {
 
   const mainFeesCount = validatedBillList.map(bill => bill.mainFee.count).reduce((acc, value) => acc + value, 0);
   const billsCountForExport = `${mainFeesCount} sur ${course.trainees.length}`;
-  const isBilled = course.trainees.length && mainFeesCount === course.trainees.length;
+  const isBilled = !!course.trainees.length && mainFeesCount === course.trainees.length;
 
   return { isBilled, billsCountForExport, payerList, ...amountsInfos };
 };
