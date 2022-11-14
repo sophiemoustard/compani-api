@@ -38,7 +38,7 @@ describe('COURSE BILL ROUTES - GET /coursebills', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      expect(response.result.data.courseBills.length).toEqual(1);
+      expect(response.result.data.courseBills.length).toEqual(2);
       expect(response.result.data.courseBills[0]).toMatchObject({
         course: courseList[0]._id,
         company: authCompany._id,
@@ -60,14 +60,24 @@ describe('COURSE BILL ROUTES - GET /coursebills', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      expect(response.result.data.courseBills.length).toEqual(1);
-      expect(response.result.data.courseBills[0]).toMatchObject({
-        course: courseList[1]._id,
-        company: authCompany._id,
-        mainFee: { price: 120, count: 1 },
-        netInclTaxes: 120,
-        payer: pick(courseFundingOrganisationList[0], ['_id', 'name']),
-      });
+      expect(response.result.data.courseBills.length).toEqual(2);
+      expect(response.result.data.courseBills).toEqual(expect.arrayContaining([
+        expect.objectContaining({
+          course: courseList[1]._id,
+          company: pick(authCompany, ['_id', 'name']),
+          mainFee: { price: 120, count: 1, description: 'Lorem ipsum' },
+          netInclTaxes: 120,
+          payer: pick(courseFundingOrganisationList[0], ['_id', 'name']),
+        }),
+        expect.objectContaining({
+          course: courseList[1]._id,
+          company: pick(authCompany, ['_id', 'name']),
+          mainFee: { price: 200, count: 2, description: 'yoyo' },
+          netInclTaxes: 409,
+          billingPurchaseList: [expect.objectContaining({ billingItem: billingItemList[0]._id, price: 9, count: 1 })],
+          payer: pick(authCompany, ['_id', 'name']),
+        }),
+      ]));
     });
 
     it('should get company bills', async () => {
@@ -78,7 +88,7 @@ describe('COURSE BILL ROUTES - GET /coursebills', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      expect(response.result.data.courseBills.length).toEqual(3);
+      expect(response.result.data.courseBills.length).toEqual(5);
     });
 
     it('should return 404 if course doesn\'t exist', async () => {
@@ -135,7 +145,7 @@ describe('COURSE BILL ROUTES - GET /coursebills', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      expect(response.result.data.courseBills.length).toEqual(3);
+      expect(response.result.data.courseBills.length).toEqual(5);
     });
 
     it('should return 403 if wrong company', async () => {
@@ -338,6 +348,17 @@ describe('COURSE BILL ROUTES - POST /coursebills', () => {
       expect(count).toBe(courseBillsList.length + 1);
     });
 
+    it('should create a bill if expectedBillsCount higher than number of bills without creditNote', async () => {
+      const response = await app.inject({
+        method: 'POST',
+        url: '/coursebills',
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload: { ...payload, course: courseList[1]._id, company: authCompany._id },
+      });
+
+      expect(response.statusCode).toBe(200);
+    });
+
     const missingParams = ['course', 'company', 'mainFee', 'mainFee.price', 'mainFee.count', 'payer'];
     missingParams.forEach((param) => {
       it(`should return 400 as ${param} is missing`, async () => {
@@ -436,6 +457,28 @@ describe('COURSE BILL ROUTES - POST /coursebills', () => {
       });
 
       expect(response.statusCode).toBe(404);
+    });
+
+    it('should return 409 if expectedBillsCount is 0', async () => {
+      const response = await app.inject({
+        method: 'POST',
+        url: '/coursebills',
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload: { ...payload, course: courseList[10]._id },
+      });
+
+      expect(response.statusCode).toBe(409);
+    });
+
+    it('should return 409 if expectedBillsCount is equal to number of bills without creditNote', async () => {
+      const response = await app.inject({
+        method: 'POST',
+        url: '/coursebills',
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload: { ...payload, course: courseList[0]._id, company: authCompany._id },
+      });
+
+      expect(response.statusCode).toBe(409);
     });
   });
 

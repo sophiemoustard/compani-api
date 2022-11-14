@@ -78,36 +78,31 @@ const getAttendancesCountInfos = (course) => {
 
 const getBillsInfos = (course) => {
   const courseBillsWithoutCreditNote = course.bills.filter(bill => !bill.courseCreditNote);
-  const payerList = [...new Set(courseBillsWithoutCreditNote.map(bill => get(bill, 'payer.name')))].toString();
-  if (course.type === INTRA) {
-    const validatedBill = courseBillsWithoutCreditNote.find(bill => bill.billedAt);
-    const isBilled = validatedBill ? 'Oui' : 'Non';
-
-    const { netInclTaxes, paid, total } = validatedBill
-      ? CourseBillHelper.computeAmounts(validatedBill)
-      : { netInclTaxes: '', paid: '', total: '' };
-
-    return { isBilled, payerList, netInclTaxes, paid, total };
-  }
-
-  const validatedBills = courseBillsWithoutCreditNote.filter(bill => bill.billedAt);
-  const mainFeesCount = validatedBills.map(bill => bill.mainFee.count).reduce((acc, value) => acc + value, 0);
-
-  const isBilled = `${mainFeesCount} sur ${course.trainees.length}`;
-
-  if (validatedBills.length) {
-    const computedAmounts = validatedBills.map(bill => CourseBillHelper.computeAmounts(bill));
-
-    return {
-      isBilled,
-      payerList,
+  const payerList = [...new Set(courseBillsWithoutCreditNote.map(bill => get(bill, 'payer.name')))]
+    .sort((a, b) => a.localeCompare(b))
+    .toString();
+  const validatedBillList = courseBillsWithoutCreditNote.filter(bill => bill.billedAt);
+  const computedAmounts = validatedBillList.map(bill => CourseBillHelper.computeAmounts(bill));
+  const amountsInfos = validatedBillList.length
+    ? {
       netInclTaxes: computedAmounts.map(amount => amount.netInclTaxes).reduce((acc, value) => acc + value, 0),
       paid: computedAmounts.map(amount => amount.paid).reduce((acc, value) => acc + value, 0),
       total: computedAmounts.map(amount => amount.total).reduce((acc, value) => acc + value, 0),
-    };
+    }
+    : { netInclTaxes: '', paid: '', total: '' };
+
+  if (course.type === INTRA) {
+    const billsCountForExport = `${validatedBillList.length} sur ${course.expectedBillsCount}`;
+    const isBilled = !!course.expectedBillsCount && validatedBillList.length === course.expectedBillsCount;
+
+    return { isBilled, billsCountForExport, payerList, ...amountsInfos };
   }
 
-  return { isBilled, payerList, netInclTaxes: '', paid: '', total: '' };
+  const mainFeesCount = validatedBillList.map(bill => bill.mainFee.count).reduce((acc, value) => acc + value, 0);
+  const billsCountForExport = `${mainFeesCount} sur ${course.trainees.length}`;
+  const isBilled = !!course.trainees.length && mainFeesCount === course.trainees.length;
+
+  return { isBilled, billsCountForExport, payerList, ...amountsInfos };
 };
 
 const getProgress = (pastSlots, course) =>
@@ -160,7 +155,7 @@ exports.exportCourseHistory = async (startDate, endDate, credentials) => {
       .map(trainee => trainee.progress.eLearning);
     const combinedElearningProgress = traineeProgressList.reduce((acc, value) => acc + value, 0);
 
-    const { isBilled, payerList, netInclTaxes, paid, total } = getBillsInfos(course);
+    const { isBilled, billsCountForExport, payerList, netInclTaxes, paid, total } = getBillsInfos(course);
 
     rows.push({
       Identifiant: course._id,
@@ -197,7 +192,8 @@ exports.exportCourseHistory = async (startDate, endDate, credentials) => {
       'Nombre de stagiaires non prévus': unsubscribedTrainees,
       'Nombre de présences non prévues': unsubscribedAttendances,
       Avancement: getProgress(pastSlots, course),
-      Facturée: isBilled,
+      'Nombre de factures': billsCountForExport,
+      Facturée: isBilled ? 'Oui' : 'Non',
       'Montant facturé': UtilsHelper.formatFloatForExport(netInclTaxes),
       'Montant réglé': UtilsHelper.formatFloatForExport(paid),
       Solde: UtilsHelper.formatFloatForExport(total),

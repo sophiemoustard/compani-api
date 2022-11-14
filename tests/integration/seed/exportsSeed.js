@@ -1087,7 +1087,7 @@ const userCompanies = [
 ];
 
 const courseList = [
-  {
+  { // 0 with 1 bill
     _id: new ObjectId(),
     type: INTRA,
     maxTrainees: 8,
@@ -1098,9 +1098,9 @@ const courseList = [
     salesRepresentative: salesRepresentative._id,
     contact: salesRepresentative._id,
     trainees: [traineeList[0]._id, traineeList[1]._id, traineeList[2]._id],
-
+    expectedBillsCount: 1,
   },
-  {
+  { // 1 with 2 bills
     _id: new ObjectId(),
     type: INTER_B2B,
     subProgram: subProgramList[1]._id,
@@ -1110,7 +1110,7 @@ const courseList = [
     trainees: [traineeList[3]._id, traineeList[4]._id],
     estimatedStartDate: '2019-01-01T08:00:00',
   },
-  {
+  { // 2 without bills
     _id: new ObjectId(),
     type: INTER_B2B,
     subProgram: subProgramList[1]._id,
@@ -1121,7 +1121,7 @@ const courseList = [
     trainees: [traineeList[3]._id, traineeList[4]._id],
     estimatedStartDate: '2022-01-01T08:00:00',
   },
-  {
+  { // 3 with 1 bill
     _id: new ObjectId(),
     type: INTRA,
     maxTrainees: 8,
@@ -1133,7 +1133,7 @@ const courseList = [
     contact: salesRepresentative._id,
     trainees: [traineeList[0]._id, traineeList[1]._id, traineeList[2]._id],
   },
-  {
+  { // 4 with 1 bill
     _id: new ObjectId(),
     type: INTRA,
     maxTrainees: 8,
@@ -1145,6 +1145,44 @@ const courseList = [
     contact: salesRepresentative._id,
     trainees: [traineeList[0]._id, traineeList[1]._id, traineeList[2]._id],
   },
+  { // 5 with 3 bills and 1 creditNote
+    _id: new ObjectId(),
+    type: INTRA,
+    maxTrainees: 8,
+    companies: [authCompany._id],
+    subProgram: subProgramList[0]._id,
+    misc: 'group 6',
+    trainer: trainer._id,
+    salesRepresentative: salesRepresentative._id,
+    contact: salesRepresentative._id,
+    trainees: [traineeList[0]._id, traineeList[1]._id, traineeList[2]._id],
+    expectedBillsCount: 3,
+  },
+  { // 6 without bills
+    _id: new ObjectId(),
+    type: INTRA,
+    maxTrainees: 8,
+    companies: [authCompany._id],
+    subProgram: subProgramList[0]._id,
+    misc: 'group 7',
+    trainer: trainer._id,
+    salesRepresentative: salesRepresentative._id,
+    contact: salesRepresentative._id,
+    trainees: [],
+    expectedBillsCount: 0,
+  },
+  { // 7 without trainee
+    _id: new ObjectId(),
+    type: INTER_B2B,
+    companies: [],
+    subProgram: subProgramList[0]._id,
+    misc: 'group 8',
+    trainer: trainer._id,
+    salesRepresentative: salesRepresentative._id,
+    contact: salesRepresentative._id,
+    trainees: [],
+    expectedBillsCount: 0,
+  },
 ];
 
 const courseFundingOrganisation = {
@@ -1154,7 +1192,7 @@ const courseFundingOrganisation = {
 };
 
 const courseBillList = [
-  {
+  { // 0
     _id: new ObjectId(),
     course: courseList[0]._id,
     mainFee: { price: 1200, count: 1 },
@@ -1163,7 +1201,7 @@ const courseBillList = [
     billedAt: '2022-03-08T00:00:00.000Z',
     number: 'FACT-00001',
   },
-  {
+  { // 1 cancelled with creditNote
     _id: new ObjectId(),
     course: courseList[3]._id,
     mainFee: { price: 1200, count: 1 },
@@ -1172,7 +1210,7 @@ const courseBillList = [
     billedAt: '2022-03-08T00:00:00.000Z',
     number: 'FACT-00002',
   },
-  {
+  { // 2
     _id: new ObjectId(),
     course: courseList[4]._id,
     mainFee: { price: 1200, count: 1 },
@@ -1181,7 +1219,7 @@ const courseBillList = [
     billedAt: '2022-06-08T00:00:00.000Z',
     number: 'FACT-00003',
   },
-  {
+  { // 3
     _id: new ObjectId(),
     course: courseList[1]._id,
     mainFee: { price: 400, count: 1 },
@@ -1190,7 +1228,7 @@ const courseBillList = [
     billedAt: '2022-06-08T00:10:00.000Z',
     number: 'FACT-00004',
   },
-  {
+  { // 4
     _id: new ObjectId(),
     course: courseList[1]._id,
     mainFee: { price: 400, count: 1 },
@@ -1198,6 +1236,33 @@ const courseBillList = [
     payer: { fundingOrganisation: courseFundingOrganisation._id },
     billedAt: '2022-06-08T00:10:00.000Z',
     number: 'FACT-00005',
+  },
+  { // 5
+    _id: new ObjectId(),
+    course: courseList[5]._id,
+    mainFee: { price: 400, count: 1 },
+    company: authCompany._id,
+    payer: { fundingOrganisation: courseFundingOrganisation._id },
+    billedAt: '2022-06-08T00:10:00.000Z',
+    number: 'FACT-00006',
+  },
+  { // 6
+    _id: new ObjectId(),
+    course: courseList[5]._id,
+    mainFee: { price: 240, count: 2 },
+    company: authCompany._id,
+    payer: { company: authCompany._id },
+    billedAt: '2022-06-08T00:10:00.000Z',
+    number: 'FACT-00007',
+  },
+  { // 7 cancelled with creditNote
+    _id: new ObjectId(),
+    course: courseList[5]._id,
+    mainFee: { price: 240, count: 1 },
+    company: authCompany._id,
+    payer: { company: authCompany._id },
+    billedAt: '2022-06-08T00:10:00.000Z',
+    number: 'FACT-00008',
   },
 ];
 
@@ -1247,16 +1312,62 @@ const coursePaymentList = [
     nature: REFUND,
     type: CHECK,
   },
+  {
+    number: 'REG-00006',
+    date: '2023-03-11T00:00:00.000Z',
+    company: authCompany._id,
+    courseBill: courseBillList[5]._id,
+    netInclTaxes: 200,
+    nature: PAYMENT,
+    type: CHECK,
+  },
+  {
+    number: 'REG-00007',
+    date: '2023-03-11T00:00:00.000Z',
+    company: authCompany._id,
+    courseBill: courseBillList[5]._id,
+    netInclTaxes: 50,
+    nature: REFUND,
+    type: CHECK,
+  },
+  {
+    number: 'REG-00008',
+    date: '2023-03-11T00:00:00.000Z',
+    company: authCompany._id,
+    courseBill: courseBillList[6]._id,
+    netInclTaxes: 150,
+    nature: PAYMENT,
+    type: CHECK,
+  },
+  {
+    number: 'REG-00009',
+    date: '2023-03-11T00:00:00.000Z',
+    company: authCompany._id,
+    courseBill: courseBillList[6]._id,
+    netInclTaxes: 100,
+    nature: REFUND,
+    type: CHECK,
+  },
 ];
 
-const courseCreditNote = {
-  _id: new ObjectId(),
-  number: 'AV-00001',
-  courseBill: courseBillList[1]._id,
-  misc: 'annulé',
-  date: '2022-03-09T00:00:00.000Z',
-  company: authCompany._id,
-};
+const courseCreditNotesList = [
+  {
+    _id: new ObjectId(),
+    number: 'AV-00001',
+    courseBill: courseBillList[1]._id,
+    misc: 'annulé',
+    date: '2022-03-09T00:00:00.000Z',
+    company: authCompany._id,
+  },
+  {
+    _id: new ObjectId(),
+    number: 'AV-00002',
+    courseBill: courseBillList[7]._id,
+    misc: 'annulé',
+    date: '2022-03-09T00:00:00.000Z',
+    company: authCompany._id,
+  },
+];
 
 const activityHistoryList = [
   { _id: new ObjectId(), user: traineeList[3]._id, activity: activityList[0]._id },
@@ -1315,6 +1426,33 @@ const courseSlotList = [
     step: stepList[3]._id,
     address: slotAddress,
     createdAt: '2020-12-12T10:00:04.000Z',
+  },
+  {
+    _id: new ObjectId(),
+    course: courseList[5]._id,
+    step: stepList[0]._id,
+    address: slotAddress,
+    createdAt: '2020-12-12T10:00:04.000Z',
+    startDate: '2021-04-12T10:00:00.000Z',
+    endDate: '2021-04-12T12:00:00.000Z',
+  },
+  {
+    _id: new ObjectId(),
+    course: courseList[6]._id,
+    step: stepList[0]._id,
+    address: slotAddress,
+    createdAt: '2020-12-12T10:00:04.000Z',
+    startDate: '2021-04-12T10:00:00.000Z',
+    endDate: '2021-04-12T12:00:00.000Z',
+  },
+  {
+    _id: new ObjectId(),
+    course: courseList[7]._id,
+    step: stepList[0]._id,
+    address: slotAddress,
+    createdAt: '2020-12-12T10:00:04.000Z',
+    startDate: '2021-01-16T10:00:00.000Z',
+    endDate: '2021-01-16T12:00:00.000Z',
   },
 ];
 
@@ -1416,7 +1554,7 @@ const populateDB = async () => {
     Contract.create(contractList),
     Course.create(courseList),
     CourseBill.create(courseBillList),
-    CourseCreditNote.create(courseCreditNote),
+    CourseCreditNote.create(courseCreditNotesList),
     CourseFundingOrganisation.create(courseFundingOrganisation),
     CoursePayment.create(coursePaymentList),
     CourseSlot.create(courseSlotList),

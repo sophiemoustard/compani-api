@@ -93,6 +93,11 @@ exports.plugin = {
             salesRepresentative: Joi.objectId().required(),
             estimatedStartDate: dateToISOString,
             maxTrainees: Joi.number().when('type', { is: INTRA, then: Joi.required(), otherwise: Joi.forbidden() }),
+            expectedBillsCount: Joi
+              .number()
+              .integer()
+              .min(0)
+              .when('type', { is: INTRA, then: Joi.required(), otherwise: Joi.forbidden() }),
           }),
         },
         auth: { scope: ['courses:create'] },
@@ -179,6 +184,7 @@ exports.plugin = {
             archivedAt: Joi.date(),
             estimatedStartDate: dateToISOString,
             maxTrainees: Joi.number().positive().integer(),
+            expectedBillsCount: Joi.number().min(0).integer(),
           }),
         },
         pre: [{ method: authorizeCourseEdit }],
