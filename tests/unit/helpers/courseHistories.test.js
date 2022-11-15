@@ -9,6 +9,7 @@ const {
   SLOT_EDITION,
   TRAINEE_ADDITION,
   TRAINEE_DELETION,
+  COMPANY_ADDITION,
 } = require('../../../src/helpers/constants');
 const SinonMongoose = require('../sinonMongoose');
 
@@ -382,6 +383,7 @@ describe('list', () => {
       { query: 'find', args: [query] },
       { query: 'populate', args: [{ path: 'createdBy', select: '_id identity picture' }] },
       { query: 'populate', args: [{ path: 'trainee', select: '_id identity' }] },
+      { query: 'populate', args: [{ path: 'company', select: '_id name' }] },
       { query: 'sort', args: [{ createdAt: -1 }] },
       { query: 'limit', args: [20] },
       { query: 'lean' },
@@ -415,10 +417,41 @@ describe('list', () => {
         { query: 'find', args: [{ course: query.course, createdAt: { $lt: query.createdAt } }] },
         { query: 'populate', args: [{ path: 'createdBy', select: '_id identity picture' }] },
         { query: 'populate', args: [{ path: 'trainee', select: '_id identity' }] },
+        { query: 'populate', args: [{ path: 'company', select: '_id name' }] },
         { query: 'sort', args: [{ createdAt: -1 }] },
         { query: 'limit', args: [20] },
         { query: 'lean' },
       ]
+    );
+  });
+});
+
+describe('createHistoryOnCompanyAddition', () => {
+  let createHistory;
+
+  beforeEach(() => {
+    createHistory = sinon.stub(CourseHistoriesHelper, 'createHistory');
+  });
+
+  afterEach(() => {
+    createHistory.restore();
+  });
+
+  it('should create a courseHistory', async () => {
+    const payload = {
+      company: new ObjectId(),
+      course: new ObjectId(),
+    };
+    const userId = new ObjectId();
+
+    await CourseHistoriesHelper.createHistoryOnCompanyAddition(payload, userId);
+
+    sinon.assert.calledOnceWithExactly(
+      createHistory,
+      payload.course,
+      userId,
+      COMPANY_ADDITION,
+      { company: payload.company }
     );
   });
 });
