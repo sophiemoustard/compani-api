@@ -118,19 +118,19 @@ describe('downloadImages', () => {
 
     const result = await FileHelper.downloadImages(imageList);
 
-    sinon.assert.match(result[0], `src/data/pdf/tmp/${imageList[0].name}`);
-    sinon.assert.match(result[1], `src/data/pdf/tmp/${imageList[1].name}`);
+    sinon.assert.match(result[0], new RegExp(`src/data/pdf/tmp/[A-Za-z]{10}${imageList[0].name}`));
+    sinon.assert.match(result[1], new RegExp(`src/data/pdf/tmp/[A-Za-z]{10}${imageList[1].name}`));
     sinon.assert.calledWithExactly(get.getCall(0), imageList[0].url, { responseType: 'stream' });
     sinon.assert.calledWithExactly(get.getCall(1), imageList[1].url, { responseType: 'stream' });
     sinon.assert.calledWithExactly(
       createAndReadFile.getCall(0),
       response.data,
-      sinon.match(`src/data/pdf/tmp/${imageList[0].name}`)
+      sinon.match(new RegExp(`src/data/pdf/tmp/[A-Za-z]{10}${imageList[0].name}`))
     );
     sinon.assert.calledWithExactly(
       createAndReadFile.getCall(1),
       response.data,
-      sinon.match(`src/data/pdf/tmp/${imageList[1].name}`)
+      sinon.match(new RegExp(`src/data/pdf/tmp/[A-Za-z]{10}${imageList[1].name}`))
     );
   });
 });
