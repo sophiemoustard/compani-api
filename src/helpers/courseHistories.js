@@ -8,6 +8,7 @@ const {
   TRAINEE_ADDITION,
   TRAINEE_DELETION,
   ESTIMATED_START_DATE_EDITION,
+  COMPANY_ADDITION,
 } = require('./constants');
 
 exports.createHistory = async (course, createdBy, action, payload) =>
@@ -94,7 +95,11 @@ exports.list = async (query) => {
   return CourseHistory.find(findQuery)
     .populate({ path: 'createdBy', select: '_id identity picture' })
     .populate({ path: 'trainee', select: '_id identity' })
+    .populate({ path: 'company', select: '_id name' })
     .sort({ createdAt: -1 })
     .limit(20)
     .lean();
 };
+
+exports.createHistoryOnCompanyAddition = (payload, userId) =>
+  exports.createHistory(payload.course, userId, COMPANY_ADDITION, { company: payload.company });

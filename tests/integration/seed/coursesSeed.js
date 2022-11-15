@@ -327,7 +327,7 @@ const coursesList = [
     subProgram: subProgramsList[0]._id,
     misc: 'old session',
     trainer: trainer._id,
-    trainees: [coach._id, helper._id, clientAdmin._id, trainer._id],
+    trainees: [coach._id, helper._id, clientAdmin._id],
     companies: [authCompany._id],
     type: INTRA,
     maxTrainees: 8,
@@ -376,6 +376,19 @@ const coursesList = [
     ],
     salesRepresentative: vendorAdmin._id,
     expectedBillsCount: 2,
+  },
+  { // 18 archived inter b2b course
+    _id: new ObjectId(),
+    subProgram: subProgramsList[0]._id,
+    misc: 'old session',
+    trainer: trainer._id,
+    trainees: [coach._id, helper._id, clientAdmin._id],
+    companies: [authCompany._id],
+    type: INTER_B2B,
+    maxTrainees: 8,
+    salesRepresentative: vendorAdmin._id,
+    archivedAt: '2021-01-01T00:00:00.000Z',
+    estimatedStartDate: '2020-11-03T10:00:00.000Z',
   },
 ];
 

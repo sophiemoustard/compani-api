@@ -452,6 +452,8 @@ module.exports = {
   TRAINEE_ADDITION: 'trainee_addition',
   TRAINEE_DELETION: 'trainee_deletion',
   ESTIMATED_START_DATE_EDITION: 'estimated_start_date_edition',
+  COMPANY_ADDITION: 'company_addition',
+  COMPANY_DELETION: 'company_deletion',
   // MediaUpload
   UPLOAD_IMAGE: 'image',
   UPLOAD_VIDEO: 'video',
