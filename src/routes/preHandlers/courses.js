@@ -319,8 +319,8 @@ exports.authorizeGetCourse = async (req) => {
     const isTOM = userVendorRole === TRAINING_ORGANISATION_MANAGER;
     if (isTOM || isAdminVendor) return null;
 
-    const courseTrainees = course.trainees.map(trainee => trainee._id);
-    const isTrainee = UtilsHelper.doesArrayIncludeId(courseTrainees, credentials._id);
+    const courseTraineesIds = course.trainees.map(trainee => trainee._id);
+    const isTrainee = UtilsHelper.doesArrayIncludeId(courseTraineesIds, credentials._id);
     const companyHasAccess = !course.accessRules.length ||
       UtilsHelper.doesArrayIncludeId(course.accessRules, userCompany);
 
@@ -335,14 +335,8 @@ exports.authorizeGetCourse = async (req) => {
 
     if (course.format === STRICTLY_E_LEARNING && !companyHasAccess) throw Boom.forbidden();
 
-    if (course.type === INTRA) {
-      if (!UtilsHelper.doesArrayIncludeId(course.companies, userCompany)) throw Boom.forbidden();
-      return null;
-    }
-
-    const someTraineesAreInCompany = course.trainees
-      .some(trainee => UtilsHelper.areObjectIdsEquals(trainee.company, userCompany));
-    if (course.format === BLENDED && !someTraineesAreInCompany) throw Boom.forbidden();
+    const courseCompaniesContainsUserCompany = UtilsHelper.doesArrayIncludeId(course.companies, userCompany);
+    if (course.format === BLENDED && !courseCompaniesContainsUserCompany) throw Boom.forbidden();
 
     return null;
   } catch (e) {
