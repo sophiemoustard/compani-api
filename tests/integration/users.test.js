@@ -1,5 +1,4 @@
 const { ObjectId } = require('mongodb');
-const { fn: momentProto } = require('moment');
 const expect = require('expect');
 const GetStream = require('get-stream');
 const sinon = require('sinon');
@@ -1747,14 +1746,11 @@ describe('USERS ROUTES - POST /users/:id/gdrive/:drive_id/upload', () => {
 describe('USERS ROUTES - POST /users/:id/upload', () => {
   let authToken;
   let uploadUserMediaStub;
-  let momentFormat;
   beforeEach(() => {
     uploadUserMediaStub = sinon.stub(GCloudStorageHelper, 'uploadUserMedia');
-    momentFormat = sinon.stub(momentProto, 'format');
   });
   afterEach(() => {
     uploadUserMediaStub.restore();
-    momentFormat.restore();
   });
 
   beforeEach(populateDB);
@@ -1768,7 +1764,6 @@ describe('USERS ROUTES - POST /users/:id/upload', () => {
       const user = usersSeedList[0];
       const form = generateFormData({ fileName: 'user_image_test', file: 'yoyoyo' });
       uploadUserMediaStub.returns({ public_id: 'abcdefgh', link: 'https://alenvi.io' });
-      momentFormat.returns('20200625054512');
 
       const payload = await GetStream(form);
       const response = await app.inject({

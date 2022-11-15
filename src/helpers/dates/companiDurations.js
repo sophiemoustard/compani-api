@@ -34,6 +34,14 @@ const companiDurationFactory = (inputDuration) => {
       throw Error('Invalid argument: expected specific format');
     },
 
+    asYears() {
+      return _duration.as('years');
+    },
+
+    asMonths() {
+      return _duration.as('months');
+    },
+
     asDays() {
       return _duration.as('days');
     },
@@ -78,11 +86,23 @@ const companiDurationFactory = (inputDuration) => {
       return durationInSeconds > otherDurationInSeconds;
     },
 
+    isShorterThan(miscTypeOtherDuration) {
+      const otherDurationInSeconds = exports._formatMiscToCompaniDuration(miscTypeOtherDuration).as('seconds');
+      const durationInSeconds = _duration.as('seconds');
+
+      return durationInSeconds < otherDurationInSeconds;
+    },
+
     // MANIPULATE
     add(miscTypeOtherDuration) {
       const otherDuration = exports._formatMiscToCompaniDuration(miscTypeOtherDuration);
 
       return companiDurationFactory(_duration.plus(otherDuration));
+    },
+
+    abs() {
+      if (_duration.as('seconds') > 0) return companiDurationFactory(_duration);
+      return companiDurationFactory(_duration.mapUnits(value => -value));
     },
   };
 };

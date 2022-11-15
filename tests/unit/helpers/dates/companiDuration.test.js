@@ -237,6 +237,66 @@ describe('DISPLAY', () => {
     });
   });
 
+  describe('asYears', () => {
+    it('should return duration in years', () => {
+      const companiDuration = CompaniDurationsHelper.CompaniDuration('P3Y');
+      const result = companiDuration.asYears();
+
+      expect(result).toBe(3);
+    });
+
+    it('should return duration in years, with months', () => {
+      const companiDuration = CompaniDurationsHelper.CompaniDuration('P1Y2M');
+      const result = companiDuration.asYears();
+
+      expect(result).toBe(1.1666666666666667); // 1.1666666666666667 = 1 + 2 / 12
+    });
+
+    it('should return duration in years, with days', () => {
+      const companiDuration = CompaniDurationsHelper.CompaniDuration('P4Y5D');
+      const result = companiDuration.asYears();
+
+      expect(result).toBe(4.013698630136986); // 4.013698630136986 = 4 + 5 / 365
+    });
+
+    it('should return duration in months, with seconds', () => {
+      const companiDuration = CompaniDurationsHelper.CompaniDuration('P7YT45S');
+      const result = companiDuration.asYears();
+
+      expect(result).toBe(7.000001426940639); //  7.000001426940639   = 7 + 4 / (3600 * 24 * 365)
+    });
+  });
+
+  describe('asMonths', () => {
+    it('should return duration in months', () => {
+      const companiDuration = CompaniDurationsHelper.CompaniDuration('P5M');
+      const result = companiDuration.asMonths();
+
+      expect(result).toBe(5);
+    });
+
+    it('should return duration in months, with days', () => {
+      const companiDuration = CompaniDurationsHelper.CompaniDuration('P1M9D');
+      const result = companiDuration.asMonths();
+
+      expect(result).toBe(1.3); // 1.2 = 1 + 9 / 30
+    });
+
+    it('should return duration in months, with hours', () => {
+      const companiDuration = CompaniDurationsHelper.CompaniDuration('P2MT9H');
+      const result = companiDuration.asMonths();
+
+      expect(result).toBe(2.0125); // 2.00625 = 2 + 9 / (24 * 30)
+    });
+
+    it('should return duration in months, with seconds', () => {
+      const companiDuration = CompaniDurationsHelper.CompaniDuration('P1MT4S');
+      const result = companiDuration.asMonths();
+
+      expect(result).toBe(1.0000015432098766); // 1.0000015432098766 = 1 + 4 / (3600 * 24 * 30)
+    });
+  });
+
   describe('asDays', () => {
     it('should return duration in days', () => {
       const companiDuration = CompaniDurationsHelper.CompaniDuration('P3D');
@@ -385,6 +445,26 @@ describe('MANIPULATE', () => {
       sinon.assert.calledWithExactly(_formatMiscToCompaniDuration.getCall(0), addedAmount);
     });
   });
+
+  describe('abs', () => {
+    it('should return same value, as it is positive', () => {
+      const duration = CompaniDurationsHelper.CompaniDuration('P1DT-13H-4M32S'); // 39392000 ms
+      const result = duration.abs();
+
+      expect(result).toEqual(expect.objectContaining({ _getDuration: expect.any(luxon.Duration) }));
+      expect(result._getDuration.toISO()).toEqual('P1DT-13H-4M32S');
+      expect(result._getDuration.toMillis()).toBe(39392000);
+    });
+
+    it('should return opposite value, as it is negative', () => {
+      const duration = CompaniDurationsHelper.CompaniDuration('P1DT-32H-4M32S'); // -29008000 ms
+      const result = duration.abs();
+
+      expect(result).toEqual(expect.objectContaining({ _getDuration: expect.any(luxon.Duration) }));
+      expect(result._getDuration.toISO()).toEqual('P-1DT32H4M-32S');
+      expect(result._getDuration.toMillis()).toBe(29008000);
+    });
+  });
 });
 
 describe('QUERY', () => {
@@ -477,6 +557,71 @@ describe('QUERY', () => {
       const otherDuration = 'PT40H';
 
       const result = CompaniDurationsHelper.CompaniDuration(duration).isLongerThan(otherDuration);
+
+      expect(result).toBe(false);
+    });
+  });
+
+  describe('isShorterThan', () => {
+    it('should return true if shorter duration with same units', () => {
+      const duration = 'P1DT1H2M6S';
+      const otherDuration = 'P1DT2H2M3S';
+
+      const result = CompaniDurationsHelper.CompaniDuration(duration).isShorterThan(otherDuration);
+
+      expect(result).toBe(true);
+    });
+
+    it('should return true if shorter duration with different units', () => {
+      const duration = 'PT22H2M3S';
+      const otherDuration = 'P1DT30S';
+
+      const result = CompaniDurationsHelper.CompaniDuration(duration).isShorterThan(otherDuration);
+
+      expect(result).toBe(true);
+    });
+
+    it('should return true if comparing with MAX_SAFE_INTEGER with lower value', () => {
+      const duration = `PT${Number.MAX_SAFE_INTEGER - 1000}S`;
+      const otherDuration = `PT${Number.MAX_SAFE_INTEGER}S`;
+
+      const result = CompaniDurationsHelper.CompaniDuration(duration).isShorterThan(otherDuration);
+
+      expect(result).toBe(true);
+    });
+
+    it('should return false if same duration with same units', () => {
+      const duration = 'P1DT2H2M3S';
+      const otherDuration = 'P1DT2H2M3S';
+
+      const result = CompaniDurationsHelper.CompaniDuration(duration).isShorterThan(otherDuration);
+
+      expect(result).toBe(false);
+    });
+
+    it('should return false if same duration with different units', () => {
+      const duration = 'P1DT1H2M3S';
+      const otherDuration = 'PT25H123S';
+
+      const result = CompaniDurationsHelper.CompaniDuration(duration).isShorterThan(otherDuration);
+
+      expect(result).toBe(false);
+    });
+
+    it('should return false if longer duration with same units', () => {
+      const duration = 'P1DT3H1M3S';
+      const otherDuration = 'P1DT2H2M3S';
+
+      const result = CompaniDurationsHelper.CompaniDuration(duration).isShorterThan(otherDuration);
+
+      expect(result).toBe(false);
+    });
+
+    it('should return false if longer duration with different units', () => {
+      const duration = 'P1DT30H';
+      const otherDuration = 'PT40H';
+
+      const result = CompaniDurationsHelper.CompaniDuration(duration).isShorterThan(otherDuration);
 
       expect(result).toBe(false);
     });

@@ -1,15 +1,17 @@
 const Boom = require('@hapi/boom');
 const get = require('lodash/get');
+const has = require('lodash/has');
 const pick = require('lodash/pick');
-const moment = require('moment');
 const Course = require('../../models/Course');
 const User = require('../../models/User');
 const UserCompany = require('../../models/UserCompany');
 const CourseSlot = require('../../models/CourseSlot');
 const Company = require('../../models/Company');
+const CourseBill = require('../../models/CourseBill');
 const {
   TRAINER,
   INTRA,
+  INTER_B2B,
   VENDOR_ADMIN,
   CLIENT_ADMIN,
   COACH,
@@ -20,10 +22,11 @@ const {
   MOBILE,
   OTHER,
   OPERATIONS,
+  CONVOCATION,
 } = require('../../helpers/constants');
 const translate = require('../../helpers/translate');
 const UtilsHelper = require('../../helpers/utils');
-const CourseBill = require('../../models/CourseBill');
+const { CompaniDate } = require('../../helpers/dates/companiDates');
 
 const { language } = translate;
 
@@ -142,9 +145,23 @@ exports.authorizeCourseEdit = async (req) => {
 
     if (get(req, 'payload.maxTrainees')) {
       if (!isRofOrAdmin) throw Boom.forbidden();
+      if (course.type === INTER_B2B) throw Boom.badRequest();
       if ((req.payload.maxTrainees < course.trainees.length)) {
         throw Boom.forbidden(translate[language].maxTraineesSmallerThanRegistered);
       }
+    }
+
+    if (has(req, 'payload.expectedBillsCount')) {
+      if (!isRofOrAdmin) throw Boom.forbidden();
+      if (course.type === INTER_B2B) throw Boom.badRequest();
+
+      const courseBills = await CourseBill.find({ course: course._id }, { courseCreditNote: 1 })
+        .populate({ path: 'courseCreditNote', options: { isVendorUser: true } })
+        .setOptions({ isVendorUser: true })
+        .lean();
+
+      const courseBillsWithoutCreditNote = courseBills.filter(cb => !cb.courseCreditNote);
+      if (courseBillsWithoutCreditNote.length > req.payload.expectedBillsCount) throw Boom.conflict();
     }
 
     await this.checkInterlocutors(req, companies[0]);
@@ -169,7 +186,7 @@ exports.authorizeCourseEdit = async (req) => {
       if (!course.trainees.length || !course.slots.length) return Boom.forbidden();
       if (course.slotsToPlan.length) return Boom.forbidden();
       if (course.format !== BLENDED) return Boom.forbidden();
-      if (course.slots.some(slot => moment(slot.endDate).isAfter(archivedAt))) return Boom.forbidden();
+      if (course.slots.some(slot => CompaniDate(slot.endDate).isAfter(archivedAt))) return Boom.forbidden();
     }
 
     if (get(req, 'payload.estimatedStartDate') && (course.slots.length || !isRofOrAdmin)) return Boom.forbidden();
@@ -401,9 +418,12 @@ exports.authorizeGetAttendanceSheets = async (req) => {
 exports.authorizeSmsSending = async (req) => {
   const { course } = req.pre;
 
-  const isFinished = !course.slots || !course.slots.some(slot => moment().isBefore(slot.endDate));
+  const isFinished = !course.slots || !course.slots.some(slot => CompaniDate().isBefore(slot.endDate));
+  const isStarted = course.slots && course.slots.some(slot => CompaniDate().isAfter(slot.endDate));
   const noReceiver = !course.trainees || !course.trainees.some(trainee => get(trainee, 'contact.phone'));
-  if ((isFinished && req.payload.type !== OTHER) || noReceiver) throw Boom.forbidden();
+  if ((isFinished && req.payload.type !== OTHER) || (isStarted && req.payload.type === CONVOCATION) || noReceiver) {
+    throw Boom.forbidden();
+  }
 
   return null;
 };

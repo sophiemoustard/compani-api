@@ -2,7 +2,6 @@ const mongoose = require('mongoose');
 const { ObjectId } = require('mongodb');
 const expect = require('expect');
 const moment = require('moment');
-const { fn: momentProto } = require('moment');
 const sinon = require('sinon');
 const Boom = require('@hapi/boom');
 const flat = require('flat');
@@ -859,7 +858,6 @@ describe('createUser', () => {
   let userFindOneAndUpdate;
   let objectIdStub;
   let createHistoryStub;
-  let momentToDate;
   const userId = new ObjectId();
   const roleId = new ObjectId();
 
@@ -871,7 +869,6 @@ describe('createUser', () => {
     userFindOneAndUpdate = sinon.stub(User, 'findOneAndUpdate');
     objectIdStub = sinon.stub(mongoose.Types, 'ObjectId').returns(userId);
     createHistoryStub = sinon.stub(SectorHistoriesHelper, 'createHistory');
-    momentToDate = sinon.stub(momentProto, 'toDate');
   });
 
   afterEach(() => {
@@ -882,7 +879,6 @@ describe('createUser', () => {
     userFindOneAndUpdate.restore();
     objectIdStub.restore();
     createHistoryStub.restore();
-    momentToDate.restore();
   });
 
   it('should create a new account for not logged user', async () => {
