@@ -260,10 +260,7 @@ describe('list', () => {
         },
       ];
 
-      findCourseAndPopulate.onFirstCall()
-        .returns([returnedList[0]])
-        .onSecondCall()
-        .returns([returnedList[1]]);
+      findCourseAndPopulate.returns(returnedList);
 
       const query = {
         company: authCompany.toHexString(),
@@ -275,14 +272,9 @@ describe('list', () => {
       const result = await CourseHelper.list(query, credentials);
 
       expect(result).toMatchObject(coursesList);
-      sinon.assert.calledWithExactly(
-        findCourseAndPopulate.getCall(0),
-        { companies: [authCompany.toHexString()], trainer: '1234567890abcdef12345678', format: 'blended', type: INTRA },
-        'webapp'
-      );
-      sinon.assert.calledWithExactly(
-        findCourseAndPopulate.getCall(1),
-        { trainer: '1234567890abcdef12345678', format: 'blended', type: INTER_B2B },
+      sinon.assert.calledOnceWithExactly(
+        findCourseAndPopulate,
+        { companies: authCompany.toHexString(), trainer: '1234567890abcdef12345678', format: 'blended' },
         'webapp',
         true
       );
