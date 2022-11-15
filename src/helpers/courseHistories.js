@@ -1,7 +1,14 @@
 const pick = require('lodash/pick');
 const { CompaniDate } = require('./dates/companiDates');
 const CourseHistory = require('../models/CourseHistory');
-const { SLOT_CREATION, SLOT_DELETION, SLOT_EDITION, TRAINEE_ADDITION, TRAINEE_DELETION } = require('./constants');
+const {
+  SLOT_CREATION,
+  SLOT_DELETION,
+  SLOT_EDITION,
+  TRAINEE_ADDITION,
+  TRAINEE_DELETION,
+  COMPANY_ADDITION,
+} = require('./constants');
 
 exports.createHistory = async (course, createdBy, action, payload) =>
   CourseHistory.create({ course, createdBy, action, ...payload });
@@ -68,7 +75,11 @@ exports.list = async (query) => {
   return CourseHistory.find(findQuery)
     .populate({ path: 'createdBy', select: '_id identity picture' })
     .populate({ path: 'trainee', select: '_id identity' })
+    .populate({ path: 'company', select: '_id name' })
     .sort({ createdAt: -1 })
     .limit(20)
     .lean();
 };
+
+exports.createHistoryOnCompanyAddition = (payload, userId) =>
+  exports.createHistory(payload.course, userId, COMPANY_ADDITION, { company: payload.company });

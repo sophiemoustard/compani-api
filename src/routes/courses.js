@@ -21,6 +21,7 @@ const {
   generateConvocationPdf,
   deleteAccessRule,
   getQuestionnaires,
+  addCompany,
 } = require('../controllers/courseController');
 const { MESSAGE_TYPE } = require('../models/CourseSmsHistory');
 const { COURSE_TYPES, COURSE_FORMATS } = require('../models/Course');
@@ -40,6 +41,7 @@ const {
   authorizeGetAttendanceSheets,
   authorizeGetDocumentsAndSms,
   authorizeSmsSending,
+  authorizeCourseCompanyAddition,
 } = require('./preHandlers/courses');
 const { INTRA, OPERATIONS, MOBILE, WEBAPP, PEDAGOGY } = require('../helpers/constants');
 const { ORIGIN_OPTIONS } = require('../models/User');
@@ -339,6 +341,20 @@ exports.plugin = {
         pre: [{ method: getCourse, assign: 'course' }],
       },
       handler: generateConvocationPdf,
+    });
+
+    server.route({
+      method: 'PUT',
+      path: '/{_id}/companies',
+      options: {
+        validate: {
+          params: Joi.object({ _id: Joi.objectId().required() }),
+          payload: Joi.object({ company: Joi.objectId().required() }),
+        },
+        pre: [{ method: authorizeCourseCompanyAddition }, { method: authorizeCourseEdit }],
+        auth: { scope: ['courses:edit'] },
+      },
+      handler: addCompany,
     });
   },
 };
