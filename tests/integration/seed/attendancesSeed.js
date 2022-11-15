@@ -99,23 +99,23 @@ const traineeList = [
   },
   { // 7
     _id: new ObjectId(),
-    identity: { firstname: 'noCompany 2', lastname: 'unsubscribed' },
+    identity: { firstname: 'trainee from other company', lastname: 'unsubscribed' },
     refreshToken: uuidv4(),
-    local: { email: 'trainee3@no-company.fr' },
+    local: { email: 'trainee3@company.fr' },
     origin: WEBAPP,
   },
   { // 8
     _id: new ObjectId(),
     identity: { firstname: 'from auth company', lastname: 'unsubscribed' },
     refreshToken: uuidv4(),
-    local: { email: 'trainee4@no-company.fr' },
+    local: { email: 'trainee4@company.fr' },
     origin: WEBAPP,
   },
   { // 9
     _id: new ObjectId(),
-    identity: { firstname: 'without company', lastname: 'subscribed for 1, unsubscribed for 2' },
+    identity: { firstname: 'from other company', lastname: 'subscribed for 1, unsubscribed for 2' },
     refreshToken: uuidv4(),
-    local: { email: 'trainee5@no-company.fr' },
+    local: { email: 'trainee5@company.fr' },
     origin: WEBAPP,
   },
 ];
