@@ -373,7 +373,7 @@ describe('COURSES ROUTES - GET /courses', () => {
         }],
         trainees: expect.arrayContaining([expect.objectContaining({
           _id: expect.any(ObjectId),
-          company: expect.objectContaining(pick(authCompany, ['_id', 'name'])),
+          company: expect.objectContaining(pick(otherCompany, ['_id', 'name'])),
         })]),
         slotsToPlan: [{ _id: expect.any(ObjectId), course: course._id }],
       }));
@@ -557,7 +557,7 @@ describe('COURSES ROUTES - GET /courses', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      expect(response.result.data.courses.length).toEqual(8);
+      expect(response.result.data.courses.length).toEqual(9);
     });
 
     it('should return 200 if coach and same company (pedagogy webapp)', async () => {
