@@ -3579,3 +3579,32 @@ describe('getQuestionnaires', () => {
     );
   });
 });
+
+describe('addCourseCompany', () => {
+  let courseUpdateOne;
+  let createHistoryOnCompanyAddition;
+  beforeEach(() => {
+    courseUpdateOne = sinon.stub(Course, 'updateOne');
+    createHistoryOnCompanyAddition = sinon.stub(CourseHistoriesHelper, 'createHistoryOnCompanyAddition');
+  });
+  afterEach(() => {
+    courseUpdateOne.restore();
+    createHistoryOnCompanyAddition.restore();
+  });
+
+  it('should add a course company using existing company', async () => {
+    const companyId = new ObjectId();
+    const course = { _id: new ObjectId(), misc: 'Test' };
+    const payload = { company: companyId };
+    const credentials = { _id: new ObjectId() };
+
+    await CourseHelper.addCourseCompany(course._id, payload, credentials);
+
+    sinon.assert.calledOnceWithExactly(courseUpdateOne, { _id: course._id }, { $addToSet: { companies: companyId } });
+    sinon.assert.calledOnceWithExactly(
+      createHistoryOnCompanyAddition,
+      { course: course._id, company: companyId },
+      credentials._id
+    );
+  });
+});

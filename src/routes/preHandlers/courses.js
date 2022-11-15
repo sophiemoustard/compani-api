@@ -121,7 +121,6 @@ exports.authorizeCourseEdit = async (req) => {
     const course = await Course
       .findOne({ _id: req.params._id })
       .populate({ path: 'slots', select: 'startDate endDate' })
-      .populate({ path: 'trainees', select: 'contact.phone', populate: { path: 'company' } })
       .populate({ path: 'slotsToPlan' })
       .populate({ path: 'contact' })
       .lean();
@@ -136,11 +135,12 @@ exports.authorizeCourseEdit = async (req) => {
     const isRofOrAdmin = [TRAINING_ORGANISATION_MANAGER, VENDOR_ADMIN].includes(userVendorRole);
 
     if ((get(req, 'payload.salesRepresentative') || get(req, 'payload.trainer')) && !isRofOrAdmin) {
-      return Boom.forbidden();
+      throw Boom.forbidden();
     }
 
-    const traineeIdsList = course.trainees.map(trainee => trainee._id);
-    const trainerIsTrainee = UtilsHelper.doesArrayIncludeId(traineeIdsList, get(req, 'payload.trainer'));
+    if ((get(req, 'payload.company')) && course.type !== INTER_B2B) throw Boom.forbidden();
+
+    const trainerIsTrainee = UtilsHelper.doesArrayIncludeId(course.trainees, get(req, 'payload.trainer'));
     if (trainerIsTrainee) throw Boom.forbidden();
 
     if (get(req, 'payload.maxTrainees')) {
@@ -418,6 +418,16 @@ exports.authorizeSmsSending = async (req) => {
   if ((isFinished && req.payload.type !== OTHER) || (isStarted && req.payload.type === CONVOCATION) || noReceiver) {
     throw Boom.forbidden();
   }
+
+  return null;
+};
+
+exports.authorizeCourseCompanyAddition = async (req) => {
+  const company = await Company.countDocuments({ _id: get(req, 'payload.company') });
+  if (!company) throw Boom.notFound();
+
+  const isAlreadyLinked = await Course.countDocuments({ _id: req.params._id, companies: get(req, 'payload.company') });
+  if (isAlreadyLinked) throw Boom.conflict(translate[language].courseCompanyAlreadyExists);
 
   return null;
 };

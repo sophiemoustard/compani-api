@@ -21,6 +21,7 @@ const {
   INTER_B2B,
   OTHER,
   ESTIMATED_START_DATE_EDITION,
+  COMPANY_ADDITION,
 } = require('../../src/helpers/constants');
 const {
   populateDB,
@@ -394,7 +395,7 @@ describe('COURSES ROUTES - GET /courses', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      expect(response.result.data.courses.length).toEqual(15);
+      expect(response.result.data.courses.length).toEqual(16);
     });
 
     it('should get strictly e-learning courses (ops webapp)', async () => {
@@ -489,7 +490,7 @@ describe('COURSES ROUTES - GET /courses', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      expect(response.result.data.courses.length).toEqual(8);
+      expect(response.result.data.courses.length).toEqual(9);
     });
 
     it('should get trainer\'s course (ops mobile)', async () => {
@@ -501,7 +502,7 @@ describe('COURSES ROUTES - GET /courses', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      expect(response.result.data.courses.length).toEqual(8);
+      expect(response.result.data.courses.length).toEqual(9);
 
       const course =
          response.result.data.courses.find(c => UtilsHelper.areObjectIdsEquals(coursesList[2]._id, c._id));
@@ -3010,6 +3011,130 @@ describe('COURSES ROUTES - GET /:_id/convocations', () => {
       });
 
       expect(response.statusCode).toBe(404);
+    });
+  });
+});
+
+describe('COURSES ROUTES - PUT /courses/{_id}/companies', () => {
+  let authToken;
+  const interb2bCourseId = coursesList[7]._id;
+  const archivedCourseId = coursesList[18]._id;
+  const intraCourseId = coursesList[0]._id;
+
+  beforeEach(populateDB);
+
+  describe('TRAINING_ORGANISATION_MANAGER', () => {
+    beforeEach(async () => {
+      authToken = await getToken('training_organisation_manager');
+    });
+
+    it('should add company to course companies', async () => {
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/courses/${interb2bCourseId}/companies`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload: { company: otherCompany._id },
+      });
+
+      expect(response.statusCode).toBe(200);
+
+      const courseHistory = await CourseHistory.countDocuments({
+        course: interb2bCourseId,
+        company: otherCompany._id,
+        action: COMPANY_ADDITION,
+      });
+      expect(courseHistory).toEqual(1);
+
+      const course = await Course.countDocuments({ _id: interb2bCourseId, companies: otherCompany._id });
+      expect(course).toEqual(1);
+    });
+
+    it('should return 404 if course doesn\'t exist', async () => {
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/courses/${new ObjectId()}/companies`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload: { company: otherCompany._id },
+      });
+
+      expect(response.statusCode).toBe(404);
+    });
+
+    it('should return 404 if company doesn\'t exist', async () => {
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/courses/${interb2bCourseId}/companies`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload: { company: new ObjectId() },
+      });
+
+      expect(response.statusCode).toBe(404);
+    });
+
+    it('should return a 403 if course is not inter_b2b', async () => {
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/courses/${intraCourseId}/companies`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload: { company: otherCompany._id },
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
+
+    it('should return a 403 if course is archived', async () => {
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/courses/${archivedCourseId}/companies`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload: { company: otherCompany._id },
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
+
+    it('should return a 409 if company is already linked to course', async () => {
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/courses/${interb2bCourseId}/companies`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload: { company: authCompany._id },
+      });
+
+      expect(response.statusCode).toBe(409);
+    });
+
+    it('should return a 400 if company is missing in payload', async () => {
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/courses/${interb2bCourseId}/companies`,
+        payload: {},
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
+  });
+
+  describe('Other roles', () => {
+    const roles = [
+      { name: 'helper', expectedCode: 403 },
+      { name: 'planning_referent', expectedCode: 403 },
+      { name: 'client_admin', expectedCode: 403 },
+      { name: 'trainer', expectedCode: 403 },
+    ];
+    roles.forEach((role) => {
+      it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+        authToken = await getToken(role.name);
+        const response = await app.inject({
+          method: 'PUT',
+          url: `/courses/${interb2bCourseId}/companies`,
+          headers: { Cookie: `alenvi_token=${authToken}` },
+          payload: { company: otherCompany._id },
+        });
+
+        expect(response.statusCode).toBe(role.expectedCode);
+      });
     });
   });
 });
