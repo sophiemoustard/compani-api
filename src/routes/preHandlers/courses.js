@@ -310,8 +310,7 @@ exports.authorizeGetCourse = async (req) => {
     const userClientRole = get(credentials, 'role.client.name');
 
     const course = await Course
-      .findOne({ _id: req.params._id }, { trainer: 1, format: 1, type: 1, trainees: 1, companies: 1, accessRules: 1 })
-      .populate({ path: 'trainees', select: 'contact.phone company', populate: { path: 'company' } })
+      .findOne({ _id: req.params._id }, { trainer: 1, format: 1, trainees: 1, companies: 1, accessRules: 1 })
       .lean();
     if (!course) throw Boom.notFound();
 
@@ -319,8 +318,7 @@ exports.authorizeGetCourse = async (req) => {
     const isTOM = userVendorRole === TRAINING_ORGANISATION_MANAGER;
     if (isTOM || isAdminVendor) return null;
 
-    const courseTraineesIds = course.trainees.map(trainee => trainee._id);
-    const isTrainee = UtilsHelper.doesArrayIncludeId(courseTraineesIds, credentials._id);
+    const isTrainee = UtilsHelper.doesArrayIncludeId(course.trainees, credentials._id);
     const companyHasAccess = !course.accessRules.length ||
       UtilsHelper.doesArrayIncludeId(course.accessRules, userCompany);
 
