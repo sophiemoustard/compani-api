@@ -254,6 +254,17 @@ const getQuestionnaires = async (req) => {
   }
 };
 
+const addCompany = async (req) => {
+  try {
+    await CoursesHelper.addCourseCompany(req.params._id, req.payload, req.auth.credentials);
+
+    return { message: translate[language].courseCompanyAdded };
+  } catch (e) {
+    req.log('error', e);
+    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
+  }
+};
+
 module.exports = {
   list,
   create,
@@ -273,4 +284,5 @@ module.exports = {
   generateConvocationPdf,
   deleteAccessRule,
   getQuestionnaires,
+  addCompany,
 };
