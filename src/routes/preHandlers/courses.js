@@ -310,8 +310,7 @@ exports.authorizeGetCourse = async (req) => {
     const userClientRole = get(credentials, 'role.client.name');
 
     const course = await Course
-      .findOne({ _id: req.params._id }, { trainer: 1, format: 1, type: 1, trainees: 1, companies: 1, accessRules: 1 })
-      .populate({ path: 'trainees', select: 'contact.phone company', populate: { path: 'company' } })
+      .findOne({ _id: req.params._id }, { trainer: 1, format: 1, trainees: 1, companies: 1, accessRules: 1 })
       .lean();
     if (!course) throw Boom.notFound();
 
@@ -319,8 +318,7 @@ exports.authorizeGetCourse = async (req) => {
     const isTOM = userVendorRole === TRAINING_ORGANISATION_MANAGER;
     if (isTOM || isAdminVendor) return null;
 
-    const courseTrainees = course.trainees.map(trainee => trainee._id);
-    const isTrainee = UtilsHelper.doesArrayIncludeId(courseTrainees, credentials._id);
+    const isTrainee = UtilsHelper.doesArrayIncludeId(course.trainees, credentials._id);
     const companyHasAccess = !course.accessRules.length ||
       UtilsHelper.doesArrayIncludeId(course.accessRules, userCompany);
 
@@ -335,14 +333,8 @@ exports.authorizeGetCourse = async (req) => {
 
     if (course.format === STRICTLY_E_LEARNING && !companyHasAccess) throw Boom.forbidden();
 
-    if (course.type === INTRA) {
-      if (!UtilsHelper.doesArrayIncludeId(course.companies, userCompany)) throw Boom.forbidden();
-      return null;
-    }
-
-    const someTraineesAreInCompany = course.trainees
-      .some(trainee => UtilsHelper.areObjectIdsEquals(trainee.company, userCompany));
-    if (course.format === BLENDED && !someTraineesAreInCompany) throw Boom.forbidden();
+    const courseCompaniesContainsUserCompany = UtilsHelper.doesArrayIncludeId(course.companies, userCompany);
+    if (course.format === BLENDED && !courseCompaniesContainsUserCompany) throw Boom.forbidden();
 
     return null;
   } catch (e) {
