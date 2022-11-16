@@ -3502,7 +3502,7 @@ describe('addCourseCompany', () => {
 
   it('should add a course company using existing company', async () => {
     const companyId = new ObjectId();
-    const course = { _id: new ObjectId(), misc: 'Test' };
+    const course = { _id: new ObjectId(), misc: 'Test', companies: [new ObjectId()] };
     const payload = { company: companyId };
     const credentials = { _id: new ObjectId() };
 
