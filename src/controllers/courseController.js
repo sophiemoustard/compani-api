@@ -265,6 +265,17 @@ const addCompany = async (req) => {
   }
 };
 
+const removeCompany = async (req) => {
+  try {
+    await CoursesHelper.removeCourseCompany(req.params._id, req.params.companyId, req.auth.credentials);
+
+    return { message: translate[language].courseCompanyRemoved };
+  } catch (e) {
+    req.log('error', e);
+    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
+  }
+};
+
 module.exports = {
   list,
   create,
@@ -285,4 +296,5 @@ module.exports = {
   deleteAccessRule,
   getQuestionnaires,
   addCompany,
+  removeCompany,
 };

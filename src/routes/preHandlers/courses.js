@@ -431,3 +431,17 @@ exports.authorizeCourseCompanyAddition = async (req) => {
 
   return null;
 };
+
+exports.authorizeCourseCompanyDeletion = async (req) => {
+  const { companyId } = req.params;
+  const course = await Course.findOne({ _id: req.params._id })
+    .populate({ path: 'trainees', select: 'company', populate: 'company' })
+    .lean();
+  if (!course) throw Boom.notFound();
+
+  if (!UtilsHelper.doesArrayIncludeId(course.companies, companyId) || course.type !== INTER_B2B) throw Boom.forbidden();
+  const companyTraineesAreRegistered = course.trainees.some(t => UtilsHelper.areObjectIdsEquals(t.company, companyId));
+  if (companyTraineesAreRegistered) throw Boom.forbidden(translate[language].companyTraineeRegisteredToCourse);
+
+  return null;
+};
