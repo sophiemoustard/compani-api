@@ -20,6 +20,7 @@ const {
   INTRA,
   INTER_B2B,
   OTHER,
+  ESTIMATED_START_DATE_EDITION,
 } = require('../../src/helpers/constants');
 const {
   populateDB,
@@ -65,13 +66,13 @@ describe('COURSES ROUTES - POST /courses', () => {
       authToken = await getToken('training_organisation_manager');
     });
 
-    it('should create inter_b2b course', async () => {
+    it('should create inter_b2b course #tag', async () => {
       const payload = {
         misc: 'course',
         type: INTER_B2B,
         subProgram: subProgramsList[0]._id,
         salesRepresentative: vendorAdmin._id,
-        estimatedStartDate: '2022-05-31T08:00:00',
+        estimatedStartDate: '2022-05-31T08:00:00.000Z',
       };
       const coursesCountBefore = await Course.countDocuments({});
 
@@ -82,12 +83,22 @@ describe('COURSES ROUTES - POST /courses', () => {
         payload,
       });
 
+      const createdCourseId = response.result.data.course._id;
+
       expect(response.statusCode).toBe(200);
       const coursesCountAfter = await Course.countDocuments({});
       expect(coursesCountAfter).toEqual(coursesCountBefore + 1);
       const courseSlotsCount = await CourseSlot
-        .countDocuments({ course: response.result.data.course._id, step: { $in: subProgramsList[0].steps } });
+        .countDocuments({ course: createdCourseId, step: { $in: subProgramsList[0].steps } });
       expect(courseSlotsCount).toEqual(1);
+
+      const courseHistory = await CourseHistory.countDocuments({
+        course: createdCourseId,
+        'update.estimatedStartDate.to': '2022-05-31T08:00:00.000Z',
+        action: ESTIMATED_START_DATE_EDITION,
+      });
+
+      expect(courseHistory).toEqual(1);
     });
 
     it('should create intra course', async () => {
