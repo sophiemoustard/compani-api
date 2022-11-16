@@ -254,7 +254,7 @@ const coursesList = [
     type: INTER_B2B,
     format: BLENDED,
     trainees: [auxiliary._id],
-    companies: [authCompany._id],
+    companies: [authCompany._id, companyWithoutSubscription._id],
     trainer: coach._id,
     salesRepresentative: vendorAdmin._id,
   },
