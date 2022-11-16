@@ -22,6 +22,7 @@ const {
   deleteAccessRule,
   getQuestionnaires,
   addCompany,
+  removeCompany,
 } = require('../controllers/courseController');
 const { MESSAGE_TYPE } = require('../models/CourseSmsHistory');
 const { COURSE_TYPES, COURSE_FORMATS } = require('../models/Course');
@@ -42,6 +43,7 @@ const {
   authorizeGetDocumentsAndSms,
   authorizeSmsSending,
   authorizeCourseCompanyAddition,
+  authorizeCourseCompanyDeletion,
 } = require('./preHandlers/courses');
 const { INTRA, OPERATIONS, MOBILE, WEBAPP, PEDAGOGY } = require('../helpers/constants');
 const { ORIGIN_OPTIONS } = require('../models/User');
@@ -355,6 +357,19 @@ exports.plugin = {
         auth: { scope: ['courses:edit'] },
       },
       handler: addCompany,
+    });
+
+    server.route({
+      method: 'DELETE',
+      path: '/{_id}/companies/{companyId}',
+      options: {
+        auth: { scope: ['courses:edit'] },
+        validate: {
+          params: Joi.object({ _id: Joi.objectId().required(), companyId: Joi.objectId().required() }),
+        },
+        pre: [{ method: authorizeCourseCompanyDeletion }, { method: authorizeCourseEdit }],
+      },
+      handler: removeCompany,
     });
   },
 };

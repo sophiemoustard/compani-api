@@ -8,6 +8,7 @@ const {
   TRAINEE_ADDITION,
   TRAINEE_DELETION,
   COMPANY_ADDITION,
+  COMPANY_DELETION,
 } = require('./constants');
 
 exports.createHistory = async (course, createdBy, action, payload) =>
@@ -83,3 +84,6 @@ exports.list = async (query) => {
 
 exports.createHistoryOnCompanyAddition = (payload, userId) =>
   exports.createHistory(payload.course, userId, COMPANY_ADDITION, { company: payload.company });
+
+exports.createHistoryOnCompanyDeletion = (courseId, companyId, userId) =>
+  exports.createHistory(courseId, userId, COMPANY_DELETION, { company: companyId });

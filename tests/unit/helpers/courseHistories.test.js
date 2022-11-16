@@ -10,6 +10,7 @@ const {
   TRAINEE_ADDITION,
   TRAINEE_DELETION,
   COMPANY_ADDITION,
+  COMPANY_DELETION,
 } = require('../../../src/helpers/constants');
 const SinonMongoose = require('../sinonMongoose');
 
@@ -449,6 +450,34 @@ describe('createHistoryOnCompanyAddition', () => {
       userId,
       COMPANY_ADDITION,
       { company: payload.company }
+    );
+  });
+});
+
+describe('createHistoryOnCompanyDeletion', () => {
+  let createHistory;
+
+  beforeEach(() => {
+    createHistory = sinon.stub(CourseHistoriesHelper, 'createHistory');
+  });
+
+  afterEach(() => {
+    createHistory.restore();
+  });
+
+  it('should create a courseHistory', async () => {
+    const companyId = new ObjectId();
+    const courseId = new ObjectId();
+    const userId = new ObjectId();
+
+    await CourseHistoriesHelper.createHistoryOnCompanyDeletion(courseId, companyId, userId);
+
+    sinon.assert.calledOnceWithExactly(
+      createHistory,
+      courseId,
+      userId,
+      COMPANY_DELETION,
+      { company: companyId }
     );
   });
 });
