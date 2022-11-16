@@ -489,10 +489,7 @@ describe('createHistoryOnCompanyAddition', () => {
   });
 
   it('should create a courseHistory', async () => {
-    const payload = {
-      company: new ObjectId(),
-      course: new ObjectId(),
-    };
+    const payload = { company: new ObjectId(), course: new ObjectId() };
     const userId = new ObjectId();
 
     await CourseHistoriesHelper.createHistoryOnCompanyAddition(payload, userId);
