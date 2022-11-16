@@ -52,12 +52,16 @@ const CourseSlot = require('../models/CourseSlot');
 const CourseHistory = require('../models/CourseHistory');
 const { CompaniDuration } = require('./dates/companiDurations');
 
-exports.createCourse = async (payload) => {
+exports.createCourse = async (payload, credentials) => {
   const coursePayload = payload.company
     ? { ...omit(payload, 'company'), companies: [payload.company] }
     : payload;
 
   const course = await Course.create(coursePayload);
+
+  if (course.estimatedStartDate) {
+    await CourseHistoriesHelper.createHistoryOnEstimatedStartDateEdition(course, payload, credentials._id);
+  }
 
   const subProgram = await SubProgram
     .findOne({ _id: course.subProgram }, { steps: 1 })

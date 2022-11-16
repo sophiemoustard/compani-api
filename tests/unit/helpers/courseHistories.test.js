@@ -9,6 +9,7 @@ const {
   SLOT_EDITION,
   TRAINEE_ADDITION,
   TRAINEE_DELETION,
+  ESTIMATED_START_DATE_EDITION,
 } = require('../../../src/helpers/constants');
 const SinonMongoose = require('../sinonMongoose');
 
@@ -344,6 +345,38 @@ describe('createHistoryOnTraineeDeletion', () => {
       userId,
       TRAINEE_DELETION,
       { trainee: payload.traineeId }
+    );
+  });
+});
+
+describe('createHistoryOnEstimatedStartDateEdition', () => {
+  let createHistory;
+
+  beforeEach(() => {
+    createHistory = sinon.stub(CourseHistoriesHelper, 'createHistory');
+  });
+
+  afterEach(() => {
+    createHistory.restore();
+  });
+
+  it('should create a courseHistory for estimatedStartDate on value initialisation', async () => {
+    const courseFromDb = {
+      _id: new ObjectId(),
+    };
+    const payload = {
+      estimatedStartDate: '2022-11-12T12:30:00.000Z',
+    };
+    const userId = new ObjectId();
+
+    await CourseHistoriesHelper.createHistoryOnEstimatedStartDateEdition(courseFromDb, payload, userId);
+
+    sinon.assert.calledOnceWithExactly(
+      createHistory,
+      courseFromDb._id,
+      userId,
+      ESTIMATED_START_DATE_EDITION,
+      { update: { estimatedStartDate: { to: '2022-11-12T12:30:00.000Z' } } }
     );
   });
 });

@@ -50,15 +50,23 @@ const CompletionCertificate = require('../../../src/data/pdf/completionCertifica
 describe('createCourse', () => {
   let create;
   let findOneSubProgram;
+  let createHistoryOnEstimatedStartDateEdition;
   let insertManyCourseSlot;
+  const credentials = { _id: new ObjectId() };
+
   beforeEach(() => {
     create = sinon.stub(Course, 'create');
     findOneSubProgram = sinon.stub(SubProgram, 'findOne');
+    createHistoryOnEstimatedStartDateEdition = sinon.stub(
+      CourseHistoriesHelper,
+      'createHistoryOnEstimatedStartDateEdition'
+    );
     insertManyCourseSlot = sinon.stub(CourseSlot, 'insertMany');
   });
   afterEach(() => {
     create.restore();
     findOneSubProgram.restore();
+    createHistoryOnEstimatedStartDateEdition.restore();
     insertManyCourseSlot.restore();
   });
 
@@ -81,7 +89,7 @@ describe('createCourse', () => {
     findOneSubProgram.returns(SinonMongoose.stubChainedQueries(subProgram));
     create.returns({ ...omit(payload, 'company'), companies: [payload.company], format: 'blended' });
 
-    const result = await CourseHelper.createCourse(payload);
+    const result = await CourseHelper.createCourse(payload, credentials);
 
     const slots = [{ course: result._id, step: steps[0]._id }, { course: result._id, step: steps[1]._id }];
 
@@ -91,6 +99,7 @@ describe('createCourse', () => {
     expect(result.format).toEqual('blended');
     expect(result.type).toEqual(INTRA);
     expect(result.salesRepresentative).toEqual(payload.salesRepresentative);
+    sinon.assert.notCalled(createHistoryOnEstimatedStartDateEdition);
     sinon.assert.calledOnceWithExactly(create, { ...omit(payload, 'company'), companies: [payload.company] });
     sinon.assert.calledOnceWithExactly(insertManyCourseSlot, slots);
     SinonMongoose.calledOnceWithExactly(
@@ -115,13 +124,14 @@ describe('createCourse', () => {
     findOneSubProgram.returns(SinonMongoose.stubChainedQueries(subProgram));
     create.returns({ ...payload, format: 'blended', companies: [] });
 
-    const result = await CourseHelper.createCourse(payload);
+    const result = await CourseHelper.createCourse(payload, credentials);
 
     expect(result.misc).toEqual('name');
     expect(result.subProgram).toEqual(payload.subProgram);
     expect(result.format).toEqual('blended');
     expect(result.type).toEqual(INTER_B2B);
     expect(result.salesRepresentative).toEqual(payload.salesRepresentative);
+    sinon.assert.notCalled(createHistoryOnEstimatedStartDateEdition);
     sinon.assert.calledOnceWithExactly(create, payload);
     sinon.assert.notCalled(insertManyCourseSlot);
     SinonMongoose.calledOnceWithExactly(
@@ -131,6 +141,31 @@ describe('createCourse', () => {
         { query: 'populate', args: [{ path: 'steps', select: '_id type' }] },
         { query: 'lean' },
       ]
+    );
+  });
+
+  it('should call CourseHistoryHelper for history save when creating a course with estimatedStartDate', async () => {
+    const subProgram = { _id: new ObjectId(), steps: [] };
+    const payload = {
+      misc: 'avec une date de début prévu',
+      company: new ObjectId(),
+      subProgram: subProgram._id,
+      type: INTRA,
+      salesRepresentative: new ObjectId(),
+      estimatedStartDate: '2022-12-10T12:00:00.000Z',
+    };
+    const createdCourse = { ...payload, format: 'blended', companies: [] };
+
+    findOneSubProgram.returns(SinonMongoose.stubChainedQueries(subProgram));
+    create.returns(createdCourse);
+
+    await CourseHelper.createCourse(payload, credentials);
+
+    sinon.assert.calledOnceWithExactly(
+      createHistoryOnEstimatedStartDateEdition,
+      createdCourse,
+      payload,
+      credentials._id
     );
   });
 });
