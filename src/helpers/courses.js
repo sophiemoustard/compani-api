@@ -809,10 +809,8 @@ exports.getQuestionnaires = async (courseId) => {
 exports.addCourseCompany = async (courseId, payload, credentials) => {
   await Course.updateOne({ _id: courseId }, { $addToSet: { companies: payload.company } });
 
-  await Promise.all([
-    CourseHistoriesHelper.createHistoryOnCompanyAddition(
-      { course: courseId, company: payload.company },
-      credentials._id
-    ),
-  ]);
+  await CourseHistoriesHelper.createHistoryOnCompanyAddition(
+    { course: courseId, company: payload.company },
+    credentials._id
+  );
 };
