@@ -66,7 +66,7 @@ describe('COURSES ROUTES - POST /courses', () => {
       authToken = await getToken('training_organisation_manager');
     });
 
-    it('should create inter_b2b course #tag', async () => {
+    it('should create inter_b2b course', async () => {
       const payload = {
         misc: 'course',
         type: INTER_B2B,
