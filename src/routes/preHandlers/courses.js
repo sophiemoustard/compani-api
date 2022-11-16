@@ -423,10 +423,10 @@ exports.authorizeSmsSending = async (req) => {
 };
 
 exports.authorizeCourseCompanyAddition = async (req) => {
-  const company = await Company.countDocuments({ _id: get(req, 'payload.company') });
+  const company = await Company.countDocuments({ _id: req.payload.company });
   if (!company) throw Boom.notFound();
 
-  const isAlreadyLinked = await Course.countDocuments({ _id: req.params._id, companies: get(req, 'payload.company') });
+  const isAlreadyLinked = await Course.countDocuments({ _id: req.params._id, companies: req.payload.company });
   if (isAlreadyLinked) throw Boom.conflict(translate[language].courseCompanyAlreadyExists);
 
   return null;
