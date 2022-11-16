@@ -333,8 +333,10 @@ exports.authorizeGetCourse = async (req) => {
 
     if (course.format === STRICTLY_E_LEARNING && !companyHasAccess) throw Boom.forbidden();
 
-    const courseCompaniesContainsUserCompany = UtilsHelper.doesArrayIncludeId(course.companies, userCompany);
-    if (course.format === BLENDED && !courseCompaniesContainsUserCompany) throw Boom.forbidden();
+    if (course.format === BLENDED) {
+      const courseCompaniesContainsUserCompany = UtilsHelper.doesArrayIncludeId(course.companies, userCompany);
+      if (!courseCompaniesContainsUserCompany) throw Boom.forbidden();
+    }
 
     return null;
   } catch (e) {
