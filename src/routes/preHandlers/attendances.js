@@ -42,7 +42,7 @@ const checkPermissionOnCourse = (course, credentials) => {
 exports.authorizeAttendancesGet = async (req) => {
   const courseSlotsQuery = req.query.courseSlot ? { _id: req.query.courseSlot } : { course: req.query.course };
   const courseSlots = await CourseSlot.find(courseSlotsQuery, { course: 1 })
-    .populate({ path: 'course', select: 'trainer companies type' })
+    .populate({ path: 'course', select: 'trainer companies' })
     .lean();
 
   if (!courseSlots.length) throw Boom.notFound();
