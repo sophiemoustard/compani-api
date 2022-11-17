@@ -469,8 +469,9 @@ describe('createHistoryOnCompanyDeletion', () => {
     const companyId = new ObjectId();
     const courseId = new ObjectId();
     const userId = new ObjectId();
+    const payload = { course: courseId, company: companyId };
 
-    await CourseHistoriesHelper.createHistoryOnCompanyDeletion(courseId, companyId, userId);
+    await CourseHistoriesHelper.createHistoryOnCompanyDeletion(payload, userId);
 
     sinon.assert.calledOnceWithExactly(
       createHistory,
