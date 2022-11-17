@@ -440,6 +440,7 @@ exports.authorizeCourseCompanyDeletion = async (req) => {
   if (!course) throw Boom.notFound();
 
   if (!UtilsHelper.doesArrayIncludeId(course.companies, companyId) || course.type !== INTER_B2B) throw Boom.forbidden();
+
   const companyTraineesAreRegistered = course.trainees.some(t => UtilsHelper.areObjectIdsEquals(t.company, companyId));
   if (companyTraineesAreRegistered) throw Boom.forbidden(translate[language].companyTraineeRegisteredToCourse);
 

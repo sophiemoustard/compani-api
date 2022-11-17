@@ -842,5 +842,5 @@ exports.addCourseCompany = async (courseId, payload, credentials) => {
 
 exports.removeCourseCompany = async (courseId, companyId, credentials) => Promise.all([
   Course.updateOne({ _id: courseId }, { $pull: { companies: companyId } }),
-  CourseHistoriesHelper.createHistoryOnCompanyDeletion(courseId, companyId, credentials._id),
+  CourseHistoriesHelper.createHistoryOnCompanyDeletion({ course: courseId, company: companyId }, credentials._id),
 ]);
