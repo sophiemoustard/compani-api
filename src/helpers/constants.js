@@ -449,6 +449,7 @@ module.exports = {
   SLOT_EDITION: 'slot_edition',
   TRAINEE_ADDITION: 'trainee_addition',
   TRAINEE_DELETION: 'trainee_deletion',
+  ESTIMATED_START_DATE_EDITION: 'estimated_start_date_edition',
   // MediaUpload
   UPLOAD_IMAGE: 'image',
   UPLOAD_VIDEO: 'video',

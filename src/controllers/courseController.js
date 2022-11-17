@@ -25,7 +25,7 @@ const list = async (req) => {
 
 const create = async (req) => {
   try {
-    const course = await CoursesHelper.createCourse(req.payload);
+    const course = await CoursesHelper.createCourse(req.payload, req.auth.credentials);
 
     return {
       message: translate[language].courseCreated,
