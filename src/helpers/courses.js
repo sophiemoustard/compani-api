@@ -40,6 +40,7 @@ const {
   HHhMM,
   DD_MM_YYYY,
   HH_MM,
+  PT0S,
 } = require('./constants');
 const CourseHistoriesHelper = require('./courseHistories');
 const NotificationHelper = require('./notifications');
@@ -82,7 +83,7 @@ exports.getTotalTheoreticalDuration = course => (course.subProgram.steps.length
     (acc, value) => (value.theoreticalDuration ? acc.add(value.theoreticalDuration) : acc),
     CompaniDuration()
   ).toISO()
-  : 'PT0S'
+  : PT0S
 );
 
 const listStrictlyElearningForCompany = async (query, origin) => {
@@ -204,12 +205,14 @@ exports.getCourseProgress = (steps) => {
 
   const combinedPresenceProgress = presenceProgressSteps.length
     ? {
-      attendanceDuration: UtilsHelper
-        .computeDuration(presenceProgressSteps.map(step => step.progress.presence.attendanceDuration))
-        .toObject(),
-      maxDuration: UtilsHelper
-        .computeDuration(presenceProgressSteps.map(step => step.progress.presence.maxDuration))
-        .toObject(),
+      attendanceDuration: presenceProgressSteps
+        .map(step => step.progress.presence.attendanceDuration)
+        .reduce((acc, attendanceDuration) => acc.add(attendanceDuration), CompaniDuration())
+        .toISO(),
+      maxDuration: presenceProgressSteps
+        .map(step => step.progress.presence.maxDuration)
+        .reduce((acc, maxDuration) => acc.add(maxDuration), CompaniDuration())
+        .toISO(),
     }
     : null;
 

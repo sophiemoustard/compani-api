@@ -17,6 +17,8 @@ module.exports = {
   REJECTED: 'rejected',
   // Time
   SECONDS_IN_AN_HOUR: 3600,
+  // COMPANIDURATION
+  PT0S: 'PT0S',
   // COMPANIDURATION FORMATS
   LONG_DURATION_H_MM: 'h\'h\' mm\'min\'',
   SHORT_DURATION_H_MM: 'h\'h\'mm',

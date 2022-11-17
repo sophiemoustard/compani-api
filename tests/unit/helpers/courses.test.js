@@ -832,7 +832,7 @@ describe('getCourseProgress', () => {
       progress: {
         live: 0.75,
         eLearning: 0.5,
-        presence: { attendanceDuration: { minutes: 120 }, maxDuration: { minutes: 180 } },
+        presence: { attendanceDuration: 'PT120M', maxDuration: 'PT180M' },
       },
     }];
 
@@ -840,7 +840,7 @@ describe('getCourseProgress', () => {
     expect(result).toEqual({
       blended: 0.875,
       eLearning: 0.75,
-      presence: { attendanceDuration: { minutes: 120 }, maxDuration: { minutes: 180 } },
+      presence: { attendanceDuration: 'PT120M', maxDuration: 'PT180M' },
     });
   });
 
@@ -859,14 +859,14 @@ describe('getCourseProgress', () => {
       name: 'Développement personnel full stack',
       type: ON_SITE,
       areActivitiesValid: false,
-      progress: { live: 1, presence: { attendanceDuration: { minutes: 120 }, maxDuration: { minutes: 180 } } },
+      progress: { live: 1, presence: { attendanceDuration: 'PT120M', maxDuration: 'PT180M' } },
     }];
 
     const result = await CourseHelper.getCourseProgress(steps);
     expect(result).toEqual({
       blended: 0.5,
       eLearning: 0,
-      presence: { attendanceDuration: { minutes: 120 }, maxDuration: { minutes: 180 } },
+      presence: { attendanceDuration: 'PT120M', maxDuration: 'PT180M' },
     });
   });
 
@@ -880,7 +880,7 @@ describe('getCourseProgress', () => {
       progress: {
         eLearning: 1,
         live: 0.5,
-        presence: { attendanceDuration: { minutes: 120 }, maxDuration: { minutes: 240 } },
+        presence: { attendanceDuration: 'PT120M', maxDuration: 'PT240M' },
       },
     },
     {
@@ -889,14 +889,14 @@ describe('getCourseProgress', () => {
       name: 'Développement personnel full stack',
       type: ON_SITE,
       areActivitiesValid: false,
-      progress: { live: 1, presence: { attendanceDuration: { minutes: 120 }, maxDuration: { minutes: 180 } } },
+      progress: { live: 1, presence: { attendanceDuration: 'PT120M', maxDuration: 'PT180M' } },
     }];
 
     const result = await CourseHelper.getCourseProgress(steps);
     expect(result).toEqual({
       blended: 0.75,
       eLearning: 1,
-      presence: { attendanceDuration: { minutes: 240 }, maxDuration: { minutes: 420 } },
+      presence: { attendanceDuration: 'PT240M', maxDuration: 'PT420M' },
     });
   });
 
