@@ -364,9 +364,7 @@ describe('createHistoryOnEstimatedStartDateEdition', () => {
     const courseFromDb = {
       _id: new ObjectId(),
     };
-    const payload = {
-      estimatedStartDate: '2022-11-12T12:30:00.000Z',
-    };
+    const payload = { estimatedStartDate: '2022-11-12T12:30:00.000Z' };
     const userId = new ObjectId();
 
     await CourseHistoriesHelper.createHistoryOnEstimatedStartDateEdition(courseFromDb, payload, userId);
