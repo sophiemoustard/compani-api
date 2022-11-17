@@ -3612,10 +3612,12 @@ describe('addCourseCompany', () => {
 describe('removeCourseCompany', () => {
   let courseUpdateOne;
   let createHistoryOnCompanyDeletion;
+
   beforeEach(() => {
     courseUpdateOne = sinon.stub(Course, 'updateOne');
     createHistoryOnCompanyDeletion = sinon.stub(CourseHistoriesHelper, 'createHistoryOnCompanyDeletion');
   });
+
   afterEach(() => {
     courseUpdateOne.restore();
     createHistoryOnCompanyDeletion.restore();
@@ -3623,12 +3625,16 @@ describe('removeCourseCompany', () => {
 
   it('should remove a course company', async () => {
     const companyId = new ObjectId();
-    const course = { _id: new ObjectId(), misc: 'Test' };
+    const course = { _id: new ObjectId(), misc: 'Test', companies: [companyId, new ObjectId()] };
     const credentials = { _id: new ObjectId() };
 
     await CourseHelper.removeCourseCompany(course._id, companyId, credentials);
 
     sinon.assert.calledOnceWithExactly(courseUpdateOne, { _id: course._id }, { $pull: { companies: companyId } });
-    sinon.assert.calledOnceWithExactly(createHistoryOnCompanyDeletion, course._id, companyId, credentials._id);
+    sinon.assert.calledOnceWithExactly(
+      createHistoryOnCompanyDeletion,
+      { course: course._id, company: companyId },
+      credentials._id
+    );
   });
 });

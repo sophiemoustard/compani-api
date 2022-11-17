@@ -109,5 +109,5 @@ exports.list = async (query) => {
 exports.createHistoryOnCompanyAddition = (payload, userId) =>
   exports.createHistory(payload.course, userId, COMPANY_ADDITION, { company: payload.company });
 
-exports.createHistoryOnCompanyDeletion = (courseId, companyId, userId) =>
-  exports.createHistory(courseId, userId, COMPANY_DELETION, { company: companyId });
+exports.createHistoryOnCompanyDeletion = (payload, userId) =>
+  exports.createHistory(payload.course, userId, COMPANY_DELETION, { company: payload.company });
