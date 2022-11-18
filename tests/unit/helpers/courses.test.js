@@ -2252,7 +2252,7 @@ describe('getTraineeElearningProgress', () => {
   });
 });
 
-describe('updateCourse #tag', () => {
+describe('updateCourse', () => {
   let courseFindOneAndUpdate;
   let createHistoryOnEstimatedStartDateEdition;
   const credentials = { _id: new ObjectId() };

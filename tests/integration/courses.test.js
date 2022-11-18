@@ -1107,7 +1107,7 @@ describe('COURSES ROUTES - PUT /courses/{_id}', () => {
         misc: 'new name',
         trainer: trainerAndCoach._id,
         contact: trainerAndCoach._id,
-        estimatedStartDate: '2022-05-31T08:00:00',
+        estimatedStartDate: '2022-05-31T08:00:00.000Z',
         maxTrainees: 12,
         expectedBillsCount: 3,
       };
@@ -1121,8 +1121,15 @@ describe('COURSES ROUTES - PUT /courses/{_id}', () => {
 
       expect(response.statusCode).toBe(200);
 
-      const course = await Course.countDocuments({ _id: coursesList[17]._id, ...payload }).lean();
-      expect(course).toEqual(1);
+      const courseUpdated = await Course.countDocuments({ _id: coursesList[17]._id, ...payload });
+      expect(courseUpdated).toEqual(1);
+
+      const historyCreated = await CourseHistory.countDocuments({
+        course: coursesList[17]._id,
+        action: ESTIMATED_START_DATE_EDITION,
+        update: { estimatedStartDate: { from: '', to: '2022-05-31T08:00:00.000Z' } },
+      });
+      expect(historyCreated).toEqual(1);
     });
 
     it('should update company representative and set as contact directly for INTRA course', async () => {
