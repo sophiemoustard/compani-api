@@ -17,6 +17,8 @@ module.exports = {
   REJECTED: 'rejected',
   // Time
   SECONDS_IN_AN_HOUR: 3600,
+  // COMPANIDURATION
+  PT0S: 'PT0S',
   // COMPANIDURATION FORMATS
   LONG_DURATION_H_MM: 'h\'h\' mm\'min\'',
   SHORT_DURATION_H_MM: 'h\'h\'mm',
@@ -36,27 +38,28 @@ module.exports = {
   SATURDAY: 5,
   SUNDAY: 6,
   CARE_HOLIDAY: 7,
+  // DATE AND DURATION UNITS
+  YEAR: 'year',
+  QUARTER: 'quarter',
+  MONTH: 'month',
+  WEEK: 'week',
+  DAY: 'day',
+  HOUR: 'hour',
+  MINUTE: 'minute',
+  SECOND: 'second',
+  MILLISECOND: 'millisecond',
   // DURATION
-  YEARS: 'years',
-  QUARTERS: 'quarters',
-  MONTHS: 'months',
-  WEEKS: 'weeks',
-  DAYS: 'days',
-  HOURS: 'hours',
-  MINUTES: 'minutes',
-  SECONDS: 'seconds',
-  MILLISECONDS: 'milliseconds',
   get DURATION_UNITS() {
     return [
-      this.YEARS,
-      this.QUARTERS,
-      this.MONTHS,
-      this.WEEKS,
-      this.DAYS,
-      this.HOURS,
-      this.MINUTES,
-      this.SECONDS,
-      this.MILLISECONDS,
+      'years',
+      'quarters',
+      'months',
+      'weeks',
+      'days',
+      'hours',
+      'minutes',
+      'seconds',
+      'milliseconds',
     ];
   },
   // EVENTS
@@ -181,7 +184,6 @@ module.exports = {
     };
   },
   TWO_WEEKS: 'two_weeks',
-  MONTH: 'month',
   get FIELDS_NOT_APPLICABLE_TO_REPETITION() {
     return ['misc', 'kmDuringEvent', 'transportMode', 'cancel', 'isCancelled'];
   },

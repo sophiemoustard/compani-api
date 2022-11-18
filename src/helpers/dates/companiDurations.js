@@ -63,10 +63,6 @@ const companiDurationFactory = (inputDuration) => {
       return { hours: shiftedDuration.get('hours'), minutes: shiftedDuration.get('minutes') };
     },
 
-    toObject() {
-      return _duration.toObject();
-    },
-
     toISO() {
       return _duration.toISO();
     },
