@@ -61,7 +61,10 @@ exports.createCourse = async (payload, credentials) => {
   const course = await Course.create(coursePayload);
 
   if (course.estimatedStartDate) {
-    await CourseHistoriesHelper.createHistoryOnEstimatedStartDateEdition(course, payload, credentials._id);
+    await CourseHistoriesHelper.createHistoryOnEstimatedStartDateEdition(
+      course._id,
+      credentials._id,
+      payload.estimatedStartDate);
   }
 
   const subProgram = await SubProgram
@@ -492,7 +495,12 @@ exports.updateCourse = async (courseId, payload, credentials) => {
   const courseFromDb = await Course.findOneAndUpdate({ _id: courseId }, params).lean();
 
   if (payload.estimatedStartDate) {
-    CourseHistoriesHelper.createHistoryOnEstimatedStartDateEdition(courseFromDb, payload, credentials._id);
+    CourseHistoriesHelper.createHistoryOnEstimatedStartDateEdition(
+      courseId,
+      credentials._id,
+      payload.estimatedStartDate,
+      courseFromDb.estimatedStartDate
+    );
   }
 
   return courseFromDb;

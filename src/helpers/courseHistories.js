@@ -68,20 +68,24 @@ exports.createHistoryOnSlotEdition = async (slotFromDb, payload, userId) => {
   return exports.createHistory(slotFromDb.course, userId, SLOT_EDITION, actionPayload);
 };
 
-exports.createHistoryOnEstimatedStartDateEdition = (courseFromDb, payload, userId) =>
-  exports.createHistory(
-    courseFromDb._id,
-    userId,
-    ESTIMATED_START_DATE_EDITION,
-    {
-      update: {
-        estimatedStartDate: {
-          ...(courseFromDb.estimatedStartDate && { from: courseFromDb.estimatedStartDate }),
-          to: payload.estimatedStartDate,
-        },
+exports.createHistoryOnEstimatedStartDateEdition = (
+  courseId,
+  userId,
+  newEstimatedStartDate,
+  formerEstimatedStartDate = null
+) => exports.createHistory(
+  courseId,
+  userId,
+  ESTIMATED_START_DATE_EDITION,
+  {
+    update: {
+      estimatedStartDate: {
+        ...(formerEstimatedStartDate && { from: formerEstimatedStartDate }),
+        to: newEstimatedStartDate,
       },
-    }
-  );
+    },
+  }
+);
 
 exports.list = async (query) => {
   const findQuery = { course: query.course };

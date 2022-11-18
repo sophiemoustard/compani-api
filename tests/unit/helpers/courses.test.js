@@ -154,7 +154,7 @@ describe('createCourse', () => {
       salesRepresentative: new ObjectId(),
       estimatedStartDate: '2022-12-10T12:00:00.000Z',
     };
-    const createdCourse = { ...payload, format: 'blended', companies: [] };
+    const createdCourse = { ...payload, _id: new ObjectId(), format: 'blended', companies: [] };
 
     findOneSubProgram.returns(SinonMongoose.stubChainedQueries(subProgram));
     create.returns(createdCourse);
@@ -163,9 +163,9 @@ describe('createCourse', () => {
 
     sinon.assert.calledOnceWithExactly(
       createHistoryOnEstimatedStartDateEdition,
-      createdCourse,
-      payload,
-      credentials._id
+      createdCourse._id,
+      credentials._id,
+      '2022-12-10T12:00:00.000Z'
     );
   });
 });
@@ -2331,9 +2331,10 @@ describe('updateCourse', () => {
     );
     sinon.assert.calledOnceWithExactly(
       createHistoryOnEstimatedStartDateEdition,
-      courseFromDb,
-      payload,
-      credentials._id
+      courseId,
+      credentials._id,
+      '2022-11-18T10:20:00.000Z',
+      '2022-11-02T18:00:43.000Z'
     );
   });
 });
