@@ -2252,24 +2252,32 @@ describe('getTraineeElearningProgress', () => {
   });
 });
 
-describe('updateCourse', () => {
+describe('updateCourse #tag', () => {
   let courseFindOneAndUpdate;
+  let createHistoryOnEstimatedStartDateEdition;
+  const credentials = { _id: new ObjectId() };
   beforeEach(() => {
     courseFindOneAndUpdate = sinon.stub(Course, 'findOneAndUpdate');
+    createHistoryOnEstimatedStartDateEdition = sinon.stub(
+      CourseHistoriesHelper,
+      'createHistoryOnEstimatedStartDateEdition'
+    );
   });
   afterEach(() => {
     courseFindOneAndUpdate.restore();
+    createHistoryOnEstimatedStartDateEdition.restore();
   });
 
   it('should update a field in intra course', async () => {
     const courseId = new ObjectId();
     const payload = { misc: 'groupe 4' };
+    const courseFromDb = { _id: courseId, misc: '' };
 
-    courseFindOneAndUpdate.returns(SinonMongoose.stubChainedQueries(payload, ['lean']));
+    courseFindOneAndUpdate.returns(SinonMongoose.stubChainedQueries(courseFromDb, ['lean']));
 
-    const result = await CourseHelper.updateCourse(courseId, payload);
-    expect(result.misc).toEqual(payload.misc);
+    await CourseHelper.updateCourse(courseId, payload, credentials);
 
+    sinon.assert.notCalled(createHistoryOnEstimatedStartDateEdition);
     SinonMongoose.calledOnceWithExactly(
       courseFindOneAndUpdate,
       [
@@ -2283,14 +2291,13 @@ describe('updateCourse', () => {
     const courseId = new ObjectId();
     const salesRepresentativeId = new ObjectId();
     const payload = { contact: '', salesRepresentative: salesRepresentativeId };
-    const updatedCourse = { _id: courseId };
+    const courseFromDb = { _id: courseId, contact: salesRepresentativeId, salesRepresentative: salesRepresentativeId };
 
-    courseFindOneAndUpdate.returns(SinonMongoose.stubChainedQueries(updatedCourse, ['lean']));
+    courseFindOneAndUpdate.returns(SinonMongoose.stubChainedQueries(courseFromDb, ['lean']));
 
-    const result = await CourseHelper.updateCourse(courseId, payload);
-    expect(result._id).toBe(courseId);
-    expect(result.contact).toBeUndefined();
+    await CourseHelper.updateCourse(courseId, payload, credentials);
 
+    sinon.assert.notCalled(createHistoryOnEstimatedStartDateEdition);
     SinonMongoose.calledOnceWithExactly(
       courseFindOneAndUpdate,
       [
@@ -2300,6 +2307,33 @@ describe('updateCourse', () => {
         },
         { query: 'lean' },
       ]
+    );
+  });
+
+  it('should update estimatedStartDate and create history', async () => {
+    const courseId = new ObjectId();
+    const payload = { estimatedStartDate: '2022-11-18T10:20:00.000Z' };
+    const courseFromDb = { _id: courseId, estimatedStartDate: '2022-11-02T18:00:43.000Z' };
+
+    courseFindOneAndUpdate.returns(SinonMongoose.stubChainedQueries(courseFromDb, ['lean']));
+
+    await CourseHelper.updateCourse(courseId, payload, credentials);
+
+    SinonMongoose.calledOnceWithExactly(
+      courseFindOneAndUpdate,
+      [
+        {
+          query: 'findOneAndUpdate',
+          args: [{ _id: courseId }, { $set: { estimatedStartDate: '2022-11-18T10:20:00.000Z' } }],
+        },
+        { query: 'lean' },
+      ]
+    );
+    sinon.assert.calledOnceWithExactly(
+      createHistoryOnEstimatedStartDateEdition,
+      courseFromDb,
+      payload,
+      credentials._id
     );
   });
 });

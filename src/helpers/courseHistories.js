@@ -73,7 +73,14 @@ exports.createHistoryOnEstimatedStartDateEdition = (courseFromDb, payload, userI
     courseFromDb._id,
     userId,
     ESTIMATED_START_DATE_EDITION,
-    { update: { estimatedStartDate: { to: payload.estimatedStartDate } } }
+    {
+      update: {
+        estimatedStartDate: {
+          ...(courseFromDb.estimatedStartDate && { from: courseFromDb.estimatedStartDate }),
+          to: payload.estimatedStartDate,
+        },
+      },
+    }
   );
 
 exports.list = async (query) => {

@@ -484,12 +484,18 @@ const getCourseForPedagogy = async (courseId, credentials) => {
   return exports.formatCourseWithProgress(course);
 };
 
-exports.updateCourse = async (courseId, payload) => {
+exports.updateCourse = async (courseId, payload, credentials) => {
   const params = payload.contact === ''
     ? { $set: omit(payload, 'contact'), $unset: { contact: '' } }
     : { $set: payload };
 
-  return Course.findOneAndUpdate({ _id: courseId }, params).lean();
+  const courseFromDb = await Course.findOneAndUpdate({ _id: courseId }, params).lean();
+
+  if (payload.estimatedStartDate) {
+    CourseHistoriesHelper.createHistoryOnEstimatedStartDateEdition(courseFromDb, payload, credentials._id);
+  }
+
+  return courseFromDb;
 };
 
 exports.deleteCourse = async courseId => Promise.all([

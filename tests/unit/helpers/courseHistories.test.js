@@ -375,6 +375,22 @@ describe('createHistoryOnEstimatedStartDateEdition', () => {
       { update: { estimatedStartDate: { to: '2022-11-12T12:30:00.000Z' } } }
     );
   });
+
+  it('should create a courseHistory for estimatedStartDate on edition', async () => {
+    const courseFromDb = { _id: new ObjectId(), estimatedStartDate: '2022-11-01T08:00:00.000Z' };
+    const payload = { estimatedStartDate: '2022-11-12T12:30:00.000Z' };
+    const userId = new ObjectId();
+
+    await CourseHistoriesHelper.createHistoryOnEstimatedStartDateEdition(courseFromDb, payload, userId);
+
+    sinon.assert.calledOnceWithExactly(
+      createHistory,
+      courseFromDb._id,
+      userId,
+      ESTIMATED_START_DATE_EDITION,
+      { update: { estimatedStartDate: { from: '2022-11-01T08:00:00.000Z', to: '2022-11-12T12:30:00.000Z' } } }
+    );
+  });
 });
 
 describe('list', () => {
