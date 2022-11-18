@@ -4,7 +4,7 @@ const { ObjectId } = require('mongodb');
 const SubProgram = require('../../../src/models/SubProgram');
 const Step = require('../../../src/models/Step');
 const StepHelper = require('../../../src/helpers/steps');
-const { E_LEARNING } = require('../../../src/helpers/constants');
+const { E_LEARNING, PT0S } = require('../../../src/helpers/constants');
 const SinonMongoose = require('../sinonMongoose');
 
 describe('updateStep', () => {
@@ -162,7 +162,7 @@ describe('getPresenceStepProgress', () => {
     const slots = [];
 
     const result = StepHelper.getPresenceStepProgress(slots);
-    expect(result).toEqual({ attendanceDuration: 'PT0S', maxDuration: 'PT0S' });
+    expect(result).toEqual({ attendanceDuration: PT0S, maxDuration: PT0S });
   });
 });
 

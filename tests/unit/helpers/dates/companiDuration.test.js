@@ -44,7 +44,6 @@ describe('CompaniDuration', () => {
           _getDuration: expect.any(luxon.Duration),
           format: expect.any(Function),
           asHours: expect.any(Function),
-          toObject: expect.any(Function),
           toISO: expect.any(Function),
           add: expect.any(Function),
         }));
@@ -384,15 +383,6 @@ describe('DISPLAY', () => {
     });
   });
 
-  describe('toObject', () => {
-    it('should return object from CompaniDuration', () => {
-      const companiDuration = CompaniDurationsHelper.CompaniDuration('PT1H9M');
-      const result = companiDuration.toObject();
-
-      expect(result).toEqual({ hours: 1, minutes: 9 });
-    });
-  });
-
   describe('toISO', () => {
     it('should return ISO string if argument is ISO string', () => {
       const duration = 'PT2H30M';
@@ -681,7 +671,7 @@ describe('_formatMiscToCompaniDuration', () => {
   });
 
   it('should return duration from iso', () => {
-    const result = CompaniDurationsHelper.CompaniDuration('P1Y2M2DT3H4M2S');
+    const result = CompaniDurationsHelper.CompaniDuration('P1Y2M5DT3H4M2S');
     expect(result)
       .toEqual(expect.objectContaining({
         _getDuration: expect.any(luxon.Duration),
@@ -689,8 +679,8 @@ describe('_formatMiscToCompaniDuration', () => {
         add: expect.any(Function),
         asHours: expect.any(Function),
       }));
-    expect(result.toObject()).toEqual({ years: 1, months: 2, days: 2, hours: 3, minutes: 4, seconds: 2 });
-    sinon.assert.calledOnceWithExactly(fromISO, 'P1Y2M2DT3H4M2S');
+    expect(result._getDuration.toMillis()).toEqual(((((1 * 365 + 2 * 30 + 5) * 24 + 3) * 60 + 4) * 60 + 2) * 1000);
+    sinon.assert.calledOnceWithExactly(fromISO, 'P1Y2M5DT3H4M2S');
   });
 
   it('should return error if invalid iso string', () => {
