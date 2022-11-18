@@ -2,7 +2,7 @@ const { pick, get } = require('lodash');
 const Step = require('../models/Step');
 const SubProgram = require('../models/SubProgram');
 const UtilsHelper = require('./utils');
-const { E_LEARNING, PT0S, MINUTES } = require('./constants');
+const { E_LEARNING, PT0S, MINUTE } = require('./constants');
 const { CompaniDate } = require('./dates/companiDates');
 const { CompaniDuration } = require('./dates/companiDurations');
 
@@ -36,7 +36,7 @@ exports.getLiveStepProgress = (slots) => {
 exports.getPresenceStepProgress = (slots) => {
   if (!slots.length) return { attendanceDuration: PT0S, maxDuration: PT0S };
 
-  const slotsWithDuration = slots.map(s => ({ ...s, duration: CompaniDate(s.endDate).diff(s.startDate, MINUTES) }));
+  const slotsWithDuration = slots.map(s => ({ ...s, duration: CompaniDate(s.endDate).diff(s.startDate, MINUTE) }));
 
   const attendanceDuration = slotsWithDuration
     .filter(slot => slot.attendances.length)
