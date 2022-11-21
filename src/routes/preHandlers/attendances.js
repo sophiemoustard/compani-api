@@ -7,7 +7,6 @@ const User = require('../../models/User');
 const Attendance = require('../../models/Attendance');
 const {
   TRAINER,
-  INTRA,
   TRAINING_ORGANISATION_MANAGER,
   VENDOR_ADMIN,
   CLIENT_ADMIN,
@@ -94,7 +93,7 @@ exports.authorizeUnsubscribedAttendancesGet = async (req) => {
 
 exports.authorizeAttendanceCreation = async (req) => {
   const courseSlot = await CourseSlot.findOne({ _id: req.payload.courseSlot }, { course: 1 })
-    .populate({ path: 'course', select: 'trainer trainees type companies archivedAt' })
+    .populate({ path: 'course', select: 'trainer companies archivedAt' })
     .lean();
   if (!courseSlot) throw Boom.notFound();
 
@@ -108,15 +107,13 @@ exports.authorizeAttendanceCreation = async (req) => {
     const attendance = await Attendance.countDocuments(req.payload);
     if (attendance) throw Boom.conflict();
 
-    if (course.type === INTRA) {
-      if (!course.companies.length) throw Boom.badData();
+    if (!course.companies.length) throw Boom.badData();
 
-      const doesTraineeBelongToCompany = await UserCompany.countDocuments({
-        user: req.payload.trainee,
-        company: course.companies[0],
-      });
-      if (!doesTraineeBelongToCompany) throw Boom.notFound();
-    }
+    const doesTraineeBelongToCompany = await UserCompany.countDocuments({
+      user: req.payload.trainee,
+      company: { $in: course.companies },
+    });
+    if (!doesTraineeBelongToCompany) throw Boom.forbidden();
   }
 
   return null;
