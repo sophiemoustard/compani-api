@@ -37,7 +37,12 @@ const {
   authorizeUploadEdition,
   authorizeDriveFolderCreation,
 } = require('./preHandlers/users');
-const { addressValidation, phoneNumberValidation, expoTokenValidation } = require('./validations/utils');
+const {
+  addressValidation,
+  phoneNumberValidation,
+  expoTokenValidation,
+  objectIdOrArray,
+} = require('./validations/utils');
 const { formDataPayload } = require('./validations/utils');
 
 const driveUploadKeys = [
@@ -174,10 +179,7 @@ exports.plugin = {
       options: {
         auth: { scope: ['users:list'] },
         validate: {
-          query: Joi.alternatives().try(
-            Joi.object({ company: Joi.objectId() }),
-            Joi.object({ hasCompany: Joi.boolean() })
-          ),
+          query: Joi.object({ companies: objectIdOrArray }),
         },
         pre: [{ method: authorizeLearnersGet }],
       },
