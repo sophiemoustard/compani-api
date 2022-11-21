@@ -2186,6 +2186,7 @@ describe('COURSES ROUTES - PUT /courses/{_id}/trainees', () => {
   const intraCourseIdFromOtherCompany = coursesList[1]._id;
   const intraCourseIdWithTrainee = coursesList[2]._id;
   const interb2bCourseIdFromAuthCompany = coursesList[4]._id;
+  const interb2bCourseIdFromOtherCompany = coursesList[5]._id;
 
   beforeEach(populateDB);
 
@@ -2262,6 +2263,17 @@ describe('COURSES ROUTES - PUT /courses/{_id}/trainees', () => {
       const response = await app.inject({
         method: 'PUT',
         url: `/courses/${intraCourseIdFromOtherCompany}/trainees`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload: { trainee: traineeFromAuthCompanyWithFormationExpoToken._id },
+      });
+
+      expect(response.statusCode).toBe(404);
+    });
+
+    it('should return a 404 if user is not from course companies', async () => {
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/courses/${interb2bCourseIdFromOtherCompany}/trainees`,
         headers: { Cookie: `alenvi_token=${authToken}` },
         payload: { trainee: traineeFromAuthCompanyWithFormationExpoToken._id },
       });
