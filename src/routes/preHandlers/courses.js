@@ -249,8 +249,8 @@ exports.getCourseTrainee = async (req) => {
     const traineeIsTrainer = UtilsHelper.areObjectIdsEquals(course.trainer, payload.trainee);
     if (traineeIsTrainer) throw Boom.forbidden();
 
-    const userCompanyQuery = { user: payload.trainee, ...(course.type === INTRA && { company: course.companies[0] }) };
-    const userCompanyExists = await UserCompany.countDocuments(userCompanyQuery);
+    const userCompanyExists = await UserCompany
+      .countDocuments({ user: payload.trainee, company: { $in: course.companies } });
     if (!userCompanyExists) throw Boom.notFound();
 
     const traineeAlreadyRegistered = course.trainees.some(t => UtilsHelper.areObjectIdsEquals(t, payload.trainee));
