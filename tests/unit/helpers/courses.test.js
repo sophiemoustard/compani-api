@@ -2337,6 +2337,28 @@ describe('updateCourse', () => {
       '2022-11-02T18:00:43.000Z'
     );
   });
+
+  it('should update estimatedStartDate with same value and NOT create history', async () => {
+    const courseId = new ObjectId();
+    const payload = { estimatedStartDate: '2022-11-18T10:20:00.000Z' };
+    const courseFromDb = { _id: courseId, estimatedStartDate: '2022-11-18T10:20:00.000Z' };
+
+    courseFindOneAndUpdate.returns(SinonMongoose.stubChainedQueries(courseFromDb, ['lean']));
+
+    await CourseHelper.updateCourse(courseId, payload, credentials);
+
+    SinonMongoose.calledOnceWithExactly(
+      courseFindOneAndUpdate,
+      [
+        {
+          query: 'findOneAndUpdate',
+          args: [{ _id: courseId }, { $set: { estimatedStartDate: '2022-11-18T10:20:00.000Z' } }],
+        },
+        { query: 'lean' },
+      ]
+    );
+    sinon.assert.notCalled(createHistoryOnEstimatedStartDateEdition);
+  });
 });
 
 describe('deleteCourse', () => {
