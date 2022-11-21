@@ -56,14 +56,15 @@ exports.createHistoryOnSlotEdition = async (slotFromDb, payload, userId) => {
 
   if (!isDateUpdated && !isHourUpdated) return null;
 
-  const actionPayload = isDateUpdated
-    ? { update: { startDate: { from: slotFromDb.startDate, to: payload.startDate } } }
-    : {
-      update: {
+  const actionPayload = {
+    update: {
+      ...(isDateUpdated && { startDate: { from: slotFromDb.startDate, to: payload.startDate } }),
+      ...(isHourUpdated && {
         startHour: { from: slotFromDb.startDate, to: payload.startDate },
         endHour: { from: slotFromDb.endDate, to: payload.endDate },
-      },
-    };
+      }),
+    },
+  };
 
   return exports.createHistory(slotFromDb.course, userId, SLOT_EDITION, actionPayload);
 };
