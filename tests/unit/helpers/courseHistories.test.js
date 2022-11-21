@@ -378,7 +378,7 @@ describe('createHistoryOnEstimatedStartDateEdition', () => {
 
   it('should create a courseHistory for estimatedStartDate on edition', async () => {
     const courseId = new ObjectId();
-    const formerEstimatedStartDate = '2022-11-01T08:00:00.000Z';
+    const previousEstimatedStartDate = '2022-11-01T08:00:00.000Z';
     const newEstimatedStartDate = '2022-11-12T12:30:00.000Z';
     const userId = new ObjectId();
 
@@ -386,7 +386,7 @@ describe('createHistoryOnEstimatedStartDateEdition', () => {
       courseId,
       userId,
       newEstimatedStartDate,
-      formerEstimatedStartDate
+      previousEstimatedStartDate
     );
 
     sinon.assert.calledOnceWithExactly(
@@ -394,7 +394,7 @@ describe('createHistoryOnEstimatedStartDateEdition', () => {
       courseId,
       userId,
       ESTIMATED_START_DATE_EDITION,
-      { update: { estimatedStartDate: { from: formerEstimatedStartDate, to: newEstimatedStartDate } } }
+      { update: { estimatedStartDate: { from: previousEstimatedStartDate, to: newEstimatedStartDate } } }
     );
   });
 });

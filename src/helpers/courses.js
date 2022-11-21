@@ -41,6 +41,7 @@ const {
   DD_MM_YYYY,
   HH_MM,
   PT0S,
+  DAY,
 } = require('./constants');
 const CourseHistoriesHelper = require('./courseHistories');
 const NotificationHelper = require('./notifications');
@@ -64,7 +65,8 @@ exports.createCourse = async (payload, credentials) => {
     await CourseHistoriesHelper.createHistoryOnEstimatedStartDateEdition(
       course._id,
       credentials._id,
-      payload.estimatedStartDate);
+      payload.estimatedStartDate
+    );
   }
 
   const subProgram = await SubProgram
@@ -494,7 +496,9 @@ exports.updateCourse = async (courseId, payload, credentials) => {
 
   const courseFromDb = await Course.findOneAndUpdate({ _id: courseId }, params).lean();
 
-  if (payload.estimatedStartDate) {
+  const estimatedStartDateUpdated = payload.estimatedStartDate && (!courseFromDb.estimatedStartDate ||
+    !CompaniDate(payload.estimatedStartDate).isSame(courseFromDb.estimatedStartDate, DAY));
+  if (estimatedStartDateUpdated) {
     CourseHistoriesHelper.createHistoryOnEstimatedStartDateEdition(
       courseId,
       credentials._id,
