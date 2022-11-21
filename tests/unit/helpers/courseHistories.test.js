@@ -397,6 +397,27 @@ describe('createHistoryOnEstimatedStartDateEdition', () => {
       { update: { estimatedStartDate: { from: previousEstimatedStartDate, to: newEstimatedStartDate } } }
     );
   });
+
+  it('should NOT create history on estamatedStartDate edition, if new and previous values are equal', async () => {
+    const courseId = new ObjectId();
+    const estimatedStartDate = '2022-11-01T08:00:00.000Z';
+    const userId = new ObjectId();
+
+    await CourseHistoriesHelper.createHistoryOnEstimatedStartDateEdition(
+      courseId,
+      userId,
+      estimatedStartDate,
+      estimatedStartDate
+    );
+
+    sinon.assert.calledOnceWithExactly(
+      createHistory,
+      courseId,
+      userId,
+      ESTIMATED_START_DATE_EDITION,
+      { update: { estimatedStartDate: { from: estimatedStartDate, to: estimatedStartDate } } }
+    );
+  });
 });
 
 describe('list', () => {
