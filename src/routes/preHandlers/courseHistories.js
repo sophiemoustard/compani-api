@@ -19,14 +19,14 @@ exports.authorizeGetCourseHistories = async (req) => {
   if (vendorRole) {
     if ([VENDOR_ADMIN, TRAINING_ORGANISATION_MANAGER].includes(vendorRole)) return null;
 
-    const isTrainer = await Course.countDocuments({ _id: courseId, trainer: credentials._id }) !== 0;
+    const isTrainer = await Course.countDocuments({ _id: courseId, trainer: credentials._id });
     if (isTrainer) return null;
   }
 
   if ([CLIENT_ADMIN, COACH].includes(clientRole)) {
-    const course = await Course.findOne({ _id: courseId }).lean();
+    const course = await Course.findOne({ _id: courseId }, { type: 1, companies: 1 }).lean();
 
-    if (course.type !== INTRA || !UtilsHelper.areObjectIdsEquals(course.companies[0], credentials.company._id)) {
+    if (course.type !== INTRA || !UtilsHelper.doesArrayIncludeId(course.companies, credentials.company._id)) {
       throw Boom.forbidden();
     }
 
