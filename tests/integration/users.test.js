@@ -677,28 +677,29 @@ describe('USERS ROUTES - GET /users/learners', () => {
       expect(res.result.data.users.length).toEqual(countUserInDB);
     });
 
-    it('should return 200 if a vendor asks all learners with company', async () => {
-      authToken = await getToken('vendor_admin');
+    it('should return learners from a specific company', async () => {
       const res = await app.inject({
         method: 'GET',
-        url: `/users/learners?hasCompany=${true}`,
+        url: `/users/learners?companies=${authCompany._id}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(res.statusCode).toBe(200);
-      const userCompanyCount = await UserCompany.countDocuments();
-      expect(res.result.data.users.length).toEqual(userCompanyCount);
+      expect(res.result.data.users.every(u => UtilsHelper.areObjectIdsEquals(u.company._id, authCompany._id)))
+        .toBeTruthy();
     });
 
-    it('should return 400 if queries hasCompany and company are used together', async () => {
-      authToken = await getToken('vendor_admin');
+    it('should return learners from several companies', async () => {
       const res = await app.inject({
         method: 'GET',
-        url: `/users/learners?hasCompany=${true}&company=${authCompany._id}`,
+        url: `/users/learners?companies=${authCompany._id}&companies=${otherCompany._id}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
-      expect(res.statusCode).toBe(400);
+      expect(res.statusCode).toBe(200);
+      expect(res.result.data.users.every(u => UtilsHelper.areObjectIdsEquals(u.company._id, authCompany._id) ||
+        UtilsHelper.areObjectIdsEquals(u.company._id, otherCompany._id)))
+        .toBeTruthy();
     });
   });
 
@@ -710,7 +711,7 @@ describe('USERS ROUTES - GET /users/learners', () => {
     it('should return 200 if coach requests learners from his company', async () => {
       const res = await app.inject({
         method: 'GET',
-        url: `/users/learners?company=${authCompany._id}`,
+        url: `/users/learners?companies=${authCompany._id}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -728,7 +729,7 @@ describe('USERS ROUTES - GET /users/learners', () => {
     it('should return 403 if client admin request learners from other company', async () => {
       const res = await app.inject({
         method: 'GET',
-        url: `/users/learners?company=${otherCompany._id}`,
+        url: `/users/learners?companies=${otherCompany._id}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
