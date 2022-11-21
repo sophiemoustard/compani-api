@@ -81,7 +81,7 @@ const getQuestionnaireAnswers = async (req) => {
 
 const update = async (req) => {
   try {
-    const course = await CoursesHelper.updateCourse(req.params._id, req.payload);
+    const course = await CoursesHelper.updateCourse(req.params._id, req.payload, req.auth.credentials);
 
     return {
       message: translate[language].courseUpdated,

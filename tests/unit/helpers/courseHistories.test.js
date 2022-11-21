@@ -361,18 +361,40 @@ describe('createHistoryOnEstimatedStartDateEdition', () => {
   });
 
   it('should create a courseHistory for estimatedStartDate on value initialisation', async () => {
-    const courseFromDb = { _id: new ObjectId() };
-    const payload = { estimatedStartDate: '2022-11-12T12:30:00.000Z' };
+    const courseId = new ObjectId();
+    const newEstimatedStartDate = '2022-11-12T12:30:00.000Z';
     const userId = new ObjectId();
 
-    await CourseHistoriesHelper.createHistoryOnEstimatedStartDateEdition(courseFromDb, payload, userId);
+    await CourseHistoriesHelper.createHistoryOnEstimatedStartDateEdition(courseId, userId, newEstimatedStartDate);
 
     sinon.assert.calledOnceWithExactly(
       createHistory,
-      courseFromDb._id,
+      courseId,
       userId,
       ESTIMATED_START_DATE_EDITION,
-      { update: { estimatedStartDate: { to: '2022-11-12T12:30:00.000Z' } } }
+      { update: { estimatedStartDate: { to: newEstimatedStartDate } } }
+    );
+  });
+
+  it('should create a courseHistory for estimatedStartDate on edition', async () => {
+    const courseId = new ObjectId();
+    const previousEstimatedStartDate = '2022-11-01T08:00:00.000Z';
+    const newEstimatedStartDate = '2022-11-12T12:30:00.000Z';
+    const userId = new ObjectId();
+
+    await CourseHistoriesHelper.createHistoryOnEstimatedStartDateEdition(
+      courseId,
+      userId,
+      newEstimatedStartDate,
+      previousEstimatedStartDate
+    );
+
+    sinon.assert.calledOnceWithExactly(
+      createHistory,
+      courseId,
+      userId,
+      ESTIMATED_START_DATE_EDITION,
+      { update: { estimatedStartDate: { from: previousEstimatedStartDate, to: newEstimatedStartDate } } }
     );
   });
 });

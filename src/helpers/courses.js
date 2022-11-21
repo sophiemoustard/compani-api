@@ -41,6 +41,7 @@ const {
   DD_MM_YYYY,
   HH_MM,
   PT0S,
+  DAY,
 } = require('./constants');
 const CourseHistoriesHelper = require('./courseHistories');
 const NotificationHelper = require('./notifications');
@@ -61,7 +62,11 @@ exports.createCourse = async (payload, credentials) => {
   const course = await Course.create(coursePayload);
 
   if (course.estimatedStartDate) {
-    await CourseHistoriesHelper.createHistoryOnEstimatedStartDateEdition(course, payload, credentials._id);
+    await CourseHistoriesHelper.createHistoryOnEstimatedStartDateEdition(
+      course._id,
+      credentials._id,
+      payload.estimatedStartDate
+    );
   }
 
   const subProgram = await SubProgram
@@ -484,12 +489,25 @@ const getCourseForPedagogy = async (courseId, credentials) => {
   return exports.formatCourseWithProgress(course);
 };
 
-exports.updateCourse = async (courseId, payload) => {
+exports.updateCourse = async (courseId, payload, credentials) => {
   const params = payload.contact === ''
     ? { $set: omit(payload, 'contact'), $unset: { contact: '' } }
     : { $set: payload };
 
-  return Course.findOneAndUpdate({ _id: courseId }, params).lean();
+  const courseFromDb = await Course.findOneAndUpdate({ _id: courseId }, params).lean();
+
+  const estimatedStartDateUpdated = payload.estimatedStartDate && (!courseFromDb.estimatedStartDate ||
+    !CompaniDate(payload.estimatedStartDate).isSame(courseFromDb.estimatedStartDate, DAY));
+  if (estimatedStartDateUpdated) {
+    CourseHistoriesHelper.createHistoryOnEstimatedStartDateEdition(
+      courseId,
+      credentials._id,
+      payload.estimatedStartDate,
+      courseFromDb.estimatedStartDate
+    );
+  }
+
+  return courseFromDb;
 };
 
 exports.deleteCourse = async courseId => Promise.all([
