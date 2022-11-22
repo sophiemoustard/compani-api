@@ -72,19 +72,14 @@ exports.authorizeCourseCreation = async (req) => {
 exports.authorizeGetDocumentsAndSms = async (req) => {
   const { credentials } = req.auth;
 
-  const course = await Course
-    .findOne({ _id: req.params._id }, { trainees: 1, type: 1, companies: 1, trainer: 1 })
-    .populate({ path: 'trainees', select: '_id company', populate: { path: 'company' } })
-    .lean();
+  const course = await Course.findOne({ _id: req.params._id }, { trainees: 1, companies: 1, trainer: 1 }).lean();
   if (!course) throw Boom.notFound();
 
-  const isTrainee = UtilsHelper.doesArrayIncludeId(course.trainees.map(t => t._id), get(credentials, '_id'));
+  const isTrainee = UtilsHelper.doesArrayIncludeId(course.trainees, get(credentials, '_id'));
   if (isTrainee && get(req, 'query.origin') === MOBILE) return null;
 
   const courseTrainerId = get(course, 'trainer') || null;
-  const companies = course.type === INTRA ? course.companies : course.trainees.map(t => t.company);
-
-  this.checkAuthorization(credentials, courseTrainerId, companies);
+  this.checkAuthorization(credentials, courseTrainerId, course.companies);
 
   return null;
 };
