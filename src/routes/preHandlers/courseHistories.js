@@ -8,7 +8,6 @@ const {
   COACH,
   INTRA,
 } = require('../../helpers/constants');
-const UtilsHelper = require('../../helpers/utils');
 
 exports.authorizeGetCourseHistories = async (req) => {
   const { credentials } = req.auth;
@@ -24,13 +23,10 @@ exports.authorizeGetCourseHistories = async (req) => {
   }
 
   if ([CLIENT_ADMIN, COACH].includes(clientRole)) {
-    const course = await Course.findOne({ _id: courseId }, { type: 1, companies: 1 }).lean();
+    const isIntraAndIncludesUserCompany = await Course
+      .countDocuments({ _id: courseId, type: INTRA, companies: credentials.company._id });
 
-    if (course.type !== INTRA || !UtilsHelper.doesArrayIncludeId(course.companies, credentials.company._id)) {
-      throw Boom.forbidden();
-    }
-
-    return null;
+    if (isIntraAndIncludesUserCompany) return null;
   }
 
   throw Boom.forbidden();
