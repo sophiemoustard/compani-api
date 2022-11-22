@@ -1,4 +1,5 @@
 const pick = require('lodash/pick');
+const isEqual = require('lodash/isEqual');
 const { CompaniDate } = require('./dates/companiDates');
 const CourseHistory = require('../models/CourseHistory');
 const {
@@ -8,6 +9,9 @@ const {
   TRAINEE_ADDITION,
   TRAINEE_DELETION,
   ESTIMATED_START_DATE_EDITION,
+  MINUTE,
+  HOUR,
+  DAY,
 } = require('./constants');
 
 exports.createHistory = async (course, createdBy, action, payload) =>
@@ -50,9 +54,17 @@ exports.createHistoryOnSlotEdition = async (slotFromDb, payload, userId) => {
     return exports.createHistoryOnSlotCreation({ ...slotFromDb, ...payload }, userId);
   }
 
-  const isDateUpdated = !CompaniDate(slotFromDb.startDate).isSame(payload.startDate, 'day');
-  const isHourUpdated = !CompaniDate(slotFromDb.startDate).isSame(payload.startDate, 'minute') ||
-    !CompaniDate(slotFromDb.endDate).isSame(payload.endDate, 'minute');
+  const isStartHourUpdated = !isEqual(
+    CompaniDate(slotFromDb.startDate).getUnits([HOUR, MINUTE]),
+    CompaniDate(payload.startDate).getUnits([HOUR, MINUTE])
+  );
+  const isEndHourUpdated = !isEqual(
+    CompaniDate(slotFromDb.endDate).getUnits([HOUR, MINUTE]),
+    CompaniDate(payload.endDate).getUnits([HOUR, MINUTE])
+  );
+  const isHourUpdated = isEndHourUpdated || isStartHourUpdated;
+
+  const isDateUpdated = !CompaniDate(slotFromDb.startDate).isSame(payload.startDate, DAY);
 
   if (!isDateUpdated && !isHourUpdated) return null;
 
