@@ -603,7 +603,7 @@ describe('QUERY', () => {
     });
   });
 
-  describe('hasSameUnits #tag', () => {
+  describe('hasSameUnits', () => {
     let _formatMiscToCompaniDate;
     const companiDate = CompaniDatesHelper.CompaniDate('2022-11-22T10:00:00.000Z');
     const otherDate = '2021-11-27T10:00:00.000Z';
