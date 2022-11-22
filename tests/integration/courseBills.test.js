@@ -437,7 +437,7 @@ describe('COURSE BILL ROUTES - POST /coursebills', () => {
       });
     });
 
-    it('should return 403 as company is not registered to course (intra)', async () => {
+    it('should return 404 as company is not registered to course (intra)', async () => {
       const response = await app.inject({
         method: 'POST',
         url: '/coursebills',
@@ -445,10 +445,10 @@ describe('COURSE BILL ROUTES - POST /coursebills', () => {
         headers: { 'x-access-token': authToken },
       });
 
-      expect(response.statusCode).toBe(403);
+      expect(response.statusCode).toBe(404);
     });
 
-    it('should return 403 as company is not registered to course (inter)', async () => {
+    it('should return 404 as company is not registered to course (inter)', async () => {
       const response = await app.inject({
         method: 'POST',
         url: '/coursebills',
@@ -456,7 +456,7 @@ describe('COURSE BILL ROUTES - POST /coursebills', () => {
         headers: { 'x-access-token': authToken },
       });
 
-      expect(response.statusCode).toBe(403);
+      expect(response.statusCode).toBe(404);
     });
 
     it('should return 409 if expectedBillsCount is 0', async () => {
