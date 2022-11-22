@@ -54,17 +54,9 @@ exports.createHistoryOnSlotEdition = async (slotFromDb, payload, userId) => {
     return exports.createHistoryOnSlotCreation({ ...slotFromDb, ...payload }, userId);
   }
 
-  const isStartHourUpdated = !isEqual(
-    CompaniDate(slotFromDb.startDate).getUnits([HOUR, MINUTE]),
-    CompaniDate(payload.startDate).getUnits([HOUR, MINUTE])
-  );
-  const isEndHourUpdated = !isEqual(
-    CompaniDate(slotFromDb.endDate).getUnits([HOUR, MINUTE]),
-    CompaniDate(payload.endDate).getUnits([HOUR, MINUTE])
-  );
-  const isHourUpdated = isEndHourUpdated || isStartHourUpdated;
-
   const isDateUpdated = !CompaniDate(slotFromDb.startDate).isSame(payload.startDate, DAY);
+  const isHourUpdated = !CompaniDate(slotFromDb.startDate).hasSameUnits(payload.startDate, [HOUR, MINUTE]) ||
+    !CompaniDate(slotFromDb.endDate).hasSameUnits(payload.endDate, [HOUR, MINUTE]);
 
   if (!isDateUpdated && !isHourUpdated) return null;
 
