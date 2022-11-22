@@ -8,6 +8,9 @@ const {
   TRAINEE_ADDITION,
   TRAINEE_DELETION,
   ESTIMATED_START_DATE_EDITION,
+  MINUTE,
+  HOUR,
+  DAY,
 } = require('./constants');
 
 exports.createHistory = async (course, createdBy, action, payload) =>
@@ -50,20 +53,21 @@ exports.createHistoryOnSlotEdition = async (slotFromDb, payload, userId) => {
     return exports.createHistoryOnSlotCreation({ ...slotFromDb, ...payload }, userId);
   }
 
-  const isDateUpdated = !CompaniDate(slotFromDb.startDate).isSame(payload.startDate, 'day');
-  const isHourUpdated = !CompaniDate(slotFromDb.startDate).isSame(payload.startDate, 'minute') ||
-    !CompaniDate(slotFromDb.endDate).isSame(payload.endDate, 'minute');
+  const isDateUpdated = !CompaniDate(slotFromDb.startDate).isSame(payload.startDate, DAY);
+  const isHourUpdated = !CompaniDate(slotFromDb.startDate).hasSameUnits(payload.startDate, [HOUR, MINUTE]) ||
+    !CompaniDate(slotFromDb.endDate).hasSameUnits(payload.endDate, [HOUR, MINUTE]);
 
   if (!isDateUpdated && !isHourUpdated) return null;
 
-  const actionPayload = isDateUpdated
-    ? { update: { startDate: { from: slotFromDb.startDate, to: payload.startDate } } }
-    : {
-      update: {
+  const actionPayload = {
+    update: {
+      ...(isDateUpdated && { startDate: { from: slotFromDb.startDate, to: payload.startDate } }),
+      ...(isHourUpdated && {
         startHour: { from: slotFromDb.startDate, to: payload.startDate },
         endHour: { from: slotFromDb.endDate, to: payload.endDate },
-      },
-    };
+      }),
+    },
+  };
 
   return exports.createHistory(slotFromDb.course, userId, SLOT_EDITION, actionPayload);
 };

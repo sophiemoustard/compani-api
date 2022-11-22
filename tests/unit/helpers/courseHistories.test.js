@@ -242,6 +242,30 @@ describe('createHistoryOnSlotEdition', () => {
     sinon.assert.notCalled(createHistoryOnSlotCreation);
   });
 
+  it('should create history if date and hour are updated', async () => {
+    const course = new ObjectId();
+    const slotFromDb = { startDate: '2020-01-10T10:00:00.000Z', endDate: '2020-01-10T11:30:00.000Z', course };
+    const payload = { startDate: '2020-01-15T11:00:00.000Z', endDate: '2020-01-15T11:30:00.000Z' };
+    const userId = new ObjectId();
+
+    await CourseHistoriesHelper.createHistoryOnSlotEdition(slotFromDb, payload, userId);
+
+    sinon.assert.calledOnceWithExactly(
+      createHistory,
+      course,
+      userId,
+      SLOT_EDITION,
+      {
+        update: {
+          startDate: { from: '2020-01-10T10:00:00.000Z', to: '2020-01-15T11:00:00.000Z' },
+          startHour: { from: '2020-01-10T10:00:00.000Z', to: '2020-01-15T11:00:00.000Z' },
+          endHour: { from: '2020-01-10T11:30:00.000Z', to: '2020-01-15T11:30:00.000Z' },
+        },
+      }
+    );
+    sinon.assert.notCalled(createHistoryOnSlotCreation);
+  });
+
   it('should create history if start hour is updated', async () => {
     const course = new ObjectId();
     const slotFromDb = { startDate: '2020-01-10T09:00:00.000Z', endDate: '2020-01-10T11:30:00.000Z', course };
