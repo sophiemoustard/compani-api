@@ -1,5 +1,4 @@
 const pick = require('lodash/pick');
-const isEqual = require('lodash/isEqual');
 const { CompaniDate } = require('./dates/companiDates');
 const CourseHistory = require('../models/CourseHistory');
 const {
