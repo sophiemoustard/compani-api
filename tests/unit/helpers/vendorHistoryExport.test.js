@@ -36,7 +36,7 @@ const CourseBill = require('../../../src/models/CourseBill');
 const CoursePayment = require('../../../src/models/CoursePayment');
 const CourseHistory = require('../../../src/models/CourseHistory');
 
-describe('exportCourseHistory #tag', () => {
+describe('exportCourseHistory', () => {
   const traineeList = [
     { _id: new ObjectId(), firstMobileConnection: new Date() },
     { _id: new ObjectId(), firstMobileConnection: new Date() },
@@ -354,16 +354,10 @@ describe('exportCourseHistory #tag', () => {
   it('should return an empty array if no course', async () => {
     findCourseSlot.returns(SinonMongoose.stubChainedQueries(courseSlotList, ['lean']));
     findCourse.returns(SinonMongoose.stubChainedQueries([]));
-    findQuestionnaireHistory.returns(SinonMongoose.stubChainedQueries(questionnaireHistoriesList));
-    findCourseHistory.returns(SinonMongoose.stubChainedQueries(estimatedStartDateHistoriesList));
-    findCourseSmsHistory.returns(SinonMongoose.stubChainedQueries(
-      [{ course: courseList[0]._id }, { course: courseList[0]._id }, { course: courseList[1]._id }],
-      ['lean']
-    ));
-    findAttendanceSheet.returns(SinonMongoose.stubChainedQueries(
-      [{ course: courseList[0]._id }],
-      ['lean']
-    ));
+    findQuestionnaireHistory.returns(SinonMongoose.stubChainedQueries([]));
+    findCourseHistory.returns(SinonMongoose.stubChainedQueries([]));
+    findCourseSmsHistory.returns(SinonMongoose.stubChainedQueries([], ['lean']));
+    findAttendanceSheet.returns(SinonMongoose.stubChainedQueries([], ['lean']));
 
     const result = await ExportHelper.exportCourseHistory('2021-01-14T23:00:00.000Z', '2022-01-20T22:59:59.000Z');
 
