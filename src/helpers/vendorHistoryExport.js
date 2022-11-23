@@ -124,11 +124,14 @@ exports.exportCourseHistory = async (startDate, endDate, credentials) => {
       .lean(),
     CourseSmsHistory.find({ course: { $in: courseIds }, select: 'course' }).lean(),
     AttendanceSheet.find({ course: { $in: courseIds }, select: 'course' }).lean(),
-    CourseHistory.find({
-      course: { $in: courseIds },
-      action: ESTIMATED_START_DATE_EDITION,
-      update: { estimatedStartDate: { from: '' } },
-    }).lean(),
+    CourseHistory.find(
+      {
+        course: { $in: courseIds },
+        action: ESTIMATED_START_DATE_EDITION,
+        update: { estimatedStartDate: { from: '' } },
+      },
+      { course: 1, update: 1 }
+    ).lean(),
   ]);
 
   const rows = [];
