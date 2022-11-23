@@ -237,7 +237,7 @@ exports.getCourseTrainee = async (req) => {
   try {
     const { payload } = req;
     const course = await Course
-      .findOne({ _id: req.params._id }, { type: 1, trainees: 1, companies: 1, maxTrainees: 1, trainer: 1 })
+      .findOne({ _id: req.params._id }, { trainees: 1, companies: 1, maxTrainees: 1, trainer: 1 })
       .lean();
     if (!course) throw Boom.notFound();
 
