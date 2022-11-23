@@ -21,6 +21,7 @@ const {
   PAYMENT_NATURE_LIST,
   DD_MM_YYYY,
   HH_MM_SS,
+  ESTIMATED_START_DATE_EDITION,
 } = require('./constants');
 const { CompaniDate } = require('./dates/companiDates');
 const UtilsHelper = require('./utils');
@@ -33,6 +34,7 @@ const CourseSlot = require('../models/CourseSlot');
 const CourseBill = require('../models/CourseBill');
 const CourseRepository = require('../repositories/CourseRepository');
 const QuestionnaireHistory = require('../models/QuestionnaireHistory');
+const CourseHistory = require('../models/CourseHistory');
 const Questionnaire = require('../models/Questionnaire');
 const CoursePayment = require('../models/CoursePayment');
 
@@ -115,19 +117,25 @@ exports.exportCourseHistory = async (startDate, endDate, credentials) => {
     .filter(course => !course.slots.length || course.slots.some(slot => isSlotInInterval(slot, startDate, endDate)));
 
   const courseIds = filteredCourses.map(course => course._id);
-  const [questionnaireHistories, smsList, attendanceSheetList] = await Promise.all([
+  const [questionnaireHistories, smsList, attendanceSheetList, estimatedStartDateHistories] = await Promise.all([
     QuestionnaireHistory
       .find({ course: { $in: courseIds }, select: 'course questionnaire' })
       .populate({ path: 'questionnaire', select: 'type' })
       .lean(),
     CourseSmsHistory.find({ course: { $in: courseIds }, select: 'course' }).lean(),
     AttendanceSheet.find({ course: { $in: courseIds }, select: 'course' }).lean(),
+    CourseHistory.find({
+      course: { $in: courseIds },
+      action: ESTIMATED_START_DATE_EDITION,
+      update: { estimatedStartDate: { from: '' } },
+    }).lean(),
   ]);
 
   const rows = [];
   const groupedSms = groupBy(smsList, 'course');
   const grouppedAttendanceSheets = groupBy(attendanceSheetList, 'course');
   const groupedCourseQuestionnaireHistories = groupBy(questionnaireHistories, 'course');
+  const groupedEstimatedStartDateHistories = groupBy(estimatedStartDateHistories, 'course');
 
   for (const course of filteredCourses) {
     const slotsGroupedByDate = CourseHelper.groupSlotsByDate(course.slots);
@@ -142,6 +150,7 @@ exports.exportCourseHistory = async (startDate, endDate, credentials) => {
     } = getAttendancesCountInfos(course);
 
     const courseQuestionnaireHistories = groupedCourseQuestionnaireHistories[course._id] || [];
+    const estimatedStartDateHistory = groupedEstimatedStartDateHistories[course._id];
     const expectactionQuestionnaireAnswers = courseQuestionnaireHistories
       .filter(qh => qh.questionnaire.type === EXPECTATIONS)
       .length;
@@ -183,6 +192,9 @@ exports.exportCourseHistory = async (startDate, endDate, credentials) => {
       'Nombre de réponses au questionnaire de satisfaction': endQuestionnaireAnswers,
       'Date de démarrage souhaitée': course.estimatedStartDate
         ? CompaniDate(course.estimatedStartDate).format(DD_MM_YYYY)
+        : '',
+      'Première date de demarrage souhaitée': estimatedStartDateHistory
+        ? CompaniDate(estimatedStartDateHistory[0].update.estimatedStartDate.to).format(DD_MM_YYYY)
         : '',
       'Début de formation': getStartOfCourse(slotsGroupedByDate),
       'Fin de formation': getEndOfCourse(slotsGroupedByDate, course.slotsToPlan),
