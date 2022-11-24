@@ -354,10 +354,6 @@ describe('exportCourseHistory', () => {
   it('should return an empty array if no course', async () => {
     findCourseSlot.returns(SinonMongoose.stubChainedQueries(courseSlotList, ['lean']));
     findCourse.returns(SinonMongoose.stubChainedQueries([]));
-    findQuestionnaireHistory.returns(SinonMongoose.stubChainedQueries([]));
-    findCourseHistory.returns(SinonMongoose.stubChainedQueries([]));
-    findCourseSmsHistory.returns(SinonMongoose.stubChainedQueries([], ['lean']));
-    findAttendanceSheet.returns(SinonMongoose.stubChainedQueries([], ['lean']));
 
     const result = await ExportHelper.exportCourseHistory('2021-01-14T23:00:00.000Z', '2022-01-20T22:59:59.000Z');
 
