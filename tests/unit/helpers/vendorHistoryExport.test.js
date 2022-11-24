@@ -24,6 +24,7 @@ const {
   NO_DATA,
   CHECK,
   REFUND,
+  ESTIMATED_START_DATE_EDITION,
 } = require('../../../src/helpers/constants');
 const CourseSlot = require('../../../src/models/CourseSlot');
 const Course = require('../../../src/models/Course');
@@ -33,6 +34,7 @@ const Questionnaire = require('../../../src/models/Questionnaire');
 const AttendanceSheet = require('../../../src/models/AttendanceSheet');
 const CourseBill = require('../../../src/models/CourseBill');
 const CoursePayment = require('../../../src/models/CoursePayment');
+const CourseHistory = require('../../../src/models/CourseHistory');
 
 describe('exportCourseHistory', () => {
   const traineeList = [
@@ -303,6 +305,18 @@ describe('exportCourseHistory', () => {
     { _id: new ObjectId(), course: courseList[1]._id, user: traineeList[3]._id, questionnaire: questionnaireList[0] },
     { _id: new ObjectId(), course: courseList[1]._id, user: traineeList[3]._id, questionnaire: questionnaireList[1] },
   ];
+  const estimatedStartDateHistoriesList = [
+    {
+      _id: new ObjectId(),
+      course: courseList[1]._id,
+      update: { estimatedStartDate: { to: '2019-01-01T08:00:00.000Z' } },
+    },
+    {
+      _id: new ObjectId(),
+      course: courseList[2]._id,
+      update: { estimatedStartDate: { to: '2021-12-01T10:00:00.000Z' } },
+    },
+  ];
 
   const credentials = { company: { _id: new ObjectId(), role: { vendor: { name: TRAINING_ORGANISATION_MANAGER } } } };
 
@@ -313,6 +327,7 @@ describe('exportCourseHistory', () => {
   let findCourseSmsHistory;
   let findAttendanceSheet;
   let findQuestionnaireHistory;
+  let findCourseHistory;
 
   beforeEach(() => {
     findCourseSlot = sinon.stub(CourseSlot, 'find');
@@ -322,6 +337,7 @@ describe('exportCourseHistory', () => {
     findCourseSmsHistory = sinon.stub(CourseSmsHistory, 'find');
     findAttendanceSheet = sinon.stub(AttendanceSheet, 'find');
     findQuestionnaireHistory = sinon.stub(QuestionnaireHistory, 'find');
+    findCourseHistory = sinon.stub(CourseHistory, 'find');
   });
 
   afterEach(() => {
@@ -332,20 +348,12 @@ describe('exportCourseHistory', () => {
     findCourseSmsHistory.restore();
     findAttendanceSheet.restore();
     findQuestionnaireHistory.restore();
+    findCourseHistory.restore();
   });
 
   it('should return an empty array if no course', async () => {
     findCourseSlot.returns(SinonMongoose.stubChainedQueries(courseSlotList, ['lean']));
     findCourse.returns(SinonMongoose.stubChainedQueries([]));
-    findQuestionnaireHistory.returns(SinonMongoose.stubChainedQueries(questionnaireHistoriesList));
-    findCourseSmsHistory.returns(SinonMongoose.stubChainedQueries(
-      [{ course: courseList[0]._id }, { course: courseList[0]._id }, { course: courseList[1]._id }],
-      ['lean']
-    ));
-    findAttendanceSheet.returns(SinonMongoose.stubChainedQueries(
-      [{ course: courseList[0]._id }],
-      ['lean']
-    ));
 
     const result = await ExportHelper.exportCourseHistory('2021-01-14T23:00:00.000Z', '2022-01-20T22:59:59.000Z');
 
@@ -426,28 +434,17 @@ describe('exportCourseHistory', () => {
     );
     sinon.assert.notCalled(groupSlotsByDate);
     sinon.assert.notCalled(getTotalDurationForExport);
-    SinonMongoose.calledOnceWithExactly(
-      findQuestionnaireHistory,
-      [
-        { query: 'find', args: [{ course: { $in: [] }, select: 'course questionnaire' }] },
-        { query: 'populate', args: [{ path: 'questionnaire', select: 'type' }] },
-        { query: 'lean' },
-      ]
-    );
-    SinonMongoose.calledOnceWithExactly(
-      findCourseSmsHistory,
-      [{ query: 'find', args: [{ course: { $in: [] }, select: 'course' }] }, { query: 'lean' }]
-    );
-    SinonMongoose.calledOnceWithExactly(
-      findAttendanceSheet,
-      [{ query: 'find', args: [{ course: { $in: [] }, select: 'course' }] }, { query: 'lean' }]
-    );
+    sinon.assert.notCalled(findQuestionnaireHistory);
+    sinon.assert.notCalled(findCourseSmsHistory);
+    sinon.assert.notCalled(findAttendanceSheet);
+    sinon.assert.notCalled(findCourseHistory);
   });
 
   it('should return an array with the header and 4 rows', async () => {
     findCourseSlot.returns(SinonMongoose.stubChainedQueries(courseSlotList, ['lean']));
     findCourse.returns(SinonMongoose.stubChainedQueries(courseList));
     findQuestionnaireHistory.returns(SinonMongoose.stubChainedQueries(questionnaireHistoriesList));
+    findCourseHistory.returns(SinonMongoose.stubChainedQueries(estimatedStartDateHistoriesList));
     groupSlotsByDate.onCall(0).returns([[courseSlotList[0], courseSlotList[1]]]);
     groupSlotsByDate.onCall(1).returns([[courseSlotList[2]], [courseSlotList[3]]]);
     groupSlotsByDate.onCall(2).returns([]);
@@ -491,6 +488,7 @@ describe('exportCourseHistory', () => {
         'Nombre de réponses au questionnaire de recueil des attentes',
         'Nombre de réponses au questionnaire de satisfaction',
         'Date de démarrage souhaitée',
+        'Première date de démarrage souhaitée',
         'Début de formation',
         'Fin de formation',
         'Nombre de feuilles d\'émargement chargées',
@@ -526,6 +524,7 @@ describe('exportCourseHistory', () => {
         '',
         2,
         2,
+        '',
         '',
         '01/05/2021 10:00:00',
         '01/05/2021 18:00:00',
@@ -563,6 +562,7 @@ describe('exportCourseHistory', () => {
         1,
         1,
         '01/01/2019',
+        '01/01/2019',
         '01/02/2021 09:00:00',
         'à planifier',
         0,
@@ -599,6 +599,7 @@ describe('exportCourseHistory', () => {
         0,
         0,
         '01/01/2022',
+        '01/12/2021',
         '',
         '',
         0,
@@ -634,6 +635,7 @@ describe('exportCourseHistory', () => {
         '',
         0,
         0,
+        '',
         '',
         '',
         '',
@@ -740,6 +742,15 @@ describe('exportCourseHistory', () => {
     SinonMongoose.calledOnceWithExactly(
       findAttendanceSheet,
       [{ query: 'find', args: [{ course: { $in: courseIdList }, select: 'course' }] }, { query: 'lean' }]
+    );
+    sinon.assert.calledOnceWithExactly(
+      findCourseHistory,
+      {
+        course: { $in: courseIdList },
+        action: ESTIMATED_START_DATE_EDITION,
+        update: { estimatedStartDate: { from: '' } },
+      },
+      { course: 1, update: 1 }
     );
   });
 });

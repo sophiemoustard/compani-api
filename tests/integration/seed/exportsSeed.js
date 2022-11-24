@@ -34,6 +34,7 @@ const CourseCreditNote = require('../../../src/models/CourseCreditNote');
 const CoursePayment = require('../../../src/models/CoursePayment');
 const CourseSlot = require('../../../src/models/CourseSlot');
 const CourseSmsHistory = require('../../../src/models/CourseSmsHistory');
+const CourseHistory = require('../../../src/models/CourseHistory');
 const DistanceMatrix = require('../../../src/models/DistanceMatrix');
 const Questionnaire = require('../../../src/models/Questionnaire');
 const QuestionnaireHistory = require('../../../src/models/QuestionnaireHistory');
@@ -74,6 +75,7 @@ const {
   BANK_TRANSFER,
   CASH,
   CHECK,
+  ESTIMATED_START_DATE_EDITION,
 } = require('../../../src/helpers/constants');
 const { auxiliaryRoleId, helperRoleId } = require('../../seed/authRolesSeed');
 
@@ -1108,7 +1110,7 @@ const courseList = [
     salesRepresentative: salesRepresentative._id,
     contact: salesRepresentative._id,
     trainees: [traineeList[3]._id, traineeList[4]._id],
-    estimatedStartDate: '2019-01-01T08:00:00',
+    estimatedStartDate: '2019-01-01T08:00:00.000Z',
   },
   { // 2 without bills
     _id: new ObjectId(),
@@ -1119,7 +1121,7 @@ const courseList = [
     salesRepresentative: salesRepresentative._id,
     contact: salesRepresentative._id,
     trainees: [traineeList[3]._id, traineeList[4]._id],
-    estimatedStartDate: '2022-01-01T08:00:00',
+    estimatedStartDate: '2022-01-12T08:00:00.000Z',
   },
   { // 3 with 1 bill
     _id: new ObjectId(),
@@ -1541,6 +1543,30 @@ const questionnaireHistoriesList = [
   },
 ];
 
+const courseHistoriesList = [
+  {
+    _id: new ObjectId(),
+    course: courseList[1]._id,
+    action: ESTIMATED_START_DATE_EDITION,
+    update: { estimatedStartDate: { to: '2018-10-23T22:00:00.000Z' } },
+    createdBy: new ObjectId(),
+  },
+  {
+    _id: new ObjectId(),
+    course: courseList[1]._id,
+    action: ESTIMATED_START_DATE_EDITION,
+    update: { estimatedStartDate: { from: '2018-10-23T22:00:00.000Z', to: '2019-01-01T08:00:00.000Z' } },
+    createdBy: new ObjectId(),
+  },
+  {
+    _id: new ObjectId(),
+    course: courseList[2]._id,
+    action: ESTIMATED_START_DATE_EDITION,
+    update: { estimatedStartDate: { to: '2022-01-12T08:00:00.000Z' } },
+    createdBy: new ObjectId(),
+  },
+];
+
 const populateDB = async () => {
   await deleteNonAuthenticationSeeds();
 
@@ -1556,6 +1582,7 @@ const populateDB = async () => {
     CourseBill.create(courseBillList),
     CourseCreditNote.create(courseCreditNotesList),
     CourseFundingOrganisation.create(courseFundingOrganisation),
+    CourseHistory.create(courseHistoriesList),
     CoursePayment.create(coursePaymentList),
     CourseSlot.create(courseSlotList),
     CourseSmsHistory.create(smsList),
