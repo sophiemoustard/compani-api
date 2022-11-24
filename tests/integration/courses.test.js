@@ -53,10 +53,13 @@ const SmsHelper = require('../../src/helpers/sms');
 const DocxHelper = require('../../src/helpers/docx');
 const NotificationHelper = require('../../src/helpers/notifications');
 const UtilsHelper = require('../../src/helpers/utils');
+const translate = require('../../src/helpers/translate');
 const UtilsMock = require('../utilsMock');
 const { CompaniDate } = require('../../src/helpers/dates/companiDates');
 const CourseBill = require('../../src/models/CourseBill');
 const Attendance = require('../../src/models/Attendance');
+
+const { language } = translate;
 
 describe('NODE ENV', () => {
   it('should be \'test\'', () => {
@@ -3278,6 +3281,7 @@ describe('COURSES ROUTES - DELETE /courses/{_id}/companies{companyId}', () => {
       });
 
       expect(response.statusCode).toBe(403);
+      expect(response.result.message).toEqual(translate[language].companyHasCourseBill);
     });
 
     it('should return a 403 if company has attendance', async () => {
@@ -3299,6 +3303,7 @@ describe('COURSES ROUTES - DELETE /courses/{_id}/companies{companyId}', () => {
       });
 
       expect(response.statusCode).toBe(403);
+      expect(response.result.message).toEqual(translate[language].companyTraineeAttendedToCourse);
     });
 
     it('should return a 403 if course is archived', async () => {
