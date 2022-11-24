@@ -133,8 +133,6 @@ exports.authorizeCourseEdit = async (req) => {
       throw Boom.forbidden();
     }
 
-    if ((get(req, 'payload.company')) && course.type !== INTER_B2B) throw Boom.forbidden();
-
     const trainerIsTrainee = UtilsHelper.doesArrayIncludeId(course.trainees, get(req, 'payload.trainer'));
     if (trainerIsTrainee) throw Boom.forbidden();
 
@@ -434,11 +432,13 @@ exports.authorizeCourseCompanyAddition = async (req) => {
 
   const course = await Course.findOne({ _id: req.params._id }, { type: 1, companies: 1 }).lean();
 
+  if (course.type !== INTER_B2B) throw Boom.forbidden();
+
   const isAlreadyLinked = UtilsHelper.doesArrayIncludeId(course.companies, req.payload.company);
   if (isAlreadyLinked) throw Boom.conflict(translate[language].courseCompanyAlreadyExists);
 
   const isTrainer = get(req, 'auth.credentials.role.vendor.name') === TRAINER;
-  if (course.type === INTER_B2B && isTrainer) throw Boom.forbidden();
+  if (isTrainer) throw Boom.forbidden();
 
   return null;
 };
@@ -476,7 +476,7 @@ exports.authorizeCourseCompanyDeletion = async (req) => {
   }
 
   const isTrainer = get(req, 'auth.credentials.role.vendor.name') === TRAINER;
-  if (course.type === INTER_B2B && isTrainer) throw Boom.forbidden();
+  if (isTrainer) throw Boom.forbidden();
 
   return null;
 };
