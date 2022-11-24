@@ -217,7 +217,7 @@ exports.exportCourseHistory = async (startDate, endDate, credentials) => {
     });
   }
 
-  return rows.length ? [Object.keys(rows[0]), ...rows.map(d => Object.values(d))] : [[NO_DATA]];
+  return [Object.keys(rows[0]), ...rows.map(d => Object.values(d))];
 };
 
 const getAddress = (slot) => {
