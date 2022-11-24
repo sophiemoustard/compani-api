@@ -438,31 +438,10 @@ describe('exportCourseHistory', () => {
     );
     sinon.assert.notCalled(groupSlotsByDate);
     sinon.assert.notCalled(getTotalDurationForExport);
-    SinonMongoose.calledOnceWithExactly(
-      findQuestionnaireHistory,
-      [
-        { query: 'find', args: [{ course: { $in: [] }, select: 'course questionnaire' }] },
-        { query: 'populate', args: [{ path: 'questionnaire', select: 'type' }] },
-        { query: 'lean' },
-      ]
-    );
-    SinonMongoose.calledOnceWithExactly(
-      findCourseSmsHistory,
-      [{ query: 'find', args: [{ course: { $in: [] }, select: 'course' }] }, { query: 'lean' }]
-    );
-    SinonMongoose.calledOnceWithExactly(
-      findAttendanceSheet,
-      [{ query: 'find', args: [{ course: { $in: [] }, select: 'course' }] }, { query: 'lean' }]
-    );
-    sinon.assert.calledOnceWithExactly(
-      findCourseHistory,
-      {
-        course: { $in: [] },
-        action: ESTIMATED_START_DATE_EDITION,
-        update: { estimatedStartDate: { from: '' } },
-      },
-      { course: 1, update: 1 }
-    );
+    sinon.assert.notCalled(findQuestionnaireHistory);
+    sinon.assert.notCalled(findCourseSmsHistory);
+    sinon.assert.notCalled(findAttendanceSheet);
+    sinon.assert.notCalled(findCourseHistory);
   });
 
   it('should return an array with the header and 4 rows', async () => {

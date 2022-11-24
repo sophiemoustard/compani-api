@@ -116,6 +116,8 @@ exports.exportCourseHistory = async (startDate, endDate, credentials) => {
   const filteredCourses = courses
     .filter(course => !course.slots.length || course.slots.some(slot => isSlotInInterval(slot, startDate, endDate)));
 
+  if (!filteredCourses.length) return [[NO_DATA]];
+
   const courseIds = filteredCourses.map(course => course._id);
   const [questionnaireHistories, smsList, attendanceSheetList, estimatedStartDateHistories] = await Promise.all([
     QuestionnaireHistory
