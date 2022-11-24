@@ -488,7 +488,7 @@ describe('exportCourseHistory', () => {
         'Nombre de réponses au questionnaire de recueil des attentes',
         'Nombre de réponses au questionnaire de satisfaction',
         'Date de démarrage souhaitée',
-        'Première date de demarrage souhaitée',
+        'Première date de démarrage souhaitée',
         'Début de formation',
         'Fin de formation',
         'Nombre de feuilles d\'émargement chargées',

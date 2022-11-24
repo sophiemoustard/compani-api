@@ -198,7 +198,7 @@ exports.exportCourseHistory = async (startDate, endDate, credentials) => {
       'Date de démarrage souhaitée': course.estimatedStartDate
         ? CompaniDate(course.estimatedStartDate).format(DD_MM_YYYY)
         : '',
-      'Première date de demarrage souhaitée': estimatedStartDateHistory
+      'Première date de démarrage souhaitée': estimatedStartDateHistory
         ? CompaniDate(estimatedStartDateHistory[0].update.estimatedStartDate.to).format(DD_MM_YYYY)
         : '',
       'Début de formation': getStartOfCourse(slotsGroupedByDate),
