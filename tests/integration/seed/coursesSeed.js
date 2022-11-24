@@ -74,6 +74,16 @@ const traineeWithoutCompany = {
   origin: WEBAPP,
 };
 
+const traineeFromCompanyWithoutSubscription = {
+  _id: new ObjectId(),
+  identity: { firstname: 'Fred', lastname: 'Subscription' },
+  local: { email: 'traineeCompanyWithoutSubscription@alenvi.io', password: '123456!eR' },
+  role: { client: auxiliaryRoleId },
+  contact: { phone: '0734856752' },
+  refreshToken: uuidv4(),
+  origin: WEBAPP,
+};
+
 const contactWithoutPhone = {
   _id: new ObjectId(),
   identity: { firstname: 'Cathy', lastname: 'Palenne' },
@@ -99,12 +109,14 @@ const userList = [
   traineeWithoutCompany,
   contactWithoutPhone,
   coachFromOtherCompany,
+  traineeFromCompanyWithoutSubscription,
 ];
 
 const userCompanies = [
   { _id: new ObjectId(), user: traineeFromOtherCompany._id, company: otherCompany._id },
   { _id: new ObjectId(), user: traineeFromAuthCompanyWithFormationExpoToken._id, company: authCompany._id },
   { _id: new ObjectId(), user: coachFromOtherCompany._id, company: otherCompany._id },
+  { _id: new ObjectId(), user: traineeFromCompanyWithoutSubscription._id, company: companyWithoutSubscription._id },
 ];
 
 const cardsList = [
@@ -255,7 +267,7 @@ const coursesList = [
     format: BLENDED,
     trainees: [auxiliary._id],
     companies: [authCompany._id, companyWithoutSubscription._id],
-    trainer: coach._id,
+    trainer: trainer._id,
     salesRepresentative: vendorAdmin._id,
   },
   { // 8 eLearning course with access rules
@@ -513,76 +525,87 @@ const courseHistories = [
 
 const slots = [
   {
+    _id: new ObjectId(),
     startDate: '2020-03-01T08:00:00.000Z',
     endDate: '2020-03-01T10:00:00.000Z',
     course: coursesList[0],
     step: stepList[0]._id,
   },
   {
+    _id: new ObjectId(),
     startDate: '2020-03-02T13:00:00.000Z',
     endDate: '2020-03-02T17:00:00.000Z',
     course: coursesList[0],
     step: stepList[0]._id,
   },
   {
+    _id: new ObjectId(),
     startDate: '2020-03-03T08:00:00.000Z',
     endDate: '2020-03-03T10:00:00.000Z',
     course: coursesList[1],
     step: stepList[0]._id,
   },
   {
+    _id: new ObjectId(),
     startDate: '2020-03-04T08:00:00.000Z',
     endDate: '2020-03-04T10:00:00.000Z',
     course: coursesList[1],
     step: stepList[1]._id,
   },
   {
+    _id: new ObjectId(),
     startDate: '2020-03-04T08:00:00.000Z',
     endDate: '2020-03-04T10:00:00.000Z',
     course: coursesList[2],
     step: stepList[0]._id,
   },
-  { course: coursesList[2], step: stepList[0]._id },
-  { course: coursesList[2], step: stepList[0]._id },
+  { _id: new ObjectId(), course: coursesList[2], step: stepList[0]._id },
+  { _id: new ObjectId(), course: coursesList[2], step: stepList[0]._id },
   {
+    _id: new ObjectId(),
     startDate: '2020-03-05T08:00:00.000Z',
     endDate: '2020-03-05T10:00:00.000Z',
     course: coursesList[3],
     step: stepList[0]._id,
   },
-  { course: coursesList[3], step: stepList[0]._id },
+  { _id: new ObjectId(), course: coursesList[3], step: stepList[0]._id },
   {
+    _id: new ObjectId(),
     startDate: '2020-03-06T08:00:00.000Z',
     endDate: '2020-03-06T10:00:00.000Z',
     course: coursesList[5],
     step: stepList[0]._id,
   },
-  { course: coursesList[7], step: stepList[0]._id },
+  { _id: new ObjectId(), course: coursesList[7], step: stepList[0]._id },
   {
+    _id: new ObjectId(),
     startDate: '2020-03-07T08:00:00.000Z',
     endDate: '2020-03-07T10:00:00.000Z',
     course: coursesList[7],
     step: stepList[0]._id,
   },
   {
+    _id: new ObjectId(),
     startDate: '2020-03-08T08:00:00.000Z',
     endDate: '2020-03-08T10:00:00.000Z',
     course: coursesList[8],
     step: stepList[0]._id,
   },
   {
+    _id: new ObjectId(),
     startDate: '2020-03-09T08:00:00.000Z',
     endDate: '2020-03-09T10:00:00.000Z',
     course: coursesList[9],
     step: stepList[0]._id,
   },
   {
+    _id: new ObjectId(),
     startDate: '2020-03-10T08:00:00.000Z',
     endDate: '2020-03-10T10:00:00.000Z',
     course: coursesList[13],
     step: stepList[0]._id,
   },
-  { course: coursesList[16], step: stepList[0]._id },
+  { _id: new ObjectId(), course: coursesList[16], step: stepList[0]._id },
 ];
 
 const populateDB = async () => {
@@ -617,9 +640,11 @@ module.exports = {
   programsList,
   traineeFromOtherCompany,
   traineeWithoutCompany,
+  traineeFromCompanyWithoutSubscription,
   courseSmsHistory,
   slots,
   traineeFromAuthCompanyWithFormationExpoToken,
   userCompanies,
   coachFromOtherCompany,
+  courseBillsList,
 };
