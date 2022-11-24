@@ -27,7 +27,8 @@ const {
 const { MESSAGE_TYPE } = require('../models/CourseSmsHistory');
 const { COURSE_TYPES, COURSE_FORMATS } = require('../models/Course');
 const {
-  getCourseTrainee,
+  authorizeTraineeAddition,
+  authorizeTraineeDeletion,
   authorizeCourseEdit,
   authorizeCourseDeletion,
   authorizeGetList,
@@ -252,7 +253,7 @@ exports.plugin = {
           params: Joi.object({ _id: Joi.objectId().required() }),
           payload: Joi.object({ trainee: Joi.objectId().required() }),
         },
-        pre: [{ method: getCourseTrainee }, { method: authorizeCourseEdit }],
+        pre: [{ method: authorizeCourseEdit }, { method: authorizeTraineeAddition }],
         auth: { scope: ['courses:edit'] },
       },
       handler: addTrainee,
@@ -277,7 +278,7 @@ exports.plugin = {
         validate: {
           params: Joi.object({ _id: Joi.objectId().required(), traineeId: Joi.objectId().required() }),
         },
-        pre: [{ method: authorizeCourseEdit }],
+        pre: [{ method: authorizeCourseEdit }, { method: authorizeTraineeDeletion }],
       },
       handler: removeTrainee,
     });
@@ -353,7 +354,7 @@ exports.plugin = {
           params: Joi.object({ _id: Joi.objectId().required() }),
           payload: Joi.object({ company: Joi.objectId().required() }),
         },
-        pre: [{ method: authorizeCourseCompanyAddition }, { method: authorizeCourseEdit }],
+        pre: [{ method: authorizeCourseEdit }, { method: authorizeCourseCompanyAddition }],
         auth: { scope: ['courses:edit'] },
       },
       handler: addCompany,
@@ -367,7 +368,7 @@ exports.plugin = {
         validate: {
           params: Joi.object({ _id: Joi.objectId().required(), companyId: Joi.objectId().required() }),
         },
-        pre: [{ method: authorizeCourseCompanyDeletion }, { method: authorizeCourseEdit }],
+        pre: [{ method: authorizeCourseEdit }, { method: authorizeCourseCompanyDeletion }],
       },
       handler: removeCompany,
     });
