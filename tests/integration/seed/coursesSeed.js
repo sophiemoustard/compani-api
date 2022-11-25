@@ -16,6 +16,7 @@ const Questionnaire = require('../../../src/models/Questionnaire');
 const QuestionnaireHistory = require('../../../src/models/QuestionnaireHistory');
 const CourseBill = require('../../../src/models/CourseBill');
 const CourseCreditNote = require('../../../src/models/CourseCreditNote');
+const Attendance = require('../../../src/models/Attendance');
 const { authCompany, otherCompany, companyWithoutSubscription: thirdCompany } = require('../../seed/authCompaniesSeed');
 const { deleteNonAuthenticationSeeds } = require('../helpers/authentication');
 const {
@@ -402,6 +403,18 @@ const coursesList = [
     archivedAt: '2021-01-01T00:00:00.000Z',
     estimatedStartDate: '2020-11-03T10:00:00.000Z',
   },
+  { // 19 course with billed and attended companies
+    _id: new ObjectId(),
+    subProgram: subProgramsList[0]._id,
+    contact: vendorAdmin._id,
+    misc: 'inter b2b session',
+    type: INTER_B2B,
+    format: BLENDED,
+    trainees: [],
+    companies: [authCompany._id, thirdCompany._id],
+    trainer: trainer._id,
+    salesRepresentative: vendorAdmin._id,
+  },
 ];
 
 const courseBillsList = [
@@ -463,6 +476,16 @@ const courseBillsList = [
     billingPurchaseList: [],
     billedAt: '2022-04-20T09:00:00.000Z',
     number: 'F00006',
+    payer: { company: authCompany._id },
+  },
+  {
+    _id: new ObjectId(),
+    course: coursesList[19]._id,
+    mainFee: { price: 1600, count: 1, description: 'Bonjour' },
+    company: authCompany._id,
+    billingPurchaseList: [],
+    billedAt: '2022-04-20T09:00:00.000Z',
+    number: 'F00007',
     payer: { company: authCompany._id },
   },
 ];
@@ -528,105 +551,114 @@ const slots = [
     _id: new ObjectId(),
     startDate: '2020-03-01T08:00:00.000Z',
     endDate: '2020-03-01T10:00:00.000Z',
-    course: coursesList[0],
+    course: coursesList[0]._id,
     step: stepList[0]._id,
   },
   { // 1
     _id: new ObjectId(),
     startDate: '2020-03-02T13:00:00.000Z',
     endDate: '2020-03-02T17:00:00.000Z',
-    course: coursesList[0],
+    course: coursesList[0]._id,
     step: stepList[0]._id,
   },
   { // 2
     _id: new ObjectId(),
     startDate: '2020-03-03T08:00:00.000Z',
     endDate: '2020-03-03T10:00:00.000Z',
-    course: coursesList[1],
+    course: coursesList[1]._id,
     step: stepList[0]._id,
   },
   { // 3
     _id: new ObjectId(),
     startDate: '2020-03-04T08:00:00.000Z',
     endDate: '2020-03-04T10:00:00.000Z',
-    course: coursesList[1],
+    course: coursesList[1]._id,
     step: stepList[1]._id,
   },
   { // 4
     _id: new ObjectId(),
     startDate: '2020-03-04T08:00:00.000Z',
     endDate: '2020-03-04T10:00:00.000Z',
-    course: coursesList[2],
+    course: coursesList[2]._id,
     step: stepList[0]._id,
   },
   { // 5
     _id: new ObjectId(),
-    course: coursesList[2],
+    course: coursesList[2]._id,
     step: stepList[0]._id,
   },
   { // 6
     _id: new ObjectId(),
-    course: coursesList[2],
+    course: coursesList[2]._id,
     step: stepList[0]._id,
   },
   { // 7
     _id: new ObjectId(),
     startDate: '2020-03-05T08:00:00.000Z',
     endDate: '2020-03-05T10:00:00.000Z',
-    course: coursesList[3],
+    course: coursesList[3]._id,
     step: stepList[0]._id,
   },
   { // 8
     _id: new ObjectId(),
-    course: coursesList[3],
+    course: coursesList[3]._id,
     step: stepList[0]._id,
   },
   { // 9
     _id: new ObjectId(),
     startDate: '2020-03-06T08:00:00.000Z',
     endDate: '2020-03-06T10:00:00.000Z',
-    course: coursesList[5],
+    course: coursesList[5]._id,
     step: stepList[0]._id,
   },
   { // 10
     _id: new ObjectId(),
-    course: coursesList[7],
+    course: coursesList[7]._id,
     step: stepList[0]._id,
   },
   { // 11
     _id: new ObjectId(),
     startDate: '2020-03-07T08:00:00.000Z',
     endDate: '2020-03-07T10:00:00.000Z',
-    course: coursesList[7],
+    course: coursesList[7]._id,
     step: stepList[0]._id,
   },
   { // 12
     _id: new ObjectId(),
     startDate: '2020-03-08T08:00:00.000Z',
     endDate: '2020-03-08T10:00:00.000Z',
-    course: coursesList[8],
+    course: coursesList[8]._id,
     step: stepList[0]._id,
   },
   { // 13
     _id: new ObjectId(),
     startDate: '2020-03-09T08:00:00.000Z',
     endDate: '2020-03-09T10:00:00.000Z',
-    course: coursesList[9],
+    course: coursesList[9]._id,
     step: stepList[0]._id,
   },
   { // 14
     _id: new ObjectId(),
     startDate: '2020-03-10T08:00:00.000Z',
     endDate: '2020-03-10T10:00:00.000Z',
-    course: coursesList[13],
+    course: coursesList[13]._id,
     step: stepList[0]._id,
   },
   { // 15
     _id: new ObjectId(),
-    course: coursesList[16],
+    course: coursesList[16]._id,
+    step: stepList[0]._id,
+  },
+  { // 16
+    _id: new ObjectId(),
+    startDate: '2020-03-07T08:00:00.000Z',
+    endDate: '2020-03-07T10:00:00.000Z',
+    course: coursesList[19]._id,
     step: stepList[0]._id,
   },
 ];
+
+const attendanceList = [{ _id: new ObjectId(), trainee: traineeFromThirdCompany._id, courseSlot: slots[16]._id }];
 
 const populateDB = async () => {
   await deleteNonAuthenticationSeeds();
@@ -634,6 +666,7 @@ const populateDB = async () => {
   await Promise.all([
     Activity.create(activitiesList),
     ActivityHistory.create(activitiesHistory),
+    Attendance.create(attendanceList),
     Card.create(cardsList),
     Course.create(coursesList),
     CourseBill.create(courseBillsList),
@@ -660,11 +693,8 @@ module.exports = {
   programsList,
   traineeFromOtherCompany,
   traineeWithoutCompany,
-  traineeFromThirdCompany,
   courseSmsHistory,
-  slots,
   traineeFromAuthCompanyWithFormationExpoToken,
   userCompanies,
   coachFromOtherCompany,
-  courseBillsList,
 };

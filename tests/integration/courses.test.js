@@ -34,9 +34,6 @@ const {
   traineeFromAuthCompanyWithFormationExpoToken,
   userCompanies,
   coachFromOtherCompany,
-  courseBillsList,
-  traineeFromThirdCompany,
-  slots,
 } = require('./seed/coursesSeed');
 const { getToken, getTokenByCredentials } = require('./helpers/authentication');
 const { otherCompany, authCompany, companyWithoutSubscription: thirdCompany } = require('../seed/authCompaniesSeed');
@@ -56,8 +53,6 @@ const UtilsHelper = require('../../src/helpers/utils');
 const translate = require('../../src/helpers/translate');
 const UtilsMock = require('../utilsMock');
 const { CompaniDate } = require('../../src/helpers/dates/companiDates');
-const CourseBill = require('../../src/models/CourseBill');
-const Attendance = require('../../src/models/Attendance');
 
 const { language } = translate;
 
@@ -404,7 +399,7 @@ describe('COURSES ROUTES - GET /courses', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      expect(response.result.data.courses.length).toEqual(16);
+      expect(response.result.data.courses.length).toEqual(17);
     });
 
     it('should get strictly e-learning courses (ops webapp)', async () => {
@@ -499,7 +494,7 @@ describe('COURSES ROUTES - GET /courses', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      expect(response.result.data.courses.length).toEqual(10);
+      expect(response.result.data.courses.length).toEqual(11);
     });
 
     it('should get trainer\'s course (ops mobile)', async () => {
@@ -511,7 +506,7 @@ describe('COURSES ROUTES - GET /courses', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      expect(response.result.data.courses.length).toEqual(10);
+      expect(response.result.data.courses.length).toEqual(11);
 
       const course =
          response.result.data.courses.find(c => UtilsHelper.areObjectIdsEquals(coursesList[2]._id, c._id));
@@ -567,7 +562,7 @@ describe('COURSES ROUTES - GET /courses', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      expect(response.result.data.courses.length).toEqual(10);
+      expect(response.result.data.courses.length).toEqual(11);
     });
 
     it('should return 200 if coach and same company (pedagogy webapp)', async () => {
@@ -3257,26 +3252,9 @@ describe('COURSES ROUTES - DELETE /courses/{_id}/companies{companyId}', () => {
     });
 
     it('should return a 403 if company has bill', async () => {
-      const payload = {
-        course: interb2bCourseId,
-        company: thirdCompany._id,
-        mainFee: { price: 120, count: 1 },
-        payer: { company: authCompany._id },
-      };
-
-      await app.inject({
-        method: 'POST',
-        url: '/coursebills',
-        headers: { Cookie: `alenvi_token=${authToken}` },
-        payload,
-      });
-
-      const count = await CourseBill.countDocuments();
-      expect(count).toBe(courseBillsList.length + 1);
-
       const response = await app.inject({
         method: 'DELETE',
-        url: `/courses/${interb2bCourseId}/companies/${thirdCompany._id}`,
+        url: `/courses/${coursesList[19]._id}/companies/${authCompany._id}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -3285,20 +3263,9 @@ describe('COURSES ROUTES - DELETE /courses/{_id}/companies{companyId}', () => {
     });
 
     it('should return a 403 if company has attendance', async () => {
-      await app.inject({
-        method: 'POST',
-        url: '/attendances',
-        headers: { Cookie: `alenvi_token=${authToken}` },
-        payload: { trainee: traineeFromThirdCompany._id, courseSlot: slots[11]._id },
-      });
-
-      const count = await Attendance
-        .countDocuments({ trainee: traineeFromThirdCompany._id, courseSlot: slots[11]._id });
-      expect(count).toBeTruthy();
-
       const response = await app.inject({
         method: 'DELETE',
-        url: `/courses/${interb2bCourseId}/companies/${thirdCompany._id}`,
+        url: `/courses/${coursesList[19]._id}/companies/${thirdCompany._id}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
