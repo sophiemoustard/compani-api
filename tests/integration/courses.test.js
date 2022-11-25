@@ -3273,17 +3273,6 @@ describe('COURSES ROUTES - DELETE /courses/{_id}/companies{companyId}', () => {
       expect(response.result.message).toEqual(translate[language].companyTraineeAttendedToCourse);
     });
 
-    it('should return a 403 if company has attendance sheet', async () => {
-      const response = await app.inject({
-        method: 'DELETE',
-        url: `/courses/${coursesList[19]._id}/companies/${otherCompany._id}`,
-        headers: { Cookie: `alenvi_token=${authToken}` },
-      });
-
-      expect(response.statusCode).toBe(403);
-      expect(response.result.message).toEqual(translate[language].CompanyTraineeHasAttendanceSheetForCourse);
-    });
-
     it('should return a 403 if course is archived', async () => {
       const response = await app.inject({
         method: 'DELETE',
