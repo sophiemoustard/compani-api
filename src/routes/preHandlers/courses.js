@@ -451,6 +451,11 @@ exports.authorizeCourseCompanyDeletion = async (req) => {
     .populate({ path: 'trainees', select: 'company', populate: 'company' })
     .populate({ path: 'bills', select: 'company', options: { isVendorUser } })
     .populate({
+      path: 'attendanceSheets',
+      select: 'trainee',
+      populate: { path: 'trainee', select: 'company', populate: 'company' },
+    })
+    .populate({
       path: 'slots',
       select: 'attendances',
       populate: {
@@ -470,6 +475,12 @@ exports.authorizeCourseCompanyDeletion = async (req) => {
     .some(slot => slot.attendances
       .some(attendance => UtilsHelper.areObjectIdsEquals(companyId, attendance.trainee.company)));
   if (hasAttendancesFromCompany) throw Boom.forbidden(translate[language].companyTraineeAttendedToCourse);
+
+  const hasAttendanceSheetsFromCompany = course.attendanceSheets
+    .some(sheet => UtilsHelper.areObjectIdsEquals(companyId, sheet.trainee.company));
+  if (hasAttendanceSheetsFromCompany) {
+    throw Boom.forbidden(translate[language].CompanyTraineeHasAttendanceSheetForCourse);
+  }
 
   if (course.bills.some(bill => UtilsHelper.areObjectIdsEquals(companyId, bill.company))) {
     throw Boom.forbidden(translate[language].companyHasCourseBill);
