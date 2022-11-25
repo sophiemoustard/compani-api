@@ -54,13 +54,6 @@ CourseSchema.virtual('bills', {
   options: { sort: { createdAt: -1 } },
 });
 
-CourseSchema.virtual('attendanceSheets', {
-  ref: 'AttendanceSheet',
-  localField: '_id',
-  foreignField: 'course',
-  options: { sort: { createdAt: -1 } },
-});
-
 queryMiddlewareList.map(middleware => CourseSchema.pre(middleware, formatQuery));
 
 CourseSchema.plugin(mongooseLeanVirtuals);

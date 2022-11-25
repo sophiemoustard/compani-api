@@ -27,6 +27,7 @@ const {
 const translate = require('../../helpers/translate');
 const UtilsHelper = require('../../helpers/utils');
 const { CompaniDate } = require('../../helpers/dates/companiDates');
+const AttendanceSheet = require('../../models/AttendanceSheet');
 
 const { language } = translate;
 
@@ -451,11 +452,6 @@ exports.authorizeCourseCompanyDeletion = async (req) => {
     .populate({ path: 'trainees', select: 'company', populate: 'company' })
     .populate({ path: 'bills', select: 'company', options: { isVendorUser } })
     .populate({
-      path: 'attendanceSheets',
-      select: 'trainee',
-      populate: { path: 'trainee', select: 'company', populate: 'company' },
-    })
-    .populate({
       path: 'slots',
       select: 'attendances',
       populate: {
@@ -476,7 +472,12 @@ exports.authorizeCourseCompanyDeletion = async (req) => {
       .some(attendance => UtilsHelper.areObjectIdsEquals(companyId, attendance.trainee.company)));
   if (hasAttendancesFromCompany) throw Boom.forbidden(translate[language].companyTraineeAttendedToCourse);
 
-  const hasAttendanceSheetsFromCompany = course.attendanceSheets
+  const attendanceSheets = await AttendanceSheet
+    .find({ course: course._id }, { trainee: 1 })
+    .populate({ path: 'trainee', select: 'company', populate: 'company' })
+    .lean();
+
+  const hasAttendanceSheetsFromCompany = attendanceSheets
     .some(sheet => UtilsHelper.areObjectIdsEquals(companyId, sheet.trainee.company));
   if (hasAttendanceSheetsFromCompany) {
     throw Boom.forbidden(translate[language].CompanyTraineeHasAttendanceSheetForCourse);
