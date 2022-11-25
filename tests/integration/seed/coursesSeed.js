@@ -16,7 +16,7 @@ const Questionnaire = require('../../../src/models/Questionnaire');
 const QuestionnaireHistory = require('../../../src/models/QuestionnaireHistory');
 const CourseBill = require('../../../src/models/CourseBill');
 const CourseCreditNote = require('../../../src/models/CourseCreditNote');
-const { authCompany, otherCompany, companyWithoutSubscription } = require('../../seed/authCompaniesSeed');
+const { authCompany, otherCompany, companyWithoutSubscription: thirdCompany } = require('../../seed/authCompaniesSeed');
 const { deleteNonAuthenticationSeeds } = require('../helpers/authentication');
 const {
   vendorAdmin,
@@ -74,10 +74,10 @@ const traineeWithoutCompany = {
   origin: WEBAPP,
 };
 
-const traineeFromCompanyWithoutSubscription = {
+const traineeFromThirdCompany = {
   _id: new ObjectId(),
   identity: { firstname: 'Fred', lastname: 'Subscription' },
-  local: { email: 'traineeCompanyWithoutSubscription@alenvi.io', password: '123456!eR' },
+  local: { email: 'trainee_third_company@alenvi.io', password: '123456!eR' },
   role: { client: auxiliaryRoleId },
   contact: { phone: '0734856752' },
   refreshToken: uuidv4(),
@@ -109,14 +109,14 @@ const userList = [
   traineeWithoutCompany,
   contactWithoutPhone,
   coachFromOtherCompany,
-  traineeFromCompanyWithoutSubscription,
+  traineeFromThirdCompany,
 ];
 
 const userCompanies = [
   { _id: new ObjectId(), user: traineeFromOtherCompany._id, company: otherCompany._id },
   { _id: new ObjectId(), user: traineeFromAuthCompanyWithFormationExpoToken._id, company: authCompany._id },
   { _id: new ObjectId(), user: coachFromOtherCompany._id, company: otherCompany._id },
-  { _id: new ObjectId(), user: traineeFromCompanyWithoutSubscription._id, company: companyWithoutSubscription._id },
+  { _id: new ObjectId(), user: traineeFromThirdCompany._id, company: thirdCompany._id },
 ];
 
 const cardsList = [
@@ -246,7 +246,7 @@ const coursesList = [
     type: INTER_B2B,
     format: BLENDED,
     trainees: [noRole._id],
-    companies: [companyWithoutSubscription._id],
+    companies: [thirdCompany._id],
     salesRepresentative: vendorAdmin._id,
   },
   { // 6 course without trainees and slots
@@ -266,7 +266,7 @@ const coursesList = [
     type: INTER_B2B,
     format: BLENDED,
     trainees: [auxiliary._id],
-    companies: [authCompany._id, companyWithoutSubscription._id],
+    companies: [authCompany._id, thirdCompany._id],
     trainer: trainer._id,
     salesRepresentative: vendorAdmin._id,
   },
@@ -660,7 +660,7 @@ module.exports = {
   programsList,
   traineeFromOtherCompany,
   traineeWithoutCompany,
-  traineeFromCompanyWithoutSubscription,
+  traineeFromThirdCompany,
   courseSmsHistory,
   slots,
   traineeFromAuthCompanyWithFormationExpoToken,

@@ -35,11 +35,11 @@ const {
   userCompanies,
   coachFromOtherCompany,
   courseBillsList,
-  traineeFromCompanyWithoutSubscription,
+  traineeFromThirdCompany,
   slots,
 } = require('./seed/coursesSeed');
 const { getToken, getTokenByCredentials } = require('./helpers/authentication');
-const { otherCompany, authCompany, companyWithoutSubscription } = require('../seed/authCompaniesSeed');
+const { otherCompany, authCompany, companyWithoutSubscription: thirdCompany } = require('../seed/authCompaniesSeed');
 const {
   noRoleNoCompany,
   coach,
@@ -3199,7 +3199,7 @@ describe('COURSES ROUTES - DELETE /courses/{_id}/companies{companyId}', () => {
     it('should remove company from course companies', async () => {
       const response = await app.inject({
         method: 'DELETE',
-        url: `/courses/${interb2bCourseId}/companies/${companyWithoutSubscription._id}`,
+        url: `/courses/${interb2bCourseId}/companies/${thirdCompany._id}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -3207,19 +3207,19 @@ describe('COURSES ROUTES - DELETE /courses/{_id}/companies{companyId}', () => {
 
       const courseHistory = await CourseHistory.countDocuments({
         course: interb2bCourseId,
-        company: companyWithoutSubscription._id,
+        company: thirdCompany._id,
         action: COMPANY_DELETION,
       });
       expect(courseHistory).toEqual(1);
 
-      const course = await Course.countDocuments({ _id: interb2bCourseId, companies: companyWithoutSubscription._id });
+      const course = await Course.countDocuments({ _id: interb2bCourseId, companies: thirdCompany._id });
       expect(course).toEqual(0);
     });
 
     it('should return 404 if course doesn\'t exist', async () => {
       const response = await app.inject({
         method: 'DELETE',
-        url: `/courses/${new ObjectId()}/companies/${companyWithoutSubscription._id}`,
+        url: `/courses/${new ObjectId()}/companies/${thirdCompany._id}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -3259,7 +3259,7 @@ describe('COURSES ROUTES - DELETE /courses/{_id}/companies{companyId}', () => {
     it('should return a 403 if company has bill', async () => {
       const payload = {
         course: interb2bCourseId,
-        company: companyWithoutSubscription._id,
+        company: thirdCompany._id,
         mainFee: { price: 120, count: 1 },
         payer: { company: authCompany._id },
       };
@@ -3276,7 +3276,7 @@ describe('COURSES ROUTES - DELETE /courses/{_id}/companies{companyId}', () => {
 
       const response = await app.inject({
         method: 'DELETE',
-        url: `/courses/${interb2bCourseId}/companies/${companyWithoutSubscription._id}`,
+        url: `/courses/${interb2bCourseId}/companies/${thirdCompany._id}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -3289,16 +3289,16 @@ describe('COURSES ROUTES - DELETE /courses/{_id}/companies{companyId}', () => {
         method: 'POST',
         url: '/attendances',
         headers: { Cookie: `alenvi_token=${authToken}` },
-        payload: { trainee: traineeFromCompanyWithoutSubscription._id, courseSlot: slots[11]._id },
+        payload: { trainee: traineeFromThirdCompany._id, courseSlot: slots[11]._id },
       });
 
       const count = await Attendance
-        .countDocuments({ trainee: traineeFromCompanyWithoutSubscription._id, courseSlot: slots[11]._id });
+        .countDocuments({ trainee: traineeFromThirdCompany._id, courseSlot: slots[11]._id });
       expect(count).toBeTruthy();
 
       const response = await app.inject({
         method: 'DELETE',
-        url: `/courses/${interb2bCourseId}/companies/${companyWithoutSubscription._id}`,
+        url: `/courses/${interb2bCourseId}/companies/${thirdCompany._id}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -3329,7 +3329,7 @@ describe('COURSES ROUTES - DELETE /courses/{_id}/companies{companyId}', () => {
         authToken = await getToken(role.name);
         const response = await app.inject({
           method: 'DELETE',
-          url: `/courses/${interb2bCourseId}/companies/${companyWithoutSubscription._id}`,
+          url: `/courses/${interb2bCourseId}/companies/${thirdCompany._id}`,
           headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
