@@ -17,6 +17,7 @@ const QuestionnaireHistory = require('../../../src/models/QuestionnaireHistory')
 const CourseBill = require('../../../src/models/CourseBill');
 const CourseCreditNote = require('../../../src/models/CourseCreditNote');
 const Attendance = require('../../../src/models/Attendance');
+const AttendanceSheet = require('../../../src/models/AttendanceSheet');
 const { authCompany, otherCompany, companyWithoutSubscription: thirdCompany } = require('../../seed/authCompaniesSeed');
 const { deleteNonAuthenticationSeeds } = require('../helpers/authentication');
 const {
@@ -411,7 +412,7 @@ const coursesList = [
     type: INTER_B2B,
     format: BLENDED,
     trainees: [],
-    companies: [authCompany._id, thirdCompany._id],
+    companies: [authCompany._id, thirdCompany._id, otherCompany._id],
     trainer: trainer._id,
     salesRepresentative: vendorAdmin._id,
   },
@@ -660,6 +661,18 @@ const slots = [
 
 const attendanceList = [{ _id: new ObjectId(), trainee: traineeFromThirdCompany._id, courseSlot: slots[16]._id }];
 
+const attendanceSheetList = [
+  {
+    _id: new ObjectId(),
+    trainee: traineeFromOtherCompany._id,
+    course: coursesList[19]._id,
+    file: {
+      publicId: 'publicId',
+      link: 'https://link.com',
+    },
+  },
+];
+
 const populateDB = async () => {
   await deleteNonAuthenticationSeeds();
 
@@ -667,6 +680,7 @@ const populateDB = async () => {
     Activity.create(activitiesList),
     ActivityHistory.create(activitiesHistory),
     Attendance.create(attendanceList),
+    AttendanceSheet.create(attendanceSheetList),
     Card.create(cardsList),
     Course.create(coursesList),
     CourseBill.create(courseBillsList),
