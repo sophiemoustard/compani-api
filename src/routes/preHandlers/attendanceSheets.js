@@ -29,9 +29,7 @@ exports.authorizeAttendanceSheetsGet = async (req) => {
 
   if (!UtilsHelper.doesArrayIncludeId(course.companies, loggedUserCompany)) throw Boom.forbidden();
 
-  if (course.type === INTER_B2B) return loggedUserCompany;
-
-  return null;
+  return course.type === INTER_B2B ? loggedUserCompany : null;
 };
 
 exports.authorizeAttendanceSheetCreation = async (req) => {
