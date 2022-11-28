@@ -4,7 +4,7 @@ const { CompaniDate } = require('../../helpers/dates/companiDates');
 const UtilsHelper = require('../../helpers/utils');
 const Course = require('../../models/Course');
 const AttendanceSheet = require('../../models/AttendanceSheet');
-const { INTRA, TRAINER } = require('../../helpers/constants');
+const { INTRA, INTER_B2B, TRAINER } = require('../../helpers/constants');
 
 const isTrainerAuthorized = (courseTrainer, credentials) => {
   const loggedUserId = get(credentials, '_id');
@@ -17,7 +17,7 @@ const isTrainerAuthorized = (courseTrainer, credentials) => {
 };
 
 exports.authorizeAttendanceSheetsGet = async (req) => {
-  const course = await Course.findOne({ _id: req.query.course }, { companies: 1, trainer: 1 }).lean();
+  const course = await Course.findOne({ _id: req.query.course }, { type: 1, companies: 1, trainer: 1 }).lean();
   if (!course) throw Boom.notFound();
 
   const { credentials } = req.auth;
@@ -29,7 +29,9 @@ exports.authorizeAttendanceSheetsGet = async (req) => {
 
   if (!UtilsHelper.doesArrayIncludeId(course.companies, loggedUserCompany)) throw Boom.forbidden();
 
-  return loggedUserCompany;
+  if (course.type === INTER_B2B) return loggedUserCompany;
+
+  return null;
 };
 
 exports.authorizeAttendanceSheetCreation = async (req) => {
