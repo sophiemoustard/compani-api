@@ -3,7 +3,7 @@ const Questionnaire = require('../models/Questionnaire');
 const Course = require('../models/Course');
 const Card = require('../models/Card');
 const CardHelper = require('./cards');
-const { EXPECTATIONS, PUBLISHED, STRICTLY_E_LEARNING, END_OF_COURSE } = require('./constants');
+const { EXPECTATIONS, PUBLISHED, STRICTLY_E_LEARNING, END_OF_COURSE, INTRA } = require('./constants');
 const DatesUtilsHelper = require('./dates/utils');
 const { CompaniDate } = require('./dates/companiDates');
 
@@ -64,7 +64,7 @@ exports.getUserQuestionnaires = async (courseId, credentials) => {
 
 const formatQuestionnaireAnswersWithCourse = async (courseId, questionnaireAnswers) => {
   const course = await Course.findOne({ _id: courseId })
-    .select('subProgram companies misc')
+    .select('subProgram companies misc type')
     .populate({ path: 'subProgram', select: 'program', populate: [{ path: 'program', select: 'name' }] })
     .populate({ path: 'companies', select: 'name' })
     .lean();
@@ -73,7 +73,7 @@ const formatQuestionnaireAnswersWithCourse = async (courseId, questionnaireAnswe
     ...questionnaireAnswers,
     course: {
       programName: course.subProgram.program.name,
-      companyName: get(course, 'companies[0].name') || '',
+      companyName: course.type === INTRA ? course.companies[0].name : '',
       misc: course.misc,
     },
   };
