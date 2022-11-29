@@ -33,7 +33,7 @@ const {
   authorizeCourseDeletion,
   authorizeGetList,
   authorizeRegisterToELearning,
-  getCourse,
+  authorizeGetConvocationPdf,
   authorizeAccessRuleAddition,
   authorizeAccessRuleDeletion,
   authorizeGetCourse,
@@ -333,7 +333,7 @@ exports.plugin = {
           params: Joi.object({ _id: Joi.objectId().required() }),
         },
         auth: { mode: 'optional' },
-        pre: [{ method: getCourse, assign: 'course' }],
+        pre: [{ method: authorizeGetConvocationPdf }],
       },
       handler: generateConvocationPdf,
     });

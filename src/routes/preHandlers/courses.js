@@ -501,3 +501,10 @@ exports.authorizeCourseCompanyDeletion = async (req) => {
 
   return null;
 };
+
+exports.authorizeGetConvocationPdf = async (req) => {
+  const course = await Course.findById(req.params._id).lean();
+  if (!course) throw Boom.notFound();
+
+  return null;
+};

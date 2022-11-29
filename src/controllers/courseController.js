@@ -229,10 +229,10 @@ const deleteAccessRule = async (req) => {
 
 const generateConvocationPdf = async (req, h) => {
   try {
-    req.log('courseController - generateConvocationPdf - pre.course._id', get(req, 'pre.course._id'));
+    req.log('courseController - generateConvocationPdf - params._id', req.params._id);
     req.log('courseController - generateConvocationPdf - company', get(req, 'auth.credentials.company._id'));
 
-    const { pdf, courseName } = await CoursesHelper.generateConvocationPdf(req.pre.course._id);
+    const { pdf, courseName } = await CoursesHelper.generateConvocationPdf(req.params._id);
 
     return h.response(pdf)
       .header('content-disposition', `inline; filename=${courseName}.pdf`)
