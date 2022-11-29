@@ -139,11 +139,7 @@ exports.plugin = {
           query: Joi.object({ company: Joi.objectId() }),
         },
         auth: { scope: ['courses:read'] },
-        pre: [
-          { method: getCourse, assign: 'course' },
-          { method: authorizeGetCourse },
-          { method: authorizeGetFollowUp },
-        ],
+        pre: [{ method: authorizeGetCourse }, { method: authorizeGetFollowUp }],
       },
       handler: getFollowUp,
     });

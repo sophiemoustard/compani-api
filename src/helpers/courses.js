@@ -340,10 +340,10 @@ exports.formatActivity = (activity) => {
 
 exports.formatStep = step => ({ ...step, activities: step.activities.map(a => exports.formatActivity(a)) });
 
-exports.getCourseFollowUp = async (course, company) => {
-  const courseWithTrainees = await Course.findOne({ _id: course._id }, { trainees: 1 }).lean();
+exports.getCourseFollowUp = async (courseId, company) => {
+  const courseWithTrainees = await Course.findOne({ _id: courseId }, { trainees: 1 }).lean();
 
-  const courseFollowUp = await Course.findOne({ _id: course._id }, { subProgram: 1 })
+  const courseFollowUp = await Course.findOne({ _id: courseId }, { subProgram: 1 })
     .populate({
       path: 'subProgram',
       select: 'name steps program',
