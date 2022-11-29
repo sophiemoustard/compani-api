@@ -1893,7 +1893,7 @@ describe('getCourseFollowUp', () => {
 
     formatStep.callsFake(s => s);
     getTraineeElearningProgress.returns({ steps: { progress: 1 }, progress: 1 });
-    const result = await CourseHelper.getCourseFollowUp(course);
+    const result = await CourseHelper.getCourseFollowUp(course._id);
 
     expect(result).toEqual(course);
 
@@ -1961,7 +1961,7 @@ describe('getCourseFollowUp', () => {
     formatStep.callsFake(s => s);
     getTraineeElearningProgress.returns({ steps: { progress: 1 }, progress: 1 });
 
-    const result = await CourseHelper.getCourseFollowUp(course, companyId);
+    const result = await CourseHelper.getCourseFollowUp(course._id, companyId);
 
     expect(result).toEqual({
       _id: '1234567890',
