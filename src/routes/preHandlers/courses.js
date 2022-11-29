@@ -491,7 +491,7 @@ exports.authorizeCourseCompanyDeletion = async (req) => {
 };
 
 exports.authorizeGetConvocationPdf = async (req) => {
-  const course = await Course.findById(req.params._id).lean();
+  const course = await Course.countDocuments({ _id: req.params._id });
   if (!course) throw Boom.notFound();
 
   return null;

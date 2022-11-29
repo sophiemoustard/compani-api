@@ -1914,7 +1914,7 @@ describe('COURSES ROUTES - POST /courses/{_id}/sms', () => {
 
       expect(response.statusCode).toBe(200);
 
-      const courseIsArchived = !!await Course.findById(archivedCourseId, { archivedAt: 1 }).lean();
+      const courseIsArchived = !!await Course.countDocuments({ _id: archivedCourseId }, { archivedAt: 1 });
       expect(courseIsArchived).toBeTruthy();
 
       const smsHistoryAfter = await CourseSmsHistory.countDocuments({ course: archivedCourseId });
