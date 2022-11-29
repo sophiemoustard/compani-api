@@ -415,7 +415,16 @@ exports.authorizeGetAttendanceSheets = async (req) => {
 };
 
 exports.authorizeSmsSending = async (req) => {
-  const { course } = req.pre;
+  const course = await Course.findById(req.params._id)
+    .populate({ path: 'slots', select: 'endDate' })
+    .populate({ path: 'trainees', select: 'contact.phone' })
+    .lean();
+  if (!course) throw Boom.notFound();
+
+  const { credentials } = req.auth;
+  const courseTrainerId = get(course, 'trainer') || null;
+  const companies = course.type === INTRA ? course.companies : [];
+  this.checkAuthorization(credentials, courseTrainerId, companies);
 
   const isFinished = !course.slots || !course.slots.some(slot => CompaniDate().isBefore(slot.endDate));
   const isStarted = course.slots && course.slots.some(slot => CompaniDate().isAfter(slot.endDate));

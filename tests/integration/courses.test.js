@@ -1902,6 +1902,34 @@ describe('COURSES ROUTES - POST /courses/{_id}/sms', () => {
       );
     });
 
+    it('should return a 200 if course is archived and type is other', async () => {
+      const smsHistoryBefore = await CourseSmsHistory.countDocuments({ course: archivedCourseId });
+
+      const response = await app.inject({
+        method: 'POST',
+        url: `/courses/${archivedCourseId}/sms`,
+        payload: { content: 'Ceci est un test', type: OTHER },
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(200);
+
+      const courseIsArchived = !!await Course.findById(archivedCourseId, { archivedAt: 1 }).lean();
+      expect(courseIsArchived).toBeTruthy();
+
+      const smsHistoryAfter = await CourseSmsHistory.countDocuments({ course: archivedCourseId });
+      expect(smsHistoryAfter).toEqual(smsHistoryBefore + 1);
+      sinon.assert.calledWithExactly(
+        SmsHelperStub,
+        {
+          recipient: `+33${coach.contact.phone.substring(1)}`,
+          sender: 'Compani',
+          content: 'Ceci est un test',
+          tag: COURSE_SMS,
+        }
+      );
+    });
+
     it('should return a 400 error if type is invalid', async () => {
       const response = await app.inject({
         method: 'POST',
@@ -1997,21 +2025,6 @@ describe('COURSES ROUTES - POST /courses/{_id}/sms', () => {
       expect(hasSlotToCome).toBeTruthy();
       expect(hasReceiver).toBeFalsy();
 
-      sinon.assert.notCalled(SmsHelperStub);
-    });
-
-    it('should return a 403 if course is archived', async () => {
-      const response = await app.inject({
-        method: 'POST',
-        url: `/courses/${archivedCourseId}/sms`,
-        payload,
-        headers: { Cookie: `alenvi_token=${authToken}` },
-      });
-
-      expect(response.statusCode).toBe(403);
-      const courseIsArchived = !!await Course.findById(archivedCourseId, { archivedAt: 1 }).lean();
-
-      expect(courseIsArchived).toBeTruthy();
       sinon.assert.notCalled(SmsHelperStub);
     });
 

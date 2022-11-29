@@ -219,11 +219,7 @@ exports.plugin = {
             type: Joi.string().required().valid(...MESSAGE_TYPE),
           }).required(),
         },
-        pre: [
-          { method: getCourse, assign: 'course' },
-          { method: authorizeCourseEdit },
-          { method: authorizeSmsSending },
-        ],
+        pre: [{ method: authorizeSmsSending }],
       },
       handler: sendSMS,
     });
