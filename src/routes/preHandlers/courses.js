@@ -350,18 +350,6 @@ exports.authorizeGetCourse = async (req) => {
   }
 };
 
-exports.getCourse = async (req) => {
-  const course = await Course.findById(req.params._id)
-    .populate({ path: 'slots', select: 'startDate endDate' })
-    .populate({ path: 'slotsToPlan' })
-    .populate({ path: 'trainees', select: 'contact.phone', populate: { path: 'company' } })
-    .populate({ path: 'contact', select: 'identity.lastname contact.phone' })
-    .lean();
-  if (!course) throw Boom.notFound();
-
-  return course;
-};
-
 exports.authorizeAccessRuleAddition = async (req) => {
   const course = await Course.findById(req.params._id, 'accessRules').lean();
   if (!course) throw Boom.notFound();
