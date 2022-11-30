@@ -403,7 +403,7 @@ exports.authorizeGetAttendanceSheets = async (req) => {
 };
 
 exports.authorizeSmsSending = async (req) => {
-  const course = await Course.findById(req.params._id)
+  const course = await Course.findById(req.params._id, { slots: 1, trainees: 1, type: 1, companies: 1, trainer: 1 })
     .populate({ path: 'slots', select: 'endDate' })
     .populate({ path: 'trainees', select: 'contact.phone' })
     .lean();
