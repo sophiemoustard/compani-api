@@ -79,13 +79,14 @@ const getAttendancesCountInfos = (course) => {
 };
 
 const getBillsInfos = (course) => {
-  const courseBillsWithoutCreditNote = course.bills.filter(bill => !bill.courseCreditNote);
-  const payerList = [...new Set(courseBillsWithoutCreditNote.map(bill => get(bill, 'payer.name')))]
-    .sort((a, b) => a.localeCompare(b))
-    .toString();
-  const validatedBillList = courseBillsWithoutCreditNote.filter(bill => bill.billedAt);
-  const computedAmounts = validatedBillList.map(bill => CourseBillHelper.computeAmounts(bill));
-  const amountsInfos = validatedBillList.length
+  const validatedBillsWithoutCreditNote = course.bills.filter(bill => !bill.courseCreditNote && bill.billedAt);
+
+  const payerList =
+    [...new Set(validatedBillsWithoutCreditNote.map(bill => get(bill, 'payer.name')))]
+      .sort((a, b) => a.localeCompare(b))
+      .toString();
+  const computedAmounts = validatedBillsWithoutCreditNote.map(bill => CourseBillHelper.computeAmounts(bill));
+  const amountsInfos = validatedBillsWithoutCreditNote.length
     ? {
       netInclTaxes: computedAmounts.map(amount => amount.netInclTaxes).reduce((acc, value) => acc + value, 0),
       paid: computedAmounts.map(amount => amount.paid).reduce((acc, value) => acc + value, 0),
@@ -94,13 +95,15 @@ const getBillsInfos = (course) => {
     : { netInclTaxes: '', paid: '', total: '' };
 
   if (course.type === INTRA) {
-    const billsCountForExport = `${validatedBillList.length} sur ${course.expectedBillsCount}`;
-    const isBilled = !!course.expectedBillsCount && validatedBillList.length === course.expectedBillsCount;
+    const billsCountForExport = `${validatedBillsWithoutCreditNote.length} sur ${course.expectedBillsCount}`;
+    const isBilled = !!course.expectedBillsCount &&
+      validatedBillsWithoutCreditNote.length === course.expectedBillsCount;
 
     return { isBilled, billsCountForExport, payerList, ...amountsInfos };
   }
 
-  const mainFeesCount = validatedBillList.map(bill => bill.mainFee.count).reduce((acc, value) => acc + value, 0);
+  const mainFeesCount = validatedBillsWithoutCreditNote
+    .map(bill => bill.mainFee.count).reduce((acc, value) => acc + value, 0);
   const billsCountForExport = `${mainFeesCount} sur ${course.trainees.length}`;
   const isBilled = !!course.trainees.length && mainFeesCount === course.trainees.length;
 

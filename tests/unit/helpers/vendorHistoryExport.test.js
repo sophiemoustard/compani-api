@@ -288,6 +288,15 @@ describe('exportCourseHistory', () => {
           courseCreditNote: null,
           coursePayments: [{ netInclTaxes: 10, nature: PAYMENT }],
         },
+        { // non-validated invoice
+          course: courseIdList[3],
+          mainFee: { price: 120, count: 2 },
+          company,
+          payer: { name: 'Test' },
+          number: 'FACT-00014',
+          courseCreditNote: null,
+          coursePayments: [],
+        },
       ],
     },
 
