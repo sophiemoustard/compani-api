@@ -1423,20 +1423,29 @@ describe('exportCoursePaymentHistory', () => {
   });
 
   it('should return an array with the header and 3 rows', async () => {
+    const courseBillIds = [new ObjectId(), new ObjectId()];
     const coursePaymentList = [
+      {
+        nature: REFUND,
+        number: 'REG-2',
+        date: '2022-01-22T23:00:00.000Z',
+        courseBill: { _id: courseBillIds[0], number: 'FACT-2' },
+        type: CHECK,
+        netInclTaxes: 22,
+      },
       {
         nature: PAYMENT,
         number: 'REG-1',
-        date: '2022-01-02',
-        courseBill: { number: 'FACT-2' },
+        date: '2022-01-01T23:00:00.000Z',
+        courseBill: { _id: courseBillIds[0], number: 'FACT-2' },
         type: CHECK,
         netInclTaxes: 100,
       },
       {
         nature: REFUND,
         number: 'REG-4',
-        date: '2022-01-02',
-        courseBill: { number: 'FACT-1' },
+        date: '2022-01-10T23:00:00.000Z',
+        courseBill: { _id: courseBillIds[1], number: 'FACT-1' },
         type: CHECK,
         netInclTaxes: 200,
       },
@@ -1446,9 +1455,10 @@ describe('exportCoursePaymentHistory', () => {
     const result = await ExportHelper.exportCoursePaymentHistory('2021-01-14T23:00:00.000Z', '2022-01-20T22:59:59.000Z', credentials);
 
     expect(result).toEqual([
-      ['Nature', 'Identifiant', 'Date', 'Facture associée', 'Moyen de paiement', 'Montant'],
-      ['Paiement', 'REG-1', '02/01/2022', 'FACT-2', 'Chèque', '100,00'],
-      ['Remboursement', 'REG-4', '02/01/2022', 'FACT-1', 'Chèque', '200,00'],
+      ['Nature', 'Identifiant', 'Date', 'Facture associée', 'Numéro du paiement (parmi ceux de la même facture)', 'Moyen de paiement', 'Montant'],
+      ['Paiement', 'REG-1', '02/01/2022', 'FACT-2', 1, 'Chèque', '100,00'],
+      ['Remboursement', 'REG-2', '23/01/2022', 'FACT-2', 2, 'Chèque', '22,00'],
+      ['Remboursement', 'REG-4', '11/01/2022', 'FACT-1', 1, 'Chèque', '200,00'],
     ]);
     SinonMongoose.calledOnceWithExactly(
       findCoursePayment,

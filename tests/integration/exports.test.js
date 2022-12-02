@@ -158,11 +158,11 @@ const vendorHistoryExportTypes = [
   {
     exportType: COURSE_PAYMENT,
     expectedRows: [
-      '\ufeff"Nature";"Identifiant";"Date";"Facture associée";"Moyen de paiement";"Montant"',
-      '"Paiement";"REG-00001";"09/03/2022";"FACT-00001";"Prélèvement";"1100,00"',
-      '"Paiement";"REG-00002";"09/03/2022";"FACT-00004";"Virement";"400,00"',
-      '"Paiement";"REG-00003";"09/03/2022";"FACT-00005";"Espèces";"300,00"',
-      '"Remboursement";"REG-00004";"11/03/2022";"FACT-00005";"Chèque";"200,00"',
+      '\ufeff"Nature";"Identifiant";"Date";"Facture associée";"Numéro du paiement (parmi ceux de la même facture)";"Moyen de paiement";"Montant"',
+      '"Paiement";"REG-00001";"09/03/2022";"FACT-00001";1;"Prélèvement";"1100,00"',
+      '"Paiement";"REG-00002";"09/03/2022";"FACT-00004";1;"Virement";"400,00"',
+      '"Paiement";"REG-00003";"09/03/2022";"FACT-00005";1;"Espèces";"300,00"',
+      '"Remboursement";"REG-00004";"11/03/2022";"FACT-00005";2;"Chèque";"200,00"',
     ],
     query: 'startDate=2022-03-01T10:00:00.000Z&endDate=2022-04-20T10:00:00.000Z',
   },

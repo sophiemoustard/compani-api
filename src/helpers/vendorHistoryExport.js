@@ -24,6 +24,7 @@ const {
   ESTIMATED_START_DATE_EDITION,
 } = require('./constants');
 const { CompaniDate } = require('./dates/companiDates');
+const DatesUtilsHelper = require('./dates/utils');
 const UtilsHelper = require('./utils');
 const NumbersHelper = require('./numbers');
 const CourseBillHelper = require('./courseBills');
@@ -434,18 +435,21 @@ exports.exportCoursePaymentHistory = async (startDate, endDate, credentials) => 
     .populate({ path: 'courseBill', option: { isVendorUser }, select: 'number' })
     .setOptions({ isVendorUser })
     .lean();
+  const groupedBillPayments = Object.values(groupBy(paymentList, 'courseBill._id'))
+    .map(paymentsByBill => [...paymentsByBill].sort(DatesUtilsHelper.ascendingSortBy('date')));
 
-  const rows = [];
-  for (const payment of paymentList) {
-    rows.push({
-      Nature: PAYMENT_NATURE_LIST[payment.nature],
-      Identifiant: payment.number,
-      Date: CompaniDate(payment.date).format(DD_MM_YYYY),
-      'Facture associée': payment.courseBill.number,
-      'Moyen de paiement': PAYMENT_TYPES_LIST[payment.type],
-      Montant: UtilsHelper.formatFloatForExport(payment.netInclTaxes),
-    });
-  }
+  const rows = groupedBillPayments
+    .flatMap(billPayments => billPayments
+      .map((payment, paymentIndex) => ({
+        Nature: PAYMENT_NATURE_LIST[payment.nature],
+        Identifiant: payment.number,
+        Date: CompaniDate(payment.date).format(DD_MM_YYYY),
+        'Facture associée': payment.courseBill.number,
+        'Numéro du paiement (parmi ceux de la même facture)': paymentIndex + 1,
+        'Moyen de paiement': PAYMENT_TYPES_LIST[payment.type],
+        Montant: UtilsHelper.formatFloatForExport(payment.netInclTaxes),
+      }))
+    );
 
   return rows.length ? [Object.keys(rows[0]), ...rows.map(d => Object.values(d))] : [[NO_DATA]];
 };
