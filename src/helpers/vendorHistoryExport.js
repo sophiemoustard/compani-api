@@ -432,11 +432,11 @@ exports.exportCoursePaymentHistory = async (startDate, endDate, credentials) => 
     .populate({ path: 'courseBill', option: { isVendorUser }, select: 'number' })
     .setOptions({ isVendorUser })
     .lean();
-  const groupedAndSortedPayments = Object.values(groupBy(paymentList, 'courseBill._id'))
+  const groupedBillPayments = Object.values(groupBy(paymentList, 'courseBill._id'))
     .map(paymentsByBill => [...paymentsByBill].sort(DatesUtilsHelper.ascendingSortBy('date')));
 
-  const rows = groupedAndSortedPayments
-    .flatMap(coursePayments => coursePayments
+  const rows = groupedBillPayments
+    .flatMap(billPayments => billPayments
       .map((payment, paymentIndex) => ({
         Nature: PAYMENT_NATURE_LIST[payment.nature],
         Identifiant: payment.number,
