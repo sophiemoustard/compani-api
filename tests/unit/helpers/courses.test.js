@@ -295,10 +295,7 @@ describe('list', () => {
         },
       ];
 
-      findCourseAndPopulate.onFirstCall()
-        .returns([returnedList[0]])
-        .onSecondCall()
-        .returns([returnedList[1]]);
+      findCourseAndPopulate.returns(returnedList);
 
       const query = {
         company: authCompany.toHexString(),
@@ -310,14 +307,9 @@ describe('list', () => {
       const result = await CourseHelper.list(query, credentials);
 
       expect(result).toMatchObject(coursesList);
-      sinon.assert.calledWithExactly(
-        findCourseAndPopulate.getCall(0),
-        { companies: [authCompany.toHexString()], trainer: '1234567890abcdef12345678', format: 'blended', type: INTRA },
-        'webapp'
-      );
-      sinon.assert.calledWithExactly(
-        findCourseAndPopulate.getCall(1),
-        { trainer: '1234567890abcdef12345678', format: 'blended', type: INTER_B2B },
+      sinon.assert.calledOnceWithExactly(
+        findCourseAndPopulate,
+        { companies: authCompany.toHexString(), trainer: '1234567890abcdef12345678', format: 'blended' },
         'webapp',
         true
       );
@@ -1901,7 +1893,7 @@ describe('getCourseFollowUp', () => {
 
     formatStep.callsFake(s => s);
     getTraineeElearningProgress.returns({ steps: { progress: 1 }, progress: 1 });
-    const result = await CourseHelper.getCourseFollowUp(course);
+    const result = await CourseHelper.getCourseFollowUp(course._id);
 
     expect(result).toEqual(course);
 
@@ -1969,7 +1961,7 @@ describe('getCourseFollowUp', () => {
     formatStep.callsFake(s => s);
     getTraineeElearningProgress.returns({ steps: { progress: 1 }, progress: 1 });
 
-    const result = await CourseHelper.getCourseFollowUp(course, companyId);
+    const result = await CourseHelper.getCourseFollowUp(course._id, companyId);
 
     expect(result).toEqual({
       _id: '1234567890',
@@ -3584,6 +3576,65 @@ describe('getQuestionnaires', () => {
         },
         { query: 'lean' },
       ]
+    );
+  });
+});
+
+describe('addCourseCompany', () => {
+  let courseUpdateOne;
+  let createHistoryOnCompanyAddition;
+  beforeEach(() => {
+    courseUpdateOne = sinon.stub(Course, 'updateOne');
+    createHistoryOnCompanyAddition = sinon.stub(CourseHistoriesHelper, 'createHistoryOnCompanyAddition');
+  });
+  afterEach(() => {
+    courseUpdateOne.restore();
+    createHistoryOnCompanyAddition.restore();
+  });
+
+  it('should add a course company using existing company', async () => {
+    const companyId = new ObjectId();
+    const course = { _id: new ObjectId(), misc: 'Test', companies: [new ObjectId()] };
+    const payload = { company: companyId };
+    const credentials = { _id: new ObjectId() };
+
+    await CourseHelper.addCourseCompany(course._id, payload, credentials);
+
+    sinon.assert.calledOnceWithExactly(courseUpdateOne, { _id: course._id }, { $addToSet: { companies: companyId } });
+    sinon.assert.calledOnceWithExactly(
+      createHistoryOnCompanyAddition,
+      { course: course._id, company: companyId },
+      credentials._id
+    );
+  });
+});
+
+describe('removeCourseCompany', () => {
+  let courseUpdateOne;
+  let createHistoryOnCompanyDeletion;
+
+  beforeEach(() => {
+    courseUpdateOne = sinon.stub(Course, 'updateOne');
+    createHistoryOnCompanyDeletion = sinon.stub(CourseHistoriesHelper, 'createHistoryOnCompanyDeletion');
+  });
+
+  afterEach(() => {
+    courseUpdateOne.restore();
+    createHistoryOnCompanyDeletion.restore();
+  });
+
+  it('should remove a course company', async () => {
+    const companyId = new ObjectId();
+    const course = { _id: new ObjectId(), misc: 'Test', companies: [companyId, new ObjectId()] };
+    const credentials = { _id: new ObjectId() };
+
+    await CourseHelper.removeCourseCompany(course._id, companyId, credentials);
+
+    sinon.assert.calledOnceWithExactly(courseUpdateOne, { _id: course._id }, { $pull: { companies: companyId } });
+    sinon.assert.calledOnceWithExactly(
+      createHistoryOnCompanyDeletion,
+      { course: course._id, company: companyId },
+      credentials._id
     );
   });
 });

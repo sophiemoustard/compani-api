@@ -21,16 +21,19 @@ const {
   generateConvocationPdf,
   deleteAccessRule,
   getQuestionnaires,
+  addCompany,
+  removeCompany,
 } = require('../controllers/courseController');
 const { MESSAGE_TYPE } = require('../models/CourseSmsHistory');
 const { COURSE_TYPES, COURSE_FORMATS } = require('../models/Course');
 const {
-  getCourseTrainee,
+  authorizeTraineeAddition,
+  authorizeTraineeDeletion,
   authorizeCourseEdit,
   authorizeCourseDeletion,
   authorizeGetList,
   authorizeRegisterToELearning,
-  getCourse,
+  authorizeGetConvocationPdf,
   authorizeAccessRuleAddition,
   authorizeAccessRuleDeletion,
   authorizeGetCourse,
@@ -40,6 +43,8 @@ const {
   authorizeGetAttendanceSheets,
   authorizeGetDocumentsAndSms,
   authorizeSmsSending,
+  authorizeCourseCompanyAddition,
+  authorizeCourseCompanyDeletion,
 } = require('./preHandlers/courses');
 const { INTRA, OPERATIONS, MOBILE, WEBAPP, PEDAGOGY } = require('../helpers/constants');
 const { ORIGIN_OPTIONS } = require('../models/User');
@@ -134,11 +139,7 @@ exports.plugin = {
           query: Joi.object({ company: Joi.objectId() }),
         },
         auth: { scope: ['courses:read'] },
-        pre: [
-          { method: getCourse, assign: 'course' },
-          { method: authorizeGetCourse },
-          { method: authorizeGetFollowUp },
-        ],
+        pre: [{ method: authorizeGetCourse }, { method: authorizeGetFollowUp }],
       },
       handler: getFollowUp,
     });
@@ -218,11 +219,7 @@ exports.plugin = {
             type: Joi.string().required().valid(...MESSAGE_TYPE),
           }).required(),
         },
-        pre: [
-          { method: getCourse, assign: 'course' },
-          { method: authorizeCourseEdit },
-          { method: authorizeSmsSending },
-        ],
+        pre: [{ method: authorizeSmsSending }],
       },
       handler: sendSMS,
     });
@@ -248,7 +245,7 @@ exports.plugin = {
           params: Joi.object({ _id: Joi.objectId().required() }),
           payload: Joi.object({ trainee: Joi.objectId().required() }),
         },
-        pre: [{ method: getCourseTrainee }, { method: authorizeCourseEdit }],
+        pre: [{ method: authorizeCourseEdit }, { method: authorizeTraineeAddition }],
         auth: { scope: ['courses:edit'] },
       },
       handler: addTrainee,
@@ -273,7 +270,7 @@ exports.plugin = {
         validate: {
           params: Joi.object({ _id: Joi.objectId().required(), traineeId: Joi.objectId().required() }),
         },
-        pre: [{ method: authorizeCourseEdit }],
+        pre: [{ method: authorizeCourseEdit }, { method: authorizeTraineeDeletion }],
       },
       handler: removeTrainee,
     });
@@ -336,9 +333,36 @@ exports.plugin = {
           params: Joi.object({ _id: Joi.objectId().required() }),
         },
         auth: { mode: 'optional' },
-        pre: [{ method: getCourse, assign: 'course' }],
+        pre: [{ method: authorizeGetConvocationPdf }],
       },
       handler: generateConvocationPdf,
+    });
+
+    server.route({
+      method: 'PUT',
+      path: '/{_id}/companies',
+      options: {
+        validate: {
+          params: Joi.object({ _id: Joi.objectId().required() }),
+          payload: Joi.object({ company: Joi.objectId().required() }),
+        },
+        pre: [{ method: authorizeCourseEdit }, { method: authorizeCourseCompanyAddition }],
+        auth: { scope: ['courses:edit'] },
+      },
+      handler: addCompany,
+    });
+
+    server.route({
+      method: 'DELETE',
+      path: '/{_id}/companies/{companyId}',
+      options: {
+        auth: { scope: ['courses:edit'] },
+        validate: {
+          params: Joi.object({ _id: Joi.objectId().required(), companyId: Joi.objectId().required() }),
+        },
+        pre: [{ method: authorizeCourseEdit }, { method: authorizeCourseCompanyDeletion }],
+      },
+      handler: removeCompany,
     });
   },
 };

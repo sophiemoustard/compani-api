@@ -27,6 +27,7 @@ const {
 const translate = require('../../helpers/translate');
 const UtilsHelper = require('../../helpers/utils');
 const { CompaniDate } = require('../../helpers/dates/companiDates');
+const AttendanceSheet = require('../../models/AttendanceSheet');
 
 const { language } = translate;
 
@@ -72,19 +73,14 @@ exports.authorizeCourseCreation = async (req) => {
 exports.authorizeGetDocumentsAndSms = async (req) => {
   const { credentials } = req.auth;
 
-  const course = await Course
-    .findOne({ _id: req.params._id }, { trainees: 1, type: 1, companies: 1, trainer: 1 })
-    .populate({ path: 'trainees', select: '_id company', populate: { path: 'company' } })
-    .lean();
+  const course = await Course.findOne({ _id: req.params._id }, { trainees: 1, companies: 1, trainer: 1 }).lean();
   if (!course) throw Boom.notFound();
 
-  const isTrainee = UtilsHelper.doesArrayIncludeId(course.trainees.map(t => t._id), get(credentials, '_id'));
+  const isTrainee = UtilsHelper.doesArrayIncludeId(course.trainees, get(credentials, '_id'));
   if (isTrainee && get(req, 'query.origin') === MOBILE) return null;
 
   const courseTrainerId = get(course, 'trainer') || null;
-  const companies = course.type === INTRA ? course.companies : course.trainees.map(t => t.company);
-
-  this.checkAuthorization(credentials, courseTrainerId, companies);
+  this.checkAuthorization(credentials, courseTrainerId, course.companies);
 
   return null;
 };
@@ -121,7 +117,6 @@ exports.authorizeCourseEdit = async (req) => {
     const course = await Course
       .findOne({ _id: req.params._id })
       .populate({ path: 'slots', select: 'startDate endDate' })
-      .populate({ path: 'trainees', select: 'contact.phone', populate: { path: 'company' } })
       .populate({ path: 'slotsToPlan' })
       .populate({ path: 'contact' })
       .lean();
@@ -136,11 +131,10 @@ exports.authorizeCourseEdit = async (req) => {
     const isRofOrAdmin = [TRAINING_ORGANISATION_MANAGER, VENDOR_ADMIN].includes(userVendorRole);
 
     if ((get(req, 'payload.salesRepresentative') || get(req, 'payload.trainer')) && !isRofOrAdmin) {
-      return Boom.forbidden();
+      throw Boom.forbidden();
     }
 
-    const traineeIdsList = course.trainees.map(trainee => trainee._id);
-    const trainerIsTrainee = UtilsHelper.doesArrayIncludeId(traineeIdsList, get(req, 'payload.trainer'));
+    const trainerIsTrainee = UtilsHelper.doesArrayIncludeId(course.trainees, get(req, 'payload.trainer'));
     if (trainerIsTrainee) throw Boom.forbidden();
 
     if (get(req, 'payload.maxTrainees')) {
@@ -233,13 +227,15 @@ exports.authorizeGetList = async (req) => {
   return authorizeGetListForPedagogy(credentials, req.query);
 };
 
-exports.getCourseTrainee = async (req) => {
+exports.authorizeTraineeAddition = async (req) => {
   try {
     const { payload } = req;
     const course = await Course
-      .findOne({ _id: req.params._id }, { type: 1, trainees: 1, companies: 1, maxTrainees: 1, trainer: 1 })
+      .findOne({ _id: req.params._id }, { trainees: 1, type: 1, companies: 1, maxTrainees: 1, trainer: 1 })
       .lean();
-    if (!course) throw Boom.notFound();
+
+    const isTrainer = get(req, 'auth.credentials.role.vendor.name') === TRAINER;
+    if (course.type === INTER_B2B && isTrainer) throw Boom.forbidden();
 
     if (course.trainees.length + 1 > course.maxTrainees) throw Boom.forbidden(translate[language].maxTraineesReached);
 
@@ -249,8 +245,8 @@ exports.getCourseTrainee = async (req) => {
     const traineeIsTrainer = UtilsHelper.areObjectIdsEquals(course.trainer, payload.trainee);
     if (traineeIsTrainer) throw Boom.forbidden();
 
-    const userCompanyQuery = { user: payload.trainee, ...(course.type === INTRA && { company: course.companies[0] }) };
-    const userCompanyExists = await UserCompany.countDocuments(userCompanyQuery);
+    const userCompanyExists = await UserCompany
+      .countDocuments({ user: payload.trainee, company: { $in: course.companies } });
     if (!userCompanyExists) throw Boom.notFound();
 
     const traineeAlreadyRegistered = course.trainees.some(t => UtilsHelper.areObjectIdsEquals(t, payload.trainee));
@@ -261,6 +257,15 @@ exports.getCourseTrainee = async (req) => {
     req.log('error', e);
     return Boom.isBoom(e) ? e : Boom.badImplementation(e);
   }
+};
+
+exports.authorizeTraineeDeletion = async (req) => {
+  const course = await Course.findOne({ _id: req.params._id }, { type: 1 }).lean();
+
+  const isTrainer = get(req, 'auth.credentials.role.vendor.name') === TRAINER;
+  if (course.type === INTER_B2B && isTrainer) throw Boom.forbidden();
+
+  return null;
 };
 
 exports.authorizeCourseDeletion = async (req) => {
@@ -310,8 +315,7 @@ exports.authorizeGetCourse = async (req) => {
     const userClientRole = get(credentials, 'role.client.name');
 
     const course = await Course
-      .findOne({ _id: req.params._id }, { trainer: 1, format: 1, type: 1, trainees: 1, companies: 1, accessRules: 1 })
-      .populate({ path: 'trainees', select: 'contact.phone company', populate: { path: 'company' } })
+      .findOne({ _id: req.params._id }, { trainer: 1, format: 1, trainees: 1, companies: 1, accessRules: 1 })
       .lean();
     if (!course) throw Boom.notFound();
 
@@ -319,8 +323,7 @@ exports.authorizeGetCourse = async (req) => {
     const isTOM = userVendorRole === TRAINING_ORGANISATION_MANAGER;
     if (isTOM || isAdminVendor) return null;
 
-    const courseTrainees = course.trainees.map(trainee => trainee._id);
-    const isTrainee = UtilsHelper.doesArrayIncludeId(courseTrainees, credentials._id);
+    const isTrainee = UtilsHelper.doesArrayIncludeId(course.trainees, credentials._id);
     const companyHasAccess = !course.accessRules.length ||
       UtilsHelper.doesArrayIncludeId(course.accessRules, userCompany);
 
@@ -335,32 +338,16 @@ exports.authorizeGetCourse = async (req) => {
 
     if (course.format === STRICTLY_E_LEARNING && !companyHasAccess) throw Boom.forbidden();
 
-    if (course.type === INTRA) {
-      if (!UtilsHelper.doesArrayIncludeId(course.companies, userCompany)) throw Boom.forbidden();
-      return null;
+    if (course.format === BLENDED) {
+      const courseCompaniesContainsUserCompany = UtilsHelper.doesArrayIncludeId(course.companies, userCompany);
+      if (!courseCompaniesContainsUserCompany) throw Boom.forbidden();
     }
-
-    const someTraineesAreInCompany = course.trainees
-      .some(trainee => UtilsHelper.areObjectIdsEquals(trainee.company, userCompany));
-    if (course.format === BLENDED && !someTraineesAreInCompany) throw Boom.forbidden();
 
     return null;
   } catch (e) {
     req.log('error', e);
     return Boom.isBoom(e) ? e : Boom.badImplementation(e);
   }
-};
-
-exports.getCourse = async (req) => {
-  const course = await Course.findById(req.params._id)
-    .populate({ path: 'slots', select: 'startDate endDate' })
-    .populate({ path: 'slotsToPlan' })
-    .populate({ path: 'trainees', select: 'contact.phone', populate: { path: 'company' } })
-    .populate({ path: 'contact', select: 'identity.lastname contact.phone' })
-    .lean();
-  if (!course) throw Boom.notFound();
-
-  return course;
 };
 
 exports.authorizeAccessRuleAddition = async (req) => {
@@ -416,7 +403,16 @@ exports.authorizeGetAttendanceSheets = async (req) => {
 };
 
 exports.authorizeSmsSending = async (req) => {
-  const { course } = req.pre;
+  const course = await Course.findById(req.params._id, { slots: 1, trainees: 1, type: 1, companies: 1, trainer: 1 })
+    .populate({ path: 'slots', select: 'endDate' })
+    .populate({ path: 'trainees', select: 'contact.phone' })
+    .lean();
+  if (!course) throw Boom.notFound();
+
+  const { credentials } = req.auth;
+  const courseTrainerId = get(course, 'trainer') || null;
+  const companies = course.type === INTRA ? course.companies : [];
+  this.checkAuthorization(credentials, courseTrainerId, companies);
 
   const isFinished = !course.slots || !course.slots.some(slot => CompaniDate().isBefore(slot.endDate));
   const isStarted = course.slots && course.slots.some(slot => CompaniDate().isAfter(slot.endDate));
@@ -424,6 +420,79 @@ exports.authorizeSmsSending = async (req) => {
   if ((isFinished && req.payload.type !== OTHER) || (isStarted && req.payload.type === CONVOCATION) || noReceiver) {
     throw Boom.forbidden();
   }
+
+  return null;
+};
+
+exports.authorizeCourseCompanyAddition = async (req) => {
+  const company = await Company.countDocuments({ _id: req.payload.company });
+  if (!company) throw Boom.notFound();
+
+  const course = await Course.findOne({ _id: req.params._id }, { type: 1, companies: 1 }).lean();
+
+  if (course.type !== INTER_B2B) throw Boom.forbidden();
+
+  const isAlreadyLinked = UtilsHelper.doesArrayIncludeId(course.companies, req.payload.company);
+  if (isAlreadyLinked) throw Boom.conflict(translate[language].courseCompanyAlreadyExists);
+
+  const isTrainer = get(req, 'auth.credentials.role.vendor.name') === TRAINER;
+  if (isTrainer) throw Boom.forbidden();
+
+  return null;
+};
+
+exports.authorizeCourseCompanyDeletion = async (req) => {
+  const { companyId } = req.params;
+  const isVendorUser = !!get(req, 'auth.credentials.role.vendor');
+
+  const course = await Course.findOne({ _id: req.params._id })
+    .populate({ path: 'trainees', select: 'company', populate: 'company' })
+    .populate({ path: 'bills', select: 'company', options: { isVendorUser } })
+    .populate({
+      path: 'slots',
+      select: 'attendances',
+      populate: {
+        path: 'attendances',
+        select: 'trainee',
+        populate: { path: 'trainee', select: 'company', populate: 'company' },
+      },
+    })
+    .lean();
+
+  if (!UtilsHelper.doesArrayIncludeId(course.companies, companyId) || course.type !== INTER_B2B) throw Boom.forbidden();
+
+  const companyTraineesAreRegistered = course.trainees.some(t => UtilsHelper.areObjectIdsEquals(t.company, companyId));
+  if (companyTraineesAreRegistered) throw Boom.forbidden(translate[language].companyTraineeRegisteredToCourse);
+
+  const hasAttendancesFromCompany = course.slots
+    .some(slot => slot.attendances
+      .some(attendance => UtilsHelper.areObjectIdsEquals(companyId, attendance.trainee.company)));
+  if (hasAttendancesFromCompany) throw Boom.forbidden(translate[language].companyTraineeAttendedToCourse);
+
+  const attendanceSheets = await AttendanceSheet
+    .find({ course: course._id }, { trainee: 1 })
+    .populate({ path: 'trainee', select: 'company', populate: 'company' })
+    .lean();
+
+  const hasAttendanceSheetsFromCompany = attendanceSheets
+    .some(sheet => UtilsHelper.areObjectIdsEquals(companyId, sheet.trainee.company));
+  if (hasAttendanceSheetsFromCompany) {
+    throw Boom.forbidden(translate[language].CompanyTraineeHasAttendanceSheetForCourse);
+  }
+
+  if (course.bills.some(bill => UtilsHelper.areObjectIdsEquals(companyId, bill.company))) {
+    throw Boom.forbidden(translate[language].companyHasCourseBill);
+  }
+
+  const isTrainer = get(req, 'auth.credentials.role.vendor.name') === TRAINER;
+  if (isTrainer) throw Boom.forbidden();
+
+  return null;
+};
+
+exports.authorizeGetConvocationPdf = async (req) => {
+  const course = await Course.countDocuments({ _id: req.params._id });
+  if (!course) throw Boom.notFound();
 
   return null;
 };

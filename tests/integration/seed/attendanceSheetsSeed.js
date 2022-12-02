@@ -51,10 +51,10 @@ const coursesList = [
   { // 0
     _id: new ObjectId(),
     subProgram: new ObjectId(),
-    companies: [authCompany._id],
     type: INTRA,
     maxTrainees: 8,
     trainees: [userList[1]._id],
+    companies: [authCompany._id],
     salesRepresentative: userList[0]._id,
   },
   { // 1
@@ -62,6 +62,7 @@ const coursesList = [
     subProgram: new ObjectId(),
     type: INTER_B2B,
     trainees: [userList[1]._id],
+    companies: [authCompany._id],
     salesRepresentative: userList[0]._id,
   },
   { // 2
@@ -69,8 +70,8 @@ const coursesList = [
     subProgram: new ObjectId(),
     type: INTRA,
     maxTrainees: 8,
-    companies: [otherCompany._id],
     trainees: [userList[1]._id],
+    companies: [authCompany._id],
     trainer: userList[3]._id,
     salesRepresentative: userList[0]._id,
   },
@@ -80,6 +81,17 @@ const coursesList = [
     type: INTER_B2B,
     archivedAt: new Date(),
     trainees: [userList[1]._id],
+    companies: [authCompany._id],
+    salesRepresentative: userList[0]._id,
+  },
+  { // 4
+    _id: new ObjectId(),
+    subProgram: new ObjectId(),
+    type: INTRA,
+    maxTrainees: 8,
+    trainees: [userList[2]._id],
+    companies: [otherCompany._id],
+    trainer: userList[3]._id,
     salesRepresentative: userList[0]._id,
   },
 ];

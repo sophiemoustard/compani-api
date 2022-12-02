@@ -6,6 +6,8 @@ const {
   TRAINEE_ADDITION,
   TRAINEE_DELETION,
   ESTIMATED_START_DATE_EDITION,
+  COMPANY_ADDITION,
+  COMPANY_DELETION,
 } = require('../helpers/constants');
 const { formatQuery, queryMiddlewareList } = require('./preHooks/validate');
 const addressSchemaDefinition = require('./schemaDefinitions/address');
@@ -17,6 +19,8 @@ const ACTION_TYPES = [
   TRAINEE_ADDITION,
   TRAINEE_DELETION,
   ESTIMATED_START_DATE_EDITION,
+  COMPANY_ADDITION,
+  COMPANY_DELETION,
 ];
 
 const CourseHistorySchema = mongoose.Schema({
@@ -51,6 +55,11 @@ const CourseHistorySchema = mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
     required: () => [TRAINEE_ADDITION, TRAINEE_DELETION].includes(this.action),
+  },
+  company: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Company',
+    required: () => [COMPANY_ADDITION, COMPANY_DELETION].includes(this.action),
   },
 }, { timestamps: true });
 

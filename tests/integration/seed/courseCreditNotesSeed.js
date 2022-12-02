@@ -26,19 +26,18 @@ const vendorCompany = {
   },
 };
 
-const courseList = [
+const coursesList = [
   { // 0 - linked to bill 2
     _id: new ObjectId(),
     type: INTRA,
     maxTrainees: 8,
-    companies: [authCompany._id],
     subProgram: subProgramList[0]._id,
     misc: 'group 1',
     trainer: new ObjectId(),
     salesRepresentative: new ObjectId(),
     contact: new ObjectId(),
     trainees: [new ObjectId()],
-
+    companies: [authCompany._id],
   },
 ];
 
@@ -61,7 +60,7 @@ const courseBillsList = [
   },
   { // 2 bill cancelled by credit note
     _id: new ObjectId(),
-    course: courseList[0]._id,
+    course: coursesList[0]._id,
     company: authCompany._id,
     payer: { company: authCompany._id },
     mainFee: { price: 73, count: 1 },
@@ -70,7 +69,7 @@ const courseBillsList = [
   },
   { // 3 bill cancelled by credit note (otherCompany but autCompany as payer)
     _id: new ObjectId(),
-    course: courseList[0]._id,
+    course: coursesList[0]._id,
     company: otherCompany._id,
     payer: { company: authCompany._id },
     mainFee: { price: 73, count: 1 },
@@ -79,7 +78,7 @@ const courseBillsList = [
   },
   { // 4 bill cancelled by credit note (otherCompany)
     _id: new ObjectId(),
-    course: courseList[0]._id,
+    course: coursesList[0]._id,
     company: otherCompany._id,
     payer: { company: otherCompany._id },
     mainFee: { price: 73, count: 1 },
@@ -122,7 +121,7 @@ const populateDB = async () => {
 
   await Promise.all([
     CourseBill.create(courseBillsList),
-    Course.create(courseList),
+    Course.create(coursesList),
     CourseCreditNote.create(courseCreditNote),
     CourseCreditNoteNumber.create(courseCreditNoteNumber),
     Program.create(programList),

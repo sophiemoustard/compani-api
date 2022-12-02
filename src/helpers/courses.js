@@ -106,23 +106,20 @@ const listStrictlyElearningForCompany = async (query, origin) => {
 };
 
 const listBlendedForCompany = async (query, origin) => {
-  const intraCourse = await CourseRepository.findCourseAndPopulate(
-    { ...omit(query, ['company']), companies: [query.company], type: INTRA },
-    origin
-  );
-  const interCourse = await CourseRepository.findCourseAndPopulate(
-    { ...omit(query, ['company']), type: INTER_B2B },
+  const courses = await CourseRepository.findCourseAndPopulate(
+    { ...omit(query, ['company']), companies: query.company },
     origin,
     true
   );
 
+  const intraCourses = courses.filter(course => course.type === INTRA);
+  const interCourses = courses.filter(course => course.type === INTER_B2B);
+
   return [
-    ...intraCourse,
-    ...interCourse
-      .filter(course => UtilsHelper.doesArrayIncludeId(
-        course.trainees.map(t => (t.company ? t.company._id : '')), query.company)
-      ).map(course => ({
-        ...omit(course, ['companies']),
+    ...intraCourses,
+    ...interCourses
+      .map(course => ({
+        ...course,
         trainees: course.trainees.filter(t =>
           (t.company ? UtilsHelper.areObjectIdsEquals(t.company._id, query.company) : false)),
       })),
@@ -343,10 +340,10 @@ exports.formatActivity = (activity) => {
 
 exports.formatStep = step => ({ ...step, activities: step.activities.map(a => exports.formatActivity(a)) });
 
-exports.getCourseFollowUp = async (course, company) => {
-  const courseWithTrainees = await Course.findOne({ _id: course._id }, { trainees: 1 }).lean();
+exports.getCourseFollowUp = async (courseId, company) => {
+  const courseWithTrainees = await Course.findOne({ _id: courseId }, { trainees: 1 }).lean();
 
-  const courseFollowUp = await Course.findOne({ _id: course._id }, { subProgram: 1 })
+  const courseFollowUp = await Course.findOne({ _id: courseId }, { subProgram: 1 })
     .populate({
       path: 'subProgram',
       select: 'name steps program',
@@ -833,3 +830,17 @@ exports.getQuestionnaires = async (courseId) => {
 
   return questionnaires.filter(questionnaire => questionnaire.historiesCount);
 };
+
+exports.addCourseCompany = async (courseId, payload, credentials) => {
+  await Course.updateOne({ _id: courseId }, { $addToSet: { companies: payload.company } });
+
+  await CourseHistoriesHelper.createHistoryOnCompanyAddition(
+    { course: courseId, company: payload.company },
+    credentials._id
+  );
+};
+
+exports.removeCourseCompany = async (courseId, companyId, credentials) => Promise.all([
+  Course.updateOne({ _id: courseId }, { $pull: { companies: companyId } }),
+  CourseHistoriesHelper.createHistoryOnCompanyDeletion({ course: courseId, company: companyId }, credentials._id),
+]);
