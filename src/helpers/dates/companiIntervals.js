@@ -12,8 +12,7 @@ const CompaniIntervalFactory = (inputInterval) => {
     },
 
     rangeBy(miscTypeDurationStep, excludeEnd = false) {
-      // after spliting "outil" from "formation", first argument should be only duration in string ISO
-      // const luxonDurationStep = luxon.Duration.fromISO(durationISO);
+      // TO BE REMOVED AFTER SPLITING outils FROM formation
       const luxonDurationStep = CompaniDuration(miscTypeDurationStep)._getDuration;
       if (luxonDurationStep.toMillis() === 0) throw new Error('invalid argument : duration is zero');
 
@@ -25,6 +24,21 @@ const CompaniIntervalFactory = (inputInterval) => {
       if (lastFragmentEqualsDurationStep) dates.push(_interval.end.toUTC().toISO());
 
       return excludeEnd ? dates.slice(0, -1) : dates;
+    },
+
+    newRangeBy(durationISO) {
+      // TO BE RENAMED "rangeBy" AFTER SPLITING outils FROM formation
+      const luxonDurationStep = luxon.Duration.fromISO(durationISO);
+      if (luxonDurationStep.toMillis() === 0) throw new Error('invalid argument : duration is zero');
+
+      const fragmentedIntervals = _interval.splitBy(luxonDurationStep);
+      const dates = fragmentedIntervals.map(fi => fi.start.toUTC().toISO());
+
+      const lastFragment = fragmentedIntervals[fragmentedIntervals.length - 1];
+      const lastFragmentEqualsDurationStep = lastFragment.start.plus(luxonDurationStep).equals(lastFragment.end);
+      if (lastFragmentEqualsDurationStep) dates.push(_interval.end.toUTC().toISO());
+
+      return dates;
     },
   });
 };
