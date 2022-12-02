@@ -381,8 +381,13 @@ exports.exportCourseBillAndCreditNoteHistory = async (startDate, endDate, creden
   const rows = [];
   for (const bill of courseBills) {
     const { netInclTaxes, paid, total } = CourseBillHelper.computeAmounts(bill);
-    const upComingSlots = bill.course.slots.filter(slot => CompaniDate().isBefore(slot.startDate)).length;
-    const pastSlots = bill.course.slots.length - upComingSlots;
+    const sortedCourseSlots = [...bill.course.slots].sort(DatesUtilsHelper.ascendingSortBy('startDate'));
+    const upComingSlots = sortedCourseSlots.filter(slot => CompaniDate().isBefore(slot.startDate)).length;
+    const pastSlots = sortedCourseSlots.length - upComingSlots;
+    const firstCourseSlot = sortedCourseSlots.length > 0 && sortedCourseSlots[0];
+    const middleCourseSlot = sortedCourseSlots.length > 2 &&
+      sortedCourseSlots[Math.floor((sortedCourseSlots.length - 1) / 2)];
+    const endCourseSlot = sortedCourseSlots.length > 1 && sortedCourseSlots[sortedCourseSlots.length - 1];
     const companyName = bill.course.type === INTRA ? `${bill.company.name} - ` : '';
     const misc = bill.course.misc ? ` - ${bill.course.misc}` : '';
     const courseName = `${companyName}${bill.course.subProgram.program.name}${misc}`;
@@ -406,6 +411,9 @@ exports.exportCourseBillAndCreditNoteHistory = async (startDate, endDate, creden
       'Montant soldé': bill.courseCreditNote ? UtilsHelper.formatFloatForExport(netInclTaxes) : '',
       Solde: UtilsHelper.formatFloatForExport(total),
       Avancement: getProgress(pastSlots, bill.course),
+      'Début de la formation': firstCourseSlot ? CompaniDate(firstCourseSlot.startDate).format(DD_MM_YYYY) : '',
+      'Date du milieu de formation': middleCourseSlot ? CompaniDate(middleCourseSlot.startDate).format(DD_MM_YYYY) : '',
+      'Date de fin de formation': endCourseSlot ? CompaniDate(endCourseSlot.startDate).format(DD_MM_YYYY) : '',
     };
 
     rows.push(formattedBill);
@@ -420,6 +428,10 @@ exports.exportCourseBillAndCreditNoteHistory = async (startDate, endDate, creden
         Avoir: '',
         'Montant soldé': '',
         Solde: '',
+        Avancement: '',
+        'Début de la formation': '',
+        'Date du milieu de formation': '',
+        'Date de fin de formation': '',
       };
 
       rows.push(formattedCreditNote);
