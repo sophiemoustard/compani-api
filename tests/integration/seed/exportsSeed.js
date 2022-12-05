@@ -1355,6 +1355,15 @@ const coursePaymentList = [
     nature: REFUND,
     type: CHECK,
   },
+  {
+    number: 'REG-00010',
+    date: '2022-01-01T00:00:00.000Z',
+    company: authCompany._id,
+    courseBill: courseBillList[0]._id,
+    netInclTaxes: 50,
+    nature: PAYMENT,
+    type: DIRECT_DEBIT,
+  },
 ];
 
 const courseCreditNotesList = [
