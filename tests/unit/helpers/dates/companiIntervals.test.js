@@ -115,6 +115,47 @@ describe('rangeBy', () => {
   });
 });
 
+describe('newRangeBy', () => {
+  it('should return sequence of dates, endDate is not included', () => {
+    const interval = CompaniIntervalsHelper.CompaniInterval('2022-02-11T09:00:00.000Z', '2022-02-13T10:30:00.000Z');
+    const result = interval.newRangeBy('P1D');
+
+    expect(result).toEqual(['2022-02-11T09:00:00.000Z', '2022-02-12T09:00:00.000Z', '2022-02-13T09:00:00.000Z']);
+  });
+
+  it('should return sequence of dates (step is 1 day), endDate is the last element of the sequence', () => {
+    const interval = CompaniIntervalsHelper.CompaniInterval('2022-02-11T09:00:00.000Z', '2022-02-13T09:00:00.000Z');
+    const result = interval.newRangeBy('P1D');
+
+    expect(result).toEqual(['2022-02-11T09:00:00.000Z', '2022-02-12T09:00:00.000Z', '2022-02-13T09:00:00.000Z']);
+  });
+
+  it('should return sequence of dates (step is 1 month), endDate is the last element of the sequence,', () => {
+    const interval = CompaniIntervalsHelper.CompaniInterval(
+      '2022-01-03T10:00:00.000+01:00',
+      '2022-05-03T10:00:00.000+02:00'
+    );
+    const result = interval.newRangeBy('P1M');
+
+    expect(result).toEqual([
+      '2022-01-03T09:00:00.000Z',
+      '2022-02-03T09:00:00.000Z',
+      '2022-03-03T09:00:00.000Z',
+      '2022-04-03T08:00:00.000Z', // time shifts from winter to summer
+      '2022-05-03T08:00:00.000Z',
+    ]);
+  });
+
+  it('should return error if duration is zero', () => {
+    try {
+      const interval = CompaniIntervalsHelper.CompaniInterval('2022-02-11T09:00:00.000Z', '2022-02-13T10:30:00.000Z');
+      interval.newRangeBy('PT0S');
+    } catch (e) {
+      expect(e).toEqual(new Error('invalid argument : duration is zero'));
+    }
+  });
+});
+
 describe('_formatMiscToCompaniInterval', () => {
   let datefromISO;
   let intervalInvalid;
