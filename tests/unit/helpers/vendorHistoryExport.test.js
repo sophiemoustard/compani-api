@@ -100,7 +100,7 @@ describe('exportCourseHistory', () => {
   const trainer = { _id: new ObjectId(), identity: { firstname: 'Gilles', lastname: 'Formateur' } };
   const salesRepresentative = { _id: new ObjectId(), identity: { firstname: 'Aline', lastname: 'Contact-Com' } };
 
-  const courseIdList = [new ObjectId(), new ObjectId(), new ObjectId(), new ObjectId()];
+  const courseIdList = [new ObjectId(), new ObjectId(), new ObjectId(), new ObjectId(), new ObjectId()];
 
   const courseSlotList = [
     {
@@ -135,6 +135,13 @@ describe('exportCourseHistory', () => {
       _id: new ObjectId(),
       course: courseIdList[1],
       step: new ObjectId(),
+    },
+    {
+      _id: new ObjectId(),
+      course: courseIdList[4],
+      startDate: '2021-02-09T08:00:00.000Z',
+      endDate: '2021-02-09T10:00:00.000Z',
+      attendances: [{ trainee: traineeList[0]._id }],
     },
   ];
   const company = { _id: new ObjectId(), name: 'Test SAS' };
@@ -301,6 +308,32 @@ describe('exportCourseHistory', () => {
         },
       ],
     },
+    {
+      _id: courseIdList[4],
+      type: INTER_B2B,
+      companies: [otherCompany],
+      subProgram: subProgramList[0],
+      misc: 'group 1',
+      trainer,
+      salesRepresentative,
+      contact: salesRepresentative,
+      trainees: [traineeList[0], traineeList[1]],
+      slotsToPlan: [],
+      slots: [courseSlotList[5]],
+      expectedBillsCount: 2,
+      bills: [
+        {
+          course: courseIdList[4],
+          mainFee: { price: 120, count: 1 },
+          company,
+          payer: { name: 'APA Paris' },
+          billedAt: '2022-03-08T00:00:00.000Z',
+          number: 'FACT-00010',
+          courseCreditNote: null,
+          coursePayments: [{ netInclTaxes: 10, nature: PAYMENT }],
+        },
+      ],
+    },
 
   ];
 
@@ -460,10 +493,12 @@ describe('exportCourseHistory', () => {
     groupSlotsByDate.onCall(1).returns([[courseSlotList[2]], [courseSlotList[3]]]);
     groupSlotsByDate.onCall(2).returns([]);
     groupSlotsByDate.onCall(3).returns([]);
+    groupSlotsByDate.onCall(4).returns([[courseSlotList[5]]]);
     getTotalDurationForExport.onCall(0).returns('4,00');
     getTotalDurationForExport.onCall(1).returns('4,00');
     getTotalDurationForExport.onCall(2).returns('0,00');
     getTotalDurationForExport.onCall(3).returns('0,00');
+    getTotalDurationForExport.onCall(4).returns('2,00');
     findCourseSmsHistory.returns(SinonMongoose.stubChainedQueries(
       [{ course: courseList[0]._id }, { course: courseList[0]._id }, { course: courseList[1]._id }],
       ['lean']
@@ -661,6 +696,43 @@ describe('exportCourseHistory', () => {
         '560,00',
         '120,00',
         '-440,00',
+      ],
+      [
+        courseList[4]._id,
+        'inter_b2b',
+        'APA Paris',
+        'Autre structure',
+        'Program 1',
+        'subProgram 1',
+        'group 1',
+        'Gilles FORMATEUR',
+        'Aline CONTACT-COM',
+        'Aline CONTACT-COM',
+        2,
+        1,
+        1,
+        0,
+        '2,00',
+        0,
+        2,
+        '',
+        0,
+        0,
+        '',
+        '',
+        '09/02/2021 09:00:00',
+        '09/02/2021 11:00:00',
+        0,
+        1,
+        1,
+        0,
+        0,
+        '1,00',
+        '1 sur 2',
+        'Non',
+        '120,00',
+        '10,00',
+        '-110,00',
       ],
 
     ]);
