@@ -175,11 +175,13 @@ exports.exportCourseHistory = async (startDate, endDate, credentials) => {
 
     const { isBilled, billsCountForExport, payerList, netInclTaxes, paid, total } = getBillsInfos(course);
 
+    const companiesName = course.companies.map(co => co.name).sort((a, b) => a.localeCompare(b)).toString();
+
     rows.push({
       Identifiant: course._id,
       Type: course.type,
       Payeur: payerList || '',
-      Structure: course.type === INTRA ? get(course, 'companies[0].name') : '',
+      Structure: companiesName || '',
       Programme: get(course, 'subProgram.program.name') || '',
       'Sous-Programme': get(course, 'subProgram.name') || '',
       'Infos complémentaires': course.misc,
