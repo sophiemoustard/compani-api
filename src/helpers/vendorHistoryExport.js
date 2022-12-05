@@ -433,6 +433,8 @@ exports.exportCoursePaymentHistory = async (startDate, endDate, credentials) => 
     .setOptions({ isVendorUser })
     .lean();
 
+  if (!paymentsOnPeriod.length) return [[NO_DATA]];
+
   const allPaymentsForCourseBills = await CoursePayment.find(
     { courseBill: { $in: paymentsOnPeriod.map(p => p.courseBill) } },
     { nature: 1, number: 1, date: 1, courseBill: 1, type: 1, netInclTaxes: 1 }
@@ -462,5 +464,5 @@ exports.exportCoursePaymentHistory = async (startDate, endDate, credentials) => 
       }, [])
     );
 
-  return rows.length ? [Object.keys(rows[0]), ...rows.map(d => Object.values(d))] : [[NO_DATA]];
+  return [Object.keys(rows[0]), ...rows.map(d => Object.values(d))];
 };

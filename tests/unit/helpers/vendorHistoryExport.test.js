@@ -1405,20 +1405,10 @@ describe('exportCoursePaymentHistory', () => {
     const result = await ExportHelper.exportCoursePaymentHistory('2021-01-14T23:00:00.000Z', '2022-01-20T22:59:59.000Z', credentials);
 
     expect(result).toEqual([[NO_DATA]]);
-    SinonMongoose.calledOnceWithExactly(
+    sinon.assert.calledOnceWithExactly(
       findCoursePayment,
-      [
-        {
-          query: 'find',
-          args: [
-            { date: { $lte: '2022-01-20T22:59:59.000Z', $gte: '2021-01-14T23:00:00.000Z' } },
-            { nature: 1, number: 1, date: 1, courseBill: 1, type: 1, netInclTaxes: 1 },
-          ],
-        },
-        { query: 'populate', args: [{ path: 'courseBill', option: { isVendorUser: true }, select: 'number' }] },
-        { query: 'setOptions', args: [{ isVendorUser: true }] },
-        { query: 'lean' },
-      ]
+      { date: { $lte: '2022-01-20T22:59:59.000Z', $gte: '2021-01-14T23:00:00.000Z' } },
+      { courseBill: 1 }
     );
   });
 
