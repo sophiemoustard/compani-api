@@ -138,7 +138,7 @@ describe('exportCourseHistory', () => {
     },
   ];
   const company = { _id: new ObjectId(), name: 'Test SAS' };
-  const otherCompany = { _id: new ObjectId(), name: 'Test SAS' };
+  const otherCompany = { _id: new ObjectId(), name: 'Autre structure' };
   const courseList = [
     {
       _id: courseIdList[0],
@@ -179,6 +179,7 @@ describe('exportCourseHistory', () => {
     {
       _id: courseIdList[1],
       type: INTER_B2B,
+      companies: [company, otherCompany],
       subProgram: subProgramList[1],
       misc: 'group 2',
       estimatedStartDate: '2019-01-01T08:00:00',
@@ -224,13 +225,14 @@ describe('exportCourseHistory', () => {
     {
       _id: courseIdList[2],
       type: INTER_B2B,
+      companies: [],
       subProgram: subProgramList[1],
       misc: 'group 3',
       estimatedStartDate: '2022-01-01T08:00:00',
       trainer,
       salesRepresentative,
       contact: salesRepresentative,
-      trainees: [traineeList[3], traineeList[4]],
+      trainees: [],
       slotsToPlan: [],
       slots: [],
       bills: [],
@@ -553,7 +555,7 @@ describe('exportCourseHistory', () => {
         courseList[1]._id,
         'inter_b2b',
         'APA Paris',
-        '',
+        'Autre structure,Test SAS',
         'Program 2',
         'subProgram 2',
         'group 2',
@@ -597,14 +599,14 @@ describe('exportCourseHistory', () => {
         'Gilles FORMATEUR',
         'Aline CONTACT-COM',
         'Aline CONTACT-COM',
-        2,
+        0,
         0,
         0,
         0,
         '0,00',
         0,
         0,
-        '0,67',
+        '',
         0,
         0,
         '01/01/2022',
@@ -617,7 +619,7 @@ describe('exportCourseHistory', () => {
         0,
         0,
         '',
-        '0 sur 2',
+        '0 sur 0',
         'Non',
         '',
         '',
