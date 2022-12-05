@@ -21,6 +21,7 @@ const {
   PAYMENT_NATURE_LIST,
   DD_MM_YYYY,
   HH_MM_SS,
+  DAY,
   ESTIMATED_START_DATE_EDITION,
 } = require('./constants');
 const { CompaniDate } = require('./dates/companiDates');
@@ -425,27 +426,37 @@ exports.exportCourseBillAndCreditNoteHistory = async (startDate, endDate, creden
 
 exports.exportCoursePaymentHistory = async (startDate, endDate, credentials) => {
   const isVendorUser = [TRAINING_ORGANISATION_MANAGER, VENDOR_ADMIN].includes(get(credentials, 'role.vendor.name'));
-  const paymentList = await CoursePayment.find(
-    { date: { $lte: endDate, $gte: startDate } },
+  const paymentsOnPeriod = await CoursePayment.find({ date: { $lte: endDate, $gte: startDate } }, { courseBill: 1 })
+    .setOptions({ isVendorUser })
+    .lean();
+
+  const allPaymentsForCourseBills = await CoursePayment.find(
+    { courseBill: { $in: paymentsOnPeriod.map(p => p.courseBill) } },
     { nature: 1, number: 1, date: 1, courseBill: 1, type: 1, netInclTaxes: 1 }
   )
     .populate({ path: 'courseBill', option: { isVendorUser }, select: 'number' })
     .setOptions({ isVendorUser })
     .lean();
-  const groupedBillPayments = Object.values(groupBy(paymentList, 'courseBill._id'))
+
+  const groupedAllPayments = Object.values(groupBy(allPaymentsForCourseBills, 'courseBill._id'))
     .map(paymentsByBill => [...paymentsByBill].sort(DatesUtilsHelper.ascendingSortBy('date')));
 
-  const rows = groupedBillPayments
+  const rows = groupedAllPayments
     .flatMap(billPayments => billPayments
-      .map((payment, paymentIndex) => ({
-        Nature: PAYMENT_NATURE_LIST[payment.nature],
-        Identifiant: payment.number,
-        Date: CompaniDate(payment.date).format(DD_MM_YYYY),
-        'Facture associée': payment.courseBill.number,
-        'Numéro du paiement (parmi ceux de la même facture)': paymentIndex + 1,
-        'Moyen de paiement': PAYMENT_TYPES_LIST[payment.type],
-        Montant: UtilsHelper.formatFloatForExport(payment.netInclTaxes),
-      }))
+      .reduce((acc, payment, paymentIndex) => {
+        if (CompaniDate(payment.date).isSameOrBetween(startDate, endDate, DAY)) {
+          acc.push({
+            Nature: PAYMENT_NATURE_LIST[payment.nature],
+            Identifiant: payment.number,
+            Date: CompaniDate(payment.date).format(DD_MM_YYYY),
+            'Facture associée': payment.courseBill.number,
+            'Numéro du paiement (parmi ceux de la même facture)': paymentIndex + 1,
+            'Moyen de paiement': PAYMENT_TYPES_LIST[payment.type],
+            Montant: UtilsHelper.formatFloatForExport(payment.netInclTaxes),
+          });
+        }
+        return acc;
+      }, [])
     );
 
   return rows.length ? [Object.keys(rows[0]), ...rows.map(d => Object.values(d))] : [[NO_DATA]];

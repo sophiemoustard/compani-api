@@ -1417,6 +1417,7 @@ describe('exportCoursePaymentHistory', () => {
     const courseBillIds = [new ObjectId(), new ObjectId()];
     const coursePaymentList = [
       {
+        _id: new ObjectId(),
         nature: REFUND,
         number: 'REG-2',
         date: '2022-01-22T23:00:00.000Z',
@@ -1425,6 +1426,7 @@ describe('exportCoursePaymentHistory', () => {
         netInclTaxes: 22,
       },
       {
+        _id: new ObjectId(),
         nature: PAYMENT,
         number: 'REG-1',
         date: '2022-01-01T23:00:00.000Z',
@@ -1433,6 +1435,7 @@ describe('exportCoursePaymentHistory', () => {
         netInclTaxes: 100,
       },
       {
+        _id: new ObjectId(),
         nature: REFUND,
         number: 'REG-4',
         date: '2022-01-10T23:00:00.000Z',
@@ -1441,30 +1444,41 @@ describe('exportCoursePaymentHistory', () => {
         netInclTaxes: 200,
       },
     ];
-    findCoursePayment.returns(SinonMongoose.stubChainedQueries(coursePaymentList, ['populate', 'setOptions', 'lean']));
+    findCoursePayment
+      .onCall(0)
+      .returns(
+        SinonMongoose.stubChainedQueries(
+          [
+            { _id: coursePaymentList[0], courseBill: courseBillIds[0] },
+            { _id: coursePaymentList[2], courseBill: courseBillIds[1] },
+          ],
+          ['populate', 'setOptions', 'lean'])
+      );
+    findCoursePayment.onCall(1).returns(SinonMongoose.stubChainedQueries(coursePaymentList, ['populate', 'setOptions', 'lean']));
 
-    const result = await ExportHelper.exportCoursePaymentHistory('2021-01-14T23:00:00.000Z', '2022-01-20T22:59:59.000Z', credentials);
+    const result = await ExportHelper.exportCoursePaymentHistory('2022-01-07T23:00:00.000Z', '2022-01-30T22:59:59.000Z', credentials);
 
     expect(result).toEqual([
       ['Nature', 'Identifiant', 'Date', 'Facture associée', 'Numéro du paiement (parmi ceux de la même facture)', 'Moyen de paiement', 'Montant'],
-      ['Paiement', 'REG-1', '02/01/2022', 'FACT-2', 1, 'Chèque', '100,00'],
       ['Remboursement', 'REG-2', '23/01/2022', 'FACT-2', 2, 'Chèque', '22,00'],
       ['Remboursement', 'REG-4', '11/01/2022', 'FACT-1', 1, 'Chèque', '200,00'],
     ]);
-    SinonMongoose.calledOnceWithExactly(
+    expect(findCoursePayment.getCall(0).calledWithExactly('2022-01-07T23:00:00.000Z', '2022-01-30T22:59:59.000Z'));
+    SinonMongoose.calledWithExactly(
       findCoursePayment,
       [
         {
           query: 'find',
           args: [
-            { date: { $lte: '2022-01-20T22:59:59.000Z', $gte: '2021-01-14T23:00:00.000Z' } },
+            { courseBill: { $in: courseBillIds } },
             { nature: 1, number: 1, date: 1, courseBill: 1, type: 1, netInclTaxes: 1 },
           ],
         },
         { query: 'populate', args: [{ path: 'courseBill', option: { isVendorUser: true }, select: 'number' }] },
         { query: 'setOptions', args: [{ isVendorUser: true }] },
         { query: 'lean' },
-      ]
+      ],
+      1
     );
   });
 });
