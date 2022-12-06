@@ -1427,8 +1427,8 @@ describe('exportCourseBillAndCreditNoteHistory', () => {
         'Solde',
         'Avancement',
         'Début de la formation',
-        'Date du milieu de formation',
-        'Date de fin de formation',
+        'Milieu de la formation',
+        'Fin de la formation',
       ],
       [
         'Facture',

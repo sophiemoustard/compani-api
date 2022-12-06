@@ -148,7 +148,7 @@ const vendorHistoryExportTypes = [
   {
     exportType: COURSE_BILL,
     expectedRows: [
-      '\ufeff"Nature";"Identifiant";"Date";"Id formation";"Formation";"Structure";"Payeur";"Montant TTC";"Montant réglé";"Avoir";"Montant soldé";"Solde";"Avancement";"Début de la formation";"Date du milieu de formation";"Date de fin de formation"',
+      '\ufeff"Nature";"Identifiant";"Date";"Id formation";"Formation";"Structure";"Payeur";"Montant TTC";"Montant réglé";"Avoir";"Montant soldé";"Solde";"Avancement";"Début de la formation";"Milieu de la formation";"Fin de la formation"',
       `"Facture";"FACT-00001";"08/03/2022";${coursesList[0]._id};"Test SAS - Program 1 - group 1";"Test SAS";"APA Paris";"1200,00";"1150,00";;;"-50,00";"1,00";"01/05/2021";;"01/05/2021"`,
       `"Facture";"FACT-00002";"08/03/2022";${coursesList[3]._id};"Test SAS - Program 1 - group 4";"Test SAS";"APA Paris";"1200,00";"0,00";"AV-00001";"1200,00";"0,00";;;;`,
       `"Avoir";"AV-00001";"09/03/2022";${coursesList[3]._id};"Test SAS - Program 1 - group 4";"Test SAS";"APA Paris";"1200,00";;;;;;;;`,

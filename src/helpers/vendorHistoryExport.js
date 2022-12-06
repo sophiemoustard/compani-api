@@ -384,7 +384,7 @@ exports.exportCourseBillAndCreditNoteHistory = async (startDate, endDate, creden
     const sortedCourseSlots = [...bill.course.slots].sort(DatesUtilsHelper.ascendingSortBy('startDate'));
     const upComingSlots = sortedCourseSlots.filter(slot => CompaniDate().isBefore(slot.startDate)).length;
     const pastSlots = sortedCourseSlots.length - upComingSlots;
-    const firstCourseSlot = sortedCourseSlots.length > 0 && sortedCourseSlots[0];
+    const firstCourseSlot = sortedCourseSlots.length && sortedCourseSlots[0];
     const middleCourseSlot = sortedCourseSlots.length > 2 &&
       sortedCourseSlots[Math.floor((sortedCourseSlots.length - 1) / 2)];
     const endCourseSlot = sortedCourseSlots.length > 1 && sortedCourseSlots[sortedCourseSlots.length - 1];
@@ -412,8 +412,8 @@ exports.exportCourseBillAndCreditNoteHistory = async (startDate, endDate, creden
       Solde: UtilsHelper.formatFloatForExport(total),
       Avancement: getProgress(pastSlots, bill.course),
       'Début de la formation': firstCourseSlot ? CompaniDate(firstCourseSlot.startDate).format(DD_MM_YYYY) : '',
-      'Date du milieu de formation': middleCourseSlot ? CompaniDate(middleCourseSlot.startDate).format(DD_MM_YYYY) : '',
-      'Date de fin de formation': endCourseSlot ? CompaniDate(endCourseSlot.startDate).format(DD_MM_YYYY) : '',
+      'Milieu de la formation': middleCourseSlot ? CompaniDate(middleCourseSlot.startDate).format(DD_MM_YYYY) : '',
+      'Fin de la formation': endCourseSlot ? CompaniDate(endCourseSlot.startDate).format(DD_MM_YYYY) : '',
     };
 
     rows.push(formattedBill);
@@ -430,8 +430,8 @@ exports.exportCourseBillAndCreditNoteHistory = async (startDate, endDate, creden
         Solde: '',
         Avancement: '',
         'Début de la formation': '',
-        'Date du milieu de formation': '',
-        'Date de fin de formation': '',
+        'Milieu de la formation': '',
+        'Fin de la formation': '',
       };
 
       rows.push(formattedCreditNote);
