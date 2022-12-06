@@ -1400,15 +1400,19 @@ describe('exportCoursePaymentHistory', () => {
   });
 
   it('should return an empty array if no course', async () => {
-    findCoursePayment.returns(SinonMongoose.stubChainedQueries([], ['populate', 'setOptions', 'lean']));
+    findCoursePayment.returns(SinonMongoose.stubChainedQueries([], ['setOptions', 'lean']));
 
     const result = await ExportHelper.exportCoursePaymentHistory('2021-01-14T23:00:00.000Z', '2022-01-20T22:59:59.000Z', credentials);
 
     expect(result).toEqual([[NO_DATA]]);
-    sinon.assert.calledOnceWithExactly(
+
+    SinonMongoose.calledOnceWithExactly(
       findCoursePayment,
-      { date: { $lte: '2022-01-20T22:59:59.000Z', $gte: '2021-01-14T23:00:00.000Z' } },
-      { courseBill: 1 }
+      [
+        { query: 'find', args: [{ date: { $lte: '2022-01-20T22:59:59.000Z', $gte: '2021-01-14T23:00:00.000Z' } }, { courseBill: 1 }] },
+        { query: 'setOptions', args: [{ isVendorUser: true }] },
+        { query: 'lean' },
+      ]
     );
   });
 
@@ -1451,7 +1455,7 @@ describe('exportCoursePaymentHistory', () => {
             { _id: coursePaymentList[0], courseBill: courseBillIds[0] },
             { _id: coursePaymentList[2], courseBill: courseBillIds[1] },
           ],
-          ['populate', 'setOptions', 'lean'])
+          ['setOptions', 'lean'])
       );
     findCoursePayment.onCall(1).returns(SinonMongoose.stubChainedQueries(coursePaymentList, ['populate', 'setOptions', 'lean']));
 
@@ -1462,7 +1466,15 @@ describe('exportCoursePaymentHistory', () => {
       ['Remboursement', 'REG-2', '23/01/2022', 'FACT-2', 2, 'Chèque', '22,00'],
       ['Remboursement', 'REG-4', '11/01/2022', 'FACT-1', 1, 'Chèque', '200,00'],
     ]);
-    expect(findCoursePayment.getCall(0).calledWithExactly('2022-01-07T23:00:00.000Z', '2022-01-30T22:59:59.000Z'));
+    SinonMongoose.calledWithExactly(
+      findCoursePayment,
+      [
+        { query: 'find', args: [{ date: { $lte: '2022-01-30T22:59:59.000Z', $gte: '2022-01-07T23:00:00.000Z' } }, { courseBill: 1 }] },
+        { query: 'setOptions', args: [{ isVendorUser: true }] },
+        { query: 'lean' },
+      ],
+      0
+    );
     SinonMongoose.calledWithExactly(
       findCoursePayment,
       [
