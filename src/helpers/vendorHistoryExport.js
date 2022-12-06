@@ -365,7 +365,7 @@ exports.exportCourseBillAndCreditNoteHistory = async (startDate, endDate, creden
         select: 'subProgram misc type',
         populate: [
           { path: 'subProgram', select: 'program', populate: { path: 'program', select: 'name' } },
-          { path: 'slots', select: 'startDate' },
+          { path: 'slots', select: 'startDate', sort: { startDate: 1 } },
           { path: 'slotsToPlan', select: '_id' },
         ],
       }
@@ -381,13 +381,12 @@ exports.exportCourseBillAndCreditNoteHistory = async (startDate, endDate, creden
   const rows = [];
   for (const bill of courseBills) {
     const { netInclTaxes, paid, total } = CourseBillHelper.computeAmounts(bill);
-    const sortedCourseSlots = [...bill.course.slots].sort(DatesUtilsHelper.ascendingSortBy('startDate'));
-    const upComingSlots = sortedCourseSlots.filter(slot => CompaniDate().isBefore(slot.startDate)).length;
-    const pastSlots = sortedCourseSlots.length - upComingSlots;
-    const firstCourseSlot = sortedCourseSlots.length && sortedCourseSlots[0];
-    const middleCourseSlot = sortedCourseSlots.length > 2 &&
-      sortedCourseSlots[Math.floor((sortedCourseSlots.length - 1) / 2)];
-    const endCourseSlot = sortedCourseSlots.length > 1 && sortedCourseSlots[sortedCourseSlots.length - 1];
+    const upComingSlots = bill.course.slots.filter(slot => CompaniDate().isBefore(slot.startDate)).length;
+    const pastSlots = bill.course.slots.length - upComingSlots;
+    const firstCourseSlot = bill.course.slots.length && bill.course.slots[0];
+    const middleCourseSlot = bill.course.slots.length > 2 &&
+      bill.course.slots[Math.floor((bill.course.slots.length - 1) / 2)];
+    const endCourseSlot = bill.course.slots.length > 1 && bill.course.slots[bill.course.slots.length - 1];
     const companyName = bill.course.type === INTRA ? `${bill.company.name} - ` : '';
     const misc = bill.course.misc ? ` - ${bill.course.misc}` : '';
     const courseName = `${companyName}${bill.course.subProgram.program.name}${misc}`;
