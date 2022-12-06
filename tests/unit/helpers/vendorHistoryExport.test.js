@@ -1300,11 +1300,11 @@ describe('exportCourseBillAndCreditNoteHistory', () => {
       subProgram,
       misc: 'group 4',
       slots: [
-        { startDate: '2021-01-11T12:00:00.000Z' },
-        { startDate: '2021-01-12T12:00:00.000Z' },
         { startDate: '2021-01-12T16:00:00.000Z' },
+        { startDate: '2021-01-12T12:00:00.000Z' },
         { startDate: '2021-01-13T12:00:00.000Z' },
         { startDate: '2021-01-14T12:00:00.000Z' },
+        { startDate: '2021-01-11T12:00:00.000Z' },
         { startDate: '2021-01-15T12:00:00.000Z' },
       ],
       slotsToPlan: [],
@@ -1386,7 +1386,7 @@ describe('exportCourseBillAndCreditNoteHistory', () => {
             select: 'subProgram misc type',
             populate: [
               { path: 'subProgram', select: 'program', populate: { path: 'program', select: 'name' } },
-              { path: 'slots', select: 'startDate', sort: { startDate: 1 } },
+              { path: 'slots', select: 'startDate' },
               { path: 'slotsToPlan', select: '_id' },
             ],
           }],
@@ -1535,7 +1535,7 @@ describe('exportCourseBillAndCreditNoteHistory', () => {
             select: 'subProgram misc type',
             populate: [
               { path: 'subProgram', select: 'program', populate: { path: 'program', select: 'name' } },
-              { path: 'slots', select: 'startDate', sort: { startDate: 1 } },
+              { path: 'slots', select: 'startDate' },
               { path: 'slotsToPlan', select: '_id' },
             ],
           }],
