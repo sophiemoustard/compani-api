@@ -109,14 +109,15 @@ describe('create', () => {
   it('should add several attendances for every trainee without attendance on INTRA course', async () => {
     const company = new ObjectId();
     const courseSlot = new ObjectId();
+    const courseTrainees = [new ObjectId(), new ObjectId(), new ObjectId()];
     const payload = { courseSlot };
     const course = {
       _id: new ObjectId(),
       type: INTRA,
       trainees: [
-        { _id: new ObjectId(), company },
-        { _id: new ObjectId(), company },
-        { _id: new ObjectId(), company },
+        { _id: courseTrainees[0], company },
+        { _id: courseTrainees[1], company },
+        { _id: courseTrainees[2], company },
       ],
       companies: [company],
     };
@@ -144,27 +145,28 @@ describe('create', () => {
       ]
     );
     sinon.assert.notCalled(create);
-    sinon.assert.calledOnceWithExactly(find, { courseSlot, trainee: { $in: course.trainees } });
+    sinon.assert.calledOnceWithExactly(find, { courseSlot, trainee: { $in: courseTrainees } });
     sinon.assert.calledOnceWithExactly(
       insertMany,
       [
-        { courseSlot, trainee: course.trainees[1], company },
-        { courseSlot, trainee: course.trainees[2], company },
+        { courseSlot, trainee: course.trainees[1]._id, company },
+        { courseSlot, trainee: course.trainees[2]._id, company },
       ]
     );
   });
 
-  it('should add several attendances for every trainee without attendance on INTER course', async () => {
-    const companies = [new ObjectId(), new ObjectId(), new ObjectId()];
+  it('should add several attendances for every trainee without attendance on INTER course #tag', async () => {
     const courseSlot = new ObjectId();
+    const companies = [new ObjectId(), new ObjectId(), new ObjectId()];
+    const courseTrainees = [new ObjectId(), new ObjectId(), new ObjectId()];
     const payload = { courseSlot };
     const course = {
       _id: new ObjectId(),
       type: INTER_B2B,
       trainees: [
-        { _id: new ObjectId(), company: companies[0] },
-        { _id: new ObjectId(), company: companies[1] },
-        { _id: new ObjectId(), company: companies[2] },
+        { _id: courseTrainees[0], company: companies[0] },
+        { _id: courseTrainees[1], company: companies[1] },
+        { _id: courseTrainees[2], company: companies[2] },
       ],
       companies,
     };
@@ -192,12 +194,12 @@ describe('create', () => {
       ]
     );
     sinon.assert.notCalled(create);
-    sinon.assert.calledOnceWithExactly(find, { courseSlot, trainee: { $in: course.trainees } });
+    sinon.assert.calledOnceWithExactly(find, { courseSlot, trainee: { $in: courseTrainees } });
     sinon.assert.calledOnceWithExactly(
       insertMany,
       [
-        { courseSlot, trainee: course.trainees[1], company: companies[1] },
-        { courseSlot, trainee: course.trainees[2], company: companies[2] },
+        { courseSlot, trainee: course.trainees[1]._id, company: companies[1] },
+        { courseSlot, trainee: course.trainees[2]._id, company: companies[2] },
       ]
     );
   });

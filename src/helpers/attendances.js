@@ -27,7 +27,8 @@ exports.create = async (payload) => {
     return Attendance.create({ ...payload, company });
   }
 
-  const existingAttendances = await Attendance.find({ courseSlot: courseSlotId, trainee: { $in: course.trainees } });
+  const traineesId = course.trainees.map(t => t._id);
+  const existingAttendances = await Attendance.find({ courseSlot: courseSlotId, trainee: { $in: traineesId } });
 
   const traineesWithAttendance = existingAttendances.map(a => a.trainee);
   const newAttendances = course.trainees
