@@ -31,7 +31,7 @@ exports.create = async (payload) => {
 
   const traineesWithAttendance = existingAttendances.map(a => a.trainee);
   const newAttendances = course.trainees
-    .filter(t => !UtilsHelper.doesArrayIncludeId(traineesWithAttendance, t))
+    .filter(t => !UtilsHelper.doesArrayIncludeId(traineesWithAttendance, t._id))
     .map(t => ({
       courseSlot: courseSlotId,
       trainee: t,
