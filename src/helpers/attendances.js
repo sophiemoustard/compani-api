@@ -34,7 +34,7 @@ exports.create = async (payload) => {
     .filter(t => !UtilsHelper.doesArrayIncludeId(traineesWithAttendance, t._id))
     .map(t => ({
       courseSlot: courseSlotId,
-      trainee: t,
+      trainee: t._id,
       company: course.type === INTRA ? course.companies[0] : t.company,
     }));
 

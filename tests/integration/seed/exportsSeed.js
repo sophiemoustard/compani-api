@@ -1473,13 +1473,13 @@ const courseSlotList = [
 ];
 
 const attendanceList = [
-  { trainee: traineeList[0]._id, courseSlot: courseSlotList[0]._id, company: authCompany },
-  { trainee: traineeList[0]._id, courseSlot: courseSlotList[1]._id, company: otherCompany },
-  { trainee: traineeList[1]._id, courseSlot: courseSlotList[1]._id, company: otherCompany },
-  { trainee: traineeList[1]._id, courseSlot: courseSlotList[2]._id, company: authCompany },
-  { trainee: traineeList[1]._id, courseSlot: courseSlotList[3]._id, company: authCompany },
-  { trainee: traineeList[3]._id, courseSlot: courseSlotList[2]._id, company: authCompany },
-  { trainee: traineeList[3]._id, courseSlot: courseSlotList[3]._id, company: authCompany },
+  { trainee: traineeList[0]._id, courseSlot: courseSlotList[0]._id, company: authCompany._id },
+  { trainee: traineeList[0]._id, courseSlot: courseSlotList[1]._id, company: authCompany._id },
+  { trainee: traineeList[1]._id, courseSlot: courseSlotList[1]._id, company: otherCompany._id },
+  { trainee: traineeList[1]._id, courseSlot: courseSlotList[2]._id, company: otherCompany._id },
+  { trainee: traineeList[1]._id, courseSlot: courseSlotList[3]._id, company: otherCompany._id },
+  { trainee: traineeList[3]._id, courseSlot: courseSlotList[2]._id, company: authCompany._id },
+  { trainee: traineeList[3]._id, courseSlot: courseSlotList[3]._id, company: authCompany._id },
 ];
 
 const attendanceSheetList = [

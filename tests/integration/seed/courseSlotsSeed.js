@@ -156,7 +156,7 @@ const attendance = {
   _id: new ObjectId(),
   trainee: new ObjectId(),
   courseSlot: courseSlotsList[4]._id,
-  company: authCompany,
+  company: authCompany._id,
 };
 
 const populateDB = async () => {
