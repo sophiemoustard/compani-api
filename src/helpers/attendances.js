@@ -4,23 +4,39 @@ const groupBy = require('lodash/groupBy');
 const Attendance = require('../models/Attendance');
 const Course = require('../models/Course');
 const UtilsHelper = require('./utils');
-const { BLENDED } = require('./constants');
+const { BLENDED, INTRA } = require('./constants');
 const CourseSlot = require('../models/CourseSlot');
 
 exports.create = async (payload) => {
   const { courseSlot: courseSlotId, trainee: traineeId } = payload;
-  if (traineeId) return Attendance.create(payload);
 
   const courseSlot = await CourseSlot.findById(courseSlotId, { course: 1 })
-    .populate({ path: 'course', select: 'trainees' })
+    .populate({
+      path: 'course',
+      select: 'type trainees companies',
+      populate: { path: 'trainees', select: 'company', populate: { path: 'company' } },
+    })
     .lean();
   const { course } = courseSlot;
+
+  if (traineeId) {
+    const company = course.type === INTRA
+      ? course.companies[0]
+      : course.trainees.find(t => UtilsHelper.areObjectIdsEquals(t._id, traineeId)).company;
+
+    return Attendance.create({ ...payload, company });
+  }
+
   const existingAttendances = await Attendance.find({ courseSlot: courseSlotId, trainee: { $in: course.trainees } });
 
   const traineesWithAttendance = existingAttendances.map(a => a.trainee);
   const newAttendances = course.trainees
     .filter(t => !UtilsHelper.doesArrayIncludeId(traineesWithAttendance, t))
-    .map(t => ({ courseSlot: courseSlotId, trainee: t }));
+    .map(t => ({
+      courseSlot: courseSlotId,
+      trainee: t,
+      company: course.type === INTRA ? course.companies[0] : t.company,
+    }));
 
   return Attendance.insertMany(newAttendances);
 };
