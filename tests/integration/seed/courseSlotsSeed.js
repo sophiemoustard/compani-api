@@ -152,7 +152,12 @@ const courseSlotsList = [
   },
 ];
 
-const attendance = { _id: new ObjectId(), trainee: new ObjectId(), courseSlot: courseSlotsList[4]._id };
+const attendance = {
+  _id: new ObjectId(),
+  trainee: new ObjectId(),
+  courseSlot: courseSlotsList[4]._id,
+  company: authCompany,
+};
 
 const populateDB = async () => {
   await deleteNonAuthenticationSeeds();
