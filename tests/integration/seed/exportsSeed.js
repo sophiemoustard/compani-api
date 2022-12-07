@@ -1401,7 +1401,7 @@ const slotAddress = {
 };
 
 const courseSlotList = [
-  {
+  { // 0
     _id: new ObjectId(),
     course: coursesList[0]._id,
     step: stepList[0]._id,
@@ -1410,7 +1410,7 @@ const courseSlotList = [
     address: slotAddress,
     createdAt: '2020-12-12T10:00:00.000Z',
   },
-  {
+  { // 1
     _id: new ObjectId(),
     course: coursesList[0]._id,
     step: stepList[1]._id,
@@ -1419,7 +1419,7 @@ const courseSlotList = [
     meetingLink: 'https://meet.google.com',
     createdAt: '2020-12-12T10:00:01.000Z',
   },
-  {
+  { // 2
     _id: new ObjectId(),
     course: coursesList[1]._id,
     step: stepList[0]._id,
@@ -1428,7 +1428,7 @@ const courseSlotList = [
     address: slotAddress,
     createdAt: '2020-12-12T10:00:02.000Z',
   },
-  {
+  { // 3
     _id: new ObjectId(),
     course: coursesList[1]._id,
     step: stepList[2]._id,
@@ -1436,14 +1436,14 @@ const courseSlotList = [
     endDate: '2021-02-02T10:00:00.000Z',
     createdAt: '2020-12-12T10:00:03.000Z',
   },
-  {
+  { // 4
     _id: new ObjectId(),
     course: coursesList[1]._id,
     step: stepList[3]._id,
     address: slotAddress,
     createdAt: '2020-12-12T10:00:04.000Z',
   },
-  {
+  { // 5
     _id: new ObjectId(),
     course: coursesList[5]._id,
     step: stepList[0]._id,
@@ -1452,7 +1452,7 @@ const courseSlotList = [
     startDate: '2021-04-12T10:00:00.000Z',
     endDate: '2021-04-12T12:00:00.000Z',
   },
-  {
+  { // 6
     _id: new ObjectId(),
     course: coursesList[6]._id,
     step: stepList[0]._id,
@@ -1461,7 +1461,7 @@ const courseSlotList = [
     startDate: '2021-04-12T10:00:00.000Z',
     endDate: '2021-04-12T12:00:00.000Z',
   },
-  {
+  { // 7 - out of COURSE_SLOT export period
     _id: new ObjectId(),
     course: coursesList[7]._id,
     step: stepList[0]._id,
@@ -1469,6 +1469,32 @@ const courseSlotList = [
     createdAt: '2020-12-12T10:00:04.000Z',
     startDate: '2021-01-16T10:00:00.000Z',
     endDate: '2021-01-16T12:00:00.000Z',
+  },
+  { // 8
+    _id: new ObjectId(),
+    course: coursesList[3]._id,
+    step: stepList[0]._id,
+    address: slotAddress,
+    createdAt: '2020-10-14T21:00:00.000Z',
+    startDate: '2021-02-01T09:00:00.000Z',
+    endDate: '2021-02-01T12:00:00.000Z',
+  },
+  { // 9
+    _id: new ObjectId(),
+    course: coursesList[3]._id,
+    step: stepList[1]._id,
+    createdAt: '2020-10-14T21:00:10.000Z',
+    startDate: '2021-02-10T08:00:00.000Z',
+    endDate: '2021-02-10T12:00:00.000Z',
+  },
+  { // 10
+    _id: new ObjectId(),
+    course: coursesList[3]._id,
+    step: stepList[0]._id,
+    address: slotAddress,
+    createdAt: '2020-10-14T21:00:30.000Z',
+    startDate: '2021-02-03T08:00:00.000Z',
+    endDate: '2021-02-03T12:00:00.000Z',
   },
 ];
 
