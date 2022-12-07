@@ -274,46 +274,37 @@ describe('list', () => {
   it('should return courseSlots\' attendances', async () => {
     const courseSlots = [new ObjectId(), new ObjectId()];
     const attendancesList = [
-      { trainee: { _id: new ObjectId(), company: new ObjectId() }, courseSlot: courseSlots[0] },
-      { trainee: { _id: new ObjectId(), company: new ObjectId() }, courseSlot: courseSlots[1] },
+      { trainee: new ObjectId(), courseSlot: courseSlots[0] },
+      { trainee: new ObjectId(), courseSlot: courseSlots[1] },
     ];
 
-    find.returns(SinonMongoose.stubChainedQueries(attendancesList));
+    find.returns(SinonMongoose.stubChainedQueries(attendancesList, ['lean']));
 
     const result = await AttendanceHelper.list([courseSlots], null);
 
     expect(result).toMatchObject(attendancesList);
     SinonMongoose.calledOnceWithExactly(
       find,
-      [
-        { query: 'find', args: [{ courseSlot: { $in: [courseSlots] } }] },
-        { query: 'populate', args: [{ path: 'trainee', select: 'company', populate: { path: 'company' } }] },
-        { query: 'lean' },
-      ]
+      [{ query: 'find', args: [{ courseSlot: { $in: [courseSlots] } }] }, { query: 'lean' }]
     );
   });
 
   it('should return all courseSlots attendances for a company', async () => {
     const companyId = new ObjectId();
-    const otherCompanyId = new ObjectId();
     const courseSlots = [new ObjectId(), new ObjectId()];
     const attendancesList = [
-      { trainee: { _id: new ObjectId(), company: companyId }, courseSlot: courseSlots[0] },
-      { trainee: { _id: new ObjectId(), company: otherCompanyId }, courseSlot: courseSlots[1] },
+      { trainee: new ObjectId(), courseSlot: courseSlots[0] },
+      { trainee: new ObjectId(), courseSlot: courseSlots[1] },
     ];
 
-    find.returns(SinonMongoose.stubChainedQueries(attendancesList));
+    find.returns(SinonMongoose.stubChainedQueries(attendancesList, ['lean']));
 
     const result = await AttendanceHelper.list([courseSlots], companyId);
 
-    expect(result).toMatchObject([attendancesList[0]]);
+    expect(result).toMatchObject(attendancesList);
     SinonMongoose.calledOnceWithExactly(
       find,
-      [
-        { query: 'find', args: [{ courseSlot: { $in: [courseSlots] } }] },
-        { query: 'populate', args: [{ path: 'trainee', select: 'company', populate: { path: 'company' } }] },
-        { query: 'lean' },
-      ]
+      [{ query: 'find', args: [{ courseSlot: { $in: [courseSlots] }, company: companyId }] }, { query: 'lean' }]
     );
   });
 });
@@ -356,7 +347,8 @@ describe('listUnsubscribed', () => {
             attendances: [
               {
                 _id: new ObjectId(),
-                trainee: { _id: userId, company: companyId, identity: { lastname: 'Test', firstname: 'Marie' } },
+                trainee: { _id: userId, identity: { lastname: 'Test', firstname: 'Marie' } },
+                company: companyId,
               },
             ],
           },
@@ -377,7 +369,8 @@ describe('listUnsubscribed', () => {
             attendances: [
               {
                 _id: new ObjectId(),
-                trainee: { _id: userId, company: companyId, identity: { lastname: 'Test', firstname: 'Marie' } },
+                trainee: { _id: userId, identity: { lastname: 'Test', firstname: 'Marie' } },
+                company: companyId,
               },
             ],
           },
@@ -393,7 +386,7 @@ describe('listUnsubscribed', () => {
     expect(result).toMatchObject({
       [userId]: [
         {
-          trainee: { _id: userId, identity: { firstname: 'Marie', lastname: 'Test' }, company: companyId },
+          trainee: { _id: userId, identity: { firstname: 'Marie', lastname: 'Test' } },
           trainer: { identity: { firstname: 'Paul', lastname: 'Trainer' } },
           misc: 'group 1',
           courseSlot: {
@@ -430,8 +423,8 @@ describe('listUnsubscribed', () => {
             select: 'attendances startDate endDate',
             populate: {
               path: 'attendances',
-              select: 'trainee',
-              populate: { path: 'trainee', select: 'identity company', populate: 'company' },
+              select: 'trainee company',
+              populate: { path: 'trainee', select: 'identity' },
             },
           }],
         },
@@ -445,7 +438,7 @@ describe('listUnsubscribed', () => {
     const courseId = new ObjectId();
     const subProgramId = new ObjectId();
     const userId = new ObjectId();
-    const userCompanyId = new ObjectId();
+    const companyId = new ObjectId();
     const course = {
       _id: new ObjectId(),
       subProgram: { _id: subProgramId, program: { _id: new ObjectId(), subPrograms: [subProgramId] } },
@@ -467,7 +460,8 @@ describe('listUnsubscribed', () => {
             attendances: [
               {
                 _id: new ObjectId(),
-                trainee: { _id: userId, company: userCompanyId, identity: { lastname: 'Test', firstname: 'Marie' } },
+                trainee: { _id: userId, identity: { lastname: 'Test', firstname: 'Marie' } },
+                company: companyId,
               },
             ],
           },
@@ -488,7 +482,8 @@ describe('listUnsubscribed', () => {
             attendances: [
               {
                 _id: new ObjectId(),
-                trainee: { _id: userId, company: userCompanyId, identity: { lastname: 'Test', firstname: 'Marie' } },
+                trainee: { _id: userId, identity: { lastname: 'Test', firstname: 'Marie' } },
+                company: companyId,
               },
             ],
           },
@@ -504,7 +499,7 @@ describe('listUnsubscribed', () => {
     expect(result).toMatchObject({
       [userId]: [
         {
-          trainee: { _id: userId, identity: { firstname: 'Marie', lastname: 'Test' }, company: userCompanyId },
+          trainee: { _id: userId, identity: { firstname: 'Marie', lastname: 'Test' } },
           trainer: { identity: { firstname: 'Paul', lastname: 'Trainer' } },
           misc: 'group 1',
           courseSlot: {
@@ -541,8 +536,8 @@ describe('listUnsubscribed', () => {
             select: 'attendances startDate endDate',
             populate: {
               path: 'attendances',
-              select: 'trainee',
-              populate: { path: 'trainee', select: 'identity company', populate: 'company' },
+              select: 'trainee company',
+              populate: { path: 'trainee', select: 'identity' },
             },
           }],
         },

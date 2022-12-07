@@ -49,14 +49,10 @@ exports.create = async (payload) => {
   return Attendance.insertMany(newAttendances);
 };
 
-exports.list = async (query, companyId) => {
-  const attendances = await Attendance.find({ courseSlot: { $in: query } })
-    .populate({ path: 'trainee', select: 'company', populate: { path: 'company' } })
-    .lean();
+exports.list = async (query, company) => {
+  const attendanceQuery = { courseSlot: { $in: query }, ...(company && { company }) };
 
-  return companyId
-    ? attendances.filter(a => UtilsHelper.areObjectIdsEquals(get(a, 'trainee.company'), companyId))
-    : attendances;
+  return Attendance.find(attendanceQuery).lean();
 };
 
 const formatCourseWithAttendances = (course, specificCourseTrainees, specificCourseCompany) =>
@@ -69,10 +65,10 @@ const formatCourseWithAttendances = (course, specificCourseTrainees, specificCou
         const isTraineeOnlySubscribedToSpecificCourse =
           UtilsHelper.doesArrayIncludeId(specificCourseTrainees, a.trainee._id) &&
           !UtilsHelper.doesArrayIncludeId(course.trainees, a.trainee._id);
-        const IsTraineeInSpecificCompany = !specificCourseCompany ||
-        UtilsHelper.areObjectIdsEquals(a.trainee.company, specificCourseCompany);
+        const isAttendanceFromSpecificCompany = !specificCourseCompany ||
+        UtilsHelper.areObjectIdsEquals(a.company, specificCourseCompany);
 
-        return isTraineeOnlySubscribedToSpecificCourse && IsTraineeInSpecificCompany;
+        return isTraineeOnlySubscribedToSpecificCourse && isAttendanceFromSpecificCompany;
       }).map(a => ({
         trainee: a.trainee,
         courseSlot: pick(slot, ['step', 'startDate', 'endDate']),
@@ -93,8 +89,8 @@ exports.listUnsubscribed = async (courseId, companyId) => {
       select: 'attendances startDate endDate',
       populate: {
         path: 'attendances',
-        select: 'trainee',
-        populate: { path: 'trainee', select: 'identity company', populate: 'company' },
+        select: 'trainee company',
+        populate: { path: 'trainee', select: 'identity' },
       },
     })
     .populate({ path: 'trainer', select: 'identity' })
