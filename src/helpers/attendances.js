@@ -6,6 +6,7 @@ const Course = require('../models/Course');
 const UtilsHelper = require('./utils');
 const { BLENDED, INTRA } = require('./constants');
 const CourseSlot = require('../models/CourseSlot');
+const UserCompany = require('../models/UserCompany');
 
 exports.create = async (payload) => {
   const { courseSlot: courseSlotId, trainee: traineeId } = payload;
@@ -20,11 +21,14 @@ exports.create = async (payload) => {
   const { course } = courseSlot;
 
   if (traineeId) {
-    const company = course.type === INTRA
-      ? course.companies[0]
-      : course.trainees.find(t => UtilsHelper.areObjectIdsEquals(t._id, traineeId)).company;
+    if (course.type === INTRA) return Attendance.create({ ...payload, company: course.companies[0] });
 
-    return Attendance.create({ ...payload, company });
+    const traineeFromCourseInDb = course.trainees.find(t => UtilsHelper.areObjectIdsEquals(t._id, traineeId));
+    if (traineeFromCourseInDb) return Attendance.create({ ...payload, company: traineeFromCourseInDb.company });
+
+    const unsubscribedTraineeUserCompany = await UserCompany.findOne({ user: traineeId }, { company: 1 }).lean();
+
+    return Attendance.create({ ...payload, company: unsubscribedTraineeUserCompany.company });
   }
 
   const traineesId = course.trainees.map(t => t._id);

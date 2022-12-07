@@ -8,23 +8,27 @@ const AttendanceHelper = require('../../../src/helpers/attendances');
 const SinonMongoose = require('../sinonMongoose');
 const { BLENDED, INTRA, INTER_B2B } = require('../../../src/helpers/constants');
 const CourseSlot = require('../../../src/models/CourseSlot');
+const UserCompany = require('../../../src/models/UserCompany');
 
 describe('create', () => {
   let insertMany;
   let create;
   let courseSlotFindById;
   let find;
+  let userCompanyFindOne;
   beforeEach(() => {
     insertMany = sinon.stub(Attendance, 'insertMany');
     create = sinon.stub(Attendance, 'create');
     courseSlotFindById = sinon.stub(CourseSlot, 'findById');
     find = sinon.stub(Attendance, 'find');
+    userCompanyFindOne = sinon.stub(UserCompany, 'findOne');
   });
   afterEach(() => {
     create.restore();
     insertMany.restore();
     courseSlotFindById.restore();
     find.restore();
+    userCompanyFindOne.restore();
   });
 
   it('should add a sigle attendance on INTRA course', async () => {
@@ -62,11 +66,12 @@ describe('create', () => {
       ]
     );
     sinon.assert.calledOnceWithExactly(create, { ...payload, company });
+    sinon.assert.notCalled(userCompanyFindOne);
     sinon.assert.notCalled(insertMany);
     sinon.assert.notCalled(find);
   });
 
-  it('should add a single attendance on INTER course', async () => {
+  it('should add a single attendance on INTER course. User is subscribed to course', async () => {
     const company = new ObjectId();
     const otherCompany = new ObjectId();
     const payload = { trainee: new ObjectId(), courseSlot: new ObjectId() };
@@ -100,6 +105,52 @@ describe('create', () => {
         },
         { query: 'lean' },
       ]
+    );
+    sinon.assert.calledOnceWithExactly(create, { ...payload, company });
+    sinon.assert.notCalled(userCompanyFindOne);
+    sinon.assert.notCalled(insertMany);
+    sinon.assert.notCalled(find);
+  });
+
+  it('should add a single attendance on INTER course. User is NOT subscribed to course', async () => {
+    const company = new ObjectId();
+    const otherCompany = new ObjectId();
+    const payload = { trainee: new ObjectId(), courseSlot: new ObjectId() };
+    const course = {
+      _id: new ObjectId(),
+      type: INTER_B2B,
+      trainees: [
+        { _id: new ObjectId(), company },
+        { _id: new ObjectId(), otherCompany },
+        { _id: new ObjectId(), otherCompany },
+      ],
+      companies: [otherCompany, company],
+    };
+    courseSlotFindById.returns(SinonMongoose.stubChainedQueries({ course }));
+    userCompanyFindOne.returns(SinonMongoose.stubChainedQueries({ company }, ['lean']));
+
+    await AttendanceHelper.create(payload);
+
+    SinonMongoose.calledOnceWithExactly(
+      courseSlotFindById,
+      [
+        { query: 'findById', args: [payload.courseSlot, { course: 1 }] },
+        {
+          query: 'populate',
+          args: [
+            {
+              path: 'course',
+              select: 'type trainees companies',
+              populate: { path: 'trainees', select: 'company', populate: { path: 'company' } },
+            },
+          ],
+        },
+        { query: 'lean' },
+      ]
+    );
+    SinonMongoose.calledOnceWithExactly(
+      userCompanyFindOne,
+      [{ query: 'findOne', args: [{ user: payload.trainee }, { company: 1 }] }, { query: 'lean' }]
     );
     sinon.assert.calledOnceWithExactly(create, { ...payload, company });
     sinon.assert.notCalled(insertMany);
@@ -144,6 +195,7 @@ describe('create', () => {
         { query: 'lean' },
       ]
     );
+    sinon.assert.notCalled(userCompanyFindOne);
     sinon.assert.notCalled(create);
     sinon.assert.calledOnceWithExactly(find, { courseSlot, trainee: { $in: courseTrainees } });
     sinon.assert.calledOnceWithExactly(
@@ -155,7 +207,7 @@ describe('create', () => {
     );
   });
 
-  it('should add several attendances for every trainee without attendance on INTER course #tag', async () => {
+  it('should add several attendances for every trainee without attendance on INTER course', async () => {
     const courseSlot = new ObjectId();
     const companies = [new ObjectId(), new ObjectId(), new ObjectId()];
     const courseTrainees = [new ObjectId(), new ObjectId(), new ObjectId()];
@@ -193,6 +245,7 @@ describe('create', () => {
         { query: 'lean' },
       ]
     );
+    sinon.assert.notCalled(userCompanyFindOne);
     sinon.assert.notCalled(create);
     sinon.assert.calledOnceWithExactly(find, { courseSlot, trainee: { $in: courseTrainees } });
     sinon.assert.calledOnceWithExactly(
