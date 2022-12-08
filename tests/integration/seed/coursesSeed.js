@@ -659,7 +659,12 @@ const slots = [
   },
 ];
 
-const attendanceList = [{ _id: new ObjectId(), trainee: traineeFromThirdCompany._id, courseSlot: slots[16]._id }];
+const attendanceList = [{
+  _id: new ObjectId(),
+  trainee: traineeFromThirdCompany._id,
+  courseSlot: slots[16]._id,
+  company: thirdCompany._id,
+}];
 
 const attendanceSheetList = [
   {

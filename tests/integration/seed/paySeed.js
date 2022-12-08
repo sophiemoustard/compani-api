@@ -73,9 +73,9 @@ const auxiliaryFromOtherCompany = {
 };
 
 const userCompanyList = [
-  { _id: new ObjectId(), user: auxiliaryId0, company: authCompany },
-  { _id: new ObjectId(), user: auxiliaryId1, company: authCompany },
-  { _id: new ObjectId(), user: auxiliaryFromOtherCompany._id, company: otherCompany },
+  { _id: new ObjectId(), user: auxiliaryId0, company: authCompany._id },
+  { _id: new ObjectId(), user: auxiliaryId1, company: authCompany._id },
+  { _id: new ObjectId(), user: auxiliaryFromOtherCompany._id, company: otherCompany._id },
   { _id: new ObjectId(), user: user._id, company: authCompany._id },
 ];
 
