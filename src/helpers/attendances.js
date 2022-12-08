@@ -4,11 +4,11 @@ const groupBy = require('lodash/groupBy');
 const Attendance = require('../models/Attendance');
 const Course = require('../models/Course');
 const UtilsHelper = require('./utils');
-const { BLENDED, INTRA } = require('./constants');
+const { BLENDED, INTRA, VENDOR_ROLES } = require('./constants');
 const CourseSlot = require('../models/CourseSlot');
 const User = require('../models/User');
 
-exports.create = async (payload) => {
+exports.create = async (payload, credentials) => {
   const { courseSlot: courseSlotId, trainee: traineeId } = payload;
 
   const courseSlot = await CourseSlot.findById(courseSlotId, { course: 1 })
@@ -35,8 +35,10 @@ exports.create = async (payload) => {
   }
 
   const traineesIdList = course.trainees.map(t => t._id);
-  const existingAttendances = await Attendance.find({ courseSlot: courseSlotId, trainee: { $in: traineesIdList } });
-
+  const existingAttendances = await Attendance
+    .find({ courseSlot: courseSlotId, trainee: { $in: traineesIdList } })
+    .setOptions({ isVendorUser: VENDOR_ROLES.includes(get(credentials, 'role.vendor.name')) })
+    .lean();
   const traineesWithAttendance = existingAttendances.map(a => a.trainee);
   const newAttendances = course.trainees
     .filter(t => !UtilsHelper.doesArrayIncludeId(traineesWithAttendance, t._id))
@@ -49,10 +51,16 @@ exports.create = async (payload) => {
   return Attendance.insertMany(newAttendances);
 };
 
-exports.list = async (query, company) => {
+exports.list = async (query, company, credentials) => {
   const attendanceQuery = { courseSlot: { $in: query }, ...(company && { company }) };
 
-  return Attendance.find(attendanceQuery).lean();
+  return Attendance
+    .find(attendanceQuery)
+    .setOptions({
+      isVendorUser: VENDOR_ROLES.includes(get(credentials, 'role.vendor.name')),
+      requestingOwnInfos: UtilsHelper.areObjectIdsEquals(company, get(credentials, 'company._id')),
+    })
+    .lean();
 };
 
 const formatCourseWithAttendances = (course, specificCourseTrainees, specificCourseCompany) =>
@@ -77,7 +85,7 @@ const formatCourseWithAttendances = (course, specificCourseTrainees, specificCou
       }));
   });
 
-exports.listUnsubscribed = async (courseId, companyId) => {
+exports.listUnsubscribed = async (courseId, companyId, credentials) => {
   const course = await Course.findOne({ _id: courseId })
     .populate({ path: 'subProgram', select: 'program', populate: { path: 'program', select: 'subPrograms' } })
     .lean();
@@ -91,6 +99,10 @@ exports.listUnsubscribed = async (courseId, companyId) => {
         path: 'attendances',
         select: 'trainee company',
         populate: { path: 'trainee', select: 'identity' },
+        options: {
+          isVendorUser: VENDOR_ROLES.includes(get(credentials, 'role.vendor.name')),
+          requestingOwnInfos: UtilsHelper.areObjectIdsEquals(companyId, get(credentials, 'company._id')),
+        },
       },
     })
     .populate({ path: 'trainer', select: 'identity' })
@@ -102,16 +114,18 @@ exports.listUnsubscribed = async (courseId, companyId) => {
   return groupBy(unsubscribedAttendances.flat(3), 'trainee._id');
 };
 
-exports.getTraineeUnsubscribedAttendances = async (trainee) => {
+exports.getTraineeUnsubscribedAttendances = async (traineeId, credentials) => {
+  const trainee = await User.findOne({ _id: traineeId }, { company: 1 }).populate({ path: 'company' }).lean();
+
   const attendances = await Attendance
-    .find({ trainee })
+    .find({ trainee: traineeId })
     .populate({
       path: 'courseSlot',
       select: 'course startDate endDate',
       populate: [
         {
           path: 'course',
-          match: { trainees: { $ne: trainee } },
+          match: { trainees: { $ne: traineeId } },
           select: 'trainer misc subProgram',
           populate: [
             { path: 'subProgram', select: 'program', populate: { path: 'program', select: 'name' } },
@@ -119,6 +133,10 @@ exports.getTraineeUnsubscribedAttendances = async (trainee) => {
           ],
         },
       ],
+    })
+    .setOptions({
+      isVendorUser: VENDOR_ROLES.includes(get(credentials, 'role.vendor.name')),
+      requestingOwnInfos: UtilsHelper.areObjectIdsEquals(trainee.company, credentials.company._id),
     })
     .lean();
 

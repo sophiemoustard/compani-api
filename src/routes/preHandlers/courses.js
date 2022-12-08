@@ -455,6 +455,7 @@ exports.authorizeCourseCompanyDeletion = async (req) => {
         path: 'attendances',
         select: 'trainee',
         populate: { path: 'trainee', select: 'company', populate: 'company' },
+        options: { isVendorUser },
       },
     })
     .lean();

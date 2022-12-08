@@ -5,12 +5,22 @@ const { ObjectId } = require('mongodb');
 const Attendance = require('../../../src/models/Attendance');
 const Course = require('../../../src/models/Course');
 const AttendanceHelper = require('../../../src/helpers/attendances');
+const UtilsHelper = require('../../../src/helpers/utils');
 const SinonMongoose = require('../sinonMongoose');
-const { BLENDED, INTRA, INTER_B2B } = require('../../../src/helpers/constants');
+const {
+  BLENDED,
+  INTRA,
+  INTER_B2B,
+  TRAINING_ORGANISATION_MANAGER,
+  VENDOR_ROLES,
+} = require('../../../src/helpers/constants');
 const CourseSlot = require('../../../src/models/CourseSlot');
 const User = require('../../../src/models/User');
 
 describe('create', () => {
+  const credentials = { role: { vendor: { name: TRAINING_ORGANISATION_MANAGER } } };
+  const isVendorUser = VENDOR_ROLES.includes(get(credentials, 'role.vendor.name'));
+
   let insertMany;
   let create;
   let courseSlotFindById;
@@ -46,7 +56,7 @@ describe('create', () => {
     };
     courseSlotFindById.returns(SinonMongoose.stubChainedQueries({ course }));
 
-    await AttendanceHelper.create(payload);
+    await AttendanceHelper.create(payload, credentials);
 
     SinonMongoose.calledOnceWithExactly(
       courseSlotFindById,
@@ -87,7 +97,7 @@ describe('create', () => {
     };
     courseSlotFindById.returns(SinonMongoose.stubChainedQueries({ course }));
 
-    await AttendanceHelper.create(payload);
+    await AttendanceHelper.create(payload, credentials);
 
     SinonMongoose.calledOnceWithExactly(
       courseSlotFindById,
@@ -129,7 +139,7 @@ describe('create', () => {
     courseSlotFindById.returns(SinonMongoose.stubChainedQueries({ course }));
     userFindOne.returns(SinonMongoose.stubChainedQueries({ company }));
 
-    await AttendanceHelper.create(payload);
+    await AttendanceHelper.create(payload, credentials);
 
     SinonMongoose.calledOnceWithExactly(
       courseSlotFindById,
@@ -178,9 +188,12 @@ describe('create', () => {
     };
 
     courseSlotFindById.returns(SinonMongoose.stubChainedQueries({ course }));
-    find.returns([{ courseSlot, trainee: course.trainees[0]._id }]);
+    find.returns(
+      SinonMongoose
+        .stubChainedQueries([{ courseSlot, trainee: course.trainees[0]._id }], ['setOptions', 'lean'])
+    );
 
-    await AttendanceHelper.create(payload);
+    await AttendanceHelper.create(payload, credentials);
 
     SinonMongoose.calledOnceWithExactly(
       courseSlotFindById,
@@ -201,7 +214,15 @@ describe('create', () => {
     );
     sinon.assert.notCalled(userFindOne);
     sinon.assert.notCalled(create);
-    sinon.assert.calledOnceWithExactly(find, { courseSlot, trainee: { $in: courseTrainees } });
+    SinonMongoose.calledOnceWithExactly(
+      find,
+      [
+        { query: 'find', args: [{ courseSlot, trainee: { $in: courseTrainees } }] },
+        { query: 'setOptions', args: [{ isVendorUser }] },
+        { query: 'lean' },
+      ]
+
+    );
     sinon.assert.calledOnceWithExactly(
       insertMany,
       [
@@ -228,9 +249,12 @@ describe('create', () => {
     };
 
     courseSlotFindById.returns(SinonMongoose.stubChainedQueries({ course }));
-    find.returns([{ courseSlot, trainee: course.trainees[0]._id }]);
+    find.returns(
+      SinonMongoose
+        .stubChainedQueries([{ courseSlot, trainee: course.trainees[0]._id }], ['setOptions', 'lean'])
+    );
 
-    await AttendanceHelper.create(payload);
+    await AttendanceHelper.create(payload, credentials);
 
     SinonMongoose.calledOnceWithExactly(
       courseSlotFindById,
@@ -251,7 +275,15 @@ describe('create', () => {
     );
     sinon.assert.notCalled(userFindOne);
     sinon.assert.notCalled(create);
-    sinon.assert.calledOnceWithExactly(find, { courseSlot, trainee: { $in: courseTrainees } });
+    SinonMongoose.calledOnceWithExactly(
+      find,
+      [
+        { query: 'find', args: [{ courseSlot, trainee: { $in: courseTrainees } }] },
+        { query: 'setOptions', args: [{ isVendorUser }] },
+        { query: 'lean' },
+      ]
+
+    );
     sinon.assert.calledOnceWithExactly(
       insertMany,
       [
@@ -263,6 +295,9 @@ describe('create', () => {
 });
 
 describe('list', () => {
+  const credentials = { company: { _id: new ObjectId() }, role: { vendor: { name: TRAINING_ORGANISATION_MANAGER } } };
+  const isVendorUser = VENDOR_ROLES.includes(get(credentials, 'role.vendor.name'));
+
   let find;
   beforeEach(() => {
     find = sinon.stub(Attendance, 'find');
@@ -278,14 +313,24 @@ describe('list', () => {
       { trainee: new ObjectId(), courseSlot: courseSlots[1] },
     ];
 
-    find.returns(SinonMongoose.stubChainedQueries(attendancesList, ['lean']));
+    find.returns(SinonMongoose.stubChainedQueries(attendancesList, ['setOptions', 'lean']));
 
-    const result = await AttendanceHelper.list([courseSlots], null);
+    const result = await AttendanceHelper.list([courseSlots], null, credentials);
 
     expect(result).toMatchObject(attendancesList);
     SinonMongoose.calledOnceWithExactly(
       find,
-      [{ query: 'find', args: [{ courseSlot: { $in: [courseSlots] } }] }, { query: 'lean' }]
+      [
+        { query: 'find', args: [{ courseSlot: { $in: [courseSlots] } }] },
+        {
+          query: 'setOptions',
+          args: [{
+            isVendorUser,
+            requestingOwnInfos: UtilsHelper.areObjectIdsEquals(null, get(credentials, 'company._id')),
+          }],
+        },
+        { query: 'lean' },
+      ]
     );
   });
 
@@ -297,19 +342,31 @@ describe('list', () => {
       { trainee: new ObjectId(), courseSlot: courseSlots[1] },
     ];
 
-    find.returns(SinonMongoose.stubChainedQueries(attendancesList, ['lean']));
+    find.returns(SinonMongoose.stubChainedQueries(attendancesList, ['setOptions', 'lean']));
 
-    const result = await AttendanceHelper.list([courseSlots], companyId);
+    const result = await AttendanceHelper.list([courseSlots], companyId, credentials);
 
     expect(result).toMatchObject(attendancesList);
     SinonMongoose.calledOnceWithExactly(
       find,
-      [{ query: 'find', args: [{ courseSlot: { $in: [courseSlots] }, company: companyId }] }, { query: 'lean' }]
+      [
+        { query: 'find', args: [{ courseSlot: { $in: [courseSlots] }, company: companyId }] },
+        {
+          query: 'setOptions',
+          args: [{
+            isVendorUser,
+            requestingOwnInfos: UtilsHelper.areObjectIdsEquals(companyId, get(credentials, 'company._id')),
+          }],
+        },
+        { query: 'lean' }]
     );
   });
 });
 
 describe('listUnsubscribed', () => {
+  const credentials = { company: { _id: new ObjectId() }, role: { vendor: { name: TRAINING_ORGANISATION_MANAGER } } };
+  const isVendorUser = VENDOR_ROLES.includes(get(credentials, 'role.vendor.name'));
+
   let courseFindOne;
   let courseFind;
   beforeEach(() => {
@@ -381,7 +438,7 @@ describe('listUnsubscribed', () => {
     courseFindOne.returns(SinonMongoose.stubChainedQueries(course));
     courseFind.returns(SinonMongoose.stubChainedQueries(courseWithSameSubProgramList));
 
-    const result = await AttendanceHelper.listUnsubscribed(courseId, companyId);
+    const result = await AttendanceHelper.listUnsubscribed(courseId, companyId, credentials);
 
     expect(result).toMatchObject({
       [userId]: [
@@ -425,6 +482,10 @@ describe('listUnsubscribed', () => {
               path: 'attendances',
               select: 'trainee company',
               populate: { path: 'trainee', select: 'identity' },
+              options: {
+                isVendorUser,
+                requestingOwnInfos: UtilsHelper.areObjectIdsEquals(companyId, get(credentials, 'company._id')),
+              },
             },
           }],
         },
@@ -494,7 +555,7 @@ describe('listUnsubscribed', () => {
     courseFindOne.returns(SinonMongoose.stubChainedQueries(course));
     courseFind.returns(SinonMongoose.stubChainedQueries(courseWithSameSubProgramList));
 
-    const result = await AttendanceHelper.listUnsubscribed(courseId);
+    const result = await AttendanceHelper.listUnsubscribed(courseId, null, credentials);
 
     expect(result).toMatchObject({
       [userId]: [
@@ -538,6 +599,10 @@ describe('listUnsubscribed', () => {
               path: 'attendances',
               select: 'trainee company',
               populate: { path: 'trainee', select: 'identity' },
+              options: {
+                isVendorUser,
+                requestingOwnInfos: UtilsHelper.areObjectIdsEquals(companyId, get(credentials, 'company._id')),
+              },
             },
           }],
         },
@@ -549,16 +614,23 @@ describe('listUnsubscribed', () => {
 });
 
 describe('getTraineeUnsubscribedAttendances', () => {
+  const credentials = { company: { _id: new ObjectId() }, role: { vendor: { name: TRAINING_ORGANISATION_MANAGER } } };
+  const isVendorUser = VENDOR_ROLES.includes(get(credentials, 'role.vendor.name'));
+
   let attendanceFind;
+  let userFindOne;
   beforeEach(() => {
     attendanceFind = sinon.stub(Attendance, 'find');
+    userFindOne = sinon.stub(User, 'findOne');
   });
   afterEach(() => {
     attendanceFind.restore();
+    userFindOne.restore();
   });
 
   it('should return trainee\'s unsubscribed attendances', async () => {
     const traineeId = new ObjectId();
+    const trainee = { _id: traineeId, company: new ObjectId() };
     const programAId = new ObjectId();
     const programBId = new ObjectId();
     const attendances = [
@@ -616,9 +688,10 @@ describe('getTraineeUnsubscribedAttendances', () => {
       },
     ];
 
-    attendanceFind.returns(SinonMongoose.stubChainedQueries(attendances));
+    userFindOne.returns(SinonMongoose.stubChainedQueries(trainee));
+    attendanceFind.returns(SinonMongoose.stubChainedQueries(attendances, ['populate', 'setOptions', 'lean']));
 
-    const result = await AttendanceHelper.getTraineeUnsubscribedAttendances(traineeId);
+    const result = await AttendanceHelper.getTraineeUnsubscribedAttendances(traineeId, credentials);
 
     expect(result).toMatchObject({
       [programAId]: [
@@ -661,6 +734,15 @@ describe('getTraineeUnsubscribedAttendances', () => {
     });
 
     SinonMongoose.calledOnceWithExactly(
+      userFindOne,
+      [
+        { query: 'findOne', args: [{ _id: traineeId }, { company: 1 }] },
+        { query: 'populate', args: [{ path: 'company' }] },
+        { query: 'lean' },
+      ]
+    );
+
+    SinonMongoose.calledOnceWithExactly(
       attendanceFind,
       [
         { query: 'find', args: [{ trainee: traineeId }] },
@@ -680,6 +762,13 @@ describe('getTraineeUnsubscribedAttendances', () => {
                 ],
               },
             ],
+          }],
+        },
+        {
+          query: 'setOptions',
+          args: [{
+            isVendorUser,
+            requestingOwnInfos: UtilsHelper.areObjectIdsEquals(trainee.company, credentials.company._id),
           }],
         },
         { query: 'lean' },
