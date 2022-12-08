@@ -5,7 +5,6 @@ const { ObjectId } = require('mongodb');
 const Attendance = require('../../../src/models/Attendance');
 const Course = require('../../../src/models/Course');
 const AttendanceHelper = require('../../../src/helpers/attendances');
-const UtilsHelper = require('../../../src/helpers/utils');
 const SinonMongoose = require('../sinonMongoose');
 const {
   BLENDED,
@@ -322,13 +321,7 @@ describe('list', () => {
       find,
       [
         { query: 'find', args: [{ courseSlot: { $in: [courseSlots] } }] },
-        {
-          query: 'setOptions',
-          args: [{
-            isVendorUser,
-            requestingOwnInfos: UtilsHelper.areObjectIdsEquals(null, get(credentials, 'company._id')),
-          }],
-        },
+        { query: 'setOptions', args: [{ isVendorUser }] },
         { query: 'lean' },
       ]
     );
@@ -351,13 +344,7 @@ describe('list', () => {
       find,
       [
         { query: 'find', args: [{ courseSlot: { $in: [courseSlots] }, company: companyId }] },
-        {
-          query: 'setOptions',
-          args: [{
-            isVendorUser,
-            requestingOwnInfos: UtilsHelper.areObjectIdsEquals(companyId, get(credentials, 'company._id')),
-          }],
-        },
+        { query: 'setOptions', args: [{ isVendorUser }] },
         { query: 'lean' }]
     );
   });
@@ -480,12 +467,10 @@ describe('listUnsubscribed', () => {
             select: 'attendances startDate endDate',
             populate: {
               path: 'attendances',
+              ...(companyId && { match: { company: companyId } }),
               select: 'trainee company',
               populate: { path: 'trainee', select: 'identity' },
-              options: {
-                isVendorUser,
-                requestingOwnInfos: UtilsHelper.areObjectIdsEquals(companyId, get(credentials, 'company._id')),
-              },
+              options: { isVendorUser },
             },
           }],
         },
@@ -499,7 +484,6 @@ describe('listUnsubscribed', () => {
     const courseId = new ObjectId();
     const subProgramId = new ObjectId();
     const userId = new ObjectId();
-    const companyId = new ObjectId();
     const course = {
       _id: new ObjectId(),
       subProgram: { _id: subProgramId, program: { _id: new ObjectId(), subPrograms: [subProgramId] } },
@@ -522,7 +506,7 @@ describe('listUnsubscribed', () => {
               {
                 _id: new ObjectId(),
                 trainee: { _id: userId, identity: { lastname: 'Test', firstname: 'Marie' } },
-                company: companyId,
+                company: new ObjectId(),
               },
             ],
           },
@@ -544,7 +528,7 @@ describe('listUnsubscribed', () => {
               {
                 _id: new ObjectId(),
                 trainee: { _id: userId, identity: { lastname: 'Test', firstname: 'Marie' } },
-                company: companyId,
+                company: new ObjectId(),
               },
             ],
           },
@@ -599,10 +583,7 @@ describe('listUnsubscribed', () => {
               path: 'attendances',
               select: 'trainee company',
               populate: { path: 'trainee', select: 'identity' },
-              options: {
-                isVendorUser,
-                requestingOwnInfos: UtilsHelper.areObjectIdsEquals(companyId, get(credentials, 'company._id')),
-              },
+              options: { isVendorUser },
             },
           }],
         },
@@ -745,7 +726,7 @@ describe('getTraineeUnsubscribedAttendances', () => {
     SinonMongoose.calledOnceWithExactly(
       attendanceFind,
       [
-        { query: 'find', args: [{ trainee: traineeId }] },
+        { query: 'find', args: [{ trainee: traineeId, company: trainee.company }] },
         {
           query: 'populate',
           args: [{
@@ -764,13 +745,7 @@ describe('getTraineeUnsubscribedAttendances', () => {
             ],
           }],
         },
-        {
-          query: 'setOptions',
-          args: [{
-            isVendorUser,
-            requestingOwnInfos: UtilsHelper.areObjectIdsEquals(trainee.company, credentials.company._id),
-          }],
-        },
+        { query: 'setOptions', args: [{ isVendorUser }] },
         { query: 'lean' },
       ]
     );

@@ -573,12 +573,8 @@ describe('list', () => {
                 { path: 'step', select: 'type' },
                 {
                   path: 'attendances',
-                  match: { trainee: trainee._id },
-                  options: {
-                    isVendorUser,
-                    requestingOwnInfos: UtilsHelper
-                      .areObjectIdsEquals(trainee.company, get(credentials, 'company._id')),
-                  },
+                  match: { trainee: trainee._id, company: trainee.company },
+                  options: { isVendorUser },
                 },
               ],
             }],
@@ -789,12 +785,8 @@ describe('list', () => {
                 { path: 'step', select: 'type' },
                 {
                   path: 'attendances',
-                  match: { trainee: trainee._id },
-                  options: {
-                    isVendorUser,
-                    requestingOwnInfos: UtilsHelper
-                      .areObjectIdsEquals(trainee.company, get(credentials, 'company._id')),
-                  },
+                  match: { trainee: trainee._id, company: trainee.company },
+                  options: { isVendorUser },
                 },
               ],
             }],
@@ -3166,15 +3158,9 @@ describe('generateCompletionCertificate', () => {
     SinonMongoose.calledOnceWithExactly(
       attendanceFind,
       [
-        { query: 'find', args: [{ courseSlot: course.slots.map(s => s._id) }] },
+        { query: 'find', args: [{ courseSlot: course.slots.map(s => s._id), company: { $in: course.companies } }] },
         { query: 'populate', args: [{ path: 'courseSlot', select: 'startDate endDate' }] },
-        {
-          query: 'setOptions',
-          args: [{
-            isVendorUser: VENDOR_ROLES.includes(get(credentials, 'role.vendor.name')),
-            requestingOwnInfos: UtilsHelper.doesArrayIncludeId(course.companies, get(credentials, 'company._id')),
-          }],
-        },
+        { query: 'setOptions', args: [{ isVendorUser: VENDOR_ROLES.includes(get(credentials, 'role.vendor.name')) }] },
         { query: 'lean' },
       ]);
     sinon.assert.notCalled(getPdf);
@@ -3269,15 +3255,9 @@ describe('generateCompletionCertificate', () => {
     SinonMongoose.calledOnceWithExactly(
       attendanceFind,
       [
-        { query: 'find', args: [{ courseSlot: course.slots.map(s => s._id) }] },
+        { query: 'find', args: [{ courseSlot: course.slots.map(s => s._id), company: { $in: course.companies } }] },
         { query: 'populate', args: [{ path: 'courseSlot', select: 'startDate endDate' }] },
-        {
-          query: 'setOptions',
-          args: [{
-            isVendorUser: VENDOR_ROLES.includes(get(credentials, 'role.vendor.name')),
-            requestingOwnInfos: UtilsHelper.doesArrayIncludeId(course.companies, get(credentials, 'company._id')),
-          }],
-        },
+        { query: 'setOptions', args: [{ isVendorUser: VENDOR_ROLES.includes(get(credentials, 'role.vendor.name')) }] },
         { query: 'lean' },
       ]);
     sinon.assert.notCalled(getPdf);
@@ -3357,15 +3337,9 @@ describe('generateCompletionCertificate', () => {
     SinonMongoose.calledOnceWithExactly(
       attendanceFind,
       [
-        { query: 'find', args: [{ courseSlot: course.slots.map(s => s._id) }] },
+        { query: 'find', args: [{ courseSlot: course.slots.map(s => s._id), company: { $in: course.companies } }] },
         { query: 'populate', args: [{ path: 'courseSlot', select: 'startDate endDate' }] },
-        {
-          query: 'setOptions',
-          args: [{
-            isVendorUser: VENDOR_ROLES.includes(get(credentials, 'role.vendor.name')),
-            requestingOwnInfos: UtilsHelper.doesArrayIncludeId(course.companies, get(credentials, 'company._id')),
-          }],
-        },
+        { query: 'setOptions', args: [{ isVendorUser: VENDOR_ROLES.includes(get(credentials, 'role.vendor.name')) }] },
         { query: 'lean' },
       ]);
     sinon.assert.notCalled(createDocx);

@@ -177,10 +177,9 @@ const listForPedagogy = async (query, credentials) => {
         { path: 'step', select: 'type' },
         {
           path: 'attendances',
-          match: { trainee: trainee._id },
+          match: { trainee: trainee._id, company: trainee.company },
           options: {
             isVendorUser: [TRAINING_ORGANISATION_MANAGER, VENDOR_ADMIN].includes(get(credentials, 'role.vendor.name')),
-            requestingOwnInfos: UtilsHelper.areObjectIdsEquals(trainee.company, get(credentials, 'company._id')),
           },
         },
       ],
@@ -754,12 +753,9 @@ exports.generateCompletionCertificates = async (courseId, credentials, origin = 
     .lean();
 
   const attendances = await Attendance
-    .find({ courseSlot: course.slots.map(s => s._id) })
+    .find({ courseSlot: course.slots.map(s => s._id), company: { $in: course.companies } })
     .populate({ path: 'courseSlot', select: 'startDate endDate' })
-    .setOptions({
-      isVendorUser: VENDOR_ROLES.includes(get(credentials, 'role.vendor.name')),
-      requestingOwnInfos: UtilsHelper.doesArrayIncludeId(course.companies, get(credentials, 'company._id')),
-    })
+    .setOptions({ isVendorUser: VENDOR_ROLES.includes(get(credentials, 'role.vendor.name')) })
     .lean();
 
   const courseData = exports.formatCourseForDocuments(course);

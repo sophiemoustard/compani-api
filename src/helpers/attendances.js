@@ -56,10 +56,7 @@ exports.list = async (query, company, credentials) => {
 
   return Attendance
     .find(attendanceQuery)
-    .setOptions({
-      isVendorUser: VENDOR_ROLES.includes(get(credentials, 'role.vendor.name')),
-      requestingOwnInfos: UtilsHelper.areObjectIdsEquals(company, get(credentials, 'company._id')),
-    })
+    .setOptions({ isVendorUser: VENDOR_ROLES.includes(get(credentials, 'role.vendor.name')) })
     .lean();
 };
 
@@ -85,7 +82,7 @@ const formatCourseWithAttendances = (course, specificCourseTrainees, specificCou
       }));
   });
 
-exports.listUnsubscribed = async (courseId, companyId, credentials) => {
+exports.listUnsubscribed = async (courseId, company, credentials) => {
   const course = await Course.findOne({ _id: courseId })
     .populate({ path: 'subProgram', select: 'program', populate: { path: 'program', select: 'subPrograms' } })
     .lean();
@@ -97,19 +94,17 @@ exports.listUnsubscribed = async (courseId, companyId, credentials) => {
       select: 'attendances startDate endDate',
       populate: {
         path: 'attendances',
+        ...(company && { match: { company } }),
         select: 'trainee company',
         populate: { path: 'trainee', select: 'identity' },
-        options: {
-          isVendorUser: VENDOR_ROLES.includes(get(credentials, 'role.vendor.name')),
-          requestingOwnInfos: UtilsHelper.areObjectIdsEquals(companyId, get(credentials, 'company._id')),
-        },
+        options: { isVendorUser: VENDOR_ROLES.includes(get(credentials, 'role.vendor.name')) },
       },
     })
     .populate({ path: 'trainer', select: 'identity' })
     .lean();
 
   const unsubscribedAttendances = coursesWithSameProgram
-    .map(c => formatCourseWithAttendances(c, course.trainees, companyId));
+    .map(c => formatCourseWithAttendances(c, course.trainees, company));
 
   return groupBy(unsubscribedAttendances.flat(3), 'trainee._id');
 };
@@ -118,7 +113,7 @@ exports.getTraineeUnsubscribedAttendances = async (traineeId, credentials) => {
   const trainee = await User.findOne({ _id: traineeId }, { company: 1 }).populate({ path: 'company' }).lean();
 
   const attendances = await Attendance
-    .find({ trainee: traineeId })
+    .find({ trainee: traineeId, company: trainee.company })
     .populate({
       path: 'courseSlot',
       select: 'course startDate endDate',
@@ -134,10 +129,7 @@ exports.getTraineeUnsubscribedAttendances = async (traineeId, credentials) => {
         },
       ],
     })
-    .setOptions({
-      isVendorUser: VENDOR_ROLES.includes(get(credentials, 'role.vendor.name')),
-      requestingOwnInfos: UtilsHelper.areObjectIdsEquals(trainee.company, credentials.company._id),
-    })
+    .setOptions({ isVendorUser: VENDOR_ROLES.includes(get(credentials, 'role.vendor.name')) })
     .lean();
 
   const unsubscribedAttendances = attendances
