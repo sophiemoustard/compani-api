@@ -8,32 +8,21 @@ const { BLENDED, INTRA, VENDOR_ROLES } = require('./constants');
 const CourseSlot = require('../models/CourseSlot');
 const User = require('../models/User');
 
-exports.create = async (payload, credentials) => {
-  const { courseSlot: courseSlotId, trainee: traineeId } = payload;
+const createSingleAttendance = async (payload, course, traineeId) => {
+  if (course.type === INTRA) return Attendance.create({ ...payload, company: course.companies[0] });
 
-  const courseSlot = await CourseSlot.findById(courseSlotId, { course: 1 })
-    .populate({
-      path: 'course',
-      select: 'type trainees companies',
-      populate: { path: 'trainees', select: 'company', populate: { path: 'company' } },
-    })
+  const traineeFromCourseInDb = course.trainees.find(t => UtilsHelper.areObjectIdsEquals(t._id, traineeId));
+  if (traineeFromCourseInDb) return Attendance.create({ ...payload, company: traineeFromCourseInDb.company });
+
+  const unsubscribedTraineeUserCompany = await User
+    .findOne({ _id: traineeId }, { company: 1 })
+    .populate({ path: 'company' })
     .lean();
-  const { course } = courseSlot;
 
-  if (traineeId) {
-    if (course.type === INTRA) return Attendance.create({ ...payload, company: course.companies[0] });
+  return Attendance.create({ ...payload, company: unsubscribedTraineeUserCompany.company });
+};
 
-    const traineeFromCourseInDb = course.trainees.find(t => UtilsHelper.areObjectIdsEquals(t._id, traineeId));
-    if (traineeFromCourseInDb) return Attendance.create({ ...payload, company: traineeFromCourseInDb.company });
-
-    const unsubscribedTraineeUserCompany = await User
-      .findOne({ _id: traineeId }, { company: 1 })
-      .populate({ path: 'company' })
-      .lean();
-
-    return Attendance.create({ ...payload, company: unsubscribedTraineeUserCompany.company });
-  }
-
+const createManyAttendances = async (course, courseSlotId, credentials) => {
   const traineesIdList = course.trainees.map(t => t._id);
   const existingAttendances = await Attendance
     .find({ courseSlot: courseSlotId, trainee: { $in: traineesIdList } })
@@ -49,6 +38,23 @@ exports.create = async (payload, credentials) => {
     }));
 
   return Attendance.insertMany(newAttendances);
+};
+
+exports.create = async (payload, credentials) => {
+  const { courseSlot: courseSlotId, trainee: traineeId } = payload;
+
+  const courseSlot = await CourseSlot.findById(courseSlotId, { course: 1 })
+    .populate({
+      path: 'course',
+      select: 'type trainees companies',
+      populate: { path: 'trainees', select: 'company', populate: { path: 'company' } },
+    })
+    .lean();
+  const { course } = courseSlot;
+
+  if (traineeId) return createSingleAttendance(payload, course, traineeId);
+
+  return createManyAttendances(course, courseSlotId, credentials);
 };
 
 exports.list = async (query, company, credentials) => {
