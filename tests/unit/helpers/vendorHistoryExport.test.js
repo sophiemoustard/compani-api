@@ -1307,7 +1307,7 @@ describe('exportCourseBillAndCreditNoteHistory', () => {
         { startDate: '2021-01-11T12:00:00.000Z' },
         { startDate: '2021-01-15T12:00:00.000Z' },
       ],
-      slotsToPlan: [],
+      slotsToPlan: [{ _id: new ObjectId() }],
       type: INTRA,
     },
   ];
@@ -1445,7 +1445,7 @@ describe('exportCourseBillAndCreditNoteHistory', () => {
         '10,00',
         '1,00',
         '13/01/2021',
-        '',
+        '13/01/2021',
         '13/03/2021',
       ],
       [
@@ -1499,8 +1499,8 @@ describe('exportCourseBillAndCreditNoteHistory', () => {
         '2,00',
         '1,00',
         '10/02/2021',
-        '',
-        '',
+        '10/02/2021',
+        '10/02/2021',
       ],
       [
         'Facture',
@@ -1515,10 +1515,10 @@ describe('exportCourseBillAndCreditNoteHistory', () => {
         '',
         '',
         '0,00',
-        '1,00',
+        '0,86',
         '11/01/2021',
-        '12/01/2021',
-        '15/01/2021',
+        '13/01/2021',
+        '',
       ],
     ]);
     SinonMongoose.calledOnceWithExactly(
