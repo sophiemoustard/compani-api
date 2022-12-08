@@ -1266,11 +1266,10 @@ describe('exportEndOfCourseQuestionnaireHistory', () => {
 
 describe('exportCourseBillAndCreditNoteHistory', () => {
   const subProgram = { _id: new ObjectId(), program: { name: 'Program 1' } };
-  const courseIds = [new ObjectId(), new ObjectId()];
   const company = { _id: new ObjectId(), name: 'Test SAS' };
   const courseList = [
     {
-      _id: courseIds[0],
+      _id: new ObjectId(),
       subProgram,
       misc: 'group 1',
       slots: [{ startDate: '2021-01-13T12:00:00.000Z' }, { startDate: '2021-03-13T12:00:00.000Z' }],
@@ -1278,7 +1277,7 @@ describe('exportCourseBillAndCreditNoteHistory', () => {
       type: INTRA,
     },
     {
-      _id: courseIds[1],
+      _id: new ObjectId(),
       subProgram,
       misc: 'group 2',
       slots: [],
@@ -1286,7 +1285,7 @@ describe('exportCourseBillAndCreditNoteHistory', () => {
       type: INTER_B2B,
     },
     {
-      _id: courseIds[0],
+      _id: new ObjectId(),
       subProgram,
       misc: 'group 3',
       slots: [
@@ -1296,7 +1295,7 @@ describe('exportCourseBillAndCreditNoteHistory', () => {
       type: INTRA,
     },
     {
-      _id: courseIds[0],
+      _id: new ObjectId(),
       subProgram,
       misc: 'group 4',
       slots: [
@@ -1307,7 +1306,7 @@ describe('exportCourseBillAndCreditNoteHistory', () => {
         { startDate: '2021-01-11T12:00:00.000Z' },
         { startDate: '2021-01-15T12:00:00.000Z' },
       ],
-      slotsToPlan: [],
+      slotsToPlan: [{ _id: new ObjectId() }],
       type: INTRA,
     },
   ];
@@ -1445,7 +1444,7 @@ describe('exportCourseBillAndCreditNoteHistory', () => {
         '10,00',
         '1,00',
         '13/01/2021',
-        '',
+        '13/01/2021',
         '13/03/2021',
       ],
       [
@@ -1499,8 +1498,8 @@ describe('exportCourseBillAndCreditNoteHistory', () => {
         '2,00',
         '1,00',
         '10/02/2021',
-        '',
-        '',
+        '10/02/2021',
+        '10/02/2021',
       ],
       [
         'Facture',
@@ -1515,10 +1514,10 @@ describe('exportCourseBillAndCreditNoteHistory', () => {
         '',
         '',
         '0,00',
-        '1,00',
+        '0,86',
         '11/01/2021',
-        '12/01/2021',
-        '15/01/2021',
+        '13/01/2021',
+        '',
       ],
     ]);
     SinonMongoose.calledOnceWithExactly(
