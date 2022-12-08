@@ -385,9 +385,10 @@ exports.exportCourseBillAndCreditNoteHistory = async (startDate, endDate, creden
     const upComingSlots = sortedCourseSlots.filter(slot => CompaniDate().isBefore(slot.startDate)).length;
     const pastSlots = sortedCourseSlots.length - upComingSlots;
     const firstCourseSlot = sortedCourseSlots.length && sortedCourseSlots[0];
-    const middleCourseSlot = sortedCourseSlots.length > 2 &&
-      sortedCourseSlots[Math.floor((sortedCourseSlots.length - 1) / 2)];
-    const endCourseSlot = sortedCourseSlots.length > 1 && sortedCourseSlots[sortedCourseSlots.length - 1];
+    const middleIndex = Math.floor((sortedCourseSlots.length + bill.course.slotsToPlan.length - 1) / 2);
+    const middleCourseSlot = middleIndex < sortedCourseSlots.length && sortedCourseSlots[middleIndex];
+    const endCourseSlot = sortedCourseSlots.length && !bill.course.slotsToPlan.length &&
+      sortedCourseSlots[sortedCourseSlots.length - 1];
     const companyName = bill.course.type === INTRA ? `${bill.company.name} - ` : '';
     const misc = bill.course.misc ? ` - ${bill.course.misc}` : '';
     const courseName = `${companyName}${bill.course.subProgram.program.name}${misc}`;
