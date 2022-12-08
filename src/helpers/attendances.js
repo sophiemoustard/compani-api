@@ -6,7 +6,7 @@ const Course = require('../models/Course');
 const UtilsHelper = require('./utils');
 const { BLENDED, INTRA } = require('./constants');
 const CourseSlot = require('../models/CourseSlot');
-const UserCompany = require('../models/UserCompany');
+const User = require('../models/User');
 
 exports.create = async (payload) => {
   const { courseSlot: courseSlotId, trainee: traineeId } = payload;
@@ -26,13 +26,16 @@ exports.create = async (payload) => {
     const traineeFromCourseInDb = course.trainees.find(t => UtilsHelper.areObjectIdsEquals(t._id, traineeId));
     if (traineeFromCourseInDb) return Attendance.create({ ...payload, company: traineeFromCourseInDb.company });
 
-    const unsubscribedTraineeUserCompany = await UserCompany.findOne({ user: traineeId }, { company: 1 }).lean();
+    const unsubscribedTraineeUserCompany = await User
+      .findOne({ _id: traineeId }, { company: 1 })
+      .populate({ path: 'company' })
+      .lean();
 
     return Attendance.create({ ...payload, company: unsubscribedTraineeUserCompany.company });
   }
 
-  const traineesId = course.trainees.map(t => t._id);
-  const existingAttendances = await Attendance.find({ courseSlot: courseSlotId, trainee: { $in: traineesId } });
+  const traineesIdList = course.trainees.map(t => t._id);
+  const existingAttendances = await Attendance.find({ courseSlot: courseSlotId, trainee: { $in: traineesIdList } });
 
   const traineesWithAttendance = existingAttendances.map(a => a.trainee);
   const newAttendances = course.trainees
