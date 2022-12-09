@@ -450,7 +450,17 @@ describe('exportCourseHistory', () => {
         { query: 'populate', args: [{ path: 'contact', select: 'identity' }] },
         {
           query: 'populate',
-          args: [{ path: 'slots', populate: 'attendances', select: 'attendances startDate endDate' }],
+          args: [{
+            path: 'slots',
+            select: 'attendances startDate endDate',
+            populate: {
+              path: 'attendances',
+              options: {
+                isVendorUser: [TRAINING_ORGANISATION_MANAGER, VENDOR_ADMIN]
+                  .includes(get(credentials, 'role.vendor.name')),
+              },
+            },
+          }],
         },
         { query: 'populate', args: [{ path: 'slotsToPlan', select: '_id' }] },
         { query: 'populate', args: [{ path: 'trainees', select: 'firstMobileConnection' }] },
@@ -784,7 +794,17 @@ describe('exportCourseHistory', () => {
         { query: 'populate', args: [{ path: 'contact', select: 'identity' }] },
         {
           query: 'populate',
-          args: [{ path: 'slots', populate: 'attendances', select: 'attendances startDate endDate' }],
+          args: [{
+            path: 'slots',
+            select: 'attendances startDate endDate',
+            populate: {
+              path: 'attendances',
+              options: {
+                isVendorUser: [TRAINING_ORGANISATION_MANAGER, VENDOR_ADMIN]
+                  .includes(get(credentials, 'role.vendor.name')),
+              },
+            },
+          }],
         },
         { query: 'populate', args: [{ path: 'slotsToPlan', select: '_id' }] },
         { query: 'populate', args: [{ path: 'trainees', select: 'firstMobileConnection' }] },
@@ -840,6 +860,8 @@ describe('exportCourseHistory', () => {
 
 describe('exportCourseSlotHistory', () => {
   const courseIdList = [new ObjectId(), new ObjectId()];
+  const credentials = { role: { vendor: { name: TRAINING_ORGANISATION_MANAGER } } };
+  const isVendorUser = [TRAINING_ORGANISATION_MANAGER, VENDOR_ADMIN].includes(get(credentials, 'role.vendor.name'));
 
   const traineeList = [
     { _id: new ObjectId() },
@@ -937,7 +959,8 @@ describe('exportCourseSlotHistory', () => {
   it('should return an empty array if no course slots', async () => {
     findCourseSlot.returns(SinonMongoose.stubChainedQueries([]));
 
-    const result = await ExportHelper.exportCourseSlotHistory('2021-01-14T23:00:00.000Z', '2022-01-20T22:59:59.000Z');
+    const result = await ExportHelper
+      .exportCourseSlotHistory('2021-01-14T23:00:00.000Z', '2022-01-20T22:59:59.000Z', credentials);
 
     expect(result).toEqual([[NO_DATA]]);
     SinonMongoose.calledOnceWithExactly(
@@ -959,7 +982,7 @@ describe('exportCourseSlotHistory', () => {
             ],
           }],
         },
-        { query: 'populate', args: [{ path: 'attendances' }] },
+        { query: 'populate', args: [{ path: 'attendances', options: { isVendorUser } }] },
         { query: 'lean' },
       ]
     );
@@ -968,7 +991,8 @@ describe('exportCourseSlotHistory', () => {
   it('should return an array with the header and 4 rows', async () => {
     findCourseSlot.returns(SinonMongoose.stubChainedQueries(courseSlotList));
 
-    const result = await ExportHelper.exportCourseSlotHistory('2021-01-14T23:00:00.000Z', '2022-01-20T22:59:59.000Z');
+    const result = await ExportHelper
+      .exportCourseSlotHistory('2021-01-14T23:00:00.000Z', '2022-01-20T22:59:59.000Z', credentials);
 
     expect(result).toEqual([
       [
@@ -1067,7 +1091,7 @@ describe('exportCourseSlotHistory', () => {
             ],
           }],
         },
-        { query: 'populate', args: [{ path: 'attendances' }] },
+        { query: 'populate', args: [{ path: 'attendances', options: { isVendorUser } }] },
         { query: 'lean' },
       ]
     );

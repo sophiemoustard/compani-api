@@ -6,6 +6,7 @@ const fs = require('fs');
 const os = require('os');
 const { PassThrough } = require('stream');
 const Boom = require('@hapi/boom');
+const { get } = require('lodash');
 const UtilsMock = require('../../utilsMock');
 const Course = require('../../../src/models/Course');
 const CourseBill = require('../../../src/models/CourseBill');
@@ -38,6 +39,9 @@ const {
   OPERATIONS,
   PEDAGOGY,
   WEBAPP,
+  TRAINING_ORGANISATION_MANAGER,
+  VENDOR_ADMIN,
+  VENDOR_ROLES,
 } = require('../../../src/helpers/constants');
 const CourseRepository = require('../../../src/repositories/CourseRepository');
 const CourseHistoriesHelper = require('../../../src/helpers/courseHistories');
@@ -200,7 +204,8 @@ describe('list', () => {
   let getTotalTheoreticalDurationSpy;
   let formatCourseWithProgress;
   const authCompany = new ObjectId();
-  const credentials = { _id: new ObjectId() };
+  const credentials = { _id: new ObjectId(), role: { vendor: { name: TRAINING_ORGANISATION_MANAGER } } };
+  const isVendorUser = [TRAINING_ORGANISATION_MANAGER, VENDOR_ADMIN].includes(get(credentials, 'role.vendor.name'));
 
   beforeEach(() => {
     findCourseAndPopulate = sinon.stub(CourseRepository, 'findCourseAndPopulate');
@@ -564,7 +569,14 @@ describe('list', () => {
             args: [{
               path: 'slots',
               select: 'startDate endDate step',
-              populate: [{ path: 'step', select: 'type' }, { path: 'attendances', match: { trainee: trainee._id } }],
+              populate: [
+                { path: 'step', select: 'type' },
+                {
+                  path: 'attendances',
+                  match: { trainee: trainee._id, company: trainee.company },
+                  options: { isVendorUser },
+                },
+              ],
             }],
           },
           { query: 'select', args: ['_id misc'] },
@@ -769,7 +781,14 @@ describe('list', () => {
             args: [{
               path: 'slots',
               select: 'startDate endDate step',
-              populate: [{ path: 'step', select: 'type' }, { path: 'attendances', match: { trainee: trainee._id } }],
+              populate: [
+                { path: 'step', select: 'type' },
+                {
+                  path: 'attendances',
+                  match: { trainee: trainee._id, company: trainee.company },
+                  options: { isVendorUser },
+                },
+              ],
             }],
           },
           { query: 'select', args: ['_id misc'] },
@@ -1282,7 +1301,7 @@ describe('getCourse', () => {
                 select: 'startDate endDate step address meetingLink',
                 populate: [
                   { path: 'step', select: 'type' },
-                  { path: 'attendances', match: { trainee: loggedUser._id } },
+                  { path: 'attendances', match: { trainee: loggedUser._id, company: get(loggedUser, 'company._id') } },
                 ],
               },
             ],
@@ -1444,7 +1463,7 @@ describe('getCourse', () => {
                 select: 'startDate endDate step address meetingLink',
                 populate: [
                   { path: 'step', select: 'type' },
-                  { path: 'attendances', match: { trainee: loggedUser._id } },
+                  { path: 'attendances', match: { trainee: loggedUser._id, company: get(loggedUser, 'company._id') } },
                 ],
               },
             ],
@@ -1609,7 +1628,7 @@ describe('getCourse', () => {
                 select: 'startDate endDate step address meetingLink',
                 populate: [
                   { path: 'step', select: 'type' },
-                  { path: 'attendances', match: { trainee: loggedUser._id } },
+                  { path: 'attendances', match: { trainee: loggedUser._id, company: get(loggedUser, 'company._id') } },
                 ],
               },
             ],
@@ -1734,7 +1753,7 @@ describe('getCourse', () => {
                 select: 'startDate endDate step address meetingLink',
                 populate: [
                   { path: 'step', select: 'type' },
-                  { path: 'attendances', match: { trainee: loggedUser._id } },
+                  { path: 'attendances', match: { trainee: loggedUser._id, company: get(loggedUser, 'company._id') } },
                 ],
               },
             ],
@@ -3003,7 +3022,12 @@ describe('generateCompletionCertificate', () => {
   });
 
   it('should download completion certificates from webapp (vendor)', async () => {
-    const credentials = { _id: new ObjectId(), role: { vendor: { name: 'vendor_admin' } } };
+    const companyId = new ObjectId();
+    const credentials = {
+      _id: new ObjectId(),
+      role: { vendor: { name: 'vendor_admin' } },
+      company: { _id: companyId },
+    };
     const courseId = new ObjectId();
     const readable1 = new PassThrough();
     const readable2 = new PassThrough();
@@ -3020,6 +3044,7 @@ describe('generateCompletionCertificate', () => {
       misc: 'Bonjour je suis une formation',
       slots: [{ _id: new ObjectId() }, { _id: new ObjectId() }],
       trainer: new ObjectId(),
+      companies: [companyId],
     };
     const attendances = [
       {
@@ -3036,7 +3061,7 @@ describe('generateCompletionCertificate', () => {
       },
     ];
 
-    attendanceFind.returns(SinonMongoose.stubChainedQueries(attendances));
+    attendanceFind.returns(SinonMongoose.stubChainedQueries(attendances, ['populate', 'setOptions', 'lean']));
     courseFindOne.returns(SinonMongoose.stubChainedQueries(course));
     formatCourseForDocuments.returns({
       program: { learningGoals: 'Apprendre', name: 'nom du programme' },
@@ -3130,6 +3155,14 @@ describe('generateCompletionCertificate', () => {
       },
       { query: 'lean' },
     ]);
+    SinonMongoose.calledOnceWithExactly(
+      attendanceFind,
+      [
+        { query: 'find', args: [{ courseSlot: course.slots.map(s => s._id), company: { $in: course.companies } }] },
+        { query: 'populate', args: [{ path: 'courseSlot', select: 'startDate endDate' }] },
+        { query: 'setOptions', args: [{ isVendorUser: VENDOR_ROLES.includes(get(credentials, 'role.vendor.name')) }] },
+        { query: 'lean' },
+      ]);
     sinon.assert.notCalled(getPdf);
   });
 
@@ -3149,6 +3182,7 @@ describe('generateCompletionCertificate', () => {
       ],
       misc: 'Bonjour je suis une formation',
       slots: [{ _id: new ObjectId() }, { _id: new ObjectId() }],
+      companies: [companyId],
     };
     const attendances = [
       {
@@ -3165,7 +3199,7 @@ describe('generateCompletionCertificate', () => {
       },
     ];
 
-    attendanceFind.returns(SinonMongoose.stubChainedQueries(attendances));
+    attendanceFind.returns(SinonMongoose.stubChainedQueries(attendances, ['populate', 'setOptions', 'lean']));
     courseFindOne.returns(SinonMongoose.stubChainedQueries(course));
     formatCourseForDocuments.returns({
       program: { learningGoals: 'Apprendre', name: 'nom du programme' },
@@ -3218,11 +3252,21 @@ describe('generateCompletionCertificate', () => {
       },
       { query: 'lean' },
     ]);
+    SinonMongoose.calledOnceWithExactly(
+      attendanceFind,
+      [
+        { query: 'find', args: [{ courseSlot: course.slots.map(s => s._id), company: { $in: course.companies } }] },
+        { query: 'populate', args: [{ path: 'courseSlot', select: 'startDate endDate' }] },
+        { query: 'setOptions', args: [{ isVendorUser: VENDOR_ROLES.includes(get(credentials, 'role.vendor.name')) }] },
+        { query: 'lean' },
+      ]);
     sinon.assert.notCalled(getPdf);
   });
 
   it('should download completion certificates from mobile', async () => {
-    const credentials = { _id: new ObjectId() };
+    const companyId = new ObjectId();
+
+    const credentials = { _id: new ObjectId(), company: { _id: companyId } };
     const courseId = new ObjectId();
     const traineeId1 = credentials._id;
     const traineeId2 = new ObjectId();
@@ -3235,6 +3279,7 @@ describe('generateCompletionCertificate', () => {
       ],
       misc: 'Bonjour je suis une formation',
       slots: [{ _id: new ObjectId() }, { _id: new ObjectId() }],
+      companies: [companyId],
     };
     const attendances = [
       {
@@ -3256,7 +3301,7 @@ describe('generateCompletionCertificate', () => {
       courseDuration: '8h',
     };
 
-    attendanceFind.returns(SinonMongoose.stubChainedQueries(attendances));
+    attendanceFind.returns(SinonMongoose.stubChainedQueries(attendances, ['populate', 'setOptions', 'lean']));
     courseFindOne.returns(SinonMongoose.stubChainedQueries(course));
     formatCourseForDocuments.returns(courseData);
     formatIdentity.onCall(0).returns('trainee 1');
@@ -3288,6 +3333,15 @@ describe('generateCompletionCertificate', () => {
       },
       { query: 'lean' },
     ]);
+
+    SinonMongoose.calledOnceWithExactly(
+      attendanceFind,
+      [
+        { query: 'find', args: [{ courseSlot: course.slots.map(s => s._id), company: { $in: course.companies } }] },
+        { query: 'populate', args: [{ path: 'courseSlot', select: 'startDate endDate' }] },
+        { query: 'setOptions', args: [{ isVendorUser: VENDOR_ROLES.includes(get(credentials, 'role.vendor.name')) }] },
+        { query: 'lean' },
+      ]);
     sinon.assert.notCalled(createDocx);
     sinon.assert.notCalled(createReadStream);
     sinon.assert.notCalled(generateZip);

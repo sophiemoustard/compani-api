@@ -42,6 +42,7 @@ const {
   HH_MM,
   PT0S,
   DAY,
+  VENDOR_ROLES,
 } = require('./constants');
 const CourseHistoriesHelper = require('./courseHistories');
 const NotificationHelper = require('./notifications');
@@ -172,7 +173,16 @@ const listForPedagogy = async (query, credentials) => {
     .populate({
       path: 'slots',
       select: 'startDate endDate step',
-      populate: [{ path: 'step', select: 'type' }, { path: 'attendances', match: { trainee: trainee._id } }],
+      populate: [
+        { path: 'step', select: 'type' },
+        {
+          path: 'attendances',
+          match: { trainee: trainee._id, company: trainee.company },
+          options: {
+            isVendorUser: [TRAINING_ORGANISATION_MANAGER, VENDOR_ADMIN].includes(get(credentials, 'role.vendor.name')),
+          },
+        },
+      ],
     })
     .select('_id misc')
     .lean({ autopopulate: true, virtuals: true });
@@ -455,7 +465,10 @@ const getCourseForPedagogy = async (courseId, credentials) => {
     .populate({
       path: 'slots',
       select: 'startDate endDate step address meetingLink',
-      populate: [{ path: 'step', select: 'type' }, { path: 'attendances', match: { trainee: credentials._id } }],
+      populate: [
+        { path: 'step', select: 'type' },
+        { path: 'attendances', match: { trainee: credentials._id, company: get(credentials, 'company._id') } },
+      ],
     })
     .populate({ path: 'trainer', select: 'identity.firstname identity.lastname biography picture' })
     .populate({ path: 'contact', select: 'identity.firstname identity.lastname contact.phone local.email' })
@@ -739,8 +752,10 @@ exports.generateCompletionCertificates = async (courseId, credentials, origin = 
     .populate({ path: 'subProgram', select: 'program', populate: { path: 'program', select: 'name learningGoals' } })
     .lean();
 
-  const attendances = await Attendance.find({ courseSlot: course.slots.map(s => s._id) })
+  const attendances = await Attendance
+    .find({ courseSlot: course.slots.map(s => s._id), company: { $in: course.companies } })
     .populate({ path: 'courseSlot', select: 'startDate endDate' })
+    .setOptions({ isVendorUser: VENDOR_ROLES.includes(get(credentials, 'role.vendor.name')) })
     .lean();
 
   const courseData = exports.formatCourseForDocuments(course);

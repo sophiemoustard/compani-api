@@ -8,7 +8,7 @@ const { language } = translate;
 const list = async (req) => {
   try {
     const { courseSlotsIds, company } = req.pre.attendancesInfos;
-    const attendances = await AttendanceHelper.list(courseSlotsIds, company);
+    const attendances = await AttendanceHelper.list(courseSlotsIds, company, req.auth.credentials);
 
     return {
       message: attendances.length ? translate[language].attendancesFound : translate[language].attendancesNotFound,
@@ -27,8 +27,8 @@ const listUnsubscribed = async (req) => {
 
     const { course, company, trainee } = req.query;
     const unsubscribedAttendances = course
-      ? await AttendanceHelper.listUnsubscribed(course, company)
-      : await AttendanceHelper.getTraineeUnsubscribedAttendances(trainee);
+      ? await AttendanceHelper.listUnsubscribed(course, company, req.auth.credentials)
+      : await AttendanceHelper.getTraineeUnsubscribedAttendances(trainee, req.auth.credentials);
 
     return {
       message: unsubscribedAttendances.length
@@ -44,7 +44,7 @@ const listUnsubscribed = async (req) => {
 
 const create = async (req) => {
   try {
-    await AttendanceHelper.create(req.payload);
+    await AttendanceHelper.create(req.payload, req.auth.credentials);
 
     return { message: translate[language].attendanceCreated };
   } catch (e) {

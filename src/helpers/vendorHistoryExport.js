@@ -241,7 +241,7 @@ const composeCourseName = (course) => {
   return companyName + course.subProgram.program.name + misc;
 };
 
-exports.exportCourseSlotHistory = async (startDate, endDate) => {
+exports.exportCourseSlotHistory = async (startDate, endDate, credentials) => {
   const courseSlots = await CourseSlot.find({ startDate: { $lte: endDate }, endDate: { $gte: startDate } })
     .populate({ path: 'step', select: 'type name' })
     .populate({
@@ -252,7 +252,12 @@ exports.exportCourseSlotHistory = async (startDate, endDate) => {
         { path: 'subProgram', select: 'program', populate: [{ path: 'program', select: 'name' }] },
       ],
     })
-    .populate({ path: 'attendances' })
+    .populate({
+      path: 'attendances',
+      options: {
+        isVendorUser: [TRAINING_ORGANISATION_MANAGER, VENDOR_ADMIN].includes(get(credentials, 'role.vendor.name')),
+      },
+    })
     .lean();
 
   const rows = [];

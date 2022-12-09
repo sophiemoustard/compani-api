@@ -4,39 +4,30 @@ const groupBy = require('lodash/groupBy');
 const Attendance = require('../models/Attendance');
 const Course = require('../models/Course');
 const UtilsHelper = require('./utils');
-const { BLENDED, INTRA } = require('./constants');
+const { BLENDED, INTRA, VENDOR_ROLES } = require('./constants');
 const CourseSlot = require('../models/CourseSlot');
 const User = require('../models/User');
 
-exports.create = async (payload) => {
-  const { courseSlot: courseSlotId, trainee: traineeId } = payload;
+const createSingleAttendance = async (payload, course, traineeId) => {
+  if (course.type === INTRA) return Attendance.create({ ...payload, company: course.companies[0] });
 
-  const courseSlot = await CourseSlot.findById(courseSlotId, { course: 1 })
-    .populate({
-      path: 'course',
-      select: 'type trainees companies',
-      populate: { path: 'trainees', select: 'company', populate: { path: 'company' } },
-    })
+  const traineeFromCourseInDb = course.trainees.find(t => UtilsHelper.areObjectIdsEquals(t._id, traineeId));
+  if (traineeFromCourseInDb) return Attendance.create({ ...payload, company: traineeFromCourseInDb.company });
+
+  const unsubscribedTraineeUserCompany = await User
+    .findOne({ _id: traineeId }, { company: 1 })
+    .populate({ path: 'company' })
     .lean();
-  const { course } = courseSlot;
 
-  if (traineeId) {
-    if (course.type === INTRA) return Attendance.create({ ...payload, company: course.companies[0] });
+  return Attendance.create({ ...payload, company: unsubscribedTraineeUserCompany.company });
+};
 
-    const traineeFromCourseInDb = course.trainees.find(t => UtilsHelper.areObjectIdsEquals(t._id, traineeId));
-    if (traineeFromCourseInDb) return Attendance.create({ ...payload, company: traineeFromCourseInDb.company });
-
-    const unsubscribedTraineeUserCompany = await User
-      .findOne({ _id: traineeId }, { company: 1 })
-      .populate({ path: 'company' })
-      .lean();
-
-    return Attendance.create({ ...payload, company: unsubscribedTraineeUserCompany.company });
-  }
-
+const createManyAttendances = async (course, courseSlotId, credentials) => {
   const traineesIdList = course.trainees.map(t => t._id);
-  const existingAttendances = await Attendance.find({ courseSlot: courseSlotId, trainee: { $in: traineesIdList } });
-
+  const existingAttendances = await Attendance
+    .find({ courseSlot: courseSlotId, trainee: { $in: traineesIdList } })
+    .setOptions({ isVendorUser: VENDOR_ROLES.includes(get(credentials, 'role.vendor.name')) })
+    .lean();
   const traineesWithAttendance = existingAttendances.map(a => a.trainee);
   const newAttendances = course.trainees
     .filter(t => !UtilsHelper.doesArrayIncludeId(traineesWithAttendance, t._id))
@@ -49,15 +40,27 @@ exports.create = async (payload) => {
   return Attendance.insertMany(newAttendances);
 };
 
-exports.list = async (query, companyId) => {
-  const attendances = await Attendance.find({ courseSlot: { $in: query } })
-    .populate({ path: 'trainee', select: 'company', populate: { path: 'company' } })
-    .lean();
+exports.create = async (payload, credentials) => {
+  const { courseSlot: courseSlotId, trainee: traineeId } = payload;
 
-  return companyId
-    ? attendances.filter(a => UtilsHelper.areObjectIdsEquals(get(a, 'trainee.company'), companyId))
-    : attendances;
+  const courseSlot = await CourseSlot.findById(courseSlotId, { course: 1 })
+    .populate({
+      path: 'course',
+      select: 'type trainees companies',
+      populate: { path: 'trainees', select: 'company', populate: { path: 'company' } },
+    })
+    .lean();
+  const { course } = courseSlot;
+
+  if (traineeId) return createSingleAttendance(payload, course, traineeId);
+
+  return createManyAttendances(course, courseSlotId, credentials);
 };
+
+exports.list = async (query, company, credentials) => Attendance
+  .find({ courseSlot: { $in: query }, ...(company && { company }) })
+  .setOptions({ isVendorUser: VENDOR_ROLES.includes(get(credentials, 'role.vendor.name')) })
+  .lean();
 
 const formatCourseWithAttendances = (course, specificCourseTrainees, specificCourseCompany) =>
   course.slots.map((slot) => {
@@ -69,10 +72,10 @@ const formatCourseWithAttendances = (course, specificCourseTrainees, specificCou
         const isTraineeOnlySubscribedToSpecificCourse =
           UtilsHelper.doesArrayIncludeId(specificCourseTrainees, a.trainee._id) &&
           !UtilsHelper.doesArrayIncludeId(course.trainees, a.trainee._id);
-        const IsTraineeInSpecificCompany = !specificCourseCompany ||
-        UtilsHelper.areObjectIdsEquals(a.trainee.company, specificCourseCompany);
+        const isAttendanceFromSpecificCompany = !specificCourseCompany ||
+          UtilsHelper.areObjectIdsEquals(a.company, specificCourseCompany);
 
-        return isTraineeOnlySubscribedToSpecificCourse && IsTraineeInSpecificCompany;
+        return isTraineeOnlySubscribedToSpecificCourse && isAttendanceFromSpecificCompany;
       }).map(a => ({
         trainee: a.trainee,
         courseSlot: pick(slot, ['step', 'startDate', 'endDate']),
@@ -81,7 +84,7 @@ const formatCourseWithAttendances = (course, specificCourseTrainees, specificCou
       }));
   });
 
-exports.listUnsubscribed = async (courseId, companyId) => {
+exports.listUnsubscribed = async (courseId, company, credentials) => {
   const course = await Course.findOne({ _id: courseId })
     .populate({ path: 'subProgram', select: 'program', populate: { path: 'program', select: 'subPrograms' } })
     .lean();
@@ -93,29 +96,33 @@ exports.listUnsubscribed = async (courseId, companyId) => {
       select: 'attendances startDate endDate',
       populate: {
         path: 'attendances',
-        select: 'trainee',
-        populate: { path: 'trainee', select: 'identity company', populate: 'company' },
+        ...(company && { match: { company } }),
+        select: 'trainee company',
+        populate: { path: 'trainee', select: 'identity' },
+        options: { isVendorUser: VENDOR_ROLES.includes(get(credentials, 'role.vendor.name')) },
       },
     })
     .populate({ path: 'trainer', select: 'identity' })
     .lean();
 
   const unsubscribedAttendances = coursesWithSameProgram
-    .map(c => formatCourseWithAttendances(c, course.trainees, companyId));
+    .map(c => formatCourseWithAttendances(c, course.trainees, company));
 
   return groupBy(unsubscribedAttendances.flat(3), 'trainee._id');
 };
 
-exports.getTraineeUnsubscribedAttendances = async (trainee) => {
+exports.getTraineeUnsubscribedAttendances = async (traineeId, credentials) => {
+  const trainee = await User.findOne({ _id: traineeId }, { company: 1 }).populate({ path: 'company' }).lean();
+
   const attendances = await Attendance
-    .find({ trainee })
+    .find({ trainee: traineeId, company: trainee.company })
     .populate({
       path: 'courseSlot',
       select: 'course startDate endDate',
       populate: [
         {
           path: 'course',
-          match: { trainees: { $ne: trainee } },
+          match: { trainees: { $ne: traineeId } },
           select: 'trainer misc subProgram',
           populate: [
             { path: 'subProgram', select: 'program', populate: { path: 'program', select: 'name' } },
@@ -124,6 +131,7 @@ exports.getTraineeUnsubscribedAttendances = async (trainee) => {
         },
       ],
     })
+    .setOptions({ isVendorUser: VENDOR_ROLES.includes(get(credentials, 'role.vendor.name')) })
     .lean();
 
   const unsubscribedAttendances = attendances
