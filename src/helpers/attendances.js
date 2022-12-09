@@ -57,14 +57,10 @@ exports.create = async (payload, credentials) => {
   return createManyAttendances(course, courseSlotId, credentials);
 };
 
-exports.list = async (query, company, credentials) => {
-  const attendanceQuery = { courseSlot: { $in: query }, ...(company && { company }) };
-
-  return Attendance
-    .find(attendanceQuery)
-    .setOptions({ isVendorUser: VENDOR_ROLES.includes(get(credentials, 'role.vendor.name')) })
-    .lean();
-};
+exports.list = async (query, company, credentials) => Attendance
+  .find({ courseSlot: { $in: query }, ...(company && { company }) })
+  .setOptions({ isVendorUser: VENDOR_ROLES.includes(get(credentials, 'role.vendor.name')) })
+  .lean();
 
 const formatCourseWithAttendances = (course, specificCourseTrainees, specificCourseCompany) =>
   course.slots.map((slot) => {
@@ -77,7 +73,7 @@ const formatCourseWithAttendances = (course, specificCourseTrainees, specificCou
           UtilsHelper.doesArrayIncludeId(specificCourseTrainees, a.trainee._id) &&
           !UtilsHelper.doesArrayIncludeId(course.trainees, a.trainee._id);
         const isAttendanceFromSpecificCompany = !specificCourseCompany ||
-        UtilsHelper.areObjectIdsEquals(a.company, specificCourseCompany);
+          UtilsHelper.areObjectIdsEquals(a.company, specificCourseCompany);
 
         return isTraineeOnlySubscribedToSpecificCourse && isAttendanceFromSpecificCompany;
       }).map(a => ({
