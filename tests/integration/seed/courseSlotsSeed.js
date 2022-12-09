@@ -47,6 +47,7 @@ const coursesList = [
   {
     _id: new ObjectId(),
     subProgram: subProgramsList[0]._id,
+    trainees: [],
     companies: [authCompany._id],
     misc: 'first session',
     type: INTRA,
@@ -57,6 +58,7 @@ const coursesList = [
   {
     _id: new ObjectId(),
     subProgram: subProgramsList[0]._id,
+    trainees: [],
     companies: [otherCompany._id],
     misc: 'team formation',
     type: INTRA,
@@ -67,6 +69,7 @@ const coursesList = [
   {
     _id: new ObjectId(),
     subProgram: subProgramsList[0]._id,
+    trainees: [],
     companies: [authCompany._id],
     misc: 'old session',
     type: INTRA,
@@ -149,7 +152,12 @@ const courseSlotsList = [
   },
 ];
 
-const attendance = { _id: new ObjectId(), trainee: new ObjectId(), courseSlot: courseSlotsList[4]._id };
+const attendance = {
+  _id: new ObjectId(),
+  trainee: new ObjectId(),
+  courseSlot: courseSlotsList[4]._id,
+  company: otherCompany._id,
+};
 
 const populateDB = async () => {
   await deleteNonAuthenticationSeeds();

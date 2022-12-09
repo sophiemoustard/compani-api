@@ -2,6 +2,7 @@ const fs = require('fs');
 const os = require('os');
 const path = require('path');
 const axios = require('axios');
+const randomize = require('randomatic');
 
 const fsPromises = fs.promises;
 const TMP_FILES_PATH = `${path.resolve(__dirname, '../data/pdf/tmp')}/`;
@@ -40,8 +41,9 @@ exports.downloadImages = async (imageList) => {
   for (const image of imageList) {
     const { url, name } = image;
     const response = await axios.get(url, { responseType: 'stream' });
-    await this.createAndReadFile(response.data, `${TMP_FILES_PATH}${name}`);
-    paths.push(`${TMP_FILES_PATH}${name}`);
+    const filePath = `${TMP_FILES_PATH}${randomize('Aa', 10)}${name}`;
+    await this.createAndReadFile(response.data, filePath);
+    paths.push(filePath);
   }
 
   return paths;

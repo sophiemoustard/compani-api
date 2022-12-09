@@ -5,11 +5,23 @@ const {
   SLOT_EDITION,
   TRAINEE_ADDITION,
   TRAINEE_DELETION,
+  ESTIMATED_START_DATE_EDITION,
+  COMPANY_ADDITION,
+  COMPANY_DELETION,
 } = require('../helpers/constants');
 const { formatQuery, queryMiddlewareList } = require('./preHooks/validate');
 const addressSchemaDefinition = require('./schemaDefinitions/address');
 
-const ACTION_TYPES = [SLOT_CREATION, SLOT_DELETION, SLOT_EDITION, TRAINEE_ADDITION, TRAINEE_DELETION];
+const ACTION_TYPES = [
+  SLOT_CREATION,
+  SLOT_DELETION,
+  SLOT_EDITION,
+  TRAINEE_ADDITION,
+  TRAINEE_DELETION,
+  ESTIMATED_START_DATE_EDITION,
+  COMPANY_ADDITION,
+  COMPANY_DELETION,
+];
 
 const CourseHistorySchema = mongoose.Schema({
   createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true, immutable: true },
@@ -34,11 +46,20 @@ const CourseHistorySchema = mongoose.Schema({
       type: mongoose.Schema({ from: { type: Date }, to: { type: Date } }),
       required: () => this.action === SLOT_EDITION && this.update.startHour,
     },
+    estimatedStartDate: {
+      type: mongoose.Schema({ from: { type: Date }, to: { type: Date } }),
+      required: () => this.action === ESTIMATED_START_DATE_EDITION,
+    },
   },
   trainee: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
     required: () => [TRAINEE_ADDITION, TRAINEE_DELETION].includes(this.action),
+  },
+  company: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Company',
+    required: () => [COMPANY_ADDITION, COMPANY_DELETION].includes(this.action),
   },
 }, { timestamps: true });
 

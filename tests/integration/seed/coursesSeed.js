@@ -16,7 +16,9 @@ const Questionnaire = require('../../../src/models/Questionnaire');
 const QuestionnaireHistory = require('../../../src/models/QuestionnaireHistory');
 const CourseBill = require('../../../src/models/CourseBill');
 const CourseCreditNote = require('../../../src/models/CourseCreditNote');
-const { authCompany, otherCompany } = require('../../seed/authCompaniesSeed');
+const Attendance = require('../../../src/models/Attendance');
+const AttendanceSheet = require('../../../src/models/AttendanceSheet');
+const { authCompany, otherCompany, companyWithoutSubscription: thirdCompany } = require('../../seed/authCompaniesSeed');
 const { deleteNonAuthenticationSeeds } = require('../helpers/authentication');
 const {
   vendorAdmin,
@@ -31,7 +33,17 @@ const {
   trainer,
   trainerAndCoach,
 } = require('../../seed/authUsersSeed');
-const { VIDEO, WEBAPP, SLOT_CREATION, SLOT_DELETION, INTRA, INTER_B2B } = require('../../../src/helpers/constants');
+const {
+  VIDEO,
+  WEBAPP,
+  SLOT_CREATION,
+  SLOT_DELETION,
+  INTRA,
+  INTER_B2B,
+  STRICTLY_E_LEARNING,
+  INTER_B2C,
+  BLENDED,
+} = require('../../../src/helpers/constants');
 const { auxiliaryRoleId, trainerRoleId, coachRoleId } = require('../../seed/authRolesSeed');
 
 const traineeFromOtherCompany = {
@@ -64,6 +76,16 @@ const traineeWithoutCompany = {
   origin: WEBAPP,
 };
 
+const traineeFromThirdCompany = {
+  _id: new ObjectId(),
+  identity: { firstname: 'Fred', lastname: 'Subscription' },
+  local: { email: 'trainee_third_company@alenvi.io', password: '123456!eR' },
+  role: { client: auxiliaryRoleId },
+  contact: { phone: '0734856752' },
+  refreshToken: uuidv4(),
+  origin: WEBAPP,
+};
+
 const contactWithoutPhone = {
   _id: new ObjectId(),
   identity: { firstname: 'Cathy', lastname: 'Palenne' },
@@ -89,12 +111,14 @@ const userList = [
   traineeWithoutCompany,
   contactWithoutPhone,
   coachFromOtherCompany,
+  traineeFromThirdCompany,
 ];
 
 const userCompanies = [
   { _id: new ObjectId(), user: traineeFromOtherCompany._id, company: otherCompany._id },
   { _id: new ObjectId(), user: traineeFromAuthCompanyWithFormationExpoToken._id, company: authCompany._id },
   { _id: new ObjectId(), user: coachFromOtherCompany._id, company: otherCompany._id },
+  { _id: new ObjectId(), user: traineeFromThirdCompany._id, company: thirdCompany._id },
 ];
 
 const cardsList = [
@@ -133,6 +157,7 @@ const stepList = [
 const subProgramsList = [
   { _id: new ObjectId(), name: 'sous-programme 1', steps: [stepList[0]._id, stepList[1]._id] },
   { _id: new ObjectId(), name: 'sous-programme 2', steps: [stepList[1]._id, stepList[2]._id] },
+  { _id: new ObjectId(), name: 'sous-programme 3', steps: [stepList[1]._id] },
 ];
 
 const programsList = [
@@ -151,10 +176,10 @@ const coursesList = [
   { // 0
     _id: new ObjectId(),
     subProgram: subProgramsList[0]._id,
-    companies: [authCompany._id],
     misc: 'first session',
     trainer: trainer._id,
     trainees: [coach._id, helper._id, clientAdmin._id, vendorAdmin._id],
+    companies: [authCompany._id],
     type: INTRA,
     maxTrainees: 8,
     salesRepresentative: vendorAdmin._id,
@@ -166,10 +191,10 @@ const coursesList = [
     _id: new ObjectId(),
     subProgram: subProgramsList[0]._id,
     contact: vendorAdmin._id,
-    companies: [otherCompany._id],
     misc: 'team formation',
     trainer: new ObjectId(),
     trainees: [traineeFromOtherCompany._id],
+    companies: [otherCompany._id],
     type: INTRA,
     maxTrainees: 8,
     salesRepresentative: vendorAdmin._id,
@@ -179,7 +204,6 @@ const coursesList = [
     _id: new ObjectId(),
     subProgram: subProgramsList[0]._id,
     contact: vendorAdmin._id,
-    companies: [authCompany._id],
     misc: 'second session',
     trainer: trainer._id,
     type: INTRA,
@@ -192,16 +216,17 @@ const coursesList = [
       auxiliary._id,
       traineeFromAuthCompanyWithFormationExpoToken._id,
     ],
+    companies: [authCompany._id],
     salesRepresentative: vendorAdmin._id,
   },
   { // 3
     _id: new ObjectId(),
     subProgram: subProgramsList[0]._id,
-    companies: [otherCompany._id],
     misc: 'second team formation',
     type: INTRA,
-    maxTrainees: 2,
-    trainees: [coach._id, clientAdmin._id],
+    maxTrainees: 1,
+    trainees: [traineeFromOtherCompany._id],
+    companies: [otherCompany._id],
     salesRepresentative: vendorAdmin._id,
     trainer: trainerAndCoach._id,
   },
@@ -211,7 +236,8 @@ const coursesList = [
     misc: 'inter b2b session concerning auth company',
     type: INTER_B2B,
     trainees: [traineeFromOtherCompany._id, coach._id],
-    format: 'blended',
+    companies: [otherCompany._id, authCompany._id],
+    format: BLENDED,
     trainer: trainer._id,
     salesRepresentative: vendorAdmin._id,
   },
@@ -220,39 +246,41 @@ const coursesList = [
     subProgram: subProgramsList[0]._id,
     misc: 'inter b2b session NOT concerning auth company',
     type: INTER_B2B,
-    format: 'blended',
+    format: BLENDED,
     trainees: [noRole._id],
+    companies: [thirdCompany._id],
     salesRepresentative: vendorAdmin._id,
   },
   { // 6 course without trainees and slots
     _id: new ObjectId(),
-    subProgram: subProgramsList[0]._id,
-    misc: 'inter b2b session NOT concerning auth company',
-    type: INTER_B2B,
+    subProgram: subProgramsList[2]._id,
+    misc: 'inter b2c session NOT concerning auth company',
+    type: INTER_B2C,
     trainees: [],
-    format: 'strictly_e_learning',
+    format: STRICTLY_E_LEARNING,
     salesRepresentative: vendorAdmin._id,
   },
   { // 7 course with slots to plan
     _id: new ObjectId(),
     subProgram: subProgramsList[0]._id,
     contact: vendorAdmin._id,
-    misc: 'inter b2b session NOT concerning auth company',
+    misc: 'inter b2b session',
     type: INTER_B2B,
-    format: 'blended',
-    trainees: [trainer._id],
-    trainer: coach._id,
+    format: BLENDED,
+    trainees: [auxiliary._id],
+    companies: [authCompany._id, thirdCompany._id],
+    trainer: trainer._id,
     salesRepresentative: vendorAdmin._id,
   },
-  { // 8 course with access rules
+  { // 8 eLearning course with access rules
     _id: new ObjectId(),
-    subProgram: subProgramsList[0]._id,
+    subProgram: subProgramsList[2]._id,
     contact: vendorAdmin._id,
-    misc: 'inter_b2b with accessRules',
-    type: INTER_B2B,
-    format: 'strictly_e_learning',
-    trainees: [coach._id, traineeFromOtherCompany._id],
-    accessRules: [authCompany._id, new ObjectId()],
+    misc: 'inter_b2c with accessRules',
+    type: INTER_B2C,
+    format: STRICTLY_E_LEARNING,
+    trainees: [coach._id],
+    accessRules: [authCompany._id],
     salesRepresentative: vendorAdmin._id,
   },
   { // 9 course with access rules and trainee that can't have access to the course but has already suscribed
@@ -261,8 +289,9 @@ const coursesList = [
     trainer: trainer._id,
     misc: 'inter_b2b with accessRules',
     type: INTER_B2B,
-    format: 'strictly_e_learning',
+    format: BLENDED,
     trainees: [coach._id, traineeFromOtherCompany._id],
+    companies: [otherCompany._id, authCompany._id],
     accessRules: [authCompany._id, new ObjectId()],
     salesRepresentative: vendorAdmin._id,
   },
@@ -273,15 +302,16 @@ const coursesList = [
     misc: 'inter_b2b',
     type: INTER_B2B,
     trainees: [traineeFromOtherCompany._id],
+    companies: [otherCompany._id],
     contact: vendorAdmin._id,
     salesRepresentative: vendorAdmin._id,
   },
   { // 11 course without authCompany in access rules (11ème position)
     _id: new ObjectId(),
-    subProgram: subProgramsList[0]._id,
-    misc: 'inter_b2b',
-    type: INTER_B2B,
-    format: 'strictly_e_learning',
+    subProgram: subProgramsList[2]._id,
+    misc: 'inter_b2c',
+    type: INTER_B2C,
+    format: STRICTLY_E_LEARNING,
     trainees: [traineeFromOtherCompany._id, coach._id],
     accessRules: [otherCompany._id],
     salesRepresentative: vendorAdmin._id,
@@ -292,6 +322,7 @@ const coursesList = [
     misc: 'inter_b2b',
     type: INTER_B2B,
     trainees: [coach._id],
+    companies: [authCompany._id],
     salesRepresentative: vendorAdmin._id,
   },
   { // 13 course without trainee
@@ -299,18 +330,19 @@ const coursesList = [
     subProgram: subProgramsList[0]._id,
     misc: '',
     type: INTER_B2B,
-    format: 'blended',
+    format: BLENDED,
     trainer: trainer._id,
     trainees: [],
+    companies: [],
     salesRepresentative: vendorAdmin._id,
   },
   { // 14 archived course
     _id: new ObjectId(),
     subProgram: subProgramsList[0]._id,
-    companies: [authCompany._id],
     misc: 'old session',
     trainer: trainer._id,
-    trainees: [coach._id, helper._id, clientAdmin._id, trainer._id],
+    trainees: [coach._id, helper._id, clientAdmin._id],
+    companies: [authCompany._id],
     type: INTRA,
     maxTrainees: 8,
     salesRepresentative: vendorAdmin._id,
@@ -323,8 +355,9 @@ const coursesList = [
     misc: 'intra billed without trainee and slot',
     type: INTRA,
     maxTrainees: 8,
-    format: 'blended',
+    format: BLENDED,
     salesRepresentative: vendorAdmin._id,
+    trainees: [],
     companies: [authCompany._id],
   },
   { // 16 course without trainee and with slots to plan
@@ -332,8 +365,10 @@ const coursesList = [
     subProgram: subProgramsList[0]._id,
     misc: '',
     type: INTER_B2B,
-    format: 'blended',
+    format: BLENDED,
     trainer: trainer._id,
+    trainees: [],
+    companies: [],
     salesRepresentative: vendorAdmin._id,
   },
   { // 17 Intra course without slots
@@ -355,6 +390,31 @@ const coursesList = [
     ],
     salesRepresentative: vendorAdmin._id,
     expectedBillsCount: 2,
+  },
+  { // 18 archived inter b2b course
+    _id: new ObjectId(),
+    subProgram: subProgramsList[0]._id,
+    misc: 'old session',
+    trainer: trainer._id,
+    trainees: [coach._id, helper._id, clientAdmin._id],
+    companies: [authCompany._id],
+    type: INTER_B2B,
+    maxTrainees: 8,
+    salesRepresentative: vendorAdmin._id,
+    archivedAt: '2021-01-01T00:00:00.000Z',
+    estimatedStartDate: '2020-11-03T10:00:00.000Z',
+  },
+  { // 19 course with billed and attended companies
+    _id: new ObjectId(),
+    subProgram: subProgramsList[0]._id,
+    contact: vendorAdmin._id,
+    misc: 'inter b2b session',
+    type: INTER_B2B,
+    format: BLENDED,
+    trainees: [],
+    companies: [authCompany._id, thirdCompany._id, otherCompany._id],
+    trainer: trainer._id,
+    salesRepresentative: vendorAdmin._id,
   },
 ];
 
@@ -419,6 +479,16 @@ const courseBillsList = [
     number: 'F00006',
     payer: { company: authCompany._id },
   },
+  {
+    _id: new ObjectId(),
+    course: coursesList[19]._id,
+    mainFee: { price: 1600, count: 1, description: 'Bonjour' },
+    company: authCompany._id,
+    billingPurchaseList: [],
+    billedAt: '2022-04-20T09:00:00.000Z',
+    number: 'F00007',
+    payer: { company: authCompany._id },
+  },
 ];
 
 const courseCreditNoteList = [
@@ -478,77 +548,134 @@ const courseHistories = [
 ];
 
 const slots = [
-  {
+  { // 0
+    _id: new ObjectId(),
     startDate: '2020-03-01T08:00:00.000Z',
     endDate: '2020-03-01T10:00:00.000Z',
-    course: coursesList[0],
+    course: coursesList[0]._id,
     step: stepList[0]._id,
   },
-  {
+  { // 1
+    _id: new ObjectId(),
     startDate: '2020-03-02T13:00:00.000Z',
     endDate: '2020-03-02T17:00:00.000Z',
-    course: coursesList[0],
+    course: coursesList[0]._id,
     step: stepList[0]._id,
   },
-  {
+  { // 2
+    _id: new ObjectId(),
     startDate: '2020-03-03T08:00:00.000Z',
     endDate: '2020-03-03T10:00:00.000Z',
-    course: coursesList[1],
+    course: coursesList[1]._id,
     step: stepList[0]._id,
   },
-  {
+  { // 3
+    _id: new ObjectId(),
     startDate: '2020-03-04T08:00:00.000Z',
     endDate: '2020-03-04T10:00:00.000Z',
-    course: coursesList[1],
+    course: coursesList[1]._id,
     step: stepList[1]._id,
   },
-  {
+  { // 4
+    _id: new ObjectId(),
     startDate: '2020-03-04T08:00:00.000Z',
     endDate: '2020-03-04T10:00:00.000Z',
-    course: coursesList[2],
+    course: coursesList[2]._id,
     step: stepList[0]._id,
   },
-  { course: coursesList[2], step: stepList[0]._id },
-  { course: coursesList[2], step: stepList[0]._id },
-  {
+  { // 5
+    _id: new ObjectId(),
+    course: coursesList[2]._id,
+    step: stepList[0]._id,
+  },
+  { // 6
+    _id: new ObjectId(),
+    course: coursesList[2]._id,
+    step: stepList[0]._id,
+  },
+  { // 7
+    _id: new ObjectId(),
     startDate: '2020-03-05T08:00:00.000Z',
     endDate: '2020-03-05T10:00:00.000Z',
-    course: coursesList[3],
+    course: coursesList[3]._id,
     step: stepList[0]._id,
   },
-  { course: coursesList[3], step: stepList[0]._id },
-  {
+  { // 8
+    _id: new ObjectId(),
+    course: coursesList[3]._id,
+    step: stepList[0]._id,
+  },
+  { // 9
+    _id: new ObjectId(),
     startDate: '2020-03-06T08:00:00.000Z',
     endDate: '2020-03-06T10:00:00.000Z',
-    course: coursesList[5],
+    course: coursesList[5]._id,
     step: stepList[0]._id,
   },
-  { course: coursesList[7], step: stepList[0]._id },
-  {
+  { // 10
+    _id: new ObjectId(),
+    course: coursesList[7]._id,
+    step: stepList[0]._id,
+  },
+  { // 11
+    _id: new ObjectId(),
     startDate: '2020-03-07T08:00:00.000Z',
     endDate: '2020-03-07T10:00:00.000Z',
-    course: coursesList[7],
+    course: coursesList[7]._id,
     step: stepList[0]._id,
   },
-  {
+  { // 12
+    _id: new ObjectId(),
     startDate: '2020-03-08T08:00:00.000Z',
     endDate: '2020-03-08T10:00:00.000Z',
-    course: coursesList[8],
+    course: coursesList[8]._id,
     step: stepList[0]._id,
   },
-  {
+  { // 13
+    _id: new ObjectId(),
     startDate: '2020-03-09T08:00:00.000Z',
     endDate: '2020-03-09T10:00:00.000Z',
-    course: coursesList[9],
+    course: coursesList[9]._id,
     step: stepList[0]._id,
   },
-  {
+  { // 14
+    _id: new ObjectId(),
     startDate: '2020-03-10T08:00:00.000Z',
     endDate: '2020-03-10T10:00:00.000Z',
-    course: coursesList[13],
+    course: coursesList[13]._id,
     step: stepList[0]._id,
   },
-  { course: coursesList[16], step: stepList[0]._id },
+  { // 15
+    _id: new ObjectId(),
+    course: coursesList[16]._id,
+    step: stepList[0]._id,
+  },
+  { // 16
+    _id: new ObjectId(),
+    startDate: '2020-03-07T08:00:00.000Z',
+    endDate: '2020-03-07T10:00:00.000Z',
+    course: coursesList[19]._id,
+    step: stepList[0]._id,
+  },
+];
+
+const attendanceList = [{
+  _id: new ObjectId(),
+  trainee: traineeFromThirdCompany._id,
+  courseSlot: slots[16]._id,
+  company: thirdCompany._id,
+}];
+
+const attendanceSheetList = [
+  {
+    _id: new ObjectId(),
+    trainee: traineeFromOtherCompany._id,
+    course: coursesList[19]._id,
+    file: {
+      publicId: 'publicId',
+      link: 'https://link.com',
+    },
+  },
 ];
 
 const populateDB = async () => {
@@ -557,6 +684,8 @@ const populateDB = async () => {
   await Promise.all([
     Activity.create(activitiesList),
     ActivityHistory.create(activitiesHistory),
+    Attendance.create(attendanceList),
+    AttendanceSheet.create(attendanceSheetList),
     Card.create(cardsList),
     Course.create(coursesList),
     CourseBill.create(courseBillsList),
@@ -584,7 +713,6 @@ module.exports = {
   traineeFromOtherCompany,
   traineeWithoutCompany,
   courseSmsHistory,
-  slots,
   traineeFromAuthCompanyWithFormationExpoToken,
   userCompanies,
   coachFromOtherCompany,

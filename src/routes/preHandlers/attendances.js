@@ -7,7 +7,6 @@ const User = require('../../models/User');
 const Attendance = require('../../models/Attendance');
 const {
   TRAINER,
-  INTRA,
   TRAINING_ORGANISATION_MANAGER,
   VENDOR_ADMIN,
   CLIENT_ADMIN,
@@ -31,17 +30,8 @@ const checkPermissionOnCourse = (course, credentials) => {
     UtilsHelper.areObjectIdsEquals(credentials._id, course.trainer);
   const isAdminVendor = [TRAINING_ORGANISATION_MANAGER, VENDOR_ADMIN].includes(loggedUserVendorRole);
 
-  let isClientAndAuthorized;
-  if (course.type === INTRA) {
-    if (!course.companies[0]) throw Boom.badData();
-
-    isClientAndAuthorized = [COACH, CLIENT_ADMIN].includes(loggedUserClientRole) &&
-      UtilsHelper.areObjectIdsEquals(loggedUserCompany, course.companies[0]);
-  } else {
-    const traineeCompanies = course.trainees.map(trainee => trainee.company);
-    isClientAndAuthorized = [COACH, CLIENT_ADMIN].includes(loggedUserClientRole) &&
-      UtilsHelper.doesArrayIncludeId(traineeCompanies, loggedUserCompany);
-  }
+  const isClientAndAuthorized = [COACH, CLIENT_ADMIN].includes(loggedUserClientRole) &&
+    UtilsHelper.doesArrayIncludeId(course.companies, loggedUserCompany);
 
   if (!isClientAndAuthorized && !isAdminVendor && !isCourseTrainer) throw Boom.forbidden();
 
@@ -51,11 +41,7 @@ const checkPermissionOnCourse = (course, credentials) => {
 exports.authorizeAttendancesGet = async (req) => {
   const courseSlotsQuery = req.query.courseSlot ? { _id: req.query.courseSlot } : { course: req.query.course };
   const courseSlots = await CourseSlot.find(courseSlotsQuery, { course: 1 })
-    .populate({
-      path: 'course',
-      select: 'trainer trainees companies type',
-      populate: { path: 'trainees', select: 'company', populate: { path: 'company' } },
-    })
+    .populate({ path: 'course', select: 'trainer companies' })
     .lean();
 
   if (!courseSlots.length) throw Boom.notFound();
@@ -85,9 +71,7 @@ exports.authorizeUnsubscribedAttendancesGet = async (req) => {
       throw Boom.badRequest();
     }
 
-    const course = await Course.findOne({ _id: courseId })
-      .populate({ path: 'trainees', select: 'company', populate: 'company' })
-      .lean();
+    const course = await Course.findOne({ _id: courseId }, { trainer: 1, companies: 1 }).lean();
     if (!course) throw Boom.notFound();
 
     checkPermissionOnCourse(course, credentials);
@@ -109,7 +93,7 @@ exports.authorizeUnsubscribedAttendancesGet = async (req) => {
 
 exports.authorizeAttendanceCreation = async (req) => {
   const courseSlot = await CourseSlot.findOne({ _id: req.payload.courseSlot }, { course: 1 })
-    .populate({ path: 'course', select: 'trainer trainees type companies archivedAt' })
+    .populate({ path: 'course', select: 'trainer companies archivedAt' })
     .lean();
   if (!courseSlot) throw Boom.notFound();
 
@@ -123,15 +107,13 @@ exports.authorizeAttendanceCreation = async (req) => {
     const attendance = await Attendance.countDocuments(req.payload);
     if (attendance) throw Boom.conflict();
 
-    if (course.type === INTRA) {
-      if (!course.companies.length) throw Boom.badData();
+    if (!course.companies.length) throw Boom.badData();
 
-      const doesTraineeBelongToCompany = await UserCompany.countDocuments({
-        user: req.payload.trainee,
-        company: course.companies[0],
-      });
-      if (!doesTraineeBelongToCompany) throw Boom.notFound();
-    }
+    const doesTraineeBelongToCompany = await UserCompany.countDocuments({
+      user: req.payload.trainee,
+      company: { $in: course.companies },
+    });
+    if (!doesTraineeBelongToCompany) throw Boom.forbidden();
   }
 
   return null;

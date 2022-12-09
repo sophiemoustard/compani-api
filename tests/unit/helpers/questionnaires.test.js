@@ -6,7 +6,7 @@ const Course = require('../../../src/models/Course');
 const Card = require('../../../src/models/Card');
 const QuestionnaireHelper = require('../../../src/helpers/questionnaires');
 const CardHelper = require('../../../src/helpers/cards');
-const { EXPECTATIONS, PUBLISHED, END_OF_COURSE } = require('../../../src/helpers/constants');
+const { EXPECTATIONS, PUBLISHED, END_OF_COURSE, INTRA, INTER_B2B } = require('../../../src/helpers/constants');
 const SinonMongoose = require('../sinonMongoose');
 const UtilsMock = require('../../utilsMock');
 
@@ -551,6 +551,7 @@ describe('getFollowUp', () => {
       companies: [{ name: 'company' }],
       subProgram: { program: { name: 'test' } },
       misc: 'infos',
+      type: INTRA,
     };
     const cardsIds = [new ObjectId(), new ObjectId()];
     const questionnaire = {
@@ -651,7 +652,7 @@ describe('getFollowUp', () => {
       courseFindOne,
       [
         { query: 'findOne', args: [{ _id: courseId }] },
-        { query: 'select', args: ['subProgram companies misc'] },
+        { query: 'select', args: ['subProgram companies misc type'] },
         {
           query: 'populate',
           args: [{ path: 'subProgram', select: 'program', populate: [{ path: 'program', select: 'name' }] }],
@@ -698,6 +699,7 @@ describe('getFollowUp', () => {
       _id: courseId,
       subProgram: { program: { name: 'test' } },
       misc: 'infos',
+      type: INTER_B2B,
     };
     const cardsIds = [new ObjectId(), new ObjectId()];
     const questionnaire = {
@@ -798,7 +800,7 @@ describe('getFollowUp', () => {
       courseFindOne,
       [
         { query: 'findOne', args: [{ _id: courseId }] },
-        { query: 'select', args: ['subProgram companies misc'] },
+        { query: 'select', args: ['subProgram companies misc type'] },
         {
           query: 'populate',
           args: [{ path: 'subProgram', select: 'program', populate: [{ path: 'program', select: 'name' }] }],
@@ -966,6 +968,7 @@ describe('getFollowUp', () => {
       companies: [{ name: 'company' }],
       subProgram: { program: { name: 'test' } },
       misc: 'infos',
+      type: INTRA,
     };
     const questionnaire = {
       _id: questionnaireId,
@@ -1000,7 +1003,7 @@ describe('getFollowUp', () => {
       courseFindOne,
       [
         { query: 'findOne', args: [{ _id: courseId }] },
-        { query: 'select', args: ['subProgram companies misc'] },
+        { query: 'select', args: ['subProgram companies misc type'] },
         {
           query: 'populate',
           args: [{ path: 'subProgram', select: 'program', populate: [{ path: 'program', select: 'name' }] }],
@@ -1046,6 +1049,7 @@ describe('getFollowUp', () => {
       companies: [{ name: 'company' }],
       subProgram: { program: { name: 'test' } },
       misc: 'infos',
+      type: INTRA,
     };
     const questionnaire = {
       _id: questionnaireId,
@@ -1072,7 +1076,7 @@ describe('getFollowUp', () => {
       courseFindOne,
       [
         { query: 'findOne', args: [{ _id: courseId }] },
-        { query: 'select', args: ['subProgram companies misc'] },
+        { query: 'select', args: ['subProgram companies misc type'] },
         {
           query: 'populate',
           args: [{ path: 'subProgram', select: 'program', populate: [{ path: 'program', select: 'name' }] }],
@@ -1119,6 +1123,7 @@ describe('getFollowUp', () => {
       companies: [{ name: 'company' }],
       subProgram: { program: { name: 'test' } },
       misc: 'infos',
+      type: INTRA,
     };
     const questionnaire = {
       _id: questionnaireId,
@@ -1150,7 +1155,7 @@ describe('getFollowUp', () => {
       courseFindOne,
       [
         { query: 'findOne', args: [{ _id: courseId }] },
-        { query: 'select', args: ['subProgram companies misc'] },
+        { query: 'select', args: ['subProgram companies misc type'] },
         {
           query: 'populate',
           args: [{ path: 'subProgram', select: 'program', populate: [{ path: 'program', select: 'name' }] }],

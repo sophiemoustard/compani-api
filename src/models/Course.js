@@ -11,9 +11,9 @@ const CourseSchema = mongoose.Schema({
   subProgram: { type: mongoose.Schema.Types.ObjectId, ref: 'SubProgram', required: true },
   companies: {
     type: [mongoose.Schema.Types.ObjectId],
-    default: undefined,
+    default() { return (this.type === INTER_B2C ? undefined : []); },
     ref: 'Company',
-    required() { return this.type === INTRA; },
+    validate(v) { return (this.type === INTRA ? Array.isArray(v) && !!v.length : true); },
   },
   type: { type: String, required: true, enum: COURSE_TYPES },
   format: { type: String, enum: COURSE_FORMATS, default: BLENDED },

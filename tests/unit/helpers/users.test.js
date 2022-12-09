@@ -314,7 +314,7 @@ describe('getLearnerList', () => {
   });
 
   it('should get learners from company', async () => {
-    const query = { company: new ObjectId() };
+    const query = { companies: [new ObjectId()] };
     const credentials = { role: { client: new ObjectId() } };
     const roleId1 = new ObjectId();
     const roleId2 = new ObjectId();
@@ -342,7 +342,7 @@ describe('getLearnerList', () => {
     );
     SinonMongoose.calledOnceWithExactly(
       findUserCompany,
-      [{ query: 'find', args: [{ company: query.company }, { user: 1 }] }, { query: 'lean' }]
+      [{ query: 'find', args: [{ company: { $in: query.companies } }, { user: 1 }] }, { query: 'lean' }]
     );
     SinonMongoose.calledOnceWithExactly(
       findUser,
@@ -363,54 +363,6 @@ describe('getLearnerList', () => {
           args: [{ path: 'activityHistories', select: 'updatedAt', options: { sort: { updatedAt: -1 } } }],
         },
         { query: 'setOptions', args: [{ isVendorUser: false }] },
-        { query: 'lean' },
-      ]
-    );
-  });
-
-  it('should get all learners with a company', async () => {
-    const query = { hasCompany: true };
-    const credentials = { role: { vendor: new ObjectId() } };
-    const users = [
-      { _id: new ObjectId(), activityHistories: [{ _id: new ObjectId() }] },
-      { _id: new ObjectId(), activityHistories: [{ _id: new ObjectId() }] },
-    ];
-    const usersCompany = [{ user: users[0]._id }, { user: users[1]._id }];
-    const usersWithVirtuals = [
-      { _id: users[0]._id, activityHistoryCount: 1, lastActivityHistory: users[0].activityHistories[0] },
-      { _id: users[1]._id, activityHistoryCount: 1, lastActivityHistory: users[1].activityHistories[0] },
-    ];
-
-    findUserCompany.returns(SinonMongoose.stubChainedQueries(usersCompany, ['lean']));
-    findUser.returns(SinonMongoose.stubChainedQueries(users, ['populate', 'setOptions', 'lean']));
-
-    const result = await UsersHelper.getLearnerList(query, credentials);
-
-    expect(result).toEqual(usersWithVirtuals);
-    sinon.assert.notCalled(findRole);
-    SinonMongoose.calledOnceWithExactly(
-      findUserCompany,
-      [{ query: 'find', args: [{}, { user: 1 }] }, { query: 'lean' }]
-    );
-    SinonMongoose.calledOnceWithExactly(
-      findUser,
-      [
-        {
-          query: 'find',
-          args: [
-            { _id: { $in: [users[0]._id, users[1]._id] } },
-            'identity.firstname identity.lastname picture local.email',
-            { autopopulate: false },
-          ],
-        },
-        { query: 'populate', args: [{ path: 'company', populate: { path: 'company' }, select: 'name' }] },
-        { query: 'populate', args: [{ path: 'blendedCoursesCount' }] },
-        { query: 'populate', args: [{ path: 'eLearningCoursesCount' }] },
-        {
-          query: 'populate',
-          args: [{ path: 'activityHistories', select: 'updatedAt', options: { sort: { updatedAt: -1 } } }],
-        },
-        { query: 'setOptions', args: [{ isVendorUser: !!get(credentials, 'role.vendor') }] },
         { query: 'lean' },
       ]
     );

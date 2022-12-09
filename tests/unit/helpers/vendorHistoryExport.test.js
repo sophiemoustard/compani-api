@@ -24,6 +24,7 @@ const {
   NO_DATA,
   CHECK,
   REFUND,
+  ESTIMATED_START_DATE_EDITION,
 } = require('../../../src/helpers/constants');
 const CourseSlot = require('../../../src/models/CourseSlot');
 const Course = require('../../../src/models/Course');
@@ -33,6 +34,7 @@ const Questionnaire = require('../../../src/models/Questionnaire');
 const AttendanceSheet = require('../../../src/models/AttendanceSheet');
 const CourseBill = require('../../../src/models/CourseBill');
 const CoursePayment = require('../../../src/models/CoursePayment');
+const CourseHistory = require('../../../src/models/CourseHistory');
 
 describe('exportCourseHistory', () => {
   const traineeList = [
@@ -98,7 +100,7 @@ describe('exportCourseHistory', () => {
   const trainer = { _id: new ObjectId(), identity: { firstname: 'Gilles', lastname: 'Formateur' } };
   const salesRepresentative = { _id: new ObjectId(), identity: { firstname: 'Aline', lastname: 'Contact-Com' } };
 
-  const courseIdList = [new ObjectId(), new ObjectId(), new ObjectId(), new ObjectId()];
+  const courseIdList = [new ObjectId(), new ObjectId(), new ObjectId(), new ObjectId(), new ObjectId()];
 
   const courseSlotList = [
     {
@@ -134,9 +136,16 @@ describe('exportCourseHistory', () => {
       course: courseIdList[1],
       step: new ObjectId(),
     },
+    {
+      _id: new ObjectId(),
+      course: courseIdList[4],
+      startDate: '2021-02-09T08:00:00.000Z',
+      endDate: '2021-02-09T10:00:00.000Z',
+      attendances: [{ trainee: traineeList[0]._id }],
+    },
   ];
   const company = { _id: new ObjectId(), name: 'Test SAS' };
-  const otherCompany = { _id: new ObjectId(), name: 'Test SAS' };
+  const otherCompany = { _id: new ObjectId(), name: 'Autre structure' };
   const courseList = [
     {
       _id: courseIdList[0],
@@ -177,6 +186,7 @@ describe('exportCourseHistory', () => {
     {
       _id: courseIdList[1],
       type: INTER_B2B,
+      companies: [company, otherCompany],
       subProgram: subProgramList[1],
       misc: 'group 2',
       estimatedStartDate: '2019-01-01T08:00:00',
@@ -222,13 +232,14 @@ describe('exportCourseHistory', () => {
     {
       _id: courseIdList[2],
       type: INTER_B2B,
+      companies: [],
       subProgram: subProgramList[1],
       misc: 'group 3',
       estimatedStartDate: '2022-01-01T08:00:00',
       trainer,
       salesRepresentative,
       contact: salesRepresentative,
-      trainees: [traineeList[3], traineeList[4]],
+      trainees: [],
       slotsToPlan: [],
       slots: [],
       bills: [],
@@ -286,6 +297,41 @@ describe('exportCourseHistory', () => {
           courseCreditNote: null,
           coursePayments: [{ netInclTaxes: 10, nature: PAYMENT }],
         },
+        { // non-validated invoice
+          course: courseIdList[3],
+          mainFee: { price: 120, count: 2 },
+          company,
+          payer: { name: 'Test' },
+          number: 'FACT-00014',
+          courseCreditNote: null,
+          coursePayments: [],
+        },
+      ],
+    },
+    {
+      _id: courseIdList[4],
+      type: INTER_B2B,
+      companies: [otherCompany],
+      subProgram: subProgramList[0],
+      misc: 'group 1',
+      trainer,
+      salesRepresentative,
+      contact: salesRepresentative,
+      trainees: [traineeList[0], traineeList[1]],
+      slotsToPlan: [],
+      slots: [courseSlotList[5]],
+      expectedBillsCount: 2,
+      bills: [
+        {
+          course: courseIdList[4],
+          mainFee: { price: 120, count: 1 },
+          company,
+          payer: { name: 'APA Paris' },
+          billedAt: '2022-03-08T00:00:00.000Z',
+          number: 'FACT-00010',
+          courseCreditNote: null,
+          coursePayments: [{ netInclTaxes: 10, nature: PAYMENT }],
+        },
       ],
     },
 
@@ -303,6 +349,18 @@ describe('exportCourseHistory', () => {
     { _id: new ObjectId(), course: courseList[1]._id, user: traineeList[3]._id, questionnaire: questionnaireList[0] },
     { _id: new ObjectId(), course: courseList[1]._id, user: traineeList[3]._id, questionnaire: questionnaireList[1] },
   ];
+  const estimatedStartDateHistoriesList = [
+    {
+      _id: new ObjectId(),
+      course: courseList[1]._id,
+      update: { estimatedStartDate: { to: '2019-01-01T08:00:00.000Z' } },
+    },
+    {
+      _id: new ObjectId(),
+      course: courseList[2]._id,
+      update: { estimatedStartDate: { to: '2021-12-01T10:00:00.000Z' } },
+    },
+  ];
 
   const credentials = { company: { _id: new ObjectId(), role: { vendor: { name: TRAINING_ORGANISATION_MANAGER } } } };
 
@@ -313,6 +371,7 @@ describe('exportCourseHistory', () => {
   let findCourseSmsHistory;
   let findAttendanceSheet;
   let findQuestionnaireHistory;
+  let findCourseHistory;
 
   beforeEach(() => {
     findCourseSlot = sinon.stub(CourseSlot, 'find');
@@ -322,6 +381,7 @@ describe('exportCourseHistory', () => {
     findCourseSmsHistory = sinon.stub(CourseSmsHistory, 'find');
     findAttendanceSheet = sinon.stub(AttendanceSheet, 'find');
     findQuestionnaireHistory = sinon.stub(QuestionnaireHistory, 'find');
+    findCourseHistory = sinon.stub(CourseHistory, 'find');
   });
 
   afterEach(() => {
@@ -332,20 +392,12 @@ describe('exportCourseHistory', () => {
     findCourseSmsHistory.restore();
     findAttendanceSheet.restore();
     findQuestionnaireHistory.restore();
+    findCourseHistory.restore();
   });
 
   it('should return an empty array if no course', async () => {
     findCourseSlot.returns(SinonMongoose.stubChainedQueries(courseSlotList, ['lean']));
     findCourse.returns(SinonMongoose.stubChainedQueries([]));
-    findQuestionnaireHistory.returns(SinonMongoose.stubChainedQueries(questionnaireHistoriesList));
-    findCourseSmsHistory.returns(SinonMongoose.stubChainedQueries(
-      [{ course: courseList[0]._id }, { course: courseList[0]._id }, { course: courseList[1]._id }],
-      ['lean']
-    ));
-    findAttendanceSheet.returns(SinonMongoose.stubChainedQueries(
-      [{ course: courseList[0]._id }],
-      ['lean']
-    ));
 
     const result = await ExportHelper.exportCourseHistory('2021-01-14T23:00:00.000Z', '2022-01-20T22:59:59.000Z');
 
@@ -398,7 +450,17 @@ describe('exportCourseHistory', () => {
         { query: 'populate', args: [{ path: 'contact', select: 'identity' }] },
         {
           query: 'populate',
-          args: [{ path: 'slots', populate: 'attendances', select: 'attendances startDate endDate' }],
+          args: [{
+            path: 'slots',
+            select: 'attendances startDate endDate',
+            populate: {
+              path: 'attendances',
+              options: {
+                isVendorUser: [TRAINING_ORGANISATION_MANAGER, VENDOR_ADMIN]
+                  .includes(get(credentials, 'role.vendor.name')),
+              },
+            },
+          }],
         },
         { query: 'populate', args: [{ path: 'slotsToPlan', select: '_id' }] },
         { query: 'populate', args: [{ path: 'trainees', select: 'firstMobileConnection' }] },
@@ -426,36 +488,27 @@ describe('exportCourseHistory', () => {
     );
     sinon.assert.notCalled(groupSlotsByDate);
     sinon.assert.notCalled(getTotalDurationForExport);
-    SinonMongoose.calledOnceWithExactly(
-      findQuestionnaireHistory,
-      [
-        { query: 'find', args: [{ course: { $in: [] }, select: 'course questionnaire' }] },
-        { query: 'populate', args: [{ path: 'questionnaire', select: 'type' }] },
-        { query: 'lean' },
-      ]
-    );
-    SinonMongoose.calledOnceWithExactly(
-      findCourseSmsHistory,
-      [{ query: 'find', args: [{ course: { $in: [] }, select: 'course' }] }, { query: 'lean' }]
-    );
-    SinonMongoose.calledOnceWithExactly(
-      findAttendanceSheet,
-      [{ query: 'find', args: [{ course: { $in: [] }, select: 'course' }] }, { query: 'lean' }]
-    );
+    sinon.assert.notCalled(findQuestionnaireHistory);
+    sinon.assert.notCalled(findCourseSmsHistory);
+    sinon.assert.notCalled(findAttendanceSheet);
+    sinon.assert.notCalled(findCourseHistory);
   });
 
   it('should return an array with the header and 4 rows', async () => {
     findCourseSlot.returns(SinonMongoose.stubChainedQueries(courseSlotList, ['lean']));
     findCourse.returns(SinonMongoose.stubChainedQueries(courseList));
     findQuestionnaireHistory.returns(SinonMongoose.stubChainedQueries(questionnaireHistoriesList));
+    findCourseHistory.returns(SinonMongoose.stubChainedQueries(estimatedStartDateHistoriesList));
     groupSlotsByDate.onCall(0).returns([[courseSlotList[0], courseSlotList[1]]]);
     groupSlotsByDate.onCall(1).returns([[courseSlotList[2]], [courseSlotList[3]]]);
     groupSlotsByDate.onCall(2).returns([]);
     groupSlotsByDate.onCall(3).returns([]);
+    groupSlotsByDate.onCall(4).returns([[courseSlotList[5]]]);
     getTotalDurationForExport.onCall(0).returns('4,00');
     getTotalDurationForExport.onCall(1).returns('4,00');
     getTotalDurationForExport.onCall(2).returns('0,00');
     getTotalDurationForExport.onCall(3).returns('0,00');
+    getTotalDurationForExport.onCall(4).returns('2,00');
     findCourseSmsHistory.returns(SinonMongoose.stubChainedQueries(
       [{ course: courseList[0]._id }, { course: courseList[0]._id }, { course: courseList[1]._id }],
       ['lean']
@@ -491,6 +544,7 @@ describe('exportCourseHistory', () => {
         'Nombre de réponses au questionnaire de recueil des attentes',
         'Nombre de réponses au questionnaire de satisfaction',
         'Date de démarrage souhaitée',
+        'Première date de démarrage souhaitée',
         'Début de formation',
         'Fin de formation',
         'Nombre de feuilles d\'émargement chargées',
@@ -527,6 +581,7 @@ describe('exportCourseHistory', () => {
         2,
         2,
         '',
+        '',
         '01/05/2021 10:00:00',
         '01/05/2021 18:00:00',
         1,
@@ -545,7 +600,7 @@ describe('exportCourseHistory', () => {
         courseList[1]._id,
         'inter_b2b',
         'APA Paris',
-        '',
+        'Autre structure,Test SAS',
         'Program 2',
         'subProgram 2',
         'group 2',
@@ -562,6 +617,7 @@ describe('exportCourseHistory', () => {
         '0,67',
         1,
         1,
+        '01/01/2019',
         '01/01/2019',
         '01/02/2021 09:00:00',
         'à planifier',
@@ -588,17 +644,18 @@ describe('exportCourseHistory', () => {
         'Gilles FORMATEUR',
         'Aline CONTACT-COM',
         'Aline CONTACT-COM',
-        2,
+        0,
         0,
         0,
         0,
         '0,00',
         0,
         0,
-        '0,67',
+        '',
         0,
         0,
         '01/01/2022',
+        '01/12/2021',
         '',
         '',
         0,
@@ -607,7 +664,7 @@ describe('exportCourseHistory', () => {
         0,
         0,
         '',
-        '0 sur 2',
+        '0 sur 0',
         'Non',
         '',
         '',
@@ -637,6 +694,7 @@ describe('exportCourseHistory', () => {
         '',
         '',
         '',
+        '',
         0,
         0,
         0,
@@ -648,6 +706,43 @@ describe('exportCourseHistory', () => {
         '560,00',
         '120,00',
         '-440,00',
+      ],
+      [
+        courseList[4]._id,
+        'inter_b2b',
+        'APA Paris',
+        'Autre structure',
+        'Program 1',
+        'subProgram 1',
+        'group 1',
+        'Gilles FORMATEUR',
+        'Aline CONTACT-COM',
+        'Aline CONTACT-COM',
+        2,
+        1,
+        1,
+        0,
+        '2,00',
+        0,
+        2,
+        '',
+        0,
+        0,
+        '',
+        '',
+        '09/02/2021 09:00:00',
+        '09/02/2021 11:00:00',
+        0,
+        1,
+        1,
+        0,
+        0,
+        '1,00',
+        '1 sur 2',
+        'Non',
+        '120,00',
+        '10,00',
+        '-110,00',
       ],
 
     ]);
@@ -699,7 +794,17 @@ describe('exportCourseHistory', () => {
         { query: 'populate', args: [{ path: 'contact', select: 'identity' }] },
         {
           query: 'populate',
-          args: [{ path: 'slots', populate: 'attendances', select: 'attendances startDate endDate' }],
+          args: [{
+            path: 'slots',
+            select: 'attendances startDate endDate',
+            populate: {
+              path: 'attendances',
+              options: {
+                isVendorUser: [TRAINING_ORGANISATION_MANAGER, VENDOR_ADMIN]
+                  .includes(get(credentials, 'role.vendor.name')),
+              },
+            },
+          }],
         },
         { query: 'populate', args: [{ path: 'slotsToPlan', select: '_id' }] },
         { query: 'populate', args: [{ path: 'trainees', select: 'firstMobileConnection' }] },
@@ -741,11 +846,22 @@ describe('exportCourseHistory', () => {
       findAttendanceSheet,
       [{ query: 'find', args: [{ course: { $in: courseIdList }, select: 'course' }] }, { query: 'lean' }]
     );
+    sinon.assert.calledOnceWithExactly(
+      findCourseHistory,
+      {
+        course: { $in: courseIdList },
+        action: ESTIMATED_START_DATE_EDITION,
+        update: { estimatedStartDate: { from: '' } },
+      },
+      { course: 1, update: 1 }
+    );
   });
 });
 
 describe('exportCourseSlotHistory', () => {
   const courseIdList = [new ObjectId(), new ObjectId()];
+  const credentials = { role: { vendor: { name: TRAINING_ORGANISATION_MANAGER } } };
+  const isVendorUser = [TRAINING_ORGANISATION_MANAGER, VENDOR_ADMIN].includes(get(credentials, 'role.vendor.name'));
 
   const traineeList = [
     { _id: new ObjectId() },
@@ -843,7 +959,8 @@ describe('exportCourseSlotHistory', () => {
   it('should return an empty array if no course slots', async () => {
     findCourseSlot.returns(SinonMongoose.stubChainedQueries([]));
 
-    const result = await ExportHelper.exportCourseSlotHistory('2021-01-14T23:00:00.000Z', '2022-01-20T22:59:59.000Z');
+    const result = await ExportHelper
+      .exportCourseSlotHistory('2021-01-14T23:00:00.000Z', '2022-01-20T22:59:59.000Z', credentials);
 
     expect(result).toEqual([[NO_DATA]]);
     SinonMongoose.calledOnceWithExactly(
@@ -865,7 +982,7 @@ describe('exportCourseSlotHistory', () => {
             ],
           }],
         },
-        { query: 'populate', args: [{ path: 'attendances' }] },
+        { query: 'populate', args: [{ path: 'attendances', options: { isVendorUser } }] },
         { query: 'lean' },
       ]
     );
@@ -874,7 +991,8 @@ describe('exportCourseSlotHistory', () => {
   it('should return an array with the header and 4 rows', async () => {
     findCourseSlot.returns(SinonMongoose.stubChainedQueries(courseSlotList));
 
-    const result = await ExportHelper.exportCourseSlotHistory('2021-01-14T23:00:00.000Z', '2022-01-20T22:59:59.000Z');
+    const result = await ExportHelper
+      .exportCourseSlotHistory('2021-01-14T23:00:00.000Z', '2022-01-20T22:59:59.000Z', credentials);
 
     expect(result).toEqual([
       [
@@ -973,7 +1091,7 @@ describe('exportCourseSlotHistory', () => {
             ],
           }],
         },
-        { query: 'populate', args: [{ path: 'attendances' }] },
+        { query: 'populate', args: [{ path: 'attendances', options: { isVendorUser } }] },
         { query: 'lean' },
       ]
     );
@@ -1172,24 +1290,48 @@ describe('exportEndOfCourseQuestionnaireHistory', () => {
 
 describe('exportCourseBillAndCreditNoteHistory', () => {
   const subProgram = { _id: new ObjectId(), program: { name: 'Program 1' } };
-  const courseIds = [new ObjectId(), new ObjectId()];
   const company = { _id: new ObjectId(), name: 'Test SAS' };
   const courseList = [
     {
-      _id: courseIds[0],
+      _id: new ObjectId(),
       subProgram,
       misc: 'group 1',
-      slots: [{ startDate: '2021-01-13T12:00:00.000Z' }, { startDate: '2022-01-13T12:00:00.000Z' }],
+      slots: [{ startDate: '2021-01-13T12:00:00.000Z' }, { startDate: '2021-03-13T12:00:00.000Z' }],
       slotsToPlan: [],
       type: INTRA,
     },
     {
-      _id: courseIds[1],
+      _id: new ObjectId(),
       subProgram,
       misc: 'group 2',
       slots: [],
       slotsToPlan: [],
       type: INTER_B2B,
+    },
+    {
+      _id: new ObjectId(),
+      subProgram,
+      misc: 'group 3',
+      slots: [
+        { startDate: '2021-02-10T12:00:00.000Z' },
+      ],
+      slotsToPlan: [],
+      type: INTRA,
+    },
+    {
+      _id: new ObjectId(),
+      subProgram,
+      misc: 'group 4',
+      slots: [
+        { startDate: '2021-01-12T16:00:00.000Z' },
+        { startDate: '2021-01-12T12:00:00.000Z' },
+        { startDate: '2021-01-13T12:00:00.000Z' },
+        { startDate: '2021-01-14T12:00:00.000Z' },
+        { startDate: '2021-01-11T12:00:00.000Z' },
+        { startDate: '2021-01-15T12:00:00.000Z' },
+      ],
+      slotsToPlan: [{ _id: new ObjectId() }],
+      type: INTRA,
     },
   ];
   const courseBillList = [
@@ -1212,6 +1354,26 @@ describe('exportCourseBillAndCreditNoteHistory', () => {
       number: 'FACT-00002',
       courseCreditNote: null,
       coursePayments: [{ netInclTaxes: 110, nature: PAYMENT }],
+    },
+    {
+      course: courseList[2],
+      mainFee: { price: 30, count: 1 },
+      company,
+      payer: { name: 'ABCD' },
+      billedAt: '2022-03-10T00:00:00.000Z',
+      number: 'FACT-00003',
+      courseCreditNote: null,
+      coursePayments: [{ netInclTaxes: 32, nature: PAYMENT }],
+    },
+    {
+      course: courseList[3],
+      mainFee: { price: 35, count: 1 },
+      company,
+      payer: { name: 'ZXCV' },
+      billedAt: '2022-01-10T00:00:00.000Z',
+      number: 'FACT-00004',
+      courseCreditNote: null,
+      coursePayments: [{ netInclTaxes: 35, nature: PAYMENT }],
     },
   ];
   const credentials = { company: { _id: new ObjectId() }, role: { vendor: { name: TRAINING_ORGANISATION_MANAGER } } };
@@ -1287,6 +1449,9 @@ describe('exportCourseBillAndCreditNoteHistory', () => {
         'Montant soldé',
         'Solde',
         'Avancement',
+        'Début de la formation',
+        'Milieu de la formation',
+        'Fin de la formation',
       ],
       [
         'Facture',
@@ -1302,6 +1467,9 @@ describe('exportCourseBillAndCreditNoteHistory', () => {
         '120,00',
         '10,00',
         '1,00',
+        '13/01/2021',
+        '13/01/2021',
+        '13/03/2021',
       ],
       [
         'Avoir',
@@ -1312,6 +1480,10 @@ describe('exportCourseBillAndCreditNoteHistory', () => {
         'Test SAS',
         'APA Paris',
         '120,00',
+        '',
+        '',
+        '',
+        '',
         '',
         '',
         '',
@@ -1330,6 +1502,45 @@ describe('exportCourseBillAndCreditNoteHistory', () => {
         '',
         '',
         '-10,00',
+        '',
+        '',
+        '',
+        '',
+      ],
+      [
+        'Facture',
+        'FACT-00003',
+        '10/03/2022',
+        courseList[2]._id,
+        'Test SAS - Program 1 - group 3',
+        'Test SAS',
+        'ABCD',
+        '30,00',
+        '32,00',
+        '',
+        '',
+        '2,00',
+        '1,00',
+        '10/02/2021',
+        '10/02/2021',
+        '10/02/2021',
+      ],
+      [
+        'Facture',
+        'FACT-00004',
+        '10/01/2022',
+        courseList[3]._id,
+        'Test SAS - Program 1 - group 4',
+        'Test SAS',
+        'ZXCV',
+        '35,00',
+        '35,00',
+        '',
+        '',
+        '0,00',
+        '0,86',
+        '11/01/2021',
+        '13/01/2021',
         '',
       ],
     ]);
@@ -1380,22 +1591,16 @@ describe('exportCoursePaymentHistory', () => {
   });
 
   it('should return an empty array if no course', async () => {
-    findCoursePayment.returns(SinonMongoose.stubChainedQueries([], ['populate', 'setOptions', 'lean']));
+    findCoursePayment.returns(SinonMongoose.stubChainedQueries([], ['setOptions', 'lean']));
 
     const result = await ExportHelper.exportCoursePaymentHistory('2021-01-14T23:00:00.000Z', '2022-01-20T22:59:59.000Z', credentials);
 
     expect(result).toEqual([[NO_DATA]]);
+
     SinonMongoose.calledOnceWithExactly(
       findCoursePayment,
       [
-        {
-          query: 'find',
-          args: [
-            { date: { $lte: '2022-01-20T22:59:59.000Z', $gte: '2021-01-14T23:00:00.000Z' } },
-            { nature: 1, number: 1, date: 1, courseBill: 1, type: 1, netInclTaxes: 1 },
-          ],
-        },
-        { query: 'populate', args: [{ path: 'courseBill', option: { isVendorUser: true }, select: 'number' }] },
+        { query: 'find', args: [{ date: { $lte: '2022-01-20T22:59:59.000Z', $gte: '2021-01-14T23:00:00.000Z' } }, { courseBill: 1 }] },
         { query: 'setOptions', args: [{ isVendorUser: true }] },
         { query: 'lean' },
       ]
@@ -1403,47 +1608,79 @@ describe('exportCoursePaymentHistory', () => {
   });
 
   it('should return an array with the header and 3 rows', async () => {
+    const courseBillIds = [new ObjectId(), new ObjectId()];
     const coursePaymentList = [
       {
+        _id: new ObjectId(),
+        nature: REFUND,
+        number: 'REG-2',
+        date: '2022-01-22T23:00:00.000Z',
+        courseBill: { _id: courseBillIds[0], number: 'FACT-2' },
+        type: CHECK,
+        netInclTaxes: 22,
+      },
+      {
+        _id: new ObjectId(),
         nature: PAYMENT,
         number: 'REG-1',
-        date: '2022-01-02',
-        courseBill: { number: 'FACT-2' },
+        date: '2022-01-01T23:00:00.000Z',
+        courseBill: { _id: courseBillIds[0], number: 'FACT-2' },
         type: CHECK,
         netInclTaxes: 100,
       },
       {
+        _id: new ObjectId(),
         nature: REFUND,
         number: 'REG-4',
-        date: '2022-01-02',
-        courseBill: { number: 'FACT-1' },
+        date: '2022-01-10T23:00:00.000Z',
+        courseBill: { _id: courseBillIds[1], number: 'FACT-1' },
         type: CHECK,
         netInclTaxes: 200,
       },
     ];
-    findCoursePayment.returns(SinonMongoose.stubChainedQueries(coursePaymentList, ['populate', 'setOptions', 'lean']));
+    findCoursePayment
+      .onCall(0)
+      .returns(
+        SinonMongoose.stubChainedQueries(
+          [
+            { _id: coursePaymentList[0], courseBill: courseBillIds[0] },
+            { _id: coursePaymentList[2], courseBill: courseBillIds[1] },
+          ],
+          ['setOptions', 'lean'])
+      );
+    findCoursePayment.onCall(1).returns(SinonMongoose.stubChainedQueries(coursePaymentList, ['populate', 'setOptions', 'lean']));
 
-    const result = await ExportHelper.exportCoursePaymentHistory('2021-01-14T23:00:00.000Z', '2022-01-20T22:59:59.000Z', credentials);
+    const result = await ExportHelper.exportCoursePaymentHistory('2022-01-07T23:00:00.000Z', '2022-01-30T22:59:59.000Z', credentials);
 
     expect(result).toEqual([
-      ['Nature', 'Identifiant', 'Date', 'Facture associée', 'Moyen de paiement', 'Montant'],
-      ['Paiement', 'REG-1', '02/01/2022', 'FACT-2', 'Chèque', '100,00'],
-      ['Remboursement', 'REG-4', '02/01/2022', 'FACT-1', 'Chèque', '200,00'],
+      ['Nature', 'Identifiant', 'Date', 'Facture associée', 'Numéro du paiement (parmi ceux de la même facture)', 'Moyen de paiement', 'Montant'],
+      ['Remboursement', 'REG-2', '23/01/2022', 'FACT-2', 2, 'Chèque', '22,00'],
+      ['Remboursement', 'REG-4', '11/01/2022', 'FACT-1', 1, 'Chèque', '200,00'],
     ]);
-    SinonMongoose.calledOnceWithExactly(
+    SinonMongoose.calledWithExactly(
+      findCoursePayment,
+      [
+        { query: 'find', args: [{ date: { $lte: '2022-01-30T22:59:59.000Z', $gte: '2022-01-07T23:00:00.000Z' } }, { courseBill: 1 }] },
+        { query: 'setOptions', args: [{ isVendorUser: true }] },
+        { query: 'lean' },
+      ],
+      0
+    );
+    SinonMongoose.calledWithExactly(
       findCoursePayment,
       [
         {
           query: 'find',
           args: [
-            { date: { $lte: '2022-01-20T22:59:59.000Z', $gte: '2021-01-14T23:00:00.000Z' } },
+            { courseBill: { $in: courseBillIds } },
             { nature: 1, number: 1, date: 1, courseBill: 1, type: 1, netInclTaxes: 1 },
           ],
         },
         { query: 'populate', args: [{ path: 'courseBill', option: { isVendorUser: true }, select: 'number' }] },
         { query: 'setOptions', args: [{ isVendorUser: true }] },
         { query: 'lean' },
-      ]
+      ],
+      1
     );
   });
 });

@@ -9,6 +9,9 @@ const {
   SLOT_EDITION,
   TRAINEE_ADDITION,
   TRAINEE_DELETION,
+  ESTIMATED_START_DATE_EDITION,
+  COMPANY_ADDITION,
+  COMPANY_DELETION,
 } = require('../../../src/helpers/constants');
 const SinonMongoose = require('../sinonMongoose');
 
@@ -241,6 +244,30 @@ describe('createHistoryOnSlotEdition', () => {
     sinon.assert.notCalled(createHistoryOnSlotCreation);
   });
 
+  it('should create history if date and hour are updated', async () => {
+    const course = new ObjectId();
+    const slotFromDb = { startDate: '2020-01-10T10:00:00.000Z', endDate: '2020-01-10T11:30:00.000Z', course };
+    const payload = { startDate: '2020-01-15T11:00:00.000Z', endDate: '2020-01-15T11:30:00.000Z' };
+    const userId = new ObjectId();
+
+    await CourseHistoriesHelper.createHistoryOnSlotEdition(slotFromDb, payload, userId);
+
+    sinon.assert.calledOnceWithExactly(
+      createHistory,
+      course,
+      userId,
+      SLOT_EDITION,
+      {
+        update: {
+          startDate: { from: '2020-01-10T10:00:00.000Z', to: '2020-01-15T11:00:00.000Z' },
+          startHour: { from: '2020-01-10T10:00:00.000Z', to: '2020-01-15T11:00:00.000Z' },
+          endHour: { from: '2020-01-10T11:30:00.000Z', to: '2020-01-15T11:30:00.000Z' },
+        },
+      }
+    );
+    sinon.assert.notCalled(createHistoryOnSlotCreation);
+  });
+
   it('should create history if start hour is updated', async () => {
     const course = new ObjectId();
     const slotFromDb = { startDate: '2020-01-10T09:00:00.000Z', endDate: '2020-01-10T11:30:00.000Z', course };
@@ -348,6 +375,56 @@ describe('createHistoryOnTraineeDeletion', () => {
   });
 });
 
+describe('createHistoryOnEstimatedStartDateEdition', () => {
+  let createHistory;
+
+  beforeEach(() => {
+    createHistory = sinon.stub(CourseHistoriesHelper, 'createHistory');
+  });
+
+  afterEach(() => {
+    createHistory.restore();
+  });
+
+  it('should create a courseHistory for estimatedStartDate on value initialisation', async () => {
+    const courseId = new ObjectId();
+    const newEstimatedStartDate = '2022-11-12T12:30:00.000Z';
+    const userId = new ObjectId();
+
+    await CourseHistoriesHelper.createHistoryOnEstimatedStartDateEdition(courseId, userId, newEstimatedStartDate);
+
+    sinon.assert.calledOnceWithExactly(
+      createHistory,
+      courseId,
+      userId,
+      ESTIMATED_START_DATE_EDITION,
+      { update: { estimatedStartDate: { to: newEstimatedStartDate } } }
+    );
+  });
+
+  it('should create a courseHistory for estimatedStartDate on edition', async () => {
+    const courseId = new ObjectId();
+    const previousEstimatedStartDate = '2022-11-01T08:00:00.000Z';
+    const newEstimatedStartDate = '2022-11-12T12:30:00.000Z';
+    const userId = new ObjectId();
+
+    await CourseHistoriesHelper.createHistoryOnEstimatedStartDateEdition(
+      courseId,
+      userId,
+      newEstimatedStartDate,
+      previousEstimatedStartDate
+    );
+
+    sinon.assert.calledOnceWithExactly(
+      createHistory,
+      courseId,
+      userId,
+      ESTIMATED_START_DATE_EDITION,
+      { update: { estimatedStartDate: { from: previousEstimatedStartDate, to: newEstimatedStartDate } } }
+    );
+  });
+});
+
 describe('list', () => {
   let find;
 
@@ -382,6 +459,7 @@ describe('list', () => {
       { query: 'find', args: [query] },
       { query: 'populate', args: [{ path: 'createdBy', select: '_id identity picture' }] },
       { query: 'populate', args: [{ path: 'trainee', select: '_id identity' }] },
+      { query: 'populate', args: [{ path: 'company', select: '_id name' }] },
       { query: 'sort', args: [{ createdAt: -1 }] },
       { query: 'limit', args: [20] },
       { query: 'lean' },
@@ -415,10 +493,67 @@ describe('list', () => {
         { query: 'find', args: [{ course: query.course, createdAt: { $lt: query.createdAt } }] },
         { query: 'populate', args: [{ path: 'createdBy', select: '_id identity picture' }] },
         { query: 'populate', args: [{ path: 'trainee', select: '_id identity' }] },
+        { query: 'populate', args: [{ path: 'company', select: '_id name' }] },
         { query: 'sort', args: [{ createdAt: -1 }] },
         { query: 'limit', args: [20] },
         { query: 'lean' },
       ]
+    );
+  });
+});
+
+describe('createHistoryOnCompanyAddition', () => {
+  let createHistory;
+
+  beforeEach(() => {
+    createHistory = sinon.stub(CourseHistoriesHelper, 'createHistory');
+  });
+
+  afterEach(() => {
+    createHistory.restore();
+  });
+
+  it('should create a courseHistory', async () => {
+    const payload = { company: new ObjectId(), course: new ObjectId() };
+    const userId = new ObjectId();
+
+    await CourseHistoriesHelper.createHistoryOnCompanyAddition(payload, userId);
+
+    sinon.assert.calledOnceWithExactly(
+      createHistory,
+      payload.course,
+      userId,
+      COMPANY_ADDITION,
+      { company: payload.company }
+    );
+  });
+});
+
+describe('createHistoryOnCompanyDeletion', () => {
+  let createHistory;
+
+  beforeEach(() => {
+    createHistory = sinon.stub(CourseHistoriesHelper, 'createHistory');
+  });
+
+  afterEach(() => {
+    createHistory.restore();
+  });
+
+  it('should create a courseHistory', async () => {
+    const companyId = new ObjectId();
+    const courseId = new ObjectId();
+    const userId = new ObjectId();
+    const payload = { course: courseId, company: companyId };
+
+    await CourseHistoriesHelper.createHistoryOnCompanyDeletion(payload, userId);
+
+    sinon.assert.calledOnceWithExactly(
+      createHistory,
+      courseId,
+      userId,
+      COMPANY_DELETION,
+      { company: companyId }
     );
   });
 });

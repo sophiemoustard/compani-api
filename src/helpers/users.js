@@ -80,20 +80,15 @@ exports.getUsersListWithSectorHistories = async (query, credentials) => {
 };
 
 exports.getLearnerList = async (query, credentials) => {
-  let userQuery = omit(query, ['company', 'hasCompany']);
-  if (query.company) {
+  let userQuery = {};
+  if (query.companies) {
     const rolesToExclude = await Role.find({ name: { $in: [HELPER, AUXILIARY_WITHOUT_COMPANY] } }).lean();
-    const usersCompany = await UserCompany.find({ company: query.company }, { user: 1 }).lean();
+    const usersCompany = await UserCompany.find({ company: { $in: query.companies } }, { user: 1 }).lean();
+
     userQuery = {
-      ...userQuery,
       _id: { $in: usersCompany.map(uc => uc.user) },
       'role.client': { $not: { $in: rolesToExclude.map(r => r._id) } },
     };
-  }
-
-  if (query.hasCompany) {
-    const usersCompany = await UserCompany.find({}, { user: 1 }).lean();
-    userQuery = { ...userQuery, _id: { $in: usersCompany.map(uc => uc.user) } };
   }
 
   const learnerList = await User

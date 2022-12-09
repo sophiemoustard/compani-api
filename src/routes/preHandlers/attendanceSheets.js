@@ -27,13 +27,9 @@ exports.authorizeAttendanceSheetsGet = async (req) => {
   const loggedUserHasVendorRole = get(credentials, 'role.vendor');
   if (loggedUserHasVendorRole) return null;
 
-  if (course.type === INTRA && !UtilsHelper.areObjectIdsEquals(loggedUserCompany, course.companies[0])) {
-    throw Boom.forbidden();
-  }
+  if (!UtilsHelper.doesArrayIncludeId(course.companies, loggedUserCompany)) throw Boom.forbidden();
 
-  if (course.type === INTER_B2B) return loggedUserCompany;
-
-  return null;
+  return course.type === INTER_B2B ? loggedUserCompany : null;
 };
 
 exports.authorizeAttendanceSheetCreation = async (req) => {

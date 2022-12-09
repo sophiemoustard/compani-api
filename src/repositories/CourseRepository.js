@@ -1,7 +1,7 @@
 const get = require('lodash/get');
 const Course = require('../models/Course');
 const CourseSlot = require('../models/CourseSlot');
-const { WEBAPP, MOBILE } = require('../helpers/constants');
+const { WEBAPP, MOBILE, TRAINING_ORGANISATION_MANAGER, VENDOR_ADMIN } = require('../helpers/constants');
 
 exports.findCourseAndPopulate = (query, origin, populateVirtual = false) => Course
   .find(query, origin === WEBAPP ? 'misc type archivedAt estimatedStartDate createdAt' : 'misc')
@@ -39,7 +39,7 @@ exports.findCourseAndPopulate = (query, origin, populateVirtual = false) => Cour
 exports.findCoursesForExport = async (startDate, endDate, credentials) => {
   const slots = await CourseSlot.find({ startDate: { $lte: endDate }, endDate: { $gte: startDate } }).lean();
   const courseIds = slots.map(slot => slot.course);
-  const isVendorUser = !!get(credentials, 'role.vendor');
+  const isVendorUser = [TRAINING_ORGANISATION_MANAGER, VENDOR_ADMIN].includes(get(credentials, 'role.vendor.name'));
 
   return Course
     .find({
@@ -65,7 +65,11 @@ exports.findCoursesForExport = async (startDate, endDate, credentials) => {
     .populate({ path: 'trainer', select: 'identity' })
     .populate({ path: 'salesRepresentative', select: 'identity' })
     .populate({ path: 'contact', select: 'identity' })
-    .populate({ path: 'slots', populate: 'attendances', select: 'attendances startDate endDate' })
+    .populate({
+      path: 'slots',
+      select: 'attendances startDate endDate',
+      populate: { path: 'attendances', options: { isVendorUser } },
+    })
     .populate({ path: 'slotsToPlan', select: '_id' })
     .populate({ path: 'trainees', select: 'firstMobileConnection' })
     .populate({

@@ -34,6 +34,7 @@ const CourseCreditNote = require('../../../src/models/CourseCreditNote');
 const CoursePayment = require('../../../src/models/CoursePayment');
 const CourseSlot = require('../../../src/models/CourseSlot');
 const CourseSmsHistory = require('../../../src/models/CourseSmsHistory');
+const CourseHistory = require('../../../src/models/CourseHistory');
 const DistanceMatrix = require('../../../src/models/DistanceMatrix');
 const Questionnaire = require('../../../src/models/Questionnaire');
 const QuestionnaireHistory = require('../../../src/models/QuestionnaireHistory');
@@ -74,6 +75,7 @@ const {
   BANK_TRANSFER,
   CASH,
   CHECK,
+  ESTIMATED_START_DATE_EDITION,
 } = require('../../../src/helpers/constants');
 const { auxiliaryRoleId, helperRoleId } = require('../../seed/authRolesSeed');
 
@@ -1044,33 +1046,33 @@ const salesRepresentative = {
 };
 
 const traineeList = [
-  {
+  { // 0
     _id: new ObjectId(),
     identity: { firstname: 'Jacques', lastname: 'Trainee' },
     origin: WEBAPP,
     local: { email: 'trainee1@compani.fr' },
     firstMobileConnection: '2019-01-16T10:30:19.543Z',
   },
-  {
+  { // 1
     _id: new ObjectId(),
     identity: { firstname: 'Paul', lastname: 'Trainee' },
     origin: WEBAPP,
     local: { email: 'trainee2@compani.fr' },
     firstMobileConnection: '2019-01-16T10:30:19.543Z',
   },
-  {
+  { // 2
     _id: new ObjectId(),
     identity: { firstname: 'Marie', lastname: 'Trainee' },
     local: { email: 'trainee3@compani.fr' },
     origin: WEBAPP,
   },
-  {
+  { // 3
     _id: new ObjectId(),
     identity: { firstname: 'Annie', lastname: 'Trainee' },
     local: { email: 'trainee4@compani.fr' },
     origin: WEBAPP,
   },
-  {
+  { // 4
     _id: new ObjectId(),
     identity: { firstname: 'Luc', lastname: 'Trainee' },
     local: { email: 'trainee5@compani.fr' },
@@ -1084,21 +1086,24 @@ const userCompanies = [
   { _id: new ObjectId(), user: user._id, company: authCompany._id },
   { _id: new ObjectId(), user: traineeList[0]._id, company: authCompany._id },
   { _id: new ObjectId(), user: traineeList[1]._id, company: otherCompany._id },
+  { _id: new ObjectId(), user: traineeList[2]._id, company: authCompany._id },
+  { _id: new ObjectId(), user: traineeList[3]._id, company: authCompany._id },
+  { _id: new ObjectId(), user: traineeList[4]._id, company: otherCompany._id },
 ];
 
-const courseList = [
+const coursesList = [
   { // 0 with 1 bill
     _id: new ObjectId(),
     type: INTRA,
     maxTrainees: 8,
-    companies: [authCompany._id],
     subProgram: subProgramList[0]._id,
     misc: 'group 1',
     trainer: trainer._id,
     salesRepresentative: salesRepresentative._id,
     contact: salesRepresentative._id,
-    trainees: [traineeList[0]._id, traineeList[1]._id, traineeList[2]._id],
     expectedBillsCount: 1,
+    trainees: [traineeList[0]._id, traineeList[2]._id, traineeList[3]._id],
+    companies: [authCompany._id],
   },
   { // 1 with 2 bills
     _id: new ObjectId(),
@@ -1108,7 +1113,8 @@ const courseList = [
     salesRepresentative: salesRepresentative._id,
     contact: salesRepresentative._id,
     trainees: [traineeList[3]._id, traineeList[4]._id],
-    estimatedStartDate: '2019-01-01T08:00:00',
+    estimatedStartDate: '2019-01-01T08:00:00.000Z',
+    companies: [authCompany._id, otherCompany._id],
   },
   { // 2 without bills
     _id: new ObjectId(),
@@ -1119,19 +1125,20 @@ const courseList = [
     salesRepresentative: salesRepresentative._id,
     contact: salesRepresentative._id,
     trainees: [traineeList[3]._id, traineeList[4]._id],
-    estimatedStartDate: '2022-01-01T08:00:00',
+    estimatedStartDate: '2022-01-12T08:00:00.000Z',
+    companies: [authCompany._id, otherCompany._id],
   },
   { // 3 with 1 bill
     _id: new ObjectId(),
     type: INTRA,
     maxTrainees: 8,
-    companies: [authCompany._id],
     subProgram: subProgramList[0]._id,
     misc: 'group 4',
     trainer: trainer._id,
     salesRepresentative: salesRepresentative._id,
     contact: salesRepresentative._id,
     trainees: [traineeList[0]._id, traineeList[1]._id, traineeList[2]._id],
+    companies: [authCompany._id],
   },
   { // 4 with 1 bill
     _id: new ObjectId(),
@@ -1143,7 +1150,7 @@ const courseList = [
     trainer: trainer._id,
     salesRepresentative: salesRepresentative._id,
     contact: salesRepresentative._id,
-    trainees: [traineeList[0]._id, traineeList[1]._id, traineeList[2]._id],
+    trainees: [traineeList[0]._id, traineeList[2]._id],
   },
   { // 5 with 3 bills and 1 creditNote
     _id: new ObjectId(),
@@ -1155,7 +1162,7 @@ const courseList = [
     trainer: trainer._id,
     salesRepresentative: salesRepresentative._id,
     contact: salesRepresentative._id,
-    trainees: [traineeList[0]._id, traineeList[1]._id, traineeList[2]._id],
+    trainees: [traineeList[0]._id, traineeList[2]._id, traineeList[3]._id],
     expectedBillsCount: 3,
   },
   { // 6 without bills
@@ -1194,7 +1201,7 @@ const courseFundingOrganisation = {
 const courseBillList = [
   { // 0
     _id: new ObjectId(),
-    course: courseList[0]._id,
+    course: coursesList[0]._id,
     mainFee: { price: 1200, count: 1 },
     company: authCompany._id,
     payer: { fundingOrganisation: courseFundingOrganisation._id },
@@ -1203,7 +1210,7 @@ const courseBillList = [
   },
   { // 1 cancelled with creditNote
     _id: new ObjectId(),
-    course: courseList[3]._id,
+    course: coursesList[3]._id,
     mainFee: { price: 1200, count: 1 },
     company: authCompany._id,
     payer: { fundingOrganisation: courseFundingOrganisation._id },
@@ -1212,7 +1219,7 @@ const courseBillList = [
   },
   { // 2
     _id: new ObjectId(),
-    course: courseList[4]._id,
+    course: coursesList[4]._id,
     mainFee: { price: 1200, count: 1 },
     company: authCompany._id,
     payer: { fundingOrganisation: courseFundingOrganisation._id },
@@ -1221,7 +1228,7 @@ const courseBillList = [
   },
   { // 3
     _id: new ObjectId(),
-    course: courseList[1]._id,
+    course: coursesList[1]._id,
     mainFee: { price: 400, count: 1 },
     company: authCompany._id,
     payer: { fundingOrganisation: courseFundingOrganisation._id },
@@ -1230,7 +1237,7 @@ const courseBillList = [
   },
   { // 4
     _id: new ObjectId(),
-    course: courseList[1]._id,
+    course: coursesList[1]._id,
     mainFee: { price: 400, count: 1 },
     company: otherCompany._id,
     payer: { fundingOrganisation: courseFundingOrganisation._id },
@@ -1239,7 +1246,7 @@ const courseBillList = [
   },
   { // 5
     _id: new ObjectId(),
-    course: courseList[5]._id,
+    course: coursesList[5]._id,
     mainFee: { price: 400, count: 1 },
     company: authCompany._id,
     payer: { fundingOrganisation: courseFundingOrganisation._id },
@@ -1248,7 +1255,7 @@ const courseBillList = [
   },
   { // 6
     _id: new ObjectId(),
-    course: courseList[5]._id,
+    course: coursesList[5]._id,
     mainFee: { price: 240, count: 2 },
     company: authCompany._id,
     payer: { company: authCompany._id },
@@ -1257,7 +1264,7 @@ const courseBillList = [
   },
   { // 7 cancelled with creditNote
     _id: new ObjectId(),
-    course: courseList[5]._id,
+    course: coursesList[5]._id,
     mainFee: { price: 240, count: 1 },
     company: authCompany._id,
     payer: { company: authCompany._id },
@@ -1348,6 +1355,15 @@ const coursePaymentList = [
     nature: REFUND,
     type: CHECK,
   },
+  {
+    number: 'REG-00010',
+    date: '2022-01-01T00:00:00.000Z',
+    company: authCompany._id,
+    courseBill: courseBillList[0]._id,
+    netInclTaxes: 50,
+    nature: PAYMENT,
+    type: DIRECT_DEBIT,
+  },
 ];
 
 const courseCreditNotesList = [
@@ -1385,95 +1401,139 @@ const slotAddress = {
 };
 
 const courseSlotList = [
-  {
+  { // 0
     _id: new ObjectId(),
-    course: courseList[0]._id,
+    course: coursesList[0]._id,
     step: stepList[0]._id,
     startDate: '2021-05-01T08:00:00.000Z',
     endDate: '2021-05-01T10:00:00.000Z',
     address: slotAddress,
     createdAt: '2020-12-12T10:00:00.000Z',
   },
-  {
+  { // 1
     _id: new ObjectId(),
-    course: courseList[0]._id,
+    course: coursesList[0]._id,
     step: stepList[1]._id,
     startDate: '2021-05-01T14:00:00.000Z',
     endDate: '2021-05-01T16:00:00.000Z',
     meetingLink: 'https://meet.google.com',
     createdAt: '2020-12-12T10:00:01.000Z',
   },
-  {
+  { // 2
     _id: new ObjectId(),
-    course: courseList[1]._id,
+    course: coursesList[1]._id,
     step: stepList[0]._id,
     startDate: '2021-02-01T08:00:00.000Z',
     endDate: '2021-02-01T10:00:00.000Z',
     address: slotAddress,
     createdAt: '2020-12-12T10:00:02.000Z',
   },
-  {
+  { // 3
     _id: new ObjectId(),
-    course: courseList[1]._id,
+    course: coursesList[1]._id,
     step: stepList[2]._id,
     startDate: '2021-02-02T08:00:00.000Z',
     endDate: '2021-02-02T10:00:00.000Z',
     createdAt: '2020-12-12T10:00:03.000Z',
   },
-  {
+  { // 4
     _id: new ObjectId(),
-    course: courseList[1]._id,
+    course: coursesList[1]._id,
     step: stepList[3]._id,
     address: slotAddress,
     createdAt: '2020-12-12T10:00:04.000Z',
   },
-  {
+  { // 5
     _id: new ObjectId(),
-    course: courseList[5]._id,
+    course: coursesList[5]._id,
     step: stepList[0]._id,
     address: slotAddress,
     createdAt: '2020-12-12T10:00:04.000Z',
     startDate: '2021-04-12T10:00:00.000Z',
     endDate: '2021-04-12T12:00:00.000Z',
   },
-  {
+  { // 6
     _id: new ObjectId(),
-    course: courseList[6]._id,
+    course: coursesList[6]._id,
     step: stepList[0]._id,
     address: slotAddress,
     createdAt: '2020-12-12T10:00:04.000Z',
     startDate: '2021-04-12T10:00:00.000Z',
     endDate: '2021-04-12T12:00:00.000Z',
   },
-  {
+  { // 7 - out of COURSE_SLOT export period
     _id: new ObjectId(),
-    course: courseList[7]._id,
+    course: coursesList[7]._id,
     step: stepList[0]._id,
     address: slotAddress,
     createdAt: '2020-12-12T10:00:04.000Z',
     startDate: '2021-01-16T10:00:00.000Z',
     endDate: '2021-01-16T12:00:00.000Z',
   },
+  { // 8
+    _id: new ObjectId(),
+    course: coursesList[3]._id,
+    step: stepList[0]._id,
+    address: slotAddress,
+    createdAt: '2020-10-14T21:00:00.000Z',
+    startDate: '2021-02-01T09:00:00.000Z',
+    endDate: '2021-02-01T12:00:00.000Z',
+  },
+  { // 9
+    _id: new ObjectId(),
+    course: coursesList[3]._id,
+    step: stepList[1]._id,
+    createdAt: '2020-10-14T21:00:10.000Z',
+    startDate: '2021-02-10T08:00:00.000Z',
+    endDate: '2021-02-10T12:00:00.000Z',
+  },
+  { // 10
+    _id: new ObjectId(),
+    course: coursesList[3]._id,
+    step: stepList[0]._id,
+    address: slotAddress,
+    createdAt: '2020-10-14T21:00:30.000Z',
+    startDate: '2021-02-03T08:00:00.000Z',
+    endDate: '2021-02-03T12:00:00.000Z',
+  },
 ];
 
 const attendanceList = [
-  { trainee: traineeList[0]._id, courseSlot: courseSlotList[0]._id },
-  { trainee: traineeList[0]._id, courseSlot: courseSlotList[1]._id },
-  { trainee: traineeList[1]._id, courseSlot: courseSlotList[1]._id },
-  { trainee: traineeList[1]._id, courseSlot: courseSlotList[2]._id },
-  { trainee: traineeList[1]._id, courseSlot: courseSlotList[3]._id },
-  { trainee: traineeList[3]._id, courseSlot: courseSlotList[2]._id },
-  { trainee: traineeList[3]._id, courseSlot: courseSlotList[3]._id },
+  { trainee: traineeList[0]._id, courseSlot: courseSlotList[0]._id, company: authCompany._id },
+  { trainee: traineeList[0]._id, courseSlot: courseSlotList[1]._id, company: authCompany._id },
+  { trainee: traineeList[1]._id, courseSlot: courseSlotList[1]._id, company: otherCompany._id },
+  { trainee: traineeList[1]._id, courseSlot: courseSlotList[2]._id, company: otherCompany._id },
+  { trainee: traineeList[1]._id, courseSlot: courseSlotList[3]._id, company: otherCompany._id },
+  { trainee: traineeList[3]._id, courseSlot: courseSlotList[2]._id, company: authCompany._id },
+  { trainee: traineeList[3]._id, courseSlot: courseSlotList[3]._id, company: authCompany._id },
 ];
 
 const attendanceSheetList = [
-  { course: courseList[0]._id, trainee: traineeList[0]._id, file: { link: 'link', publicId: '123' } },
+  { course: coursesList[0]._id, trainee: traineeList[0]._id, file: { link: 'link', publicId: '123' } },
 ];
 
 const smsList = [
-  { _id: new ObjectId(), type: 'convocation', message: 'SMS 1', sender: traineeList[0]._id, course: courseList[0]._id },
-  { _id: new ObjectId(), type: 'convocation', message: 'SMS 2', sender: traineeList[1]._id, course: courseList[0]._id },
-  { _id: new ObjectId(), type: 'convocation', message: 'SMS 3', sender: traineeList[3]._id, course: courseList[1]._id },
+  {
+    _id: new ObjectId(),
+    type: 'convocation',
+    message: 'SMS 1',
+    sender: traineeList[0]._id,
+    course: coursesList[0]._id,
+  },
+  {
+    _id: new ObjectId(),
+    type: 'convocation',
+    message: 'SMS 2',
+    sender: traineeList[1]._id,
+    course: coursesList[0]._id,
+  },
+  {
+    _id: new ObjectId(),
+    type: 'convocation',
+    message: 'SMS 3',
+    sender: traineeList[3]._id,
+    course: coursesList[1]._id,
+  },
 ];
 
 const cardList = [
@@ -1503,15 +1563,45 @@ const questionnaireList = [
   },
 ];
 const questionnaireHistoriesList = [
-  { _id: new ObjectId(), course: courseList[0]._id, user: traineeList[0]._id, questionnaire: questionnaireList[0]._id },
-  { _id: new ObjectId(), course: courseList[0]._id, user: traineeList[0]._id, questionnaire: questionnaireList[1]._id },
-  { _id: new ObjectId(), course: courseList[0]._id, user: traineeList[1]._id, questionnaire: questionnaireList[1]._id },
-  { _id: new ObjectId(), course: courseList[0]._id, user: traineeList[2]._id, questionnaire: questionnaireList[0]._id },
-  { _id: new ObjectId(), course: courseList[1]._id, user: traineeList[3]._id, questionnaire: questionnaireList[0]._id },
-  { _id: new ObjectId(), course: courseList[1]._id, user: traineeList[3]._id, questionnaire: questionnaireList[1]._id },
+  { // 0
+    _id: new ObjectId(),
+    course: coursesList[0]._id,
+    user: traineeList[0]._id,
+    questionnaire: questionnaireList[0]._id,
+  },
+  { // 1
+    _id: new ObjectId(),
+    course: coursesList[0]._id,
+    user: traineeList[0]._id,
+    questionnaire: questionnaireList[1]._id,
+  },
+  { // 2
+    _id: new ObjectId(),
+    course: coursesList[0]._id,
+    user: traineeList[1]._id,
+    questionnaire: questionnaireList[1]._id,
+  },
+  { // 3
+    _id: new ObjectId(),
+    course: coursesList[0]._id,
+    user: traineeList[2]._id,
+    questionnaire: questionnaireList[0]._id,
+  },
+  { // 4
+    _id: new ObjectId(),
+    course: coursesList[1]._id,
+    user: traineeList[3]._id,
+    questionnaire: questionnaireList[0]._id,
+  },
+  { // 5
+    _id: new ObjectId(),
+    course: coursesList[1]._id,
+    user: traineeList[3]._id,
+    questionnaire: questionnaireList[1]._id,
+  },
   { // 6 end of course questionnaire all questions answered
     _id: new ObjectId(),
-    course: courseList[0]._id,
+    course: coursesList[0]._id,
     user: traineeList[0]._id,
     questionnaire: questionnaireList[1]._id,
     questionnaireAnswersList: [
@@ -1523,14 +1613,14 @@ const questionnaireHistoriesList = [
   },
   { // 7 expectation questionnaire
     _id: new ObjectId(),
-    course: courseList[0]._id,
+    course: coursesList[0]._id,
     user: traineeList[0]._id,
     questionnaire: questionnaireList[0]._id,
     createdAt: '2021-02-18T10:00:00.000Z',
   },
   { // 8 end of course questionnaire only one answer
     _id: new ObjectId(),
-    course: courseList[1]._id,
+    course: coursesList[1]._id,
     user: traineeList[1]._id,
     questionnaire: questionnaireList[1]._id,
     questionnaireAnswersList: [{
@@ -1538,6 +1628,30 @@ const questionnaireHistoriesList = [
       answerList: [cardList[3].qcAnswers[0]._id.toHexString(), cardList[3].qcAnswers[1]._id.toHexString()],
     }],
     createdAt: '2021-01-27T20:31:04.000Z',
+  },
+];
+
+const courseHistoriesList = [
+  {
+    _id: new ObjectId(),
+    course: coursesList[1]._id,
+    action: ESTIMATED_START_DATE_EDITION,
+    update: { estimatedStartDate: { to: '2018-10-23T22:00:00.000Z' } },
+    createdBy: new ObjectId(),
+  },
+  {
+    _id: new ObjectId(),
+    course: coursesList[1]._id,
+    action: ESTIMATED_START_DATE_EDITION,
+    update: { estimatedStartDate: { from: '2018-10-23T22:00:00.000Z', to: '2019-01-01T08:00:00.000Z' } },
+    createdBy: new ObjectId(),
+  },
+  {
+    _id: new ObjectId(),
+    course: coursesList[2]._id,
+    action: ESTIMATED_START_DATE_EDITION,
+    update: { estimatedStartDate: { to: '2022-01-12T08:00:00.000Z' } },
+    createdBy: new ObjectId(),
   },
 ];
 
@@ -1552,10 +1666,11 @@ const populateDB = async () => {
     Bill.create(billsList),
     Card.create(cardList),
     Contract.create(contractList),
-    Course.create(courseList),
+    Course.create(coursesList),
     CourseBill.create(courseBillList),
     CourseCreditNote.create(courseCreditNotesList),
     CourseFundingOrganisation.create(courseFundingOrganisation),
+    CourseHistory.create(courseHistoriesList),
     CoursePayment.create(coursePaymentList),
     CourseSlot.create(courseSlotList),
     CourseSmsHistory.create(smsList),
@@ -1595,7 +1710,7 @@ module.exports = {
   auxiliaryList,
   establishment,
   thirdPartyPayer,
-  courseList,
+  coursesList,
   courseSlotList,
   distanceMatrixList,
 };

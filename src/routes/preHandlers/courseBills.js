@@ -7,23 +7,19 @@ const CourseBillingItem = require('../../models/CourseBillingItem');
 const CourseFundingOrganisation = require('../../models/CourseFundingOrganisation');
 const UtilsHelper = require('../../helpers/utils');
 const translate = require('../../helpers/translate');
-const { TRAINING_ORGANISATION_MANAGER, VENDOR_ADMIN, BALANCE, INTRA, INTER_B2B } = require('../../helpers/constants');
+const { TRAINING_ORGANISATION_MANAGER, VENDOR_ADMIN, BALANCE, INTRA } = require('../../helpers/constants');
 
 const { language } = translate;
 
 exports.authorizeCourseBillCreation = async (req) => {
   const { course: courseId, company: companyId, payer } = req.payload;
-  const companyExists = await Company.countDocuments({ _id: companyId }, { limit: 1 });
-  if (!companyExists) throw Boom.notFound();
 
   const course = await Course
-    .findOne({ _id: courseId }, { type: 1, trainees: 1, companies: 1, expectedBillsCount: 1 })
-    .populate({ path: 'trainees', select: '_id company', populate: { path: 'company' } })
+    .findOne({ _id: courseId, companies: companyId }, { type: 1, expectedBillsCount: 1 })
     .lean();
   if (!course) throw Boom.notFound();
 
   if (course.type === INTRA) {
-    if (!UtilsHelper.areObjectIdsEquals(course.companies[0], companyId)) throw Boom.notFound();
     if (!course.expectedBillsCount) throw Boom.conflict();
 
     const courseBills = await CourseBill.find({ course: course._id }, { courseCreditNote: 1 })
@@ -33,11 +29,6 @@ exports.authorizeCourseBillCreation = async (req) => {
 
     const courseBillsWithoutCreditNote = courseBills.filter(cb => !cb.courseCreditNote);
     if (courseBillsWithoutCreditNote.length === course.expectedBillsCount) throw Boom.conflict();
-  }
-
-  if (course.type === INTER_B2B &&
-    !course.trainees.find(trainee => UtilsHelper.areObjectIdsEquals(companyId, trainee.company))) {
-    throw Boom.notFound();
   }
 
   if (payer) {

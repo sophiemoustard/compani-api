@@ -25,7 +25,7 @@ const list = async (req) => {
 
 const create = async (req) => {
   try {
-    const course = await CoursesHelper.createCourse(req.payload);
+    const course = await CoursesHelper.createCourse(req.payload, req.auth.credentials);
 
     return {
       message: translate[language].courseCreated,
@@ -54,9 +54,9 @@ const getById = async (req) => {
 const getFollowUp = async (req) => {
   try {
     req.log('courseController - getFollowUp - query', req.query);
-    req.log('courseController - getFollowUp - course', get(req, 'pre.course._id'));
+    req.log('courseController - getFollowUp - course', req.params._id);
 
-    const followUp = await CoursesHelper.getCourseFollowUp(req.pre.course, req.query.company);
+    const followUp = await CoursesHelper.getCourseFollowUp(req.params._id, req.query.company);
 
     return {
       message: translate[language].courseFound,
@@ -81,7 +81,7 @@ const getQuestionnaireAnswers = async (req) => {
 
 const update = async (req) => {
   try {
-    const course = await CoursesHelper.updateCourse(req.params._id, req.payload);
+    const course = await CoursesHelper.updateCourse(req.params._id, req.payload, req.auth.credentials);
 
     return {
       message: translate[language].courseUpdated,
@@ -229,10 +229,10 @@ const deleteAccessRule = async (req) => {
 
 const generateConvocationPdf = async (req, h) => {
   try {
-    req.log('courseController - generateConvocationPdf - pre.course._id', get(req, 'pre.course._id'));
+    req.log('courseController - generateConvocationPdf - params._id', req.params._id);
     req.log('courseController - generateConvocationPdf - company', get(req, 'auth.credentials.company._id'));
 
-    const { pdf, courseName } = await CoursesHelper.generateConvocationPdf(req.pre.course._id);
+    const { pdf, courseName } = await CoursesHelper.generateConvocationPdf(req.params._id);
 
     return h.response(pdf)
       .header('content-disposition', `inline; filename=${courseName}.pdf`)
@@ -248,6 +248,28 @@ const getQuestionnaires = async (req) => {
     const questionnaires = await CoursesHelper.getQuestionnaires(req.params._id);
 
     return { message: translate[language].questionnairesFound, data: { questionnaires } };
+  } catch (e) {
+    req.log('error', e);
+    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
+  }
+};
+
+const addCompany = async (req) => {
+  try {
+    await CoursesHelper.addCourseCompany(req.params._id, req.payload, req.auth.credentials);
+
+    return { message: translate[language].courseCompanyAdded };
+  } catch (e) {
+    req.log('error', e);
+    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
+  }
+};
+
+const removeCompany = async (req) => {
+  try {
+    await CoursesHelper.removeCourseCompany(req.params._id, req.params.companyId, req.auth.credentials);
+
+    return { message: translate[language].courseCompanyRemoved };
   } catch (e) {
     req.log('error', e);
     return Boom.isBoom(e) ? e : Boom.badImplementation(e);
@@ -273,4 +295,6 @@ module.exports = {
   generateConvocationPdf,
   deleteAccessRule,
   getQuestionnaires,
+  addCompany,
+  removeCompany,
 };

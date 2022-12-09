@@ -1,4 +1,5 @@
 const { v4: uuidv4 } = require('uuid');
+const moment = require('moment');
 const { ObjectId } = require('mongodb');
 const User = require('../../../src/models/User');
 const Customer = require('../../../src/models/Customer');
@@ -13,6 +14,8 @@ const { authCompany, otherCompany } = require('../../seed/authCompaniesSeed');
 const { deleteNonAuthenticationSeeds } = require('../helpers/authentication');
 const { WEBAPP, UNPAID_LEAVE, PAID_LEAVE, DAILY, ABSENCE } = require('../../../src/helpers/constants');
 const { coachRoleId, auxiliaryRoleId } = require('../../seed/authRolesSeed');
+
+const year = moment().year() + 1;
 
 const contractId0 = new ObjectId();
 const contractId1 = new ObjectId();
@@ -70,9 +73,9 @@ const auxiliaryFromOtherCompany = {
 };
 
 const userCompanyList = [
-  { _id: new ObjectId(), user: auxiliaryId0, company: authCompany },
-  { _id: new ObjectId(), user: auxiliaryId1, company: authCompany },
-  { _id: new ObjectId(), user: auxiliaryFromOtherCompany._id, company: otherCompany },
+  { _id: new ObjectId(), user: auxiliaryId0, company: authCompany._id },
+  { _id: new ObjectId(), user: auxiliaryId1, company: authCompany._id },
+  { _id: new ObjectId(), user: auxiliaryFromOtherCompany._id, company: otherCompany._id },
   { _id: new ObjectId(), user: user._id, company: authCompany._id },
 ];
 
@@ -162,8 +165,8 @@ const absences = [
     auxiliary: auxiliaryId0,
     absence: UNPAID_LEAVE,
     absenceNature: DAILY,
-    startDate: '2022-11-12T09:00:00.000Z',
-    endDate: '2022-11-16T21:29:29.000Z',
+    startDate: `${year}-11-12T09:00:00.000Z`,
+    endDate: `${year}-11-16T21:29:29.000Z`,
   },
   {
     _id: new ObjectId(),
@@ -270,7 +273,7 @@ const payList = [
       internalHours: 9,
       absencesHours: 5,
     },
-    endDate: '2022-11-31T14:00:18.000Z',
+    endDate: `${year}-11-30T14:00:18.000Z`,
     hoursBalance: -8,
     hoursCounter: -20,
     hoursToWork: 30,
@@ -281,11 +284,11 @@ const payList = [
     surchargedAndExemptDetails: [],
     surchargedAndNotExempt: 3,
     surchargedAndNotExemptDetails: [],
-    month: '11-2022',
+    month: `11-${year}`,
     mutual: false,
     phoneFees: 0,
     overtimeHours: 0,
-    startDate: '2022-11-01T14:00:18.000Z',
+    startDate: `${year}-11-01T14:00:18.000Z`,
     transport: 10,
     workedHours: 143,
     paidTransportHours: 3,
@@ -314,12 +317,12 @@ const payList = [
       internalHours: 9,
       absencesHours: 5,
     },
-    endDate: '2022-11-28T14:00:18.000Z',
+    endDate: `${year}-11-28T14:00:18.000Z`,
     holidaysHours: 12,
     hoursBalance: -8,
     hoursCounter: -20,
     hoursToWork: 20,
-    month: '11-2022',
+    month: `11-${year}`,
     mutual: false,
     notSurchargedAndExempt: 97,
     notSurchargedAndNotExempt: 43,
@@ -329,7 +332,7 @@ const payList = [
     surchargedAndNotExemptDetails: [],
     phoneFees: 0,
     overtimeHours: 0,
-    startDate: '2022-11-01T14:00:18.000Z',
+    startDate: `${year}-11-01T14:00:18.000Z`,
     transport: 10,
     workedHours: 143,
     paidTransportHours: 3,

@@ -2,7 +2,17 @@ const expect = require('expect');
 const sinon = require('sinon');
 const luxon = require('../../../../src/helpers/dates/luxon');
 const CompaniDatesHelper = require('../../../../src/helpers/dates/companiDates');
-const { WEDNESDAY, DD_MM_YYYY, HH_MM_SS } = require('../../../../src/helpers/constants');
+const {
+  WEDNESDAY,
+  DD_MM_YYYY,
+  HH_MM_SS,
+  MONTH,
+  DAY,
+  HOUR,
+  MINUTE,
+  SECOND,
+  MILLISECOND,
+} = require('../../../../src/helpers/constants');
 const { CompaniDuration } = require('../../../../src/helpers/dates/companiDurations');
 
 describe('CompaniDate', () => {
@@ -590,6 +600,34 @@ describe('QUERY', () => {
         sinon.assert.calledWithExactly(_formatMiscToCompaniDate.getCall(0), firstDate);
         sinon.assert.calledWithExactly(_formatMiscToCompaniDate.getCall(1), secondDate);
       }
+    });
+  });
+
+  describe('hasSameUnits', () => {
+    let _formatMiscToCompaniDate;
+    const companiDate = CompaniDatesHelper.CompaniDate('2022-11-22T10:00:00.000Z');
+    const otherDate = '2021-11-27T10:00:00.000Z';
+
+    beforeEach(() => {
+      _formatMiscToCompaniDate = sinon.spy(CompaniDatesHelper, '_formatMiscToCompaniDate');
+    });
+
+    afterEach(() => {
+      _formatMiscToCompaniDate.restore();
+    });
+
+    it('should return true if all units have same values', () => {
+      const result = companiDate.hasSameUnits(otherDate, [MONTH, HOUR, MINUTE, SECOND, MILLISECOND]);
+
+      expect(result).toBe(true);
+      sinon.assert.calledWithExactly(_formatMiscToCompaniDate.getCall(0), otherDate);
+    });
+
+    it('should return false if not all units have same values', () => {
+      const result = companiDate.hasSameUnits(otherDate, [MONTH, DAY, HOUR, MINUTE, SECOND, MILLISECOND]);
+
+      expect(result).toBe(false);
+      sinon.assert.calledWithExactly(_formatMiscToCompaniDate.getCall(0), otherDate);
     });
   });
 

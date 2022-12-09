@@ -40,6 +40,9 @@ const {
   HHhMM,
   DD_MM_YYYY,
   HH_MM,
+  PT0S,
+  DAY,
+  VENDOR_ROLES,
 } = require('./constants');
 const CourseHistoriesHelper = require('./courseHistories');
 const NotificationHelper = require('./notifications');
@@ -52,12 +55,20 @@ const CourseSlot = require('../models/CourseSlot');
 const CourseHistory = require('../models/CourseHistory');
 const { CompaniDuration } = require('./dates/companiDurations');
 
-exports.createCourse = async (payload) => {
+exports.createCourse = async (payload, credentials) => {
   const coursePayload = payload.company
     ? { ...omit(payload, 'company'), companies: [payload.company] }
     : payload;
 
   const course = await Course.create(coursePayload);
+
+  if (course.estimatedStartDate) {
+    await CourseHistoriesHelper.createHistoryOnEstimatedStartDateEdition(
+      course._id,
+      credentials._id,
+      payload.estimatedStartDate
+    );
+  }
 
   const subProgram = await SubProgram
     .findOne({ _id: course.subProgram }, { steps: 1 })
@@ -78,7 +89,7 @@ exports.getTotalTheoreticalDuration = course => (course.subProgram.steps.length
     (acc, value) => (value.theoreticalDuration ? acc.add(value.theoreticalDuration) : acc),
     CompaniDuration()
   ).toISO()
-  : 'PT0S'
+  : PT0S
 );
 
 const listStrictlyElearningForCompany = async (query, origin) => {
@@ -96,23 +107,20 @@ const listStrictlyElearningForCompany = async (query, origin) => {
 };
 
 const listBlendedForCompany = async (query, origin) => {
-  const intraCourse = await CourseRepository.findCourseAndPopulate(
-    { ...omit(query, ['company']), companies: [query.company], type: INTRA },
-    origin
-  );
-  const interCourse = await CourseRepository.findCourseAndPopulate(
-    { ...omit(query, ['company']), type: INTER_B2B },
+  const courses = await CourseRepository.findCourseAndPopulate(
+    { ...omit(query, ['company']), companies: query.company },
     origin,
     true
   );
 
+  const intraCourses = courses.filter(course => course.type === INTRA);
+  const interCourses = courses.filter(course => course.type === INTER_B2B);
+
   return [
-    ...intraCourse,
-    ...interCourse
-      .filter(course => UtilsHelper.doesArrayIncludeId(
-        course.trainees.map(t => (t.company ? t.company._id : '')), query.company)
-      ).map(course => ({
-        ...omit(course, ['companies']),
+    ...intraCourses,
+    ...interCourses
+      .map(course => ({
+        ...course,
         trainees: course.trainees.filter(t =>
           (t.company ? UtilsHelper.areObjectIdsEquals(t.company._id, query.company) : false)),
       })),
@@ -165,7 +173,16 @@ const listForPedagogy = async (query, credentials) => {
     .populate({
       path: 'slots',
       select: 'startDate endDate step',
-      populate: [{ path: 'step', select: 'type' }, { path: 'attendances', match: { trainee: trainee._id } }],
+      populate: [
+        { path: 'step', select: 'type' },
+        {
+          path: 'attendances',
+          match: { trainee: trainee._id, company: trainee.company },
+          options: {
+            isVendorUser: [TRAINING_ORGANISATION_MANAGER, VENDOR_ADMIN].includes(get(credentials, 'role.vendor.name')),
+          },
+        },
+      ],
     })
     .select('_id misc')
     .lean({ autopopulate: true, virtuals: true });
@@ -200,12 +217,14 @@ exports.getCourseProgress = (steps) => {
 
   const combinedPresenceProgress = presenceProgressSteps.length
     ? {
-      attendanceDuration: UtilsHelper
-        .computeDuration(presenceProgressSteps.map(step => step.progress.presence.attendanceDuration))
-        .toObject(),
-      maxDuration: UtilsHelper
-        .computeDuration(presenceProgressSteps.map(step => step.progress.presence.maxDuration))
-        .toObject(),
+      attendanceDuration: presenceProgressSteps
+        .map(step => step.progress.presence.attendanceDuration)
+        .reduce((acc, attendanceDuration) => acc.add(attendanceDuration), CompaniDuration())
+        .toISO(),
+      maxDuration: presenceProgressSteps
+        .map(step => step.progress.presence.maxDuration)
+        .reduce((acc, maxDuration) => acc.add(maxDuration), CompaniDuration())
+        .toISO(),
     }
     : null;
 
@@ -331,10 +350,10 @@ exports.formatActivity = (activity) => {
 
 exports.formatStep = step => ({ ...step, activities: step.activities.map(a => exports.formatActivity(a)) });
 
-exports.getCourseFollowUp = async (course, company) => {
-  const courseWithTrainees = await Course.findOne({ _id: course._id }, { trainees: 1 }).lean();
+exports.getCourseFollowUp = async (courseId, company) => {
+  const courseWithTrainees = await Course.findOne({ _id: courseId }, { trainees: 1 }).lean();
 
-  const courseFollowUp = await Course.findOne({ _id: course._id }, { subProgram: 1 })
+  const courseFollowUp = await Course.findOne({ _id: courseId }, { subProgram: 1 })
     .populate({
       path: 'subProgram',
       select: 'name steps program',
@@ -446,7 +465,10 @@ const getCourseForPedagogy = async (courseId, credentials) => {
     .populate({
       path: 'slots',
       select: 'startDate endDate step address meetingLink',
-      populate: [{ path: 'step', select: 'type' }, { path: 'attendances', match: { trainee: credentials._id } }],
+      populate: [
+        { path: 'step', select: 'type' },
+        { path: 'attendances', match: { trainee: credentials._id, company: get(credentials, 'company._id') } },
+      ],
     })
     .populate({ path: 'trainer', select: 'identity.firstname identity.lastname biography picture' })
     .populate({ path: 'contact', select: 'identity.firstname identity.lastname contact.phone local.email' })
@@ -477,12 +499,25 @@ const getCourseForPedagogy = async (courseId, credentials) => {
   return exports.formatCourseWithProgress(course);
 };
 
-exports.updateCourse = async (courseId, payload) => {
+exports.updateCourse = async (courseId, payload, credentials) => {
   const params = payload.contact === ''
     ? { $set: omit(payload, 'contact'), $unset: { contact: '' } }
     : { $set: payload };
 
-  return Course.findOneAndUpdate({ _id: courseId }, params).lean();
+  const courseFromDb = await Course.findOneAndUpdate({ _id: courseId }, params).lean();
+
+  const estimatedStartDateUpdated = payload.estimatedStartDate && (!courseFromDb.estimatedStartDate ||
+    !CompaniDate(payload.estimatedStartDate).isSame(courseFromDb.estimatedStartDate, DAY));
+  if (estimatedStartDateUpdated) {
+    CourseHistoriesHelper.createHistoryOnEstimatedStartDateEdition(
+      courseId,
+      credentials._id,
+      payload.estimatedStartDate,
+      courseFromDb.estimatedStartDate
+    );
+  }
+
+  return courseFromDb;
 };
 
 exports.deleteCourse = async courseId => Promise.all([
@@ -717,8 +752,10 @@ exports.generateCompletionCertificates = async (courseId, credentials, origin = 
     .populate({ path: 'subProgram', select: 'program', populate: { path: 'program', select: 'name learningGoals' } })
     .lean();
 
-  const attendances = await Attendance.find({ courseSlot: course.slots.map(s => s._id) })
+  const attendances = await Attendance
+    .find({ courseSlot: course.slots.map(s => s._id), company: { $in: course.companies } })
     .populate({ path: 'courseSlot', select: 'startDate endDate' })
+    .setOptions({ isVendorUser: VENDOR_ROLES.includes(get(credentials, 'role.vendor.name')) })
     .lean();
 
   const courseData = exports.formatCourseForDocuments(course);
@@ -808,3 +845,17 @@ exports.getQuestionnaires = async (courseId) => {
 
   return questionnaires.filter(questionnaire => questionnaire.historiesCount);
 };
+
+exports.addCourseCompany = async (courseId, payload, credentials) => {
+  await Course.updateOne({ _id: courseId }, { $addToSet: { companies: payload.company } });
+
+  await CourseHistoriesHelper.createHistoryOnCompanyAddition(
+    { course: courseId, company: payload.company },
+    credentials._id
+  );
+};
+
+exports.removeCourseCompany = async (courseId, companyId, credentials) => Promise.all([
+  Course.updateOne({ _id: courseId }, { $pull: { companies: companyId } }),
+  CourseHistoriesHelper.createHistoryOnCompanyDeletion({ course: courseId, company: companyId }, credentials._id),
+]);

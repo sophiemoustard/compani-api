@@ -1,4 +1,5 @@
 const expect = require('expect');
+const moment = require('moment');
 const { ObjectId } = require('mongodb');
 const {
   populateDB,
@@ -471,9 +472,10 @@ describe('PAY ROUTES - GET /pays/export/{type}', () => {
     });
 
     it('should export absences for pay', async () => {
+      const year = moment().year() + 1;
       const response = await app.inject({
         method: 'GET',
-        url: '/pay/export/absence?startDate=2022-11-01T00:00:00&endDate=2022-11-30T23:00:00',
+        url: `/pay/export/absence?startDate=${year}-11-01T00:00:00.000Z&endDate=${year}-11-30T23:00:00.000Z`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -493,9 +495,10 @@ describe('PAY ROUTES - GET /pays/export/{type}', () => {
     });
 
     it('should export hours for pay', async () => {
+      const year = moment().year() + 1;
       const response = await app.inject({
         method: 'GET',
-        url: '/pay/export/pay?startDate=2022-11-01T00:00:00&endDate=2022-11-30T23:59:59',
+        url: `/pay/export/pay?startDate=${year}-11-01T00:00:00.000Z&endDate=${year}-11-30T23:59:59.000Z`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 

@@ -4,7 +4,7 @@ const { ObjectId } = require('mongodb');
 const SubProgram = require('../../../src/models/SubProgram');
 const Step = require('../../../src/models/Step');
 const StepHelper = require('../../../src/helpers/steps');
-const { E_LEARNING } = require('../../../src/helpers/constants');
+const { E_LEARNING, PT0S } = require('../../../src/helpers/constants');
 const SinonMongoose = require('../sinonMongoose');
 
 describe('updateStep', () => {
@@ -154,15 +154,15 @@ describe('getPresenceStepProgress', () => {
       { startDate: '2020-11-04T09:00:00.000Z', endDate: '2020-11-04T12:00:00.000Z', attendances: [] },
     ];
 
-    const result = await StepHelper.getPresenceStepProgress(slots);
-    expect(result).toEqual({ attendanceDuration: { minutes: 180 }, maxDuration: { minutes: 360 } });
+    const result = StepHelper.getPresenceStepProgress(slots);
+    expect(result).toEqual({ attendanceDuration: 'PT180M', maxDuration: 'PT360M' });
   });
 
   it('should return presence at 0 if no slot', async () => {
     const slots = [];
 
-    const result = await StepHelper.getPresenceStepProgress(slots);
-    expect(result).toEqual({ attendanceDuration: { minutes: 0 }, maxDuration: { minutes: 0 } });
+    const result = StepHelper.getPresenceStepProgress(slots);
+    expect(result).toEqual({ attendanceDuration: PT0S, maxDuration: PT0S });
   });
 });
 
