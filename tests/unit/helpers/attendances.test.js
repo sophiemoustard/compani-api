@@ -326,28 +326,6 @@ describe('list', () => {
       ]
     );
   });
-
-  it('should return all courseSlots attendances for a company', async () => {
-    const companyId = new ObjectId();
-    const courseSlots = [new ObjectId(), new ObjectId()];
-    const attendancesList = [
-      { trainee: new ObjectId(), courseSlot: courseSlots[0] },
-      { trainee: new ObjectId(), courseSlot: courseSlots[1] },
-    ];
-
-    find.returns(SinonMongoose.stubChainedQueries(attendancesList, ['setOptions', 'lean']));
-
-    const result = await AttendanceHelper.list([courseSlots], companyId, credentials);
-
-    expect(result).toMatchObject(attendancesList);
-    SinonMongoose.calledOnceWithExactly(
-      find,
-      [
-        { query: 'find', args: [{ courseSlot: { $in: [courseSlots] }, company: companyId }] },
-        { query: 'setOptions', args: [{ isVendorUser }] },
-        { query: 'lean' }]
-    );
-  });
 });
 
 describe('listUnsubscribed', () => {
