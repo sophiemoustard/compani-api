@@ -467,7 +467,7 @@ const getCourseForPedagogy = async (courseId, credentials) => {
       select: 'startDate endDate step address meetingLink',
       populate: [
         { path: 'step', select: 'type' },
-        { path: 'attendances', match: { trainee: credentials._id, company: get(credentials, 'company._id') } },
+        { path: 'attendances', match: { trainee: credentials._id }, options: { requestingOwnInfos: true } },
       ],
     })
     .populate({ path: 'trainer', select: 'identity.firstname identity.lastname biography picture' })
