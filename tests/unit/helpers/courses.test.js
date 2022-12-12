@@ -1301,7 +1301,7 @@ describe('getCourse', () => {
                 select: 'startDate endDate step address meetingLink',
                 populate: [
                   { path: 'step', select: 'type' },
-                  { path: 'attendances', match: { trainee: loggedUser._id, company: get(loggedUser, 'company._id') } },
+                  { path: 'attendances', match: { trainee: loggedUser._id }, options: { requestingOwnInfos: true } },
                 ],
               },
             ],
@@ -1463,7 +1463,7 @@ describe('getCourse', () => {
                 select: 'startDate endDate step address meetingLink',
                 populate: [
                   { path: 'step', select: 'type' },
-                  { path: 'attendances', match: { trainee: loggedUser._id, company: get(loggedUser, 'company._id') } },
+                  { path: 'attendances', match: { trainee: loggedUser._id }, options: { requestingOwnInfos: true } },
                 ],
               },
             ],
@@ -1628,7 +1628,7 @@ describe('getCourse', () => {
                 select: 'startDate endDate step address meetingLink',
                 populate: [
                   { path: 'step', select: 'type' },
-                  { path: 'attendances', match: { trainee: loggedUser._id, company: get(loggedUser, 'company._id') } },
+                  { path: 'attendances', match: { trainee: loggedUser._id }, options: { requestingOwnInfos: true } },
                 ],
               },
             ],
@@ -1753,7 +1753,7 @@ describe('getCourse', () => {
                 select: 'startDate endDate step address meetingLink',
                 populate: [
                   { path: 'step', select: 'type' },
-                  { path: 'attendances', match: { trainee: loggedUser._id, company: get(loggedUser, 'company._id') } },
+                  { path: 'attendances', match: { trainee: loggedUser._id }, options: { requestingOwnInfos: true } },
                 ],
               },
             ],
