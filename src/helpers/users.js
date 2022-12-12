@@ -185,7 +185,7 @@ exports.createAndSaveFile = async (params, payload) => {
 
 const createUserCompany = async (payload, company) => {
   const user = await User.create(payload);
-  await UserCompaniesHelper.create(user._id, company);
+  await UserCompaniesHelper.create({ user: user._id, company });
 
   return user;
 };
@@ -245,7 +245,7 @@ exports.updateUser = async (userId, userPayload, credentials) => {
 
   const payload = await formatUpdatePayload(userPayload);
   if (userPayload.customer) await HelpersHelper.create(userId, userPayload.customer, companyId);
-  if (userPayload.company) await UserCompaniesHelper.create(userId, userPayload.company);
+  if (userPayload.company) await UserCompaniesHelper.create({ user: userId, company: userPayload.company });
 
   if (userPayload.sector) {
     await SectorHistoriesHelper.updateHistoryOnSectorUpdate(userId, userPayload.sector, companyId);

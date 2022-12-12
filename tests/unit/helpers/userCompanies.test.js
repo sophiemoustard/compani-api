@@ -30,7 +30,7 @@ describe('create', () => {
 
     findOne.returns(SinonMongoose.stubChainedQueries(null, ['lean']));
 
-    await UserCompaniesHelper.create(userId, companyId);
+    await UserCompaniesHelper.create({ user: userId, company: companyId });
 
     sinon.assert.calledOnceWithExactly(create, { user: userId, company: companyId });
     sinon.assert.calledOnceWithExactly(deleteManyCompanyLinkRequest, { user: userId });
@@ -46,7 +46,7 @@ describe('create', () => {
 
     findOne.returns(SinonMongoose.stubChainedQueries({ user: userId, company: companyId }, ['lean']));
 
-    await UserCompaniesHelper.create(userId, companyId);
+    await UserCompaniesHelper.create({ user: userId, company: companyId });
 
     sinon.assert.notCalled(create);
     sinon.assert.notCalled(deleteManyCompanyLinkRequest);
@@ -63,7 +63,7 @@ describe('create', () => {
     try {
       findOne.returns(SinonMongoose.stubChainedQueries({ user: userId, company: new ObjectId() }, ['lean']));
 
-      await UserCompaniesHelper.create(userId, companyId);
+      await UserCompaniesHelper.create({ user: userId, company: companyId });
 
       expect(true).toBe(false);
     } catch (e) {
