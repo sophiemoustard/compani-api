@@ -252,6 +252,13 @@ exports.plugin = {
             biography: Joi.string().allow(''),
             customer: Joi.objectId(),
             company: Joi.objectId(),
+            userCompanyStartDate: Joi.when(
+              'company',
+              {
+                is: Joi.exist(),
+                then: Joi.date(),
+                otherwise: Joi.forbidden(),
+              }),
           }).required(),
         },
         pre: [{ method: getUser, assign: 'user' }, { method: authorizeUserUpdate }],

@@ -5,6 +5,7 @@ const sinon = require('sinon');
 const omit = require('lodash/omit');
 const get = require('lodash/get');
 const pick = require('lodash/pick');
+const UtilsMock = require('../utilsMock');
 const app = require('../../server');
 const User = require('../../src/models/User');
 const ActivityHistory = require('../../src/models/ActivityHistory');
@@ -1251,13 +1252,26 @@ describe('USERS ROUTES - PUT /users/:id', () => {
         method: 'PUT',
         url: `/users/${usersSeedList[11]._id.toHexString()}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
-        payload: { identity: { firstname: 'trainerUpdate' }, biography: 'It\'s my life' },
+        payload: {
+          identity: { firstname: 'trainerUpdate' },
+          biography: 'It\'s my life',
+          company: authCompany._id,
+          userCompanyStartDate: '2022-12-12T12:00:00.000Z',
+        },
       });
 
       expect(res.statusCode).toBe(200);
+
       const updatedTrainer = await User
         .countDocuments({ _id: usersSeedList[11]._id, 'identity.firstname': 'trainerUpdate' });
       expect(updatedTrainer).toBeTruthy();
+
+      const createdUserCompany = await UserCompany.countDocuments({
+        user: usersSeedList[11]._id,
+        company: authCompany._id,
+        startDate: '2022-12-12T12:00:00.000Z',
+      });
+      expect(createdUserCompany).toBeTruthy();
     });
 
     it('should return 200 if company is in payload and is the same as the user company', async () => {
@@ -1268,6 +1282,33 @@ describe('USERS ROUTES - PUT /users/:id', () => {
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
       expect(res.statusCode).toBe(200);
+    });
+
+    it('should return 200 if company is in payload and userCompanyStartDate is not', async () => {
+      UtilsMock.mockCurrentDate('2022-12-13T14:15:50.000Z');
+      const res = await app.inject({
+        method: 'PUT',
+        url: `/users/${usersSeedList[11]._id.toHexString()}`,
+        payload: { company: authCompany._id },
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+      expect(res.statusCode).toBe(200);
+      const createdUserCompany = await UserCompany.countDocuments({
+        user: usersSeedList[11]._id,
+        company: authCompany._id,
+      });
+      expect(createdUserCompany).toBeTruthy();
+      UtilsMock.unmockCurrentDate();
+    });
+
+    it('should return 400 if userCompanyStartDate is in payload and company is not', async () => {
+      const res = await app.inject({
+        method: 'PUT',
+        url: `/users/${usersSeedList[0]._id.toHexString()}`,
+        payload: { userCompanyStartDate: '2022-11-12T12:30:00.000Z' },
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+      expect(res.statusCode).toBe(400);
     });
 
     it('should return a 403 error if trying to set user company to an other company', async () => {

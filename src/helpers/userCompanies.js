@@ -3,12 +3,13 @@ const CompanyLinkRequest = require('../models/CompanyLinkRequest');
 const UserCompany = require('../models/UserCompany');
 const UtilsHelper = require('./utils');
 
-exports.create = async ({ user, company }) => {
+exports.create = async (payload) => {
+  const { user, company } = payload;
   const userCompany = await UserCompany.findOne({ user }, { company: 1 }).lean();
 
   if (!userCompany) {
     await CompanyLinkRequest.deleteMany({ user });
-    await UserCompany.create({ user, company });
+    await UserCompany.create(payload);
   } else if (!UtilsHelper.areObjectIdsEquals(userCompany.company, company)) {
     throw Boom.conflict();
   }

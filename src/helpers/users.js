@@ -245,7 +245,13 @@ exports.updateUser = async (userId, userPayload, credentials) => {
 
   const payload = await formatUpdatePayload(userPayload);
   if (userPayload.customer) await HelpersHelper.create(userId, userPayload.customer, companyId);
-  if (userPayload.company) await UserCompaniesHelper.create({ user: userId, company: userPayload.company });
+  if (userPayload.company) {
+    await UserCompaniesHelper.create({
+      user: userId,
+      company: userPayload.company,
+      ...(userPayload.userCompanyStartDate && { startDate: userPayload.userCompanyStartDate }),
+    });
+  }
 
   if (userPayload.sector) {
     await SectorHistoriesHelper.updateHistoryOnSectorUpdate(userId, userPayload.sector, companyId);
