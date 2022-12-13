@@ -2,6 +2,8 @@ const omit = require('lodash/omit');
 const get = require('lodash/get');
 const AttendanceSheet = require('../models/AttendanceSheet');
 const User = require('../models/User');
+const Course = require('../models/Course');
+const UserCompany = require('../models/UserCompany');
 const GCloudStorageHelper = require('./gCloudStorage');
 const UtilsHelper = require('./utils');
 const { CompaniDate } = require('./dates/companiDates');
@@ -9,10 +11,19 @@ const { DAY_MONTH_YEAR } = require('./constants');
 
 exports.create = async (payload) => {
   let fileName;
-  if (payload.date) fileName = CompaniDate(payload.date).format(DAY_MONTH_YEAR);
-  else {
+  let company;
+
+  const course = await Course.findOne({ _id: payload.course }, { companies: 1 }).lean();
+
+  if (payload.date) {
+    fileName = CompaniDate(payload.date).format(DAY_MONTH_YEAR);
+    [company] = course.companies;
+  } else {
     const { identity } = await User.findOne({ _id: payload.trainee }, { identity: 1 }).lean();
     fileName = UtilsHelper.formatIdentity(identity, 'FL');
+
+    const userCompany = await UserCompany.findOne({ user: payload.trainee }).lean();
+    company = userCompany.company;
   }
 
   const fileUploaded = await GCloudStorageHelper.uploadCourseFile({
@@ -20,7 +31,8 @@ exports.create = async (payload) => {
     file: payload.file,
   });
 
-  return AttendanceSheet.create({ ...omit(payload, 'file'), file: fileUploaded });
+  const attendanceSheetPayload = { ...omit(payload, 'file'), company };
+  AttendanceSheet.create({ ...attendanceSheetPayload, file: fileUploaded });
 };
 
 exports.list = async (courseId, companyId) => {

@@ -2,7 +2,9 @@ const sinon = require('sinon');
 const expect = require('expect');
 const { ObjectId } = require('mongodb');
 const User = require('../../../src/models/User');
+const Course = require('../../../src/models/Course');
 const AttendanceSheet = require('../../../src/models/AttendanceSheet');
+const UserCompany = require('../../../src/models/UserCompany');
 const attendanceSheetHelper = require('../../../src/helpers/attendanceSheets');
 const SinonMongoose = require('../sinonMongoose');
 const GCloudStorageHelper = require('../../../src/helpers/gCloudStorage');
@@ -75,54 +77,94 @@ describe('list', () => {
 
 describe('create', () => {
   let uploadCourseFile;
-  let findOne;
+  let userFindOne;
   let formatIdentity;
   let create;
+  let courseFindOne;
+  let userCompanyFindOne;
 
   beforeEach(() => {
     uploadCourseFile = sinon.stub(GCloudStorageHelper, 'uploadCourseFile');
-    findOne = sinon.stub(User, 'findOne');
+    userFindOne = sinon.stub(User, 'findOne');
     formatIdentity = sinon.stub(UtilsHelper, 'formatIdentity');
     create = sinon.stub(AttendanceSheet, 'create');
+    courseFindOne = sinon.stub(Course, 'findOne');
+    userCompanyFindOne = sinon.stub(UserCompany, 'findOne');
   });
 
   afterEach(() => {
     uploadCourseFile.restore();
-    findOne.restore();
+    userFindOne.restore();
     formatIdentity.restore();
     create.restore();
+    courseFindOne.restore();
+    userCompanyFindOne.restore();
   });
 
   it('should create an attendance sheet for INTRA course', async () => {
-    const payload = { date: '2020-04-03T10:00:00', course: new ObjectId(), file: 'test.pdf' };
+    const courseId = new ObjectId();
+    const course = { _id: courseId, companies: [new ObjectId()] };
+    const payload = { date: '2020-04-03T10:00:00', course: courseId, file: 'test.pdf' };
+
     uploadCourseFile.returns({ publicId: 'yo', link: 'yo' });
+    courseFindOne.returns(SinonMongoose.stubChainedQueries(course, ['lean']));
 
     await attendanceSheetHelper.create(payload);
+
     sinon.assert.calledOnceWithExactly(
       uploadCourseFile,
       { fileName: 'emargement_3 avril 2020', file: 'test.pdf' }
     );
     sinon.assert.calledOnceWithExactly(
       create,
-      { course: payload.course, date: '2020-04-03T10:00:00', file: { publicId: 'yo', link: 'yo' } }
+      {
+        course: courseId,
+        date: '2020-04-03T10:00:00',
+        file: { publicId: 'yo', link: 'yo' },
+        company: course.companies[0],
+      }
     );
-
-    sinon.assert.notCalled(findOne);
+    SinonMongoose.calledOnceWithExactly(
+      courseFindOne,
+      [
+        { query: 'findOne', args: [{ _id: courseId }, { companies: 1 }] },
+        { query: 'lean' },
+      ]
+    );
+    sinon.assert.notCalled(userFindOne);
     sinon.assert.notCalled(formatIdentity);
+    sinon.assert.notCalled(userCompanyFindOne);
   });
 
   it('should create an attendance sheet for INTER course', async () => {
-    const payload = { trainee: 'id de quelqun', course: new ObjectId(), file: 'test.pdf' };
-    const returnedUser = { identity: { firstName: 'monsieur', lastname: 'patate' } };
+    const courseId = new ObjectId();
+    const traineeId = new ObjectId();
+    const companyId = new ObjectId();
+
+    const course = { _id: courseId, companies: [new ObjectId()] };
+    const payload = { trainee: traineeId, course: courseId, file: 'test.pdf' };
+    const user = { _id: traineeId, identity: { firstName: 'monsieur', lastname: 'patate' } };
+    const userCompany = { user: traineeId, company: companyId };
+
     uploadCourseFile.returns({ publicId: 'yo', link: 'yo' });
-    findOne.returns(SinonMongoose.stubChainedQueries(returnedUser, ['lean']));
+    courseFindOne.returns(SinonMongoose.stubChainedQueries(course, ['lean']));
+    userFindOne.returns(SinonMongoose.stubChainedQueries(user, ['lean']));
     formatIdentity.returns('monsieurPATATE');
+    userCompanyFindOne.returns(SinonMongoose.stubChainedQueries(userCompany, ['lean']));
 
     await attendanceSheetHelper.create(payload);
+
     SinonMongoose.calledOnceWithExactly(
-      findOne,
+      courseFindOne,
       [
-        { query: 'findOne', args: [{ _id: 'id de quelqun' }, { identity: 1 }] },
+        { query: 'findOne', args: [{ _id: courseId }, { companies: 1 }] },
+        { query: 'lean' },
+      ]
+    );
+    SinonMongoose.calledOnceWithExactly(
+      userFindOne,
+      [
+        { query: 'findOne', args: [{ _id: traineeId }, { identity: 1 }] },
         { query: 'lean' },
       ]
     );
@@ -131,13 +173,22 @@ describe('create', () => {
       { firstName: 'monsieur', lastname: 'patate' },
       'FL'
     );
+    SinonMongoose.calledOnceWithExactly(
+      userCompanyFindOne,
+      [{ query: 'findOne', args: [{ user: traineeId }] }, { query: 'lean' }]
+    );
     sinon.assert.calledOnceWithExactly(
       uploadCourseFile,
       { fileName: 'emargement_monsieurPATATE', file: 'test.pdf' }
     );
     sinon.assert.calledOnceWithExactly(
       create,
-      { course: payload.course, trainee: 'id de quelqun', file: { publicId: 'yo', link: 'yo' } }
+      {
+        course: courseId,
+        trainee: traineeId,
+        file: { publicId: 'yo', link: 'yo' },
+        company: companyId,
+      }
     );
   });
 });
