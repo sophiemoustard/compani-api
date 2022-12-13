@@ -21,7 +21,7 @@ const userList = [
   },
   {
     _id: new ObjectId(),
-    identity: { firstname: 'learner', lastname: 'nocompany' },
+    identity: { firstname: 'learner', lastname: 'from AuthCompany' },
     refreshToken: uuidv4(),
     local: { email: 'learner@compani.fr', password: '123456!eR' },
     origin: WEBAPP,
@@ -96,42 +96,48 @@ const coursesList = [
   },
 ];
 
-const attendanceSheetsList = [
+const attendanceSheetList = [
   {
     _id: new ObjectId(),
     course: coursesList[0],
     file: { publicId: 'mon upload', link: 'www.test.com' },
     date: '2020-04-03T10:00:00',
+    company: authCompany._id,
   },
   {
     _id: new ObjectId(),
     course: coursesList[0],
     file: { publicId: 'mon upload', link: 'www.test.com' },
     trainee: userList[1]._id,
+    company: authCompany._id,
   },
   {
     _id: new ObjectId(),
     course: coursesList[1],
     file: { publicId: 'mon upload', link: 'www.test.com' },
     trainee: userList[1]._id,
+    company: authCompany._id,
   },
   {
     _id: new ObjectId(),
     course: coursesList[1],
     file: { publicId: 'mon upload', link: 'www.test.com' },
     trainee: userList[2]._id,
+    company: otherCompany._id,
   },
   {
     _id: new ObjectId(),
     course: coursesList[3],
     file: { publicId: 'mon upload', link: 'www.test.com' },
     trainee: userList[1]._id,
+    company: authCompany._id,
   },
   {
     _id: new ObjectId(),
     course: coursesList[2],
     file: { publicId: 'fromOtherCompany', link: 'www.test.com' },
     trainee: userList[3]._id,
+    company: otherCompany._id,
   },
 ];
 
@@ -144,7 +150,7 @@ const populateDB = async () => {
   await deleteNonAuthenticationSeeds();
 
   await Promise.all([
-    AttendanceSheet.create(attendanceSheetsList),
+    AttendanceSheet.create(attendanceSheetList),
     Course.create(coursesList),
     CourseSlot.create(slotsList),
     User.create(userList),
@@ -154,7 +160,7 @@ const populateDB = async () => {
 
 module.exports = {
   populateDB,
-  attendanceSheetsList,
+  attendanceSheetList,
   coursesList,
   slotsList,
 };

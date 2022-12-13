@@ -675,6 +675,7 @@ const attendanceSheetList = [
       publicId: 'publicId',
       link: 'https://link.com',
     },
+    company: otherCompany._id,
   },
 ];
 

@@ -6,7 +6,7 @@ const GetStream = require('get-stream');
 const { ObjectId } = require('mongodb');
 const GCloudStorageHelper = require('../../src/helpers/gCloudStorage');
 const app = require('../../server');
-const { populateDB, coursesList, attendanceSheetsList } = require('./seed/attendanceSheetsSeed');
+const { populateDB, coursesList, attendanceSheetList } = require('./seed/attendanceSheetsSeed');
 const { getToken } = require('./helpers/authentication');
 const { generateFormData } = require('./utils');
 const AttendanceSheet = require('../../src/models/AttendanceSheet');
@@ -339,7 +339,7 @@ describe('ATTENDANCE SHEETS ROUTES - DELETE /attendancesheets/{_id}', () => {
     });
 
     it('should delete an attendance sheet', async () => {
-      const attendanceSheetId = attendanceSheetsList[0]._id;
+      const attendanceSheetId = attendanceSheetList[0]._id;
       const attendanceSheetsLength = await AttendanceSheet.countDocuments();
       const response = await app.inject({
         method: 'DELETE',
@@ -365,7 +365,7 @@ describe('ATTENDANCE SHEETS ROUTES - DELETE /attendancesheets/{_id}', () => {
     it('should return a 403 if trainer is from an other company', async () => {
       const response = await app.inject({
         method: 'DELETE',
-        url: `/attendancesheets/${attendanceSheetsList[5]._id}`,
+        url: `/attendancesheets/${attendanceSheetList[5]._id}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -375,7 +375,7 @@ describe('ATTENDANCE SHEETS ROUTES - DELETE /attendancesheets/{_id}', () => {
     it('should return a 403 if attendance sheet is archived', async () => {
       const response = await app.inject({
         method: 'DELETE',
-        url: `/attendancesheets/${attendanceSheetsList[4]._id}`,
+        url: `/attendancesheets/${attendanceSheetList[4]._id}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -402,7 +402,7 @@ describe('ATTENDANCE SHEETS ROUTES - DELETE /attendancesheets/{_id}', () => {
     roles.forEach((role) => {
       it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
         authToken = await getToken(role.name);
-        const attendanceSheetId = attendanceSheetsList[0]._id;
+        const attendanceSheetId = attendanceSheetList[0]._id;
         const response = await app.inject({
           method: 'DELETE',
           url: `/attendancesheets/${attendanceSheetId}`,
