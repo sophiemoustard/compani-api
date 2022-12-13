@@ -1248,7 +1248,22 @@ describe('updateUser', () => {
     sinon.assert.notCalled(userCompanyCreate);
   });
 
-  it('should update a user company', async () => {
+  it('should update a user company WITH startDate', async () => {
+    const payload = { company: new ObjectId(), userCompanyStartDate: '2022-12-13T13:45:00.000Z' };
+
+    await UsersHelper.updateUser(userId, payload, credentials);
+
+    sinon.assert.calledOnceWithExactly(userUpdateOne, { _id: userId }, { $set: flat(omit(payload, 'company')) });
+    sinon.assert.calledOnceWithExactly(
+      userCompanyCreate,
+      { user: userId, company: payload.company, startDate: '2022-12-13T13:45:00.000Z' }
+    );
+    sinon.assert.notCalled(createHelper);
+    sinon.assert.notCalled(roleFindById);
+    sinon.assert.notCalled(updateHistoryOnSectorUpdateStub);
+  });
+
+  it('should update a user company WITHOUT startDate', async () => {
     const payload = { company: new ObjectId() };
 
     await UsersHelper.updateUser(userId, payload, credentials);

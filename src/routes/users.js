@@ -254,11 +254,8 @@ exports.plugin = {
             company: Joi.objectId(),
             userCompanyStartDate: Joi.when(
               'company',
-              {
-                is: Joi.exist(),
-                then: Joi.date(),
-                otherwise: Joi.forbidden(),
-              }),
+              { is: Joi.exist(), then: Joi.date(), otherwise: Joi.forbidden() }
+            ),
           }).required(),
         },
         pre: [{ method: getUser, assign: 'user' }, { method: authorizeUserUpdate }],

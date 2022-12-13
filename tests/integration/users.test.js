@@ -1286,16 +1286,19 @@ describe('USERS ROUTES - PUT /users/:id', () => {
 
     it('should return 200 if company is in payload and userCompanyStartDate is not', async () => {
       UtilsMock.mockCurrentDate('2022-12-13T14:15:50.000Z');
+
       const res = await app.inject({
         method: 'PUT',
         url: `/users/${usersSeedList[11]._id.toHexString()}`,
         payload: { company: authCompany._id },
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
+
       expect(res.statusCode).toBe(200);
       const createdUserCompany = await UserCompany.countDocuments({
         user: usersSeedList[11]._id,
         company: authCompany._id,
+        startDate: '2022-12-12T23:00:00.000Z',
       });
       expect(createdUserCompany).toBeTruthy();
       UtilsMock.unmockCurrentDate();

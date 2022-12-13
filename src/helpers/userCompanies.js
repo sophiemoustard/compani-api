@@ -3,6 +3,7 @@ const CompanyLinkRequest = require('../models/CompanyLinkRequest');
 const UserCompany = require('../models/UserCompany');
 const UtilsHelper = require('./utils');
 
+/* payload = { user, company, startDate? } */
 exports.create = async (payload) => {
   const { user, company } = payload;
   const userCompany = await UserCompany.findOne({ user }, { company: 1 }).lean();

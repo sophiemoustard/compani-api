@@ -24,7 +24,24 @@ describe('create', () => {
     deleteManyCompanyLinkRequest.restore();
   });
 
-  it('should create UserCompany', async () => {
+  it('should create UserCompany WITH startDate', async () => {
+    const userId = new ObjectId();
+    const companyId = new ObjectId();
+    const startDate = '2022-12-13T14:15:00.000Z';
+
+    findOne.returns(SinonMongoose.stubChainedQueries(null, ['lean']));
+
+    await UserCompaniesHelper.create({ user: userId, company: companyId, startDate });
+
+    sinon.assert.calledOnceWithExactly(create, { user: userId, company: companyId, startDate });
+    sinon.assert.calledOnceWithExactly(deleteManyCompanyLinkRequest, { user: userId });
+    SinonMongoose.calledOnceWithExactly(
+      findOne,
+      [{ query: 'findOne', args: [{ user: userId }, { company: 1 }] }, { query: 'lean' }]
+    );
+  });
+
+  it('should create UserCompany WITHOUT specified startDate', async () => {
     const userId = new ObjectId();
     const companyId = new ObjectId();
 
