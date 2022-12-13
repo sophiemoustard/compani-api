@@ -116,6 +116,24 @@ describe('ATTENDANCE SHEETS ROUTES - POST /attendancesheets', () => {
       expect(response.statusCode).toBe(400);
     });
 
+    it('should return 400 if both date and trainee are missing in payload', async () => {
+      const formData = {
+        course: coursesList[2]._id.toHexString(),
+        file: fs.createReadStream(path.join(__dirname, 'assets/test_esign.pdf')),
+      };
+
+      const form = generateFormData(formData);
+
+      const response = await app.inject({
+        method: 'POST',
+        url: '/attendancesheets',
+        payload: await GetStream(form),
+        headers: { ...form.getHeaders(), Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
+
     it('should return a 403 if trainer is from an other company', async () => {
       const formData = {
         course: coursesList[2]._id.toHexString(),
