@@ -175,7 +175,7 @@ describe('create', () => {
     );
     SinonMongoose.calledOnceWithExactly(
       userCompanyFindOne,
-      [{ query: 'findOne', args: [{ user: traineeId }] }, { query: 'lean' }]
+      [{ query: 'findOne', args: [{ user: traineeId }, { company: 1 }] }, { query: 'lean' }]
     );
     sinon.assert.calledOnceWithExactly(
       uploadCourseFile,

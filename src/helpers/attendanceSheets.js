@@ -22,7 +22,7 @@ exports.create = async (payload) => {
     const { identity } = await User.findOne({ _id: payload.trainee }, { identity: 1 }).lean();
     fileName = UtilsHelper.formatIdentity(identity, 'FL');
 
-    const userCompany = await UserCompany.findOne({ user: payload.trainee }).lean();
+    const userCompany = await UserCompany.findOne({ user: payload.trainee }, { company: 1 }).lean();
     company = userCompany.company;
   }
 
@@ -31,8 +31,7 @@ exports.create = async (payload) => {
     file: payload.file,
   });
 
-  const attendanceSheetPayload = { ...omit(payload, 'file'), company };
-  AttendanceSheet.create({ ...attendanceSheetPayload, file: fileUploaded });
+  AttendanceSheet.create({ ...omit(payload, 'file'), company, file: fileUploaded });
 };
 
 exports.list = async (courseId, companyId) => {
