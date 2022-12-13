@@ -73,6 +73,10 @@ exports.plugin = {
           payload: Joi.object().keys({
             origin: Joi.string().valid(...ORIGIN_OPTIONS).required(),
             company: Joi.objectId(),
+            userCompanyStartDate: Joi.when(
+              'company',
+              { is: Joi.exist(), then: Joi.date(), otherwise: Joi.forbidden() }
+            ),
             sector: Joi.objectId(),
             local: Joi.object().keys({
               email: Joi.string().email().required(),

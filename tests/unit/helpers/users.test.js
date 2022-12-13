@@ -1035,6 +1035,7 @@ describe('createUser', () => {
       identity: { lastname: 'Test', firstname: 'Toto' },
       local: { email: 'toto@test.com' },
       company: userCompanyId,
+      userCompanyStartDate: '2022-12-13T16:00:12.000Z',
       origin: WEBAPP,
     };
     const newUser = { ...payload, _id: userId };
@@ -1047,7 +1048,10 @@ describe('createUser', () => {
     sinon.assert.notCalled(createHistoryStub);
     sinon.assert.notCalled(roleFindById);
     sinon.assert.notCalled(userFindOne);
-    sinon.assert.calledOnceWithExactly(userCompanyCreate, { user: userId, company: userCompanyId });
+    sinon.assert.calledOnceWithExactly(
+      userCompanyCreate,
+      { user: userId, company: userCompanyId, startDate: '2022-12-13T16:00:12.000Z' }
+    );
     sinon.assert.calledOnceWithExactly(userCreate, { ...payload, refreshToken: sinon.match.string });
   });
 

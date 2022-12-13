@@ -185,6 +185,25 @@ describe('USERS ROUTES - POST /users', () => {
       expect(response.statusCode).toBe(403);
     });
 
+    it('should return a 400 user if payload has not company but has userCompanyStartDate', async () => {
+      const payload = {
+        identity: { firstname: 'Apprenant', lastname: 'Luce' },
+        local: { email: 'apprenant.gary@alenvi.io' },
+        sector: userSectors[0]._id,
+        origin: WEBAPP,
+        contact: { phone: '0727274044' },
+        userCompanyStartDate: '2022-12-13T11:00:11.000Z',
+      };
+      const response = await app.inject({
+        method: 'POST',
+        url: '/users',
+        payload,
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
+
     it('should return a 409 if email provided already exists', async () => {
       const payload = {
         identity: { firstname: 'user', lastname: 'Kirk' },
@@ -291,6 +310,7 @@ describe('USERS ROUTES - POST /users', () => {
         sector: userSectors[0]._id,
         origin: WEBAPP,
         company: otherCompany._id,
+        userCompanyStartDate: '2022-12-13T15:00:30.000Z',
       };
 
       const response = await app.inject({
@@ -302,6 +322,13 @@ describe('USERS ROUTES - POST /users', () => {
 
       expect(response.statusCode).toBe(200);
       expect(response.result.data.user.company._id).toEqual(otherCompany._id);
+
+      const userCompanyCount = await UserCompany.countDocuments({
+        user: response.result.data.user._id,
+        company: otherCompany._id,
+        startDate: '2022-12-13T15:00:30.000Z',
+      });
+      expect(userCompanyCount).toEqual(1);
     });
 
     it('should create a trainer', async () => {
