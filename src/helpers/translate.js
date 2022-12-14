@@ -393,6 +393,10 @@ module.exports = {
     billingItemHasBillLinked: 'Billing item is linked to a bill.',
     /* Télétransmission */
     deliveryCreated: 'Delivery file created',
+    /* userCompanies */
+    userCompaniesUpdated: 'User company updated.',
+    userDetachmentBeforeLastSubscription: `You can't detach the user before {DATE}, the user is subscribed to a course
+      with this company.`,
     /* VendorCompanies */
     vendorCompanyFound: 'Vendor company found.',
     vendorCompanyUpdated: 'Vendor company updated.',
@@ -790,6 +794,10 @@ module.exports = {
     billingItemHasBillLinked: 'Impossible: l\'article de facturation est relié à une facture.',
     /* Télétransmission */
     deliveryCreated: 'Fichier de delivery créé',
+    /* UserCompanies */
+    userCompaniesUpdated: 'User company mis a jour.',
+    userDetachmentBeforeLastSubscription: `Vous ne pouvez pas detacher cette personne avant le {DATE}, car à cette date
+      elle a été inscrite en formation pour la structure.`,
     /* VendorCompanies */
     vendorCompanyFound: 'Structure vendeuse trouvée.',
     vendorCompanyUpdated: 'Structure vendeuse mise à jour.',
