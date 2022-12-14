@@ -363,6 +363,7 @@ describe('USERS ROUTES - POST /users', () => {
         origin: WEBAPP,
         contact: { phone: '0712345678' },
         company: otherCompany._id,
+        userCompanyStartDate: '2022-11-14T09:11:22.000Z',
       };
 
       const response = await app.inject({
@@ -373,9 +374,12 @@ describe('USERS ROUTES - POST /users', () => {
       });
 
       expect(response.statusCode).toBe(200);
+      const userId = response.result.data.user._id;
 
-      const userCount = await User.countDocuments({ 'local.email': 'kirk@alenvi.io' });
+      const userCount = await User.countDocuments({ _id: userId });
       expect(userCount).toEqual(1);
+      const updatedCompany = await UserCompany.countDocuments({ user: userId, startDate: '2022-11-14T09:11:22.000Z' });
+      expect(updatedCompany).toBeTruthy();
     });
 
     it('should return 403 if create user without company', async () => {
@@ -1162,6 +1166,7 @@ describe('USERS ROUTES - PUT /users/:id', () => {
     });
 
     it('should add helper role and company to user with previously no company', async () => {
+      UtilsMock.mockCurrentDate('2022-12-20T05:00:44.000Z');
       const role = await Role.findOne({ name: HELPER }).lean();
       const userId = usersSeedList[11]._id;
       const noCompanyBefore = !await UserCompany.countDocuments({ user: userId });
@@ -1175,10 +1180,11 @@ describe('USERS ROUTES - PUT /users/:id', () => {
 
       expect(res.statusCode).toBe(200);
       const updatedRole = await User.countDocuments({ _id: userId, 'role.client': role._id });
-      const updatedCompany = await UserCompany.countDocuments({ user: userId });
+      const updatedCompany = await UserCompany.countDocuments({ user: userId, startDate: '2022-12-19T23:00:00.000Z' });
       expect(updatedRole).toBeTruthy();
       expect(updatedCompany).toBeTruthy();
       expect(noCompanyBefore).toBeTruthy();
+      UtilsMock.unmockCurrentDate();
     });
 
     it('should not add helper role to user if customer is not from the same company as user', async () => {
