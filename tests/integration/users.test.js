@@ -22,6 +22,7 @@ const {
   TRAINER,
   MOBILE,
   WEBAPP,
+  DAY,
 } = require('../../src/helpers/constants');
 const {
   usersSeedList,
@@ -41,6 +42,7 @@ const { coach, trainer, userList, noRoleNoCompany, auxiliary } = require('../see
 const { rolesList, auxiliaryRoleId, coachRoleId, trainerRoleId, helperRoleId } = require('../seed/authRolesSeed');
 const GDriveStorageHelper = require('../../src/helpers/gDriveStorage');
 const GCloudStorageHelper = require('../../src/helpers/gCloudStorage');
+const { CompaniDate } = require('../../src/helpers/dates/companiDates');
 const UtilsHelper = require('../../src/helpers/utils');
 const { generateFormData } = require('./utils');
 
@@ -1166,7 +1168,6 @@ describe('USERS ROUTES - PUT /users/:id', () => {
     });
 
     it('should add helper role and company to user with previously no company', async () => {
-      UtilsMock.mockCurrentDate('2022-12-20T05:00:44.000Z');
       const role = await Role.findOne({ name: HELPER }).lean();
       const userId = usersSeedList[11]._id;
       const noCompanyBefore = !await UserCompany.countDocuments({ user: userId });
@@ -1180,11 +1181,13 @@ describe('USERS ROUTES - PUT /users/:id', () => {
 
       expect(res.statusCode).toBe(200);
       const updatedRole = await User.countDocuments({ _id: userId, 'role.client': role._id });
-      const updatedCompany = await UserCompany.countDocuments({ user: userId, startDate: '2022-12-19T23:00:00.000Z' });
+      const updatedCompany = await UserCompany.countDocuments({
+        user: userId,
+        startDate: CompaniDate().startOf(DAY).toISO(),
+      });
       expect(updatedRole).toBeTruthy();
       expect(updatedCompany).toBeTruthy();
       expect(noCompanyBefore).toBeTruthy();
-      UtilsMock.unmockCurrentDate();
     });
 
     it('should not add helper role to user if customer is not from the same company as user', async () => {
@@ -1318,8 +1321,6 @@ describe('USERS ROUTES - PUT /users/:id', () => {
     });
 
     it('should return 200 if company is in payload and userCompanyStartDate is not', async () => {
-      UtilsMock.mockCurrentDate('2022-12-13T14:15:50.000Z');
-
       const res = await app.inject({
         method: 'PUT',
         url: `/users/${usersSeedList[11]._id.toHexString()}`,
@@ -1328,12 +1329,13 @@ describe('USERS ROUTES - PUT /users/:id', () => {
       });
 
       expect(res.statusCode).toBe(200);
-      const createdUserCompany = await UserCompany.countDocuments({
+      const createdUserCompany = await UserCompany.find({
         user: usersSeedList[11]._id,
         company: authCompany._id,
-        startDate: '2022-12-12T23:00:00.000Z',
-      });
+        startDate: CompaniDate().startOf(DAY).toISO(),
+      }).lean();
       expect(createdUserCompany).toBeTruthy();
+
       UtilsMock.unmockCurrentDate();
     });
 
