@@ -21,7 +21,7 @@ const userList = [
   },
   {
     _id: new ObjectId(),
-    identity: { firstname: 'learner', lastname: 'nocompany' },
+    identity: { firstname: 'learner', lastname: 'from AuthCompany' },
     refreshToken: uuidv4(),
     local: { email: 'learner@compani.fr', password: '123456!eR' },
     origin: WEBAPP,
@@ -61,8 +61,8 @@ const coursesList = [
     _id: new ObjectId(),
     subProgram: new ObjectId(),
     type: INTER_B2B,
-    trainees: [userList[1]._id],
-    companies: [authCompany._id],
+    trainees: [userList[1]._id, userList[2]._id],
+    companies: [authCompany._id, otherCompany._id],
     salesRepresentative: userList[0]._id,
   },
   { // 2
@@ -96,55 +96,57 @@ const coursesList = [
   },
 ];
 
-const attendanceSheetsList = [
+const attendanceSheetList = [
   {
     _id: new ObjectId(),
     course: coursesList[0],
     file: { publicId: 'mon upload', link: 'www.test.com' },
-    date: '2020-04-03T10:00:00',
-  },
-  {
-    _id: new ObjectId(),
-    course: coursesList[0],
-    file: { publicId: 'mon upload', link: 'www.test.com' },
-    trainee: userList[1]._id,
+    date: '2020-01-23T09:00:00.000Z',
+    company: authCompany._id,
   },
   {
     _id: new ObjectId(),
     course: coursesList[1],
     file: { publicId: 'mon upload', link: 'www.test.com' },
     trainee: userList[1]._id,
-  },
-  {
-    _id: new ObjectId(),
-    course: coursesList[1],
-    file: { publicId: 'mon upload', link: 'www.test.com' },
-    trainee: userList[2]._id,
+    company: authCompany._id,
   },
   {
     _id: new ObjectId(),
     course: coursesList[3],
     file: { publicId: 'mon upload', link: 'www.test.com' },
     trainee: userList[1]._id,
+    company: authCompany._id,
   },
   {
     _id: new ObjectId(),
     course: coursesList[2],
     file: { publicId: 'fromOtherCompany', link: 'www.test.com' },
-    trainee: userList[3]._id,
+    date: '2020-01-25T09:00:00.000Z',
+    company: authCompany._id,
   },
 ];
 
 const slotsList = [
-  { startDate: '2020-01-23T09:00:00', endDate: '2020-01-23T11:00:00', course: coursesList[0], step: new ObjectId() },
-  { startDate: '2020-01-25T09:00:00', endDate: '2020-01-25T11:00:00', course: coursesList[2], step: new ObjectId() },
+  {
+    startDate: '2020-01-23T09:00:00.000Z',
+    endDate: '2020-01-23T11:00:00.000Z',
+    course: coursesList[0],
+    step: new ObjectId(),
+  },
+  {
+    startDate: '2020-01-25T09:00:00.000Z',
+    endDate: '2020-01-25T11:00:00.000Z',
+    course: coursesList[2],
+    step: new ObjectId(),
+  },
 ];
 
 const populateDB = async () => {
   await deleteNonAuthenticationSeeds();
 
   await Promise.all([
-    AttendanceSheet.create(attendanceSheetsList),
+    AttendanceSheet.create(attendanceSheetList),
     Course.create(coursesList),
     CourseSlot.create(slotsList),
     User.create(userList),
@@ -154,7 +156,7 @@ const populateDB = async () => {
 
 module.exports = {
   populateDB,
-  attendanceSheetsList,
+  attendanceSheetList,
   coursesList,
   slotsList,
 };
