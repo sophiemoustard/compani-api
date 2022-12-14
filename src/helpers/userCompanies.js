@@ -15,3 +15,5 @@ exports.create = async (payload) => {
     throw Boom.conflict();
   }
 };
+
+exports.update = async (userCompany, payload) => UserCompany.updateOne({ _id: userCompany }, { $set: payload });
