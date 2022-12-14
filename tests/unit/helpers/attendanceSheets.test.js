@@ -24,7 +24,7 @@ describe('list', () => {
     const attendanceSheets = [{
       course: courseId,
       file: { publicId: 'mon premier upload', link: 'www.test.com' },
-      date: '2020-04-03T10:00:00',
+      date: '2020-04-03T10:00:00.000Z',
     }];
 
     find.returns(SinonMongoose.stubChainedQueries(attendanceSheets));
@@ -104,7 +104,7 @@ describe('create', () => {
   it('should create an attendance sheet for INTRA course', async () => {
     const courseId = new ObjectId();
     const course = { _id: courseId, companies: [new ObjectId()] };
-    const payload = { date: '2020-04-03T10:00:00', course: courseId, file: 'test.pdf' };
+    const payload = { date: '2020-04-03T10:00:00.000Z', course: courseId, file: 'test.pdf' };
 
     uploadCourseFile.returns({ publicId: 'yo', link: 'yo' });
     courseFindOne.returns(SinonMongoose.stubChainedQueries(course, ['lean']));
@@ -119,7 +119,7 @@ describe('create', () => {
       create,
       {
         course: courseId,
-        date: '2020-04-03T10:00:00',
+        date: '2020-04-03T10:00:00.000Z',
         file: { publicId: 'yo', link: 'yo' },
         company: course.companies[0],
       }
