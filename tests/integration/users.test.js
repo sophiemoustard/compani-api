@@ -21,6 +21,7 @@ const {
   TRAINER,
   MOBILE,
   WEBAPP,
+  DAY,
 } = require('../../src/helpers/constants');
 const {
   usersSeedList,
@@ -40,6 +41,7 @@ const { coach, trainer, userList, noRoleNoCompany, auxiliary } = require('../see
 const { rolesList, auxiliaryRoleId, coachRoleId, trainerRoleId, helperRoleId } = require('../seed/authRolesSeed');
 const GDriveStorageHelper = require('../../src/helpers/gDriveStorage');
 const GCloudStorageHelper = require('../../src/helpers/gCloudStorage');
+const { CompaniDate } = require('../../src/helpers/dates/companiDates');
 const UtilsHelper = require('../../src/helpers/utils');
 const { generateFormData } = require('./utils');
 
@@ -126,7 +128,11 @@ describe('USERS ROUTES - POST /users', () => {
       });
       expect(userSectorHistory).toEqual(1);
 
-      const userCompanyCount = await UserCompany.countDocuments({ user: userId, company: authCompany._id });
+      const userCompanyCount = await UserCompany.countDocuments({
+        user: userId,
+        company: authCompany._id,
+        userCompanyStartDate: CompaniDate().startOf(DAY).toISO(),
+      });
       expect(userCompanyCount).toEqual(1);
     });
 
@@ -182,6 +188,25 @@ describe('USERS ROUTES - POST /users', () => {
       });
 
       expect(response.statusCode).toBe(403);
+    });
+
+    it('should return a 400 user if payload has not company but has userCompanyStartDate', async () => {
+      const payload = {
+        identity: { firstname: 'Apprenant', lastname: 'Luce' },
+        local: { email: 'apprenant.gary@alenvi.io' },
+        sector: userSectors[0]._id,
+        origin: WEBAPP,
+        contact: { phone: '0727274044' },
+        userCompanyStartDate: '2022-12-13T11:00:11.000Z',
+      };
+      const response = await app.inject({
+        method: 'POST',
+        url: '/users',
+        payload,
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(400);
     });
 
     it('should return a 409 if email provided already exists', async () => {
@@ -290,6 +315,7 @@ describe('USERS ROUTES - POST /users', () => {
         sector: userSectors[0]._id,
         origin: WEBAPP,
         company: otherCompany._id,
+        userCompanyStartDate: '2022-12-13T15:00:30.000Z',
       };
 
       const response = await app.inject({
@@ -301,6 +327,13 @@ describe('USERS ROUTES - POST /users', () => {
 
       expect(response.statusCode).toBe(200);
       expect(response.result.data.user.company._id).toEqual(otherCompany._id);
+
+      const userCompanyCount = await UserCompany.countDocuments({
+        user: response.result.data.user._id,
+        company: otherCompany._id,
+        startDate: '2022-12-13T15:00:30.000Z',
+      });
+      expect(userCompanyCount).toEqual(1);
     });
 
     it('should create a trainer', async () => {
@@ -335,6 +368,7 @@ describe('USERS ROUTES - POST /users', () => {
         origin: WEBAPP,
         contact: { phone: '0712345678' },
         company: otherCompany._id,
+        userCompanyStartDate: '2022-11-14T23:00:00.000Z',
       };
 
       const response = await app.inject({
@@ -345,9 +379,12 @@ describe('USERS ROUTES - POST /users', () => {
       });
 
       expect(response.statusCode).toBe(200);
+      const userId = response.result.data.user._id;
 
-      const userCount = await User.countDocuments({ 'local.email': 'kirk@alenvi.io' });
+      const userCount = await User.countDocuments({ _id: userId });
       expect(userCount).toEqual(1);
+      const updatedCompany = await UserCompany.countDocuments({ user: userId, startDate: '2022-11-14T23:00:00.000Z' });
+      expect(updatedCompany).toBeTruthy();
     });
 
     it('should return 403 if create user without company', async () => {
@@ -1147,7 +1184,10 @@ describe('USERS ROUTES - PUT /users/:id', () => {
 
       expect(res.statusCode).toBe(200);
       const updatedRole = await User.countDocuments({ _id: userId, 'role.client': role._id });
-      const updatedCompany = await UserCompany.countDocuments({ user: userId });
+      const updatedCompany = await UserCompany.countDocuments({
+        user: userId,
+        startDate: CompaniDate().startOf(DAY).toISO(),
+      });
       expect(updatedRole).toBeTruthy();
       expect(updatedCompany).toBeTruthy();
       expect(noCompanyBefore).toBeTruthy();
@@ -1251,13 +1291,26 @@ describe('USERS ROUTES - PUT /users/:id', () => {
         method: 'PUT',
         url: `/users/${usersSeedList[11]._id.toHexString()}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
-        payload: { identity: { firstname: 'trainerUpdate' }, biography: 'It\'s my life' },
+        payload: {
+          identity: { firstname: 'trainerUpdate' },
+          biography: 'It\'s my life',
+          company: authCompany._id,
+          userCompanyStartDate: '2022-12-12T12:00:00.000Z',
+        },
       });
 
       expect(res.statusCode).toBe(200);
+
       const updatedTrainer = await User
         .countDocuments({ _id: usersSeedList[11]._id, 'identity.firstname': 'trainerUpdate' });
       expect(updatedTrainer).toBeTruthy();
+
+      const createdUserCompany = await UserCompany.countDocuments({
+        user: usersSeedList[11]._id,
+        company: authCompany._id,
+        startDate: '2022-12-12T12:00:00.000Z',
+      });
+      expect(createdUserCompany).toBeTruthy();
     });
 
     it('should return 200 if company is in payload and is the same as the user company', async () => {
@@ -1268,6 +1321,33 @@ describe('USERS ROUTES - PUT /users/:id', () => {
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
       expect(res.statusCode).toBe(200);
+    });
+
+    it('should return 200 if company is in payload and userCompanyStartDate is not', async () => {
+      const res = await app.inject({
+        method: 'PUT',
+        url: `/users/${usersSeedList[11]._id.toHexString()}`,
+        payload: { company: authCompany._id },
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(res.statusCode).toBe(200);
+      const createdUserCompany = await UserCompany.countDocuments({
+        user: usersSeedList[11]._id,
+        company: authCompany._id,
+        startDate: CompaniDate().startOf(DAY).toISO(),
+      });
+      expect(createdUserCompany).toBeTruthy();
+    });
+
+    it('should return 400 if userCompanyStartDate is in payload and company is not', async () => {
+      const res = await app.inject({
+        method: 'PUT',
+        url: `/users/${usersSeedList[0]._id.toHexString()}`,
+        payload: { userCompanyStartDate: '2022-11-12T12:30:00.000Z' },
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+      expect(res.statusCode).toBe(400);
     });
 
     it('should return a 403 error if trying to set user company to an other company', async () => {
