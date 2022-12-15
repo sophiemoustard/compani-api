@@ -6,6 +6,7 @@ const bcrypt = require('bcrypt');
 const Joi = require('joi');
 const moment = require('moment');
 const get = require('lodash/get');
+const has = require('lodash/has');
 const { PHONE_VALIDATION } = require('./utils');
 const addressSchemaDefinition = require('./schemaDefinitions/address');
 const { identitySchemaDefinition } = require('./schemaDefinitions/identity');
@@ -30,6 +31,7 @@ const {
   NONE,
 } = require('../helpers/constants');
 const { formatQuery, queryMiddlewareList } = require('./preHooks/validate');
+const UtilsHelper = require('../helpers/utils');
 
 const SALT_WORK_FACTOR = 10;
 const TOKEN_EXPIRE_DURATION = 'P1D';
@@ -321,6 +323,24 @@ async function formatPayload(doc, next) {
   return next();
 }
 
+function populateUserCompanyList(doc, next) {
+  if (!has(doc, 'userCompanyList')) return next();
+
+  const { credentials } = this.getOptions();
+  if (has(credentials, 'role.vendor')) return next();
+
+  const loggedCompanyId = get(credentials, 'company._id');
+  if (loggedCompanyId) {
+    // eslint-disable-next-line no-param-reassign
+    doc.userCompanyList =
+      doc.userCompanyList.filter(userCompany => UtilsHelper.areObjectIdsEquals(loggedCompanyId, userCompany.company));
+
+    return next();
+  }
+
+  return Boom.badRequest();
+}
+
 UserSchema.virtual('customers', { ref: 'Helper', localField: '_id', foreignField: 'user', justOne: true });
 
 UserSchema.virtual(
@@ -364,6 +384,11 @@ UserSchema.virtual('activityHistories', { ref: 'ActivityHistory', localField: '_
 
 UserSchema.virtual('company', { ref: 'UserCompany', localField: '_id', foreignField: 'user', justOne: true });
 
+UserSchema.virtual(
+  'userCompanyList',
+  { ref: 'UserCompany', localField: '_id', foreignField: 'user', sort: { startDate: -1 } }
+);
+
 UserSchema.statics.isActive = isActive;
 
 UserSchema.virtual('isActive').get(setIsActive);
@@ -380,6 +405,7 @@ UserSchema.post('find', populateCompanies);
 UserSchema.post('findOne', populateSector);
 UserSchema.post('findOne', populateCustomers);
 UserSchema.post('findOne', populateCompany);
+UserSchema.post('findOne', populateUserCompanyList);
 UserSchema.post('findOneAndUpdate', populateCompany);
 UserSchema.post('findOneAndUpdate', populateSector);
 UserSchema.post('findOneAndUpdate', populateCustomers);
