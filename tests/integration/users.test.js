@@ -5,7 +5,6 @@ const sinon = require('sinon');
 const omit = require('lodash/omit');
 const get = require('lodash/get');
 const pick = require('lodash/pick');
-const UtilsMock = require('../utilsMock');
 const app = require('../../server');
 const User = require('../../src/models/User');
 const ActivityHistory = require('../../src/models/ActivityHistory');
@@ -129,7 +128,11 @@ describe('USERS ROUTES - POST /users', () => {
       });
       expect(userSectorHistory).toEqual(1);
 
-      const userCompanyCount = await UserCompany.countDocuments({ user: userId, company: authCompany._id });
+      const userCompanyCount = await UserCompany.countDocuments({
+        user: userId,
+        company: authCompany._id,
+        userCompanyStartDate: CompaniDate().startOf(DAY).toISO(),
+      });
       expect(userCompanyCount).toEqual(1);
     });
 
@@ -365,7 +368,7 @@ describe('USERS ROUTES - POST /users', () => {
         origin: WEBAPP,
         contact: { phone: '0712345678' },
         company: otherCompany._id,
-        userCompanyStartDate: '2022-11-14T09:11:22.000Z',
+        userCompanyStartDate: '2022-11-14T23:00:00.000Z',
       };
 
       const response = await app.inject({
@@ -380,7 +383,7 @@ describe('USERS ROUTES - POST /users', () => {
 
       const userCount = await User.countDocuments({ _id: userId });
       expect(userCount).toEqual(1);
-      const updatedCompany = await UserCompany.countDocuments({ user: userId, startDate: '2022-11-14T09:11:22.000Z' });
+      const updatedCompany = await UserCompany.countDocuments({ user: userId, startDate: '2022-11-14T23:00:00.000Z' });
       expect(updatedCompany).toBeTruthy();
     });
 
@@ -1329,14 +1332,12 @@ describe('USERS ROUTES - PUT /users/:id', () => {
       });
 
       expect(res.statusCode).toBe(200);
-      const createdUserCompany = await UserCompany.find({
+      const createdUserCompany = await UserCompany.countDocuments({
         user: usersSeedList[11]._id,
         company: authCompany._id,
         startDate: CompaniDate().startOf(DAY).toISO(),
-      }).lean();
+      });
       expect(createdUserCompany).toBeTruthy();
-
-      UtilsMock.unmockCurrentDate();
     });
 
     it('should return 400 if userCompanyStartDate is in payload and company is not', async () => {
