@@ -796,8 +796,7 @@ module.exports = {
     deliveryCreated: 'Fichier de delivery créé',
     /* UserCompanies */
     userCompaniesUpdated: 'User company mis a jour.',
-    userDetachmentBeforeLastSubscription: `Vous ne pouvez pas detacher cette personne avant le {DATE}, car à cette date
-      elle a été inscrite en formation pour la structure.`,
+    userDetachmentBeforeLastSubscription: 'Vous ne pouvez pas détacher cette personne avant le {DATE}.',
     /* VendorCompanies */
     vendorCompanyFound: 'Structure vendeuse trouvée.',
     vendorCompanyUpdated: 'Structure vendeuse mise à jour.',
