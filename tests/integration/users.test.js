@@ -326,7 +326,6 @@ describe('USERS ROUTES - POST /users', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      expect(response.result.data.user.company._id).toEqual(otherCompany._id);
 
       const userCompanyCount = await UserCompany.countDocuments({
         user: response.result.data.user._id,
