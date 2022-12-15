@@ -1,6 +1,5 @@
 const Boom = require('@hapi/Boom');
 const get = require('lodash/get');
-const { ObjectId } = require('mongodb');
 const { TRAINER, TRAINEE_ADDITION } = require('../../helpers/constants');
 const UserCompany = require('../../models/UserCompany');
 const User = require('../../models/User');
@@ -8,7 +7,6 @@ const CourseHistory = require('../../models/CourseHistory');
 const UtilsHelper = require('../../helpers/utils');
 const translate = require('../../helpers/translate');
 
-const EPS_ID = new ObjectId('615dceffbb5e7a0016388601');
 const { language } = translate;
 
 exports.authorizeUserCompanyEdit = async (req) => {
@@ -16,7 +14,11 @@ exports.authorizeUserCompanyEdit = async (req) => {
 
   // we can only detach EPS trainee for now
   const userCompany = await UserCompany
-    .find({ _id: params._id, endDate: { $exists: false }, company: EPS_ID })
+    .find({
+      _id: params._id,
+      endDate: { $exists: false },
+      company: { $in: process.env.COMPANIES_ID_DETACHMENT_IS_ALLOWED },
+    })
     .populate({ path: 'company' })
     .lean();
 
