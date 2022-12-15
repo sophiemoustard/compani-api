@@ -42,5 +42,7 @@ exports.authorizeUserCompanyEdit = async (req) => {
     throw Boom.forbidden(errorMessage);
   }
 
+  if (CompaniDate(payload.endDate).isBefore(userCompany.startDate)) throw Boom.forbidden();
+
   return null;
 };
