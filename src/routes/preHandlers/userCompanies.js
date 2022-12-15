@@ -23,14 +23,16 @@ exports.authorizeUserCompanyEdit = async (req) => {
     })
     .populate({ path: 'company' })
     .lean();
-
   if (!userCompany) throw Boom.forbidden();
 
   const { company, user } = userCompany;
-  const userClientRole = get(credentials, 'role.client.name');
+
   const userVendorRole = get(credentials, 'role.vendor.name');
+  if (userVendorRole === TRAINER) throw Boom.forbidden();
+
+  const userClientRole = get(credentials, 'role.client.name');
   const isSameCompany = UtilsHelper.areObjectIdsEquals(company._id, credentials.company._id);
-  if ((userClientRole && !isSameCompany && !userVendorRole) || userVendorRole === TRAINER) throw Boom.forbidden();
+  if ((userClientRole && !isSameCompany && !userVendorRole)) throw Boom.forbidden();
 
   const userExists = await User.countDocuments({ _id: user, role: { $exists: false } });
   if (!userExists) throw Boom.forbidden();
