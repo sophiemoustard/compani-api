@@ -11,7 +11,7 @@ describe('NODE ENV', () => {
   });
 });
 
-describe('USER COMPANIES ROUTES - PUT /usercompanies/{id} #tag', () => {
+describe('USER COMPANIES ROUTES - PUT /usercompanies/{id}', () => {
   let authToken;
   beforeEach(populateDB);
 

@@ -380,10 +380,14 @@ describe('getUser', () => {
 
   it('should return user without populating role', async () => {
     const userId = new ObjectId();
-    const user = { _id: userId, role: { name: 'helper', rights: [] } };
+    const user = {
+      _id: userId,
+      role: { name: 'helper', rights: [] },
+      userCompanyList: [{ _id: new ObjectId() }],
+    };
     const credentials = { company: { _id: new ObjectId() }, _id: new ObjectId() };
 
-    findOne.returns(SinonMongoose.stubChainedQueries(user));
+    findOne.returns(SinonMongoose.stubChainedQueries(user, ['populate', 'setOptions', 'lean']));
 
     await UsersHelper.getUser(userId, credentials);
 
@@ -422,6 +426,8 @@ describe('getUser', () => {
           args: [{ path: 'companyLinkRequest', populate: { path: 'company', select: '_id name' } }],
         },
         { query: 'populate', args: [{ path: 'establishment', select: 'siret' }] },
+        { query: 'populate', args: [{ path: 'userCompanyList' }] },
+        { query: 'setOptions', args: [{ credentials }] },
         { query: 'lean', args: [{ autopopulate: true, virtuals: true }] },
       ]
     );
@@ -432,7 +438,7 @@ describe('getUser', () => {
     const user = { _id: userId, role: { vendor: 'trainer', rights: [] } };
     const credentials = { company: { _id: new ObjectId() }, _id: new ObjectId(), role: { vendor: 'trainer' } };
 
-    findOne.returns(SinonMongoose.stubChainedQueries(user));
+    findOne.returns(SinonMongoose.stubChainedQueries(user, ['populate', 'setOptions', 'lean']));
 
     await UsersHelper.getUser(userId, credentials);
 
@@ -468,6 +474,8 @@ describe('getUser', () => {
           args: [{ path: 'companyLinkRequest', populate: { path: 'company', select: '_id name' } }],
         },
         { query: 'populate', args: [{ path: 'establishment', select: 'siret' }] },
+        { query: 'populate', args: [{ path: 'userCompanyList' }] },
+        { query: 'setOptions', args: [{ credentials }] },
         { query: 'lean', args: [{ autopopulate: true, virtuals: true }] },
       ]
     );
@@ -478,7 +486,7 @@ describe('getUser', () => {
     const user = { _id: userId, role: { vendor: 'trainer', rights: [] } };
     const credentials = { company: { _id: new ObjectId() }, _id: userId };
 
-    findOne.returns(SinonMongoose.stubChainedQueries(user));
+    findOne.returns(SinonMongoose.stubChainedQueries(user, ['populate', 'setOptions', 'lean']));
 
     await UsersHelper.getUser(userId, credentials);
 
@@ -514,6 +522,8 @@ describe('getUser', () => {
           args: [{ path: 'companyLinkRequest', populate: { path: 'company', select: '_id name' } }],
         },
         { query: 'populate', args: [{ path: 'establishment', select: 'siret' }] },
+        { query: 'populate', args: [{ path: 'userCompanyList' }] },
+        { query: 'setOptions', args: [{ credentials }] },
         { query: 'lean', args: [{ autopopulate: true, virtuals: true }] },
       ]
     );
@@ -524,7 +534,7 @@ describe('getUser', () => {
     const user = { _id: userId, companyLinkRequest: { company: { _id: new ObjectId(), name: 'Alenvi' } } };
     const credentials = { _id: userId };
 
-    findOne.returns(SinonMongoose.stubChainedQueries(user));
+    findOne.returns(SinonMongoose.stubChainedQueries(user, ['populate', 'setOptions', 'lean']));
 
     await UsersHelper.getUser(userId, credentials);
 
@@ -560,6 +570,8 @@ describe('getUser', () => {
           args: [{ path: 'companyLinkRequest', populate: { path: 'company', select: '_id name' } }],
         },
         { query: 'populate', args: [{ path: 'establishment', select: 'siret' }] },
+        { query: 'populate', args: [{ path: 'userCompanyList' }] },
+        { query: 'setOptions', args: [{ credentials }] },
         { query: 'lean', args: [{ autopopulate: true, virtuals: true }] },
       ]
     );
@@ -574,7 +586,7 @@ describe('getUser', () => {
     };
 
     try {
-      findOne.returns(SinonMongoose.stubChainedQueries(null));
+      findOne.returns(SinonMongoose.stubChainedQueries(null, ['populate', 'setOptions', 'lean']));
 
       await UsersHelper.getUser(userId, credentials);
     } catch (e) {
@@ -612,6 +624,8 @@ describe('getUser', () => {
             args: [{ path: 'companyLinkRequest', populate: { path: 'company', select: '_id name' } }],
           },
           { query: 'populate', args: [{ path: 'establishment', select: 'siret' }] },
+          { query: 'populate', args: [{ path: 'userCompanyList' }] },
+          { query: 'setOptions', args: [{ credentials }] },
           { query: 'lean', args: [{ autopopulate: true, virtuals: true }] },
         ]
       );

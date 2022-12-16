@@ -114,7 +114,7 @@ describe('update', () => {
     sinon.assert.calledOnceWithExactly(
       updateOne,
       { _id: userCompany._id },
-      { $set: { endDate: '2022-12-17T00:00:00.000Z' } }
+      { $set: { endDate: '2022-12-17T22:59:59.999Z' } }
     );
   });
 });
