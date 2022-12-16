@@ -324,7 +324,7 @@ async function formatPayload(doc, next) {
 }
 
 function populateUserCompanyList(doc, next) {
-  if (!has(doc, 'userCompanyList')) return next();
+  if (!get(doc, 'userCompanyList.length')) return next();
 
   const { credentials } = this.getOptions();
   if (has(credentials, 'role.vendor')) return next();
@@ -338,7 +338,7 @@ function populateUserCompanyList(doc, next) {
     return next();
   }
 
-  return Boom.badRequest();
+  return next(Boom.badRequest());
 }
 
 UserSchema.virtual('customers', { ref: 'Helper', localField: '_id', foreignField: 'user', justOne: true });
