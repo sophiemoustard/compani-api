@@ -131,7 +131,7 @@ const usersSeedList = [
   },
 ];
 
-const companyIdDetachmentAllowed = new ObjectId(process.env.COMPANIES_ID_DETACHMENT_IS_ALLOWED);
+const companyIdDetachmentAllowed = new ObjectId(process.env.DETACHMENT_ALLOWED_COMPANY_IDS);
 const company = {
   _id: companyIdDetachmentAllowed,
   name: 'Structure dans laquelle on peut detacher des apprenants',
