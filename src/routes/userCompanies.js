@@ -3,7 +3,7 @@
 const Joi = require('joi');
 Joi.objectId = require('joi-objectid')(Joi);
 const { update } = require('../controllers/userCompaniesController');
-const { authorizeUserCompanyEdit } = require('./prehandlers/userCompanies');
+const { authorizeUserCompanyEdit } = require('./preHandlers/userCompanies');
 
 exports.plugin = {
   name: 'routes-usercompanies',
