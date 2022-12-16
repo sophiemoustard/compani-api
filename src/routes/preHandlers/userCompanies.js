@@ -1,4 +1,4 @@
-const Boom = require('@hapi/Boom');
+const Boom = require('@hapi/boom');
 const get = require('lodash/get');
 const { TRAINER, TRAINEE_ADDITION, DD_MM_YYYY } = require('../../helpers/constants');
 const UserCompany = require('../../models/UserCompany');
