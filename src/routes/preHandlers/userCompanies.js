@@ -19,7 +19,7 @@ exports.authorizeUserCompanyEdit = async (req) => {
       _id: params._id,
       startDate: { $lte: CompaniDate().toISO() },
       endDate: { $exists: false },
-      company: { $in: process.env.COMPANIES_ID_DETACHMENT_IS_ALLOWED },
+      company: { $in: process.env.DETACHMENT_ALLOWED_COMPANY_IDS },
     })
     .populate({ path: 'company' })
     .lean();
