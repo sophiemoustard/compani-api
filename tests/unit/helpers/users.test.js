@@ -901,10 +901,6 @@ describe('createUser', () => {
       [
         { query: 'findOne', args: [{ _id: userId }] },
         { query: 'populate', args: [{ path: 'sector', select: '_id sector', match: { company: companyId } }] },
-        {
-          query: 'populate',
-          args: [{ path: 'company', populate: { path: 'company' }, select: '-__v -createdAt -updatedAt' }],
-        },
         { query: 'lean', args: [{ virtuals: true, autopopulate: true }] },
       ]
     );
@@ -943,10 +939,6 @@ describe('createUser', () => {
       [
         { query: 'findOne', args: [{ _id: userId }] },
         { query: 'populate', args: [{ path: 'sector', select: '_id sector', match: { company: companyId } }] },
-        {
-          query: 'populate',
-          args: [{ path: 'company', populate: { path: 'company' }, select: '-__v -createdAt -updatedAt' }],
-        },
         { query: 'lean', args: [{ virtuals: true, autopopulate: true }] },
       ]
     );
@@ -988,10 +980,6 @@ describe('createUser', () => {
       [
         { query: 'findOne', args: [{ _id: userId }] },
         { query: 'populate', args: [{ path: 'sector', select: '_id sector', match: { company: payload.company } }] },
-        {
-          query: 'populate',
-          args: [{ path: 'company', populate: { path: 'company' }, select: '-__v -createdAt -updatedAt' }],
-        },
         { query: 'lean', args: [{ virtuals: true, autopopulate: true }] },
       ]
     );
@@ -1073,6 +1061,7 @@ describe('createUser', () => {
       sinon.assert.notCalled(createHistoryStub);
       sinon.assert.notCalled(userCreate);
       sinon.assert.notCalled(userCompanyCreate);
+      sinon.assert.notCalled(userFindOne);
       SinonMongoose.calledOnceWithExactly(
         roleFindById,
         [{ query: 'findById', args: [payload.role, { name: 1, interface: 1 }] }, { query: 'lean' }]

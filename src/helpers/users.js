@@ -227,7 +227,6 @@ exports.createUser = async (userPayload, credentials) => {
 
   return User.findOne({ _id: user._id })
     .populate({ path: 'sector', select: '_id sector', match: { company: companyId } })
-    .populate({ path: 'company', populate: { path: 'company' }, select: '-__v -createdAt -updatedAt' })
     .lean({ virtuals: true, autopopulate: true });
 };
 
