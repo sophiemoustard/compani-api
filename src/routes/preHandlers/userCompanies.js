@@ -37,7 +37,7 @@ exports.authorizeUserCompanyEdit = async (req) => {
   if (userVendorRole === TRAINER && !userClientRole) throw Boom.forbidden();
 
   const isSameCompany = UtilsHelper.areObjectIdsEquals(company._id, credentials.company._id);
-  if ((userClientRole && !isSameCompany && !userVendorRole)) throw Boom.forbidden();
+  if (!userVendorRole && !isSameCompany) throw Boom.forbidden();
 
   const userExists = await User.countDocuments({ _id: user, role: { $exists: false } });
   if (!userExists) throw Boom.forbidden();
