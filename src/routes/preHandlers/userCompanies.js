@@ -1,7 +1,12 @@
 const Boom = require('@hapi/boom');
-const { ObjectId } = require('mongodb');
 const get = require('lodash/get');
-const { TRAINER, TRAINEE_ADDITION, DD_MM_YYYY } = require('../../helpers/constants');
+const { ObjectId } = require('mongodb');
+const {
+  TRAINEE_ADDITION,
+  DD_MM_YYYY,
+  VENDOR_ADMIN,
+  TRAINING_ORGANISATION_MANAGER,
+} = require('../../helpers/constants');
 const UserCompany = require('../../models/UserCompany');
 const User = require('../../models/User');
 const CourseHistory = require('../../models/CourseHistory');
@@ -31,13 +36,13 @@ exports.authorizeUserCompanyEdit = async (req) => {
 
   const { company, user, startDate } = userCompany;
 
-  const userVendorRole = get(credentials, 'role.vendor.name');
+  const isRofOrAdmin = [VENDOR_ADMIN, TRAINING_ORGANISATION_MANAGER].includes(get(credentials, 'role.vendor.name'));
   const userClientRole = get(credentials, 'role.client.name');
 
-  if (userVendorRole === TRAINER && !userClientRole) throw Boom.forbidden();
+  if (!isRofOrAdmin && !userClientRole) throw Boom.forbidden();
 
   const isSameCompany = UtilsHelper.areObjectIdsEquals(company._id, credentials.company._id);
-  if (!userVendorRole && !isSameCompany) throw Boom.forbidden();
+  if (!!userClientRole && !isSameCompany) throw Boom.forbidden();
 
   const userExists = await User.countDocuments({ _id: user, role: { $exists: false } });
   if (!userExists) throw Boom.forbidden();
