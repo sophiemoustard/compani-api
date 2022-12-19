@@ -25,24 +25,25 @@ exports.authorizeUserCompanyEdit = async (req) => {
     .lean();
   if (!userCompany) throw Boom.forbidden();
 
-  const { company, user } = userCompany;
+  const { company, user, startDate } = userCompany;
 
   const userVendorRole = get(credentials, 'role.vendor.name');
-  if (userVendorRole === TRAINER) throw Boom.forbidden();
-
   const userClientRole = get(credentials, 'role.client.name');
+
+  if (userVendorRole === TRAINER && !userClientRole) throw Boom.forbidden();
+
   const isSameCompany = UtilsHelper.areObjectIdsEquals(company._id, credentials.company._id);
   if ((userClientRole && !isSameCompany && !userVendorRole)) throw Boom.forbidden();
 
   const userExists = await User.countDocuments({ _id: user, role: { $exists: false } });
   if (!userExists) throw Boom.forbidden();
 
-  if (CompaniDate(payload.endDate).isBefore(userCompany.startDate)) {
+  if (CompaniDate(payload.endDate).isBefore(startDate)) {
     throw Boom.forbidden(translate[language].endDateBeforeStartDate);
   }
 
   const courseHistories = await CourseHistory
-    .find({ action: TRAINEE_ADDITION, trainee: userCompany.user, createdAt: { $gte: payload.endDate } })
+    .find({ action: TRAINEE_ADDITION, trainee: user, createdAt: { $gte: payload.endDate } })
     .sort({ createdAt: -1 })
     .limit(1);
 

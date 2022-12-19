@@ -394,7 +394,7 @@ module.exports = {
     /* Télétransmission */
     deliveryCreated: 'Delivery file created',
     /* userCompanies */
-    userCompaniesUpdated: 'User company updated.',
+    userCompanyUpdated: 'User company updated.',
     userDetachmentBeforeLastSubscription: `You can't detach the user before {DATE}, the user is subscribed to a course
       with this company.`,
     /* VendorCompanies */
@@ -795,7 +795,7 @@ module.exports = {
     /* Télétransmission */
     deliveryCreated: 'Fichier de delivery créé',
     /* UserCompanies */
-    userCompaniesUpdated: 'User company mis a jour.',
+    userCompanyUpdated: 'Informations sur la structure de l\'apprenant mises à jour.',
     userDetachmentBeforeLastSubscription: 'Vous ne pouvez pas détacher cette personne avant le {DATE}.',
     /* VendorCompanies */
     vendorCompanyFound: 'Structure vendeuse trouvée.',

@@ -6,7 +6,7 @@ const { language } = translate;
 const update = async (req) => {
   await UserCompaniesHelper.update(req.params._id, req.payload);
 
-  return { message: translate[language].userCompaniesUpdated };
+  return { message: translate[language].userCompanyUpdated };
 };
 
 module.exports = { update };

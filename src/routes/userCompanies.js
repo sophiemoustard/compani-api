@@ -2,8 +2,9 @@
 
 const Joi = require('joi');
 Joi.objectId = require('joi-objectid')(Joi);
-const { update } = require('../controllers/userCompaniesController');
+const { update } = require('../controllers/userCompanyController');
 const { authorizeUserCompanyEdit } = require('./preHandlers/userCompanies');
+const { requiredDateToISOString } = require('./validations/utils');
 
 exports.plugin = {
   name: 'routes-usercompanies',
@@ -16,7 +17,7 @@ exports.plugin = {
         validate: {
           params: Joi.object({ _id: Joi.objectId().required() }),
           payload: Joi.object().keys({
-            endDate: Joi.date().required(),
+            endDate: requiredDateToISOString,
           }),
         },
         pre: [{ method: authorizeUserCompanyEdit }],
