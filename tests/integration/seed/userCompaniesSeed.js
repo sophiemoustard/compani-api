@@ -16,6 +16,7 @@ const { WEBAPP, TRAINEE_ADDITION, INTRA, VIDEO } = require('../../../src/helpers
 const { auxiliaryRoleId, coachRoleId, trainingOrganisationManagerRoleId } = require('../../seed/authRolesSeed');
 const { vendorAdmin, trainerOrganisationManager, trainer, trainerAndCoach } = require('../../seed/authUsersSeed');
 const { CompaniDate } = require('../../../src/helpers/dates/companiDates');
+const { DETACHMENT_ALLOWED_COMPANY_IDS } = require('../../../src/routes/preHandlers/userCompanies');
 
 const establishmentList = [
   {
@@ -131,9 +132,8 @@ const usersSeedList = [
   },
 ];
 
-const companyIdDetachmentAllowed = new ObjectId(process.env.DETACHMENT_ALLOWED_COMPANY_IDS);
 const company = {
-  _id: companyIdDetachmentAllowed,
+  _id: DETACHMENT_ALLOWED_COMPANY_IDS[0],
   name: 'Structure dans laquelle on peut detacher des apprenants',
   rcs: '1234567890',
   siren: '1234567890',
