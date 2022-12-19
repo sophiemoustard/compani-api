@@ -19,7 +19,4 @@ exports.create = async (payload) => {
 };
 
 exports.update = async (userCompany, payload) =>
-  UserCompany.updateOne(
-    { _id: userCompany },
-    { $set: { ...payload, endDate: CompaniDate(payload.endDate).endOf(DAY).toISO() } }
-  );
+  UserCompany.updateOne({ _id: userCompany }, { $set: { endDate: CompaniDate(payload.endDate).endOf(DAY).toISO() } });
