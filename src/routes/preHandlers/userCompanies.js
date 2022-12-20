@@ -21,6 +21,10 @@ exports.DETACHMENT_ALLOWED_COMPANY_IDS =
 
 exports.authorizeUserCompanyEdit = async (req) => {
   const { auth: { credentials }, params, payload } = req;
+  const userClientRole = get(credentials, 'role.client.name');
+
+  const isRofOrAdmin = [VENDOR_ADMIN, TRAINING_ORGANISATION_MANAGER].includes(get(credentials, 'role.vendor.name'));
+  if (!isRofOrAdmin && !userClientRole) throw Boom.forbidden();
 
   // we can only detach EPS trainee for now
   const userCompany = await UserCompany
@@ -36,13 +40,8 @@ exports.authorizeUserCompanyEdit = async (req) => {
 
   const { company, user, startDate } = userCompany;
 
-  const isRofOrAdmin = [VENDOR_ADMIN, TRAINING_ORGANISATION_MANAGER].includes(get(credentials, 'role.vendor.name'));
-  const userClientRole = get(credentials, 'role.client.name');
-
-  if (!isRofOrAdmin && !userClientRole) throw Boom.forbidden();
-
   const isSameCompany = UtilsHelper.areObjectIdsEquals(company._id, credentials.company._id);
-  if (!!userClientRole && !isSameCompany) throw Boom.forbidden();
+  if (!isRofOrAdmin && !isSameCompany) throw Boom.forbidden();
 
   const userExists = await User.countDocuments({ _id: user, role: { $exists: false } });
   if (!userExists) throw Boom.forbidden();

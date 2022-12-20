@@ -795,7 +795,7 @@ module.exports = {
     /* Télétransmission */
     deliveryCreated: 'Fichier de delivery créé',
     /* UserCompanies */
-    userCompanyUpdated: 'Informations sur la structure de l\'apprenant mises à jour.',
+    userCompanyUpdated: 'Informations sur la structure de l\'apprenant(e) mises à jour.',
     userDetachmentBeforeLastSubscription: 'Vous ne pouvez pas détacher cette personne avant le {DATE}.',
     /* VendorCompanies */
     vendorCompanyFound: 'Structure vendeuse trouvée.',
