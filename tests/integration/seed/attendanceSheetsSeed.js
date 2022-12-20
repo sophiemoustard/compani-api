@@ -3,7 +3,7 @@ const { v4: uuidv4 } = require('uuid');
 const AttendanceSheet = require('../../../src/models/AttendanceSheet');
 const Course = require('../../../src/models/Course');
 const CourseSlot = require('../../../src/models/CourseSlot');
-const { authCompany, otherCompany } = require('../../seed/authCompaniesSeed');
+const { authCompany, otherCompany, companyWithoutSubscription } = require('../../seed/authCompaniesSeed');
 const { WEBAPP, INTRA, INTER_B2B } = require('../../../src/helpers/constants');
 const { deleteNonAuthenticationSeeds } = require('../helpers/authentication');
 const UserCompany = require('../../../src/models/UserCompany');
@@ -45,7 +45,7 @@ const userCompaniesList = [
   {
     _id: new ObjectId(),
     user: userList[0]._id,
-    company: otherCompany._id,
+    company: companyWithoutSubscription._id,
     startDate: '2022-01-01T23:00:00.000Z',
     endDate: '2022-11-30T23:00:00.000Z',
   },
