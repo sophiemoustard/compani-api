@@ -727,18 +727,18 @@ describe('USERS ROUTES - GET /users/learners', () => {
     //     .toBeTruthy();
     // });
 
-    it('should return learners from several companies', async () => {
-      const res = await app.inject({
-        method: 'GET',
-        url: `/users/learners?companies=${authCompany._id}&companies=${otherCompany._id}`,
-        headers: { Cookie: `alenvi_token=${authToken}` },
-      });
+    // it('should return learners from several companies', async () => {
+    //   const res = await app.inject({
+    //     method: 'GET',
+    //     url: `/users/learners?companies=${authCompany._id}&companies=${otherCompany._id}`,
+    //     headers: { Cookie: `alenvi_token=${authToken}` },
+    //   });
 
-      expect(res.statusCode).toBe(200);
-      expect(res.result.data.users.every(u => UtilsHelper.areObjectIdsEquals(u.company._id, authCompany._id) ||
-        UtilsHelper.areObjectIdsEquals(u.company._id, otherCompany._id)))
-        .toBeTruthy();
-    });
+    //   expect(res.statusCode).toBe(200);
+    //   expect(res.result.data.users.every(u => UtilsHelper.areObjectIdsEquals(u.company._id, authCompany._id) ||
+    //     UtilsHelper.areObjectIdsEquals(u.company._id, otherCompany._id)))
+    //     .toBeTruthy();
+    // });
   });
 
   // describe('COACH', () => {
@@ -827,23 +827,23 @@ describe('USERS ROUTES - GET /users/active', () => {
     });
   });
 
-  describe('TRAINING_ORGANISATION_MANAGER', () => {
-    beforeEach(async () => {
-      authToken = await getToken('training_organisation_manager');
-    });
+  // describe('TRAINING_ORGANISATION_MANAGER', () => {
+  //   beforeEach(async () => {
+  //     authToken = await getToken('training_organisation_manager');
+  //   });
 
-    it('should get all active users from other company if role vendor', async () => {
-      const res = await app.inject({
-        method: 'GET',
-        url: `/users/active?company=${otherCompany._id}`,
-        headers: { Cookie: `alenvi_token=${authToken}` },
-      });
+  //   it('should get all active users from other company if role vendor', async () => {
+  //     const res = await app.inject({
+  //       method: 'GET',
+  //       url: `/users/active?company=${otherCompany._id}`,
+  //       headers: { Cookie: `alenvi_token=${authToken}` },
+  //     });
 
-      expect(res.statusCode).toBe(200);
-      expect(res.result.data.users.length).toBe(1);
-      expect(res.result.data.users.every(u => u.isActive)).toBeTruthy();
-    });
-  });
+  //     expect(res.statusCode).toBe(200);
+  //     expect(res.result.data.users.length).toBe(1);
+  //     expect(res.result.data.users.every(u => u.isActive)).toBeTruthy();
+  //   });
+  // });
 
   describe('Other roles', () => {
     const roles = [

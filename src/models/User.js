@@ -328,7 +328,8 @@ function populateUserCompanyList(doc, next) {
   if (!get(doc, 'userCompanyList.length')) return next();
 
   const { credentials } = this.getOptions();
-  if (has(credentials, 'role.vendor')) return next();
+  const requestingOwnInfos = UtilsHelper.areObjectIdsEquals(credentials._id, doc._id);
+  if (has(credentials, 'role.vendor') || requestingOwnInfos) return next();
 
   const loggedCompanyId = get(credentials, 'company._id');
   if (loggedCompanyId) {
