@@ -116,7 +116,7 @@ describe('USER COMPANIES ROUTES - PUT /usercompanies/{id}', () => {
     });
 
     it('should return a 403 if user doesnt exist', async () => {
-      const userCompanyId = userCompanies[3]._id.toHexString();
+      const userCompanyId = userCompanies[4]._id.toHexString();
       const payload = { endDate: '2022-12-25T22:59:59.999Z' };
 
       const res = await app.inject({
@@ -131,7 +131,7 @@ describe('USER COMPANIES ROUTES - PUT /usercompanies/{id}', () => {
     });
 
     it('should return a 403 if user has a role', async () => {
-      const userCompanyId = userCompanies[7]._id;
+      const userCompanyId = userCompanies[8]._id;
       const payload = { endDate: '2022-12-25T22:59:59.999Z' };
 
       const res = await app.inject({
@@ -143,20 +143,6 @@ describe('USER COMPANIES ROUTES - PUT /usercompanies/{id}', () => {
 
       expect(res.statusCode).toBe(403);
       expect(res.result.message).toBe('Error while checking user: user not found.');
-    });
-
-    it('should return a 403 if user doesnt exist', async () => {
-      const userCompanyId = userCompanies[4]._id.toHexString();
-      const payload = { endDate: '2022-12-25T22:59:59.999Z' };
-
-      const res = await app.inject({
-        method: 'PUT',
-        url: `/usercompanies/${userCompanyId}`,
-        payload,
-        headers: { Cookie: `alenvi_token=${authToken}` },
-      });
-
-      expect(res.statusCode).toBe(403);
     });
 
     it('should return a 403 if detachment date is before user company startdate', async () => {
@@ -312,7 +298,7 @@ describe('USER COMPANIES ROUTES - PUT /usercompanies/{id}', () => {
     });
 
     it('should return a 403 if user doesnt exist', async () => {
-      const userCompanyId = userCompanies[3]._id.toHexString();
+      const userCompanyId = userCompanies[4]._id.toHexString();
       const payload = { endDate: '2022-12-25T22:59:59.999Z' };
 
       const res = await app.inject({
@@ -327,7 +313,7 @@ describe('USER COMPANIES ROUTES - PUT /usercompanies/{id}', () => {
     });
 
     it('should return a 403 if user has a role', async () => {
-      const userCompanyId = userCompanies[7]._id;
+      const userCompanyId = userCompanies[8]._id;
       const payload = { endDate: '2022-12-25T22:59:59.999Z' };
 
       const res = await app.inject({
@@ -339,20 +325,6 @@ describe('USER COMPANIES ROUTES - PUT /usercompanies/{id}', () => {
 
       expect(res.statusCode).toBe(403);
       expect(res.result.message).toBe('Error while checking user: user not found.');
-    });
-
-    it('should return a 403 if user doesnt exist', async () => {
-      const userCompanyId = userCompanies[4]._id.toHexString();
-      const payload = { endDate: '2022-12-25T22:59:59.999Z' };
-
-      const res = await app.inject({
-        method: 'PUT',
-        url: `/usercompanies/${userCompanyId}`,
-        payload,
-        headers: { Cookie: `alenvi_token=${authToken}` },
-      });
-
-      expect(res.statusCode).toBe(403);
     });
 
     it('should return a 403 if detachment date is before user company startdate', async () => {
