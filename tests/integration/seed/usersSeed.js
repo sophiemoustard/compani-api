@@ -276,6 +276,13 @@ const helpers = [
 ];
 
 const userCompanies = [
+  // old inactive user company
+  {
+    user: auxiliaryFromOtherCompany._id,
+    company: authCompany._id,
+    startDate: '2022-01-01T23:00:00.000Z',
+    endDate: '2022-11-30T23:00:00.000Z',
+  },
   { user: auxiliaryFromOtherCompany._id, company: otherCompany._id },
   { user: helperFromOtherCompany._id, company: otherCompany._id },
   { user: coachFromOtherCompany._id, company: otherCompany._id },

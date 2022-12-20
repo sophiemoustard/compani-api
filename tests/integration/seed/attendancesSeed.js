@@ -248,6 +248,13 @@ const attendancesList = [
 ];
 
 const userCompanyList = [
+  // old inactive user company
+  {
+    user: traineeList[0]._id,
+    company: otherCompany._id,
+    startDate: '2022-01-01T23:00:00.000Z',
+    endDate: '2022-11-30T23:00:00.000Z',
+  },
   { user: traineeList[0]._id, company: authCompany._id },
   { user: traineeList[2]._id, company: otherCompany._id },
   { user: traineeList[3]._id, company: authCompany._id },

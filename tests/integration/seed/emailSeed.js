@@ -61,6 +61,14 @@ const emailUsers = [
 ];
 
 const userCompanies = [
+  // old inactive user company
+  {
+    _id: new ObjectId(),
+    user: emailUser._id,
+    company: otherCompany._id,
+    startDate: '2022-01-01T23:00:00.000Z',
+    endDate: '2022-11-30T23:00:00.000Z',
+  },
   { _id: new ObjectId(), user: emailUser._id, company: authCompany._id },
   { _id: new ObjectId(), user: emailUserFromOtherCompany._id, company: otherCompany._id },
   { _id: new ObjectId(), user: trainerFromOtherCompany._id, company: otherCompany._id },
