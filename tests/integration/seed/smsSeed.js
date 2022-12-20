@@ -38,6 +38,14 @@ const smsUserFromOtherCompany = {
 };
 
 const userCompanies = [
+  // old inactive user company
+  {
+    _id: new ObjectId(),
+    user: smsUser._id,
+    company: authCompany._id,
+    startDate: '2022-01-01T23:00:00.000Z',
+    endDate: '2022-11-30T23:00:00.000Z',
+  },
   { _id: new ObjectId(), user: smsUser._id, company: authCompany._id },
   { _id: new ObjectId(), user: smsUserFromOtherCompany._id, company: otherCompany._id },
 ];

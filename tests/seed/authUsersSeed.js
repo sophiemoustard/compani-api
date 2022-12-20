@@ -11,7 +11,7 @@ const {
   trainingOrganisationManagerRoleId,
   trainerRoleId,
 } = require('./authRolesSeed');
-const { authCompany, companyWithoutSubscription } = require('./authCompaniesSeed');
+const { authCompany, companyWithoutSubscription, otherCompany } = require('./authCompaniesSeed');
 const { WEBAPP, MOBILE } = require('../../src/helpers/constants');
 
 const userList = [
@@ -127,6 +127,14 @@ const userList = [
 ];
 
 const userCompaniesList = [
+  // old inactive user company
+  {
+    _id: new ObjectId(),
+    user: userList[0]._id,
+    company: otherCompany._id,
+    startDate: '2022-01-01T23:00:00.000Z',
+    endDate: '2022-11-30T23:00:00.000Z',
+  },
   { user: userList[0]._id, company: authCompany._id },
   { user: userList[1]._id, company: authCompany._id },
   { user: userList[2]._id, company: authCompany._id },

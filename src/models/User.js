@@ -32,6 +32,7 @@ const {
 } = require('../helpers/constants');
 const { formatQuery, queryMiddlewareList } = require('./preHooks/validate');
 const UtilsHelper = require('../helpers/utils');
+const { CompaniDate } = require('../helpers/dates/companiDates');
 
 const SALT_WORK_FACTOR = 10;
 const TOKEN_EXPIRE_DURATION = 'P1D';
@@ -382,7 +383,21 @@ UserSchema.virtual(
 
 UserSchema.virtual('activityHistories', { ref: 'ActivityHistory', localField: '_id', foreignField: 'user' });
 
-UserSchema.virtual('company', { ref: 'UserCompany', localField: '_id', foreignField: 'user', justOne: true });
+UserSchema.virtual(
+  'company',
+  {
+    ref: 'UserCompany',
+    localField: '_id',
+    foreignField: 'user',
+    options: {
+      match: {
+        startDate: { $lt: CompaniDate().toDate() },
+        $or: [{ endDate: { $exists: false } }, { endDate: { $gt: CompaniDate().toDate() } }],
+      },
+    },
+    justOne: true,
+  }
+);
 
 UserSchema.virtual(
   'userCompanyList',

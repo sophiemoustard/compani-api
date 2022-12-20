@@ -49,8 +49,17 @@ const userFromOtherCompany = {
   origin: WEBAPP,
 };
 
-const userCompany = { _id: new ObjectId(), user: userFromOtherCompany._id, company: otherCompany._id };
-
+const userCompanies = [
+  // old inactive user company
+  {
+    _id: new ObjectId(),
+    user: userFromOtherCompany._id,
+    company: authCompany._id,
+    startDate: '2022-01-01T23:00:00.000Z',
+    endDate: '2022-11-30T23:00:00.000Z',
+  },
+  { _id: new ObjectId(), user: userFromOtherCompany._id, company: otherCompany._id },
+];
 const populateDB = async () => {
   await deleteNonAuthenticationSeeds();
 
@@ -58,7 +67,7 @@ const populateDB = async () => {
     Sector.create(sectorsList),
     SectorHistory.create(historyList),
     User.create(userFromOtherCompany),
-    UserCompany.create(userCompany),
+    UserCompany.create(userCompanies),
   ]);
 };
 

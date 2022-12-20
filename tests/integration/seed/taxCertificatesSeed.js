@@ -50,8 +50,17 @@ const helper = {
   origin: WEBAPP,
 };
 
-const userCompaniesList = [{ _id: new ObjectId(), company: authCompany._id, user: helper._id }];
-
+const userCompaniesList = [
+  // old inactive user company
+  {
+    _id: new ObjectId(),
+    user: helper._id,
+    company: otherCompany._id,
+    startDate: '2022-01-01T23:00:00.000Z',
+    endDate: '2022-11-30T23:00:00.000Z',
+  },
+  { _id: new ObjectId(), company: authCompany._id, user: helper._id },
+];
 const taxCertificatesList = [
   { _id: new ObjectId(), company: authCompany._id, customer: customersList[0]._id, year: '2019' },
   { _id: new ObjectId(), company: authCompany._id, customer: customersList[0]._id, year: '2020' },

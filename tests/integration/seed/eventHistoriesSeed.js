@@ -60,6 +60,13 @@ const auxiliaries = [users[0], users[1]];
 const auxiliaryFromOtherCompany = users[3];
 
 const userCompanies = [
+  // old inactive user company
+  {
+    user: users[0],
+    company: otherCompany._id,
+    startDate: '2022-01-01T23:00:00.000Z',
+    endDate: '2022-11-30T23:00:00.000Z',
+  },
   { user: users[0], company: authCompany._id },
   { user: users[1], company: authCompany._id },
   { user: users[2], company: authCompany._id },
