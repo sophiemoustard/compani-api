@@ -176,6 +176,27 @@ describe('USER COMPANIES ROUTES - PUT /usercompanies/{id}', () => {
     });
   });
 
+  describe('COACH FROM OTHER COMPANY', () => {
+    beforeEach(async () => {
+      authToken = await getTokenByCredentials(usersSeedList[9].local);
+    });
+
+    it('should return a 403 if user is from an other company', async () => {
+      const userCompanyId = userCompanies[0]._id.toHexString();
+      const payload = { endDate: '2022-12-01T22:59:59.999Z' };
+
+      const res = await app.inject({
+        method: 'PUT',
+        url: `/usercompanies/${userCompanyId}`,
+        payload,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(res.statusCode).toBe(403);
+      expect(res.result.message).toBe('Error: user is not from right company.');
+    });
+  });
+
   describe('TRAINING_ORGANISATION_MANAGER', () => {
     beforeEach(async () => {
       authToken = await getTokenByCredentials(usersSeedList[3].local);
