@@ -156,6 +156,19 @@ const usersSeedList = [
     origin: WEBAPP,
     formationExpoTokenList: ['ExponentPushToken[jeSuisUnIdExpo]'],
   },
+  { // 9
+    _id: new ObjectId(),
+    identity: { firstname: 'Coach', lastname: 'Autre structure' },
+    local: { email: 'coach@autre.io', password: '123456!eR' },
+    role: { client: coachRoleId },
+    refreshToken: uuidv4(),
+    administrative: { certificates: [{ driveId: '1234567890' }], driveFolder: { driveId: '0987654321' } },
+    contact: { phone: '0987654321' },
+    contracts: [{ _id: new ObjectId() }],
+    picture: { publicId: 'a/public/id', link: 'https://the.complete.com/link/to/the/picture/storage/location' },
+    origin: WEBAPP,
+    formationExpoTokenList: ['ExponentPushToken[jeSuisUnIdExpo]'],
+  },
 ];
 
 const company = {
@@ -195,6 +208,7 @@ const userCompanies = [
     endDate: '2021-11-19T23:00:00.000Z',
   },
   { _id: new ObjectId(), user: usersSeedList[8]._id, company: company._id, startDate: '2020-11-19T23:00:00.000Z' },
+  { _id: new ObjectId(), user: usersSeedList[9]._id, company: authCompany._id, startDate: '2020-11-19T23:00:00.000Z' },
 ];
 
 const cardsList = [{ _id: new ObjectId(), template: 'title_text' }, { _id: new ObjectId(), template: 'survey' }];

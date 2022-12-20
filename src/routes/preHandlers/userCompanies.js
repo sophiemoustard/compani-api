@@ -43,7 +43,7 @@ exports.authorizeUserCompanyEdit = async (req) => {
   const { company, user, startDate } = userCompany;
 
   const isSameCompany = UtilsHelper.areObjectIdsEquals(company._id, credentials.company._id);
-  if (!isRofOrAdmin && !isSameCompany) throw Boom.forbidden();
+  if (!isRofOrAdmin && !isSameCompany) throw Boom.forbidden('Error: user is not from right company.');
 
   const userExists = await User.countDocuments({ _id: user, role: { $exists: false } });
   if (!userExists) throw Boom.forbidden('Error while checking user: user not found.');
