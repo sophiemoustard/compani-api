@@ -1,6 +1,6 @@
 const { ObjectId } = require('mongodb');
 const { v4: uuidv4 } = require('uuid');
-const { authCompany, otherCompany } = require('../../seed/authCompaniesSeed');
+const { authCompany, otherCompany, companyWithoutSubscription } = require('../../seed/authCompaniesSeed');
 const { deleteNonAuthenticationSeeds } = require('../helpers/authentication');
 const TaxCertificate = require('../../../src/models/TaxCertificate');
 const Customer = require('../../../src/models/Customer');
@@ -55,7 +55,7 @@ const userCompaniesList = [
   {
     _id: new ObjectId(),
     user: helper._id,
-    company: otherCompany._id,
+    company: companyWithoutSubscription._id,
     startDate: '2022-01-01T23:00:00.000Z',
     endDate: '2022-11-30T23:00:00.000Z',
   },

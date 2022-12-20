@@ -10,7 +10,7 @@ const Sector = require('../../../src/models/Sector');
 const SectorHistory = require('../../../src/models/SectorHistory');
 const Pay = require('../../../src/models/Pay');
 const UserCompany = require('../../../src/models/UserCompany');
-const { authCompany, otherCompany } = require('../../seed/authCompaniesSeed');
+const { authCompany, otherCompany, companyWithoutSubscription } = require('../../seed/authCompaniesSeed');
 const { deleteNonAuthenticationSeeds } = require('../helpers/authentication');
 const { WEBAPP, UNPAID_LEAVE, PAID_LEAVE, DAILY, ABSENCE } = require('../../../src/helpers/constants');
 const { coachRoleId, auxiliaryRoleId } = require('../../seed/authRolesSeed');
@@ -77,7 +77,7 @@ const userCompanyList = [
   {
     _id: new ObjectId(),
     user: auxiliaryId0,
-    company: otherCompany._id,
+    company: companyWithoutSubscription._id,
     startDate: '2022-01-01T23:00:00.000Z',
     endDate: '2022-11-30T23:00:00.000Z',
   },

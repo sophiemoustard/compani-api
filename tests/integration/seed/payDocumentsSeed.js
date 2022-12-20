@@ -3,7 +3,7 @@ const { v4: uuidv4 } = require('uuid');
 const PayDocument = require('../../../src/models/PayDocument');
 const User = require('../../../src/models/User');
 const UserCompany = require('../../../src/models/UserCompany');
-const { authCompany, otherCompany } = require('../../seed/authCompaniesSeed');
+const { authCompany, companyWithoutSubscription } = require('../../seed/authCompaniesSeed');
 const { deleteNonAuthenticationSeeds } = require('../helpers/authentication');
 const { PAYSLIP, CERTIFICATE, OTHER, WEBAPP } = require('../../../src/helpers/constants');
 const { auxiliaryWithoutCompanyRoleId, auxiliaryRoleId, clientAdminRoleId } = require('../../seed/authRolesSeed');
@@ -32,7 +32,7 @@ const payDocumentUserCompanies = [
   {
     _id: new ObjectId(),
     user: payDocumentUsers[0]._id,
-    company: otherCompany._id,
+    company: companyWithoutSubscription._id,
     startDate: '2022-01-01T23:00:00.000Z',
     endDate: '2022-11-30T23:00:00.000Z',
   },

@@ -12,7 +12,7 @@ const { userList } = require('../../seed/authUsersSeed');
 const { deleteNonAuthenticationSeeds } = require('../helpers/authentication');
 const { TRANSITION, OPEN_QUESTION, INTER_B2B } = require('../../../src/helpers/constants');
 const { trainerRoleId } = require('../../seed/authRolesSeed');
-const { otherCompany } = require('../../seed/authCompaniesSeed');
+const { companyWithoutSubscription } = require('../../seed/authCompaniesSeed');
 
 const cardsList = [
   { _id: new ObjectId(), template: TRANSITION, title: 'test1' },
@@ -90,7 +90,7 @@ const traineeCompanyList = [
   {
     _id: new ObjectId(),
     user: traineeList[0]._id,
-    company: otherCompany._id,
+    company: companyWithoutSubscription._id,
     startDate: '2022-01-01T23:00:00.000Z',
     endDate: '2022-11-30T23:00:00.000Z',
   },

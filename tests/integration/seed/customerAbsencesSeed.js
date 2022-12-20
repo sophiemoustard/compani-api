@@ -5,7 +5,7 @@ const UserCompany = require('../../../src/models/UserCompany');
 const Helper = require('../../../src/models/Helper');
 const CustomerAbsence = require('../../../src/models/CustomerAbsence');
 const User = require('../../../src/models/User');
-const { authCompany, otherCompany } = require('../../seed/authCompaniesSeed');
+const { authCompany, otherCompany, companyWithoutSubscription } = require('../../seed/authCompaniesSeed');
 const { helperRoleId } = require('../../seed/authRolesSeed');
 const { WEBAPP } = require('../../../src/helpers/constants');
 const { deleteNonAuthenticationSeeds } = require('../helpers/authentication');
@@ -99,7 +99,7 @@ const userCompanyList = [
   {
     _id: new ObjectId(),
     user: usersList[0]._id,
-    company: otherCompany._id,
+    company: companyWithoutSubscription._id,
     startDate: '2022-01-01T23:00:00.000Z',
     endDate: '2022-11-30T23:00:00.000Z',
   },
