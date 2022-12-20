@@ -419,6 +419,5 @@ module.exports = {
   establishmentList,
   coachFromOtherCompany,
   auxiliaryFromOtherCompany,
-  userCompanies,
   activityList,
 };
