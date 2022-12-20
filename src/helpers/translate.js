@@ -401,6 +401,8 @@ module.exports = {
     /* VendorCompanies */
     vendorCompanyFound: 'Vendor company found.',
     vendorCompanyUpdated: 'Vendor company updated.',
+    /* VendorCompanies */
+    userAlreadyLinkedToCompany: 'User already linked to company.',
   },
   'fr-FR': {
     /* Global errors */
@@ -802,5 +804,7 @@ module.exports = {
     /* VendorCompanies */
     vendorCompanyFound: 'Structure vendeuse trouvée.',
     vendorCompanyUpdated: 'Structure vendeuse mise à jour.',
+    /* VendorCompanies */
+    userAlreadyLinkedToCompany: 'Ce compte est déjà rattaché à une structure{DATE}.',
   },
 };
