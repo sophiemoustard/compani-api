@@ -3,7 +3,7 @@ const { ObjectId } = require('mongodb');
 const User = require('../../../src/models/User');
 const Customer = require('../../../src/models/Customer');
 const Helper = require('../../../src/models/Helper');
-const { otherCompany, authCompany } = require('../../seed/authCompaniesSeed');
+const { otherCompany, authCompany, companyWithoutSubscription } = require('../../seed/authCompaniesSeed');
 const { deleteNonAuthenticationSeeds } = require('../helpers/authentication');
 const { WEBAPP } = require('../../../src/helpers/constants');
 const UserCompany = require('../../../src/models/UserCompany');
@@ -65,7 +65,7 @@ const userCompanies = [
   {
     _id: new ObjectId(),
     user: helperFromOtherCompany._id,
-    company: authCompany._id,
+    company: companyWithoutSubscription._id,
     startDate: '2022-01-01T23:00:00.000Z',
     endDate: '2022-11-30T23:00:00.000Z',
   },

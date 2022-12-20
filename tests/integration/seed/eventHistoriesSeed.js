@@ -17,7 +17,7 @@ const {
   WEBAPP,
   QR_CODE_TIME_STAMPING,
 } = require('../../../src/helpers/constants');
-const { authCompany, otherCompany } = require('../../seed/authCompaniesSeed');
+const { authCompany, otherCompany, companyWithoutSubscription } = require('../../seed/authCompaniesSeed');
 const { deleteNonAuthenticationSeeds } = require('../helpers/authentication');
 const { coachRoleId, clientAdminRoleId } = require('../../seed/authRolesSeed');
 
@@ -63,7 +63,7 @@ const userCompanies = [
   // old inactive user company
   {
     user: users[0],
-    company: otherCompany._id,
+    company: companyWithoutSubscription._id,
     startDate: '2022-01-01T23:00:00.000Z',
     endDate: '2022-11-30T23:00:00.000Z',
   },

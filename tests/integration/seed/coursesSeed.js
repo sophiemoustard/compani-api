@@ -119,7 +119,7 @@ const userCompanies = [
   {
     _id: new ObjectId(),
     user: traineeFromOtherCompany._id,
-    company: authCompany._id,
+    company: thirdCompany._id,
     startDate: '2022-01-01T23:00:00.000Z',
     endDate: '2022-11-30T23:00:00.000Z',
   },
