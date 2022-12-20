@@ -7,6 +7,7 @@ const {
   VENDOR_ADMIN,
   TRAINING_ORGANISATION_MANAGER,
   TRAINEE_DELETION,
+  DAY,
 } = require('../../helpers/constants');
 const UserCompany = require('../../models/UserCompany');
 const User = require('../../models/User');
@@ -37,7 +38,7 @@ exports.authorizeUserCompanyEdit = async (req) => {
     })
     .populate({ path: 'company' })
     .lean();
-  if (!userCompany) throw Boom.forbidden('Error while checking user company: userCompany not found.');
+  if (!userCompany) throw Boom.forbidden(translate[language].userCompanyNotFound);
 
   const { company, user, startDate } = userCompany;
 
@@ -55,7 +56,7 @@ exports.authorizeUserCompanyEdit = async (req) => {
     .find({
       action: { $in: [TRAINEE_ADDITION, TRAINEE_DELETION] },
       trainee: user,
-      createdAt: { $gte: payload.endDate },
+      createdAt: { $gte: CompaniDate(payload.endDate).endOf(DAY).toISO() },
     })
     .sort({ createdAt: -1 })
     .limit(1);

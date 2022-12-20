@@ -63,7 +63,8 @@ describe('USER COMPANIES ROUTES - PUT /usercompanies/{id}', () => {
       });
 
       expect(res.statusCode).toBe(403);
-      expect(res.result.message).toBe('Error while checking user company: userCompany not found.');
+      expect(res.result.message)
+        .toBe('Impossible de mettre à jour les informations liées à la structure de cet(te) apprenant(e).');
     });
 
     it('should return a 403 if user company startDate is in futur', async () => {
@@ -78,7 +79,8 @@ describe('USER COMPANIES ROUTES - PUT /usercompanies/{id}', () => {
       });
 
       expect(res.statusCode).toBe(403);
-      expect(res.result.message).toBe('Error while checking user company: userCompany not found.');
+      expect(res.result.message)
+        .toBe('Impossible de mettre à jour les informations liées à la structure de cet(te) apprenant(e).');
     });
 
     it('should return 403 if company is not allowed to detach its learners', async () => {
@@ -93,7 +95,8 @@ describe('USER COMPANIES ROUTES - PUT /usercompanies/{id}', () => {
       });
 
       expect(res.statusCode).toBe(403);
-      expect(res.result.message).toBe('Error while checking user company: userCompany not found.');
+      expect(res.result.message)
+        .toBe('Impossible de mettre à jour les informations liées à la structure de cet(te) apprenant(e).');
     });
 
     it('should return 403 if user is already detached', async () => {
@@ -108,7 +111,8 @@ describe('USER COMPANIES ROUTES - PUT /usercompanies/{id}', () => {
       });
 
       expect(res.statusCode).toBe(403);
-      expect(res.result.message).toBe('Error while checking user company: userCompany not found.');
+      expect(res.result.message)
+        .toBe('Impossible de mettre à jour les informations liées à la structure de cet(te) apprenant(e).');
     });
 
     it('should return a 403 if user doesnt exist', async () => {
@@ -220,7 +224,8 @@ describe('USER COMPANIES ROUTES - PUT /usercompanies/{id}', () => {
       });
 
       expect(res.statusCode).toBe(403);
-      expect(res.result.message).toBe('Error while checking user company: userCompany not found.');
+      expect(res.result.message)
+        .toBe('Impossible de mettre à jour les informations liées à la structure de cet(te) apprenant(e).');
     });
 
     it('should return a 403 if user company startDate is in futur', async () => {
@@ -235,7 +240,8 @@ describe('USER COMPANIES ROUTES - PUT /usercompanies/{id}', () => {
       });
 
       expect(res.statusCode).toBe(403);
-      expect(res.result.message).toBe('Error while checking user company: userCompany not found.');
+      expect(res.result.message)
+        .toBe('Impossible de mettre à jour les informations liées à la structure de cet(te) apprenant(e).');
     });
 
     it('should return 403 if company is not allowed to detach its learners', async () => {
@@ -250,7 +256,8 @@ describe('USER COMPANIES ROUTES - PUT /usercompanies/{id}', () => {
       });
 
       expect(res.statusCode).toBe(403);
-      expect(res.result.message).toBe('Error while checking user company: userCompany not found.');
+      expect(res.result.message)
+        .toBe('Impossible de mettre à jour les informations liées à la structure de cet(te) apprenant(e).');
     });
 
     it('should return 403 if user is already detached', async () => {
@@ -265,7 +272,8 @@ describe('USER COMPANIES ROUTES - PUT /usercompanies/{id}', () => {
       });
 
       expect(res.statusCode).toBe(403);
-      expect(res.result.message).toBe('Error while checking user company: userCompany not found.');
+      expect(res.result.message)
+        .toBe('Impossible de mettre à jour les informations liées à la structure de cet(te) apprenant(e).');
     });
 
     it('should return a 403 if user doesnt exist', async () => {
