@@ -118,10 +118,23 @@ const usersSeedList = [
   },
   { // 6
     _id: new ObjectId(),
-    identity: { firstname: 'Apprenant', lastname: 'auxiliary' },
+    identity: { firstname: 'Apprenant', lastname: 'is an auxiliary' },
     local: { email: 'auxil@alenvi.io', password: '123456!eR' },
     refreshToken: uuidv4(),
     role: { client: auxiliaryRoleId },
+    administrative: { certificates: [{ driveId: '1234567890' }], driveFolder: { driveId: '0987654321' } },
+    contact: { phone: '0987654321' },
+    contracts: [{ _id: new ObjectId() }],
+    establishment: establishmentList[0]._id,
+    picture: { publicId: 'a/public/id', link: 'https://the.complete.com/link/to/the/picture/storage/location' },
+    origin: WEBAPP,
+    formationExpoTokenList: ['ExponentPushToken[jeSuisUnIdExpo]'],
+  },
+  { // 7
+    _id: new ObjectId(),
+    identity: { firstname: 'Apprenant', lastname: 'deja detaché' },
+    local: { email: 'appSansStruc@alenvi.io', password: '123456!eR' },
+    refreshToken: uuidv4(),
     administrative: { certificates: [{ driveId: '1234567890' }], driveFolder: { driveId: '0987654321' } },
     contact: { phone: '0987654321' },
     contracts: [{ _id: new ObjectId() }],
@@ -161,6 +174,13 @@ const userCompanies = [
   { _id: new ObjectId(), user: usersSeedList[4]._id, company: company._id, startDate: '2021-11-19T23:00:00.000Z' },
   { _id: new ObjectId(), user: usersSeedList[5]._id, company: company._id, startDate: dateInOneYear },
   { _id: new ObjectId(), user: usersSeedList[6]._id, company: company._id, startDate: '2020-11-19T23:00:00.000Z' },
+  {
+    _id: new ObjectId(),
+    user: usersSeedList[7]._id,
+    company: company._id,
+    startDate: '2020-11-19T23:00:00.000Z',
+    endDate: '2021-11-19T23:00:00.000Z',
+  },
 ];
 
 const cardsList = [{ _id: new ObjectId(), template: 'title_text' }, { _id: new ObjectId(), template: 'survey' }];

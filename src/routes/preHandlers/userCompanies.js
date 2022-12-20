@@ -24,7 +24,7 @@ exports.authorizeUserCompanyEdit = async (req) => {
   const userClientRole = get(credentials, 'role.client.name');
 
   const isRofOrAdmin = [VENDOR_ADMIN, TRAINING_ORGANISATION_MANAGER].includes(get(credentials, 'role.vendor.name'));
-  if (!isRofOrAdmin && !userClientRole) throw Boom.forbidden();
+  if (!isRofOrAdmin && !userClientRole) throw Boom.forbidden('Error: user\'s role does\'nt allow this action.');
 
   // we can only detach EPS trainee for now
   const userCompany = await UserCompany
@@ -36,7 +36,7 @@ exports.authorizeUserCompanyEdit = async (req) => {
     })
     .populate({ path: 'company' })
     .lean();
-  if (!userCompany) throw Boom.forbidden();
+  if (!userCompany) throw Boom.forbidden('Error while checking user company: userCompany not found.');
 
   const { company, user, startDate } = userCompany;
 
@@ -44,7 +44,7 @@ exports.authorizeUserCompanyEdit = async (req) => {
   if (!isRofOrAdmin && !isSameCompany) throw Boom.forbidden();
 
   const userExists = await User.countDocuments({ _id: user, role: { $exists: false } });
-  if (!userExists) throw Boom.forbidden();
+  if (!userExists) throw Boom.forbidden('Error while checking user: user not found.');
 
   if (CompaniDate(payload.endDate).isBefore(startDate)) {
     throw Boom.forbidden(translate[language].endDateBeforeStartDate);
