@@ -157,8 +157,8 @@ describe('USER COMPANIES ROUTES - PUT /usercompanies/{id}', () => {
     });
 
     it('should return a 403 if detachment date is before first trainee\'s addition in course history', async () => {
-      const userCompanyId = userCompanies[0]._id.toHexString();
-      const payload = { endDate: '2022-08-17T10:00:00.000Z' };
+      const userCompanyId = userCompanies[9]._id.toHexString();
+      const payload = { endDate: '2022-09-05T10:00:00.000Z' };
 
       const res = await app.inject({
         method: 'PUT',
@@ -168,11 +168,11 @@ describe('USER COMPANIES ROUTES - PUT /usercompanies/{id}', () => {
       });
 
       expect(res.statusCode).toBe(403);
-      expect(res.result.message).toBe('Vous ne pouvez pas détacher cette personne avant le 05/09/2022.');
+      expect(res.result.message).toBe('Vous ne pouvez pas détacher cette personne avant le 10/09/2022.');
     });
   });
 
-  describe('TRAINING_ORGANISATION_MANAGER #tag', () => {
+  describe('TRAINING_ORGANISATION_MANAGER', () => {
     beforeEach(async () => {
       authToken = await getTokenByCredentials(usersSeedList[3].local);
     });
@@ -314,7 +314,7 @@ describe('USER COMPANIES ROUTES - PUT /usercompanies/{id}', () => {
     });
 
     it('should return a 403 if detachment date is before first trainee\'s addition in course history', async () => {
-      const userCompanyId = userCompanies[5]._id.toHexString();
+      const userCompanyId = userCompanies[9]._id.toHexString();
       const payload = { endDate: '2022-08-17T10:00:00.000Z' };
 
       const res = await app.inject({
@@ -325,7 +325,7 @@ describe('USER COMPANIES ROUTES - PUT /usercompanies/{id}', () => {
       });
 
       expect(res.statusCode).toBe(403);
-      expect(res.result.message).toBe('Vous ne pouvez pas détacher cette personne avant le 25/08/2022.');
+      expect(res.result.message).toBe('Vous ne pouvez pas détacher cette personne avant le 10/09/2022.');
     });
   });
 

@@ -6,6 +6,7 @@ const {
   DD_MM_YYYY,
   VENDOR_ADMIN,
   TRAINING_ORGANISATION_MANAGER,
+  TRAINEE_DELETION,
 } = require('../../helpers/constants');
 const UserCompany = require('../../models/UserCompany');
 const User = require('../../models/User');
@@ -51,11 +52,17 @@ exports.authorizeUserCompanyEdit = async (req) => {
   }
 
   const courseHistories = await CourseHistory
-    .find({ action: TRAINEE_ADDITION, trainee: user, createdAt: { $gte: payload.endDate } })
+    .find({
+      action: { $in: [TRAINEE_ADDITION, TRAINEE_DELETION] },
+      trainee: user,
+      createdAt: { $gte: payload.endDate },
+    })
     .sort({ createdAt: -1 })
     .limit(1);
 
   if (courseHistories.length) {
+    if (courseHistories[0].action === TRAINEE_DELETION) return null;
+
     const errorMessage = translate[language].userDetachmentBeforeLastSubscription
       .replace('{DATE}', CompaniDate(courseHistories[0].createdAt).format(DD_MM_YYYY));
     throw Boom.forbidden(errorMessage);

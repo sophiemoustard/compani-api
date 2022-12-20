@@ -12,7 +12,7 @@ const Step = require('../../../src/models/Step');
 const SubProgram = require('../../../src/models/SubProgram');
 const { authCompany } = require('../../seed/authCompaniesSeed');
 const { deleteNonAuthenticationSeeds } = require('../helpers/authentication');
-const { WEBAPP, TRAINEE_ADDITION, INTRA, VIDEO } = require('../../../src/helpers/constants');
+const { WEBAPP, TRAINEE_ADDITION, INTRA, VIDEO, TRAINEE_DELETION } = require('../../../src/helpers/constants');
 const { auxiliaryRoleId, coachRoleId, trainingOrganisationManagerRoleId } = require('../../seed/authRolesSeed');
 const { vendorAdmin, trainerOrganisationManager, trainer, trainerAndCoach } = require('../../seed/authUsersSeed');
 const { CompaniDate } = require('../../../src/helpers/dates/companiDates');
@@ -143,6 +143,19 @@ const usersSeedList = [
     origin: WEBAPP,
     formationExpoTokenList: ['ExponentPushToken[jeSuisUnIdExpo]'],
   },
+  { // 8
+    _id: new ObjectId(),
+    identity: { firstname: 'Apprenant', lastname: 'inscrit a une formation' },
+    local: { email: 'appinscrit@alenvi.io', password: '123456!eR' },
+    refreshToken: uuidv4(),
+    administrative: { certificates: [{ driveId: '1234567890' }], driveFolder: { driveId: '0987654321' } },
+    contact: { phone: '0987654321' },
+    contracts: [{ _id: new ObjectId() }],
+    establishment: establishmentList[0]._id,
+    picture: { publicId: 'a/public/id', link: 'https://the.complete.com/link/to/the/picture/storage/location' },
+    origin: WEBAPP,
+    formationExpoTokenList: ['ExponentPushToken[jeSuisUnIdExpo]'],
+  },
 ];
 
 const company = {
@@ -181,6 +194,7 @@ const userCompanies = [
     startDate: '2020-11-19T23:00:00.000Z',
     endDate: '2021-11-19T23:00:00.000Z',
   },
+  { _id: new ObjectId(), user: usersSeedList[8]._id, company: company._id, startDate: '2020-11-19T23:00:00.000Z' },
 ];
 
 const cardsList = [{ _id: new ObjectId(), template: 'title_text' }, { _id: new ObjectId(), template: 'survey' }];
@@ -225,12 +239,19 @@ const courseHistories = [
     createdAt: '2022-09-05T10:00:00.000Z',
   },
   {
+    action: TRAINEE_DELETION,
+    course: coursesList[0]._id,
+    trainee: usersSeedList[0]._id,
+    createdBy: trainerOrganisationManager._id,
+    createdAt: '2022-09-05T14:00:00.000Z',
+  },
+  {
     action: TRAINEE_ADDITION,
     course: coursesList[0]._id,
-    trainee: usersSeedList[4]._id,
+    trainee: usersSeedList[8]._id,
     slot: { startDate: '2022-09-10T10:00:00.000Z', endDate: '2022-09-10T12:00:00.000Z' },
     createdBy: trainerOrganisationManager._id,
-    createdAt: '2022-08-25T10:00:00.000Z',
+    createdAt: '2022-09-10T10:00:00.000Z',
   },
 ];
 
