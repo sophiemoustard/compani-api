@@ -22,6 +22,7 @@ const GDriveStorageHelper = require('./gDriveStorage');
 const UtilsHelper = require('./utils');
 const HelpersHelper = require('./helpers');
 const UserCompaniesHelper = require('./userCompanies');
+const { CompaniDate } = require('./dates/companiDates');
 
 const { language } = translate;
 
@@ -83,7 +84,14 @@ exports.getLearnerList = async (query, credentials) => {
   let userQuery = {};
   if (query.companies) {
     const rolesToExclude = await Role.find({ name: { $in: [HELPER, AUXILIARY_WITHOUT_COMPANY] } }).lean();
-    const usersCompany = await UserCompany.find({ company: { $in: query.companies } }, { user: 1 }).lean();
+    const usersCompany = await UserCompany.find(
+      {
+        company: { $in: query.companies },
+        startDate: { $lte: CompaniDate().toISO() },
+        $or: [{ endDate: { $exists: false } }, { endDate: { $gte: CompaniDate().toISO() } }],
+      },
+      { user: 1 }
+    ).lean();
 
     userQuery = {
       _id: { $in: usersCompany.map(uc => uc.user) },
