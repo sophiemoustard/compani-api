@@ -1,4 +1,4 @@
-const expect = require('expect');
+const { expect } = require('expect');
 const { ObjectId } = require('mongodb');
 const app = require('../../server');
 const { getTokenByCredentials, getToken } = require('./helpers/authentication');
