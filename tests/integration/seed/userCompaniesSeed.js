@@ -16,7 +16,9 @@ const { WEBAPP, TRAINEE_ADDITION, INTRA, VIDEO, TRAINEE_DELETION } = require('..
 const { auxiliaryRoleId, coachRoleId, trainingOrganisationManagerRoleId } = require('../../seed/authRolesSeed');
 const { vendorAdmin, trainerOrganisationManager, trainer, trainerAndCoach } = require('../../seed/authUsersSeed');
 const { CompaniDate } = require('../../../src/helpers/dates/companiDates');
-const { DETACHMENT_ALLOWED_COMPANY_IDS } = require('../../../src/routes/preHandlers/userCompanies');
+
+const DETACHMENT_ALLOWED_COMPANY_IDS =
+  process.env.DETACHMENT_ALLOWED_COMPANY_IDS.split(';').map(id => new ObjectId(id));
 
 const establishmentList = [
   {
