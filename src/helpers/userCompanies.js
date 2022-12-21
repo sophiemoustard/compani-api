@@ -20,10 +20,10 @@ exports.create = async (payload) => {
     await CompanyLinkRequest.deleteMany({ user });
     await UserCompany.create({ user, company, startDate });
   } else if (!UtilsHelper.areObjectIdsEquals(userCompany.company, company)) {
-    const errorMessage = translate[language].userAlreadyLinkedToCompany.replace(
-      '{DATE}',
-      userCompany.endDate ? ` jusqu'au ${CompaniDate(userCompany.endDate).format(DD_MM_YYYY)}` : ''
-    );
+    const errorMessage = userCompany.endDate
+      ? translate[language].userAlreadyLinkedToCompanyUntil
+        .replace('{DATE}', CompaniDate(userCompany.endDate).format(DD_MM_YYYY))
+      : translate[language].userAlreadyLinkedToCompany;
     throw Boom.conflict(errorMessage);
   }
 };
