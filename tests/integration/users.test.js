@@ -34,6 +34,7 @@ const {
   sectorHistories,
   establishmentList,
   auxiliaryFromOtherCompany,
+  traineeWhoLeftOtherCompany,
 } = require('./seed/usersSeed');
 const { getToken, getTokenByCredentials } = require('./helpers/authentication');
 const { otherCompany, authCompany } = require('../seed/authCompaniesSeed');
@@ -1321,15 +1322,32 @@ describe('USERS ROUTES - PUT /users/:id', () => {
       expect(createdUserCompany).toBeTruthy();
     });
 
-    // it('should return 200 if company is in payload and is the same as the user company', async () => {
-    //   const res = await app.inject({
-    //     method: 'PUT',
-    //     url: `/users/${usersSeedList[0]._id.toHexString()}`,
-    //     payload: { company: authCompany._id },
-    //     headers: { Cookie: `alenvi_token=${authToken}` },
-    //   });
-    //   expect(res.statusCode).toBe(200);
-    // });
+    it('should update previously detached learner with new company', async () => {
+      const res = await app.inject({
+        method: 'PUT',
+        url: `/users/${traineeWhoLeftOtherCompany._id.toHexString()}`,
+        payload: { company: authCompany._id, userCompanyStartDate: '2022-12-20T12:00:00.000Z' },
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(res.statusCode).toBe(200);
+      const createdUserCompany = await UserCompany.countDocuments({
+        user: traineeWhoLeftOtherCompany._id,
+        company: authCompany._id,
+        startDate: '2022-12-20T12:00:00.000Z',
+      });
+      expect(createdUserCompany).toBeTruthy();
+    });
+
+    it('should return 200 if company is in payload and is the same as the user company', async () => {
+      const res = await app.inject({
+        method: 'PUT',
+        url: `/users/${usersSeedList[1]._id.toHexString()}`,
+        payload: { company: authCompany._id },
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+      expect(res.statusCode).toBe(200);
+    });
 
     it('should return 200 if company is in payload and userCompanyStartDate is not', async () => {
       const res = await app.inject({
@@ -1358,14 +1376,15 @@ describe('USERS ROUTES - PUT /users/:id', () => {
       expect(res.statusCode).toBe(400);
     });
 
-    it('should return a 403 error if trying to set user company to an other company', async () => {
+    it('should return a 409 if trying to link company on a user with current company', async () => {
       const res = await app.inject({
         method: 'PUT',
         url: `/users/${helperFromOtherCompany._id}`,
         payload: { company: authCompany._id },
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
-      expect(res.statusCode).toBe(403);
+      expect(res.statusCode).toBe(409);
+      expect(res.result.message).toBe('Ce compte est déjà rattaché à une autre structure.');
     });
   });
 

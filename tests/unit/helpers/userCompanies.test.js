@@ -106,7 +106,7 @@ describe('create', () => {
     );
   });
 
-  it('should throw an error if user has userCompany with otherCompany #tag', async () => {
+  it('should throw an error if user has userCompany with otherCompany', async () => {
     const userId = new ObjectId();
     const companyId = new ObjectId();
     const startDate = '2020-12-12T23:00:00.000Z';
@@ -125,7 +125,8 @@ describe('create', () => {
       expect(true).toBe(false);
     } catch (e) {
       expect(e.output.payload.statusCode).toEqual(409);
-      expect(e.output.payload.message).toEqual('Ce compte est déjà rattaché à une structure jusqu\'au 11/08/2021.');
+      expect(e.output.payload.message)
+        .toEqual('Ce compte est déjà rattaché à une autre structure jusqu\'au 11/08/2021.');
     }
 
     sinon.assert.notCalled(create);

@@ -73,10 +73,6 @@ exports.authorizeUserUpdate = async (req) => {
 };
 
 const checkCompany = (credentials, userFromDB, payload, isLoggedUserVendor) => {
-  const isCompanyUpdated = payload.company && userFromDB.company &&
-    !UtilsHelper.areObjectIdsEquals(payload.company, userFromDB.company);
-  if (isCompanyUpdated) throw Boom.forbidden();
-
   const updatingOwnInfos = UtilsHelper.areObjectIdsEquals(credentials._id, userFromDB._id);
   if (isLoggedUserVendor || updatingOwnInfos) return;
 

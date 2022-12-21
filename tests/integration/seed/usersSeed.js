@@ -110,7 +110,20 @@ const auxiliaryFromOtherCompany = {
   origin: WEBAPP,
 };
 
-const usersFromOtherCompanyList = [helperFromOtherCompany, coachFromOtherCompany, auxiliaryFromOtherCompany];
+const traineeWhoLeftOtherCompany = {
+  _id: new ObjectId(),
+  identity: { firstname: 'trainee_changed_company', lastname: 'test' },
+  local: { email: 'trainee_changed_company@alenvi.io' },
+  refreshToken: uuidv4(),
+  origin: WEBAPP,
+};
+
+const usersFromOtherCompanyList = [
+  helperFromOtherCompany,
+  coachFromOtherCompany,
+  auxiliaryFromOtherCompany,
+  traineeWhoLeftOtherCompany,
+];
 
 const contractId = new ObjectId();
 const contractNotStartedId = new ObjectId();
@@ -181,7 +194,7 @@ const usersSeedList = [
   },
   { // 6
     _id: new ObjectId(),
-    identity: { firstname: 'adminion', lastname: 'Kitty' },
+    identity: { firstname: 'adminion', lastname: 'Mitty' },
     local: { email: 'cae@alenvi.io' },
     refreshToken: uuidv4(),
     role: { client: clientAdminRoleId },
@@ -196,7 +209,7 @@ const usersSeedList = [
   },
   { // 8
     _id: new ObjectId(),
-    identity: { firstname: 'trainee_to_auxiliary', lastname: 'test' },
+    identity: { firstname: 'trainee_to_auxiliary', lastname: 'etst' },
     local: { email: 'trainee_to_auxiliary@alenvi.io' },
     refreshToken: uuidv4(),
     origin: WEBAPP,
@@ -294,11 +307,14 @@ const userCompanies = [
   { user: coachFromOtherCompany._id, company: otherCompany._id, startDate: '2022-01-01T23:00:00.000Z' },
   { user: usersSeedList[0]._id, company: authCompany._id, startDate: '2022-01-01T23:00:00.000Z' },
   { user: usersSeedList[1]._id, company: authCompany._id, startDate: '2022-01-01T23:00:00.000Z' },
+  { user: usersSeedList[2]._id, company: authCompany._id, startDate: '2019-01-01T08:00:00.000Z' },
   { user: usersSeedList[3]._id, company: authCompany._id, startDate: '2022-01-01T23:00:00.000Z' },
   { user: usersSeedList[4]._id, company: authCompany._id, startDate: '2022-01-01T23:00:00.000Z' },
+  { user: usersSeedList[5]._id, company: authCompany._id, startDate: '2019-01-01T08:00:00.000Z' },
   { user: usersSeedList[6]._id, company: authCompany._id, startDate: '2022-01-01T23:00:00.000Z' },
   { user: usersSeedList[7]._id, company: authCompany._id, startDate: '2022-01-01T23:00:00.000Z' },
   { user: usersSeedList[8]._id, company: authCompany._id, startDate: '2022-01-01T23:00:00.000Z' },
+  { user: usersSeedList[10]._id, company: authCompany._id, startDate: '2019-01-01T08:00:00.000Z' },
   { // old inactive user company
     user: usersSeedList[2]._id,
     company: authCompany._id,
@@ -311,8 +327,15 @@ const userCompanies = [
     startDate: '2022-12-19T23:00:00.000Z',
     endDate: '2022-12-29T23:00:00.000Z',
   },
-  // startDate must be greater than 20/12/2022
-  { user: usersSeedList[10]._id, company: authCompany._id, startDate: '2022-12-30T23:00:00.000Z' },
+  { // startDate must be greater than 20/12/2022
+    user: usersSeedList[10]._id, company: authCompany._id, startDate: '2022-12-30T23:00:00.000Z'
+  },
+  {
+    user: traineeWhoLeftOtherCompany._id,
+    company: otherCompany._id,
+    startDate: '2019-01-01T08:00:00.000Z',
+    endDate: '2022-12-01T08:00:00.000Z',
+  },
 ];
 
 const userSectors = [
@@ -431,6 +454,7 @@ module.exports = {
   customer,
   customerFromOtherCompany,
   helperFromOtherCompany,
+  traineeWhoLeftOtherCompany,
   userSectors,
   sectorHistories,
   establishmentList,
