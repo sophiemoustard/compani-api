@@ -392,8 +392,8 @@ UserSchema.virtual(
     foreignField: 'user',
     options: {
       match: {
-        startDate: { $lt: CompaniDate().toDate() },
-        $or: [{ endDate: { $exists: false } }, { endDate: { $gt: CompaniDate().toDate() } }],
+        startDate: { $lt: CompaniDate().toISO() },
+        $or: [{ endDate: { $exists: false } }, { endDate: { $gt: CompaniDate().toISO() } }],
       },
     },
     justOne: true,
