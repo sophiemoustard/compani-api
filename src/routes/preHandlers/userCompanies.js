@@ -18,7 +18,7 @@ const { CompaniDate } = require('../../helpers/dates/companiDates');
 
 const { language } = translate;
 
-exports.DETACHMENT_ALLOWED_COMPANY_IDS =
+const DETACHMENT_ALLOWED_COMPANY_IDS =
   process.env.DETACHMENT_ALLOWED_COMPANY_IDS.split(';').map(id => new ObjectId(id));
 
 exports.authorizeUserCompanyEdit = async (req) => {
@@ -34,7 +34,7 @@ exports.authorizeUserCompanyEdit = async (req) => {
       _id: params._id,
       startDate: { $lte: CompaniDate().toISO() },
       endDate: { $exists: false },
-      company: { $in: this.DETACHMENT_ALLOWED_COMPANY_IDS },
+      company: { $in: DETACHMENT_ALLOWED_COMPANY_IDS },
     })
     .populate({ path: 'company' })
     .lean();
