@@ -182,7 +182,7 @@ describe('USER COMPANIES ROUTES - PUT /usercompanies/{id}', () => {
     });
 
     it('should return a 403 if user is from an other company', async () => {
-      const userCompanyId = userCompanies[0]._id.toHexString();
+      const userCompanyId = userCompanies[1]._id.toHexString();
       const payload = { endDate: '2022-12-01T22:59:59.999Z' };
 
       const res = await app.inject({
