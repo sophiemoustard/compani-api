@@ -19,7 +19,7 @@ const { CompaniDate } = require('../../helpers/dates/companiDates');
 const { language } = translate;
 
 exports.DETACHMENT_ALLOWED_COMPANY_IDS =
-  process.env.DETACHMENT_ALLOWED_COMPANY_IDS.split(',').map(id => new ObjectId(id));
+  process.env.DETACHMENT_ALLOWED_COMPANY_IDS.split(';').map(id => new ObjectId(id));
 
 exports.authorizeUserCompanyEdit = async (req) => {
   const { auth: { credentials }, params, payload } = req;
