@@ -8,6 +8,7 @@ const flat = require('flat');
 const omit = require('lodash/omit');
 const get = require('lodash/get');
 const SinonMongoose = require('../sinonMongoose');
+const UtilsMock = require('../../utilsMock');
 const UsersHelper = require('../../../src/helpers/users');
 const SectorHistoriesHelper = require('../../../src/helpers/sectorHistories');
 const translate = require('../../../src/helpers/translate');
@@ -23,6 +24,7 @@ const Role = require('../../../src/models/Role');
 const UserCompany = require('../../../src/models/UserCompany');
 const { HELPER, AUXILIARY_WITHOUT_COMPANY, WEBAPP } = require('../../../src/helpers/constants');
 const ActivityHistory = require('../../../src/models/ActivityHistory');
+const { CompaniDate } = require('../../../src/helpers/dates/companiDates');
 
 const { language } = translate;
 
@@ -268,11 +270,13 @@ describe('getLearnerList', () => {
     findUser = sinon.stub(User, 'find');
     findRole = sinon.stub(Role, 'find');
     findUserCompany = sinon.stub(UserCompany, 'find');
+    UtilsMock.mockCurrentDate('2022-12-21T16:00:00.000Z');
   });
   afterEach(() => {
     findUser.restore();
     findRole.restore();
     findUserCompany.restore();
+    UtilsMock.unmockCurrentDate();
   });
 
   it('should get all learners', async () => {
@@ -293,6 +297,7 @@ describe('getLearnerList', () => {
 
     expect(result).toEqual(usersWithVirtuals);
     sinon.assert.notCalled(findRole);
+    sinon.assert.notCalled(findUserCompany);
     SinonMongoose.calledOnceWithExactly(
       findUser,
       [
@@ -323,7 +328,10 @@ describe('getLearnerList', () => {
       { _id: new ObjectId(), activityHistories: [{ _id: new ObjectId() }] },
       { _id: new ObjectId(), activityHistories: [{ _id: new ObjectId() }] },
     ];
-    const usersCompany = [{ user: users[0]._id }, { user: users[1]._id }];
+    const usersCompany = [
+      { user: users[0]._id, startDate: '2022-12-20T15:30:00.000Z' },
+      { user: users[1]._id, startDate: '2022-12-19T15:30:00.000Z' },
+    ];
     const usersWithVirtuals = [
       { _id: users[0]._id, activityHistoryCount: 1, lastActivityHistory: users[0].activityHistories[0] },
       { _id: users[1]._id, activityHistoryCount: 1, lastActivityHistory: users[1].activityHistories[0] },
@@ -342,7 +350,20 @@ describe('getLearnerList', () => {
     );
     SinonMongoose.calledOnceWithExactly(
       findUserCompany,
-      [{ query: 'find', args: [{ company: { $in: query.companies } }, { user: 1 }] }, { query: 'lean' }]
+      [{
+        query: 'find',
+        args: [
+          {
+            company: { $in: query.companies },
+            startDate: { $lte: CompaniDate('2022-12-21T16:00:00.000Z').toISO() },
+            $or: [
+              { endDate: { $exists: false } },
+              { endDate: { $gte: CompaniDate('2022-12-21T16:00:00.000Z').toISO() } },
+            ],
+          },
+          { user: 1 },
+        ],
+      }, { query: 'lean' }]
     );
     SinonMongoose.calledOnceWithExactly(
       findUser,

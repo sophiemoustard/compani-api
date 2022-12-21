@@ -715,49 +715,48 @@ describe('USERS ROUTES - GET /users/learners', () => {
       expect(res.result.data.users.length).toEqual(countUserInDB);
     });
 
-    // it('should return learners from a specific company', async () => {
-    //   const res = await app.inject({
-    //     method: 'GET',
-    //     url: `/users/learners?companies=${authCompany._id}`,
-    //     headers: { Cookie: `alenvi_token=${authToken}` },
-    //   });
+    it('should return learners from a specific company', async () => {
+      const res = await app.inject({
+        method: 'GET',
+        url: `/users/learners?companies=${authCompany._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
 
-    //   expect(res.statusCode).toBe(200);
-    //   expect(res.result.data.users.every(u => UtilsHelper.areObjectIdsEquals(u.company._id, authCompany._id)))
-    //     .toBeTruthy();
-    // });
+      expect(res.statusCode).toBe(200);
+      expect(res.result.data.users.every(u => UtilsHelper.areObjectIdsEquals(u.company._id, authCompany._id)))
+        .toBeTruthy();
+    });
 
-    // it('should return learners from several companies', async () => {
-    //   const res = await app.inject({
-    //     method: 'GET',
-    //     url: `/users/learners?companies=${authCompany._id}&companies=${otherCompany._id}`,
-    //     headers: { Cookie: `alenvi_token=${authToken}` },
-    //   });
+    it('should return learners from several companies', async () => {
+      const res = await app.inject({
+        method: 'GET',
+        url: `/users/learners?companies=${authCompany._id}&companies=${otherCompany._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
 
-    //   expect(res.statusCode).toBe(200);
-    //   expect(res.result.data.users.every(u => UtilsHelper.areObjectIdsEquals(u.company._id, authCompany._id) ||
-    //     UtilsHelper.areObjectIdsEquals(u.company._id, otherCompany._id)))
-    //     .toBeTruthy();
-    // });
+      expect(res.statusCode).toBe(200);
+      expect(res.result.data.users.every(u => UtilsHelper.areObjectIdsEquals(u.company._id, authCompany._id) ||
+        UtilsHelper.areObjectIdsEquals(u.company._id, otherCompany._id))).toBeTruthy();
+    });
   });
 
-  // describe('COACH', () => {
-  //   beforeEach(async () => {
-  //     authToken = await getToken('coach');
-  //   });
+  describe('COACH', () => {
+    beforeEach(async () => {
+      authToken = await getToken('coach');
+    });
 
-  //   it('should return 200 if coach requests learners from his company', async () => {
-  //     const res = await app.inject({
-  //       method: 'GET',
-  //       url: `/users/learners?companies=${authCompany._id}`,
-  //       headers: { Cookie: `alenvi_token=${authToken}` },
-  //     });
+    it('should return 200 if coach requests learners from his company', async () => {
+      const res = await app.inject({
+        method: 'GET',
+        url: `/users/learners?companies=${authCompany._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
 
-  //     expect(res.statusCode).toBe(200);
-  //     expect(res.result.data.users.every(u => UtilsHelper.areObjectIdsEquals(u.company._id, authCompany._id)))
-  //       .toBeTruthy();
-  //   });
-  // });
+      expect(res.statusCode).toBe(200);
+      expect(res.result.data.users.every(u => UtilsHelper.areObjectIdsEquals(u.company._id, authCompany._id)))
+        .toBeTruthy();
+    });
+  });
 
   describe('CLIENT_ADMIN', () => {
     beforeEach(async () => {
