@@ -94,3 +94,27 @@ describe('create', () => {
     }
   });
 });
+
+describe('update', () => {
+  let updateOne;
+
+  beforeEach(() => {
+    updateOne = sinon.stub(UserCompany, 'updateOne');
+  });
+
+  afterEach(() => {
+    updateOne.restore();
+  });
+
+  it('should update userCompany', async () => {
+    const userCompany = { _id: new ObjectId(), company: new ObjectId(), startDate: '2021-12-17T00:00:00.000Z' };
+
+    await UserCompaniesHelper.update(userCompany._id, { endDate: '2022-12-17T00:00:00.000Z' });
+
+    sinon.assert.calledOnceWithExactly(
+      updateOne,
+      { _id: userCompany._id },
+      { $set: { endDate: '2022-12-17T22:59:59.999Z' } }
+    );
+  });
+});

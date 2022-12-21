@@ -2,6 +2,8 @@ const Boom = require('@hapi/boom');
 const CompanyLinkRequest = require('../models/CompanyLinkRequest');
 const UserCompany = require('../models/UserCompany');
 const UtilsHelper = require('./utils');
+const { DAY } = require('./constants');
+const { CompaniDate } = require('./dates/companiDates');
 
 /* payload = { user, company, startDate? } */
 exports.create = async (payload) => {
@@ -15,3 +17,6 @@ exports.create = async (payload) => {
     throw Boom.conflict();
   }
 };
+
+exports.update = async (userCompany, payload) =>
+  UserCompany.updateOne({ _id: userCompany }, { $set: { endDate: CompaniDate(payload.endDate).endOf(DAY).toISO() } });
