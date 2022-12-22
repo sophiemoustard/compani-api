@@ -161,12 +161,10 @@ describe('create', () => {
     const endDate = '2021-08-11T21:59:59.999Z';
 
     try {
-      findOne.returns(SinonMongoose.stubChainedQueries({
-        user,
-        company: new ObjectId(),
-        startDate,
-        endDate,
-      }, ['lean']));
+      findOne.returns(SinonMongoose.stubChainedQueries(
+        { user, company: new ObjectId(), startDate, endDate },
+        ['lean']
+      ));
 
       await UserCompaniesHelper.create({ user, company, startDate });
 
