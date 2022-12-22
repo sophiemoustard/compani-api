@@ -10,7 +10,7 @@ const Establishment = require('../../../src/models/Establishment');
 const UserCompany = require('../../../src/models/UserCompany');
 const { DAILY, PAID_LEAVE, INTERNAL_HOUR, ABSENCE, INTERVENTION, WEBAPP } = require('../../../src/helpers/constants');
 const { deleteNonAuthenticationSeeds } = require('../helpers/authentication');
-const { authCompany, otherCompany } = require('../../seed/authCompaniesSeed');
+const { authCompany, otherCompany, companyWithoutSubscription } = require('../../seed/authCompaniesSeed');
 const { auxiliaryRoleId } = require('../../seed/authRolesSeed');
 
 const customer = {
@@ -269,6 +269,14 @@ const otherContract = {
 };
 
 const contractUserCompanies = [
+  // old inactive user company
+  {
+    _id: new ObjectId(),
+    user: contractUsers[0]._id,
+    company: companyWithoutSubscription._id,
+    startDate: '2022-01-01T23:00:00.000Z',
+    endDate: '2022-11-30T23:00:00.000Z',
+  },
   { _id: new ObjectId(), user: contractUsers[0]._id, company: authCompany._id },
   { _id: new ObjectId(), user: contractUsers[1]._id, company: authCompany._id },
   { _id: new ObjectId(), user: contractUsers[2]._id, company: authCompany._id },

@@ -4,7 +4,7 @@ const Company = require('../../../src/models/Company');
 const Event = require('../../../src/models/Event');
 const User = require('../../../src/models/User');
 const UserCompany = require('../../../src/models/UserCompany');
-const { authCompany } = require('../../seed/authCompaniesSeed');
+const { authCompany, companyWithoutSubscription } = require('../../seed/authCompaniesSeed');
 const { deleteNonAuthenticationSeeds } = require('../helpers/authentication');
 const { clientAdminRoleId } = require('../../seed/authRolesSeed');
 const { INTERVENTION, MOBILE } = require('../../../src/helpers/constants');
@@ -53,8 +53,17 @@ const companyClientAdmin = {
   origin: MOBILE,
 };
 
-const userCompany = { _id: new ObjectId(), user: companyClientAdmin._id, company: company._id };
-
+const userCompanies = [
+  // old inactive user company
+  {
+    _id: new ObjectId(),
+    user: companyClientAdmin._id,
+    company: companyWithoutSubscription._id,
+    startDate: '2022-01-01T23:00:00.000Z',
+    endDate: '2022-11-30T23:00:00.000Z',
+  },
+  { _id: new ObjectId(), user: companyClientAdmin._id, company: company._id },
+];
 const populateDB = async () => {
   await deleteNonAuthenticationSeeds();
 
@@ -62,7 +71,7 @@ const populateDB = async () => {
     Company.create(company),
     Event.create(event),
     User.create(companyClientAdmin),
-    UserCompany.create(userCompany),
+    UserCompany.create(userCompanies),
   ]);
 };
 

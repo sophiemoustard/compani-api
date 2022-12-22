@@ -15,7 +15,7 @@ const {
   UNAVAILABILITY,
 } = require('../../../src/helpers/constants');
 const UserCompany = require('../../../src/models/UserCompany');
-const { authCompany } = require('../../seed/authCompaniesSeed');
+const { authCompany, companyWithoutSubscription } = require('../../seed/authCompaniesSeed');
 const { auxiliaryRoleId } = require('../../seed/authRolesSeed');
 const { deleteNonAuthenticationSeeds } = require('../helpers/authentication');
 const { CompaniDate } = require('../../../src/helpers/dates/companiDates');
@@ -158,6 +158,14 @@ const eventList = [
 ];
 
 const userCompanies = [
+  // old inactive user company
+  {
+    _id: new ObjectId(),
+    user: auxiliariesIdList[0],
+    company: companyWithoutSubscription._id,
+    startDate: '2022-01-01T23:00:00.000Z',
+    endDate: '2022-11-30T23:00:00.000Z',
+  },
   { _id: new ObjectId(), user: auxiliariesIdList[0], company: authCompany._id },
   { _id: new ObjectId(), user: auxiliariesIdList[1], company: authCompany._id },
 ];

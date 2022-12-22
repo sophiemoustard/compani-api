@@ -45,7 +45,7 @@ describe('CONTRACTS ROUTES - GET /contracts', () => {
     });
 
     it('should return list of contracts', async () => {
-      const userId = contractUserCompanies[0].user;
+      const userId = contractUserCompanies[1].user;
       const response = await app.inject({
         method: 'GET',
         url: `/contracts?user=${userId}`,

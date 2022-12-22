@@ -11,7 +11,7 @@ const UserCompany = require('../../../src/models/UserCompany');
 const { STRICTLY_E_LEARNING, WEBAPP, INTRA } = require('../../../src/helpers/constants');
 const { deleteNonAuthenticationSeeds } = require('../helpers/authentication');
 const { vendorAdminRoleId } = require('../../seed/authRolesSeed');
-const { authCompany } = require('../../seed/authCompaniesSeed');
+const { authCompany, companyWithoutSubscription } = require('../../seed/authCompaniesSeed');
 
 const userList = [
   {
@@ -32,6 +32,13 @@ const userList = [
 ];
 
 const userCompaniesList = [
+  // old inactive user company
+  {
+    user: userList[0]._id,
+    company: companyWithoutSubscription._id,
+    startDate: '2022-01-01T23:00:00.000Z',
+    endDate: '2022-11-30T23:00:00.000Z',
+  },
   { user: userList[0]._id, company: authCompany._id },
   { user: userList[1]._id, company: authCompany._id },
 ];

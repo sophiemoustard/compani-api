@@ -7,7 +7,7 @@ const Program = require('../../../src/models/Program');
 const SubProgram = require('../../../src/models/SubProgram');
 const User = require('../../../src/models/User');
 const UserCompany = require('../../../src/models/UserCompany');
-const { otherCompany, authCompany } = require('../../seed/authCompaniesSeed');
+const { otherCompany, authCompany, companyWithoutSubscription } = require('../../seed/authCompaniesSeed');
 const { WEBAPP, INTRA, INTER_B2B } = require('../../../src/helpers/constants');
 const { deleteNonAuthenticationSeeds } = require('../helpers/authentication');
 const { trainerRoleId, vendorAdminRoleId } = require('../../seed/authRolesSeed');
@@ -248,6 +248,13 @@ const attendancesList = [
 ];
 
 const userCompanyList = [
+  // old inactive user company
+  {
+    user: traineeList[0]._id,
+    company: companyWithoutSubscription._id,
+    startDate: '2022-01-01T23:00:00.000Z',
+    endDate: '2022-11-30T23:00:00.000Z',
+  },
   { user: traineeList[0]._id, company: authCompany._id },
   { user: traineeList[2]._id, company: otherCompany._id },
   { user: traineeList[3]._id, company: authCompany._id },

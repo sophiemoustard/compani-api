@@ -10,7 +10,7 @@ const Activity = require('../../../src/models/Activity');
 const Card = require('../../../src/models/Card');
 const Step = require('../../../src/models/Step');
 const SubProgram = require('../../../src/models/SubProgram');
-const { authCompany } = require('../../seed/authCompaniesSeed');
+const { authCompany, companyWithoutSubscription } = require('../../seed/authCompaniesSeed');
 const { deleteNonAuthenticationSeeds } = require('../helpers/authentication');
 const { WEBAPP, TRAINEE_ADDITION, INTRA, VIDEO, TRAINEE_DELETION } = require('../../../src/helpers/constants');
 const { auxiliaryRoleId, coachRoleId, trainingOrganisationManagerRoleId } = require('../../seed/authRolesSeed');
@@ -194,6 +194,14 @@ const company = {
 const dateInOneYear = CompaniDate().add('P1YT').toISO();
 
 const userCompanies = [
+  // old inactive user company
+  {
+    _id: new ObjectId(),
+    user: usersSeedList[0]._id,
+    company: companyWithoutSubscription._id,
+    startDate: '2022-01-01T23:00:00.000Z',
+    endDate: '2022-11-30T23:00:00.000Z',
+  },
   { _id: new ObjectId(), user: usersSeedList[0]._id, company: company._id, startDate: '2022-08-14T23:00:00.000Z' },
   { _id: new ObjectId(), user: usersSeedList[1]._id, company: company._id, startDate: '2020-12-14T23:00:00.000Z' },
   { _id: new ObjectId(), user: usersSeedList[2]._id, company: authCompany._id, startDate: '2020-10-14T23:00:00.000Z' },

@@ -32,6 +32,7 @@ const {
 } = require('../helpers/constants');
 const { formatQuery, queryMiddlewareList } = require('./preHooks/validate');
 const UtilsHelper = require('../helpers/utils');
+const { CompaniDate } = require('../helpers/dates/companiDates');
 
 const SALT_WORK_FACTOR = 10;
 const TOKEN_EXPIRE_DURATION = 'P1D';
@@ -327,7 +328,8 @@ function populateUserCompanyList(doc, next) {
   if (!get(doc, 'userCompanyList.length')) return next();
 
   const { credentials } = this.getOptions();
-  if (has(credentials, 'role.vendor')) return next();
+  const requestingOwnInfos = UtilsHelper.areObjectIdsEquals(credentials._id, doc._id);
+  if (has(credentials, 'role.vendor') || requestingOwnInfos) return next();
 
   const loggedCompanyId = get(credentials, 'company._id');
   if (loggedCompanyId) {
@@ -382,7 +384,21 @@ UserSchema.virtual(
 
 UserSchema.virtual('activityHistories', { ref: 'ActivityHistory', localField: '_id', foreignField: 'user' });
 
-UserSchema.virtual('company', { ref: 'UserCompany', localField: '_id', foreignField: 'user', justOne: true });
+UserSchema.virtual(
+  'company',
+  {
+    ref: 'UserCompany',
+    localField: '_id',
+    foreignField: 'user',
+    options: {
+      match: {
+        startDate: { $lt: CompaniDate().toISO() },
+        $or: [{ endDate: { $exists: false } }, { endDate: { $gt: CompaniDate().toISO() } }],
+      },
+    },
+    justOne: true,
+  }
+);
 
 UserSchema.virtual(
   'userCompanyList',

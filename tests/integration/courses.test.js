@@ -416,7 +416,7 @@ describe('COURSES ROUTES - GET /courses', () => {
     it('should get all trainee courses (pedagogy webapp)', async () => {
       const response = await app.inject({
         method: 'GET',
-        url: `/courses?action=pedagogy&origin=webapp&trainee=${userCompanies[0].user.toHexString()}`,
+        url: `/courses?action=pedagogy&origin=webapp&trainee=${userCompanies[1].user.toHexString()}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -466,7 +466,7 @@ describe('COURSES ROUTES - GET /courses', () => {
     it('should return 400 if action is operations but with trainee', async () => {
       const response = await app.inject({
         method: 'GET',
-        url: `/courses?action=operations&origin=webapp&trainee=${userCompanies[0].user.toHexString()}`,
+        url: `/courses?action=operations&origin=webapp&trainee=${userCompanies[1].user.toHexString()}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -476,7 +476,7 @@ describe('COURSES ROUTES - GET /courses', () => {
     it('should return 400 if origin is mobile but with trainee', async () => {
       const response = await app.inject({
         method: 'GET',
-        url: `/courses?action=pedagogy&origin=mobile&trainee=${userCompanies[0].user.toHexString()}`,
+        url: `/courses?action=pedagogy&origin=mobile&trainee=${userCompanies[1].user.toHexString()}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -569,7 +569,7 @@ describe('COURSES ROUTES - GET /courses', () => {
       authToken = await getToken('coach');
       const response = await app.inject({
         method: 'GET',
-        url: `/courses?action=pedagogy&origin=webapp&trainee=${userCompanies[1].user.toHexString()}`,
+        url: `/courses?action=pedagogy&origin=webapp&trainee=${userCompanies[2].user.toHexString()}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -580,7 +580,7 @@ describe('COURSES ROUTES - GET /courses', () => {
       authToken = await getTokenByCredentials(trainerAndCoach.local);
       const response = await app.inject({
         method: 'GET',
-        url: `/courses?action=pedagogy&origin=webapp&trainee=${userCompanies[1].user.toHexString()}`,
+        url: `/courses?action=pedagogy&origin=webapp&trainee=${userCompanies[2].user.toHexString()}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -591,7 +591,7 @@ describe('COURSES ROUTES - GET /courses', () => {
       authToken = await getToken('client_admin');
       const response = await app.inject({
         method: 'GET',
-        url: `/courses?action=pedagogy&origin=webapp&trainee=${userCompanies[0].user.toHexString()}`,
+        url: `/courses?action=pedagogy&origin=webapp&trainee=${userCompanies[1].user.toHexString()}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
