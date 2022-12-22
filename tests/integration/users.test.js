@@ -1418,6 +1418,7 @@ describe('USERS ROUTES - PUT /users/:id', () => {
         contact: { phone: '0102030405' },
         local: { email: 'norole.nocompany@userseed.fr' },
         company: otherCompany._id,
+        userCompanyStartDate: '2022-12-10T00:00:00.000Z',
       };
 
       const response = await app.inject({
