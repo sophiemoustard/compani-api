@@ -1,5 +1,4 @@
 const Boom = require('@hapi/boom');
-const UtilsHelper = require('./utils');
 const translate = require('./translate');
 const { DD_MM_YYYY, DAY } = require('./constants');
 const { CompaniDate } = require('./dates/companiDates');
@@ -9,17 +8,19 @@ const UserCompany = require('../models/UserCompany');
 const { language } = translate;
 
 exports.create = async (payload) => {
-  const { user, company, startDate = CompaniDate().startOf(DAY).toISO() } = payload;
+  const { user, company, startDate = CompaniDate() } = payload;
+
+  const userCompanyStartDate = CompaniDate(startDate).startOf(DAY).toISO();
 
   const userCompany = await UserCompany.findOne(
-    { user, $or: [{ endDate: { $exists: false } }, { endDate: { $gt: startDate } }] },
-    { company: 1 }
+    { user, $or: [{ endDate: { $exists: false } }, { endDate: { $gt: userCompanyStartDate } }] },
+    { endDate: 1 }
   ).lean();
 
   if (!userCompany) {
     await CompanyLinkRequest.deleteMany({ user });
-    await UserCompany.create({ user, company, startDate });
-  } else if (!UtilsHelper.areObjectIdsEquals(userCompany.company, company)) {
+    await UserCompany.create({ user, company, startDate: userCompanyStartDate });
+  } else {
     const errorMessage = userCompany.endDate
       ? translate[language].userAlreadyLinkedToCompanyUntil
         .replace('{DATE}', CompaniDate(userCompany.endDate).format(DD_MM_YYYY))
