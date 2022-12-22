@@ -15,7 +15,6 @@ const { deleteNonAuthenticationSeeds } = require('../helpers/authentication');
 const { WEBAPP, TRAINEE_ADDITION, INTRA, VIDEO, TRAINEE_DELETION } = require('../../../src/helpers/constants');
 const { auxiliaryRoleId, coachRoleId, trainingOrganisationManagerRoleId } = require('../../seed/authRolesSeed');
 const { vendorAdmin, trainerOrganisationManager, trainer, trainerAndCoach } = require('../../seed/authUsersSeed');
-const { CompaniDate } = require('../../../src/helpers/dates/companiDates');
 
 const DETACHMENT_ALLOWED_COMPANY_IDS =
   process.env.DETACHMENT_ALLOWED_COMPANY_IDS.split(';').map(id => new ObjectId(id));
@@ -191,8 +190,6 @@ const company = {
   prefixNumber: 104,
 };
 
-const dateInOneYear = CompaniDate().add('P1YT').toISO();
-
 const userCompanies = [
   // old inactive user company
   {
@@ -208,7 +205,12 @@ const userCompanies = [
   { _id: new ObjectId(), user: new ObjectId(), company: company._id, startDate: '2020-11-19T23:00:00.000Z' },
   { _id: new ObjectId(), user: usersSeedList[3]._id, company: company._id, startDate: '2020-11-19T23:00:00.000Z' },
   { _id: new ObjectId(), user: usersSeedList[4]._id, company: company._id, startDate: '2021-11-19T23:00:00.000Z' },
-  { _id: new ObjectId(), user: usersSeedList[5]._id, company: company._id, startDate: dateInOneYear },
+  { // user company starts in futur
+    _id: new ObjectId(),
+    user: usersSeedList[5]._id,
+    company: company._id,
+    startDate: '2022-12-30T23:00:00.000Z',
+  },
   { _id: new ObjectId(), user: usersSeedList[6]._id, company: company._id, startDate: '2020-11-19T23:00:00.000Z' },
   {
     _id: new ObjectId(),
