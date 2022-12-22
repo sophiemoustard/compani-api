@@ -332,7 +332,7 @@ const userCompanies = [
   },
   {
     user: traineeWhoLeftOtherCompany._id,
-    company: otherCompany._id,
+    company: companyWithoutSubscription._id,
     startDate: '2019-01-01T08:00:00.000Z',
     endDate: '2022-12-01T08:00:00.000Z',
   },

@@ -28,12 +28,13 @@ describe('create', () => {
     const userId = new ObjectId();
     const companyId = new ObjectId();
     const startDate = '2022-12-13T14:15:00.000Z';
+    const userCompanyStartDate = '2022-12-12T23:00:00.000Z';
 
     findOne.returns(SinonMongoose.stubChainedQueries(null, ['lean']));
 
     await UserCompaniesHelper.create({ user: userId, company: companyId, startDate });
 
-    sinon.assert.calledOnceWithExactly(create, { user: userId, company: companyId, startDate });
+    sinon.assert.calledOnceWithExactly(create, { user: userId, company: companyId, startDate: userCompanyStartDate });
     sinon.assert.calledOnceWithExactly(deleteManyCompanyLinkRequest, { user: userId });
     SinonMongoose.calledOnceWithExactly(
       findOne,
@@ -41,8 +42,8 @@ describe('create', () => {
         {
           query: 'findOne',
           args: [
-            { user: userId, $or: [{ endDate: { $exists: false } }, { endDate: { $gt: startDate } }] },
-            { company: 1 },
+            { user: userId, $or: [{ endDate: { $exists: false } }, { endDate: { $gt: userCompanyStartDate } }] },
+            { endDate: 1 },
           ],
         },
         { query: 'lean' },
@@ -71,7 +72,7 @@ describe('create', () => {
           query: 'findOne',
           args: [
             { user: userId, $or: [{ endDate: { $exists: false } }, { endDate: { $gt: '2020-12-09T23:00:00.000Z' } }] },
-            { company: 1 },
+            { endDate: 1 },
           ],
         },
         { query: 'lean' },
@@ -80,53 +81,22 @@ describe('create', () => {
     UtilsMock.unmockCurrentDate();
   });
 
-  it('should do nothing if already userCompany for this user and this company', async () => {
-    const userId = new ObjectId();
-    const companyId = new ObjectId();
+  it('should throw an error if already userCompany for this user and this company', async () => {
+    const user = new ObjectId();
+    const company = new ObjectId();
     const startDate = '2020-12-12T23:00:00.000Z';
-
-    findOne.returns(SinonMongoose.stubChainedQueries({ user: userId, company: companyId, startDate }, ['lean']));
-
-    await UserCompaniesHelper.create({ user: userId, company: companyId, startDate });
-
-    sinon.assert.notCalled(create);
-    sinon.assert.notCalled(deleteManyCompanyLinkRequest);
-    SinonMongoose.calledOnceWithExactly(
-      findOne,
-      [
-        {
-          query: 'findOne',
-          args: [
-            { user: userId, $or: [{ endDate: { $exists: false } }, { endDate: { $gt: '2020-12-12T23:00:00.000Z' } }] },
-            { company: 1 },
-          ],
-        },
-        { query: 'lean' },
-      ]
-    );
-  });
-
-  it('should throw an error if user has userCompany with otherCompany', async () => {
-    const userId = new ObjectId();
-    const companyId = new ObjectId();
-    const startDate = '2020-12-12T23:00:00.000Z';
-    const endDate = '2021-08-11T21:59:59.999Z';
+    const endDate = '2021-02-12T22:59:59.999Z';
 
     try {
-      findOne.returns(SinonMongoose.stubChainedQueries({
-        user: userId,
-        company: new ObjectId(),
-        startDate,
-        endDate,
-      }, ['lean']));
+      findOne.returns(SinonMongoose.stubChainedQueries({ user, company, startDate, endDate }, ['lean']));
 
-      await UserCompaniesHelper.create({ user: userId, company: companyId, startDate });
+      await UserCompaniesHelper.create({ user, company, startDate });
 
       expect(true).toBe(false);
     } catch (e) {
       expect(e.output.payload.statusCode).toEqual(409);
       expect(e.output.payload.message)
-        .toEqual('Ce compte est déjà rattaché à une autre structure jusqu\'au 11/08/2021.');
+        .toEqual('Ce compte est déjà rattaché à une structure jusqu\'au 12/02/2021.');
     }
 
     sinon.assert.notCalled(create);
@@ -138,10 +108,53 @@ describe('create', () => {
           query: 'findOne',
           args: [
             {
-              user: userId,
+              user,
               $or: [{ endDate: { $exists: false } }, { endDate: { $gt: '2020-12-12T23:00:00.000Z' } }],
             },
-            { company: 1 },
+            { endDate: 1 },
+          ],
+        },
+        { query: 'lean' },
+      ]
+    );
+  });
+
+  it('should throw an error if user has userCompany with otherCompany', async () => {
+    const user = new ObjectId();
+    const company = new ObjectId();
+    const startDate = '2020-12-12T23:00:00.000Z';
+    const endDate = '2021-08-11T21:59:59.999Z';
+
+    try {
+      findOne.returns(SinonMongoose.stubChainedQueries({
+        user,
+        company: new ObjectId(),
+        startDate,
+        endDate,
+      }, ['lean']));
+
+      await UserCompaniesHelper.create({ user, company, startDate });
+
+      expect(true).toBe(false);
+    } catch (e) {
+      expect(e.output.payload.statusCode).toEqual(409);
+      expect(e.output.payload.message)
+        .toEqual('Ce compte est déjà rattaché à une structure jusqu\'au 11/08/2021.');
+    }
+
+    sinon.assert.notCalled(create);
+    sinon.assert.notCalled(deleteManyCompanyLinkRequest);
+    SinonMongoose.calledOnceWithExactly(
+      findOne,
+      [
+        {
+          query: 'findOne',
+          args: [
+            {
+              user,
+              $or: [{ endDate: { $exists: false } }, { endDate: { $gt: '2020-12-12T23:00:00.000Z' } }],
+            },
+            { endDate: 1 },
           ],
         },
         { query: 'lean' },

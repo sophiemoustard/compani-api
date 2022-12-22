@@ -333,7 +333,7 @@ describe('USERS ROUTES - POST /users', () => {
       const userCompanyCount = await UserCompany.countDocuments({
         user: response.result.data.user._id,
         company: otherCompany._id,
-        startDate: '2022-12-13T15:00:30.000Z',
+        startDate: '2022-12-12T23:00:00.000Z',
       });
       expect(userCompanyCount).toEqual(1);
     });
@@ -1318,7 +1318,7 @@ describe('USERS ROUTES - PUT /users/:id', () => {
       const createdUserCompany = await UserCompany.countDocuments({
         user: usersSeedList[11]._id,
         company: authCompany._id,
-        startDate: '2022-12-12T12:00:00.000Z',
+        startDate: '2022-12-11T23:00:00.000Z',
       });
       expect(createdUserCompany).toBeTruthy();
     });
@@ -1335,19 +1335,19 @@ describe('USERS ROUTES - PUT /users/:id', () => {
       const createdUserCompany = await UserCompany.countDocuments({
         user: traineeWhoLeftOtherCompany._id,
         company: authCompany._id,
-        startDate: '2022-12-20T12:00:00.000Z',
+        startDate: '2022-12-19T23:00:00.000Z',
       });
       expect(createdUserCompany).toBeTruthy();
     });
 
-    it('should return 200 if company is in payload and is the same as the user company', async () => {
+    it('should return 409 if trying to create usercompany for same company for user (current or futur)', async () => {
       const res = await app.inject({
         method: 'PUT',
         url: `/users/${usersSeedList[1]._id.toHexString()}`,
         payload: { company: authCompany._id },
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
-      expect(res.statusCode).toBe(200);
+      expect(res.statusCode).toBe(409);
     });
 
     it('should return 200 if company is in payload and userCompanyStartDate is not', async () => {
@@ -1385,7 +1385,7 @@ describe('USERS ROUTES - PUT /users/:id', () => {
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
       expect(res.statusCode).toBe(409);
-      expect(res.result.message).toBe('Ce compte est déjà rattaché à une autre structure.');
+      expect(res.result.message).toBe('Ce compte est déjà rattaché à une structure.');
     });
   });
 

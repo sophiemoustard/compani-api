@@ -7,9 +7,7 @@ const UserCompany = require('../models/UserCompany');
 
 const { language } = translate;
 
-exports.create = async (payload) => {
-  const { user, company, startDate = CompaniDate() } = payload;
-
+exports.create = async ({ user, company, startDate = CompaniDate() }) => {
   const userCompanyStartDate = CompaniDate(startDate).startOf(DAY).toISO();
 
   const userCompany = await UserCompany.findOne(
