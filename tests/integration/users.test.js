@@ -182,6 +182,7 @@ describe('USERS ROUTES - POST /users', () => {
         contact: { phone: '0712345678' },
         company: otherCompany._id,
       };
+
       const response = await app.inject({
         method: 'POST',
         url: '/users',
@@ -1202,6 +1203,23 @@ describe('USERS ROUTES - PUT /users/:id', () => {
       expect(noCompanyBefore).toBeTruthy();
     });
 
+    it('should update previously detached learner with new company', async () => {
+      const res = await app.inject({
+        method: 'PUT',
+        url: `/users/${traineeWhoLeftOtherCompany._id.toHexString()}`,
+        payload: { company: authCompany._id, userCompanyStartDate: '2022-12-20T12:00:00.000Z' },
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(res.statusCode).toBe(200);
+      const createdUserCompany = await UserCompany.countDocuments({
+        user: traineeWhoLeftOtherCompany._id,
+        company: authCompany._id,
+        startDate: '2022-12-19T23:00:00.000Z',
+      });
+      expect(createdUserCompany).toBeTruthy();
+    });
+
     it('should not add helper role to user if customer is not from the same company as user', async () => {
       const role = await Role.findOne({ name: HELPER }).lean();
       const res = await app.inject({
@@ -1295,6 +1313,7 @@ describe('USERS ROUTES - PUT /users/:id', () => {
     beforeEach(async () => {
       authToken = await getToken('training_organisation_manager');
     });
+
     it('should update trainer', async () => {
       const res = await app.inject({
         method: 'PUT',
