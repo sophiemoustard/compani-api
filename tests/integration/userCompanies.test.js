@@ -4,6 +4,7 @@ const app = require('../../server');
 const { getTokenByCredentials, getToken } = require('./helpers/authentication');
 const UserCompany = require('../../src/models/UserCompany');
 const { userCompanies, populateDB, usersSeedList } = require('./seed/userCompaniesSeed');
+const UtilsMock = require('../utilsMock');
 
 describe('NODE ENV', () => {
   it('should be \'test\'', () => {
@@ -18,6 +19,10 @@ describe('USER COMPANIES ROUTES - PUT /usercompanies/{id}', () => {
   describe('COACH', () => {
     beforeEach(async () => {
       authToken = await getTokenByCredentials(usersSeedList[1].local);
+      UtilsMock.mockCurrentDate('2022-12-27T15:00:00.000Z');
+    });
+    afterEach(() => {
+      UtilsMock.unmockCurrentDate();
     });
 
     it('should detach user company', async () => {
@@ -200,6 +205,10 @@ describe('USER COMPANIES ROUTES - PUT /usercompanies/{id}', () => {
   describe('TRAINING_ORGANISATION_MANAGER', () => {
     beforeEach(async () => {
       authToken = await getTokenByCredentials(usersSeedList[3].local);
+      UtilsMock.mockCurrentDate('2022-12-27T15:00:00.000Z');
+    });
+    afterEach(() => {
+      UtilsMock.unmockCurrentDate();
     });
 
     it('should detach user company', async () => {
