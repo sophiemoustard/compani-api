@@ -311,7 +311,7 @@ const userCompanies = [
     startDate: '2022-12-19T23:00:00.000Z',
     endDate: '2022-12-29T23:00:00.000Z',
   },
-  // user company starts in futur
+  // user company starts in futur (current date is mocked and defined on 20/12/2022)
   { user: usersSeedList[10]._id, company: authCompany._id, startDate: '2022-12-30T23:00:00.000Z' },
 ];
 

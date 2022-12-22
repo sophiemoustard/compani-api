@@ -706,7 +706,7 @@ describe('USERS ROUTES - GET /users/learners #tag', () => {
       UtilsMock.unmockCurrentDate();
     });
 
-    it('should return all active learners', async () => {
+    it('should return all learners', async () => {
       const res = await app.inject({
         method: 'GET',
         url: '/users/learners',
@@ -752,7 +752,7 @@ describe('USERS ROUTES - GET /users/learners #tag', () => {
       UtilsMock.unmockCurrentDate();
     });
 
-    it('should return 200 if coach requests learners from his company #tag', async () => {
+    it('should return 200 if coach requests active learners from his company', async () => {
       const res = await app.inject({
         method: 'GET',
         url: `/users/learners?companies=${authCompany._id}`,
