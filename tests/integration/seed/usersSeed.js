@@ -276,33 +276,43 @@ const helpers = [
 ];
 
 const userCompanies = [
-  // old inactive user companies
-  {
+  { // old inactive user company
     user: usersSeedList[0]._id,
     company: companyWithoutSubscription._id,
     startDate: '2022-01-01T23:00:00.000Z',
     endDate: '2022-11-30T23:00:00.000Z',
   },
-  {
-    user: auxiliaryFromOtherCompany._id,
+  { // old inactive user company
+    user: usersSeedList[1]._id,
     company: authCompany._id,
     startDate: '2022-01-01T23:00:00.000Z',
     endDate: '2022-11-30T23:00:00.000Z',
   },
   // current user companies
-  { user: auxiliaryFromOtherCompany._id, company: otherCompany._id },
-  { user: helperFromOtherCompany._id, company: otherCompany._id },
-  { user: coachFromOtherCompany._id, company: otherCompany._id },
-  { user: usersSeedList[0]._id, company: authCompany._id },
-  { user: usersSeedList[1]._id, company: authCompany._id },
-  { user: usersSeedList[2]._id, company: authCompany._id },
-  { user: usersSeedList[3]._id, company: authCompany._id },
-  { user: usersSeedList[4]._id, company: authCompany._id },
-  { user: usersSeedList[5]._id, company: authCompany._id },
-  { user: usersSeedList[6]._id, company: authCompany._id },
-  { user: usersSeedList[7]._id, company: authCompany._id },
-  { user: usersSeedList[8]._id, company: authCompany._id },
-  { user: usersSeedList[10]._id, company: authCompany._id },
+  { user: auxiliaryFromOtherCompany._id, company: otherCompany._id, startDate: '2022-01-01T23:00:00.000Z' },
+  { user: helperFromOtherCompany._id, company: otherCompany._id, startDate: '2022-01-01T23:00:00.000Z' },
+  { user: coachFromOtherCompany._id, company: otherCompany._id, startDate: '2022-01-01T23:00:00.000Z' },
+  { user: usersSeedList[0]._id, company: authCompany._id, startDate: '2022-01-01T23:00:00.000Z' },
+  { user: usersSeedList[1]._id, company: authCompany._id, startDate: '2022-01-01T23:00:00.000Z' },
+  { user: usersSeedList[3]._id, company: authCompany._id, startDate: '2022-01-01T23:00:00.000Z' },
+  { user: usersSeedList[4]._id, company: authCompany._id, startDate: '2022-01-01T23:00:00.000Z' },
+  { user: usersSeedList[6]._id, company: authCompany._id, startDate: '2022-01-01T23:00:00.000Z' },
+  { user: usersSeedList[7]._id, company: authCompany._id, startDate: '2022-01-01T23:00:00.000Z' },
+  { user: usersSeedList[8]._id, company: authCompany._id, startDate: '2022-01-01T23:00:00.000Z' },
+  { // old inactive user company
+    user: usersSeedList[2]._id,
+    company: authCompany._id,
+    startDate: '2022-01-01T23:00:00.000Z',
+    endDate: '2022-12-30T23:00:00.000Z',
+  },
+  { // old inactive user company
+    user: usersSeedList[10]._id,
+    company: authCompany._id,
+    startDate: '2022-12-19T23:00:00.000Z',
+    endDate: '2022-12-29T23:00:00.000Z',
+  },
+  // user company starts in futur
+  { user: usersSeedList[10]._id, company: authCompany._id, startDate: '2022-12-30T23:00:00.000Z' },
 ];
 
 const userSectors = [

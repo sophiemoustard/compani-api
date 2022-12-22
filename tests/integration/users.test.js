@@ -44,6 +44,7 @@ const GCloudStorageHelper = require('../../src/helpers/gCloudStorage');
 const { CompaniDate } = require('../../src/helpers/dates/companiDates');
 const UtilsHelper = require('../../src/helpers/utils');
 const { generateFormData } = require('./utils');
+const UtilsMock = require('../utilsMock');
 
 describe('NODE ENV', () => {
   it('should be \'test\'', () => {
@@ -693,16 +694,20 @@ describe('USERS ROUTES - GET /users/sector-histories', () => {
   });
 });
 
-describe('USERS ROUTES - GET /users/learners', () => {
+describe('USERS ROUTES - GET /users/learners #tag', () => {
   let authToken;
   beforeEach(populateDB);
 
   describe('TRAINER', () => {
     beforeEach(async () => {
       authToken = await getToken('trainer');
+      UtilsMock.mockCurrentDate('2022-12-20T15:00:00.000Z');
+    });
+    afterEach(() => {
+      UtilsMock.unmockCurrentDate();
     });
 
-    it('should return all learners', async () => {
+    it('should return all active learners', async () => {
       const res = await app.inject({
         method: 'GET',
         url: '/users/learners',
@@ -710,12 +715,11 @@ describe('USERS ROUTES - GET /users/learners', () => {
       });
 
       expect(res.statusCode).toBe(200);
-
       const countUserInDB = userList.length + usersSeedList.length + usersFromOtherCompanyList.length;
       expect(res.result.data.users.length).toEqual(countUserInDB);
     });
 
-    it('should return learners from a specific company', async () => {
+    it('should return active learners from a specific company', async () => {
       const res = await app.inject({
         method: 'GET',
         url: `/users/learners?companies=${authCompany._id}`,
@@ -727,7 +731,7 @@ describe('USERS ROUTES - GET /users/learners', () => {
         .toBeTruthy();
     });
 
-    it('should return learners from several companies', async () => {
+    it('should return active learners from several companies', async () => {
       const res = await app.inject({
         method: 'GET',
         url: `/users/learners?companies=${authCompany._id}&companies=${otherCompany._id}`,
@@ -743,9 +747,13 @@ describe('USERS ROUTES - GET /users/learners', () => {
   describe('COACH', () => {
     beforeEach(async () => {
       authToken = await getToken('coach');
+      UtilsMock.mockCurrentDate('2022-12-20T15:00:00.000Z');
+    });
+    afterEach(() => {
+      UtilsMock.unmockCurrentDate();
     });
 
-    it('should return 200 if coach requests learners from his company', async () => {
+    it('should return 200 if coach requests learners from his company #tag', async () => {
       const res = await app.inject({
         method: 'GET',
         url: `/users/learners?companies=${authCompany._id}`,
@@ -753,6 +761,7 @@ describe('USERS ROUTES - GET /users/learners', () => {
       });
 
       expect(res.statusCode).toBe(200);
+      expect(res.result.data.users.length).toBe(8);
       expect(res.result.data.users.every(u => UtilsHelper.areObjectIdsEquals(u.company._id, authCompany._id)))
         .toBeTruthy();
     });
