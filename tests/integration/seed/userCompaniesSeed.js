@@ -119,7 +119,7 @@ const usersSeedList = [
   },
   { // 6
     _id: new ObjectId(),
-    identity: { firstname: 'Apprenant', lastname: 'is an auxiliary' },
+    identity: { firstname: 'Apprenant', lastname: 'est un auxiliaire' },
     local: { email: 'auxil@alenvi.io', password: '123456!eR' },
     refreshToken: uuidv4(),
     role: { client: auxiliaryRoleId },

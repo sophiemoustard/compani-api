@@ -31,7 +31,7 @@ exports.create = async (payload) => {
     file: payload.file,
   });
 
-  AttendanceSheet.create({ ...omit(payload, 'file'), company, file: fileUploaded });
+  await AttendanceSheet.create({ ...omit(payload, 'file'), company, file: fileUploaded });
 };
 
 exports.list = async (courseId, companyId) => {
