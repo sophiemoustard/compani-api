@@ -4,6 +4,7 @@ const app = require('../../server');
 const { getTokenByCredentials, getToken } = require('./helpers/authentication');
 const UserCompany = require('../../src/models/UserCompany');
 const { userCompanies, populateDB, usersSeedList } = require('./seed/userCompaniesSeed');
+const UtilsMock = require('../utilsMock');
 
 describe('NODE ENV', () => {
   it('should be \'test\'', () => {
@@ -68,6 +69,8 @@ describe('USER COMPANIES ROUTES - PUT /usercompanies/{id}', () => {
     });
 
     it('should return a 403 if user company startDate is in futur', async () => {
+      UtilsMock.mockCurrentDate('2022-12-27T15:00:00.000Z');
+
       const userCompanyId = userCompanies[7]._id.toHexString();
       const payload = { endDate: '2022-08-17T10:00:00.000Z' };
 
@@ -81,6 +84,7 @@ describe('USER COMPANIES ROUTES - PUT /usercompanies/{id}', () => {
       expect(res.statusCode).toBe(403);
       expect(res.result.message)
         .toBe('Impossible de mettre à jour les informations liées à la structure de cet(te) apprenant(e).');
+      UtilsMock.unmockCurrentDate();
     });
 
     it('should return 403 if company is not allowed to detach its learners', async () => {
@@ -250,6 +254,7 @@ describe('USER COMPANIES ROUTES - PUT /usercompanies/{id}', () => {
     });
 
     it('should return a 403 if user company startDate is in futur', async () => {
+      UtilsMock.mockCurrentDate('2022-12-27T15:00:00.000Z');
       const userCompanyId = userCompanies[7]._id.toHexString();
       const payload = { endDate: '2022-08-17T10:00:00.000Z' };
 
@@ -263,6 +268,7 @@ describe('USER COMPANIES ROUTES - PUT /usercompanies/{id}', () => {
       expect(res.statusCode).toBe(403);
       expect(res.result.message)
         .toBe('Impossible de mettre à jour les informations liées à la structure de cet(te) apprenant(e).');
+      UtilsMock.unmockCurrentDate();
     });
 
     it('should return 403 if company is not allowed to detach its learners', async () => {
