@@ -319,7 +319,7 @@ const getCourseForOperations = async (courseId, credentials, origin) => {
 exports.getCourse = async (query, params, credentials) => (
   query.action === OPERATIONS
     ? getCourseForOperations(params._id, credentials, query.origin)
-    : getCourseForPedagogy(params._id, credentials)
+    : _getCourseForPedagogy(params._id, credentials)
 );
 
 exports.selectUserHistory = (histories) => {
@@ -381,18 +381,16 @@ exports.getCourseFollowUp = async (courseId, company) => {
     })
     .lean();
 
+  const filteredTrainees = courseFollowUp.trainees
+    .filter(t => !company || UtilsHelper.areObjectIdsEquals(t.company, company));
+
   return {
     ...courseFollowUp,
     subProgram: {
       ...courseFollowUp.subProgram,
       steps: courseFollowUp.subProgram.steps.map(s => exports.formatStep(s)),
     },
-    trainees: courseFollowUp.trainees
-      .filter(t => !company || UtilsHelper.areObjectIdsEquals(t.company, company))
-      .map(t => ({
-        ...t,
-        ...exports.getTraineeElearningProgress(t._id, courseFollowUp.subProgram.steps),
-      })),
+    trainees: exports.getTraineesWithElearningProgress(filteredTrainees, courseFollowUp.subProgram.steps),
   };
 };
 
@@ -423,15 +421,15 @@ exports.getQuestionnaireAnswers = async (courseId) => {
   return activitiesWithFollowUp.filter(act => act.followUp.length).map(act => act.followUp).flat();
 };
 
-exports.getTraineeElearningProgress = (traineeId, steps) => {
+const _computeTraineeElearningProgress = (traineeId, steps) => {
   const formattedSteps = steps
     .filter(step => step.type === E_LEARNING)
     .map((s) => {
       const traineeStep = {
         ...s,
         activities: s.activities.map(a => ({
-          ...a,
-          activityHistories: a.activityHistories.filter(ah => UtilsHelper.areObjectIdsEquals(ah.user, traineeId)),
+          ...omit(a, 'groupedHistories'),
+          activityHistories: a.groupedHistories[traineeId] || [],
         })),
       };
 
@@ -441,7 +439,16 @@ exports.getTraineeElearningProgress = (traineeId, steps) => {
   return { steps: formattedSteps, progress: exports.getCourseProgress(formattedSteps) };
 };
 
-const getCourseForPedagogy = async (courseId, credentials) => {
+exports.getTraineesWithElearningProgress = (trainees, steps) => {
+  const stepsWithGroupedHistories = steps.map(s => ({
+    ...s,
+    activities: s.activities.map(a => ({ ...a, groupedHistories: groupBy(a.activityHistories, 'user') })),
+  }));
+
+  return trainees.map(t => ({ ...t, ..._computeTraineeElearningProgress(t._id, stepsWithGroupedHistories) }));
+};
+
+const _getCourseForPedagogy = async (courseId, credentials) => {
   const course = await Course.findOne({ _id: courseId })
     .populate({
       path: 'subProgram',
