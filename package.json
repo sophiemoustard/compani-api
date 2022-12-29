@@ -39,7 +39,7 @@
     "bcrypt": "~5.1.0",
     "bignumber.js": "~9.1.1",
     "cron": "~2.1.0",
-    "date-holidays": "~3.14.4",
+    "date-holidays": "~3.16.13",
     "docxtemplater": "3.28.1",
     "dotenv": "~16.0.0",
     "feedparser-promised": "~2.0.1",
