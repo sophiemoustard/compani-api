@@ -36,7 +36,7 @@
     "@hapi/hapi": "~20.2.1",
     "@hapi/inert": "~6.0.5",
     "axios": "~0.26.1",
-    "bcrypt": "~5.0.1",
+    "bcrypt": "~5.1.0",
     "bignumber.js": "~9.0.2",
     "cron": "~1.7.2",
     "date-holidays": "~3.14.4",
