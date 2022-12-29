@@ -1,7 +1,7 @@
 /* eslint-disable max-len */
 const { ObjectId } = require('mongodb');
 const moment = require('moment');
-const expect = require('expect');
+const { expect } = require('expect');
 const sinon = require('sinon');
 const Event = require('../../../src/models/Event');
 const Bill = require('../../../src/models/Bill');

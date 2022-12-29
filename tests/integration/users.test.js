@@ -1,5 +1,5 @@
 const { ObjectId } = require('mongodb');
-const expect = require('expect');
+const { expect } = require('expect');
 const GetStream = require('get-stream');
 const sinon = require('sinon');
 const omit = require('lodash/omit');

@@ -1,4 +1,4 @@
-const expect = require('expect');
+const { expect } = require('expect');
 const moment = require('moment');
 const omit = require('lodash/omit');
 const sinon = require('sinon');

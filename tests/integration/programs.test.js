@@ -1,4 +1,4 @@
-const expect = require('expect');
+const { expect } = require('expect');
 const GetStream = require('get-stream');
 const { ObjectId } = require('mongodb');
 const sinon = require('sinon');

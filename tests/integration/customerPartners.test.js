@@ -1,4 +1,4 @@
-const expect = require('expect');
+const { expect } = require('expect');
 const app = require('../../server');
 const CustomerPartner = require('../../src/models/CustomerPartner');
 const { authCompany } = require('../seed/authCompaniesSeed');

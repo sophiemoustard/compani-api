@@ -1,5 +1,5 @@
 const sinon = require('sinon');
-const expect = require('expect');
+const { expect } = require('expect');
 const { ObjectId } = require('mongodb');
 const ThirdPartyPayer = require('../../../src/models/ThirdPartyPayer');
 const ThirdPartyPayersHelper = require('../../../src/helpers/thirdPartyPayers');

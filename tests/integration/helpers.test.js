@@ -1,4 +1,4 @@
-const expect = require('expect');
+const { expect } = require('expect');
 const { ObjectId } = require('mongodb');
 const { populateDB, customer, customerFromOtherCompany, helpersList } = require('./seed/helpersSeed');
 const app = require('../../server');

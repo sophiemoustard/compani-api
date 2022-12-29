@@ -1,4 +1,4 @@
-const expect = require('expect');
+const { expect } = require('expect');
 const sinon = require('sinon');
 const CourseBillingItem = require('../../../src/models/CourseBillingItem');
 const CourseBillingItemHelper = require('../../../src/helpers/courseBillingItems');

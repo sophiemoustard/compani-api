@@ -1,4 +1,4 @@
-const expect = require('expect');
+const { expect } = require('expect');
 const sinon = require('sinon');
 const app = require('../../server');
 const { populateDB } = require('./seed/scriptsSeed');

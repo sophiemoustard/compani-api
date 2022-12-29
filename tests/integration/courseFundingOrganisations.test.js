@@ -1,4 +1,4 @@
-const expect = require('expect');
+const { expect } = require('expect');
 const omit = require('lodash/omit');
 const { ObjectId } = require('mongodb');
 const CourseFundingOrganisation = require('../../src/models/CourseFundingOrganisation');

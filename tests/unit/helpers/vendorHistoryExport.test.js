@@ -2,7 +2,7 @@
 const { ObjectId } = require('mongodb');
 const has = require('lodash/has');
 const get = require('lodash/get');
-const expect = require('expect');
+const { expect } = require('expect');
 const sinon = require('sinon');
 const SinonMongoose = require('../sinonMongoose');
 const CourseHelper = require('../../../src/helpers/courses');

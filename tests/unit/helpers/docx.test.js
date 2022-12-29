@@ -1,5 +1,5 @@
 const sinon = require('sinon');
-const expect = require('expect');
+const { expect } = require('expect');
 const path = require('path');
 const os = require('os');
 const fs = require('fs');

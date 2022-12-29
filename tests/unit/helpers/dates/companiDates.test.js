@@ -1,4 +1,4 @@
-const expect = require('expect');
+const { expect } = require('expect');
 const sinon = require('sinon');
 const luxon = require('../../../../src/helpers/dates/luxon');
 const CompaniDatesHelper = require('../../../../src/helpers/dates/companiDates');

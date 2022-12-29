@@ -1,6 +1,6 @@
 const sinon = require('sinon');
 const Boom = require('@hapi/boom');
-const expect = require('expect');
+const { expect } = require('expect');
 const { ObjectId } = require('mongodb');
 const omit = require('lodash/omit');
 const PaymentsHelper = require('../../../src/helpers/payments');

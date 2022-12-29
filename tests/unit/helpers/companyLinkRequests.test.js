@@ -1,5 +1,5 @@
 const sinon = require('sinon');
-const expect = require('expect');
+const { expect } = require('expect');
 const { ObjectId } = require('mongodb');
 const CompanyLinkRequest = require('../../../src/models/CompanyLinkRequest');
 const CompanyLinkRequestsHelper = require('../../../src/helpers/companyLinkRequests');

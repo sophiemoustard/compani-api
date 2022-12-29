@@ -1,4 +1,4 @@
-const expect = require('expect');
+const { expect } = require('expect');
 const sinon = require('sinon');
 const Boom = require('@hapi/boom');
 const { ObjectId } = require('mongodb');
