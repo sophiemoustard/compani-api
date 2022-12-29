@@ -48,7 +48,7 @@
     "hapi-auth-jwt2": "~10.2.0",
     "hapi-sentry": "~3.2.0",
     "intl": "~1.2.5",
-    "joi": "~17.6.0",
+    "joi": "~17.7.0",
     "joi-objectid": "~4.0.2",
     "jsonwebtoken": "~8.5.1",
     "jszip": "~3.9.0",
