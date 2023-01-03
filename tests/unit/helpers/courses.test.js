@@ -1886,23 +1886,24 @@ describe('formatStep', () => {
 describe('getCourseFollowUp', () => {
   let findOne;
   let formatStep;
-  let getTraineeElearningProgress;
+  let getTraineesWithElearningProgress;
   beforeEach(() => {
     findOne = sinon.stub(Course, 'findOne');
     formatStep = sinon.stub(CourseHelper, 'formatStep');
-    getTraineeElearningProgress = sinon.stub(CourseHelper, 'getTraineeElearningProgress');
+    getTraineesWithElearningProgress = sinon.stub(CourseHelper, 'getTraineesWithElearningProgress');
   });
   afterEach(() => {
     findOne.restore();
     formatStep.restore();
-    getTraineeElearningProgress.restore();
+    getTraineesWithElearningProgress.restore();
   });
 
   it('should return course follow up', async () => {
+    const companyId = new ObjectId();
     const course = {
       _id: '1234567890',
       subProgram: { name: 'je suis un sous programme', steps: [{ _id: 'abc' }, { _id: 'def' }, { _id: 'ghi' }] },
-      trainees: [{ _id: '123213123', steps: { progress: 1 }, progress: 1, company: new ObjectId() }],
+      trainees: [{ _id: '123213123', company: companyId }],
       slots: [{ _id: '123456789' }],
     };
     const trainees = [1, 2, 3, 4, 5];
@@ -1911,10 +1912,17 @@ describe('getCourseFollowUp', () => {
     findOne.onCall(1).returns(SinonMongoose.stubChainedQueries(course));
 
     formatStep.callsFake(s => s);
-    getTraineeElearningProgress.returns({ steps: { progress: 1 }, progress: 1 });
+    getTraineesWithElearningProgress.returns([
+      { _id: '123213123', steps: { progress: 1 }, progress: 1, company: companyId },
+    ]);
     const result = await CourseHelper.getCourseFollowUp(course._id);
 
-    expect(result).toEqual(course);
+    expect(result).toEqual({
+      _id: '1234567890',
+      subProgram: { name: 'je suis un sous programme', steps: [{ _id: 'abc' }, { _id: 'def' }, { _id: 'ghi' }] },
+      trainees: [{ _id: '123213123', company: companyId, steps: { progress: 1 }, progress: 1 }],
+      slots: [{ _id: '123456789' }],
+    });
 
     SinonMongoose.calledWithExactly(
       findOne,
@@ -1960,6 +1968,7 @@ describe('getCourseFollowUp', () => {
       ],
       1
     );
+    sinon.assert.calledOnceWithExactly(getTraineesWithElearningProgress, course.trainees, course.subProgram.steps);
   });
 
   it('should return course follow up with trainees from company', async () => {
@@ -1967,10 +1976,7 @@ describe('getCourseFollowUp', () => {
     const course = {
       _id: '1234567890',
       subProgram: { name: 'je suis un sous programme', steps: [{ _id: 'abc' }, { _id: 'def' }, { _id: 'ghi' }] },
-      trainees: [
-        { _id: '123213123', steps: { progress: 1 }, progress: 1, company: companyId },
-        { _id: '123213342', steps: { progress: 1 }, progress: 1, company: new ObjectId() },
-      ],
+      trainees: [{ _id: '123213123', company: companyId }, { _id: '123213342', company: new ObjectId() }],
       slots: [{ _id: '123456789' }],
     };
     const trainees = [1, 2, 3, 4, 5];
@@ -1978,7 +1984,9 @@ describe('getCourseFollowUp', () => {
     findOne.onCall(0).returns(SinonMongoose.stubChainedQueries({ trainees }, ['lean']));
     findOne.onCall(1).returns(SinonMongoose.stubChainedQueries(course));
     formatStep.callsFake(s => s);
-    getTraineeElearningProgress.returns({ steps: { progress: 1 }, progress: 1 });
+    getTraineesWithElearningProgress.returns([
+      { _id: '123213123', steps: { progress: 1 }, progress: 1, company: companyId },
+    ]);
 
     const result = await CourseHelper.getCourseFollowUp(course._id, companyId);
 
@@ -2033,6 +2041,7 @@ describe('getCourseFollowUp', () => {
       ],
       1
     );
+    sinon.assert.calledOnceWithExactly(getTraineesWithElearningProgress, [course.trainees[0]], course.subProgram.steps);
   });
 });
 
@@ -2207,17 +2216,14 @@ describe('getQuestionnaireAnswers', () => {
   });
 });
 
-describe('getTraineeElearningProgress', () => {
-  let areObjectIdsEquals;
+describe('getTraineesWithElearningProgress', () => {
   let getProgress;
   let getCourseProgress;
   beforeEach(() => {
-    areObjectIdsEquals = sinon.stub(UtilsHelper, 'areObjectIdsEquals');
     getProgress = sinon.stub(StepHelper, 'getProgress');
     getCourseProgress = sinon.stub(CourseHelper, 'getCourseProgress');
   });
   afterEach(() => {
-    areObjectIdsEquals.restore();
     getProgress.restore();
     getCourseProgress.restore();
   });
@@ -2242,19 +2248,18 @@ describe('getTraineeElearningProgress', () => {
       progress: 1,
     }];
 
-    areObjectIdsEquals.onCall(0).returns(true);
-    areObjectIdsEquals.onCall(1).returns(false);
     getProgress.returns(1);
     getCourseProgress.returns(1);
 
-    const result = CourseHelper.getTraineeElearningProgress(traineeId, steps);
+    const result = CourseHelper.getTraineesWithElearningProgress([{ _id: traineeId }], steps);
 
-    expect(result).toEqual({
-      steps: [{ activities: [{ activityHistories: [{ user: traineeId }] }], type: E_LEARNING, progress: 1 }],
-      progress: 1,
-    });
-    sinon.assert.calledWithExactly(areObjectIdsEquals.getCall(0), traineeId, traineeId);
-    sinon.assert.calledWithExactly(areObjectIdsEquals.getCall(1), otherTraineeId, traineeId);
+    expect(result).toEqual([
+      {
+        _id: traineeId,
+        steps: [{ activities: [{ activityHistories: [{ user: traineeId }] }], type: E_LEARNING, progress: 1 }],
+        progress: 1,
+      },
+    ]);
     sinon.assert.calledOnceWithExactly(
       getProgress,
       { activities: [{ activityHistories: [{ user: traineeId }] }], type: E_LEARNING }

@@ -168,8 +168,7 @@ exports.exportCourseHistory = async (startDate, endDate, credentials) => {
       .filter(qh => qh.questionnaire.type === END_OF_COURSE)
       .length;
 
-    const traineeProgressList = course.trainees
-      .map(trainee => CourseHelper.getTraineeElearningProgress(trainee._id, course.subProgram.steps))
+    const traineeProgressList = CourseHelper.getTraineesWithElearningProgress(course.trainees, course.subProgram.steps)
       .filter(trainee => trainee.progress.eLearning >= 0)
       .map(trainee => trainee.progress.eLearning);
     const combinedElearningProgress = traineeProgressList.reduce((acc, value) => acc + value, 0);
