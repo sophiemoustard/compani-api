@@ -31,7 +31,7 @@ describe('PAY ROUTES - GET /pay/draft', () => {
     it('should compute draft pay', async () => {
       const response = await app.inject({
         method: 'GET',
-        url: '/pay/draft?startDate=2022-04-30T22:00:00.000Z&endDate=2022-05-31T21:59:59.999Z',
+        url: '/pay/draft?startDate=2023-04-30T22:00:00.000Z&endDate=2023-05-31T21:59:59.999Z',
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -53,7 +53,7 @@ describe('PAY ROUTES - GET /pay/draft', () => {
         authToken = await getToken(role.name);
         const response = await app.inject({
           method: 'GET',
-          url: '/pay/draft?startDate=2022-04-30T22:00:00.000Z&endDate=2022-05-31T21:59:59.999Z',
+          url: '/pay/draft?startDate=2023-04-30T22:00:00.000Z&endDate=2023-05-31T21:59:59.999Z',
           headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
@@ -68,9 +68,9 @@ describe('PAY ROUTES - POST /pay', () => {
   beforeEach(populateDB);
   const payload = [{
     auxiliary: auxiliaries[0]._id,
-    startDate: '2022-04-30T22:00:00',
-    endDate: '2022-05-28T14:34:04',
-    month: '05-2022',
+    startDate: '2023-04-30T22:00:00',
+    endDate: '2023-05-28T14:34:04',
+    month: '05-2023',
     contractHours: 38.97,
     workedHours: 2,
     surchargedAndNotExemptDetails: {},
@@ -195,7 +195,7 @@ describe('PAY ROUTES - GET /hours-balance-details', () => {
     it('should get hours balance details', async () => {
       const response = await app.inject({
         method: 'GET',
-        url: `/pay/hours-balance-details?auxiliary=${auxiliaries[0]._id}&month=10-2022`,
+        url: `/pay/hours-balance-details?auxiliary=${auxiliaries[0]._id}&month=10-2023`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -206,7 +206,7 @@ describe('PAY ROUTES - GET /hours-balance-details', () => {
     it('should get hours balance details for a sector', async () => {
       const response = await app.inject({
         method: 'GET',
-        url: `/pay/hours-balance-details?sector=${sectors[0]._id}&month=10-2022`,
+        url: `/pay/hours-balance-details?sector=${sectors[0]._id}&month=10-2023`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -217,7 +217,7 @@ describe('PAY ROUTES - GET /hours-balance-details', () => {
     it('should get hours balance details for many sectors', async () => {
       const response = await app.inject({
         method: 'GET',
-        url: `/pay/hours-balance-details?sector=${sectors[0]._id}&sector=${sectors[1]._id}&month=10-2022`,
+        url: `/pay/hours-balance-details?sector=${sectors[0]._id}&sector=${sectors[1]._id}&month=10-2023`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -228,7 +228,7 @@ describe('PAY ROUTES - GET /hours-balance-details', () => {
     it('should return a 404 if user is not from the same company as auxiliary', async () => {
       const response = await app.inject({
         method: 'GET',
-        url: `/pay/hours-balance-details?auxiliary=${auxiliaryFromOtherCompany._id}&month=10-2022`,
+        url: `/pay/hours-balance-details?auxiliary=${auxiliaryFromOtherCompany._id}&month=10-2023`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -238,7 +238,7 @@ describe('PAY ROUTES - GET /hours-balance-details', () => {
     it('should return a 404 if user is not from the same company as sector', async () => {
       const response = await app.inject({
         method: 'GET',
-        url: `/pay/hours-balance-details?sector=${sectors[2]._id}&month=10-2022`,
+        url: `/pay/hours-balance-details?sector=${sectors[2]._id}&month=10-2023`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -248,7 +248,7 @@ describe('PAY ROUTES - GET /hours-balance-details', () => {
     it('should return a 400 if there is both sector and auxiliary', async () => {
       const response = await app.inject({
         method: 'GET',
-        url: `/pay/hours-balance-details?sector=${sectors[0]._id}&auxiliary=${auxiliaries[0]._id}&month=10-2022`,
+        url: `/pay/hours-balance-details?sector=${sectors[0]._id}&auxiliary=${auxiliaries[0]._id}&month=10-2023`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -258,7 +258,7 @@ describe('PAY ROUTES - GET /hours-balance-details', () => {
     it('should return a 400 if missing both sector and auxiliary', async () => {
       const response = await app.inject({
         method: 'GET',
-        url: '/pay/hours-balance-details?&month=10-2022',
+        url: '/pay/hours-balance-details?&month=10-2023',
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -294,7 +294,7 @@ describe('PAY ROUTES - GET /hours-balance-details', () => {
     it('should get hours balance details', async () => {
       const response = await app.inject({
         method: 'GET',
-        url: `/pay/hours-balance-details?auxiliary=${auxiliaries[0]._id}&month=10-2022`,
+        url: `/pay/hours-balance-details?auxiliary=${auxiliaries[0]._id}&month=10-2023`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -305,7 +305,7 @@ describe('PAY ROUTES - GET /hours-balance-details', () => {
     it('should get hours balance details by sector', async () => {
       const response = await app.inject({
         method: 'GET',
-        url: `/pay/hours-balance-details?sector=${sectors[0]._id}&month=10-2022`,
+        url: `/pay/hours-balance-details?sector=${sectors[0]._id}&month=10-2023`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -316,7 +316,7 @@ describe('PAY ROUTES - GET /hours-balance-details', () => {
     it('should return a 404 if user is not from the same company as auxiliary', async () => {
       const response = await app.inject({
         method: 'GET',
-        url: `/pay/hours-balance-details?auxiliary=${auxiliaryFromOtherCompany._id}&month=10-2022`,
+        url: `/pay/hours-balance-details?auxiliary=${auxiliaryFromOtherCompany._id}&month=10-2023`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -336,7 +336,7 @@ describe('PAY ROUTES - GET /hours-balance-details', () => {
         authToken = await getToken(role.name);
         const response = await app.inject({
           method: 'GET',
-          url: `/pay/hours-balance-details?auxiliary=${auxiliaries[0]._id}&month=10-2022`,
+          url: `/pay/hours-balance-details?auxiliary=${auxiliaries[0]._id}&month=10-2023`,
           headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
@@ -358,7 +358,7 @@ describe('PAY ROUTES - GET /hours-to-work', () => {
     it('should get hours to work by sector', async () => {
       const response = await app.inject({
         method: 'GET',
-        url: `/pay/hours-to-work?sector=${sectors[0]._id}&month=12-2021`,
+        url: `/pay/hours-to-work?sector=${sectors[0]._id}&month=12-2022`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -366,13 +366,13 @@ describe('PAY ROUTES - GET /hours-to-work', () => {
       expect(response.result.data.hoursToWork.length).toEqual(1);
       expect(response.result.data.hoursToWork.every(htw => Utils.areObjectIdsEquals(htw.sector, sectors[0]._id)))
         .toBeTruthy();
-      expect(Math.floor(response.result.data.hoursToWork[0].hoursToWork)).toEqual(83);
+      expect(Math.floor(response.result.data.hoursToWork[0].hoursToWork)).toEqual(110);
     });
 
     it('should get relevant hours to work by sector if an auxiliary has changed sector', async () => {
       const response = await app.inject({
         method: 'GET',
-        url: `/pay/hours-to-work?sector=${sectors[0]._id}&sector=${sectors[1]._id}&month=12-2022`,
+        url: `/pay/hours-to-work?sector=${sectors[0]._id}&sector=${sectors[1]._id}&month=12-2023`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -382,14 +382,14 @@ describe('PAY ROUTES - GET /hours-to-work', () => {
       const newSectorResult = response.result.data.hoursToWork
         .find(res => res.sector.toHexString() === sectors[1]._id.toHexString());
 
-      expect(Math.floor(oldSectorResult.hoursToWork)).toEqual(56);
-      expect(Math.floor(newSectorResult.hoursToWork)).toEqual(101);
+      expect(Math.floor(oldSectorResult.hoursToWork)).toEqual(58);
+      expect(Math.floor(newSectorResult.hoursToWork)).toEqual(93);
     });
 
     it('should return a 404 if user is not from the same company as sector', async () => {
       const response = await app.inject({
         method: 'GET',
-        url: `/pay/hours-to-work?sector=${sectorFromOtherCompany._id}&month=12-2021`,
+        url: `/pay/hours-to-work?sector=${sectorFromOtherCompany._id}&month=12-2023`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -399,7 +399,7 @@ describe('PAY ROUTES - GET /hours-to-work', () => {
     it('should return a 400 if missing sector', async () => {
       const response = await app.inject({
         method: 'GET',
-        url: '/pay/hours-to-work?&month=10-2022',
+        url: '/pay/hours-to-work?&month=10-2023',
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -430,7 +430,7 @@ describe('PAY ROUTES - GET /hours-to-work', () => {
         authToken = await getToken(role.name);
         const response = await app.inject({
           method: 'GET',
-          url: `/pay/hours-to-work?sector=${sectors[0]._id}&month=12-2021`,
+          url: `/pay/hours-to-work?sector=${sectors[0]._id}&month=12-2023`,
           headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
@@ -452,7 +452,7 @@ describe('PAY ROUTES - GET /pays/export/{type}', () => {
     it('should export identification for pay', async () => {
       const response = await app.inject({
         method: 'GET',
-        url: '/pay/export/identification?startDate=2022-11-01T00:00:00&endDate=2022-11-30T23:00:00',
+        url: '/pay/export/identification?startDate=2023-11-01T00:00:00&endDate=2023-11-30T23:00:00',
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -463,7 +463,7 @@ describe('PAY ROUTES - GET /pays/export/{type}', () => {
     it('should export contract versions for pay', async () => {
       const response = await app.inject({
         method: 'GET',
-        url: '/pay/export/contract_version?startDate=2022-10-01T00:00:00&endDate=2022-10-31T23:59:59',
+        url: '/pay/export/contract_version?startDate=2023-10-01T00:00:00&endDate=2023-10-31T23:59:59',
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -486,7 +486,7 @@ describe('PAY ROUTES - GET /pays/export/{type}', () => {
     it('should export contract ends for pay', async () => {
       const response = await app.inject({
         method: 'GET',
-        url: '/pay/export/contract_end?startDate=2022-11-01T00:00:00&endDate=2022-11-30T23:59:59',
+        url: '/pay/export/contract_end?startDate=2023-11-01T00:00:00&endDate=2023-11-30T23:59:59',
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -509,7 +509,7 @@ describe('PAY ROUTES - GET /pays/export/{type}', () => {
     it('should return 400 if invalid type', async () => {
       const response = await app.inject({
         method: 'GET',
-        url: '/pay/export/toto?startDate=2022-11-01T00:00:00&endDate=2022-11-30T23:00:00',
+        url: '/pay/export/toto?startDate=2023-11-01T00:00:00&endDate=2023-11-30T23:00:00',
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -519,7 +519,7 @@ describe('PAY ROUTES - GET /pays/export/{type}', () => {
     it('should return 400 if missing endDate', async () => {
       const response = await app.inject({
         method: 'GET',
-        url: '/pay/export/identification?startDate=2022-11-01T00:00:00',
+        url: '/pay/export/identification?startDate=2023-11-01T00:00:00',
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -529,7 +529,7 @@ describe('PAY ROUTES - GET /pays/export/{type}', () => {
     it('should return 400 if missing startDate', async () => {
       const response = await app.inject({
         method: 'GET',
-        url: '/pay/export/identification?endDate=2022-11-30T23:00:00',
+        url: '/pay/export/identification?endDate=2023-11-30T23:00:00',
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -539,7 +539,7 @@ describe('PAY ROUTES - GET /pays/export/{type}', () => {
     it('should return 400 if startDate is after endDate', async () => {
       const response = await app.inject({
         method: 'GET',
-        url: '/pay/export/identification?startDate=2022-12-01T00:00:00&endDate=2022-11-30T23:00:00',
+        url: '/pay/export/identification?startDate=2023-12-01T00:00:00&endDate=2023-11-30T23:00:00',
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
