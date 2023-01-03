@@ -1,5 +1,5 @@
 const pick = require('lodash/pick');
-const expect = require('expect');
+const { expect } = require('expect');
 const { ObjectId } = require('mongodb');
 const { omit, set } = require('lodash');
 const CourseBill = require('../../src/models/CourseBill');

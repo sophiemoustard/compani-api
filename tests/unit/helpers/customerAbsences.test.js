@@ -1,7 +1,7 @@
 const { ObjectId } = require('mongodb');
 const sinon = require('sinon');
 const moment = require('moment');
-const expect = require('expect');
+const { expect } = require('expect');
 const SinonMongoose = require('../sinonMongoose');
 const CustomerAbsence = require('../../../src/models/CustomerAbsence');
 const CustomerAbsencesHelper = require('../../../src/helpers/customerAbsences');

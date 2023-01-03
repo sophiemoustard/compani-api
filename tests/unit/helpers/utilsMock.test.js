@@ -1,4 +1,4 @@
-const expect = require('expect');
+const { expect } = require('expect');
 const UtilsMock = require('../../utilsMock');
 const CompaniDatesHelper = require('../../../src/helpers/dates/companiDates');
 

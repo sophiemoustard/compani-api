@@ -1,5 +1,5 @@
 const sinon = require('sinon');
-const expect = require('expect');
+const { expect } = require('expect');
 const PdfPrinter = require('pdfmake');
 const getStream = require('get-stream');
 const PdfHelper = require('../../../src/helpers/pdf');

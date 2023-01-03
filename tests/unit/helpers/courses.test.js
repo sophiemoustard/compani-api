@@ -1,6 +1,6 @@
 const sinon = require('sinon');
 const omit = require('lodash/omit');
-const expect = require('expect');
+const { expect } = require('expect');
 const { ObjectId } = require('mongodb');
 const fs = require('fs');
 const os = require('os');

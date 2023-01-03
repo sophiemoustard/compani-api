@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 const { ObjectId } = require('mongodb');
-const expect = require('expect');
+const { expect } = require('expect');
 const moment = require('moment');
 const sinon = require('sinon');
 const Boom = require('@hapi/boom');

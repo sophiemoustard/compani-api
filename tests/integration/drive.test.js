@@ -1,4 +1,4 @@
-const expect = require('expect');
+const { expect } = require('expect');
 const omit = require('lodash/omit');
 const GetStream = require('get-stream');
 const path = require('path');

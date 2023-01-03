@@ -1,4 +1,4 @@
-const expect = require('expect');
+const { expect } = require('expect');
 const app = require('../../server');
 const InternalHour = require('../../src/models/InternalHour');
 const Event = require('../../src/models/Event');

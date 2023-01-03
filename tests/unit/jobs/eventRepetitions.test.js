@@ -1,5 +1,5 @@
 const sinon = require('sinon');
-const expect = require('expect');
+const { expect } = require('expect');
 const moment = require('moment');
 const { ObjectId } = require('mongodb');
 const SinonMongoose = require('../sinonMongoose');

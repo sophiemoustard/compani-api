@@ -1,4 +1,4 @@
-const expect = require('expect');
+const { expect } = require('expect');
 const sinon = require('sinon');
 const { SHORT_DURATION_H_MM, LONG_DURATION_H_MM } = require('../../../../src/helpers/constants');
 const luxon = require('../../../../src/helpers/dates/luxon');

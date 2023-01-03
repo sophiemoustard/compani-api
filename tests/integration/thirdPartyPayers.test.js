@@ -1,4 +1,4 @@
-const expect = require('expect');
+const { expect } = require('expect');
 const pick = require('lodash/pick');
 const omit = require('lodash/omit');
 const { thirdPartyPayersList, populateDB, thirdPartyPayerFromOtherCompany } = require('./seed/thirdPartyPayersSeed');

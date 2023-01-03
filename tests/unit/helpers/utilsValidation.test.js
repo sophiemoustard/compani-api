@@ -1,4 +1,4 @@
-const expect = require('expect');
+const { expect } = require('expect');
 const UtilsValidation = require('../../../src/routes/validations/utils');
 const { CompaniDate } = require('../../../src/helpers/dates/companiDates');
 

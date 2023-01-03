@@ -1,5 +1,5 @@
 const sinon = require('sinon');
-const expect = require('expect');
+const { expect } = require('expect');
 const UtilsHelper = require('../../../src/helpers/utils');
 const Utils = require('../../../src/data/pdf/billing/utils');
 

@@ -1,6 +1,6 @@
 const { ObjectId } = require('mongodb');
 const sinon = require('sinon');
-const expect = require('expect');
+const { expect } = require('expect');
 const SinonMongoose = require('../sinonMongoose');
 const Customer = require('../../../src/models/Customer');
 const QuoteNumber = require('../../../src/models/QuoteNumber');

@@ -1,6 +1,6 @@
 const path = require('path');
 const flat = require('flat');
-const expect = require('expect');
+const { expect } = require('expect');
 const { ObjectId } = require('mongodb');
 const moment = require('moment');
 const sinon = require('sinon');

@@ -1,6 +1,6 @@
 /* eslint-disable max-len */
 const sinon = require('sinon');
-const expect = require('expect');
+const { expect } = require('expect');
 const moment = require('moment');
 const { ObjectId } = require('mongodb');
 const fs = require('fs').promises;
