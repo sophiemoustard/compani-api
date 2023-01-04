@@ -292,14 +292,14 @@ const userCompanies = [
   { // old inactive user company
     user: usersSeedList[0]._id,
     company: companyWithoutSubscription._id,
-    startDate: '2022-01-01T23:00:00.000Z',
-    endDate: '2022-11-30T23:00:00.000Z',
+    startDate: '2021-01-01T23:00:00.000Z',
+    endDate: '2021-12-31T23:00:00.000Z',
   },
   { // old inactive user company
-    user: usersSeedList[1]._id,
+    user: auxiliaryFromOtherCompany._id,
     company: authCompany._id,
-    startDate: '2022-01-01T23:00:00.000Z',
-    endDate: '2022-11-30T23:00:00.000Z',
+    startDate: '2021-01-01T23:00:00.000Z',
+    endDate: '2021-12-31T23:00:00.000Z',
   },
   // current user companies
   { user: auxiliaryFromOtherCompany._id, company: otherCompany._id, startDate: '2022-01-01T23:00:00.000Z' },
