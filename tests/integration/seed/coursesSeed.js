@@ -45,6 +45,7 @@ const {
   BLENDED,
 } = require('../../../src/helpers/constants');
 const { auxiliaryRoleId, trainerRoleId, coachRoleId } = require('../../seed/authRolesSeed');
+const { CompaniDate } = require('../../../src/helpers/dates/companiDates');
 
 const traineeFromOtherCompany = {
   _id: new ObjectId(),
@@ -65,6 +66,24 @@ const traineeFromAuthCompanyWithFormationExpoToken = {
   refreshToken: uuidv4(),
   origin: WEBAPP,
   formationExpoTokenList: ['ExponentPushToken[jeSuisUnTokenExpo]', 'ExponentPushToken[jeSuisUnAutreTokenExpo]'],
+};
+
+const traineeFormerlyInAuthCompany = {
+  _id: new ObjectId(),
+  identity: { firstname: 'Trainee', lastname: 'Formerly In Auth Company' },
+  local: { email: 'trainee-formerly-in-auth-company@alenvi.io' },
+  contact: { phone: '0121212121' },
+  refreshToken: uuidv4(),
+  origin: WEBAPP,
+};
+
+const traineeComingUpInAuthCompany = {
+  _id: new ObjectId(),
+  identity: { firstname: 'Trainee', lastname: 'Coming Up In Auth Company' },
+  local: { email: 'trainee-coming-up-in-auth-company@alenvi.io' },
+  contact: { phone: '0121212121' },
+  refreshToken: uuidv4(),
+  origin: WEBAPP,
 };
 
 const traineeWithoutCompany = {
@@ -112,21 +131,55 @@ const userList = [
   contactWithoutPhone,
   coachFromOtherCompany,
   traineeFromThirdCompany,
+  traineeFormerlyInAuthCompany,
+  traineeComingUpInAuthCompany,
 ];
 
 const userCompanies = [
-  // old inactive user company
-  {
+  { // 0 old inactive user company
     _id: new ObjectId(),
     user: traineeFromOtherCompany._id,
     company: thirdCompany._id,
     startDate: '2022-01-01T23:00:00.000Z',
     endDate: '2022-11-30T23:00:00.000Z',
   },
-  { _id: new ObjectId(), user: traineeFromOtherCompany._id, company: otherCompany._id },
-  { _id: new ObjectId(), user: traineeFromAuthCompanyWithFormationExpoToken._id, company: authCompany._id },
-  { _id: new ObjectId(), user: coachFromOtherCompany._id, company: otherCompany._id },
-  { _id: new ObjectId(), user: traineeFromThirdCompany._id, company: thirdCompany._id },
+  { // 1
+    _id: new ObjectId(),
+    user: traineeFromOtherCompany._id,
+    company: otherCompany._id,
+    startDate: '2020-01-01T10:00:00.000Z',
+  },
+  { // 2
+    _id: new ObjectId(),
+    user: traineeFromAuthCompanyWithFormationExpoToken._id,
+    company: authCompany._id,
+    startDate: '2020-01-01T10:00:00.000Z',
+  },
+  { // 3
+    _id: new ObjectId(),
+    user: coachFromOtherCompany._id,
+    company: otherCompany._id,
+    startDate: '2020-01-01T10:00:00.000Z',
+  },
+  { // 4
+    _id: new ObjectId(),
+    user: traineeFromThirdCompany._id,
+    company: thirdCompany._id,
+    startDate: '2020-01-01T10:00:00.000Z',
+  },
+  { // 5 formerly in auth company
+    _id: new ObjectId(),
+    user: traineeFormerlyInAuthCompany._id,
+    company: authCompany._id,
+    startDate: '2020-01-01T10:00:00.000Z',
+    endDate: '2021-03-01T10:00:00.000Z',
+  },
+  { // 6 coming up in auth company
+    _id: new ObjectId(),
+    user: traineeComingUpInAuthCompany._id,
+    company: authCompany._id,
+    startDate: CompaniDate().add('P5M').toISO(),
+  },
 ];
 
 const cardsList = [
@@ -722,4 +775,6 @@ module.exports = {
   traineeFromAuthCompanyWithFormationExpoToken,
   userCompanies,
   coachFromOtherCompany,
+  traineeFormerlyInAuthCompany,
+  traineeComingUpInAuthCompany,
 };

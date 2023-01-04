@@ -245,9 +245,13 @@ exports.authorizeTraineeAddition = async (req) => {
     const traineeIsTrainer = UtilsHelper.areObjectIdsEquals(course.trainer, payload.trainee);
     if (traineeIsTrainer) throw Boom.forbidden();
 
-    const userCompanyExists = await UserCompany
-      .countDocuments({ user: payload.trainee, company: { $in: course.companies } });
-    if (!userCompanyExists) throw Boom.notFound();
+    const userCompanyCurrentlyExists = await UserCompany.countDocuments({
+      user: payload.trainee,
+      company: { $in: course.companies },
+      startDate: { $lte: CompaniDate().toDate() },
+      $or: [{ endDate: { $exists: false } }, { endDate: { $gt: CompaniDate().toDate() } }],
+    });
+    if (!userCompanyCurrentlyExists) throw Boom.notFound();
 
     const traineeAlreadyRegistered = course.trainees.some(t => UtilsHelper.areObjectIdsEquals(t, payload.trainee));
     if (traineeAlreadyRegistered) throw Boom.conflict(translate[language].courseTraineeAlreadyExists);
