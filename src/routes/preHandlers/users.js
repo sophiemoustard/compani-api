@@ -273,9 +273,9 @@ exports.authorizeUploadEdition = async (req) => {
 };
 
 exports.authorizeDriveFolderCreation = async (req) => {
-  const { credentials } = req.auth;
+  const { role } = req.auth.credentials;
 
-  if (isOnlyTrainer(credentials.role)) throw Boom.forbidden();
+  if (![COACH, CLIENT_ADMIN].includes(get(role, 'client.name'))) throw Boom.forbidden();
 
   return null;
 };

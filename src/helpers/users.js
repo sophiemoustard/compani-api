@@ -321,9 +321,11 @@ exports.deletePicture = async (userId, publicId) => {
   await GCloudStorageHelper.deleteUserMedia(publicId);
 };
 
-exports.createDriveFolder = async (userId) => {
+exports.createDriveFolder = async (userId, credentials) => {
+  const loggedUserCompany = get(credentials, 'company._id');
+
   const userCompany = await UserCompany
-    .findOne({ user: userId })
+    .findOne({ user: userId, company: loggedUserCompany })
     .populate({ path: 'company', select: 'auxiliariesFolderId' })
     .populate({ path: 'user', select: 'identity' })
     .lean();
