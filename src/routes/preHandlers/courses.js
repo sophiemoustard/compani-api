@@ -248,8 +248,8 @@ exports.authorizeTraineeAddition = async (req) => {
     const userCompanyCurrentlyExists = await UserCompany.countDocuments({
       user: payload.trainee,
       company: { $in: course.companies },
-      startDate: { $lte: CompaniDate().toDate() },
-      $or: [{ endDate: { $exists: false } }, { endDate: { $gt: CompaniDate().toDate() } }],
+      startDate: { $lte: CompaniDate().toISO() },
+      $or: [{ endDate: { $exists: false } }, { endDate: { $gt: CompaniDate().toISO() } }],
     });
     if (!userCompanyCurrentlyExists) throw Boom.notFound();
 
