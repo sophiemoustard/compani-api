@@ -695,7 +695,7 @@ describe('USERS ROUTES - GET /users/sector-histories', () => {
   });
 });
 
-describe('USERS ROUTES - GET /users/learners #tag', () => {
+describe('USERS ROUTES - GET /users/learners', () => {
   let authToken;
   beforeEach(populateDB);
 
@@ -2076,32 +2076,31 @@ describe('USERS ROUTES - POST /users/:id/drivefolder', () => {
       authToken = await getToken('coach');
     });
 
-    // it('should create a drive folder for a user', async () => {
-    //   createFolderStub.returns({ id: '1234567890', webViewLink: 'http://test.com' });
+    it('should create a drive folder for a user', async () => {
+      createFolderStub.returns({ id: '1234567890', webViewLink: 'http://test.com' });
 
-    //   const response = await app.inject({
-    //     method: 'POST',
-    //     url: `/users/${usersSeedList[0]._id.toHexString()}/drivefolder`,
-    //     headers: { Cookie: `alenvi_token=${authToken}` },
-    //   });
+      const response = await app.inject({
+        method: 'POST',
+        url: `/users/${usersSeedList[0]._id.toHexString()}/drivefolder`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
 
-    //   expect(response.statusCode).toBe(200);
+      expect(response.statusCode).toBe(200);
 
-    //   const userCount = await User.countDocuments({
-    //     _id: usersSeedList[0]._id,
-    //     'administrative.driveFolder': { driveId: '1234567890', link: 'http://test.com' },
-    //   });
-    //   expect(userCount).toEqual(1);
-    //   sinon.assert.calledWithExactly(createFolderStub, usersSeedList[0].identity, authCompany.auxiliariesFolderId);
-    // });
+      const userCount = await User.countDocuments({
+        _id: usersSeedList[0]._id,
+        'administrative.driveFolder': { driveId: '1234567890', link: 'http://test.com' },
+      });
+      expect(userCount).toEqual(1);
+      sinon.assert.calledWithExactly(createFolderStub, usersSeedList[0].identity, authCompany.auxiliariesFolderId);
+    });
   });
 
   describe('Other roles', () => {
     const roles = [
       { name: 'helper', expectedCode: 403 },
       { name: 'planning_referent', expectedCode: 403 },
-      { name: 'training_organisation_manager', expectedCode: 200 },
-      { name: 'trainer', expectedCode: 403 },
+      { name: 'vendor_admin', expectedCode: 403 },
     ];
     roles.forEach((role) => {
       it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {

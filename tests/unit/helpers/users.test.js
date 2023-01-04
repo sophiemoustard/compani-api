@@ -1468,6 +1468,8 @@ describe('createDriveFolder', () => {
   let userCompanyFindOne;
   let createFolder;
   let userUpdateOne;
+  const credentials = { company: { _id: new ObjectId() }, _id: new ObjectId() };
+
   beforeEach(() => {
     userCompanyFindOne = sinon.stub(UserCompany, 'findOne');
     createFolder = sinon.stub(GDriveStorageHelper, 'createFolder');
@@ -1489,12 +1491,12 @@ describe('createDriveFolder', () => {
     ));
     createFolder.returns({ webViewLink: 'webViewLink', id: 'folderId' });
 
-    await UsersHelper.createDriveFolder(userId);
+    await UsersHelper.createDriveFolder(userId, credentials);
 
     SinonMongoose.calledOnceWithExactly(
       userCompanyFindOne,
       [
-        { query: 'findOne', args: [{ user: userId }] },
+        { query: 'findOne', args: [{ user: userId, company: credentials.company._id }] },
         { query: 'populate', args: [{ path: 'user', select: 'identity' }] },
         { query: 'populate', args: [{ path: 'company', select: 'auxiliariesFolderId' }] },
         { query: 'lean' },
@@ -1513,14 +1515,14 @@ describe('createDriveFolder', () => {
     try {
       userCompanyFindOne.returns(SinonMongoose.stubChainedQueries(null, ['populate', 'lean']));
 
-      await UsersHelper.createDriveFolder(userId);
+      await UsersHelper.createDriveFolder(userId, credentials);
     } catch (e) {
       expect(e.output.statusCode).toEqual(422);
     } finally {
       SinonMongoose.calledOnceWithExactly(
         userCompanyFindOne,
         [
-          { query: 'findOne', args: [{ user: userId }] },
+          { query: 'findOne', args: [{ user: userId, company: credentials.company._id }] },
           { query: 'populate', args: [{ path: 'user', select: 'identity' }] },
           { query: 'populate', args: [{ path: 'company', select: 'auxiliariesFolderId' }] },
           { query: 'lean' },
@@ -1539,14 +1541,14 @@ describe('createDriveFolder', () => {
         ['populate', 'lean']
       ));
 
-      await UsersHelper.createDriveFolder(userId);
+      await UsersHelper.createDriveFolder(userId, credentials);
     } catch (e) {
       expect(e.output.statusCode).toEqual(422);
     } finally {
       SinonMongoose.calledOnceWithExactly(
         userCompanyFindOne,
         [
-          { query: 'findOne', args: [{ user: userId }] },
+          { query: 'findOne', args: [{ user: userId, company: credentials.company._id }] },
           { query: 'populate', args: [{ path: 'user', select: 'identity' }] },
           { query: 'populate', args: [{ path: 'company', select: 'auxiliariesFolderId' }] },
           { query: 'lean' },
