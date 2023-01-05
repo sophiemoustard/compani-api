@@ -59,7 +59,7 @@ const CourseHistorySchema = mongoose.Schema({
   company: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Company',
-    required: () => [COMPANY_ADDITION, COMPANY_DELETION].includes(this.action),
+    required: () => [COMPANY_ADDITION, COMPANY_DELETION, TRAINEE_ADDITION].includes(this.action),
   },
 }, { timestamps: true });
 

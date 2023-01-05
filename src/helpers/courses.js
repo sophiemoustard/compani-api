@@ -577,14 +577,17 @@ exports.getSMSHistory = async courseId => CourseSmsHistory.find({ course: course
   .populate({ path: 'missingPhones', select: 'identity.firstname identity.lastname' })
   .lean();
 
-exports.addCourseTrainee = async (courseId, payload, credentials) => {
+exports.addTrainee = async (courseId, payload, credentials) => {
   await Course.updateOne({ _id: courseId }, { $addToSet: { trainees: payload.trainee } });
 
-  const trainee = await User.findOne({ _id: payload.trainee }, { formationExpoTokenList: 1 }).lean();
+  const trainee = await User
+    .findOne({ _id: payload.trainee }, { formationExpoTokenList: 1 })
+    .populate({ path: 'company' })
+    .lean();
 
   await Promise.all([
     CourseHistoriesHelper.createHistoryOnTraineeAddition(
-      { course: courseId, traineeId: trainee._id },
+      { course: courseId, traineeId: trainee._id, company: trainee.company },
       credentials._id
     ),
     NotificationHelper.sendBlendedCourseRegistrationNotification(trainee, courseId),
