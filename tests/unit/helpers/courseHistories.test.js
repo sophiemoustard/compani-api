@@ -330,6 +330,7 @@ describe('createHistoryOnTraineeAddition', () => {
     const payload = {
       traineeId: new ObjectId(),
       course: new ObjectId(),
+      company: new ObjectId(),
     };
     const userId = new ObjectId();
 
@@ -340,7 +341,7 @@ describe('createHistoryOnTraineeAddition', () => {
       payload.course,
       userId,
       TRAINEE_ADDITION,
-      { trainee: payload.traineeId }
+      { trainee: payload.traineeId, company: payload.company }
     );
   });
 });

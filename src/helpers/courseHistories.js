@@ -44,8 +44,12 @@ exports.createHistoryOnSlotDeletion = (payload, userId) => {
   );
 };
 
-exports.createHistoryOnTraineeAddition = (payload, userId) =>
-  exports.createHistory(payload.course, userId, TRAINEE_ADDITION, { trainee: payload.traineeId });
+exports.createHistoryOnTraineeAddition = (payload, userId) => exports.createHistory(
+  payload.course,
+  userId,
+  TRAINEE_ADDITION,
+  { trainee: payload.traineeId, company: payload.company }
+);
 
 exports.createHistoryOnTraineeDeletion = (payload, userId) =>
   exports.createHistory(payload.course, userId, TRAINEE_DELETION, { trainee: payload.traineeId });

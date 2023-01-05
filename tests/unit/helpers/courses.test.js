@@ -2541,7 +2541,7 @@ describe('getSMSHistory', () => {
   });
 });
 
-describe('addCourseTrainee', () => {
+describe('addTrainee', () => {
   let courseUpdateOne;
   let userFindOne;
   let createHistoryOnTraineeAddition;
@@ -2563,27 +2563,28 @@ describe('addCourseTrainee', () => {
   });
 
   it('should add a course trainee using existing user', async () => {
-    const user = { _id: new ObjectId(), formationExpoTokenList: 'ExponentPushToken[bla]' };
+    const user = { _id: new ObjectId(), formationExpoTokenList: 'ExponentPushToken[bla]', company: new ObjectId() };
     const course = { _id: new ObjectId(), misc: 'Test' };
     const payload = { trainee: user._id };
     const credentials = { _id: new ObjectId(), company: { _id: new ObjectId() } };
 
     userFindOne.returns(user);
-    userFindOne.returns(SinonMongoose.stubChainedQueries(user, ['lean']));
+    userFindOne.returns(SinonMongoose.stubChainedQueries(user));
 
-    await CourseHelper.addCourseTrainee(course._id, payload, credentials);
+    await CourseHelper.addTrainee(course._id, payload, credentials);
 
     sinon.assert.calledOnceWithExactly(courseUpdateOne, { _id: course._id }, { $addToSet: { trainees: user._id } });
     SinonMongoose.calledOnceWithExactly(
       userFindOne,
       [
         { query: 'findOne', args: [{ _id: user._id }, { formationExpoTokenList: 1 }] },
+        { query: 'populate', args: [{ path: 'company' }] },
         { query: 'lean' },
       ]
     );
     sinon.assert.calledOnceWithExactly(
       createHistoryOnTraineeAddition,
-      { course: course._id, traineeId: user._id },
+      { course: course._id, traineeId: user._id, company: user.company },
       credentials._id
     );
     sinon.assert.calledOnceWithExactly(sendBlendedCourseRegistrationNotification, user, course._id);
