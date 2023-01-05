@@ -327,11 +327,7 @@ describe('createHistoryOnTraineeAddition', () => {
   });
 
   it('should create a courseHistory', async () => {
-    const payload = {
-      traineeId: new ObjectId(),
-      course: new ObjectId(),
-      company: new ObjectId(),
-    };
+    const payload = { traineeId: new ObjectId(), course: new ObjectId(), company: new ObjectId() };
     const userId = new ObjectId();
 
     await CourseHistoriesHelper.createHistoryOnTraineeAddition(payload, userId);
