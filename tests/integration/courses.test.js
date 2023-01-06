@@ -36,6 +36,7 @@ const {
   coachFromOtherCompany,
   traineeFormerlyInAuthCompany,
   traineeComingUpInAuthCompany,
+  traineeFromAuthFormerlyInOther,
 } = require('./seed/coursesSeed');
 const { getToken, getTokenByCredentials } = require('./helpers/authentication');
 const { otherCompany, authCompany, companyWithoutSubscription: thirdCompany } = require('../seed/authCompaniesSeed');
@@ -418,11 +419,12 @@ describe('COURSES ROUTES - GET /courses', () => {
     it('should get all trainee courses (pedagogy webapp)', async () => {
       const response = await app.inject({
         method: 'GET',
-        url: `/courses?action=pedagogy&origin=webapp&trainee=${userCompanies[1].user.toHexString()}`,
+        url: `/courses?action=pedagogy&origin=webapp&trainee=${traineeFromAuthFormerlyInOther._id.toHexString()}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(response.statusCode).toBe(200);
+      expect(response.result.data.courses.length).toEqual(4);
     });
 
     it('should return 400 if no action', async () => {
@@ -569,20 +571,31 @@ describe('COURSES ROUTES - GET /courses', () => {
 
     it('should return 200 if coach and same company (pedagogy webapp)', async () => {
       authToken = await getToken('coach');
+      const url = `/courses?action=pedagogy&origin=webapp&trainee=${traineeFromAuthFormerlyInOther._id.toHexString()}`
+        + `&company=${authCompany._id.toHexString()}`;
+
       const response = await app.inject({
         method: 'GET',
-        url: `/courses?action=pedagogy&origin=webapp&trainee=${userCompanies[2].user.toHexString()}`,
+        url,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(response.statusCode).toBe(200);
+
+      const resultCourseIds = response.result.data.courses.map(course => course._id);
+      expect(resultCourseIds.length).toBe(2);
+      [coursesList[7]._id, coursesList[8]._id]
+        .forEach(courseId => expect(UtilsHelper.doesArrayIncludeId(resultCourseIds, courseId)).toBeTruthy());
     });
 
     it('should return 200 if coach and trainer and same company (pedagogy webapp)', async () => {
       authToken = await getTokenByCredentials(trainerAndCoach.local);
+      const url = `/courses?action=pedagogy&origin=webapp&trainee=${userCompanies[2].user.toHexString()}`
+        + `&company=${authCompany._id.toHexString()}`;
+
       const response = await app.inject({
         method: 'GET',
-        url: `/courses?action=pedagogy&origin=webapp&trainee=${userCompanies[2].user.toHexString()}`,
+        url,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 

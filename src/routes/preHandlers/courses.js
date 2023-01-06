@@ -207,13 +207,13 @@ const authorizeGetListForPedagogy = async (credentials, query) => {
 
   if (!query.trainee) return null;
 
-  const trainee = await User.findOne({ _id: query.trainee }, { company: 1 }).populate({ path: 'company' }).lean();
+  const trainee = await User.countDocuments({ _id: query.trainee });
   if (!trainee) return Boom.notFound();
 
   const isRofOrAdmin = [VENDOR_ADMIN, TRAINING_ORGANISATION_MANAGER].includes(loggedUserVendorRole);
-  const isClientRoleFromSameCompany = [COACH, CLIENT_ADMIN].includes(loggedUserClientRole) &&
-    UtilsHelper.areObjectIdsEquals(loggedUserCompany, trainee.company);
-  if (!isRofOrAdmin && !isClientRoleFromSameCompany) throw Boom.forbidden();
+  const isClientRoleFromQueryCompany = [COACH, CLIENT_ADMIN].includes(loggedUserClientRole) &&
+    UtilsHelper.areObjectIdsEquals(loggedUserCompany, query.company);
+  if (!isRofOrAdmin && !isClientRoleFromQueryCompany) throw Boom.forbidden();
 
   return null;
 };

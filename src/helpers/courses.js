@@ -3,6 +3,7 @@ const get = require('lodash/get');
 const has = require('lodash/has');
 const omit = require('lodash/omit');
 const groupBy = require('lodash/groupBy');
+const compact = require('lodash/compact');
 const fs = require('fs');
 const os = require('os');
 const Boom = require('@hapi/boom');
@@ -26,6 +27,7 @@ const {
   INTER_B2B,
   COURSE_SMS,
   STRICTLY_E_LEARNING,
+  BLENDED,
   DRAFT,
   REJECTED,
   ON_SITE,
@@ -145,10 +147,21 @@ const listForOperations = async (query, origin) => {
 
 const listForPedagogy = async (query, credentials) => {
   const traineeId = query.trainee || get(credentials, '_id');
-  const trainee = await User.findOne({ _id: traineeId }, { company: 1 }).populate({ path: 'company' }).lean();
+  const trainee = await User
+    .findOne({ _id: traineeId })
+    .populate({ path: 'userCompanyList' })
+    .setOptions({ credentials })
+    .lean();
+  const traineeCompanies = compact(query.company ? [query.company] : trainee.userCompanyList.map(uc => uc.company));
 
   const courses = await Course.find(
-    { trainees: trainee._id, $or: [{ accessRules: [] }, { accessRules: trainee.company }] },
+    {
+      trainees: trainee._id,
+      $or: [
+        { format: STRICTLY_E_LEARNING, $or: [{ accessRules: [] }, { accessRules: { $in: traineeCompanies } }] },
+        { format: BLENDED, companies: { $in: traineeCompanies } },
+      ],
+    },
     { format: 1 }
   )
     .populate({
@@ -177,7 +190,7 @@ const listForPedagogy = async (query, credentials) => {
         { path: 'step', select: 'type' },
         {
           path: 'attendances',
-          match: { trainee: trainee._id, company: trainee.company },
+          match: { trainee: trainee._id, company: { $in: traineeCompanies } },
           options: {
             isVendorUser: [TRAINING_ORGANISATION_MANAGER, VENDOR_ADMIN].includes(get(credentials, 'role.vendor.name')),
           },
