@@ -15,7 +15,7 @@ const { authCompany, companyWithoutSubscription } = require('./authCompaniesSeed
 const { WEBAPP, MOBILE } = require('../../src/helpers/constants');
 
 const userList = [
-  {
+  { // 0
     _id: new ObjectId(),
     identity: { firstname: 'client_admin', lastname: 'Boss' },
     refreshToken: uuidv4(),
@@ -23,7 +23,7 @@ const userList = [
     role: { client: clientAdminRoleId },
     origin: WEBAPP,
   },
-  {
+  { // 1
     _id: new ObjectId(),
     identity: { firstname: 'Coach', lastname: 'Calif' },
     local: { email: 'coach@alenvi.io', password: '123456!eR' },
@@ -32,7 +32,7 @@ const userList = [
     role: { client: coachRoleId },
     origin: WEBAPP,
   },
-  {
+  { // 2
     _id: new ObjectId(),
     identity: { firstname: 'Auxiliary', lastname: 'Olait', title: 'mr' },
     local: { email: 'auxiliary@alenvi.io', password: '123456!eR' },
@@ -42,7 +42,7 @@ const userList = [
     contracts: [new ObjectId()],
     administrative: { driveFolder: { driveId: '0987654321' }, transportInvoice: { transportType: 'private' } },
   },
-  {
+  { // 3
     _id: new ObjectId(),
     identity: { firstname: 'Auxiliary without company', lastname: 'créole' },
     local: { email: 'auxiliary-without-company@alenvi.io', password: '123456!eR' },
@@ -50,7 +50,7 @@ const userList = [
     role: { client: auxiliaryWithoutCompanyRoleId },
     origin: WEBAPP,
   },
-  {
+  { // 4
     _id: new ObjectId(),
     identity: { firstname: 'PlanningReferent', lastname: 'Test', title: 'mrs' },
     local: { email: 'planning-referent@alenvi.io', password: '123456!eR' },
@@ -58,7 +58,7 @@ const userList = [
     role: { client: planningReferentRoleId },
     origin: WEBAPP,
   },
-  {
+  { // 5
     _id: new ObjectId(),
     identity: { title: 'mr', firstname: 'Helper', lastname: 'Test' },
     local: { email: 'helper@alenvi.io', password: '123456!eR' },
@@ -66,7 +66,7 @@ const userList = [
     role: { client: helperRoleId },
     origin: WEBAPP,
   },
-  {
+  { // 6
     _id: new ObjectId(),
     identity: { firstname: 'vendor_admin', lastname: 'SuperChef' },
     refreshToken: uuidv4(),
@@ -74,7 +74,7 @@ const userList = [
     role: { vendor: vendorAdminRoleId },
     origin: WEBAPP,
   },
-  {
+  { // 7
     _id: new ObjectId(),
     identity: { firstname: 'training_organisation_manager', lastname: 'ROP' },
     refreshToken: uuidv4(),
@@ -82,7 +82,7 @@ const userList = [
     role: { vendor: trainingOrganisationManagerRoleId },
     origin: WEBAPP,
   },
-  {
+  { // 8
     _id: new ObjectId(),
     identity: { firstname: 'trainer', lastname: 'trainer' },
     refreshToken: uuidv4(),
@@ -90,7 +90,7 @@ const userList = [
     role: { vendor: trainerRoleId },
     origin: WEBAPP,
   },
-  {
+  { // 9
     _id: new ObjectId(),
     identity: { firstname: 'client_admin_company_without_subscription', lastname: 'Chef' },
     refreshToken: uuidv4(),
@@ -98,7 +98,7 @@ const userList = [
     role: { client: clientAdminRoleId },
     origin: WEBAPP,
   },
-  {
+  { // 10
     _id: new ObjectId(),
     identity: { firstname: 'norole', lastname: 'test' },
     refreshToken: uuidv4(),
@@ -106,7 +106,7 @@ const userList = [
     contact: { phone: '0798640728' },
     origin: MOBILE,
   },
-  {
+  { // 11
     _id: new ObjectId(),
     identity: { firstname: 'norole', lastname: 'nocompany' },
     refreshToken: uuidv4(),
@@ -116,7 +116,7 @@ const userList = [
     origin: MOBILE,
     formationExpoTokenList: ['ExponentPushToken[jeSuisUnIdExpo]'],
   },
-  {
+  { // 12
     _id: new ObjectId(),
     identity: { firstname: 'Simon', lastname: 'TrainerAndCoach' },
     refreshToken: uuidv4(),

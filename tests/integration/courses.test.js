@@ -832,7 +832,7 @@ describe('COURSES ROUTES - GET /courses/{_id}', () => {
       });
     });
 
-    it('should get course if trainee (pedagogy)', async () => {
+    it('should get blended course if trainee (pedagogy)', async () => {
       authToken = await getTokenByCredentials(noRole.local);
       const response = await app.inject({
         method: 'GET',
@@ -842,6 +842,18 @@ describe('COURSES ROUTES - GET /courses/{_id}', () => {
 
       expect(response.statusCode).toBe(200);
       expect(response.result.data.course._id).toEqual(coursesList[5]._id);
+    });
+
+    it('should get elearning course if trainee, even if company doesn\'t have accessRules (pedagogy)', async () => {
+      authToken = await getTokenByCredentials(noRole.local);
+      const response = await app.inject({
+        method: 'GET',
+        url: `/courses/${coursesList[11]._id.toHexString()}?action=pedagogy`,
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(200);
+      expect(response.result.data.course._id).toEqual(coursesList[11]._id);
     });
 
     it('should not get course if not trainee', async () => {

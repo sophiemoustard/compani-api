@@ -328,11 +328,8 @@ exports.authorizeGetCourse = async (req) => {
     if (isTOM || isAdminVendor) return null;
 
     const isTrainee = UtilsHelper.doesArrayIncludeId(course.trainees, credentials._id);
-    const companyHasAccess = !course.accessRules.length ||
-      UtilsHelper.doesArrayIncludeId(course.accessRules, userCompany);
 
-    if (isTrainee && !companyHasAccess) throw Boom.forbidden();
-    else if (isTrainee) return null;
+    if (isTrainee) return null;
 
     const isTrainerAndAuthorized = userVendorRole === TRAINER &&
       UtilsHelper.areObjectIdsEquals(course.trainer, credentials._id);
@@ -340,6 +337,8 @@ exports.authorizeGetCourse = async (req) => {
 
     if (!userClientRole || ![COACH, CLIENT_ADMIN].includes(userClientRole)) throw Boom.forbidden();
 
+    const companyHasAccess = !course.accessRules.length ||
+      UtilsHelper.doesArrayIncludeId(course.accessRules, userCompany);
     if (course.format === STRICTLY_E_LEARNING && !companyHasAccess) throw Boom.forbidden();
 
     if (course.format === BLENDED) {
