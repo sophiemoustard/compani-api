@@ -466,10 +466,9 @@ exports.authorizeCourseCompanyDeletion = async (req) => {
 
   const traineesCompanyAtCourseRegistration = await CourseHistoriesHelper
     .getTraineesCompanyAtCourseRegistration(course.trainees, req.params._id);
-  const companiesAtRegistration = traineesCompanyAtCourseRegistration
-    .map(traineeCompany => traineeCompany.company.toHexString());
+  const companiesAtRegistration = traineesCompanyAtCourseRegistration.map(traineeCompany => traineeCompany.company);
 
-  if (companiesAtRegistration.includes(companyId)) {
+  if (UtilsHelper.doesArrayIncludeId(companiesAtRegistration, companyId)) {
     throw Boom.forbidden(translate[language].companyTraineeRegisteredToCourse);
   }
 
