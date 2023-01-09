@@ -43,6 +43,7 @@ const {
   STRICTLY_E_LEARNING,
   INTER_B2C,
   BLENDED,
+  TRAINEE_ADDITION,
 } = require('../../../src/helpers/constants');
 const { auxiliaryRoleId, trainerRoleId, coachRoleId } = require('../../seed/authRolesSeed');
 const { CompaniDate } = require('../../../src/helpers/dates/companiDates');
@@ -626,6 +627,13 @@ const courseHistories = [
     action: SLOT_DELETION,
     course: coursesList[16]._id,
     slot: { startDate: '2020-01-01T00:00:00.000Z', endDate: '2020-01-01T02:00:00.000Z' },
+    createdBy: trainerOrganisationManager._id,
+  },
+  {
+    action: TRAINEE_ADDITION,
+    course: coursesList[7]._id,
+    trainee: auxiliary._id,
+    company: authCompany._id,
     createdBy: trainerOrganisationManager._id,
   },
 ];

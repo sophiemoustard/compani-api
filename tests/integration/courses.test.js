@@ -3311,6 +3311,7 @@ describe('COURSES ROUTES - DELETE /courses/{_id}/companies{companyId}', () => {
       });
 
       expect(response.statusCode).toBe(403);
+      expect(response.result.message).toEqual(translate[language].companyTraineeRegisteredToCourse);
     });
 
     it('should return a 403 if company has bill', async () => {
