@@ -1,4 +1,6 @@
 const pick = require('lodash/pick');
+const groupBy = require('lodash/groupBy');
+const { ObjectId } = require('mongodb');
 const { CompaniDate } = require('./dates/companiDates');
 const CourseHistory = require('../models/CourseHistory');
 const {
@@ -115,3 +117,21 @@ exports.createHistoryOnCompanyAddition = (payload, userId) =>
 
 exports.createHistoryOnCompanyDeletion = (payload, userId) =>
   exports.createHistory(payload.course, userId, COMPANY_DELETION, { company: payload.company });
+
+exports.getTraineesCompanyAtCourseRegistration = async (traineeIds, courseId) => {
+  const traineesCompanyAtCourseRegistration = [];
+
+  const courseHistories = await CourseHistory
+    .find({ course: courseId, trainee: { $in: traineeIds }, action: TRAINEE_ADDITION })
+    .sort({ createdAt: -1 })
+    .lean();
+
+  const courseHistoriesGroupedByTrainee = groupBy(courseHistories, 'trainee');
+  for (const trainee of Object.keys(courseHistoriesGroupedByTrainee)) {
+    const lastHistoryTraineeAddition = courseHistoriesGroupedByTrainee[trainee][0];
+    traineesCompanyAtCourseRegistration
+      .push({ trainee: new ObjectId(trainee), company: lastHistoryTraineeAddition.company });
+  }
+
+  return traineesCompanyAtCourseRegistration;
+};
