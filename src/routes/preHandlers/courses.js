@@ -26,7 +26,7 @@ const {
 } = require('../../helpers/constants');
 const translate = require('../../helpers/translate');
 const UtilsHelper = require('../../helpers/utils');
-const CourseHistoriesHelper = require('../../helpers/CourseHistories');
+const CourseHistoriesHelper = require('../../helpers/courseHistories');
 const { CompaniDate } = require('../../helpers/dates/companiDates');
 const AttendanceSheet = require('../../models/AttendanceSheet');
 
