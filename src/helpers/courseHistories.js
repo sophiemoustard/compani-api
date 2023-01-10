@@ -127,10 +127,7 @@ exports.getTraineesCompanyAtCourseRegistration = async (traineeIds, courseId) =>
     .lean();
 
   const traineesCompanyAtCourseRegistration = sortedUniqBy(courseHistories, 'trainee')
-    .map((courseHistory) => {
-      const { company, trainee } = courseHistory;
-      return { trainee, company };
-    });
+    .map(courseHistory => pick(courseHistory, ['trainee', 'company']));
 
   return traineesCompanyAtCourseRegistration;
 };
