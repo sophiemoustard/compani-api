@@ -47,6 +47,14 @@ const {
 const { auxiliaryRoleId, trainerRoleId, coachRoleId } = require('../../seed/authRolesSeed');
 const { CompaniDate } = require('../../../src/helpers/dates/companiDates');
 
+const traineeFromAuthFormerlyInOther = {
+  _id: new ObjectId(),
+  identity: { firstname: 'Michel', lastname: 'Drucker' },
+  local: { email: 'traineeAuthFormerlyOther@alenvi.io', password: '123456!eR' },
+  refreshToken: uuidv4(),
+  origin: WEBAPP,
+};
+
 const traineeFromOtherCompany = {
   _id: new ObjectId(),
   identity: { firstname: 'Fred', lastname: 'Astaire' },
@@ -133,6 +141,7 @@ const userList = [
   traineeFromThirdCompany,
   traineeFormerlyInAuthCompany,
   traineeComingUpInAuthCompany,
+  traineeFromAuthFormerlyInOther,
 ];
 
 const userCompanies = [
@@ -179,6 +188,19 @@ const userCompanies = [
     user: traineeComingUpInAuthCompany._id,
     company: authCompany._id,
     startDate: CompaniDate().add('P5M').toISO(),
+  },
+  { // 5
+    _id: new ObjectId(),
+    user: traineeFromAuthFormerlyInOther._id,
+    company: otherCompany._id,
+    startDate: '2020-01-01T10:00:00.000Z',
+    endDate: '2020-12-31T10:00:00.000Z',
+  },
+  { // 6
+    _id: new ObjectId(),
+    user: traineeFromAuthFormerlyInOther._id,
+    company: authCompany._id,
+    startDate: '2021-01-01T10:00:00.000Z',
   },
 ];
 
@@ -254,7 +276,7 @@ const coursesList = [
     contact: vendorAdmin._id,
     misc: 'team formation',
     trainer: new ObjectId(),
-    trainees: [traineeFromOtherCompany._id],
+    trainees: [traineeFromOtherCompany._id, traineeFromAuthFormerlyInOther._id],
     companies: [otherCompany._id],
     type: INTRA,
     maxTrainees: 8,
@@ -328,7 +350,7 @@ const coursesList = [
     misc: 'inter b2b session',
     type: INTER_B2B,
     format: BLENDED,
-    trainees: [auxiliary._id],
+    trainees: [auxiliary._id, traineeFromAuthFormerlyInOther._id],
     companies: [authCompany._id, thirdCompany._id],
     trainer: trainer._id,
     salesRepresentative: vendorAdmin._id,
@@ -340,7 +362,7 @@ const coursesList = [
     misc: 'inter_b2c with accessRules',
     type: INTER_B2C,
     format: STRICTLY_E_LEARNING,
-    trainees: [coach._id],
+    trainees: [traineeFromAuthFormerlyInOther._id],
     accessRules: [authCompany._id],
     salesRepresentative: vendorAdmin._id,
   },
@@ -373,7 +395,7 @@ const coursesList = [
     misc: 'inter_b2c',
     type: INTER_B2C,
     format: STRICTLY_E_LEARNING,
-    trainees: [traineeFromOtherCompany._id, coach._id],
+    trainees: [traineeFromOtherCompany._id, traineeFromAuthFormerlyInOther._id, noRole._id],
     accessRules: [otherCompany._id],
     salesRepresentative: vendorAdmin._id,
   },
@@ -777,4 +799,5 @@ module.exports = {
   coachFromOtherCompany,
   traineeFormerlyInAuthCompany,
   traineeComingUpInAuthCompany,
+  traineeFromAuthFormerlyInOther,
 };
