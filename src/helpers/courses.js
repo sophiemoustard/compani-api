@@ -270,7 +270,6 @@ const getCourseForOperations = async (courseId, credentials, origin) => {
       {
         path: 'trainees',
         select: 'identity.firstname identity.lastname local.email contact picture.link firstMobileConnection',
-        populate: { path: 'company', populate: { path: 'company', select: 'name' } },
       },
       {
         path: 'companyRepresentative',
@@ -315,17 +314,32 @@ const getCourseForOperations = async (courseId, credentials, origin) => {
     ])
     .lean();
 
+  const traineesCompanyAtCourseRegistration = await CourseHistoriesHelper
+    .getTraineesCompanyAtCourseRegistration(fetchedCourse.trainees, courseId);
+
+  const courseTrainees = fetchedCourse.trainees.map((trainee) => {
+    const traineeCompanyIdAtCourseRegistration = get(
+      traineesCompanyAtCourseRegistration.find(t => UtilsHelper.areObjectIdsEquals(t.trainee, trainee._id)),
+      'company'
+    );
+    return { ...trainee, company: traineeCompanyIdAtCourseRegistration };
+  });
+
   // A coach/client_admin is not supposed to read infos on trainees from other companies
   // espacially for INTER_B2B courses.
   if (get(credentials, 'role.vendor')) {
-    return { ...fetchedCourse, totalTheoreticalDuration: exports.getTotalTheoreticalDuration(fetchedCourse) };
+    return {
+      ...fetchedCourse,
+      totalTheoreticalDuration: exports.getTotalTheoreticalDuration(fetchedCourse),
+      trainees: courseTrainees,
+    };
   }
 
   return {
     ...fetchedCourse,
     totalTheoreticalDuration: exports.getTotalTheoreticalDuration(fetchedCourse),
-    trainees: fetchedCourse.trainees
-      .filter(t => UtilsHelper.areObjectIdsEquals(get(t, 'company._id'), get(credentials, 'company._id'))),
+    trainees: courseTrainees
+      .filter(t => UtilsHelper.areObjectIdsEquals(get(t, 'company'), get(credentials, 'company._id'))),
   };
 };
 
