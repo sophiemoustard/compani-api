@@ -26,6 +26,7 @@ const {
 } = require('../../helpers/constants');
 const translate = require('../../helpers/translate');
 const UtilsHelper = require('../../helpers/utils');
+const CourseHistoriesHelper = require('../../helpers/courseHistories');
 const { CompaniDate } = require('../../helpers/dates/companiDates');
 const AttendanceSheet = require('../../models/AttendanceSheet');
 
@@ -449,15 +450,13 @@ exports.authorizeCourseCompanyDeletion = async (req) => {
   const isVendorUser = !!get(req, 'auth.credentials.role.vendor');
 
   const course = await Course.findOne({ _id: req.params._id })
-    .populate({ path: 'trainees', select: 'company', populate: 'company' })
     .populate({ path: 'bills', select: 'company', options: { isVendorUser } })
     .populate({
       path: 'slots',
       select: 'attendances',
       populate: {
         path: 'attendances',
-        select: 'trainee',
-        populate: { path: 'trainee', select: 'company', populate: 'company' },
+        select: 'company',
         options: { isVendorUser },
       },
     })
@@ -465,21 +464,22 @@ exports.authorizeCourseCompanyDeletion = async (req) => {
 
   if (!UtilsHelper.doesArrayIncludeId(course.companies, companyId) || course.type !== INTER_B2B) throw Boom.forbidden();
 
-  const companyTraineesAreRegistered = course.trainees.some(t => UtilsHelper.areObjectIdsEquals(t.company, companyId));
-  if (companyTraineesAreRegistered) throw Boom.forbidden(translate[language].companyTraineeRegisteredToCourse);
+  const traineesCompanyAtCourseRegistration = await CourseHistoriesHelper
+    .getTraineesCompanyAtCourseRegistration(course.trainees, req.params._id);
+  const companiesAtRegistration = traineesCompanyAtCourseRegistration.map(traineeCompany => traineeCompany.company);
 
-  const hasAttendancesFromCompany = course.slots
-    .some(slot => slot.attendances
-      .some(attendance => UtilsHelper.areObjectIdsEquals(companyId, attendance.trainee.company)));
+  if (UtilsHelper.doesArrayIncludeId(companiesAtRegistration, companyId)) {
+    throw Boom.forbidden(translate[language].companyTraineeRegisteredToCourse);
+  }
+
+  const hasAttendancesFromCompany = course.slots.some(slot =>
+    slot.attendances.some(attendance => UtilsHelper.areObjectIdsEquals(companyId, attendance.company)));
   if (hasAttendancesFromCompany) throw Boom.forbidden(translate[language].companyTraineeAttendedToCourse);
 
-  const attendanceSheets = await AttendanceSheet
-    .find({ course: course._id }, { trainee: 1 })
-    .populate({ path: 'trainee', select: 'company', populate: 'company' })
-    .lean();
+  const attendanceSheets = await AttendanceSheet.find({ course: course._id }, { company: 1 }).lean();
 
   const hasAttendanceSheetsFromCompany = attendanceSheets
-    .some(sheet => UtilsHelper.areObjectIdsEquals(companyId, sheet.trainee.company));
+    .some(sheet => UtilsHelper.areObjectIdsEquals(companyId, sheet.company));
   if (hasAttendanceSheetsFromCompany) {
     throw Boom.forbidden(translate[language].CompanyTraineeHasAttendanceSheetForCourse);
   }

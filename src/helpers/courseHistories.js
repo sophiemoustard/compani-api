@@ -1,4 +1,5 @@
 const pick = require('lodash/pick');
+const sortedUniqBy = require('lodash/sortedUniqBy');
 const { CompaniDate } = require('./dates/companiDates');
 const CourseHistory = require('../models/CourseHistory');
 const {
@@ -115,3 +116,18 @@ exports.createHistoryOnCompanyAddition = (payload, userId) =>
 
 exports.createHistoryOnCompanyDeletion = (payload, userId) =>
   exports.createHistory(payload.course, userId, COMPANY_DELETION, { company: payload.company });
+
+exports.getTraineesCompanyAtCourseRegistration = async (traineeIds, courseId) => {
+  const courseHistories = await CourseHistory
+    .find(
+      { course: courseId, trainee: { $in: traineeIds }, action: TRAINEE_ADDITION },
+      { trainee: 1, company: 1, createdAt: 1 }
+    )
+    .sort({ createdAt: -1 })
+    .lean();
+
+  const traineesCompanyAtCourseRegistration = sortedUniqBy(courseHistories, 'trainee')
+    .map(courseHistory => pick(courseHistory, ['trainee', 'company']));
+
+  return traineesCompanyAtCourseRegistration;
+};
