@@ -1,6 +1,5 @@
 const pick = require('lodash/pick');
-const groupBy = require('lodash/groupBy');
-const { ObjectId } = require('mongodb');
+const sortedUniqBy = require('lodash/sortedUniqBy');
 const { CompaniDate } = require('./dates/companiDates');
 const CourseHistory = require('../models/CourseHistory');
 const {
@@ -119,19 +118,19 @@ exports.createHistoryOnCompanyDeletion = (payload, userId) =>
   exports.createHistory(payload.course, userId, COMPANY_DELETION, { company: payload.company });
 
 exports.getTraineesCompanyAtCourseRegistration = async (traineeIds, courseId) => {
-  const traineesCompanyAtCourseRegistration = [];
-
   const courseHistories = await CourseHistory
-    .find({ course: courseId, trainee: { $in: traineeIds }, action: TRAINEE_ADDITION })
+    .find(
+      { course: courseId, trainee: { $in: traineeIds }, action: TRAINEE_ADDITION },
+      { trainee: 1, company: 1, createdAt: 1 }
+    )
     .sort({ createdAt: -1 })
     .lean();
 
-  const courseHistoriesGroupedByTrainee = groupBy(courseHistories, 'trainee');
-  for (const trainee of Object.keys(courseHistoriesGroupedByTrainee)) {
-    const lastHistoryTraineeAddition = courseHistoriesGroupedByTrainee[trainee][0];
-    traineesCompanyAtCourseRegistration
-      .push({ trainee: new ObjectId(trainee), company: lastHistoryTraineeAddition.company });
-  }
+  const traineesCompanyAtCourseRegistration = sortedUniqBy(courseHistories, 'trainee')
+    .map((courseHistory) => {
+      const { company, trainee } = courseHistory;
+      return { trainee, company };
+    });
 
   return traineesCompanyAtCourseRegistration;
 };
