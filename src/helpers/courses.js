@@ -152,7 +152,7 @@ const listForPedagogy = async (query, credentials) => {
     .populate({ path: 'userCompanyList' })
     .setOptions({ credentials })
     .lean();
-  const traineeCompanies = compact(query.company ? [query.company] : trainee.userCompanyList.map(uc => uc.company));
+  const traineeCompanies = query.company ? [query.company] : compact(trainee.userCompanyList.map(uc => uc.company));
 
   const courses = await Course.find(
     {
