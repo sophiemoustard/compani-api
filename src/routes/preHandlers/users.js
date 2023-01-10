@@ -62,7 +62,14 @@ const trainerUpdatesForbiddenKeys = (req, user) => {
 
 exports.authorizeUserUpdate = async (req) => {
   const { credentials } = req.auth;
-  const userFromDB = req.pre.user;
+  const userFromDB = await User
+    .findOne({ _id: req.params._id })
+    .populate({ path: 'company' })
+    .populate({ path: 'userCompanyList' })
+    .setOptions({ credentials })
+    .lean();
+  if (!userFromDB) throw Boom.notFound(translate[language].userNotFound);
+
   const userCompany = userFromDB.company || get(req, 'payload.company');
   const isLoggedUserVendor = !!get(credentials, 'role.vendor');
   const loggedUserClientRole = get(credentials, 'role.client.name');
@@ -144,15 +151,16 @@ const checkUpdateAndCreateRestrictions = (payload) => {
 
 exports.authorizeUserGetById = async (req) => {
   const { credentials } = req.auth;
-  const user = req.pre.user || req.payload;
+  const user = await User
+    .findOne({ _id: req.params._id })
+    .populate({ path: 'company' })
+    .populate({ path: 'userCompanyList' })
+    .setOptions({ credentials })
+    .lean();
+  if (!user) throw Boom.notFound(translate[language].userNotFound);
+
   const loggedCompanyId = get(credentials, 'company._id', null);
   const isLoggedUserVendor = get(credentials, 'role.vendor', null);
-  const establishmentId = get(req, 'payload.establishment');
-
-  if (establishmentId) {
-    const establishment = await Establishment.countDocuments({ _id: establishmentId, company: loggedCompanyId });
-    if (!establishment) throw Boom.forbidden();
-  }
 
   const isClientFromDifferentCompany = !isLoggedUserVendor && user.company &&
     !UtilsHelper.areObjectIdsEquals(user.company, loggedCompanyId);

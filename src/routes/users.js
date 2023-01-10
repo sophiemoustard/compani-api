@@ -157,10 +157,7 @@ exports.plugin = {
           params: Joi.object({ _id: Joi.objectId().required() }),
         },
         auth: { scope: ['users:edit', 'user:read-{params._id}'] },
-        pre: [
-          { method: getUser, assign: 'user' },
-          { method: authorizeUserGetById },
-        ],
+        pre: [{ method: authorizeUserGetById }],
       },
       handler: show,
     });
@@ -262,7 +259,7 @@ exports.plugin = {
             ),
           }).required(),
         },
-        pre: [{ method: getUser, assign: 'user' }, { method: authorizeUserUpdate }],
+        pre: [{ method: authorizeUserUpdate }],
       },
       handler: update,
     });
@@ -276,10 +273,7 @@ exports.plugin = {
           params: Joi.object({ _id: Joi.objectId().required() }),
           payload: Joi.object().keys({ certificates: Joi.object().keys({ driveId: Joi.string() }) }),
         },
-        pre: [
-          { method: getUser, assign: 'user' },
-          { method: authorizeUserUpdate },
-        ],
+        pre: [{ method: authorizeUserUpdate }],
       },
       handler: updateCertificates,
     });
@@ -316,10 +310,7 @@ exports.plugin = {
           }),
           params: Joi.object({ _id: Joi.objectId().required(), driveId: Joi.string().required() }),
         },
-        pre: [
-          { method: getUser, assign: 'user' },
-          { method: authorizeUserUpdate },
-        ],
+        pre: [{ method: authorizeUserUpdate }],
       },
     });
 
