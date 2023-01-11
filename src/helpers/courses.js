@@ -314,17 +314,20 @@ const getCourseForOperations = async (courseId, credentials, origin) => {
     ])
     .lean();
 
-  const traineesCompanyAtCourseRegistration = await CourseHistoriesHelper
-    .getTraineesCompanyAtCourseRegistration(fetchedCourse.trainees, courseId);
+  let courseTrainees;
+  if (fetchedCourse.format === BLENDED) {
+    const traineesCompanyAtCourseRegistration = await CourseHistoriesHelper
+      .getTraineesCompanyAtCourseRegistration(fetchedCourse.trainees, courseId);
 
-  const traineesCompanyGroupedByTrainee = groupBy(traineesCompanyAtCourseRegistration, 'trainee');
+    const traineesCompanyGroupedByTrainee = groupBy(traineesCompanyAtCourseRegistration, 'trainee');
 
-  const courseTrainees = fetchedCourse.trainees.map((trainee) => {
-    const traineeCompanyAtCourseRegistration = traineesCompanyGroupedByTrainee[trainee._id];
-    const companyIdAtCourseRegistration = get(traineeCompanyAtCourseRegistration[0], 'company');
+    courseTrainees = fetchedCourse.trainees.map((trainee) => {
+      const traineeCompanyAtCourseRegistration = traineesCompanyGroupedByTrainee[trainee._id];
+      const companyIdAtCourseRegistration = get(traineeCompanyAtCourseRegistration[0], 'company');
 
-    return { ...trainee, company: companyIdAtCourseRegistration };
-  });
+      return { ...trainee, company: companyIdAtCourseRegistration };
+    });
+  }
 
   // A coach/client_admin is not supposed to read infos on trainees from other companies
   // espacially for INTER_B2B courses.
@@ -332,15 +335,19 @@ const getCourseForOperations = async (courseId, credentials, origin) => {
     return {
       ...fetchedCourse,
       totalTheoreticalDuration: exports.getTotalTheoreticalDuration(fetchedCourse),
-      trainees: courseTrainees,
+      ...(courseTrainees && { trainees: courseTrainees }),
     };
   }
 
   return {
     ...fetchedCourse,
     totalTheoreticalDuration: exports.getTotalTheoreticalDuration(fetchedCourse),
-    trainees: courseTrainees
-      .filter(t => UtilsHelper.areObjectIdsEquals(get(t, 'company'), get(credentials, 'company._id'))),
+    ...(courseTrainees &&
+      {
+        trainees: courseTrainees
+          .filter(t => UtilsHelper.areObjectIdsEquals(get(t, 'company'), get(credentials, 'company._id'))),
+      }
+    ),
   };
 };
 

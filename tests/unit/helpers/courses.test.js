@@ -43,6 +43,7 @@ const {
   TRAINING_ORGANISATION_MANAGER,
   VENDOR_ADMIN,
   VENDOR_ROLES,
+  INTER_B2C,
 } = require('../../../src/helpers/constants');
 const CourseRepository = require('../../../src/repositories/CourseRepository');
 const CourseHistoriesHelper = require('../../../src/helpers/courseHistories');
@@ -1289,6 +1290,7 @@ describe('getCourse', () => {
       const course = {
         _id: new ObjectId(),
         type: INTER_B2B,
+        format: BLENDED,
         trainees: [{ _id: traineeIds[0] }, { _id: traineeIds[0] }],
         subProgram: { steps: [{ theoreticalDuration: 'PT3600S' }, { theoreticalDuration: 'PT1800S' }] },
         slots: [{ step: new ObjectId() }],
@@ -1367,6 +1369,7 @@ describe('getCourse', () => {
       const course = {
         _id: new ObjectId(),
         type: INTER_B2B,
+        format: BLENDED,
         trainees: [{ _id: traineeIds[0] }, { _id: traineeIds[1] }],
         subProgram: { steps: [] },
         slots: [{ step: new ObjectId() }],
@@ -1450,6 +1453,7 @@ describe('getCourse', () => {
       const course = {
         _id: new ObjectId(),
         type: INTER_B2B,
+        format: BLENDED,
         trainees: [{ _id: traineeIds[0] }, { _id: traineeIds[1] }],
         subProgram: { steps: [{ theoreticalDuration: 'PT3600S' }, { theoreticalDuration: 'PT1800S' }] },
       };
@@ -1503,6 +1507,87 @@ describe('getCourse', () => {
         ]
       );
       sinon.assert.calledOnceWithExactly(getTraineesCompanyAtCourseRegistration, course.trainees, course._id);
+      sinon.assert.notCalled(formatCourseWithProgress);
+      sinon.assert.notCalled(attendanceCountDocuments);
+    });
+
+    it('should return eLearning course without trainees filtering (webapp)', async () => {
+      const course = {
+        _id: new ObjectId(),
+        type: INTER_B2C,
+        format: E_LEARNING,
+        trainees: [{ _id: new ObjectId() }],
+        subProgram: {
+          steps: [{
+            _id: new ObjectId(),
+            activities: [],
+            name: 'Développement personnel',
+            type: 'e_learning',
+            theoreticalDuration: 'PT5400S',
+            areActivitiesValid: false,
+          }],
+        },
+      };
+      findOne.returns(SinonMongoose.stubChainedQueries(course));
+
+      const result = await CourseHelper.getCourse(
+        { action: OPERATIONS, origin: WEBAPP },
+        { _id: course._id },
+        { role: { vendor: { name: 'vendor_admin' } }, company: { _id: new ObjectId() } }
+      );
+      expect(result).toMatchObject({
+        ...course,
+        totalTheoreticalDuration: 'PT5400S',
+      });
+
+      SinonMongoose.calledOnceWithExactly(
+        findOne,
+        [
+          { query: 'findOne', args: [{ _id: course._id }] },
+          {
+            query: 'populate',
+            args: [[
+              { path: 'companies', select: 'name' },
+              {
+                path: 'trainees',
+                select: 'identity.firstname identity.lastname local.email contact picture.link firstMobileConnection',
+              },
+              {
+                path: 'companyRepresentative',
+                select: 'identity.firstname identity.lastname contact.phone local.email picture.link',
+              },
+              {
+                path: 'subProgram',
+                select: 'program steps',
+                populate: [
+                  { path: 'program', select: 'name learningGoals' },
+                  {
+                    path: 'steps',
+                    select: 'name type theoreticalDuration',
+                    populate: {
+                      path: 'activities', select: 'name type', populate: { path: 'activityHistories', select: 'user' },
+                    },
+                  },
+                ],
+              },
+              { path: 'slots', select: 'step startDate endDate address meetingLink' },
+              { path: 'slotsToPlan', select: '_id step' },
+              {
+                path: 'trainer',
+                select: 'identity.firstname identity.lastname contact.phone local.email picture.link',
+              },
+              { path: 'accessRules', select: 'name' },
+              {
+                path: 'salesRepresentative',
+                select: 'identity.firstname identity.lastname contact.phone local.email picture.link',
+              },
+              { path: 'contact', select: 'identity.firstname identity.lastname contact.phone' },
+            ]],
+          },
+          { query: 'lean' },
+        ]
+      );
+      sinon.assert.notCalled(getTraineesCompanyAtCourseRegistration);
       sinon.assert.notCalled(formatCourseWithProgress);
       sinon.assert.notCalled(attendanceCountDocuments);
     });
