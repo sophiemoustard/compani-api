@@ -636,6 +636,48 @@ const courseHistories = [
     company: authCompany._id,
     createdBy: trainerOrganisationManager._id,
   },
+  {
+    action: TRAINEE_ADDITION,
+    course: coursesList[0]._id,
+    trainee: coach._id,
+    company: authCompany._id,
+    createdBy: trainerOrganisationManager._id,
+  },
+  {
+    action: TRAINEE_ADDITION,
+    course: coursesList[0]._id,
+    trainee: helper._id,
+    company: authCompany._id,
+    createdBy: trainerOrganisationManager._id,
+  },
+  {
+    action: TRAINEE_ADDITION,
+    course: coursesList[0]._id,
+    trainee: clientAdmin._id,
+    company: authCompany._id,
+    createdBy: trainerOrganisationManager._id,
+  },
+  {
+    action: TRAINEE_ADDITION,
+    course: coursesList[0]._id,
+    trainee: vendorAdmin._id,
+    company: authCompany._id,
+    createdBy: trainerOrganisationManager._id,
+  },
+  {
+    action: TRAINEE_ADDITION,
+    course: coursesList[4]._id,
+    trainee: traineeFromOtherCompany._id,
+    company: otherCompany._id,
+    createdBy: trainerOrganisationManager._id,
+  },
+  {
+    action: TRAINEE_ADDITION,
+    course: coursesList[4]._id,
+    trainee: coach._id,
+    company: authCompany._id,
+    createdBy: trainerOrganisationManager._id,
+  },
 ];
 
 const slots = [
