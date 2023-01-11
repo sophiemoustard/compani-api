@@ -37,7 +37,7 @@ const {
   traineeWhoLeftOtherCompany,
 } = require('./seed/usersSeed');
 const { getToken, getTokenByCredentials } = require('./helpers/authentication');
-const { otherCompany, authCompany } = require('../seed/authCompaniesSeed');
+const { otherCompany, authCompany, companyWithoutSubscription } = require('../seed/authCompaniesSeed');
 const { coach, trainer, userList, noRoleNoCompany, auxiliary } = require('../seed/authUsersSeed');
 const { rolesList, auxiliaryRoleId, coachRoleId, trainerRoleId, helperRoleId } = require('../seed/authRolesSeed');
 const GDriveStorageHelper = require('../../src/helpers/gDriveStorage');
@@ -595,7 +595,15 @@ describe('USERS ROUTES - GET /users/exists', () => {
 
       expect(res.statusCode).toBe(200);
       expect(res.result.data.exists).toBe(true);
-      expect(res.result.data.user).toEqual({ ...pick(usersSeedList[0], ['role', '_id']), company: authCompany._id });
+      expect(res.result.data.user).toEqual({
+        ...pick(usersSeedList[0],
+          ['role', '_id']),
+        company: authCompany._id,
+        userCompanyList: [
+          { company: companyWithoutSubscription._id, endDate: '2021-12-31T23:00:00.000Z' },
+          { company: authCompany._id },
+        ],
+      });
     });
 
     it('should return false if user does not exists', async () => {
@@ -633,6 +641,7 @@ describe('USERS ROUTES - GET /users/exists', () => {
           expect(response.result.data.user).toEqual({
             ...pick(usersSeedList[0], ['role', '_id']),
             company: authCompany._id,
+            userCompanyList: [{ company: authCompany._id }],
           });
         }
       });
@@ -896,6 +905,16 @@ describe('USERS ROUTES - GET /users/:id', () => {
 
       expect(res.statusCode).toBe(200);
       expect(UtilsHelper.areObjectIdsEquals(res.result.data.user._id, userId)).toBeTruthy();
+    });
+
+    it('should return 200 if user will be in company', async () => {
+      const res = await app.inject({
+        method: 'GET',
+        url: `/users/${usersSeedList[13]._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(res.statusCode).toBe(200);
     });
 
     it('should return a 404 if user is not from same company', async () => {
@@ -1218,6 +1237,21 @@ describe('USERS ROUTES - PUT /users/:id', () => {
         startDate: '2022-12-19T23:00:00.000Z',
       });
       expect(createdUserCompany).toBeTruthy();
+    });
+
+    it('should add auxiliary in the future', async () => {
+      const role = await Role.find({ name: 'auxiliary' }).lean();
+      const res = await app.inject({
+        method: 'PUT',
+        url: `/users/${usersSeedList[13]._id.toHexString()}`,
+        payload: { role: role._id, sector: userSectors[1]._id },
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(res.statusCode).toBe(200);
+      const historyCount = await SectorHistory
+        .countDocuments({ auxiliary: usersSeedList[13]._id, company: authCompany._id, sector: userSectors[1]._id });
+      expect(historyCount).toBeTruthy();
     });
 
     it('should not add helper role to user if customer is not from the same company as user', async () => {

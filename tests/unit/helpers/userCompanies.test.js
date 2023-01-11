@@ -6,6 +6,7 @@ const UtilsMock = require('../../utilsMock');
 const UserCompany = require('../../../src/models/UserCompany');
 const UserCompaniesHelper = require('../../../src/helpers/userCompanies');
 const CompanyLinkRequest = require('../../../src/models/CompanyLinkRequest');
+const { CompaniDate } = require('../../../src/helpers/dates/companiDates');
 
 describe('create', () => {
   let findOne;
@@ -180,5 +181,76 @@ describe('update', () => {
       { _id: userCompany._id },
       { $set: { endDate: '2022-12-17T22:59:59.999Z' } }
     );
+  });
+});
+
+describe('doUserCompaniesIncludeCompany', () => {
+  const user = new ObjectId();
+  const company = new ObjectId();
+
+  it('should return true if some of user companies are active with good company (without endDate)', async () => {
+    const userCompanies = [
+      { user, company: new ObjectId(), startDate: '2021-10-25T23:59:59.999Z', endDate: '2022-10-25T23:59:59.999Z' },
+      { user, company, startDate: '2022-10-26T00:00:00.000Z' },
+    ];
+
+    const res = await UserCompaniesHelper.doUserCompaniesIncludeCompany(userCompanies, company);
+    expect(res).toBe(true);
+  });
+
+  it('should return true if some of user companies are active with good company (with endDate)', async () => {
+    const userCompanies = [
+      { user, company: new ObjectId(), startDate: '2021-10-25T23:59:59.999Z', endDate: '2022-10-25T23:59:59.999Z' },
+      { user, company, startDate: '2022-10-26T00:00:00.000Z', endDate: CompaniDate().add('P1D').toISO() },
+    ];
+
+    const res = await UserCompaniesHelper.doUserCompaniesIncludeCompany(userCompanies, company);
+    expect(res).toBe(true);
+  });
+
+  it('should return true if some of user companies are in the future with good company', async () => {
+    const userCompanies = [
+      { user, company: new ObjectId(), startDate: '2021-10-25T23:59:59.999Z', endDate: '2022-10-25T23:59:59.999Z' },
+      { user, company, startDate: CompaniDate().add('P1D').toISO() },
+    ];
+
+    const res = await UserCompaniesHelper.doUserCompaniesIncludeCompany(userCompanies, company);
+    expect(res).toBe(true);
+  });
+
+  it('should return false if none of user companies are active or in the future', async () => {
+    const userCompanies = [
+      { user, company: new ObjectId(), startDate: '2021-10-25T23:59:59.999Z', endDate: '2022-10-25T23:59:59.999Z' },
+      { user, company, startDate: '2022-10-26T00:00:00.000Z', endDate: '2022-10-28T00:00:00.000Z' },
+    ];
+
+    const res = await UserCompaniesHelper.doUserCompaniesIncludeCompany(userCompanies, company);
+    expect(res).toBe(false);
+  });
+
+  it('should return false if some of user companies are active but with wrong company', async () => {
+    const userCompanies = [
+      { user, company: new ObjectId(), startDate: '2021-10-25T23:59:59.999Z', endDate: '2022-10-25T23:59:59.999Z' },
+      { user, company: new ObjectId(), startDate: '2022-10-26T00:00:00.000Z' },
+    ];
+
+    const res = await UserCompaniesHelper.doUserCompaniesIncludeCompany(userCompanies, company);
+    expect(res).toBe(false);
+  });
+});
+
+describe('getActiveOrFutureCompanies', () => {
+  it('should return active and future companies', async () => {
+    const user = new ObjectId();
+    const authCompany = new ObjectId();
+    const otherCompany = new ObjectId();
+    const userCompanies = [
+      { user, company: new ObjectId(), startDate: '2021-10-25T23:59:59.999Z', endDate: '2022-10-25T23:59:59.999Z' },
+      { user, company: authCompany, startDate: '2022-10-26T00:00:00.000Z', endDate: CompaniDate().add('P1D').toISO() },
+      { user, company: otherCompany, startDate: CompaniDate().add('P2D').toISO() },
+    ];
+
+    const res = await UserCompaniesHelper.getActiveOrFutureCompanies(userCompanies);
+    expect(res).toEqual([authCompany, otherCompany]);
   });
 });

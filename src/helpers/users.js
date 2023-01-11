@@ -153,16 +153,24 @@ exports.getUser = async (userId, credentials) => {
 exports.userExists = async (email, credentials) => {
   const targetUser = await User.findOne({ 'local.email': email }, { role: 1 })
     .populate({ path: 'company', select: 'company' })
+    .populate({ path: 'userCompanyList', sort: { startDate: 1 } })
+    .setOptions({ credentials })
     .lean();
   if (!targetUser) return { exists: false, user: {} };
   if (!credentials) return { exists: true, user: {} };
 
   const loggedUserhasVendorRole = has(credentials, 'role.vendor');
-  const sameCompany = !!targetUser.company &&
-    UtilsHelper.areObjectIdsEquals(get(credentials, 'company._id'), targetUser.company);
+  const sameCompany = UserCompaniesHelper
+    .doUserCompaniesIncludeCompany(targetUser.userCompanyList, get(credentials, 'company._id'));
+  const formattedUser = {
+    ...pick(targetUser, ['role', '_id', 'company']),
+    userCompanyList: targetUser.userCompanyList
+      .map(uc => ({ company: uc.company, ...(!!uc.endDate && { endDate: CompaniDate(uc.endDate).toISO() }) })),
+  };
 
-  return loggedUserhasVendorRole || sameCompany || !targetUser.company
-    ? { exists: !!targetUser, user: pick(targetUser, ['role', '_id', 'company']) }
+  return loggedUserhasVendorRole || sameCompany ||
+    (!UserCompaniesHelper.getActiveOrFutureCompanies(targetUser.userCompanyList).length && !targetUser.company)
+    ? { exists: !!targetUser, user: formattedUser }
     : { exists: !!targetUser, user: {} };
 };
 

@@ -1,7 +1,9 @@
 const Boom = require('@hapi/boom');
+const compact = require('lodash/compact');
 const translate = require('./translate');
 const { DD_MM_YYYY, DAY } = require('./constants');
 const { CompaniDate } = require('./dates/companiDates');
+const UtilsHelper = require('./utils');
 const CompanyLinkRequest = require('../models/CompanyLinkRequest');
 const UserCompany = require('../models/UserCompany');
 
@@ -29,3 +31,11 @@ exports.create = async ({ user, company, startDate = CompaniDate() }) => {
 
 exports.update = async (userCompany, payload) =>
   UserCompany.updateOne({ _id: userCompany }, { $set: { endDate: CompaniDate(payload.endDate).endOf(DAY).toISO() } });
+
+exports.doUserCompaniesIncludeCompany = (userCompanyList, company) => userCompanyList
+  .some(uc => (!uc.endDate || CompaniDate().isBefore(uc.endDate)) &&
+    UtilsHelper.areObjectIdsEquals(uc.company, company));
+
+exports.getActiveOrFutureCompanies = userCompanyList => compact(userCompanyList
+  .filter(uc => !uc.endDate || CompaniDate().isBefore(uc.endDate))
+  .map(uc => uc.company));

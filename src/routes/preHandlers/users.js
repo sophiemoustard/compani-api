@@ -7,6 +7,7 @@ const Customer = require('../../models/Customer');
 const Establishment = require('../../models/Establishment');
 const translate = require('../../helpers/translate');
 const UtilsHelper = require('../../helpers/utils');
+const UserCompaniesHelper = require('../../helpers/userCompanies');
 const {
   CLIENT_ADMIN,
   COACH,
@@ -20,6 +21,7 @@ const {
   AUXILIARY_WITHOUT_COMPANY,
   TRAINER,
 } = require('../../helpers/constants');
+const { CompaniDate } = require('../../helpers/dates/companiDates');
 
 const { language } = translate;
 
@@ -64,18 +66,28 @@ exports.authorizeUserUpdate = async (req) => {
   const { credentials } = req.auth;
   const userFromDB = await User
     .findOne({ _id: req.params._id })
-    .populate({ path: 'company' })
     .populate({ path: 'userCompanyList' })
     .setOptions({ credentials })
     .lean();
   if (!userFromDB) throw Boom.notFound(translate[language].userNotFound);
 
-  const userCompany = userFromDB.company || get(req, 'payload.company');
   const isLoggedUserVendor = !!get(credentials, 'role.vendor');
   const loggedUserClientRole = get(credentials, 'role.client.name');
+  const loggedUserCompany = get(credentials, 'company._id') || '';
+  const activeOrFutureCompany = userFromDB.userCompanyList.find(uc =>
+    (!uc.endDate || CompaniDate().isBefore(uc.endDate)) &&
+      UtilsHelper.areObjectIdsEquals(uc.company, loggedUserCompany)
+  );
+  const userCompany = get(activeOrFutureCompany, 'company') || get(req, 'payload.company');
+  const updatingOwnInfos = UtilsHelper.areObjectIdsEquals(credentials._id, userFromDB._id);
   if (trainerUpdatesForbiddenKeys(req, userFromDB)) throw Boom.forbidden();
 
-  checkCompany(credentials, userFromDB, req.payload, isLoggedUserVendor);
+  if (!isLoggedUserVendor && !updatingOwnInfos) {
+    const sameCompany = !!activeOrFutureCompany ||
+    UtilsHelper.areObjectIdsEquals(get(req.payload, 'company'), loggedUserCompany);
+    if (!sameCompany) throw Boom.notFound();
+  }
+
   if (get(req, 'payload.establishment')) await checkEstablishment(userCompany, req.payload);
   if (get(req, 'payload.role')) await checkRole(userFromDB, req.payload);
   if (get(req, 'payload.customer')) await checkCustomer(userCompany, req.payload);
@@ -84,17 +96,6 @@ exports.authorizeUserUpdate = async (req) => {
   }
 
   return null;
-};
-
-const checkCompany = (credentials, userFromDB, payload, isLoggedUserVendor) => {
-  const updatingOwnInfos = UtilsHelper.areObjectIdsEquals(credentials._id, userFromDB._id);
-  if (isLoggedUserVendor || updatingOwnInfos) return;
-
-  const loggedUserCompany = get(credentials, 'company._id') || '';
-  const userCompany = userFromDB.company || payload.company;
-  const sameCompany = userCompany && loggedUserCompany &&
-    UtilsHelper.areObjectIdsEquals(userCompany, loggedUserCompany);
-  if (!sameCompany) throw Boom.notFound();
 };
 
 const checkEstablishment = async (companyId, payload) => {
@@ -161,10 +162,12 @@ exports.authorizeUserGetById = async (req) => {
 
   const loggedCompanyId = get(credentials, 'company._id', null);
   const isLoggedUserVendor = get(credentials, 'role.vendor', null);
-
-  const isClientFromDifferentCompany = !isLoggedUserVendor && user.company &&
-    !UtilsHelper.areObjectIdsEquals(user.company, loggedCompanyId);
-  if (isClientFromDifferentCompany) throw Boom.notFound();
+  if (!isLoggedUserVendor &&
+    (UserCompaniesHelper.getActiveOrFutureCompanies(user.userCompanyList).length || user.company)) {
+    const isClientFromDifferentCompany = !UserCompaniesHelper
+      .doUserCompaniesIncludeCompany(user.userCompanyList, loggedCompanyId);
+    if (isClientFromDifferentCompany) throw Boom.notFound();
+  }
 
   return null;
 };

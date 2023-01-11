@@ -328,6 +328,12 @@ function populateUserCompanyList(doc, next) {
   if (!get(doc, 'userCompanyList.length')) return next();
 
   const { credentials } = this.getOptions();
+  if (has(this.getOptions(), 'credentials') && !get(credentials, '_id')) {
+    // eslint-disable-next-line no-param-reassign
+    doc.userCompanyList = [];
+
+    return next();
+  }
   const requestingOwnInfos = UtilsHelper.areObjectIdsEquals(credentials._id, doc._id);
   if (has(credentials, 'role.vendor') || requestingOwnInfos) return next();
 
