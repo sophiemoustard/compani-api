@@ -1,6 +1,6 @@
 const { ObjectId } = require('mongodb');
 const Boom = require('@hapi/boom');
-const expect = require('expect');
+const { expect } = require('expect');
 const sinon = require('sinon');
 const UserCompany = require('../../../src/models/UserCompany');
 const UserCompaniesHelper = require('../../../src/helpers/userCompanies');
@@ -24,13 +24,30 @@ describe('create', () => {
     deleteManyCompanyLinkRequest.restore();
   });
 
-  it('should create UserCompany', async () => {
+  it('should create UserCompany WITH startDate', async () => {
+    const userId = new ObjectId();
+    const companyId = new ObjectId();
+    const startDate = '2022-12-13T14:15:00.000Z';
+
+    findOne.returns(SinonMongoose.stubChainedQueries(null, ['lean']));
+
+    await UserCompaniesHelper.create({ user: userId, company: companyId, startDate });
+
+    sinon.assert.calledOnceWithExactly(create, { user: userId, company: companyId, startDate });
+    sinon.assert.calledOnceWithExactly(deleteManyCompanyLinkRequest, { user: userId });
+    SinonMongoose.calledOnceWithExactly(
+      findOne,
+      [{ query: 'findOne', args: [{ user: userId }, { company: 1 }] }, { query: 'lean' }]
+    );
+  });
+
+  it('should create UserCompany WITHOUT specified startDate', async () => {
     const userId = new ObjectId();
     const companyId = new ObjectId();
 
     findOne.returns(SinonMongoose.stubChainedQueries(null, ['lean']));
 
-    await UserCompaniesHelper.create(userId, companyId);
+    await UserCompaniesHelper.create({ user: userId, company: companyId });
 
     sinon.assert.calledOnceWithExactly(create, { user: userId, company: companyId });
     sinon.assert.calledOnceWithExactly(deleteManyCompanyLinkRequest, { user: userId });
@@ -46,7 +63,7 @@ describe('create', () => {
 
     findOne.returns(SinonMongoose.stubChainedQueries({ user: userId, company: companyId }, ['lean']));
 
-    await UserCompaniesHelper.create(userId, companyId);
+    await UserCompaniesHelper.create({ user: userId, company: companyId });
 
     sinon.assert.notCalled(create);
     sinon.assert.notCalled(deleteManyCompanyLinkRequest);
@@ -63,7 +80,7 @@ describe('create', () => {
     try {
       findOne.returns(SinonMongoose.stubChainedQueries({ user: userId, company: new ObjectId() }, ['lean']));
 
-      await UserCompaniesHelper.create(userId, companyId);
+      await UserCompaniesHelper.create({ user: userId, company: companyId });
 
       expect(true).toBe(false);
     } catch (e) {

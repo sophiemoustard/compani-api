@@ -1,5 +1,5 @@
 /* eslint-disable max-len */
-const expect = require('expect');
+const { expect } = require('expect');
 const sinon = require('sinon');
 const { ObjectId } = require('mongodb');
 const Pay = require('../../../../src/models/Pay');

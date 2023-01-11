@@ -1,4 +1,4 @@
-const expect = require('expect');
+const { expect } = require('expect');
 const VersionHelper = require('../../../src/helpers/version');
 
 describe('shouldUpdate', () => {

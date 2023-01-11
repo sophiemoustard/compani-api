@@ -1,6 +1,6 @@
 const sinon = require('sinon');
 const moment = require('moment');
-const expect = require('expect');
+const { expect } = require('expect');
 const { ObjectId } = require('mongodb');
 const path = require('path');
 const BillSlipHelper = require('../../../src/helpers/billSlips');

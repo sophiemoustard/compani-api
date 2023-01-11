@@ -1,5 +1,5 @@
 const sinon = require('sinon');
-const expect = require('expect');
+const { expect } = require('expect');
 const Boom = require('@hapi/boom');
 const { ObjectId } = require('mongodb');
 const eventTimeStampingHelper = require('../../../src/helpers/eventTimeStamping');

@@ -1,4 +1,4 @@
-const expect = require('expect');
+const { expect } = require('expect');
 const app = require('../../server');
 const { populateDB, rolesList } = require('./seed/rolesSeed');
 const { getToken } = require('./helpers/authentication');

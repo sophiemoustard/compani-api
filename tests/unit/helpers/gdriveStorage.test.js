@@ -1,5 +1,5 @@
 const sinon = require('sinon');
-const expect = require('expect');
+const { expect } = require('expect');
 const Boom = require('@hapi/boom');
 const Gdrive = require('../../../src/models/Google/Drive');
 const GDriveStorageHelper = require('../../../src/helpers/gDriveStorage');

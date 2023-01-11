@@ -1,4 +1,4 @@
-const expect = require('expect');
+const { expect } = require('expect');
 const sinon = require('sinon');
 const fs = require('fs');
 const path = require('path');
@@ -6,7 +6,7 @@ const GetStream = require('get-stream');
 const { ObjectId } = require('mongodb');
 const GCloudStorageHelper = require('../../src/helpers/gCloudStorage');
 const app = require('../../server');
-const { populateDB, coursesList, attendanceSheetsList } = require('./seed/attendanceSheetsSeed');
+const { populateDB, coursesList, attendanceSheetList } = require('./seed/attendanceSheetsSeed');
 const { getToken } = require('./helpers/authentication');
 const { generateFormData } = require('./utils');
 const AttendanceSheet = require('../../src/models/AttendanceSheet');
@@ -102,6 +102,24 @@ describe('ATTENDANCE SHEETS ROUTES - POST /attendancesheets', () => {
         course: coursesList[1]._id.toHexString(),
         file: fs.createReadStream(path.join(__dirname, 'assets/test_esign.pdf')),
         date: new Date('2020-01-23').toISOString(),
+      };
+
+      const form = generateFormData(formData);
+
+      const response = await app.inject({
+        method: 'POST',
+        url: '/attendancesheets',
+        payload: await GetStream(form),
+        headers: { ...form.getHeaders(), Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
+
+    it('should return 400 if both date and trainee are missing in payload', async () => {
+      const formData = {
+        course: coursesList[2]._id.toHexString(),
+        file: fs.createReadStream(path.join(__dirname, 'assets/test_esign.pdf')),
       };
 
       const form = generateFormData(formData);
@@ -339,7 +357,7 @@ describe('ATTENDANCE SHEETS ROUTES - DELETE /attendancesheets/{_id}', () => {
     });
 
     it('should delete an attendance sheet', async () => {
-      const attendanceSheetId = attendanceSheetsList[0]._id;
+      const attendanceSheetId = attendanceSheetList[0]._id;
       const attendanceSheetsLength = await AttendanceSheet.countDocuments();
       const response = await app.inject({
         method: 'DELETE',
@@ -365,17 +383,17 @@ describe('ATTENDANCE SHEETS ROUTES - DELETE /attendancesheets/{_id}', () => {
     it('should return a 403 if trainer is from an other company', async () => {
       const response = await app.inject({
         method: 'DELETE',
-        url: `/attendancesheets/${attendanceSheetsList[5]._id}`,
+        url: `/attendancesheets/${attendanceSheetList[3]._id}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(response.statusCode).toBe(403);
     });
 
-    it('should return a 403 if attendance sheet is archived', async () => {
+    it('should return a 403 if course is archived', async () => {
       const response = await app.inject({
         method: 'DELETE',
-        url: `/attendancesheets/${attendanceSheetsList[4]._id}`,
+        url: `/attendancesheets/${attendanceSheetList[2]._id}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -402,7 +420,7 @@ describe('ATTENDANCE SHEETS ROUTES - DELETE /attendancesheets/{_id}', () => {
     roles.forEach((role) => {
       it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
         authToken = await getToken(role.name);
-        const attendanceSheetId = attendanceSheetsList[0]._id;
+        const attendanceSheetId = attendanceSheetList[0]._id;
         const response = await app.inject({
           method: 'DELETE',
           url: `/attendancesheets/${attendanceSheetId}`,

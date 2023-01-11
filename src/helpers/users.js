@@ -185,7 +185,11 @@ exports.createAndSaveFile = async (params, payload) => {
 
 const createUserCompany = async (payload, company) => {
   const user = await User.create(payload);
-  await UserCompaniesHelper.create(user._id, company);
+  await UserCompaniesHelper.create({
+    user: user._id,
+    company,
+    ...(payload.userCompanyStartDate && { startDate: payload.userCompanyStartDate }),
+  });
 
   return user;
 };
@@ -223,7 +227,6 @@ exports.createUser = async (userPayload, credentials) => {
 
   return User.findOne({ _id: user._id })
     .populate({ path: 'sector', select: '_id sector', match: { company: companyId } })
-    .populate({ path: 'company', populate: { path: 'company' }, select: '-__v -createdAt -updatedAt' })
     .lean({ virtuals: true, autopopulate: true });
 };
 
@@ -245,7 +248,13 @@ exports.updateUser = async (userId, userPayload, credentials) => {
 
   const payload = await formatUpdatePayload(userPayload);
   if (userPayload.customer) await HelpersHelper.create(userId, userPayload.customer, companyId);
-  if (userPayload.company) await UserCompaniesHelper.create(userId, userPayload.company);
+  if (userPayload.company) {
+    await UserCompaniesHelper.create({
+      user: userId,
+      company: userPayload.company,
+      ...(userPayload.userCompanyStartDate && { startDate: userPayload.userCompanyStartDate }),
+    });
+  }
 
   if (userPayload.sector) {
     await SectorHistoriesHelper.updateHistoryOnSectorUpdate(userId, userPayload.sector, companyId);

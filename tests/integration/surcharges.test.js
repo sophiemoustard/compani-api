@@ -1,4 +1,4 @@
-const expect = require('expect');
+const { expect } = require('expect');
 const { surchargesList, populateDB, surchargeFromOtherCompany } = require('./seed/surchargesSeed');
 const Surcharge = require('../../src/models/Surcharge');
 const app = require('../../server');

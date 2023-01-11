@@ -1,4 +1,4 @@
-const expect = require('expect');
+const { expect } = require('expect');
 const { ObjectId } = require('mongodb');
 const moment = require('moment');
 const qs = require('qs');

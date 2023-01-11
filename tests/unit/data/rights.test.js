@@ -1,4 +1,4 @@
-const expect = require('expect');
+const { expect } = require('expect');
 const { rights } = require('../../../src/data/rights');
 const {
   AUXILIARY,

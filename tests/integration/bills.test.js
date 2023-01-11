@@ -1,4 +1,4 @@
-const expect = require('expect');
+const { expect } = require('expect');
 const qs = require('qs');
 const omit = require('lodash/omit');
 const sinon = require('sinon');

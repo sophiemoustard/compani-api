@@ -2,7 +2,7 @@
 const { ObjectId } = require('mongodb');
 const has = require('lodash/has');
 const get = require('lodash/get');
-const expect = require('expect');
+const { expect } = require('expect');
 const sinon = require('sinon');
 const SinonMongoose = require('../sinonMongoose');
 const CourseHelper = require('../../../src/helpers/courses');
@@ -78,8 +78,8 @@ describe('exportCourseHistory', () => {
   ];
 
   const stepList = [
-    { _id: new ObjectId(), name: 'étape 1', type: ON_SITE },
-    { _id: new ObjectId(), name: 'étape 2', type: REMOTE },
+    { _id: new ObjectId(), name: 'étape 1', type: ON_SITE, activities: [] },
+    { _id: new ObjectId(), name: 'étape 2', type: REMOTE, activities: [] },
     { _id: new ObjectId(), name: 'étape 3', type: E_LEARNING, activities: activityList.map(activity => activity) },
   ];
 
@@ -367,6 +367,7 @@ describe('exportCourseHistory', () => {
   let findCourseSlot;
   let findCourse;
   let groupSlotsByDate;
+  let getTraineesWithElearningProgress;
   let getTotalDurationForExport;
   let findCourseSmsHistory;
   let findAttendanceSheet;
@@ -377,6 +378,7 @@ describe('exportCourseHistory', () => {
     findCourseSlot = sinon.stub(CourseSlot, 'find');
     findCourse = sinon.stub(Course, 'find');
     groupSlotsByDate = sinon.stub(CourseHelper, 'groupSlotsByDate');
+    getTraineesWithElearningProgress = sinon.stub(CourseHelper, 'getTraineesWithElearningProgress');
     getTotalDurationForExport = sinon.stub(UtilsHelper, 'getTotalDurationForExport');
     findCourseSmsHistory = sinon.stub(CourseSmsHistory, 'find');
     findAttendanceSheet = sinon.stub(AttendanceSheet, 'find');
@@ -388,6 +390,7 @@ describe('exportCourseHistory', () => {
     findCourseSlot.restore();
     findCourse.restore();
     groupSlotsByDate.restore();
+    getTraineesWithElearningProgress.restore();
     getTotalDurationForExport.restore();
     findCourseSmsHistory.restore();
     findAttendanceSheet.restore();
@@ -487,6 +490,7 @@ describe('exportCourseHistory', () => {
       ]
     );
     sinon.assert.notCalled(groupSlotsByDate);
+    sinon.assert.notCalled(getTraineesWithElearningProgress);
     sinon.assert.notCalled(getTotalDurationForExport);
     sinon.assert.notCalled(findQuestionnaireHistory);
     sinon.assert.notCalled(findCourseSmsHistory);
@@ -517,6 +521,29 @@ describe('exportCourseHistory', () => {
       [{ course: courseList[0]._id }],
       ['lean']
     ));
+    getTraineesWithElearningProgress.onCall(0).returns([
+      { _id: traineeList[0]._id, firstMobileConnection: traineeList[0].firstMobileConnection, steps: [], progress: {} },
+      { _id: traineeList[1]._id, firstMobileConnection: traineeList[1].firstMobileConnection, steps: [], progress: {} },
+      { _id: traineeList[2]._id, steps: [], progress: {} },
+    ]);
+    getTraineesWithElearningProgress.onCall(1).returns([
+      { _id: traineeList[3]._id, steps: [stepList[2]], progress: { blended: 1, eLearning: 1 } },
+      {
+        _id: traineeList[1]._id,
+        steps: [stepList[2]],
+        progress: { blended: 0.3333333333333333, eLearning: 0.3333333333333333 },
+      },
+    ]);
+    getTraineesWithElearningProgress.onCall(2).returns([]);
+    getTraineesWithElearningProgress.onCall(3).returns([
+      { _id: traineeList[0]._id, firstMobileConnection: traineeList[0].firstMobileConnection, steps: [], progress: {} },
+      { _id: traineeList[1]._id, firstMobileConnection: traineeList[1].firstMobileConnection, steps: [], progress: {} },
+      { _id: traineeList[2]._id, steps: [], progress: {} },
+    ]);
+    getTraineesWithElearningProgress.onCall(4).returns([
+      { _id: traineeList[0]._id, firstMobileConnection: traineeList[0].firstMobileConnection, steps: [], progress: {} },
+      { _id: traineeList[1]._id, firstMobileConnection: traineeList[1].firstMobileConnection, steps: [], progress: {} },
+    ]);
 
     const result = await ExportHelper
       .exportCourseHistory('2021-01-14T23:00:00.000Z', '2022-01-20T22:59:59.000Z', credentials);
@@ -854,6 +881,31 @@ describe('exportCourseHistory', () => {
         update: { estimatedStartDate: { from: '' } },
       },
       { course: 1, update: 1 }
+    );
+    sinon.assert.calledWithExactly(
+      getTraineesWithElearningProgress.getCall(0),
+      courseList[0].trainees,
+      courseList[0].subProgram.steps
+    );
+    sinon.assert.calledWithExactly(
+      getTraineesWithElearningProgress.getCall(1),
+      courseList[1].trainees,
+      courseList[1].subProgram.steps
+    );
+    sinon.assert.calledWithExactly(
+      getTraineesWithElearningProgress.getCall(2),
+      courseList[2].trainees,
+      courseList[2].subProgram.steps
+    );
+    sinon.assert.calledWithExactly(
+      getTraineesWithElearningProgress.getCall(3),
+      courseList[3].trainees,
+      courseList[3].subProgram.steps
+    );
+    sinon.assert.calledWithExactly(
+      getTraineesWithElearningProgress.getCall(4),
+      courseList[4].trainees,
+      courseList[4].subProgram.steps
     );
   });
 });

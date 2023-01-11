@@ -37,7 +37,7 @@ exports.plugin = {
             file: Joi.any().required(),
             trainee: Joi.objectId(),
             date: Joi.date(),
-          }),
+          }).xor('trainee', 'date'),
         },
         auth: { scope: ['attendances:edit'] },
         pre: [{ method: authorizeAttendanceSheetCreation }],

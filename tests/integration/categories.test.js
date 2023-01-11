@@ -1,4 +1,4 @@
-const expect = require('expect');
+const { expect } = require('expect');
 const { ObjectId } = require('mongodb');
 const Category = require('../../src/models/Category');
 const app = require('../../server');

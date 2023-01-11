@@ -1,5 +1,5 @@
 /* eslint-disable max-len */
-const expect = require('expect');
+const { expect } = require('expect');
 const moment = require('../../src/extensions/moment');
 const app = require('../../server');
 const {

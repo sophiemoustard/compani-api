@@ -1,4 +1,4 @@
-const expect = require('expect');
+const { expect } = require('expect');
 const UtilsHelper = require('../../../../src/helpers/dates/utils');
 
 describe('ascendingSort', () => {

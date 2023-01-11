@@ -1509,7 +1509,12 @@ const attendanceList = [
 ];
 
 const attendanceSheetList = [
-  { course: coursesList[0]._id, trainee: traineeList[0]._id, file: { link: 'link', publicId: '123' } },
+  {
+    course: coursesList[0]._id,
+    trainee: traineeList[0]._id,
+    file: { link: 'link', publicId: '123' },
+    company: authCompany._id,
+  },
 ];
 
 const smsList = [

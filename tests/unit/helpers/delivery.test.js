@@ -1,6 +1,6 @@
 const { ObjectId } = require('mongodb');
 const sinon = require('sinon');
-const expect = require('expect');
+const { expect } = require('expect');
 const SinonMongoose = require('../sinonMongoose');
 const DeliveryHelper = require('../../../src/helpers/delivery');
 const DraftBillsHelper = require('../../../src/helpers/draftBills');

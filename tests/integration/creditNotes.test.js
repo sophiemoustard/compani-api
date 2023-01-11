@@ -1,5 +1,5 @@
 const { ObjectId } = require('mongodb');
-const expect = require('expect');
+const { expect } = require('expect');
 const omit = require('lodash/omit');
 const app = require('../../server');
 const CreditNote = require('../../src/models/CreditNote');

@@ -1,6 +1,6 @@
 const { ObjectId } = require('mongodb');
 const sinon = require('sinon');
-const expect = require('expect');
+const { expect } = require('expect');
 const flat = require('flat');
 const crypto = require('crypto');
 const moment = require('moment');

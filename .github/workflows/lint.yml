@@ -15,7 +15,7 @@ jobs:
       # Install Node.js
       - uses: actions/setup-node@v2
         with:
-          node-version: 14.18.0
+          node-version: 16.18.0
 
       # Install your dependencies
       - run: npm ci

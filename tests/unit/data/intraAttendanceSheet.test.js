@@ -1,5 +1,5 @@
 const sinon = require('sinon');
-const expect = require('expect');
+const { expect } = require('expect');
 const FileHelper = require('../../../src/helpers/file');
 const PdfHelper = require('../../../src/helpers/pdf');
 const IntraAttendanceSheet = require('../../../src/data/pdf/attendanceSheet/intraAttendanceSheet');

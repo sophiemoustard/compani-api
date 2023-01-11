@@ -9,6 +9,7 @@ const AttendanceSheetSchema = mongoose.Schema({
   },
   date: { type: Date },
   trainee: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+  company: { type: mongoose.Schema.Types.ObjectId, ref: 'Company', required: true },
 }, { timestamps: true, id: false });
 
 queryMiddlewareList.map(middleware => AttendanceSheetSchema.pre(middleware, formatQuery));

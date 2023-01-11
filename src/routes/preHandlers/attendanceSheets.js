@@ -4,7 +4,7 @@ const { CompaniDate } = require('../../helpers/dates/companiDates');
 const UtilsHelper = require('../../helpers/utils');
 const Course = require('../../models/Course');
 const AttendanceSheet = require('../../models/AttendanceSheet');
-const { INTRA, INTER_B2B, TRAINER } = require('../../helpers/constants');
+const { INTRA, INTER_B2B, TRAINER, DAY } = require('../../helpers/constants');
 
 const isTrainerAuthorized = (courseTrainer, credentials) => {
   const loggedUserId = get(credentials, '_id');
@@ -44,8 +44,8 @@ exports.authorizeAttendanceSheetCreation = async (req) => {
 
   if (course.type === INTRA) {
     if (req.payload.trainee) throw Boom.badRequest();
-    const courseDates = course.slots.filter(slot => CompaniDate(slot.startDate).isSame(req.payload.date, 'day'));
-    if (!courseDates.length) throw Boom.forbidden();
+    const isCourseSlotDate = course.slots.some(slot => CompaniDate(slot.startDate).isSame(req.payload.date, DAY));
+    if (!isCourseSlotDate) throw Boom.forbidden();
 
     return null;
   }

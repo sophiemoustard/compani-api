@@ -1,5 +1,5 @@
 const sinon = require('sinon');
-const expect = require('expect');
+const { expect } = require('expect');
 const { PASSWORD_SMS } = require('../../../src/helpers/constants');
 const SmsHelper = require('../../../src/helpers/sms');
 

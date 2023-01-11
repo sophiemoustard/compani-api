@@ -1,4 +1,4 @@
-const expect = require('expect');
+const { expect } = require('expect');
 const qs = require('qs');
 const { ObjectId } = require('mongodb');
 const omit = require('lodash/omit');

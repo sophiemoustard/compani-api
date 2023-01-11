@@ -671,10 +671,8 @@ const attendanceSheetList = [
     _id: new ObjectId(),
     trainee: traineeFromOtherCompany._id,
     course: coursesList[19]._id,
-    file: {
-      publicId: 'publicId',
-      link: 'https://link.com',
-    },
+    file: { publicId: 'publicId', link: 'https://link.com' },
+    company: otherCompany._id,
   },
 ];
 

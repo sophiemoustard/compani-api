@@ -1,6 +1,6 @@
 const sinon = require('sinon');
 const get = require('lodash/get');
-const expect = require('expect');
+const { expect } = require('expect');
 const { ObjectId } = require('mongodb');
 const Attendance = require('../../../src/models/Attendance');
 const Course = require('../../../src/models/Course');

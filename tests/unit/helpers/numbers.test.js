@@ -1,5 +1,5 @@
 const { BigNumber } = require('bignumber.js');
-const expect = require('expect');
+const { expect } = require('expect');
 const NumbersHelper = require('../../../src/helpers/numbers');
 
 describe('toString', () => {

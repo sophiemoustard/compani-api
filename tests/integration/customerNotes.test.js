@@ -1,4 +1,4 @@
-const expect = require('expect');
+const { expect } = require('expect');
 const app = require('../../server');
 const CustomerNote = require('../../src/models/CustomerNote');
 const { getToken } = require('./helpers/authentication');

@@ -1,4 +1,4 @@
-const expect = require('expect');
+const { expect } = require('expect');
 const DatesHelper = require('../../../src/helpers/dates');
 
 describe('isBefore', () => {
