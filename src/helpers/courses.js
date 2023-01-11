@@ -317,12 +317,13 @@ const getCourseForOperations = async (courseId, credentials, origin) => {
   const traineesCompanyAtCourseRegistration = await CourseHistoriesHelper
     .getTraineesCompanyAtCourseRegistration(fetchedCourse.trainees, courseId);
 
+  const traineesCompanyGroupedByTrainee = groupBy(traineesCompanyAtCourseRegistration, 'trainee');
+
   const courseTrainees = fetchedCourse.trainees.map((trainee) => {
-    const traineeCompanyIdAtCourseRegistration = get(
-      traineesCompanyAtCourseRegistration.find(t => UtilsHelper.areObjectIdsEquals(t.trainee, trainee._id)),
-      'company'
-    );
-    return { ...trainee, company: traineeCompanyIdAtCourseRegistration };
+    const traineeCompanyAtCourseRegistration = traineesCompanyGroupedByTrainee[trainee._id];
+    const companyIdAtCourseRegistration = get(traineeCompanyAtCourseRegistration[0], 'company');
+
+    return { ...trainee, company: companyIdAtCourseRegistration };
   });
 
   // A coach/client_admin is not supposed to read infos on trainees from other companies
