@@ -317,13 +317,14 @@ const getCourseForOperations = async (courseId, credentials, origin) => {
     ])
     .lean();
 
-  let courseTrainees;
+  let blendedCourseTrainees;
   if (fetchedCourse.format === BLENDED) {
     const traineesCompanyAtCourseRegistration = await CourseHistoriesHelper
       .getTraineesCompanyAtCourseRegistration(fetchedCourse.trainees.map(t => t._id), courseId);
 
     const traineesCompany = mapValues(keyBy(traineesCompanyAtCourseRegistration, 'trainee'), 'company');
-    courseTrainees = fetchedCourse.trainees.map(trainee => ({ ...trainee, company: traineesCompany[trainee._id] }));
+    blendedCourseTrainees = fetchedCourse.trainees
+      .map(trainee => ({ ...trainee, company: traineesCompany[trainee._id] }));
   }
 
   // A coach/client_admin is not supposed to read infos on trainees from other companies
@@ -332,14 +333,14 @@ const getCourseForOperations = async (courseId, credentials, origin) => {
     return {
       ...fetchedCourse,
       totalTheoreticalDuration: exports.getTotalTheoreticalDuration(fetchedCourse),
-      ...(courseTrainees && { trainees: courseTrainees }),
+      ...(blendedCourseTrainees && { trainees: blendedCourseTrainees }),
     };
   }
 
   return {
     ...fetchedCourse,
     totalTheoreticalDuration: exports.getTotalTheoreticalDuration(fetchedCourse),
-    trainees: (courseTrainees || fetchedCourse.trainees)
+    trainees: (blendedCourseTrainees || fetchedCourse.trainees)
       .filter(t => UtilsHelper.areObjectIdsEquals(get(t, 'company'), get(credentials, 'company._id'))),
   };
 };
