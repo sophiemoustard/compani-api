@@ -123,7 +123,7 @@ exports.getTraineesCompanyAtCourseRegistration = async (traineeIds, courseId) =>
       { course: courseId, trainee: { $in: traineeIds }, action: TRAINEE_ADDITION },
       { trainee: 1, company: 1, createdAt: 1 }
     )
-    .sort({ createdAt: -1 })
+    .sort({ trainee: 1, createdAt: -1 })
     .lean();
 
   const traineesCompanyAtCourseRegistration = sortedUniqBy(courseHistories, 'trainee')

@@ -3,7 +3,9 @@ const get = require('lodash/get');
 const has = require('lodash/has');
 const omit = require('lodash/omit');
 const groupBy = require('lodash/groupBy');
+const keyBy = require('lodash/keyBy');
 const compact = require('lodash/compact');
+const mapValues = require('lodash/mapValues');
 const fs = require('fs');
 const os = require('os');
 const Boom = require('@hapi/boom');
@@ -270,7 +272,7 @@ const getCourseForOperations = async (courseId, credentials, origin) => {
       {
         path: 'trainees',
         select: 'identity.firstname identity.lastname local.email contact picture.link firstMobileConnection',
-        populate: { path: 'company', populate: { path: 'company', select: 'name' } },
+        populate: { path: 'company' },
       },
       {
         path: 'companyRepresentative',
@@ -315,17 +317,31 @@ const getCourseForOperations = async (courseId, credentials, origin) => {
     ])
     .lean();
 
+  let blendedCourseTrainees;
+  if (fetchedCourse.format === BLENDED) {
+    const traineesCompanyAtCourseRegistration = await CourseHistoriesHelper
+      .getTraineesCompanyAtCourseRegistration(fetchedCourse.trainees.map(t => t._id), courseId);
+
+    const traineesCompany = mapValues(keyBy(traineesCompanyAtCourseRegistration, 'trainee'), 'company');
+    blendedCourseTrainees = fetchedCourse.trainees
+      .map(trainee => ({ ...trainee, company: traineesCompany[trainee._id] }));
+  }
+
   // A coach/client_admin is not supposed to read infos on trainees from other companies
   // espacially for INTER_B2B courses.
   if (get(credentials, 'role.vendor')) {
-    return { ...fetchedCourse, totalTheoreticalDuration: exports.getTotalTheoreticalDuration(fetchedCourse) };
+    return {
+      ...fetchedCourse,
+      totalTheoreticalDuration: exports.getTotalTheoreticalDuration(fetchedCourse),
+      ...(blendedCourseTrainees && { trainees: blendedCourseTrainees }),
+    };
   }
 
   return {
     ...fetchedCourse,
     totalTheoreticalDuration: exports.getTotalTheoreticalDuration(fetchedCourse),
-    trainees: fetchedCourse.trainees
-      .filter(t => UtilsHelper.areObjectIdsEquals(get(t, 'company._id'), get(credentials, 'company._id'))),
+    trainees: (blendedCourseTrainees || fetchedCourse.trainees)
+      .filter(t => UtilsHelper.areObjectIdsEquals(get(t, 'company'), get(credentials, 'company._id'))),
   };
 };
 
