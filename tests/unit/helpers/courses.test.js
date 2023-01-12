@@ -1291,7 +1291,7 @@ describe('getCourse', () => {
         _id: new ObjectId(),
         type: INTER_B2B,
         format: BLENDED,
-        trainees: [{ _id: traineeIds[0] }, { _id: traineeIds[0] }],
+        trainees: [{ _id: traineeIds[0] }, { _id: traineeIds[1] }],
         subProgram: { steps: [{ theoreticalDuration: 'PT3600S' }, { theoreticalDuration: 'PT1800S' }] },
         slots: [{ step: new ObjectId() }],
       };
@@ -1323,6 +1323,7 @@ describe('getCourse', () => {
               {
                 path: 'trainees',
                 select: 'identity.firstname identity.lastname local.email contact picture.link firstMobileConnection',
+                populate: { path: 'company' },
               },
               {
                 path: 'companyRepresentative',
@@ -1359,13 +1360,16 @@ describe('getCourse', () => {
           { query: 'lean' },
         ]
       );
-      sinon.assert.calledOnceWithExactly(getTraineesCompanyAtCourseRegistration, course.trainees, course._id);
+      sinon.assert.calledOnceWithExactly(
+        getTraineesCompanyAtCourseRegistration,
+        [traineeIds[0], traineeIds[1]],
+        course._id
+      );
       sinon.assert.notCalled(formatCourseWithProgress);
       sinon.assert.notCalled(attendanceCountDocuments);
     });
 
     it('should return inter b2b course with trainees filtering (webapp)', async () => {
-      const loggedUser = { role: { client: { name: 'client_admin' } }, company: { _id: authCompanyId } };
       const course = {
         _id: new ObjectId(),
         type: INTER_B2B,
@@ -1390,7 +1394,7 @@ describe('getCourse', () => {
       const result = await CourseHelper.getCourse(
         { action: OPERATIONS, origin: WEBAPP },
         { _id: course._id },
-        loggedUser
+        { role: { client: { name: 'client_admin' } }, company: { _id: authCompanyId } }
       );
 
       expect(result).toMatchObject(courseWithFilteredTrainees);
@@ -1406,6 +1410,7 @@ describe('getCourse', () => {
                 {
                   path: 'trainees',
                   select: 'identity.firstname identity.lastname local.email contact picture.link firstMobileConnection',
+                  populate: { path: 'company' },
                 },
                 {
                   path: 'companyRepresentative',
@@ -1444,7 +1449,11 @@ describe('getCourse', () => {
           { query: 'lean' },
         ]
       );
-      sinon.assert.calledOnceWithExactly(getTraineesCompanyAtCourseRegistration, course.trainees, course._id);
+      sinon.assert.calledOnceWithExactly(
+        getTraineesCompanyAtCourseRegistration,
+        [traineeIds[0], traineeIds[1]],
+        course._id
+      );
       sinon.assert.notCalled(formatCourseWithProgress);
       sinon.assert.notCalled(attendanceCountDocuments);
     });
@@ -1488,6 +1497,7 @@ describe('getCourse', () => {
               {
                 path: 'trainees',
                 select: 'identity.firstname identity.lastname local.email contact picture.link firstMobileConnection',
+                populate: { path: 'company' },
               },
               {
                 path: 'companyRepresentative',
@@ -1506,17 +1516,21 @@ describe('getCourse', () => {
           { query: 'lean' },
         ]
       );
-      sinon.assert.calledOnceWithExactly(getTraineesCompanyAtCourseRegistration, course.trainees, course._id);
+      sinon.assert.calledOnceWithExactly(
+        getTraineesCompanyAtCourseRegistration,
+        [traineeIds[0], traineeIds[1]],
+        course._id
+      );
       sinon.assert.notCalled(formatCourseWithProgress);
       sinon.assert.notCalled(attendanceCountDocuments);
     });
 
-    it('should return eLearning course without trainees filtering (webapp)', async () => {
+    it('should return eLearning course with trainees filtering (webapp)', async () => {
       const course = {
         _id: new ObjectId(),
         type: INTER_B2C,
         format: E_LEARNING,
-        trainees: [{ _id: new ObjectId() }],
+        trainees: [{ _id: new ObjectId(), company: authCompanyId }],
         subProgram: {
           steps: [{
             _id: new ObjectId(),
@@ -1533,7 +1547,7 @@ describe('getCourse', () => {
       const result = await CourseHelper.getCourse(
         { action: OPERATIONS, origin: WEBAPP },
         { _id: course._id },
-        { role: { vendor: { name: 'vendor_admin' } }, company: { _id: new ObjectId() } }
+        { role: { client: { name: 'client_admin' } }, company: { _id: authCompanyId } }
       );
       expect(result).toMatchObject({
         ...course,
@@ -1551,6 +1565,8 @@ describe('getCourse', () => {
               {
                 path: 'trainees',
                 select: 'identity.firstname identity.lastname local.email contact picture.link firstMobileConnection',
+                populate: { path: 'company' },
+
               },
               {
                 path: 'companyRepresentative',

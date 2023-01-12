@@ -3,7 +3,9 @@ const get = require('lodash/get');
 const has = require('lodash/has');
 const omit = require('lodash/omit');
 const groupBy = require('lodash/groupBy');
+const keyBy = require('lodash/keyBy');
 const compact = require('lodash/compact');
+const mapValues = require('lodash/mapValues');
 const fs = require('fs');
 const os = require('os');
 const Boom = require('@hapi/boom');
@@ -270,6 +272,7 @@ const getCourseForOperations = async (courseId, credentials, origin) => {
       {
         path: 'trainees',
         select: 'identity.firstname identity.lastname local.email contact picture.link firstMobileConnection',
+        populate: { path: 'company' },
       },
       {
         path: 'companyRepresentative',
@@ -317,16 +320,10 @@ const getCourseForOperations = async (courseId, credentials, origin) => {
   let courseTrainees;
   if (fetchedCourse.format === BLENDED) {
     const traineesCompanyAtCourseRegistration = await CourseHistoriesHelper
-      .getTraineesCompanyAtCourseRegistration(fetchedCourse.trainees, courseId);
+      .getTraineesCompanyAtCourseRegistration(fetchedCourse.trainees.map(t => t._id), courseId);
 
-    const traineesCompanyGroupedByTrainee = groupBy(traineesCompanyAtCourseRegistration, 'trainee');
-
-    courseTrainees = fetchedCourse.trainees.map((trainee) => {
-      const traineeCompanyAtCourseRegistration = traineesCompanyGroupedByTrainee[trainee._id];
-      const companyIdAtCourseRegistration = get(traineeCompanyAtCourseRegistration[0], 'company');
-
-      return { ...trainee, company: companyIdAtCourseRegistration };
-    });
+    const traineesCompany = mapValues(keyBy(traineesCompanyAtCourseRegistration, 'trainee'), 'company');
+    courseTrainees = fetchedCourse.trainees.map(trainee => ({ ...trainee, company: traineesCompany[trainee._id] }));
   }
 
   // A coach/client_admin is not supposed to read infos on trainees from other companies
@@ -342,12 +339,8 @@ const getCourseForOperations = async (courseId, credentials, origin) => {
   return {
     ...fetchedCourse,
     totalTheoreticalDuration: exports.getTotalTheoreticalDuration(fetchedCourse),
-    ...(courseTrainees &&
-      {
-        trainees: courseTrainees
-          .filter(t => UtilsHelper.areObjectIdsEquals(get(t, 'company'), get(credentials, 'company._id'))),
-      }
-    ),
+    trainees: (courseTrainees || fetchedCourse.trainees)
+      .filter(t => UtilsHelper.areObjectIdsEquals(get(t, 'company'), get(credentials, 'company._id'))),
   };
 };
 
