@@ -184,7 +184,7 @@ describe('update', () => {
   });
 });
 
-describe('doUserCompaniesIncludeCompany', () => {
+describe('userIsOrWillBeInCompany', () => {
   const user = new ObjectId();
   const company = new ObjectId();
 
@@ -194,7 +194,7 @@ describe('doUserCompaniesIncludeCompany', () => {
       { user, company, startDate: '2022-10-26T00:00:00.000Z' },
     ];
 
-    const res = await UserCompaniesHelper.doUserCompaniesIncludeCompany(userCompanies, company);
+    const res = await UserCompaniesHelper.userIsOrWillBeInCompany(userCompanies, company);
     expect(res).toBe(true);
   });
 
@@ -204,7 +204,7 @@ describe('doUserCompaniesIncludeCompany', () => {
       { user, company, startDate: '2022-10-26T00:00:00.000Z', endDate: CompaniDate().add('P1D').toISO() },
     ];
 
-    const res = await UserCompaniesHelper.doUserCompaniesIncludeCompany(userCompanies, company);
+    const res = await UserCompaniesHelper.userIsOrWillBeInCompany(userCompanies, company);
     expect(res).toBe(true);
   });
 
@@ -214,7 +214,7 @@ describe('doUserCompaniesIncludeCompany', () => {
       { user, company, startDate: CompaniDate().add('P1D').toISO() },
     ];
 
-    const res = await UserCompaniesHelper.doUserCompaniesIncludeCompany(userCompanies, company);
+    const res = await UserCompaniesHelper.userIsOrWillBeInCompany(userCompanies, company);
     expect(res).toBe(true);
   });
 
@@ -224,7 +224,7 @@ describe('doUserCompaniesIncludeCompany', () => {
       { user, company, startDate: '2022-10-26T00:00:00.000Z', endDate: '2022-10-28T00:00:00.000Z' },
     ];
 
-    const res = await UserCompaniesHelper.doUserCompaniesIncludeCompany(userCompanies, company);
+    const res = await UserCompaniesHelper.userIsOrWillBeInCompany(userCompanies, company);
     expect(res).toBe(false);
   });
 
@@ -234,7 +234,7 @@ describe('doUserCompaniesIncludeCompany', () => {
       { user, company: new ObjectId(), startDate: '2022-10-26T00:00:00.000Z' },
     ];
 
-    const res = await UserCompaniesHelper.doUserCompaniesIncludeCompany(userCompanies, company);
+    const res = await UserCompaniesHelper.userIsOrWillBeInCompany(userCompanies, company);
     expect(res).toBe(false);
   });
 });

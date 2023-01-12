@@ -159,15 +159,15 @@ exports.userExists = async (email, credentials) => {
   if (!targetUser) return { exists: false, user: {} };
   if (!credentials) return { exists: true, user: {} };
 
-  const loggedUserhasVendorRole = has(credentials, 'role.vendor');
+  const loggedUserHasVendorRole = has(credentials, 'role.vendor');
   const sameCompany = UserCompaniesHelper
-    .doUserCompaniesIncludeCompany(targetUser.userCompanyList, get(credentials, 'company._id'));
+    .userIsOrWillBeInCompany(targetUser.userCompanyList, get(credentials, 'company._id'));
   const formattedUser = {
     ...pick(targetUser, ['role', '_id', 'company']),
     userCompanyList: targetUser.userCompanyList.map(uc => (pick(uc, ['company', 'endDate']))),
   };
 
-  return loggedUserhasVendorRole || sameCompany ||
+  return loggedUserHasVendorRole || sameCompany ||
     (!UserCompaniesHelper.getCurrentOrFutureCompanies(targetUser.userCompanyList).length && !targetUser.company)
     ? { exists: !!targetUser, user: formattedUser }
     : { exists: !!targetUser, user: {} };

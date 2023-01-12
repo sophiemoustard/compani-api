@@ -21,7 +21,6 @@ const {
   AUXILIARY_WITHOUT_COMPANY,
   TRAINER,
 } = require('../../helpers/constants');
-const { CompaniDate } = require('../../helpers/dates/companiDates');
 
 const { language } = translate;
 
@@ -74,16 +73,14 @@ exports.authorizeUserUpdate = async (req) => {
   const isLoggedUserVendor = !!get(credentials, 'role.vendor');
   const loggedUserClientRole = get(credentials, 'role.client.name');
   const loggedUserCompany = get(credentials, 'company._id') || '';
-  const currentOrFutureCompany = userFromDB.userCompanyList.find(uc =>
-    (!uc.endDate || CompaniDate().isBefore(uc.endDate)) &&
-      UtilsHelper.areObjectIdsEquals(uc.company, loggedUserCompany)
-  );
-  const userCompany = get(currentOrFutureCompany, 'company') || get(req, 'payload.company');
+  const isOrWillBeInCompany = UserCompaniesHelper
+    .userIsOrWillBeInCompany(userFromDB.userCompanyList, loggedUserCompany);
+  const userCompany = isOrWillBeInCompany ? loggedUserCompany : get(req, 'payload.company');
   const updatingOwnInfos = UtilsHelper.areObjectIdsEquals(credentials._id, userFromDB._id);
   if (trainerUpdatesForbiddenKeys(req, userFromDB)) throw Boom.forbidden();
 
   if (!isLoggedUserVendor && !updatingOwnInfos) {
-    const sameCompany = !!currentOrFutureCompany ||
+    const sameCompany = isOrWillBeInCompany ||
       UtilsHelper.areObjectIdsEquals(get(req.payload, 'company'), loggedUserCompany);
     if (!sameCompany) throw Boom.notFound();
   }
@@ -162,10 +159,10 @@ exports.authorizeUserGetById = async (req) => {
 
   const loggedCompanyId = get(credentials, 'company._id', null);
   const isLoggedUserVendor = get(credentials, 'role.vendor', null);
-  if (!isLoggedUserVendor &&
-    (UserCompaniesHelper.getCurrentOrFutureCompanies(user.userCompanyList).length || user.company)) {
+  const hasCompany = UserCompaniesHelper.getCurrentOrFutureCompanies(user.userCompanyList).length || user.company;
+  if (!isLoggedUserVendor && hasCompany) {
     const isClientFromDifferentCompany = !UserCompaniesHelper
-      .doUserCompaniesIncludeCompany(user.userCompanyList, loggedCompanyId);
+      .userIsOrWillBeInCompany(user.userCompanyList, loggedCompanyId);
     if (isClientFromDifferentCompany) throw Boom.notFound();
   }
 

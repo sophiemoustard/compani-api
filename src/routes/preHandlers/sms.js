@@ -16,8 +16,8 @@ exports.authorizeSendSms = async (req) => {
     .lean();
   if (!users.length) throw Boom.notFound(translate[language].userNotFound);
 
-  const userCurrentOrFutureCompanies = users.map(user => user.userCompanyList).flat().map(uc => uc.company);
-  if (!UtilsHelper.doesArrayIncludeId(userCurrentOrFutureCompanies, companyId)) throw Boom.notFound();
+  const userCompanies = users.map(user => user.userCompanyList).flat().map(uc => uc.company);
+  if (!UtilsHelper.doesArrayIncludeId(userCompanies, companyId)) throw Boom.notFound();
 
   return null;
 };

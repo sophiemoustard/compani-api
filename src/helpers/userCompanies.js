@@ -32,7 +32,7 @@ exports.create = async ({ user, company, startDate = CompaniDate() }) => {
 exports.update = async (userCompany, payload) =>
   UserCompany.updateOne({ _id: userCompany }, { $set: { endDate: CompaniDate(payload.endDate).endOf(DAY).toISO() } });
 
-exports.doUserCompaniesIncludeCompany = (userCompanyList, company) => userCompanyList
+exports.userIsOrWillBeInCompany = (userCompanyList, company) => userCompanyList
   .some(uc => (!uc.endDate || CompaniDate().isBefore(uc.endDate)) &&
     UtilsHelper.areObjectIdsEquals(uc.company, company));
 
