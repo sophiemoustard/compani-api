@@ -239,7 +239,7 @@ describe('doUserCompaniesIncludeCompany', () => {
   });
 });
 
-describe('getActiveOrFutureCompanies', () => {
+describe('getCurrentOrFutureCompanies', () => {
   it('should return active and future companies', async () => {
     const user = new ObjectId();
     const authCompany = new ObjectId();
@@ -250,7 +250,7 @@ describe('getActiveOrFutureCompanies', () => {
       { user, company: otherCompany, startDate: CompaniDate().add('P2D').toISO() },
     ];
 
-    const res = await UserCompaniesHelper.getActiveOrFutureCompanies(userCompanies);
+    const res = await UserCompaniesHelper.getCurrentOrFutureCompanies(userCompanies);
     expect(res).toEqual([authCompany, otherCompany]);
   });
 });

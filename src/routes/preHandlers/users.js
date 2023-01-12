@@ -74,17 +74,17 @@ exports.authorizeUserUpdate = async (req) => {
   const isLoggedUserVendor = !!get(credentials, 'role.vendor');
   const loggedUserClientRole = get(credentials, 'role.client.name');
   const loggedUserCompany = get(credentials, 'company._id') || '';
-  const activeOrFutureCompany = userFromDB.userCompanyList.find(uc =>
+  const currentOrFutureCompany = userFromDB.userCompanyList.find(uc =>
     (!uc.endDate || CompaniDate().isBefore(uc.endDate)) &&
       UtilsHelper.areObjectIdsEquals(uc.company, loggedUserCompany)
   );
-  const userCompany = get(activeOrFutureCompany, 'company') || get(req, 'payload.company');
+  const userCompany = get(currentOrFutureCompany, 'company') || get(req, 'payload.company');
   const updatingOwnInfos = UtilsHelper.areObjectIdsEquals(credentials._id, userFromDB._id);
   if (trainerUpdatesForbiddenKeys(req, userFromDB)) throw Boom.forbidden();
 
   if (!isLoggedUserVendor && !updatingOwnInfos) {
-    const sameCompany = !!activeOrFutureCompany ||
-    UtilsHelper.areObjectIdsEquals(get(req.payload, 'company'), loggedUserCompany);
+    const sameCompany = !!currentOrFutureCompany ||
+      UtilsHelper.areObjectIdsEquals(get(req.payload, 'company'), loggedUserCompany);
     if (!sameCompany) throw Boom.notFound();
   }
 
@@ -163,7 +163,7 @@ exports.authorizeUserGetById = async (req) => {
   const loggedCompanyId = get(credentials, 'company._id', null);
   const isLoggedUserVendor = get(credentials, 'role.vendor', null);
   if (!isLoggedUserVendor &&
-    (UserCompaniesHelper.getActiveOrFutureCompanies(user.userCompanyList).length || user.company)) {
+    (UserCompaniesHelper.getCurrentOrFutureCompanies(user.userCompanyList).length || user.company)) {
     const isClientFromDifferentCompany = !UserCompaniesHelper
       .doUserCompaniesIncludeCompany(user.userCompanyList, loggedCompanyId);
     if (isClientFromDifferentCompany) throw Boom.notFound();

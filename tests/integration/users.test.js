@@ -600,7 +600,7 @@ describe('USERS ROUTES - GET /users/exists', () => {
           ['role', '_id']),
         company: authCompany._id,
         userCompanyList: [
-          { company: companyWithoutSubscription._id, endDate: '2021-12-31T23:00:00.000Z' },
+          { company: companyWithoutSubscription._id, endDate: CompaniDate('2021-12-31T23:00:00.000Z').toDate() },
           { company: authCompany._id },
         ],
       });

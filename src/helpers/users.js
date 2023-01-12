@@ -164,12 +164,11 @@ exports.userExists = async (email, credentials) => {
     .doUserCompaniesIncludeCompany(targetUser.userCompanyList, get(credentials, 'company._id'));
   const formattedUser = {
     ...pick(targetUser, ['role', '_id', 'company']),
-    userCompanyList: targetUser.userCompanyList
-      .map(uc => ({ company: uc.company, ...(!!uc.endDate && { endDate: CompaniDate(uc.endDate).toISO() }) })),
+    userCompanyList: targetUser.userCompanyList.map(uc => (pick(uc, ['company', 'endDate']))),
   };
 
   return loggedUserhasVendorRole || sameCompany ||
-    (!UserCompaniesHelper.getActiveOrFutureCompanies(targetUser.userCompanyList).length && !targetUser.company)
+    (!UserCompaniesHelper.getCurrentOrFutureCompanies(targetUser.userCompanyList).length && !targetUser.company)
     ? { exists: !!targetUser, user: formattedUser }
     : { exists: !!targetUser, user: {} };
 };
