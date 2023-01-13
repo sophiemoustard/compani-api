@@ -326,8 +326,15 @@ async function formatPayload(doc, next) {
 
 function populateUserCompanyList(doc, next) {
   if (!get(doc, 'userCompanyList.length')) return next();
+  if (!has(this.getOptions(), 'credentials')) return next(Boom.badRequest());
 
   const { credentials } = this.getOptions();
+  if (!get(credentials, '_id')) {
+    // eslint-disable-next-line no-param-reassign
+    doc.userCompanyList = [];
+
+    return next();
+  }
   const requestingOwnInfos = UtilsHelper.areObjectIdsEquals(credentials._id, doc._id);
   if (has(credentials, 'role.vendor') || requestingOwnInfos) return next();
 

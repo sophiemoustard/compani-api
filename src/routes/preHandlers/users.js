@@ -7,6 +7,7 @@ const Customer = require('../../models/Customer');
 const Establishment = require('../../models/Establishment');
 const translate = require('../../helpers/translate');
 const UtilsHelper = require('../../helpers/utils');
+const UserCompaniesHelper = require('../../helpers/userCompanies');
 const {
   CLIENT_ADMIN,
   COACH,
@@ -62,13 +63,28 @@ const trainerUpdatesForbiddenKeys = (req, user) => {
 
 exports.authorizeUserUpdate = async (req) => {
   const { credentials } = req.auth;
-  const userFromDB = req.pre.user;
-  const userCompany = userFromDB.company || get(req, 'payload.company');
+  const userFromDB = await User
+    .findOne({ _id: req.params._id })
+    .populate({ path: 'userCompanyList' })
+    .setOptions({ credentials })
+    .lean();
+  if (!userFromDB) throw Boom.notFound(translate[language].userNotFound);
+
   const isLoggedUserVendor = !!get(credentials, 'role.vendor');
   const loggedUserClientRole = get(credentials, 'role.client.name');
+  const loggedUserCompany = get(credentials, 'company._id') || '';
+  const isOrWillBeInCompany = UserCompaniesHelper
+    .userIsOrWillBeInCompany(userFromDB.userCompanyList, loggedUserCompany);
+  const userCompany = isOrWillBeInCompany ? loggedUserCompany : get(req, 'payload.company');
+  const updatingOwnInfos = UtilsHelper.areObjectIdsEquals(credentials._id, userFromDB._id);
   if (trainerUpdatesForbiddenKeys(req, userFromDB)) throw Boom.forbidden();
 
-  checkCompany(credentials, userFromDB, req.payload, isLoggedUserVendor);
+  if (!isLoggedUserVendor && !updatingOwnInfos) {
+    const sameCompany = isOrWillBeInCompany ||
+      UtilsHelper.areObjectIdsEquals(get(req.payload, 'company'), loggedUserCompany);
+    if (!sameCompany) throw Boom.notFound();
+  }
+
   if (get(req, 'payload.establishment')) await checkEstablishment(userCompany, req.payload);
   if (get(req, 'payload.role')) await checkRole(userFromDB, req.payload);
   if (get(req, 'payload.customer')) await checkCustomer(userCompany, req.payload);
@@ -77,17 +93,6 @@ exports.authorizeUserUpdate = async (req) => {
   }
 
   return null;
-};
-
-const checkCompany = (credentials, userFromDB, payload, isLoggedUserVendor) => {
-  const updatingOwnInfos = UtilsHelper.areObjectIdsEquals(credentials._id, userFromDB._id);
-  if (isLoggedUserVendor || updatingOwnInfos) return;
-
-  const loggedUserCompany = get(credentials, 'company._id') || '';
-  const userCompany = userFromDB.company || payload.company;
-  const sameCompany = userCompany && loggedUserCompany &&
-    UtilsHelper.areObjectIdsEquals(userCompany, loggedUserCompany);
-  if (!sameCompany) throw Boom.notFound();
 };
 
 const checkEstablishment = async (companyId, payload) => {
@@ -144,19 +149,22 @@ const checkUpdateAndCreateRestrictions = (payload) => {
 
 exports.authorizeUserGetById = async (req) => {
   const { credentials } = req.auth;
-  const user = req.pre.user || req.payload;
+  const user = await User
+    .findOne({ _id: req.params._id })
+    .populate({ path: 'company' })
+    .populate({ path: 'userCompanyList' })
+    .setOptions({ credentials })
+    .lean();
+  if (!user) throw Boom.notFound(translate[language].userNotFound);
+
   const loggedCompanyId = get(credentials, 'company._id', null);
   const isLoggedUserVendor = get(credentials, 'role.vendor', null);
-  const establishmentId = get(req, 'payload.establishment');
-
-  if (establishmentId) {
-    const establishment = await Establishment.countDocuments({ _id: establishmentId, company: loggedCompanyId });
-    if (!establishment) throw Boom.forbidden();
+  const hasCompany = UserCompaniesHelper.getCurrentOrFutureCompanies(user.userCompanyList).length || user.company;
+  if (!isLoggedUserVendor && hasCompany) {
+    const isClientFromDifferentCompany = !UserCompaniesHelper
+      .userIsOrWillBeInCompany(user.userCompanyList, loggedCompanyId);
+    if (isClientFromDifferentCompany) throw Boom.notFound();
   }
-
-  const isClientFromDifferentCompany = !isLoggedUserVendor && user.company &&
-    !UtilsHelper.areObjectIdsEquals(user.company, loggedCompanyId);
-  if (isClientFromDifferentCompany) throw Boom.notFound();
 
   return null;
 };

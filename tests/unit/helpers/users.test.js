@@ -658,15 +658,17 @@ describe('userExists', () => {
   let findOne;
   const email = 'test@test.fr';
   const nonExistantEmail = 'toto.gateau@alenvi.io';
+  const company = new ObjectId();
   const user = {
     _id: new ObjectId(),
     local: { email: 'test@test.fr' },
     role: { client: { _id: new ObjectId() } },
-    company: new ObjectId(),
+    company,
+    userCompanyList: [{ company }],
   };
-  const userWithoutCompany = omit(user, 'company');
-  const vendorCredentials = { role: { vendor: { _id: new ObjectId() } } };
-  const clientCredentials = { role: { client: { _id: new ObjectId() } } };
+  const userWithoutCompany = { ...user, company: null, userCompanyList: [] };
+  const vendorCredentials = { role: { vendor: { _id: new ObjectId() } }, company: { _id: new ObjectId() } };
+  const clientCredentials = { role: { client: { _id: new ObjectId() } }, company: { _id: new ObjectId() } };
   beforeEach(() => {
     findOne = sinon.stub(User, 'findOne');
   });
@@ -675,7 +677,7 @@ describe('userExists', () => {
   });
 
   it('should find a user if credentials', async () => {
-    findOne.returns(SinonMongoose.stubChainedQueries(user, ['populate', 'lean']));
+    findOne.returns(SinonMongoose.stubChainedQueries(user, ['populate', 'setOptions', 'lean']));
 
     const rep = await UsersHelper.userExists(email, vendorCredentials);
 
@@ -687,13 +689,15 @@ describe('userExists', () => {
       [
         { query: 'findOne', args: [{ 'local.email': email }, { role: 1 }] },
         { query: 'populate', args: [{ path: 'company', select: 'company' }] },
+        { query: 'populate', args: [{ path: 'userCompanyList', sort: { startDate: 1 } }] },
+        { query: 'setOptions', args: [{ credentials: vendorCredentials }] },
         { query: 'lean' },
       ]
     );
   });
 
   it('should not find as email does not exist', async () => {
-    findOne.returns(SinonMongoose.stubChainedQueries(null, ['populate', 'lean']));
+    findOne.returns(SinonMongoose.stubChainedQueries(null, ['populate', 'setOptions', 'lean']));
 
     const rep = await UsersHelper.userExists(nonExistantEmail, vendorCredentials);
 
@@ -705,13 +709,15 @@ describe('userExists', () => {
       [
         { query: 'findOne', args: [{ 'local.email': nonExistantEmail }, { role: 1 }] },
         { query: 'populate', args: [{ path: 'company', select: 'company' }] },
+        { query: 'populate', args: [{ path: 'userCompanyList', sort: { startDate: 1 } }] },
+        { query: 'setOptions', args: [{ credentials: vendorCredentials }] },
         { query: 'lean' },
       ]
     );
   });
 
   it('should only confirm targeted user exist, as logged user has only client role', async () => {
-    findOne.returns(SinonMongoose.stubChainedQueries(user, ['populate', 'lean']));
+    findOne.returns(SinonMongoose.stubChainedQueries(user, ['populate', 'setOptions', 'lean']));
 
     const rep = await UsersHelper.userExists(email, clientCredentials);
 
@@ -722,13 +728,69 @@ describe('userExists', () => {
       [
         { query: 'findOne', args: [{ 'local.email': email }, { role: 1 }] },
         { query: 'populate', args: [{ path: 'company', select: 'company' }] },
+        { query: 'populate', args: [{ path: 'userCompanyList', sort: { startDate: 1 } }] },
+        { query: 'setOptions', args: [{ credentials: clientCredentials }] },
+        { query: 'lean' },
+      ]
+    );
+  });
+
+  it('should only confirm targeted user exist, as targeted user has good company in the future', async () => {
+    findOne.returns(SinonMongoose.stubChainedQueries(
+      {
+        ...userWithoutCompany,
+        userCompanyList: [{ company: clientCredentials.company._id, startDate: CompaniDate().add('P1D').toISO() }],
+      },
+      ['populate', 'setOptions', 'lean']
+    ));
+
+    const rep = await UsersHelper.userExists(email, clientCredentials);
+
+    expect(rep.exists).toBe(true);
+    expect(rep.user).toEqual(
+      { ...omit(userWithoutCompany, 'local'), userCompanyList: [{ company: clientCredentials.company._id }] }
+    );
+
+    SinonMongoose.calledOnceWithExactly(
+      findOne,
+      [
+        { query: 'findOne', args: [{ 'local.email': email }, { role: 1 }] },
+        { query: 'populate', args: [{ path: 'company', select: 'company' }] },
+        { query: 'populate', args: [{ path: 'userCompanyList', sort: { startDate: 1 } }] },
+        { query: 'setOptions', args: [{ credentials: clientCredentials }] },
+        { query: 'lean' },
+      ]
+    );
+  });
+
+  it('should only confirm targeted user exist, as targeted user has other company in the future', async () => {
+    findOne.returns(SinonMongoose.stubChainedQueries(
+      {
+        ...userWithoutCompany,
+        userCompanyList: [{ company: new ObjectId(), startDate: CompaniDate().add('P1D').toISO() }],
+      },
+      ['populate', 'setOptions', 'lean']
+    ));
+
+    const rep = await UsersHelper.userExists(email, clientCredentials);
+
+    expect(rep.exists).toBe(true);
+    expect(rep.user).toEqual({});
+
+    SinonMongoose.calledOnceWithExactly(
+      findOne,
+      [
+        { query: 'findOne', args: [{ 'local.email': email }, { role: 1 }] },
+        { query: 'populate', args: [{ path: 'company', select: 'company' }] },
+        { query: 'populate', args: [{ path: 'userCompanyList', sort: { startDate: 1 } }] },
+        { query: 'setOptions', args: [{ credentials: clientCredentials }] },
         { query: 'lean' },
       ]
     );
   });
 
   it('should find targeted user and give all infos, as targeted user has no company', async () => {
-    findOne.returns(SinonMongoose.stubChainedQueries(userWithoutCompany, ['populate', 'lean']));
+    findOne.returns(SinonMongoose.stubChainedQueries(userWithoutCompany, ['populate', 'setOptions', 'lean']));
 
     const rep = await UsersHelper.userExists(email, clientCredentials);
 
@@ -740,15 +802,17 @@ describe('userExists', () => {
       [
         { query: 'findOne', args: [{ 'local.email': email }, { role: 1 }] },
         { query: 'populate', args: [{ path: 'company', select: 'company' }] },
+        { query: 'populate', args: [{ path: 'userCompanyList', sort: { startDate: 1 } }] },
+        { query: 'setOptions', args: [{ credentials: clientCredentials }] },
         { query: 'lean' },
       ]
     );
   });
 
   it('should find an email but no user if no credentials', async () => {
-    findOne.returns(SinonMongoose.stubChainedQueries(user, ['populate', 'lean']));
+    findOne.returns(SinonMongoose.stubChainedQueries(user, ['populate', 'setOptions', 'lean']));
 
-    const rep = await UsersHelper.userExists(email);
+    const rep = await UsersHelper.userExists(email, null);
 
     expect(rep.exists).toBe(true);
     expect(rep.user).toEqual({});
@@ -758,6 +822,8 @@ describe('userExists', () => {
       [
         { query: 'findOne', args: [{ 'local.email': email }, { role: 1 }] },
         { query: 'populate', args: [{ path: 'company', select: 'company' }] },
+        { query: 'populate', args: [{ path: 'userCompanyList', sort: { startDate: 1 } }] },
+        { query: 'setOptions', args: [{ credentials: null }] },
         { query: 'lean' },
       ]
     );

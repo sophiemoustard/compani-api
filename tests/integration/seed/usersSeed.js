@@ -30,6 +30,7 @@ const {
   vendorAdminRoleId,
   trainerRoleId,
 } = require('../../seed/authRolesSeed');
+const { CompaniDate } = require('../../../src/helpers/dates/companiDates');
 
 const establishmentList = [
   {
@@ -247,6 +248,13 @@ const usersSeedList = [
     origin: MOBILE,
     formationExpoTokenList: ['ExponentPushToken[jeSuisUnIdExpo]'],
   },
+  { // 13
+    _id: new ObjectId(),
+    identity: { firstname: 'future_traine', lastname: 'test' },
+    local: { email: 'future_trainee@alenvi.io' },
+    refreshToken: uuidv4(),
+    origin: WEBAPP,
+  },
 ];
 
 const companyLinkRequest = {
@@ -335,6 +343,11 @@ const userCompanies = [
     company: companyWithoutSubscription._id,
     startDate: '2019-01-01T08:00:00.000Z',
     endDate: '2022-12-01T08:00:00.000Z',
+  },
+  { // trainee will join company in the future
+    user: usersSeedList[13]._id,
+    company: authCompany._id,
+    startDate: CompaniDate().add('P1D').toISO(),
   },
 ];
 

@@ -7,14 +7,16 @@ const UtilsHelper = require('../../helpers/utils');
 const { language } = translate;
 
 exports.authorizeSendSms = async (req) => {
-  const companyId = get(req, 'auth.credentials.company._id');
+  const credentials = get(req, 'auth.credentials');
+  const companyId = get(credentials, 'company._id');
   const users = await User
     .find({ 'contact.phone': `0${req.payload.recipient.substring(3)}` })
-    .populate({ path: 'company' })
+    .populate({ path: 'userCompanyList' })
+    .setOptions({ credentials })
     .lean();
   if (!users.length) throw Boom.notFound(translate[language].userNotFound);
 
-  const userCompanies = users.map(user => user.company);
+  const userCompanies = users.map(user => user.userCompanyList).flat().map(uc => uc.company);
   if (!UtilsHelper.doesArrayIncludeId(userCompanies, companyId)) throw Boom.notFound();
 
   return null;
