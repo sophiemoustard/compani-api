@@ -290,19 +290,18 @@ function populateSectors(docs, next) {
   return next();
 }
 
-const getCurrentUserCompany = userCompanies => userCompanies
+const getCurrentUserCompany = (userCompanies = []) => userCompanies
   .find(uc => CompaniDate().isAfter(uc.startDate) && (!uc.endDate || CompaniDate().isBefore(uc.endDate)));
 
 function populateCompany(doc, next) {
-  const userCompanies = get(doc, 'company');
-  if (userCompanies && userCompanies.some(c => has(c, 'company'))) {
-    const currentUserCompany = getCurrentUserCompany(userCompanies);
+  if (!doc) next();
 
-    // eslint-disable-next-line no-param-reassign
-    if (currentUserCompany) doc.company = currentUserCompany.company;
-    // eslint-disable-next-line no-param-reassign
-    else doc.company = null;
-  }
+  const currentUserCompany = getCurrentUserCompany(get(doc, 'company'));
+
+  // eslint-disable-next-line no-param-reassign
+  if (currentUserCompany) doc.company = currentUserCompany.company;
+  // eslint-disable-next-line no-param-reassign
+  else doc.company = null;
 
   return next();
 }
