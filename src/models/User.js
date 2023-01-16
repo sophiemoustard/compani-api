@@ -291,6 +291,8 @@ function populateSectors(docs, next) {
 }
 
 function populateCompany(doc, next) {
+  console.log(CompaniDate().toDate());
+  console.log(get(doc, 'company.company'), 'populateCompany');
   // eslint-disable-next-line no-param-reassign
   if (get(doc, 'company.company')) doc.company = doc.company.company;
 
@@ -299,7 +301,42 @@ function populateCompany(doc, next) {
 
 function populateCompanies(docs, next) {
   for (const doc of docs) {
+    console.log(get(doc, 'company'), 'populateCompanies');
     if (doc && doc.company) doc.company = doc.company.company;
+  }
+
+  return next();
+}
+
+function populateCompanyTest(doc, next) {
+  console.log(get(doc, 'companytest.companytest'), 'populateCompanyTest');
+  // eslint-disable-next-line no-param-reassign
+  if (get(doc, 'companytest.companytest')) doc.companytest = doc.companytest.companytest;
+
+  return next();
+}
+
+function populateCompaniesTest(docs, next) {
+  for (const doc of docs) {
+    console.log(get(doc, 'companytest'), 'populateCompaniesTest');
+    if (doc && doc.companytest) doc.companytest = doc.companytest.companytest;
+  }
+
+  return next();
+}
+
+function populateCompanyTest2(doc, next) {
+  console.log(get(doc, 'companytest2.companytest2'), 'populateCompanyTest2');
+  // eslint-disable-next-line no-param-reassign
+  if (get(doc, 'companytest2.companytest2')) doc.companytest2 = doc.companytest2.companytest2;
+
+  return next();
+}
+
+function populateCompaniesTest2(docs, next) {
+  for (const doc of docs) {
+    console.log(get(doc, 'companytest2'), 'populateCompaniesTest2');
+    if (doc && doc.companytest2) doc.companytest2 = doc.companytest2.companytest2;
   }
 
   return next();
@@ -408,6 +445,31 @@ UserSchema.virtual(
 );
 
 UserSchema.virtual(
+  'companytest',
+  {
+    ref: 'UserCompany',
+    localField: '_id',
+    foreignField: 'user',
+    justOne: true,
+  }
+);
+
+UserSchema.virtual(
+  'companytest2',
+  {
+    ref: 'UserCompany',
+    localField: '_id',
+    foreignField: 'user',
+    options: {
+      match: {
+        startDate: { $lt: CompaniDate().toDate() },
+        $or: [{ endDate: { $exists: false } }, { endDate: { $gt: CompaniDate().toDate() } }],
+      },
+    },
+  }
+);
+
+UserSchema.virtual(
   'userCompanyList',
   { ref: 'UserCompany', localField: '_id', foreignField: 'user', sort: { startDate: -1 } }
 );
@@ -425,11 +487,17 @@ queryMiddlewareList.map(middleware => UserSchema.pre(middleware, formatQuery));
 
 UserSchema.post('find', populateSectors);
 UserSchema.post('find', populateCompanies);
+UserSchema.post('find', populateCompaniesTest);
+UserSchema.post('find', populateCompaniesTest2);
 UserSchema.post('findOne', populateSector);
 UserSchema.post('findOne', populateCustomers);
 UserSchema.post('findOne', populateCompany);
+UserSchema.post('findOne', populateCompanyTest);
+UserSchema.post('findOne', populateCompanyTest2);
 UserSchema.post('findOne', populateUserCompanyList);
 UserSchema.post('findOneAndUpdate', populateCompany);
+UserSchema.post('findOneAndUpdate', populateCompanyTest);
+UserSchema.post('findOneAndUpdate', populateCompanyTest2);
 UserSchema.post('findOneAndUpdate', populateSector);
 UserSchema.post('findOneAndUpdate', populateCustomers);
 UserSchema.post('save', formatPayload);
