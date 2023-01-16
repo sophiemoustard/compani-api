@@ -300,6 +300,9 @@ function populateCompany(doc, next) {
 
     // eslint-disable-next-line no-param-reassign
     if (currentUserCompany) doc.company = currentUserCompany.company;
+    // eslint-disable-next-line no-param-reassign
+    else doc.company = null;
+    console.log('after', doc);
   }
 
   return next();
@@ -311,6 +314,7 @@ function populateCompanies(docs, next) {
       const currentUserCompany = getCurrentUserCompany(doc.company);
 
       if (currentUserCompany) doc.company = currentUserCompany;
+      else doc.company = null;
     }
   }
 
