@@ -291,7 +291,7 @@ function populateSectors(docs, next) {
 }
 
 const getCurrentUserCompany = userCompanies => userCompanies
-  .find(c => CompaniDate().isAfter(c.startDate) && (!c.endDate || CompaniDate().isBefore(c.endDate)));
+  .find(uc => CompaniDate().isAfter(uc.startDate) && (!uc.endDate || CompaniDate().isBefore(uc.endDate)));
 
 function populateCompany(doc, next) {
   const userCompanies = get(doc, 'company');

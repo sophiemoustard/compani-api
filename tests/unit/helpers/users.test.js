@@ -688,7 +688,7 @@ describe('userExists', () => {
       findOne,
       [
         { query: 'findOne', args: [{ 'local.email': email }, { role: 1 }] },
-        { query: 'populate', args: [{ path: 'company'}] },
+        { query: 'populate', args: [{ path: 'company' }] },
         { query: 'populate', args: [{ path: 'userCompanyList', sort: { startDate: 1 } }] },
         { query: 'setOptions', args: [{ credentials: vendorCredentials }] },
         { query: 'lean' },
@@ -708,7 +708,7 @@ describe('userExists', () => {
       findOne,
       [
         { query: 'findOne', args: [{ 'local.email': nonExistantEmail }, { role: 1 }] },
-        { query: 'populate', args: [{ path: 'company'}] },
+        { query: 'populate', args: [{ path: 'company' }] },
         { query: 'populate', args: [{ path: 'userCompanyList', sort: { startDate: 1 } }] },
         { query: 'setOptions', args: [{ credentials: vendorCredentials }] },
         { query: 'lean' },
@@ -727,7 +727,7 @@ describe('userExists', () => {
       findOne,
       [
         { query: 'findOne', args: [{ 'local.email': email }, { role: 1 }] },
-        { query: 'populate', args: [{ path: 'company'}] },
+        { query: 'populate', args: [{ path: 'company' }] },
         { query: 'populate', args: [{ path: 'userCompanyList', sort: { startDate: 1 } }] },
         { query: 'setOptions', args: [{ credentials: clientCredentials }] },
         { query: 'lean' },
@@ -755,7 +755,7 @@ describe('userExists', () => {
       findOne,
       [
         { query: 'findOne', args: [{ 'local.email': email }, { role: 1 }] },
-        { query: 'populate', args: [{ path: 'company'}] },
+        { query: 'populate', args: [{ path: 'company' }] },
         { query: 'populate', args: [{ path: 'userCompanyList', sort: { startDate: 1 } }] },
         { query: 'setOptions', args: [{ credentials: clientCredentials }] },
         { query: 'lean' },
@@ -781,7 +781,7 @@ describe('userExists', () => {
       findOne,
       [
         { query: 'findOne', args: [{ 'local.email': email }, { role: 1 }] },
-        { query: 'populate', args: [{ path: 'company'}] },
+        { query: 'populate', args: [{ path: 'company' }] },
         { query: 'populate', args: [{ path: 'userCompanyList', sort: { startDate: 1 } }] },
         { query: 'setOptions', args: [{ credentials: clientCredentials }] },
         { query: 'lean' },
@@ -801,7 +801,7 @@ describe('userExists', () => {
       findOne,
       [
         { query: 'findOne', args: [{ 'local.email': email }, { role: 1 }] },
-        { query: 'populate', args: [{ path: 'company'}] },
+        { query: 'populate', args: [{ path: 'company' }] },
         { query: 'populate', args: [{ path: 'userCompanyList', sort: { startDate: 1 } }] },
         { query: 'setOptions', args: [{ credentials: clientCredentials }] },
         { query: 'lean' },
@@ -821,7 +821,7 @@ describe('userExists', () => {
       findOne,
       [
         { query: 'findOne', args: [{ 'local.email': email }, { role: 1 }] },
-        { query: 'populate', args: [{ path: 'company'}] },
+        { query: 'populate', args: [{ path: 'company' }] },
         { query: 'populate', args: [{ path: 'userCompanyList', sort: { startDate: 1 } }] },
         { query: 'setOptions', args: [{ credentials: null }] },
         { query: 'lean' },
