@@ -28,13 +28,12 @@ const validate = async (decoded) => {
 
     const user = await User.findById(decoded._id, '_id identity role local')
       .populate({ path: 'company', populate: { path: 'company' } })
-      .populate({ path: 'companytest', populate: { path: 'companytest' } })
-      .populate({ path: 'companytest2', populate: { path: 'companytest2' } })
+      .populate({ path: 'companytest', populate: { path: 'company' } })
       .populate({ path: 'sector', options: { requestingOwnInfos: true } })
       .populate({ path: 'customers', options: { requestingOwnInfos: true } })
       .lean({ autopopulate: true });
 
-    console.log(user, 'validate');
+    console.log(pick(user, ['company', 'companytest']), 'validate');
 
     const userRoles = user.role ? Object.values(user.role).filter(role => !!role) : [];
 

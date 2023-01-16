@@ -121,8 +121,7 @@ exports.getUser = async (userId, credentials) => {
   const user = await User.findOne({ _id: userId })
     .populate({ path: 'contracts', select: '-__v -createdAt -updatedAt' })
     .populate({ path: 'company', populate: { path: 'company' }, select: '-__v -createdAt -updatedAt' })
-    .populate({ path: 'companytest', populate: { path: 'companytest' }, select: '-__v -createdAt -updatedAt' })
-    .populate({ path: 'companytest2', populate: { path: 'companytest2' }, select: '-__v -createdAt -updatedAt' })
+    .populate({ path: 'companytest', populate: { path: 'company' }, select: '-__v -createdAt -updatedAt' })
     .populate({
       path: 'sector',
       select: '_id sector',
@@ -147,7 +146,7 @@ exports.getUser = async (userId, credentials) => {
     .setOptions({ credentials })
     .lean({ autopopulate: true, virtuals: true });
 
-  console.log(user, 'getUser');
+  console.log(pick(user, ['company', 'companytest']), 'getUser - companytest');
 
   if (!user) throw Boom.notFound(translate[language].userNotFound);
 
