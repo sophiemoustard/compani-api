@@ -297,22 +297,21 @@ const helpers = [
 ];
 
 const userCompanies = [
-  { // old inactive user company
-    user: usersSeedList[0]._id,
-    company: companyWithoutSubscription._id,
-    startDate: '2021-01-01T23:00:00.000Z',
-    endDate: '2021-12-31T23:00:00.000Z',
-  },
-  { // old inactive user company
+  {
     user: auxiliaryFromOtherCompany._id,
     company: authCompany._id,
     startDate: '2021-01-01T23:00:00.000Z',
     endDate: '2021-12-31T23:00:00.000Z',
   },
-  // current user companies
   { user: auxiliaryFromOtherCompany._id, company: otherCompany._id, startDate: '2022-01-01T23:00:00.000Z' },
   { user: helperFromOtherCompany._id, company: otherCompany._id, startDate: '2022-01-01T23:00:00.000Z' },
   { user: coachFromOtherCompany._id, company: otherCompany._id, startDate: '2022-01-01T23:00:00.000Z' },
+  {
+    user: usersSeedList[0]._id,
+    company: companyWithoutSubscription._id,
+    startDate: '2021-01-01T23:00:00.000Z',
+    endDate: '2021-12-31T23:00:00.000Z',
+  },
   { user: usersSeedList[0]._id, company: authCompany._id, startDate: '2022-01-01T23:00:00.000Z' },
   { user: usersSeedList[1]._id, company: authCompany._id, startDate: '2022-01-01T23:00:00.000Z' },
   { user: usersSeedList[2]._id, company: authCompany._id, startDate: '2019-01-01T08:00:00.000Z' },
@@ -323,26 +322,11 @@ const userCompanies = [
   { user: usersSeedList[7]._id, company: authCompany._id, startDate: '2022-01-01T23:00:00.000Z' },
   { user: usersSeedList[8]._id, company: authCompany._id, startDate: '2022-01-01T23:00:00.000Z' },
   { user: usersSeedList[10]._id, company: authCompany._id, startDate: '2019-01-01T08:00:00.000Z' },
-  { // old inactive user company
-    user: usersSeedList[2]._id,
-    company: authCompany._id,
-    startDate: '2022-01-01T23:00:00.000Z',
-    endDate: '2022-12-30T23:00:00.000Z',
-  },
-  { // old inactive user company
-    user: usersSeedList[10]._id,
-    company: authCompany._id,
-    startDate: '2022-12-19T23:00:00.000Z',
-    endDate: '2022-12-29T23:00:00.000Z',
-  },
-  { // startDate must be greater than 20/12/2022
-    user: usersSeedList[10]._id, company: authCompany._id, startDate: '2022-12-30T23:00:00.000Z',
-  },
   {
     user: traineeWhoLeftOtherCompany._id,
     company: companyWithoutSubscription._id,
     startDate: '2019-01-01T08:00:00.000Z',
-    endDate: '2022-12-01T08:00:00.000Z',
+    endDate: '2022-12-01T02:59:59.999Z',
   },
   { // trainee will join company in the future
     user: usersSeedList[13]._id,

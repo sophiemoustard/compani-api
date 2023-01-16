@@ -297,11 +297,8 @@ function populateCompany(doc, next) {
   if (!doc) next();
 
   const currentUserCompany = getCurrentUserCompany(get(doc, 'company'));
-
   // eslint-disable-next-line no-param-reassign
-  if (currentUserCompany) doc.company = currentUserCompany.company;
-  // eslint-disable-next-line no-param-reassign
-  else doc.company = null;
+  doc.company = currentUserCompany ? currentUserCompany.company : null;
 
   return next();
 }
@@ -310,9 +307,7 @@ function populateCompanies(docs, next) {
   for (const doc of docs) {
     if (doc && doc.company) {
       const currentUserCompany = getCurrentUserCompany(doc.company);
-
-      if (currentUserCompany) doc.company = currentUserCompany.company;
-      else doc.company = null;
+      doc.company = currentUserCompany ? currentUserCompany.company : null;
     }
   }
 
@@ -405,10 +400,7 @@ UserSchema.virtual(
 
 UserSchema.virtual('activityHistories', { ref: 'ActivityHistory', localField: '_id', foreignField: 'user' });
 
-UserSchema.virtual(
-  'company',
-  { ref: 'UserCompany', localField: '_id', foreignField: 'user' }
-);
+UserSchema.virtual('company', { ref: 'UserCompany', localField: '_id', foreignField: 'user' });
 
 UserSchema.virtual(
   'userCompanyList',
