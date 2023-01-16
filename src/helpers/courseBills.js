@@ -90,7 +90,7 @@ exports.list = async (query, credentials) => {
   if (query.action === LIST) {
     const courseBills = await CourseBill
       .find({ course: query.course })
-      .populate({ path: 'company', select: 'name' })
+      .populate({ path: 'company', select: 'name startDate endDate' })
       .populate({ path: 'payer.fundingOrganisation', select: 'name' })
       .populate({ path: 'payer.company', select: 'name' })
       .populate({ path: 'courseCreditNote', options: { isVendorUser: !!get(credentials, 'role.vendor') } })
@@ -165,7 +165,7 @@ exports.generateBillPdf = async (billId) => {
       populate: { path: 'subProgram', select: 'program', populate: [{ path: 'program', select: 'name' }] },
     })
     .populate({ path: 'billingPurchaseList', select: 'billingItem', populate: { path: 'billingItem', select: 'name' } })
-    .populate({ path: 'company', select: 'name address' })
+    .populate({ path: 'company', select: 'name address startDate endDate' })
     .populate({ path: 'payer.fundingOrganisation', select: 'name address' })
     .populate({ path: 'payer.company', select: 'name address' })
     .lean();

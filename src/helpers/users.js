@@ -101,7 +101,7 @@ exports.getLearnerList = async (query, credentials) => {
 
   const learnerList = await User
     .find(userQuery, 'identity.firstname identity.lastname picture local.email', { autopopulate: false })
-    .populate({ path: 'company', populate: { path: 'company' }, select: 'name' })
+    .populate({ path: 'company', populate: { path: 'company' }, select: 'name startDate endDate' })
     .populate({ path: 'blendedCoursesCount' })
     .populate({ path: 'eLearningCoursesCount' })
     .populate({ path: 'activityHistories', select: 'updatedAt', options: { sort: { updatedAt: -1 } } })
@@ -139,7 +139,7 @@ exports.getUser = async (userId, credentials) => {
         requestingOwnInfos: UtilsHelper.areObjectIdsEquals(userId, credentials._id),
       },
     })
-    .populate({ path: 'companyLinkRequest', populate: { path: 'company', select: '_id name' } })
+    .populate({ path: 'companyLinkRequest', populate: { path: 'company', select: '_id name startDate endDate' } })
     .populate({ path: 'establishment', select: 'siret' })
     .populate({ path: 'userCompanyList' })
     .setOptions({ credentials })
@@ -152,7 +152,7 @@ exports.getUser = async (userId, credentials) => {
 
 exports.userExists = async (email, credentials) => {
   const targetUser = await User.findOne({ 'local.email': email }, { role: 1 })
-    .populate({ path: 'company', select: 'company' })
+    .populate({ path: 'company', select: 'company startDate endDate' })
     .populate({ path: 'userCompanyList', sort: { startDate: 1 } })
     .setOptions({ credentials })
     .lean();
@@ -333,7 +333,7 @@ exports.createDriveFolder = async (userId, credentials) => {
 
   const userCompany = await UserCompany
     .findOne({ user: userId, company: loggedUserCompany })
-    .populate({ path: 'company', select: 'auxiliariesFolderId' })
+    .populate({ path: 'company', select: 'auxiliariesFolderId startDate endDate' })
     .populate({ path: 'user', select: 'identity' })
     .lean();
   if (!get(userCompany, 'company.auxiliariesFolderId')) throw Boom.badData();

@@ -105,7 +105,7 @@ exports.list = async (query) => {
   return CourseHistory.find(findQuery)
     .populate({ path: 'createdBy', select: '_id identity picture' })
     .populate({ path: 'trainee', select: '_id identity' })
-    .populate({ path: 'company', select: '_id name' })
+    .populate({ path: 'company', select: '_id name startDate endDate' })
     .sort({ createdAt: -1 })
     .limit(20)
     .lean();

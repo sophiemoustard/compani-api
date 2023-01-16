@@ -36,7 +36,7 @@ exports.generateCreditNotePdf = async (creditNoteId) => {
         { path: 'billingPurchaseList', select: 'billingItem', populate: { path: 'billingItem', select: 'name' } },
       ],
     })
-    .populate({ path: 'company', select: 'name address' })
+    .populate({ path: 'company', select: 'name address startDate endDate' })
     .lean();
 
   const payer = get(creditNote, 'courseBill.payer');

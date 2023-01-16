@@ -290,16 +290,28 @@ function populateSectors(docs, next) {
   return next();
 }
 
+const getCurrentUserCompany = userCompanies => userCompanies
+  .find(c => CompaniDate().isAfter(c.startDate) && (!c.endDate || CompaniDate().isBefore(c.endDate)));
+
 function populateCompany(doc, next) {
-  // eslint-disable-next-line no-param-reassign
-  if (get(doc, 'company.company')) doc.company = doc.company.company;
+  const userCompanies = get(doc, 'company');
+  if (userCompanies && userCompanies.some(c => has(c, 'company'))) {
+    const currentUserCompany = getCurrentUserCompany(userCompanies);
+
+    // eslint-disable-next-line no-param-reassign
+    if (currentUserCompany) doc.company = currentUserCompany.company;
+  }
 
   return next();
 }
 
 function populateCompanies(docs, next) {
   for (const doc of docs) {
-    if (doc && doc.company) doc.company = doc.company.company;
+    if (doc && doc.company) {
+      const currentUserCompany = getCurrentUserCompany(doc.company);
+
+      if (currentUserCompany) doc.company = currentUserCompany;
+    }
   }
 
   return next();
@@ -393,18 +405,7 @@ UserSchema.virtual('activityHistories', { ref: 'ActivityHistory', localField: '_
 
 UserSchema.virtual(
   'company',
-  {
-    ref: 'UserCompany',
-    localField: '_id',
-    foreignField: 'user',
-    options: {
-      match: {
-        startDate: { $lt: CompaniDate().toDate() },
-        $or: [{ endDate: { $exists: false } }, { endDate: { $gt: CompaniDate().toDate() } }],
-      },
-    },
-    justOne: true,
-  }
+  { ref: 'UserCompany', localField: '_id', foreignField: 'user' }
 );
 
 UserSchema.virtual(
