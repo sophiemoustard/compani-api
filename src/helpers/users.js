@@ -139,7 +139,7 @@ exports.getUser = async (userId, credentials) => {
         requestingOwnInfos: UtilsHelper.areObjectIdsEquals(userId, credentials._id),
       },
     })
-    .populate({ path: 'companyLinkRequest', populate: { path: 'company', select: '_id name startDate endDate' } })
+    .populate({ path: 'companyLinkRequest', populate: { path: 'company', select: '_id name' } })
     .populate({ path: 'establishment', select: 'siret' })
     .populate({ path: 'userCompanyList' })
     .setOptions({ credentials })
@@ -333,7 +333,7 @@ exports.createDriveFolder = async (userId, credentials) => {
 
   const userCompany = await UserCompany
     .findOne({ user: userId, company: loggedUserCompany })
-    .populate({ path: 'company', select: 'auxiliariesFolderId startDate endDate' })
+    .populate({ path: 'company', select: 'auxiliariesFolderId' })
     .populate({ path: 'user', select: 'identity' })
     .lean();
   if (!get(userCompany, 'company.auxiliariesFolderId')) throw Boom.badData();
