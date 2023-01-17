@@ -101,7 +101,7 @@ exports.getLearnerList = async (query, credentials) => {
 
   const learnerList = await User
     .find(userQuery, 'identity.firstname identity.lastname picture local.email', { autopopulate: false })
-    .populate({ path: 'company', populate: { path: 'company' }, select: 'name' })
+    .populate({ path: 'company', populate: { path: 'company', select: 'name' } })
     .populate({ path: 'blendedCoursesCount' })
     .populate({ path: 'eLearningCoursesCount' })
     .populate({ path: 'activityHistories', select: 'updatedAt', options: { sort: { updatedAt: -1 } } })
@@ -152,7 +152,7 @@ exports.getUser = async (userId, credentials) => {
 
 exports.userExists = async (email, credentials) => {
   const targetUser = await User.findOne({ 'local.email': email }, { role: 1 })
-    .populate({ path: 'company', select: 'company' })
+    .populate({ path: 'company' })
     .populate({ path: 'userCompanyList', sort: { startDate: 1 } })
     .setOptions({ credentials })
     .lean();

@@ -53,7 +53,7 @@ exports.findBillsAndHelpersByCustomer = async (date) => {
       select: 'identity',
       populate: {
         path: 'helpers',
-        populate: { path: 'user', select: 'local', populate: { path: 'company', select: 'company' }, options },
+        populate: { path: 'user', select: 'local', populate: { path: 'company' }, options },
         options,
       },
       options,

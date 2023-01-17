@@ -290,16 +290,25 @@ function populateSectors(docs, next) {
   return next();
 }
 
+const getCurrentUserCompany = (userCompanies = []) => userCompanies
+  .find(uc => CompaniDate().isAfter(uc.startDate) && (!uc.endDate || CompaniDate().isBefore(uc.endDate)));
+
 function populateCompany(doc, next) {
+  if (!doc) next();
+
+  const currentUserCompany = getCurrentUserCompany(get(doc, 'company'));
   // eslint-disable-next-line no-param-reassign
-  if (get(doc, 'company.company')) doc.company = doc.company.company;
+  doc.company = currentUserCompany ? currentUserCompany.company : null;
 
   return next();
 }
 
 function populateCompanies(docs, next) {
   for (const doc of docs) {
-    if (doc && doc.company) doc.company = doc.company.company;
+    if (doc && doc.company) {
+      const currentUserCompany = getCurrentUserCompany(doc.company);
+      doc.company = currentUserCompany ? currentUserCompany.company : null;
+    }
   }
 
   return next();
@@ -391,21 +400,7 @@ UserSchema.virtual(
 
 UserSchema.virtual('activityHistories', { ref: 'ActivityHistory', localField: '_id', foreignField: 'user' });
 
-UserSchema.virtual(
-  'company',
-  {
-    ref: 'UserCompany',
-    localField: '_id',
-    foreignField: 'user',
-    options: {
-      match: {
-        startDate: { $lt: CompaniDate().toDate() },
-        $or: [{ endDate: { $exists: false } }, { endDate: { $gt: CompaniDate().toDate() } }],
-      },
-    },
-    justOne: true,
-  }
-);
+UserSchema.virtual('company', { ref: 'UserCompany', localField: '_id', foreignField: 'user' });
 
 UserSchema.virtual(
   'userCompanyList',

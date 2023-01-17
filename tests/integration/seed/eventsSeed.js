@@ -15,7 +15,7 @@ const CreditNote = require('../../../src/models/CreditNote');
 const CustomerAbsence = require('../../../src/models/CustomerAbsence');
 const DistanceMatrix = require('../../../src/models/DistanceMatrix');
 const Helper = require('../../../src/models/Helper');
-const { authCompany, otherCompany, companyWithoutSubscription } = require('../../seed/authCompaniesSeed');
+const { authCompany, otherCompany } = require('../../seed/authCompaniesSeed');
 const { deleteNonAuthenticationSeeds } = require('../helpers/authentication');
 const app = require('../../../server');
 const {
@@ -389,21 +389,18 @@ const helpersCustomer = {
 };
 
 const userCompanies = [
-  // old inactive user company
+  { _id: new ObjectId(), user: auxiliariesIds[0], company: authCompany._id, startDate: '2019-01-01T23:00:00.000Z' },
+  { _id: new ObjectId(), user: auxiliariesIds[1], company: authCompany._id, startDate: '2019-01-01T23:00:00.000Z' },
+  { _id: new ObjectId(), user: auxiliariesIds[2], company: authCompany._id, startDate: '2019-01-01T23:00:00.000Z' },
+  { _id: new ObjectId(), user: auxiliariesIds[3], company: authCompany._id, startDate: '2019-01-01T23:00:00.000Z' },
+  { _id: new ObjectId(), user: auxiliariesIds[4], company: authCompany._id, startDate: '2019-01-01T23:00:00.000Z' },
   {
     _id: new ObjectId(),
-    user: auxiliariesIds[0],
-    company: companyWithoutSubscription._id,
-    startDate: '2022-01-01T23:00:00.000Z',
-    endDate: '2022-11-30T23:00:00.000Z',
+    user: auxiliaryFromOtherCompany._id,
+    company: otherCompany._id,
+    startDate: '2019-01-01T23:00:00.000Z',
   },
-  { _id: new ObjectId(), user: auxiliariesIds[0], company: authCompany._id },
-  { _id: new ObjectId(), user: auxiliariesIds[1], company: authCompany._id },
-  { _id: new ObjectId(), user: auxiliariesIds[2], company: authCompany._id },
-  { _id: new ObjectId(), user: auxiliariesIds[3], company: authCompany._id },
-  { _id: new ObjectId(), user: auxiliariesIds[4], company: authCompany._id },
-  { _id: new ObjectId(), user: auxiliaryFromOtherCompany._id, company: otherCompany._id },
-  { _id: new ObjectId(), user: helpersCustomer._id, company: authCompany._id },
+  { _id: new ObjectId(), user: helpersCustomer._id, company: authCompany._id, startDate: '2019-01-01T23:00:00.000Z' },
 ];
 
 const internalHour = { _id: new ObjectId(), name: 'test', company: authCompany._id };
