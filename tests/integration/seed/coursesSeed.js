@@ -599,6 +599,13 @@ const slots = [
     endDate: '2020-03-05T10:00:00.000Z',
     course: coursesList[3]._id,
     step: stepList[0]._id,
+    address: {
+      fullAddress: '37 rue de ponthieu 75008 Paris',
+      zipCode: '75008',
+      city: 'Paris',
+      street: '37 rue de Ponthieu',
+      location: { type: 'Point', coordinates: [2.377133, 48.801389] },
+    },
   },
   { // 8
     _id: new ObjectId(),

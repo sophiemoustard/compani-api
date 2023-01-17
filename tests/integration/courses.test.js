@@ -376,6 +376,13 @@ describe('COURSES ROUTES - GET /courses', () => {
           startDate: CompaniDate('2020-03-05T08:00:00.000Z').toDate(),
           endDate: CompaniDate('2020-03-05T10:00:00.000Z').toDate(),
           course: coursesList[3]._id,
+          address: {
+            fullAddress: '37 rue de ponthieu 75008 Paris',
+            zipCode: '75008',
+            city: 'Paris',
+            street: '37 rue de Ponthieu',
+            location: { type: 'Point', coordinates: [2.377133, 48.801389] },
+          },
           step: { _id: expect.any(ObjectId), type: ON_SITE },
         }],
         trainees: expect.arrayContaining([expect.objectContaining({
