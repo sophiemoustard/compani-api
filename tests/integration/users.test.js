@@ -708,9 +708,9 @@ describe('USERS ROUTES - GET /users/learners', () => {
   let authToken;
   beforeEach(populateDB);
 
-  describe('TRAINER', () => {
+  describe('TRAINING_ORGANISATION_MANAGER', () => {
     beforeEach(async () => {
-      authToken = await getToken('trainer');
+      authToken = await getToken('training_organisation_manager');
       UtilsMock.mockCurrentDate('2022-12-20T15:00:00.000Z');
     });
     afterEach(() => {
@@ -727,6 +727,29 @@ describe('USERS ROUTES - GET /users/learners', () => {
       expect(res.statusCode).toBe(200);
       const countUserInDB = userList.length + usersSeedList.length + usersFromOtherCompanyList.length;
       expect(res.result.data.users.length).toEqual(countUserInDB);
+    });
+
+    it('should return future or current learners from a specific company (potential trainees list)', async () => {
+      const res = await app.inject({
+        method: 'GET',
+        url: `/users/learners?companies=${authCompany._id}&endDate=2022-12-20T15:00:00.000Z`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(res.statusCode).toBe(200);
+      expect(res.result.data.users.length).toBe(17);
+    });
+
+    it('should return learners at a certain date from a specific company (attendances)', async () => {
+      const res = await app.inject({
+        method: 'GET',
+        url: `/users/learners?companies=${authCompany._id}`
+          + '&startDate=2021-12-19T23:00:00.000Z&endDate=2021-12-20T22:59:59.999Z',
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(res.statusCode).toBe(200);
+      expect(res.result.data.users.length).toBe(6);
     });
 
     it('should return active learners from a specific company', async () => {
@@ -751,6 +774,27 @@ describe('USERS ROUTES - GET /users/learners', () => {
       expect(res.statusCode).toBe(200);
       expect(res.result.data.users.every(u => UtilsHelper.areObjectIdsEquals(u.company._id, authCompany._id) ||
         UtilsHelper.areObjectIdsEquals(u.company._id, otherCompany._id))).toBeTruthy();
+    });
+
+    it('should return 400 if startDate but no endDate', async () => {
+      const res = await app.inject({
+        method: 'GET',
+        url: `/users/learners?companies=${authCompany._id}&startDate=2021-12-19T23:00:00.000Z`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(res.statusCode).toBe(400);
+    });
+
+    it('should return 400 if startDate greater than endDate', async () => {
+      const res = await app.inject({
+        method: 'GET',
+        url: `/users/learners?companies=${authCompany._id}`
+        + '&startDate=2021-12-20T22:59:59.999Z&endDate=2021-12-19T23:00:00.000Z',
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(res.statusCode).toBe(400);
     });
   });
 

@@ -43,7 +43,7 @@ const {
   expoTokenValidation,
   objectIdOrArray,
 } = require('./validations/utils');
-const { formDataPayload } = require('./validations/utils');
+const { formDataPayload, dateToISOString } = require('./validations/utils');
 
 const driveUploadKeys = [
   'idCardRecto',
@@ -180,7 +180,18 @@ exports.plugin = {
       options: {
         auth: { scope: ['users:list'] },
         validate: {
-          query: Joi.object({ companies: objectIdOrArray }),
+          query: Joi.object({
+            companies: objectIdOrArray,
+            startDate: Joi.when(
+              'endDate',
+              {
+                is: Joi.exist(),
+                then: dateToISOString && Joi.date().less(Joi.ref('endDate')),
+                otherwise: Joi.forbidden(),
+              }
+            ),
+            endDate: dateToISOString,
+          }),
         },
         pre: [{ method: authorizeLearnersGet }],
       },

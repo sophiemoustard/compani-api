@@ -191,7 +191,7 @@ const userCompaniesList = [
   { user: userList[3]._id, company: authCompany._id, startDate: '2022-11-30T23:00:00.000Z' },
   { user: userList[6]._id, company: authCompany._id, startDate: '2022-11-30T23:00:00.000Z' },
   { user: userList[7]._id, company: authCompany._id, startDate: '2022-11-30T23:00:00.000Z' },
-  { user: userList[10]._id, company: companyWithoutSubscription._id, startDate: '2022-11-30T23:00:00.000Z' },
+  { user: userList[10]._id, company: authCompany._id, startDate: '2022-12-30T23:00:00.000Z' },
   { user: userList[12]._id, company: authCompany._id, startDate: '2022-11-30T23:00:00.000Z' },
 ];
 

@@ -319,7 +319,7 @@ describe('getLearnerList', () => {
   });
 
   it('should get learners from company', async () => {
-    const query = { companies: [new ObjectId()] };
+    const query = { companies: new ObjectId() };
     const credentials = { role: { client: new ObjectId() } };
     const roleId1 = new ObjectId();
     const roleId2 = new ObjectId();
@@ -358,7 +358,152 @@ describe('getLearnerList', () => {
             startDate: { $lte: CompaniDate('2022-12-21T16:00:00.000Z').toISO() },
             $or: [
               { endDate: { $exists: false } },
-              { endDate: { $gte: CompaniDate('2022-12-21T16:00:00.000Z').toISO() } },
+              { endDate: { $gt: CompaniDate('2022-12-21T16:00:00.000Z').toISO() } },
+            ],
+          },
+          { user: 1 },
+        ],
+      }, { query: 'lean' }]
+    );
+    SinonMongoose.calledOnceWithExactly(
+      findUser,
+      [
+        {
+          query: 'find',
+          args: [
+            { _id: { $in: [users[0]._id, users[1]._id] }, 'role.client': { $not: { $in: [roleId1, roleId2] } } },
+            'identity.firstname identity.lastname picture local.email',
+            { autopopulate: false },
+          ],
+        },
+        { query: 'populate', args: [{ path: 'company', populate: { path: 'company', select: 'name' } }] },
+        { query: 'populate', args: [{ path: 'blendedCoursesCount' }] },
+        { query: 'populate', args: [{ path: 'eLearningCoursesCount' }] },
+        {
+          query: 'populate',
+          args: [{ path: 'activityHistories', select: 'updatedAt', options: { sort: { updatedAt: -1 } } }],
+        },
+        { query: 'setOptions', args: [{ isVendorUser: false }] },
+        { query: 'lean' },
+      ]
+    );
+  });
+
+  it('should get current or future learners from company', async () => {
+    const query = { companies: new ObjectId(), endDate: '2022-12-21T16:00:00.000Z' };
+    const credentials = { role: { client: new ObjectId() } };
+    const roleId1 = new ObjectId();
+    const roleId2 = new ObjectId();
+    const rolesToExclude = [{ _id: roleId1 }, { _id: roleId2 }];
+    const users = [
+      { _id: new ObjectId(), activityHistories: [{ _id: new ObjectId() }] },
+      { _id: new ObjectId(), activityHistories: [{ _id: new ObjectId() }] },
+    ];
+    const usersCompany = [
+      { user: users[0]._id, startDate: '2022-12-20T15:30:00.000Z' },
+      { user: users[1]._id, startDate: '2022-12-19T15:30:00.000Z' },
+    ];
+    const usersWithVirtuals = [
+      { _id: users[0]._id, activityHistoryCount: 1, lastActivityHistory: users[0].activityHistories[0] },
+      { _id: users[1]._id, activityHistoryCount: 1, lastActivityHistory: users[1].activityHistories[0] },
+    ];
+
+    findUserCompany.returns(SinonMongoose.stubChainedQueries(usersCompany, ['lean']));
+    findRole.returns(SinonMongoose.stubChainedQueries(rolesToExclude, ['lean']));
+    findUser.returns(SinonMongoose.stubChainedQueries(users, ['populate', 'setOptions', 'lean']));
+
+    const result = await UsersHelper.getLearnerList(query, credentials);
+
+    expect(result).toEqual(usersWithVirtuals);
+    SinonMongoose.calledOnceWithExactly(
+      findRole,
+      [{ query: 'find', args: [{ name: { $in: [HELPER, AUXILIARY_WITHOUT_COMPANY] } }] }, { query: 'lean' }]
+    );
+    SinonMongoose.calledOnceWithExactly(
+      findUserCompany,
+      [{
+        query: 'find',
+        args: [
+          {
+            company: { $in: query.companies },
+            $or: [
+              { endDate: { $exists: false } },
+              { endDate: { $gt: CompaniDate('2022-12-21T16:00:00.000Z').toISO() } },
+            ],
+          },
+          { user: 1 },
+        ],
+      }, { query: 'lean' }]
+    );
+    SinonMongoose.calledOnceWithExactly(
+      findUser,
+      [
+        {
+          query: 'find',
+          args: [
+            { _id: { $in: [users[0]._id, users[1]._id] }, 'role.client': { $not: { $in: [roleId1, roleId2] } } },
+            'identity.firstname identity.lastname picture local.email',
+            { autopopulate: false },
+          ],
+        },
+        { query: 'populate', args: [{ path: 'company', populate: { path: 'company', select: 'name' } }] },
+        { query: 'populate', args: [{ path: 'blendedCoursesCount' }] },
+        { query: 'populate', args: [{ path: 'eLearningCoursesCount' }] },
+        {
+          query: 'populate',
+          args: [{ path: 'activityHistories', select: 'updatedAt', options: { sort: { updatedAt: -1 } } }],
+        },
+        { query: 'setOptions', args: [{ isVendorUser: false }] },
+        { query: 'lean' },
+      ]
+    );
+  });
+
+  it('should get learners at a certain date', async () => {
+    const query = {
+      companies: new ObjectId(),
+      startDate: '2022-12-19T23:00:00.000Z',
+      endDate: '2022-12-20T22:59:59.999Z',
+    };
+    const credentials = { role: { client: new ObjectId() } };
+    const roleId1 = new ObjectId();
+    const roleId2 = new ObjectId();
+    const rolesToExclude = [{ _id: roleId1 }, { _id: roleId2 }];
+    const users = [
+      { _id: new ObjectId(), activityHistories: [{ _id: new ObjectId() }] },
+      { _id: new ObjectId(), activityHistories: [{ _id: new ObjectId() }] },
+    ];
+    const usersCompany = [
+      { user: users[0]._id, startDate: '2020-12-20T15:30:00.000Z' },
+      { user: users[1]._id, startDate: '2020-12-19T15:30:00.000Z' },
+    ];
+    const usersWithVirtuals = [
+      { _id: users[0]._id, activityHistoryCount: 1, lastActivityHistory: users[0].activityHistories[0] },
+      { _id: users[1]._id, activityHistoryCount: 1, lastActivityHistory: users[1].activityHistories[0] },
+    ];
+
+    findUserCompany.returns(SinonMongoose.stubChainedQueries(usersCompany, ['lean']));
+    findRole.returns(SinonMongoose.stubChainedQueries(rolesToExclude, ['lean']));
+    findUser.returns(SinonMongoose.stubChainedQueries(users, ['populate', 'setOptions', 'lean']));
+
+    const result = await UsersHelper.getLearnerList(query, credentials);
+
+    expect(result).toEqual(usersWithVirtuals);
+    SinonMongoose.calledOnceWithExactly(
+      findRole,
+      [{ query: 'find', args: [{ name: { $in: [HELPER, AUXILIARY_WITHOUT_COMPANY] } }] }, { query: 'lean' }]
+    );
+    SinonMongoose.calledOnceWithExactly(
+      findUserCompany,
+      [{
+        query: 'find',
+        args: [
+          {
+            company: { $in: query.companies },
+            startDate: { $lte: CompaniDate('2022-12-20T22:59:59.999Z').toISO() },
+            $or: [
+              { endDate: { $gt: CompaniDate('2022-12-19T23:00:00.000Z').toISO() } },
+              { endDate: { $exists: false } },
             ],
           },
           { user: 1 },
@@ -689,7 +834,7 @@ describe('userExists', () => {
       [
         { query: 'findOne', args: [{ 'local.email': email }, { role: 1 }] },
         { query: 'populate', args: [{ path: 'company' }] },
-        { query: 'populate', args: [{ path: 'userCompanyList', sort: { startDate: 1 } }] },
+        { query: 'populate', args: [{ path: 'userCompanyList', options: { sort: { startDate: 1 } } }] },
         { query: 'setOptions', args: [{ credentials: vendorCredentials }] },
         { query: 'lean' },
       ]
@@ -709,7 +854,7 @@ describe('userExists', () => {
       [
         { query: 'findOne', args: [{ 'local.email': nonExistantEmail }, { role: 1 }] },
         { query: 'populate', args: [{ path: 'company' }] },
-        { query: 'populate', args: [{ path: 'userCompanyList', sort: { startDate: 1 } }] },
+        { query: 'populate', args: [{ path: 'userCompanyList', options: { sort: { startDate: 1 } } }] },
         { query: 'setOptions', args: [{ credentials: vendorCredentials }] },
         { query: 'lean' },
       ]
@@ -728,7 +873,7 @@ describe('userExists', () => {
       [
         { query: 'findOne', args: [{ 'local.email': email }, { role: 1 }] },
         { query: 'populate', args: [{ path: 'company' }] },
-        { query: 'populate', args: [{ path: 'userCompanyList', sort: { startDate: 1 } }] },
+        { query: 'populate', args: [{ path: 'userCompanyList', options: { sort: { startDate: 1 } } }] },
         { query: 'setOptions', args: [{ credentials: clientCredentials }] },
         { query: 'lean' },
       ]
@@ -756,7 +901,7 @@ describe('userExists', () => {
       [
         { query: 'findOne', args: [{ 'local.email': email }, { role: 1 }] },
         { query: 'populate', args: [{ path: 'company' }] },
-        { query: 'populate', args: [{ path: 'userCompanyList', sort: { startDate: 1 } }] },
+        { query: 'populate', args: [{ path: 'userCompanyList', options: { sort: { startDate: 1 } } }] },
         { query: 'setOptions', args: [{ credentials: clientCredentials }] },
         { query: 'lean' },
       ]
@@ -782,7 +927,7 @@ describe('userExists', () => {
       [
         { query: 'findOne', args: [{ 'local.email': email }, { role: 1 }] },
         { query: 'populate', args: [{ path: 'company' }] },
-        { query: 'populate', args: [{ path: 'userCompanyList', sort: { startDate: 1 } }] },
+        { query: 'populate', args: [{ path: 'userCompanyList', options: { sort: { startDate: 1 } } }] },
         { query: 'setOptions', args: [{ credentials: clientCredentials }] },
         { query: 'lean' },
       ]
@@ -802,7 +947,7 @@ describe('userExists', () => {
       [
         { query: 'findOne', args: [{ 'local.email': email }, { role: 1 }] },
         { query: 'populate', args: [{ path: 'company' }] },
-        { query: 'populate', args: [{ path: 'userCompanyList', sort: { startDate: 1 } }] },
+        { query: 'populate', args: [{ path: 'userCompanyList', options: { sort: { startDate: 1 } } }] },
         { query: 'setOptions', args: [{ credentials: clientCredentials }] },
         { query: 'lean' },
       ]
@@ -822,7 +967,7 @@ describe('userExists', () => {
       [
         { query: 'findOne', args: [{ 'local.email': email }, { role: 1 }] },
         { query: 'populate', args: [{ path: 'company' }] },
-        { query: 'populate', args: [{ path: 'userCompanyList', sort: { startDate: 1 } }] },
+        { query: 'populate', args: [{ path: 'userCompanyList', options: { sort: { startDate: 1 } } }] },
         { query: 'setOptions', args: [{ credentials: null }] },
         { query: 'lean' },
       ]
