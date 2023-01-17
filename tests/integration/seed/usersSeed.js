@@ -127,12 +127,13 @@ const traineeWhoLeftOtherCompany = {
   origin: WEBAPP,
 };
 
-const usersFromOtherCompanyList = [
+const currentUsersFromOtherCompanyList = [
   helperFromOtherCompany,
   coachFromOtherCompany,
   auxiliaryFromOtherCompany,
-  traineeWhoLeftOtherCompany,
 ];
+
+const usersFromOtherCompanyList = [...currentUsersFromOtherCompanyList, traineeWhoLeftOtherCompany];
 
 const contractId = new ObjectId();
 const contractNotStartedId = new ObjectId();
@@ -467,6 +468,7 @@ const populateDB = async () => {
 module.exports = {
   usersSeedList,
   usersFromOtherCompanyList,
+  currentUsersFromOtherCompanyList,
   populateDB,
   isInList,
   customer,
