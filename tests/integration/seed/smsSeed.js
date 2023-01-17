@@ -3,7 +3,7 @@ const { v4: uuidv4 } = require('uuid');
 const { WEBAPP } = require('../../../src/helpers/constants');
 const User = require('../../../src/models/User');
 const UserCompany = require('../../../src/models/UserCompany');
-const { otherCompany, authCompany } = require('../../seed/authCompaniesSeed');
+const { otherCompany, authCompany, companyWithoutSubscription } = require('../../seed/authCompaniesSeed');
 const { clientAdminRoleId } = require('../../seed/authRolesSeed');
 const { deleteNonAuthenticationSeeds } = require('../helpers/authentication');
 
@@ -38,6 +38,14 @@ const smsUserFromOtherCompany = {
 };
 
 const userCompanies = [
+  // old inactive user company
+  {
+    _id: new ObjectId(),
+    user: smsUser._id,
+    company: companyWithoutSubscription._id,
+    startDate: '2022-01-01T23:00:00.000Z',
+    endDate: '2022-11-30T23:00:00.000Z',
+  },
   { _id: new ObjectId(), user: smsUser._id, company: authCompany._id },
   { _id: new ObjectId(), user: smsUserFromOtherCompany._id, company: otherCompany._id },
 ];

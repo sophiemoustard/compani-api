@@ -1,5 +1,5 @@
 const { ObjectId } = require('mongodb');
-const { authCompany } = require('../../seed/authCompaniesSeed');
+const { authCompany, companyWithoutSubscription } = require('../../seed/authCompaniesSeed');
 const { deleteNonAuthenticationSeeds } = require('../helpers/authentication');
 const Bill = require('../../../src/models/Bill');
 const Customer = require('../../../src/models/Customer');
@@ -42,8 +42,17 @@ const user = {
   origin: 'webapp',
 };
 
-const userCompany = { _id: new ObjectId(), user: userId, company: authCompany._id };
-
+const userCompanies = [
+  // old inactive user company
+  {
+    _id: new ObjectId(),
+    user: userId,
+    company: companyWithoutSubscription._id,
+    startDate: '2022-01-01T23:00:00.000Z',
+    endDate: '2022-11-30T23:00:00.000Z',
+  },
+  { _id: new ObjectId(), user: userId, company: authCompany._id },
+];
 const helper = { _id: new ObjectId(), customer: customerId, user: userId, company: authCompany._id, referent: false };
 
 const populateDB = async () => {
@@ -53,7 +62,7 @@ const populateDB = async () => {
   await Customer.create(customer);
   await Helper.create(helper);
   await User.create(user);
-  await UserCompany.create(userCompany);
+  await UserCompany.create(userCompanies);
 };
 
 module.exports = { populateDB };

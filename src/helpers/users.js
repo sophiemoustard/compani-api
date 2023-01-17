@@ -22,6 +22,7 @@ const GDriveStorageHelper = require('./gDriveStorage');
 const UtilsHelper = require('./utils');
 const HelpersHelper = require('./helpers');
 const UserCompaniesHelper = require('./userCompanies');
+const { CompaniDate } = require('./dates/companiDates');
 
 const { language } = translate;
 
@@ -83,7 +84,14 @@ exports.getLearnerList = async (query, credentials) => {
   let userQuery = {};
   if (query.companies) {
     const rolesToExclude = await Role.find({ name: { $in: [HELPER, AUXILIARY_WITHOUT_COMPANY] } }).lean();
-    const usersCompany = await UserCompany.find({ company: { $in: query.companies } }, { user: 1 }).lean();
+    const usersCompany = await UserCompany.find(
+      {
+        company: { $in: query.companies },
+        startDate: { $lte: CompaniDate().toISO() },
+        $or: [{ endDate: { $exists: false } }, { endDate: { $gte: CompaniDate().toISO() } }],
+      },
+      { user: 1 }
+    ).lean();
 
     userQuery = {
       _id: { $in: usersCompany.map(uc => uc.user) },
@@ -93,7 +101,7 @@ exports.getLearnerList = async (query, credentials) => {
 
   const learnerList = await User
     .find(userQuery, 'identity.firstname identity.lastname picture local.email', { autopopulate: false })
-    .populate({ path: 'company', populate: { path: 'company' }, select: 'name' })
+    .populate({ path: 'company', populate: { path: 'company', select: 'name' } })
     .populate({ path: 'blendedCoursesCount' })
     .populate({ path: 'eLearningCoursesCount' })
     .populate({ path: 'activityHistories', select: 'updatedAt', options: { sort: { updatedAt: -1 } } })
@@ -133,6 +141,8 @@ exports.getUser = async (userId, credentials) => {
     })
     .populate({ path: 'companyLinkRequest', populate: { path: 'company', select: '_id name' } })
     .populate({ path: 'establishment', select: 'siret' })
+    .populate({ path: 'userCompanyList' })
+    .setOptions({ credentials })
     .lean({ autopopulate: true, virtuals: true });
 
   if (!user) throw Boom.notFound(translate[language].userNotFound);
@@ -142,17 +152,24 @@ exports.getUser = async (userId, credentials) => {
 
 exports.userExists = async (email, credentials) => {
   const targetUser = await User.findOne({ 'local.email': email }, { role: 1 })
-    .populate({ path: 'company', select: 'company' })
+    .populate({ path: 'company' })
+    .populate({ path: 'userCompanyList', sort: { startDate: 1 } })
+    .setOptions({ credentials })
     .lean();
   if (!targetUser) return { exists: false, user: {} };
   if (!credentials) return { exists: true, user: {} };
 
-  const loggedUserhasVendorRole = has(credentials, 'role.vendor');
-  const sameCompany = !!targetUser.company &&
-    UtilsHelper.areObjectIdsEquals(get(credentials, 'company._id'), targetUser.company);
+  const loggedUserHasVendorRole = has(credentials, 'role.vendor');
+  const sameCompany = UserCompaniesHelper
+    .userIsOrWillBeInCompany(targetUser.userCompanyList, get(credentials, 'company._id'));
+  const formattedUser = {
+    ...pick(targetUser, ['role', '_id', 'company']),
+    userCompanyList: targetUser.userCompanyList.map(uc => (pick(uc, ['company', 'endDate']))),
+  };
 
-  return loggedUserhasVendorRole || sameCompany || !targetUser.company
-    ? { exists: !!targetUser, user: pick(targetUser, ['role', '_id', 'company']) }
+  return loggedUserHasVendorRole || sameCompany ||
+    (!UserCompaniesHelper.getCurrentOrFutureCompanies(targetUser.userCompanyList).length && !targetUser.company)
+    ? { exists: !!targetUser, user: formattedUser }
     : { exists: !!targetUser, user: {} };
 };
 
@@ -311,9 +328,11 @@ exports.deletePicture = async (userId, publicId) => {
   await GCloudStorageHelper.deleteUserMedia(publicId);
 };
 
-exports.createDriveFolder = async (userId) => {
+exports.createDriveFolder = async (userId, credentials) => {
+  const loggedUserCompany = get(credentials, 'company._id');
+
   const userCompany = await UserCompany
-    .findOne({ user: userId })
+    .findOne({ user: userId, company: loggedUserCompany })
     .populate({ path: 'company', select: 'auxiliariesFolderId' })
     .populate({ path: 'user', select: 'identity' })
     .lean();

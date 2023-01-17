@@ -393,9 +393,17 @@ module.exports = {
     billingItemHasBillLinked: 'Billing item is linked to a bill.',
     /* Télétransmission */
     deliveryCreated: 'Delivery file created',
+    /* userCompanies */
+    userCompanyNotFound: 'User company doesn\'t exist.',
+    userCompanyUpdated: 'User company updated.',
+    userDetachmentBeforeLastSubscription: `You can't detach the user before {DATE}, the user is subscribed to a course
+      with this company.`,
     /* VendorCompanies */
     vendorCompanyFound: 'Vendor company found.',
     vendorCompanyUpdated: 'Vendor company updated.',
+    /* VendorCompanies */
+    userAlreadyLinkedToCompany: 'User already linked to company.',
+    userAlreadyLinkedToCompanyUntil: 'User already linked to company until {DATE}.',
   },
   'fr-FR': {
     /* Global errors */
@@ -790,8 +798,15 @@ module.exports = {
     billingItemHasBillLinked: 'Impossible: l\'article de facturation est relié à une facture.',
     /* Télétransmission */
     deliveryCreated: 'Fichier de delivery créé',
+    /* UserCompanies */
+    userCompanyNotFound: 'Impossible de mettre à jour les informations liées à la structure de cet(te) apprenant(e).',
+    userCompanyUpdated: 'Informations sur la structure de l\'apprenant(e) mises à jour.',
+    userDetachmentBeforeLastSubscription: 'Vous ne pouvez pas détacher cette personne avant le {DATE}.',
     /* VendorCompanies */
     vendorCompanyFound: 'Structure vendeuse trouvée.',
     vendorCompanyUpdated: 'Structure vendeuse mise à jour.',
+    /* VendorCompanies */
+    userAlreadyLinkedToCompany: 'Ce compte est déjà rattaché à une structure.',
+    userAlreadyLinkedToCompanyUntil: 'Ce compte est déjà rattaché à une structure jusqu\'au {DATE}.',
   },
 };

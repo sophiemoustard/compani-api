@@ -50,7 +50,7 @@ describe('PAY DOCUMENTS - POST /paydocuments', () => {
         file: fs.createReadStream(path.join(__dirname, 'assets/test_esign.pdf')),
         nature: PAYSLIP,
         date: new Date('2019-01-23').toISOString(),
-        user: payDocumentUserCompanies[0].user.toHexString(),
+        user: payDocumentUserCompanies[1].user.toHexString(),
         mimeType: 'application/pdf',
       };
       const form = generateFormData(docPayload);

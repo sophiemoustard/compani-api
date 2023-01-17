@@ -3,6 +3,9 @@ const get = require('lodash/get');
 const has = require('lodash/has');
 const omit = require('lodash/omit');
 const groupBy = require('lodash/groupBy');
+const keyBy = require('lodash/keyBy');
+const compact = require('lodash/compact');
+const mapValues = require('lodash/mapValues');
 const fs = require('fs');
 const os = require('os');
 const Boom = require('@hapi/boom');
@@ -26,6 +29,7 @@ const {
   INTER_B2B,
   COURSE_SMS,
   STRICTLY_E_LEARNING,
+  BLENDED,
   DRAFT,
   REJECTED,
   ON_SITE,
@@ -145,10 +149,21 @@ const listForOperations = async (query, origin) => {
 
 const listForPedagogy = async (query, credentials) => {
   const traineeId = query.trainee || get(credentials, '_id');
-  const trainee = await User.findOne({ _id: traineeId }, { company: 1 }).populate({ path: 'company' }).lean();
+  const trainee = await User
+    .findOne({ _id: traineeId })
+    .populate({ path: 'userCompanyList' })
+    .setOptions({ credentials })
+    .lean();
+  const traineeCompanies = query.company ? [query.company] : compact(trainee.userCompanyList.map(uc => uc.company));
 
   const courses = await Course.find(
-    { trainees: trainee._id, $or: [{ accessRules: [] }, { accessRules: trainee.company }] },
+    {
+      trainees: trainee._id,
+      $or: [
+        { format: STRICTLY_E_LEARNING, $or: [{ accessRules: [] }, { accessRules: { $in: traineeCompanies } }] },
+        { format: BLENDED, companies: { $in: traineeCompanies } },
+      ],
+    },
     { format: 1 }
   )
     .populate({
@@ -177,7 +192,7 @@ const listForPedagogy = async (query, credentials) => {
         { path: 'step', select: 'type' },
         {
           path: 'attendances',
-          match: { trainee: trainee._id, company: trainee.company },
+          match: { trainee: trainee._id, company: { $in: traineeCompanies } },
           options: {
             isVendorUser: [TRAINING_ORGANISATION_MANAGER, VENDOR_ADMIN].includes(get(credentials, 'role.vendor.name')),
           },
@@ -257,7 +272,7 @@ const getCourseForOperations = async (courseId, credentials, origin) => {
       {
         path: 'trainees',
         select: 'identity.firstname identity.lastname local.email contact picture.link firstMobileConnection',
-        populate: { path: 'company', populate: { path: 'company', select: 'name' } },
+        populate: { path: 'company' },
       },
       {
         path: 'companyRepresentative',
@@ -302,17 +317,31 @@ const getCourseForOperations = async (courseId, credentials, origin) => {
     ])
     .lean();
 
+  let blendedCourseTrainees;
+  if (fetchedCourse.format === BLENDED) {
+    const traineesCompanyAtCourseRegistration = await CourseHistoriesHelper
+      .getTraineesCompanyAtCourseRegistration(fetchedCourse.trainees.map(t => t._id), courseId);
+
+    const traineesCompany = mapValues(keyBy(traineesCompanyAtCourseRegistration, 'trainee'), 'company');
+    blendedCourseTrainees = fetchedCourse.trainees
+      .map(trainee => ({ ...trainee, company: traineesCompany[trainee._id] }));
+  }
+
   // A coach/client_admin is not supposed to read infos on trainees from other companies
   // espacially for INTER_B2B courses.
   if (get(credentials, 'role.vendor')) {
-    return { ...fetchedCourse, totalTheoreticalDuration: exports.getTotalTheoreticalDuration(fetchedCourse) };
+    return {
+      ...fetchedCourse,
+      totalTheoreticalDuration: exports.getTotalTheoreticalDuration(fetchedCourse),
+      ...(blendedCourseTrainees && { trainees: blendedCourseTrainees }),
+    };
   }
 
   return {
     ...fetchedCourse,
     totalTheoreticalDuration: exports.getTotalTheoreticalDuration(fetchedCourse),
-    trainees: fetchedCourse.trainees
-      .filter(t => UtilsHelper.areObjectIdsEquals(get(t, 'company._id'), get(credentials, 'company._id'))),
+    trainees: (blendedCourseTrainees || fetchedCourse.trainees)
+      .filter(t => UtilsHelper.areObjectIdsEquals(get(t, 'company'), get(credentials, 'company._id'))),
   };
 };
 
@@ -577,14 +606,17 @@ exports.getSMSHistory = async courseId => CourseSmsHistory.find({ course: course
   .populate({ path: 'missingPhones', select: 'identity.firstname identity.lastname' })
   .lean();
 
-exports.addCourseTrainee = async (courseId, payload, credentials) => {
+exports.addTrainee = async (courseId, payload, credentials) => {
   await Course.updateOne({ _id: courseId }, { $addToSet: { trainees: payload.trainee } });
 
-  const trainee = await User.findOne({ _id: payload.trainee }, { formationExpoTokenList: 1 }).lean();
+  const trainee = await User
+    .findOne({ _id: payload.trainee }, { formationExpoTokenList: 1 })
+    .populate({ path: 'company' })
+    .lean();
 
   await Promise.all([
     CourseHistoriesHelper.createHistoryOnTraineeAddition(
-      { course: courseId, traineeId: trainee._id },
+      { course: courseId, traineeId: trainee._id, company: trainee.company },
       credentials._id
     ),
     NotificationHelper.sendBlendedCourseRegistrationNotification(trainee, courseId),

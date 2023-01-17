@@ -6,6 +6,7 @@ const bcrypt = require('bcrypt');
 const Joi = require('joi');
 const moment = require('moment');
 const get = require('lodash/get');
+const has = require('lodash/has');
 const { PHONE_VALIDATION } = require('./utils');
 const addressSchemaDefinition = require('./schemaDefinitions/address');
 const { identitySchemaDefinition } = require('./schemaDefinitions/identity');
@@ -30,6 +31,8 @@ const {
   NONE,
 } = require('../helpers/constants');
 const { formatQuery, queryMiddlewareList } = require('./preHooks/validate');
+const UtilsHelper = require('../helpers/utils');
+const { CompaniDate } = require('../helpers/dates/companiDates');
 
 const SALT_WORK_FACTOR = 10;
 const TOKEN_EXPIRE_DURATION = 'P1D';
@@ -287,16 +290,25 @@ function populateSectors(docs, next) {
   return next();
 }
 
+const getCurrentUserCompany = (userCompanies = []) => userCompanies
+  .find(uc => CompaniDate().isAfter(uc.startDate) && (!uc.endDate || CompaniDate().isBefore(uc.endDate)));
+
 function populateCompany(doc, next) {
+  if (!doc) next();
+
+  const currentUserCompany = getCurrentUserCompany(get(doc, 'company'));
   // eslint-disable-next-line no-param-reassign
-  if (get(doc, 'company.company')) doc.company = doc.company.company;
+  doc.company = currentUserCompany ? currentUserCompany.company : null;
 
   return next();
 }
 
 function populateCompanies(docs, next) {
   for (const doc of docs) {
-    if (doc && doc.company) doc.company = doc.company.company;
+    if (doc && doc.company) {
+      const currentUserCompany = getCurrentUserCompany(doc.company);
+      doc.company = currentUserCompany ? currentUserCompany.company : null;
+    }
   }
 
   return next();
@@ -319,6 +331,32 @@ async function formatPayload(doc, next) {
   doc.overwrite(payload);
 
   return next();
+}
+
+function populateUserCompanyList(doc, next) {
+  if (!get(doc, 'userCompanyList.length')) return next();
+  if (!has(this.getOptions(), 'credentials')) return next(Boom.badRequest());
+
+  const { credentials } = this.getOptions();
+  if (!get(credentials, '_id')) {
+    // eslint-disable-next-line no-param-reassign
+    doc.userCompanyList = [];
+
+    return next();
+  }
+  const requestingOwnInfos = UtilsHelper.areObjectIdsEquals(credentials._id, doc._id);
+  if (has(credentials, 'role.vendor') || requestingOwnInfos) return next();
+
+  const loggedCompanyId = get(credentials, 'company._id');
+  if (loggedCompanyId) {
+    // eslint-disable-next-line no-param-reassign
+    doc.userCompanyList =
+      doc.userCompanyList.filter(userCompany => UtilsHelper.areObjectIdsEquals(loggedCompanyId, userCompany.company));
+
+    return next();
+  }
+
+  return next(Boom.badRequest());
 }
 
 UserSchema.virtual('customers', { ref: 'Helper', localField: '_id', foreignField: 'user', justOne: true });
@@ -362,7 +400,12 @@ UserSchema.virtual(
 
 UserSchema.virtual('activityHistories', { ref: 'ActivityHistory', localField: '_id', foreignField: 'user' });
 
-UserSchema.virtual('company', { ref: 'UserCompany', localField: '_id', foreignField: 'user', justOne: true });
+UserSchema.virtual('company', { ref: 'UserCompany', localField: '_id', foreignField: 'user' });
+
+UserSchema.virtual(
+  'userCompanyList',
+  { ref: 'UserCompany', localField: '_id', foreignField: 'user', sort: { startDate: -1 } }
+);
 
 UserSchema.statics.isActive = isActive;
 
@@ -380,6 +423,7 @@ UserSchema.post('find', populateCompanies);
 UserSchema.post('findOne', populateSector);
 UserSchema.post('findOne', populateCustomers);
 UserSchema.post('findOne', populateCompany);
+UserSchema.post('findOne', populateUserCompanyList);
 UserSchema.post('findOneAndUpdate', populateCompany);
 UserSchema.post('findOneAndUpdate', populateSector);
 UserSchema.post('findOneAndUpdate', populateCustomers);

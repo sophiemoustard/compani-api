@@ -82,7 +82,8 @@ const getUser = (roleName, erp = true) => {
 
   if (!VENDOR_ROLES.includes(roleName)) {
     const company = [authCompany, companyWithoutSubscription].find(c => c.subscriptions.erp === erp);
-    const filteredUserCompanies = userCompaniesList.filter(u => UtilsHelper.areObjectIdsEquals(u.company, company._id));
+    const filteredUserCompanies = userCompaniesList
+      .filter(u => UtilsHelper.areObjectIdsEquals(u.company, company._id) && !u.endDate);
 
     return userList.find(u => UtilsHelper.areObjectIdsEquals(u.role[role.interface], role._id) &&
       filteredUserCompanies.some(uc => UtilsHelper.areObjectIdsEquals(uc.user, u._id)));
