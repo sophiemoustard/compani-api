@@ -23,6 +23,7 @@ const {
   ESTIMATED_START_DATE_EDITION,
   COMPANY_ADDITION,
   COMPANY_DELETION,
+  ON_SITE,
 } = require('../../src/helpers/constants');
 const {
   populateDB,
@@ -371,10 +372,11 @@ describe('COURSES ROUTES - GET /courses', () => {
         }),
         trainer: pick(trainerAndCoach, ['_id', 'identity.firstname', 'identity.lastname']),
         slots: [{
+          _id: expect.any(ObjectId),
           startDate: CompaniDate('2020-03-05T08:00:00.000Z').toDate(),
           endDate: CompaniDate('2020-03-05T10:00:00.000Z').toDate(),
           course: coursesList[3]._id,
-          _id: expect.any(ObjectId),
+          step: { _id: expect.any(ObjectId), type: ON_SITE },
         }],
         trainees: expect.arrayContaining([expect.objectContaining({
           _id: expect.any(ObjectId),
