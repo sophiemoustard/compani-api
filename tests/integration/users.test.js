@@ -771,7 +771,7 @@ describe('USERS ROUTES - GET /users/learners', () => {
       });
 
       expect(res.statusCode).toBe(200);
-      expect(res.result.data.users.length).toBe(15);
+      expect(res.result.data.users.length).toBe(14);
       expect(res.result.data.users.every(u => UtilsHelper.areObjectIdsEquals(u.company._id, authCompany._id)))
         .toBeTruthy();
     });
