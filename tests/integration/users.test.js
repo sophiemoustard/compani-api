@@ -25,6 +25,7 @@ const {
 } = require('../../src/helpers/constants');
 const {
   usersSeedList,
+  currentUsersFromOtherCompanyList,
   usersFromOtherCompanyList,
   populateDB,
   customer,
@@ -528,16 +529,16 @@ describe('USERS ROUTES - GET /users', () => {
       expect(res.result.data.users.length).toBe(countUserInDB);
     });
 
-    // it('should get users from an other companies', async () => {
-    //   const res = await app.inject({
-    //     method: 'GET',
-    //     url: `/users?company=${otherCompany._id}`,
-    //     headers: { Cookie: `alenvi_token=${authToken}` },
-    //   });
+    it('should get users from an other companies', async () => {
+      const res = await app.inject({
+        method: 'GET',
+        url: `/users?company=${otherCompany._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
 
-    //   expect(res.statusCode).toBe(200);
-    //   expect(res.result.data.users.length).toBe(usersFromOtherCompanyList.length);
-    // });
+      expect(res.statusCode).toBe(200);
+      expect(res.result.data.users.length).toBe(currentUsersFromOtherCompanyList.length);
+    });
   });
 
   describe('Other roles', () => {
@@ -889,23 +890,23 @@ describe('USERS ROUTES - GET /users/active', () => {
     });
   });
 
-  // describe('TRAINING_ORGANISATION_MANAGER', () => {
-  //   beforeEach(async () => {
-  //     authToken = await getToken('training_organisation_manager');
-  //   });
+  describe('TRAINING_ORGANISATION_MANAGER', () => {
+    beforeEach(async () => {
+      authToken = await getToken('training_organisation_manager');
+    });
 
-  //   it('should get all active users from other company if role vendor', async () => {
-  //     const res = await app.inject({
-  //       method: 'GET',
-  //       url: `/users/active?company=${otherCompany._id}`,
-  //       headers: { Cookie: `alenvi_token=${authToken}` },
-  //     });
+    it('should get all active users from other company if role vendor', async () => {
+      const res = await app.inject({
+        method: 'GET',
+        url: `/users/active?company=${otherCompany._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
 
-  //     expect(res.statusCode).toBe(200);
-  //     expect(res.result.data.users.length).toBe(1);
-  //     expect(res.result.data.users.every(u => u.isActive)).toBeTruthy();
-  //   });
-  // });
+      expect(res.statusCode).toBe(200);
+      expect(res.result.data.users.length).toBe(1);
+      expect(res.result.data.users.every(u => u.isActive)).toBeTruthy();
+    });
+  });
 
   describe('Other roles', () => {
     const roles = [
