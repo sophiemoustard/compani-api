@@ -83,15 +83,31 @@ exports.getUsersListWithSectorHistories = async (query, credentials) => {
 exports.getLearnerList = async (query, credentials) => {
   let userQuery = {};
   if (query.companies) {
+    const userCompanyQuery = { company: { $in: query.companies } };
+    if (query.startDate && query.endDate) {
+      Object.assign(
+        userCompanyQuery,
+        {
+          startDate: { $lte: CompaniDate(query.endDate).toISO() },
+          $or: [{ endDate: { $gt: CompaniDate(query.startDate).toISO() } }, { endDate: { $exists: false } }],
+        }
+      );
+    } else if (query.endDate) {
+      Object.assign(
+        userCompanyQuery,
+        { $or: [{ endDate: { $exists: false } }, { endDate: { $gt: CompaniDate(query.endDate).toISO() } }] }
+      );
+    } else {
+      Object.assign(
+        userCompanyQuery,
+        {
+          startDate: { $lte: CompaniDate().toISO() },
+          $or: [{ endDate: { $exists: false } }, { endDate: { $gt: CompaniDate().toISO() } }],
+        }
+      );
+    }
     const rolesToExclude = await Role.find({ name: { $in: [HELPER, AUXILIARY_WITHOUT_COMPANY] } }).lean();
-    const usersCompany = await UserCompany.find(
-      {
-        company: { $in: query.companies },
-        startDate: { $lte: CompaniDate().toISO() },
-        $or: [{ endDate: { $exists: false } }, { endDate: { $gte: CompaniDate().toISO() } }],
-      },
-      { user: 1 }
-    ).lean();
+    const usersCompany = await UserCompany.find(userCompanyQuery, { user: 1 }).lean();
 
     userQuery = {
       _id: { $in: usersCompany.map(uc => uc.user) },
@@ -153,7 +169,7 @@ exports.getUser = async (userId, credentials) => {
 exports.userExists = async (email, credentials) => {
   const targetUser = await User.findOne({ 'local.email': email }, { role: 1 })
     .populate({ path: 'company' })
-    .populate({ path: 'userCompanyList', sort: { startDate: 1 } })
+    .populate({ path: 'userCompanyList', options: { sort: { startDate: 1 } } })
     .setOptions({ credentials })
     .lean();
   if (!targetUser) return { exists: false, user: {} };
