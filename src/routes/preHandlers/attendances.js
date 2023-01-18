@@ -77,9 +77,7 @@ exports.authorizeUnsubscribedAttendancesGet = async (req) => {
     checkPermissionOnCourse(course, credentials);
   }
   if (traineeId) {
-    const trainee = await User.findOne({ _id: traineeId })
-      .populate({ path: 'company' })
-      .lean();
+    const trainee = await User.findOne({ _id: traineeId }).populate({ path: 'company' }).lean();
     if (!trainee) throw Boom.notFound();
 
     if (!UtilsHelper.areObjectIdsEquals(trainee.company, get(credentials, 'company._id'))) {

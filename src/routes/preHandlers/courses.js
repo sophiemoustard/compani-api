@@ -26,6 +26,7 @@ const {
 } = require('../../helpers/constants');
 const translate = require('../../helpers/translate');
 const UtilsHelper = require('../../helpers/utils');
+const CourseHistoriesHelper = require('../../helpers/courseHistories');
 const { CompaniDate } = require('../../helpers/dates/companiDates');
 const AttendanceSheet = require('../../models/AttendanceSheet');
 
@@ -207,13 +208,13 @@ const authorizeGetListForPedagogy = async (credentials, query) => {
 
   if (!query.trainee) return null;
 
-  const trainee = await User.findOne({ _id: query.trainee }, { company: 1 }).populate({ path: 'company' }).lean();
+  const trainee = await User.countDocuments({ _id: query.trainee });
   if (!trainee) return Boom.notFound();
 
   const isRofOrAdmin = [VENDOR_ADMIN, TRAINING_ORGANISATION_MANAGER].includes(loggedUserVendorRole);
-  const isClientRoleFromSameCompany = [COACH, CLIENT_ADMIN].includes(loggedUserClientRole) &&
-    UtilsHelper.areObjectIdsEquals(loggedUserCompany, trainee.company);
-  if (!isRofOrAdmin && !isClientRoleFromSameCompany) throw Boom.forbidden();
+  const isClientRoleFromQueryCompany = [COACH, CLIENT_ADMIN].includes(loggedUserClientRole) &&
+    UtilsHelper.areObjectIdsEquals(loggedUserCompany, query.company);
+  if (!isRofOrAdmin && !isClientRoleFromQueryCompany) throw Boom.forbidden();
 
   return null;
 };
@@ -245,9 +246,13 @@ exports.authorizeTraineeAddition = async (req) => {
     const traineeIsTrainer = UtilsHelper.areObjectIdsEquals(course.trainer, payload.trainee);
     if (traineeIsTrainer) throw Boom.forbidden();
 
-    const userCompanyExists = await UserCompany
-      .countDocuments({ user: payload.trainee, company: { $in: course.companies } });
-    if (!userCompanyExists) throw Boom.notFound();
+    const userCompanyCurrentlyExists = await UserCompany.countDocuments({
+      user: payload.trainee,
+      company: { $in: course.companies },
+      startDate: { $lte: CompaniDate().toISO() },
+      $or: [{ endDate: { $exists: false } }, { endDate: { $gt: CompaniDate().toISO() } }],
+    });
+    if (!userCompanyCurrentlyExists) throw Boom.notFound();
 
     const traineeAlreadyRegistered = course.trainees.some(t => UtilsHelper.areObjectIdsEquals(t, payload.trainee));
     if (traineeAlreadyRegistered) throw Boom.conflict(translate[language].courseTraineeAlreadyExists);
@@ -324,11 +329,8 @@ exports.authorizeGetCourse = async (req) => {
     if (isTOM || isAdminVendor) return null;
 
     const isTrainee = UtilsHelper.doesArrayIncludeId(course.trainees, credentials._id);
-    const companyHasAccess = !course.accessRules.length ||
-      UtilsHelper.doesArrayIncludeId(course.accessRules, userCompany);
 
-    if (isTrainee && !companyHasAccess) throw Boom.forbidden();
-    else if (isTrainee) return null;
+    if (isTrainee) return null;
 
     const isTrainerAndAuthorized = userVendorRole === TRAINER &&
       UtilsHelper.areObjectIdsEquals(course.trainer, credentials._id);
@@ -336,6 +338,8 @@ exports.authorizeGetCourse = async (req) => {
 
     if (!userClientRole || ![COACH, CLIENT_ADMIN].includes(userClientRole)) throw Boom.forbidden();
 
+    const companyHasAccess = !course.accessRules.length ||
+      UtilsHelper.doesArrayIncludeId(course.accessRules, userCompany);
     if (course.format === STRICTLY_E_LEARNING && !companyHasAccess) throw Boom.forbidden();
 
     if (course.format === BLENDED) {
@@ -446,15 +450,13 @@ exports.authorizeCourseCompanyDeletion = async (req) => {
   const isVendorUser = !!get(req, 'auth.credentials.role.vendor');
 
   const course = await Course.findOne({ _id: req.params._id })
-    .populate({ path: 'trainees', select: 'company', populate: 'company' })
     .populate({ path: 'bills', select: 'company', options: { isVendorUser } })
     .populate({
       path: 'slots',
       select: 'attendances',
       populate: {
         path: 'attendances',
-        select: 'trainee',
-        populate: { path: 'trainee', select: 'company', populate: 'company' },
+        select: 'company',
         options: { isVendorUser },
       },
     })
@@ -462,21 +464,22 @@ exports.authorizeCourseCompanyDeletion = async (req) => {
 
   if (!UtilsHelper.doesArrayIncludeId(course.companies, companyId) || course.type !== INTER_B2B) throw Boom.forbidden();
 
-  const companyTraineesAreRegistered = course.trainees.some(t => UtilsHelper.areObjectIdsEquals(t.company, companyId));
-  if (companyTraineesAreRegistered) throw Boom.forbidden(translate[language].companyTraineeRegisteredToCourse);
+  const traineesCompanyAtCourseRegistration = await CourseHistoriesHelper
+    .getTraineesCompanyAtCourseRegistration(course.trainees, req.params._id);
+  const companiesAtRegistration = traineesCompanyAtCourseRegistration.map(traineeCompany => traineeCompany.company);
 
-  const hasAttendancesFromCompany = course.slots
-    .some(slot => slot.attendances
-      .some(attendance => UtilsHelper.areObjectIdsEquals(companyId, attendance.trainee.company)));
+  if (UtilsHelper.doesArrayIncludeId(companiesAtRegistration, companyId)) {
+    throw Boom.forbidden(translate[language].companyTraineeRegisteredToCourse);
+  }
+
+  const hasAttendancesFromCompany = course.slots.some(slot =>
+    slot.attendances.some(attendance => UtilsHelper.areObjectIdsEquals(companyId, attendance.company)));
   if (hasAttendancesFromCompany) throw Boom.forbidden(translate[language].companyTraineeAttendedToCourse);
 
-  const attendanceSheets = await AttendanceSheet
-    .find({ course: course._id }, { trainee: 1 })
-    .populate({ path: 'trainee', select: 'company', populate: 'company' })
-    .lean();
+  const attendanceSheets = await AttendanceSheet.find({ course: course._id }, { company: 1 }).lean();
 
   const hasAttendanceSheetsFromCompany = attendanceSheets
-    .some(sheet => UtilsHelper.areObjectIdsEquals(companyId, sheet.trainee.company));
+    .some(sheet => UtilsHelper.areObjectIdsEquals(companyId, sheet.company));
   if (hasAttendanceSheetsFromCompany) {
     throw Boom.forbidden(translate[language].CompanyTraineeHasAttendanceSheetForCourse);
   }

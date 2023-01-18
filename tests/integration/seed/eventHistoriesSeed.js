@@ -17,7 +17,7 @@ const {
   WEBAPP,
   QR_CODE_TIME_STAMPING,
 } = require('../../../src/helpers/constants');
-const { authCompany, otherCompany } = require('../../seed/authCompaniesSeed');
+const { authCompany, otherCompany, companyWithoutSubscription } = require('../../seed/authCompaniesSeed');
 const { deleteNonAuthenticationSeeds } = require('../helpers/authentication');
 const { coachRoleId, clientAdminRoleId } = require('../../seed/authRolesSeed');
 
@@ -60,6 +60,13 @@ const auxiliaries = [users[0], users[1]];
 const auxiliaryFromOtherCompany = users[3];
 
 const userCompanies = [
+  // old inactive user company
+  {
+    user: users[0],
+    company: companyWithoutSubscription._id,
+    startDate: '2022-01-01T23:00:00.000Z',
+    endDate: '2022-11-30T23:00:00.000Z',
+  },
   { user: users[0], company: authCompany._id },
   { user: users[1], company: authCompany._id },
   { user: users[2], company: authCompany._id },

@@ -3,7 +3,7 @@ const { v4: uuidv4 } = require('uuid');
 const Sector = require('../../../src/models/Sector');
 const SectorHistory = require('../../../src/models/SectorHistory');
 const User = require('../../../src/models/User');
-const { authCompany, otherCompany } = require('../../seed/authCompaniesSeed');
+const { authCompany, otherCompany, companyWithoutSubscription } = require('../../seed/authCompaniesSeed');
 const { deleteNonAuthenticationSeeds } = require('../helpers/authentication');
 const { WEBAPP } = require('../../../src/helpers/constants');
 const UserCompany = require('../../../src/models/UserCompany');
@@ -49,8 +49,17 @@ const userFromOtherCompany = {
   origin: WEBAPP,
 };
 
-const userCompany = { _id: new ObjectId(), user: userFromOtherCompany._id, company: otherCompany._id };
-
+const userCompanies = [
+  // old inactive user company
+  {
+    _id: new ObjectId(),
+    user: userFromOtherCompany._id,
+    company: companyWithoutSubscription._id,
+    startDate: '2022-01-01T23:00:00.000Z',
+    endDate: '2022-11-30T23:00:00.000Z',
+  },
+  { _id: new ObjectId(), user: userFromOtherCompany._id, company: otherCompany._id },
+];
 const populateDB = async () => {
   await deleteNonAuthenticationSeeds();
 
@@ -58,7 +67,7 @@ const populateDB = async () => {
     Sector.create(sectorsList),
     SectorHistory.create(historyList),
     User.create(userFromOtherCompany),
-    UserCompany.create(userCompany),
+    UserCompany.create(userCompanies),
   ]);
 };
 

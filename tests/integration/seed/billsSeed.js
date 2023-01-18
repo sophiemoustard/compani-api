@@ -24,7 +24,7 @@ const FundingHistory = require('../../../src/models/FundingHistory');
 const Helper = require('../../../src/models/Helper');
 const UserCompany = require('../../../src/models/UserCompany');
 const { deleteNonAuthenticationSeeds } = require('../helpers/authentication');
-const { authCompany, otherCompany } = require('../../seed/authCompaniesSeed');
+const { authCompany, otherCompany, companyWithoutSubscription } = require('../../seed/authCompaniesSeed');
 const { helperRoleId, auxiliaryRoleId } = require('../../seed/authRolesSeed');
 
 const billThirdPartyPayer = {
@@ -271,6 +271,14 @@ const billUserList = [
 ];
 
 const userCompanies = [
+  // old inactive user company
+  {
+    _id: new ObjectId(),
+    user: billUserList[0]._id,
+    company: companyWithoutSubscription._id,
+    startDate: '2022-01-01T23:00:00.000Z',
+    endDate: '2022-11-30T23:00:00.000Z',
+  },
   { _id: new ObjectId(), user: billUserList[0]._id, company: authCompany._id },
   { _id: new ObjectId(), user: billUserList[1]._id, company: authCompany._id },
   { _id: new ObjectId(), user: billUserList[2]._id, company: otherCompany._id },

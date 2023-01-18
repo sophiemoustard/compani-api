@@ -3,7 +3,7 @@ const { v4: uuidv4 } = require('uuid');
 const InternalHour = require('../../../src/models/InternalHour');
 const User = require('../../../src/models/User');
 const Event = require('../../../src/models/Event');
-const { authCompany, otherCompany } = require('../../seed/authCompaniesSeed');
+const { authCompany, otherCompany, companyWithoutSubscription } = require('../../seed/authCompaniesSeed');
 const { deleteNonAuthenticationSeeds } = require('../helpers/authentication');
 const { userList } = require('../../seed/authUsersSeed');
 const { INTERNAL_HOUR, WEBAPP } = require('../../../src/helpers/constants');
@@ -27,6 +27,14 @@ const internalHourUsers = [{
 }];
 
 const internalHourUserCompanies = [
+  // old inactive user company
+  {
+    _id: new ObjectId(),
+    user: internalHourUsers[0]._id,
+    company: companyWithoutSubscription._id,
+    startDate: '2022-01-01T23:00:00.000Z',
+    endDate: '2022-11-30T23:00:00.000Z',
+  },
   { _id: new ObjectId(), user: internalHourUsers[0]._id, company: otherCompany._id },
   { _id: new ObjectId(), user: internalHourUsers[1]._id, company: otherCompany._id },
 ];

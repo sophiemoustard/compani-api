@@ -7,7 +7,7 @@ const ThirdPartyPayer = require('../../../src/models/ThirdPartyPayer');
 const PaymentNumber = require('../../../src/models/PaymentNumber');
 const User = require('../../../src/models/User');
 const { PAYMENT, REFUND, WEBAPP } = require('../../../src/helpers/constants');
-const { authCompany, otherCompany } = require('../../seed/authCompaniesSeed');
+const { authCompany, otherCompany, companyWithoutSubscription } = require('../../seed/authCompaniesSeed');
 const { deleteNonAuthenticationSeeds } = require('../helpers/authentication');
 const UserCompany = require('../../../src/models/UserCompany');
 const Helper = require('../../../src/models/Helper');
@@ -198,6 +198,14 @@ const userFromOtherCompany = {
 };
 
 const userCompanies = [
+  // old inactive user company
+  {
+    _id: new ObjectId(),
+    user: paymentUser._id,
+    company: companyWithoutSubscription._id,
+    startDate: '2022-01-01T23:00:00.000Z',
+    endDate: '2022-11-30T23:00:00.000Z',
+  },
   { _id: new ObjectId(), user: paymentUser._id, company: authCompany._id },
   { _id: new ObjectId(), user: userFromOtherCompany._id, company: otherCompany._id },
 ];

@@ -8,7 +8,7 @@ const User = require('../../../src/models/User');
 const Step = require('../../../src/models/Step');
 const SubProgram = require('../../../src/models/SubProgram');
 const Attendance = require('../../../src/models/Attendance');
-const { authCompany, otherCompany } = require('../../seed/authCompaniesSeed');
+const { authCompany, otherCompany, companyWithoutSubscription } = require('../../seed/authCompaniesSeed');
 const { vendorAdmin } = require('../../seed/authUsersSeed');
 const { WEBAPP, INTRA } = require('../../../src/helpers/constants');
 const { deleteNonAuthenticationSeeds } = require('../helpers/authentication');
@@ -23,7 +23,17 @@ const trainer = {
   origin: WEBAPP,
 };
 
-const userCompanies = [{ _id: new ObjectId(), user: trainer._id, company: authCompany._id }];
+const userCompanies = [
+  // old inactive user company
+  {
+    _id: new ObjectId(),
+    user: trainer._id,
+    company: companyWithoutSubscription._id,
+    startDate: '2022-01-01T23:00:00.000Z',
+    endDate: '2022-11-30T23:00:00.000Z',
+  },
+  { _id: new ObjectId(), user: trainer._id, company: authCompany._id },
+];
 
 const stepsList = [
   { _id: new ObjectId(), type: 'on_site', name: 'c\'est une étape' },

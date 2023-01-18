@@ -43,8 +43,18 @@ const {
   STRICTLY_E_LEARNING,
   INTER_B2C,
   BLENDED,
+  TRAINEE_ADDITION,
 } = require('../../../src/helpers/constants');
 const { auxiliaryRoleId, trainerRoleId, coachRoleId } = require('../../seed/authRolesSeed');
+const { CompaniDate } = require('../../../src/helpers/dates/companiDates');
+
+const traineeFromAuthFormerlyInOther = {
+  _id: new ObjectId(),
+  identity: { firstname: 'Michel', lastname: 'Drucker' },
+  local: { email: 'traineeAuthFormerlyOther@alenvi.io', password: '123456!eR' },
+  refreshToken: uuidv4(),
+  origin: WEBAPP,
+};
 
 const traineeFromOtherCompany = {
   _id: new ObjectId(),
@@ -65,6 +75,24 @@ const traineeFromAuthCompanyWithFormationExpoToken = {
   refreshToken: uuidv4(),
   origin: WEBAPP,
   formationExpoTokenList: ['ExponentPushToken[jeSuisUnTokenExpo]', 'ExponentPushToken[jeSuisUnAutreTokenExpo]'],
+};
+
+const traineeFormerlyInAuthCompany = {
+  _id: new ObjectId(),
+  identity: { firstname: 'Trainee', lastname: 'Formerly In Auth Company' },
+  local: { email: 'trainee-formerly-in-auth-company@alenvi.io' },
+  contact: { phone: '0121212121' },
+  refreshToken: uuidv4(),
+  origin: WEBAPP,
+};
+
+const traineeComingUpInAuthCompany = {
+  _id: new ObjectId(),
+  identity: { firstname: 'Trainee', lastname: 'Coming Up In Auth Company' },
+  local: { email: 'trainee-coming-up-in-auth-company@alenvi.io' },
+  contact: { phone: '0121212121' },
+  refreshToken: uuidv4(),
+  origin: WEBAPP,
 };
 
 const traineeWithoutCompany = {
@@ -112,13 +140,69 @@ const userList = [
   contactWithoutPhone,
   coachFromOtherCompany,
   traineeFromThirdCompany,
+  traineeFormerlyInAuthCompany,
+  traineeComingUpInAuthCompany,
+  traineeFromAuthFormerlyInOther,
 ];
 
 const userCompanies = [
-  { _id: new ObjectId(), user: traineeFromOtherCompany._id, company: otherCompany._id },
-  { _id: new ObjectId(), user: traineeFromAuthCompanyWithFormationExpoToken._id, company: authCompany._id },
-  { _id: new ObjectId(), user: coachFromOtherCompany._id, company: otherCompany._id },
-  { _id: new ObjectId(), user: traineeFromThirdCompany._id, company: thirdCompany._id },
+  { // 0 old inactive user company
+    _id: new ObjectId(),
+    user: traineeFromOtherCompany._id,
+    company: thirdCompany._id,
+    startDate: '2022-01-01T23:00:00.000Z',
+    endDate: '2022-11-30T23:00:00.000Z',
+  },
+  { // 1
+    _id: new ObjectId(),
+    user: traineeFromOtherCompany._id,
+    company: otherCompany._id,
+    startDate: '2020-01-01T10:00:00.000Z',
+  },
+  { // 2
+    _id: new ObjectId(),
+    user: traineeFromAuthCompanyWithFormationExpoToken._id,
+    company: authCompany._id,
+    startDate: '2020-01-01T10:00:00.000Z',
+  },
+  { // 3
+    _id: new ObjectId(),
+    user: coachFromOtherCompany._id,
+    company: otherCompany._id,
+    startDate: '2020-01-01T10:00:00.000Z',
+  },
+  { // 4
+    _id: new ObjectId(),
+    user: traineeFromThirdCompany._id,
+    company: thirdCompany._id,
+    startDate: '2020-01-01T10:00:00.000Z',
+  },
+  { // 5 formerly in auth company
+    _id: new ObjectId(),
+    user: traineeFormerlyInAuthCompany._id,
+    company: authCompany._id,
+    startDate: '2020-01-01T10:00:00.000Z',
+    endDate: '2021-03-01T10:00:00.000Z',
+  },
+  { // 6 coming up in auth company
+    _id: new ObjectId(),
+    user: traineeComingUpInAuthCompany._id,
+    company: authCompany._id,
+    startDate: CompaniDate().add('P5M').toISO(),
+  },
+  { // 5
+    _id: new ObjectId(),
+    user: traineeFromAuthFormerlyInOther._id,
+    company: otherCompany._id,
+    startDate: '2020-01-01T10:00:00.000Z',
+    endDate: '2020-12-31T10:00:00.000Z',
+  },
+  { // 6
+    _id: new ObjectId(),
+    user: traineeFromAuthFormerlyInOther._id,
+    company: authCompany._id,
+    startDate: '2021-01-01T10:00:00.000Z',
+  },
 ];
 
 const cardsList = [
@@ -193,7 +277,7 @@ const coursesList = [
     contact: vendorAdmin._id,
     misc: 'team formation',
     trainer: new ObjectId(),
-    trainees: [traineeFromOtherCompany._id],
+    trainees: [traineeFromOtherCompany._id, traineeFromAuthFormerlyInOther._id],
     companies: [otherCompany._id],
     type: INTRA,
     maxTrainees: 8,
@@ -267,7 +351,7 @@ const coursesList = [
     misc: 'inter b2b session',
     type: INTER_B2B,
     format: BLENDED,
-    trainees: [auxiliary._id],
+    trainees: [auxiliary._id, traineeFromAuthFormerlyInOther._id],
     companies: [authCompany._id, thirdCompany._id],
     trainer: trainer._id,
     salesRepresentative: vendorAdmin._id,
@@ -279,7 +363,7 @@ const coursesList = [
     misc: 'inter_b2c with accessRules',
     type: INTER_B2C,
     format: STRICTLY_E_LEARNING,
-    trainees: [coach._id],
+    trainees: [traineeFromAuthFormerlyInOther._id],
     accessRules: [authCompany._id],
     salesRepresentative: vendorAdmin._id,
   },
@@ -312,7 +396,7 @@ const coursesList = [
     misc: 'inter_b2c',
     type: INTER_B2C,
     format: STRICTLY_E_LEARNING,
-    trainees: [traineeFromOtherCompany._id, coach._id],
+    trainees: [traineeFromOtherCompany._id, traineeFromAuthFormerlyInOther._id, noRole._id],
     accessRules: [otherCompany._id],
     salesRepresentative: vendorAdmin._id,
   },
@@ -545,6 +629,55 @@ const courseHistories = [
     slot: { startDate: '2020-01-01T00:00:00.000Z', endDate: '2020-01-01T02:00:00.000Z' },
     createdBy: trainerOrganisationManager._id,
   },
+  {
+    action: TRAINEE_ADDITION,
+    course: coursesList[7]._id,
+    trainee: auxiliary._id,
+    company: authCompany._id,
+    createdBy: trainerOrganisationManager._id,
+  },
+  {
+    action: TRAINEE_ADDITION,
+    course: coursesList[0]._id,
+    trainee: coach._id,
+    company: authCompany._id,
+    createdBy: trainerOrganisationManager._id,
+  },
+  {
+    action: TRAINEE_ADDITION,
+    course: coursesList[0]._id,
+    trainee: helper._id,
+    company: authCompany._id,
+    createdBy: trainerOrganisationManager._id,
+  },
+  {
+    action: TRAINEE_ADDITION,
+    course: coursesList[0]._id,
+    trainee: clientAdmin._id,
+    company: authCompany._id,
+    createdBy: trainerOrganisationManager._id,
+  },
+  {
+    action: TRAINEE_ADDITION,
+    course: coursesList[0]._id,
+    trainee: vendorAdmin._id,
+    company: authCompany._id,
+    createdBy: trainerOrganisationManager._id,
+  },
+  {
+    action: TRAINEE_ADDITION,
+    course: coursesList[4]._id,
+    trainee: traineeFromOtherCompany._id,
+    company: otherCompany._id,
+    createdBy: trainerOrganisationManager._id,
+  },
+  {
+    action: TRAINEE_ADDITION,
+    course: coursesList[4]._id,
+    trainee: coach._id,
+    company: authCompany._id,
+    createdBy: trainerOrganisationManager._id,
+  },
 ];
 
 const slots = [
@@ -599,6 +732,13 @@ const slots = [
     endDate: '2020-03-05T10:00:00.000Z',
     course: coursesList[3]._id,
     step: stepList[0]._id,
+    address: {
+      fullAddress: '37 rue de ponthieu 75008 Paris',
+      zipCode: '75008',
+      city: 'Paris',
+      street: '37 rue de Ponthieu',
+      location: { type: 'Point', coordinates: [2.377133, 48.801389] },
+    },
   },
   { // 8
     _id: new ObjectId(),
@@ -714,4 +854,7 @@ module.exports = {
   traineeFromAuthCompanyWithFormationExpoToken,
   userCompanies,
   coachFromOtherCompany,
+  traineeFormerlyInAuthCompany,
+  traineeComingUpInAuthCompany,
+  traineeFromAuthFormerlyInOther,
 };
