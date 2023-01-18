@@ -186,7 +186,7 @@ exports.plugin = {
               'endDate',
               {
                 is: Joi.exist(),
-                then: dateToISOString && Joi.date().less(Joi.ref('endDate')),
+                then: dateToISOString && Joi.date().max(Joi.ref('endDate')),
                 otherwise: Joi.forbidden(),
               }
             ),
