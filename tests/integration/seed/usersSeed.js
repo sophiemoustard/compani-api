@@ -119,7 +119,7 @@ const auxiliaryFromOtherCompany = {
   origin: WEBAPP,
 };
 
-const traineeWhoLeftOtherCompany = {
+const traineeWhoLeftCompanyWithoutSubscription = {
   _id: new ObjectId(),
   identity: { firstname: 'trainee_changed_company', lastname: 'test' },
   local: { email: 'trainee_changed_company@alenvi.io' },
@@ -127,13 +127,13 @@ const traineeWhoLeftOtherCompany = {
   origin: WEBAPP,
 };
 
-const currentUsersFromOtherCompanyList = [
+const usersFromOtherCompany = [
   helperFromOtherCompany,
   coachFromOtherCompany,
   auxiliaryFromOtherCompany,
 ];
 
-const usersFromOtherCompanyList = [...currentUsersFromOtherCompanyList, traineeWhoLeftOtherCompany];
+const usersFromDifferentCompanyList = [...usersFromOtherCompany, traineeWhoLeftCompanyWithoutSubscription];
 
 const contractId = new ObjectId();
 const contractNotStartedId = new ObjectId();
@@ -332,7 +332,7 @@ const userCompanies = [
   { user: usersSeedList[8]._id, company: authCompany._id, startDate: '2022-01-01T23:00:00.000Z' },
   { user: usersSeedList[10]._id, company: authCompany._id, startDate: '2022-12-30T23:00:00.000Z' },
   {
-    user: traineeWhoLeftOtherCompany._id,
+    user: traineeWhoLeftCompanyWithoutSubscription._id,
     company: companyWithoutSubscription._id,
     startDate: '2019-01-01T08:00:00.000Z',
     endDate: '2022-12-01T02:59:59.999Z',
@@ -459,7 +459,7 @@ const populateDB = async () => {
     SectorHistory.create(sectorHistories),
     Step.create(stepList),
     SubProgram.create(subProgram),
-    User.create([...usersSeedList, ...usersFromOtherCompanyList]),
+    User.create([...usersSeedList, ...usersFromDifferentCompanyList]),
     UserCompany.create(userCompanies),
     CompanyLinkRequest.create(companyLinkRequest),
   ]);
@@ -467,14 +467,14 @@ const populateDB = async () => {
 
 module.exports = {
   usersSeedList,
-  usersFromOtherCompanyList,
-  currentUsersFromOtherCompanyList,
+  usersFromDifferentCompanyList,
+  usersFromOtherCompany,
   populateDB,
   isInList,
   customer,
   customerFromOtherCompany,
   helperFromOtherCompany,
-  traineeWhoLeftOtherCompany,
+  traineeWhoLeftCompanyWithoutSubscription,
   userSectors,
   sectorHistories,
   establishmentList,

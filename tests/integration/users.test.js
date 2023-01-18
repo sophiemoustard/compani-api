@@ -25,8 +25,8 @@ const {
 } = require('../../src/helpers/constants');
 const {
   usersSeedList,
-  currentUsersFromOtherCompanyList,
-  usersFromOtherCompanyList,
+  usersFromOtherCompany,
+  usersFromDifferentCompanyList,
   populateDB,
   customer,
   customerFromOtherCompany,
@@ -35,7 +35,7 @@ const {
   sectorHistories,
   establishmentList,
   auxiliaryFromOtherCompany,
-  traineeWhoLeftOtherCompany,
+  traineeWhoLeftCompanyWithoutSubscription,
 } = require('./seed/usersSeed');
 const { getToken, getTokenByCredentials } = require('./helpers/authentication');
 const { otherCompany, authCompany, companyWithoutSubscription } = require('../seed/authCompaniesSeed');
@@ -525,11 +525,11 @@ describe('USERS ROUTES - GET /users', () => {
       });
 
       expect(res.statusCode).toBe(200);
-      const countUserInDB = userList.length + usersSeedList.length + usersFromOtherCompanyList.length;
+      const countUserInDB = userList.length + usersSeedList.length + usersFromDifferentCompanyList.length;
       expect(res.result.data.users.length).toBe(countUserInDB);
     });
 
-    it('should get users from an other companies', async () => {
+    it('should get users from an other company', async () => {
       const res = await app.inject({
         method: 'GET',
         url: `/users?company=${otherCompany._id}`,
@@ -537,7 +537,7 @@ describe('USERS ROUTES - GET /users', () => {
       });
 
       expect(res.statusCode).toBe(200);
-      expect(res.result.data.users.length).toBe(currentUsersFromOtherCompanyList.length);
+      expect(res.result.data.users.length).toBe(usersFromOtherCompany.length);
     });
   });
 
@@ -726,7 +726,7 @@ describe('USERS ROUTES - GET /users/learners', () => {
       });
 
       expect(res.statusCode).toBe(200);
-      const countUserInDB = userList.length + usersSeedList.length + usersFromOtherCompanyList.length;
+      const countUserInDB = userList.length + usersSeedList.length + usersFromDifferentCompanyList.length;
       expect(res.result.data.users.length).toEqual(countUserInDB);
     });
 
@@ -1270,14 +1270,14 @@ describe('USERS ROUTES - PUT /users/:id', () => {
     it('should update previously detached learner with new company', async () => {
       const res = await app.inject({
         method: 'PUT',
-        url: `/users/${traineeWhoLeftOtherCompany._id.toHexString()}`,
+        url: `/users/${traineeWhoLeftCompanyWithoutSubscription._id.toHexString()}`,
         payload: { company: authCompany._id, userCompanyStartDate: '2022-12-20T12:00:00.000Z' },
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(res.statusCode).toBe(200);
       const createdUserCompany = await UserCompany.countDocuments({
-        user: traineeWhoLeftOtherCompany._id,
+        user: traineeWhoLeftCompanyWithoutSubscription._id,
         company: authCompany._id,
         startDate: '2022-12-19T23:00:00.000Z',
       });
@@ -1423,14 +1423,14 @@ describe('USERS ROUTES - PUT /users/:id', () => {
     it('should update previously detached learner with new company', async () => {
       const res = await app.inject({
         method: 'PUT',
-        url: `/users/${traineeWhoLeftOtherCompany._id.toHexString()}`,
+        url: `/users/${traineeWhoLeftCompanyWithoutSubscription._id.toHexString()}`,
         payload: { company: authCompany._id, userCompanyStartDate: '2022-12-20T12:00:00.000Z' },
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(res.statusCode).toBe(200);
       const createdUserCompany = await UserCompany.countDocuments({
-        user: traineeWhoLeftOtherCompany._id,
+        user: traineeWhoLeftCompanyWithoutSubscription._id,
         company: authCompany._id,
         startDate: '2022-12-19T23:00:00.000Z',
       });
