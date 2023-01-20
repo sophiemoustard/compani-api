@@ -80,24 +80,37 @@ exports.getUsersListWithSectorHistories = async (query, credentials) => {
     .lean({ virtuals: true, autopopulate: true });
 };
 
-exports.getLearnerList = async (query, credentials) => {
-  let userQuery = {};
-  if (query.companies) {
-    const rolesToExclude = await Role.find({ name: { $in: [HELPER, AUXILIARY_WITHOUT_COMPANY] } }).lean();
-    const usersCompany = await UserCompany.find(
-      {
-        company: { $in: query.companies },
-        startDate: { $lte: CompaniDate().toISO() },
-        $or: [{ endDate: { $exists: false } }, { endDate: { $gte: CompaniDate().toISO() } }],
-      },
-      { user: 1 }
-    ).lean();
-
-    userQuery = {
-      _id: { $in: usersCompany.map(uc => uc.user) },
-      'role.client': { $not: { $in: rolesToExclude.map(r => r._id) } },
+const formatQueryForLearnerList = async (query) => {
+  let userCompanyQuery = { company: { $in: query.companies } };
+  if (query.startDate && query.endDate) {
+    userCompanyQuery = {
+      ...userCompanyQuery,
+      startDate: { $lt: CompaniDate(query.endDate).toISO() },
+      $or: [{ endDate: { $gt: CompaniDate(query.startDate).toISO() } }, { endDate: { $exists: false } }],
+    };
+  } else if (query.startDate) {
+    userCompanyQuery = {
+      ...userCompanyQuery,
+      $or: [{ endDate: { $exists: false } }, { endDate: { $gt: CompaniDate(query.startDate).toISO() } }],
+    };
+  } else {
+    userCompanyQuery = {
+      ...userCompanyQuery,
+      startDate: { $lt: CompaniDate().toISO() },
+      $or: [{ endDate: { $exists: false } }, { endDate: { $gt: CompaniDate().toISO() } }],
     };
   }
+  const rolesToExclude = await Role.find({ name: { $in: [HELPER, AUXILIARY_WITHOUT_COMPANY] } }).lean();
+  const usersCompany = await UserCompany.find(userCompanyQuery, { user: 1 }).lean();
+
+  return {
+    _id: { $in: usersCompany.map(uc => uc.user) },
+    'role.client': { $not: { $in: rolesToExclude.map(r => r._id) } },
+  };
+};
+
+exports.getLearnerList = async (query, credentials) => {
+  const userQuery = query.companies ? await formatQueryForLearnerList(query) : {};
 
   const learnerList = await User
     .find(userQuery, 'identity.firstname identity.lastname picture local.email', { autopopulate: false })
@@ -153,7 +166,7 @@ exports.getUser = async (userId, credentials) => {
 exports.userExists = async (email, credentials) => {
   const targetUser = await User.findOne({ 'local.email': email }, { role: 1 })
     .populate({ path: 'company' })
-    .populate({ path: 'userCompanyList', sort: { startDate: 1 } })
+    .populate({ path: 'userCompanyList', options: { sort: { startDate: 1 } } })
     .setOptions({ credentials })
     .lean();
   if (!targetUser) return { exists: false, user: {} };
