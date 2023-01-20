@@ -88,7 +88,7 @@ exports.getLearnerList = async (query, credentials) => {
       userCompanyQuery = {
         ...userCompanyQuery,
         startDate: { $lte: CompaniDate(query.endDate).toISO() },
-        $or: [{ endDate: { $gt: CompaniDate(query.startDate).toISO() } }, { endDate: { $exists: false } }],
+        $or: [{ endDate: { $gte: CompaniDate(query.startDate).toISO() } }, { endDate: { $exists: false } }],
       };
     } else if (query.endDate) {
       userCompanyQuery = {
