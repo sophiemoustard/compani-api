@@ -318,7 +318,7 @@ describe('getLearnerList', () => {
     );
   });
 
-  it('should get learners from company', async () => {
+  it('should get learners from company to date', async () => {
     const query = { companies: new ObjectId() };
     const credentials = { role: { client: new ObjectId() } };
     const roleId1 = new ObjectId();
@@ -502,7 +502,7 @@ describe('getLearnerList', () => {
             company: { $in: query.companies },
             startDate: { $lte: CompaniDate('2022-12-20T22:59:59.999Z').toISO() },
             $or: [
-              { endDate: { $gt: CompaniDate('2022-12-19T23:00:00.000Z').toISO() } },
+              { endDate: { $gte: CompaniDate('2022-12-19T23:00:00.000Z').toISO() } },
               { endDate: { $exists: false } },
             ],
           },
