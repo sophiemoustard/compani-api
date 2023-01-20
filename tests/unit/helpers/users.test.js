@@ -355,7 +355,7 @@ describe('getLearnerList', () => {
         args: [
           {
             company: { $in: query.companies },
-            startDate: { $lte: CompaniDate('2022-12-21T16:00:00.000Z').toISO() },
+            startDate: { $lt: CompaniDate('2022-12-21T16:00:00.000Z').toISO() },
             $or: [
               { endDate: { $exists: false } },
               { endDate: { $gt: CompaniDate('2022-12-21T16:00:00.000Z').toISO() } },
@@ -390,7 +390,7 @@ describe('getLearnerList', () => {
   });
 
   it('should get current or future learners from company', async () => {
-    const query = { companies: new ObjectId(), endDate: '2022-12-21T16:00:00.000Z' };
+    const query = { companies: new ObjectId(), startDate: '2022-12-21T16:00:00.000Z' };
     const credentials = { role: { client: new ObjectId() } };
     const roleId1 = new ObjectId();
     const roleId2 = new ObjectId();
@@ -500,9 +500,9 @@ describe('getLearnerList', () => {
         args: [
           {
             company: { $in: query.companies },
-            startDate: { $lte: CompaniDate('2022-12-20T22:59:59.999Z').toISO() },
+            startDate: { $lt: CompaniDate('2022-12-20T22:59:59.999Z').toISO() },
             $or: [
-              { endDate: { $gte: CompaniDate('2022-12-19T23:00:00.000Z').toISO() } },
+              { endDate: { $gt: CompaniDate('2022-12-19T23:00:00.000Z').toISO() } },
               { endDate: { $exists: false } },
             ],
           },

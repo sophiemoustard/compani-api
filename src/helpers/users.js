@@ -87,18 +87,18 @@ exports.getLearnerList = async (query, credentials) => {
     if (query.startDate && query.endDate) {
       userCompanyQuery = {
         ...userCompanyQuery,
-        startDate: { $lte: CompaniDate(query.endDate).toISO() },
-        $or: [{ endDate: { $gte: CompaniDate(query.startDate).toISO() } }, { endDate: { $exists: false } }],
+        startDate: { $lt: CompaniDate(query.endDate).toISO() },
+        $or: [{ endDate: { $gt: CompaniDate(query.startDate).toISO() } }, { endDate: { $exists: false } }],
       };
-    } else if (query.endDate) {
+    } else if (query.startDate) {
       userCompanyQuery = {
         ...userCompanyQuery,
-        $or: [{ endDate: { $exists: false } }, { endDate: { $gt: CompaniDate(query.endDate).toISO() } }],
+        $or: [{ endDate: { $exists: false } }, { endDate: { $gt: CompaniDate(query.startDate).toISO() } }],
       };
     } else {
       userCompanyQuery = {
         ...userCompanyQuery,
-        startDate: { $lte: CompaniDate().toISO() },
+        startDate: { $lt: CompaniDate().toISO() },
         $or: [{ endDate: { $exists: false } }, { endDate: { $gt: CompaniDate().toISO() } }],
       };
     }
