@@ -182,15 +182,15 @@ exports.plugin = {
         validate: {
           query: Joi.object({
             companies: objectIdOrArray,
-            startDate: Joi.when(
-              'endDate',
+            startDate: dateToISOString,
+            endDate: Joi.when(
+              'startDate',
               {
                 is: Joi.exist(),
-                then: dateToISOString && Joi.date().max(Joi.ref('endDate')),
+                then: dateToISOString && Joi.date().min(Joi.ref('startDate')),
                 otherwise: Joi.forbidden(),
               }
             ),
-            endDate: dateToISOString,
           }),
         },
         pre: [{ method: authorizeLearnersGet }],
