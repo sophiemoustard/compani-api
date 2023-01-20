@@ -733,7 +733,7 @@ describe('USERS ROUTES - GET /users/learners', () => {
     it('should return future or current learners from a specific company (potential trainees list)', async () => {
       const res = await app.inject({
         method: 'GET',
-        url: `/users/learners?companies=${authCompany._id}&endDate=2022-12-20T15:00:00.000Z`,
+        url: `/users/learners?companies=${authCompany._id}&startDate=2022-12-20T15:00:00.000Z`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -777,10 +777,10 @@ describe('USERS ROUTES - GET /users/learners', () => {
         UtilsHelper.areObjectIdsEquals(u.company._id, otherCompany._id))).toBeTruthy();
     });
 
-    it('should return 400 if startDate but no endDate', async () => {
+    it('should return 400 if endDate but no startDate', async () => {
       const res = await app.inject({
         method: 'GET',
-        url: `/users/learners?companies=${authCompany._id}&startDate=2021-12-19T23:00:00.000Z`,
+        url: `/users/learners?companies=${authCompany._id}&endDate=2021-12-19T23:00:00.000Z`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
