@@ -467,7 +467,7 @@ describe('list', () => {
       ];
       const query = { action: 'pedagogy', origin: 'webapp', trainee: trainee._id };
 
-      userFindOne.returns(SinonMongoose.stubChainedQueries(trainee, ['populate', 'setOptions', 'lean']));
+      userFindOne.returns(SinonMongoose.stubChainedQueries(trainee));
       find.returns(SinonMongoose.stubChainedQueries(coursesList, ['populate', 'select', 'lean']));
 
       formatCourseWithProgress.onCall(0).returns({
@@ -540,7 +540,6 @@ describe('list', () => {
         [
           { query: 'findOne', args: [{ _id: trainee._id }] },
           { query: 'populate', args: [{ path: 'userCompanyList' }] },
-          { query: 'setOptions', args: [{ credentials }] },
           { query: 'lean' },
         ]
       );
@@ -690,7 +689,7 @@ describe('list', () => {
       ];
       const query = { action: 'pedagogy', company: traineeCompany, origin: 'webapp', trainee: trainee._id };
 
-      userFindOne.returns(SinonMongoose.stubChainedQueries(trainee, ['populate', 'setOptions', 'lean']));
+      userFindOne.returns(SinonMongoose.stubChainedQueries(trainee));
       find.returns(SinonMongoose.stubChainedQueries(coursesList, ['populate', 'select', 'lean']));
 
       formatCourseWithProgress.onCall(0).returns({
@@ -763,7 +762,6 @@ describe('list', () => {
         [
           { query: 'findOne', args: [{ _id: trainee._id }] },
           { query: 'populate', args: [{ path: 'userCompanyList' }] },
-          { query: 'setOptions', args: [{ credentials }] },
           { query: 'lean' },
         ]
       );
@@ -919,7 +917,7 @@ describe('list', () => {
       ];
       const query = { action: 'pedagogy', origin: 'mobile' };
 
-      userFindOne.returns(SinonMongoose.stubChainedQueries(trainee, ['populate', 'setOptions', 'lean']));
+      userFindOne.returns(SinonMongoose.stubChainedQueries(trainee));
       find.returns(SinonMongoose.stubChainedQueries(coursesList, ['populate', 'select', 'lean']));
 
       formatCourseWithProgress.onCall(0).returns({
@@ -992,7 +990,6 @@ describe('list', () => {
         [
           { query: 'findOne', args: [{ _id: trainee._id }] },
           { query: 'populate', args: [{ path: 'userCompanyList' }] },
-          { query: 'setOptions', args: [{ credentials }] },
           { query: 'lean' },
         ]
       );
