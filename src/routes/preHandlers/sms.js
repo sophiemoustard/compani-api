@@ -12,7 +12,6 @@ exports.authorizeSendSms = async (req) => {
   const users = await User
     .find({ 'contact.phone': `0${req.payload.recipient.substring(3)}` })
     .populate({ path: 'userCompanyList' })
-    .setOptions({ credentials })
     .lean();
   if (!users.length) throw Boom.notFound(translate[language].userNotFound);
 
