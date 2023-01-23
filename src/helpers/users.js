@@ -130,6 +130,8 @@ exports.getLearnerList = async (query, credentials) => {
 
 exports.getUser = async (userId, credentials) => {
   const companyId = get(credentials, 'company._id') || null;
+  const isLoggedUserVendor = !!get(credentials, 'role.vendor');
+  const requestingOwnInfos = UtilsHelper.areObjectIdsEquals(userId, credentials._id);
 
   const user = await User.findOne({ _id: userId })
     .populate({ path: 'contracts', select: '-__v -createdAt -updatedAt' })
@@ -138,52 +140,52 @@ exports.getUser = async (userId, credentials) => {
       path: 'sector',
       select: '_id sector',
       match: { company: companyId },
-      options: {
-        isVendorUser: has(credentials, 'role.vendor'),
-        requestingOwnInfos: UtilsHelper.areObjectIdsEquals(userId, credentials._id),
-      },
+      options: { isVendorUser: has(credentials, 'role.vendor'), requestingOwnInfos },
     })
     .populate({
       path: 'customers',
       select: '-__v -createdAt -updatedAt',
       match: { company: companyId },
-      options: {
-        isVendorUser: has(credentials, 'role.vendor'),
-        requestingOwnInfos: UtilsHelper.areObjectIdsEquals(userId, credentials._id),
-      },
+      options: { isVendorUser: has(credentials, 'role.vendor'), requestingOwnInfos },
     })
     .populate({ path: 'companyLinkRequest', populate: { path: 'company', select: '_id name' } })
     .populate({ path: 'establishment', select: 'siret' })
     .populate({ path: 'userCompanyList' })
-    .setOptions({ credentials })
     .lean({ autopopulate: true, virtuals: true });
 
   if (!user) throw Boom.notFound(translate[language].userNotFound);
 
-  return user;
+  return isLoggedUserVendor || requestingOwnInfos
+    ? user
+    : {
+      ...user,
+      userCompanyList: user.userCompanyList.filter(uc => UtilsHelper.areObjectIdsEquals(companyId, get(uc, 'company'))),
+    };
 };
 
 exports.userExists = async (email, credentials) => {
   const targetUser = await User.findOne({ 'local.email': email }, { role: 1 })
     .populate({ path: 'company' })
     .populate({ path: 'userCompanyList', options: { sort: { startDate: 1 } } })
-    .setOptions({ credentials })
     .lean();
   if (!targetUser) return { exists: false, user: {} };
   if (!credentials) return { exists: true, user: {} };
 
+  const companyId = get(credentials, 'company._id');
   const loggedUserHasVendorRole = has(credentials, 'role.vendor');
-  const sameCompany = UserCompaniesHelper
-    .userIsOrWillBeInCompany(targetUser.userCompanyList, get(credentials, 'company._id'));
+  const sameCompany = UserCompaniesHelper.userIsOrWillBeInCompany(targetUser.userCompanyList, companyId);
   const formattedUser = {
     ...pick(targetUser, ['role', '_id', 'company']),
-    userCompanyList: targetUser.userCompanyList.map(uc => (pick(uc, ['company', 'endDate']))),
+    userCompanyList: targetUser.userCompanyList
+      .filter(uc => (loggedUserHasVendorRole ? true : UtilsHelper.areObjectIdsEquals(companyId, uc.company)))
+      .map(uc => (pick(uc, ['company', 'endDate']))),
   };
 
-  return loggedUserHasVendorRole || sameCompany ||
-    (!UserCompaniesHelper.getCurrentAndFutureCompanies(targetUser.userCompanyList).length && !targetUser.company)
-    ? { exists: !!targetUser, user: formattedUser }
-    : { exists: !!targetUser, user: {} };
+  const currentAndFuturCompanies = UserCompaniesHelper.getCurrentAndFutureCompanies(targetUser.userCompanyList);
+
+  return loggedUserHasVendorRole || sameCompany || !currentAndFuturCompanies.length
+    ? { exists: true, user: formattedUser }
+    : { exists: true, user: {} };
 };
 
 exports.saveCertificateDriveId = async (userId, fileInfo) =>

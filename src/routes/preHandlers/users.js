@@ -66,7 +66,6 @@ exports.authorizeUserUpdate = async (req) => {
   const userFromDB = await User
     .findOne({ _id: req.params._id })
     .populate({ path: 'userCompanyList' })
-    .setOptions({ credentials })
     .lean();
   if (!userFromDB) throw Boom.notFound(translate[language].userNotFound);
 
@@ -153,13 +152,12 @@ exports.authorizeUserGetById = async (req) => {
     .findOne({ _id: req.params._id })
     .populate({ path: 'company' })
     .populate({ path: 'userCompanyList' })
-    .setOptions({ credentials })
     .lean();
   if (!user) throw Boom.notFound(translate[language].userNotFound);
 
   const loggedCompanyId = get(credentials, 'company._id', null);
   const isLoggedUserVendor = get(credentials, 'role.vendor', null);
-  const hasCompany = UserCompaniesHelper.getCurrentAndFutureCompanies(user.userCompanyList).length || user.company;
+  const hasCompany = UserCompaniesHelper.getCurrentAndFutureCompanies(user.userCompanyList).length;
   if (!isLoggedUserVendor && hasCompany) {
     const isClientFromDifferentCompany = !UserCompaniesHelper
       .userIsOrWillBeInCompany(user.userCompanyList, loggedCompanyId);
