@@ -41,7 +41,7 @@ describe('COURSE BILL ROUTES - GET /coursebills', () => {
       expect(response.result.data.courseBills.length).toEqual(2);
       expect(response.result.data.courseBills[0]).toMatchObject({
         course: coursesList[0]._id,
-        company: authCompany._id,
+        company: pick(authCompany, ['_id', 'name']),
         payer: pick(authCompany, ['_id', 'name']),
         mainFee: { price: 120, count: 1 },
         billingPurchaseList: [
