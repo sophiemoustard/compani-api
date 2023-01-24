@@ -146,7 +146,8 @@ describe('USER COMPANIES ROUTES - PUT /usercompanies/{id}', () => {
       });
 
       expect(res.statusCode).toBe(403);
-      expect(res.result.message).toBe('Impossible: la date de fin doit être postérieure à la date de début.');
+      expect(res.result.message)
+        .toBe('La date de détachement de l\'utilisateur ne peut être antérieure à son rattachement.');
     });
 
     it('should return a 403 if detachment date is before first trainee\'s addition in course history', async () => {
@@ -330,7 +331,8 @@ describe('USER COMPANIES ROUTES - PUT /usercompanies/{id}', () => {
       });
 
       expect(res.statusCode).toBe(403);
-      expect(res.result.message).toBe('Impossible: la date de fin doit être postérieure à la date de début.');
+      expect(res.result.message)
+        .toBe('La date de détachement de l\'utilisateur ne peut être antérieure à son rattachement.');
     });
 
     it('should return a 403 if detachment date is before first trainee\'s addition in course history', async () => {
