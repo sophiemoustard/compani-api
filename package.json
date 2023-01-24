@@ -28,7 +28,7 @@
   },
   "dependencies": {
     "@google-cloud/storage": "~6.9.0",
-    "@googleapis/drive": "~2.3.0",
+    "@googleapis/drive": "~4.0.1",
     "@hapi/boom": "~9.1.4",
     "@hapi/good": "~9.0.1",
     "@hapi/good-console": "~9.0.1",
