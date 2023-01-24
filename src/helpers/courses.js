@@ -154,10 +154,7 @@ const listForOperations = async (query, origin) => {
 
 const listForPedagogy = async (query, credentials) => {
   const traineeId = query.trainee || get(credentials, '_id');
-  const trainee = await User
-    .findOne({ _id: traineeId })
-    .populate({ path: 'userCompanyList' })
-    .lean();
+  const trainee = await User.findOne({ _id: traineeId }).populate({ path: 'userCompanyList' }).lean();
   const traineeCompanies = query.company ? [query.company] : compact(trainee.userCompanyList.map(uc => uc.company));
 
   const courses = await Course.find(
