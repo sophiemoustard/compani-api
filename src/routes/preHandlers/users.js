@@ -63,10 +63,7 @@ const trainerUpdatesForbiddenKeys = (req, user) => {
 
 exports.authorizeUserUpdate = async (req) => {
   const { credentials } = req.auth;
-  const userFromDB = await User
-    .findOne({ _id: req.params._id })
-    .populate({ path: 'userCompanyList' })
-    .lean();
+  const userFromDB = await User.findOne({ _id: req.params._id }).populate({ path: 'userCompanyList' }).lean();
   if (!userFromDB) throw Boom.notFound(translate[language].userNotFound);
 
   const isLoggedUserVendor = !!get(credentials, 'role.vendor');
