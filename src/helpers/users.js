@@ -130,7 +130,7 @@ exports.getLearnerList = async (query, credentials) => {
 
 exports.getUser = async (userId, credentials) => {
   const companyId = get(credentials, 'company._id') || null;
-  const isLoggedUserVendor = !!get(credentials, 'role.vendor');
+  const isVendorUser = has(credentials, 'role.vendor');
   const requestingOwnInfos = UtilsHelper.areObjectIdsEquals(userId, credentials._id);
 
   const user = await User.findOne({ _id: userId })
@@ -140,13 +140,13 @@ exports.getUser = async (userId, credentials) => {
       path: 'sector',
       select: '_id sector',
       match: { company: companyId },
-      options: { isVendorUser: has(credentials, 'role.vendor'), requestingOwnInfos },
+      options: { isVendorUser, requestingOwnInfos },
     })
     .populate({
       path: 'customers',
       select: '-__v -createdAt -updatedAt',
       match: { company: companyId },
-      options: { isVendorUser: has(credentials, 'role.vendor'), requestingOwnInfos },
+      options: { isVendorUser, requestingOwnInfos },
     })
     .populate({ path: 'companyLinkRequest', populate: { path: 'company', select: '_id name' } })
     .populate({ path: 'establishment', select: 'siret' })
@@ -155,7 +155,7 @@ exports.getUser = async (userId, credentials) => {
 
   if (!user) throw Boom.notFound(translate[language].userNotFound);
 
-  return isLoggedUserVendor || requestingOwnInfos
+  return isVendorUser || requestingOwnInfos
     ? user
     : {
       ...user,
