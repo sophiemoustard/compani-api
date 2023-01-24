@@ -334,6 +334,7 @@ module.exports = {
     courseSlotDeleted: 'Course slot deleted.',
     courseSlotNotFound: 'Course slot not found.',
     courseSlotConflict: 'Course slot in conflict.',
+    courseSlotWithAttendances: 'Course slot has attendances.',
     /* Course funding organisation */
     courseFundingOrganisationsFound: 'Course funding organisations found.',
     courseFundingOrganisationsNotFound: 'Course funding organisations not found.',
@@ -739,6 +740,7 @@ module.exports = {
     courseSlotDeleted: 'Créneau de formation supprimé.',
     courseSlotNotFound: 'Créneau de formation non trouvé.',
     courseSlotConflict: 'Créneau de formation en conflit.',
+    courseSlotWithAttendances: 'Impossible: ce créneau de formation est émargé.',
     /* Course funding organisation */
     courseFundingOrganisationsFound: 'Financeurs trouvés.',
     courseFundingOrganisationsNotFound: 'Financeurs non trouvés.',
