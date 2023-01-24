@@ -49,7 +49,7 @@ exports.authorizeUserCompanyEdit = async (req) => {
   if (!userExists) throw Boom.forbidden('Error while checking user: user not found.');
 
   if (CompaniDate(payload.endDate).isBefore(startDate)) {
-    throw Boom.forbidden(translate[language].endDateBeforeStartDate);
+    throw Boom.forbidden(translate[language].userCompanyDetachmentBeforeAttachment);
   }
 
   const courseHistories = await CourseHistory
