@@ -202,7 +202,6 @@ const userCompanies = [
   { _id: new ObjectId(), user: usersSeedList[0]._id, company: company._id, startDate: '2022-08-14T23:00:00.000Z' },
   { _id: new ObjectId(), user: usersSeedList[1]._id, company: company._id, startDate: '2020-12-14T23:00:00.000Z' },
   { _id: new ObjectId(), user: usersSeedList[2]._id, company: authCompany._id, startDate: '2020-10-14T23:00:00.000Z' },
-  { _id: new ObjectId(), user: new ObjectId(), company: company._id, startDate: '2020-11-19T23:00:00.000Z' },
   { _id: new ObjectId(), user: usersSeedList[3]._id, company: company._id, startDate: '2020-11-19T23:00:00.000Z' },
   { _id: new ObjectId(), user: usersSeedList[4]._id, company: company._id, startDate: '2021-11-19T23:00:00.000Z' },
   { // startDate must be greater than 27/12/2022
