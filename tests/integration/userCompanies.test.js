@@ -168,7 +168,7 @@ describe('USER COMPANIES ROUTES - PUT /usercompanies/{id}', () => {
 
   describe('COACH FROM OTHER COMPANY', () => {
     beforeEach(async () => {
-      authToken = await getTokenByCredentials(usersSeedList[9].local);
+      authToken = await getToken('coach');
     });
 
     it('should return a 403 if user is from an other company', async () => {
@@ -189,7 +189,7 @@ describe('USER COMPANIES ROUTES - PUT /usercompanies/{id}', () => {
 
   describe('TRAINING_ORGANISATION_MANAGER', () => {
     beforeEach(async () => {
-      authToken = await getTokenByCredentials(usersSeedList[3].local);
+      authToken = await getToken('training_organisation_manager');
     });
 
     it('should detach user company', async () => {
