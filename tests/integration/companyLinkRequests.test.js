@@ -1,16 +1,14 @@
 const { expect } = require('expect');
-// const { ObjectId } = require('mongodb');
+const { ObjectId } = require('mongodb');
 const app = require('../../server');
 const {
   populateDB,
   userWithCompanyLinkRequestList,
   companyLinkRequestList,
+  noRoleNoCompany,
 } = require('./seed/companyLinkRequestsSeed');
 const { getTokenByCredentials, getToken } = require('./helpers/authentication');
-const {
-  // noRoleNoCompany,
-  noRole,
-} = require('../seed/authUsersSeed');
+const { noRole } = require('../seed/authUsersSeed');
 const { authCompany } = require('../seed/authCompaniesSeed');
 const CompanyLinkRequest = require('../../src/models/CompanyLinkRequest');
 
@@ -25,20 +23,20 @@ describe('COMPANY LINK REQUESTS ROUTES - POST /companylinkrequests', () => {
   beforeEach(populateDB);
 
   describe('LOGGED USER', () => {
-    // it('should create a company link request', async () => {
-    //   authToken = await getTokenByCredentials(noRoleNoCompany.local);
+    it('should create a company link request', async () => {
+      authToken = await getTokenByCredentials(noRoleNoCompany.local);
 
-    //   const response = await app.inject({
-    //     method: 'POST',
-    //     url: '/companylinkrequests',
-    //     payload: { company: authCompany._id },
-    //     headers: { Cookie: `alenvi_token=${authToken}` },
-    //   });
+      const response = await app.inject({
+        method: 'POST',
+        url: '/companylinkrequests',
+        payload: { company: authCompany._id },
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
 
-    //   expect(response.statusCode).toBe(200);
-    //   const companyLinkRequestsCount = await CompanyLinkRequest.countDocuments({ user: noRoleNoCompany._id });
-    //   expect(companyLinkRequestsCount).toEqual(1);
-    // });
+      expect(response.statusCode).toBe(200);
+      const companyLinkRequestsCount = await CompanyLinkRequest.countDocuments({ user: noRoleNoCompany._id });
+      expect(companyLinkRequestsCount).toEqual(1);
+    });
 
     it('should not create a company link request if user already has a company', async () => {
       authToken = await getTokenByCredentials(noRole.local);
@@ -53,18 +51,18 @@ describe('COMPANY LINK REQUESTS ROUTES - POST /companylinkrequests', () => {
       expect(response.statusCode).toBe(403);
     });
 
-    // it('should not create a company link request if company does not exist', async () => {
-    //   authToken = await getTokenByCredentials(noRoleNoCompany.local);
+    it('should not create a company link request if company does not exist', async () => {
+      authToken = await getTokenByCredentials(noRoleNoCompany.local);
 
-    //   const response = await app.inject({
-    //     method: 'POST',
-    //     url: '/companylinkrequests',
-    //     payload: { company: new ObjectId() },
-    //     headers: { Cookie: `alenvi_token=${authToken}` },
-    //   });
+      const response = await app.inject({
+        method: 'POST',
+        url: '/companylinkrequests',
+        payload: { company: new ObjectId() },
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
 
-    //   expect(response.statusCode).toBe(404);
-    // });
+      expect(response.statusCode).toBe(404);
+    });
 
     it('should not create a company link request if user already has a company link request', async () => {
       authToken = await getTokenByCredentials(userWithCompanyLinkRequestList[0].local);

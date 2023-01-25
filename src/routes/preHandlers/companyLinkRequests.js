@@ -3,11 +3,15 @@ const Boom = require('@hapi/boom');
 const UserCompany = require('../../models/UserCompany');
 const Company = require('../../models/Company');
 const CompanyLinkRequest = require('../../models/CompanyLinkRequest');
+const { CompaniDate } = require('../../helpers/dates/companiDates');
 
 exports.authorizeCompanyLinkRequestCreation = async (req) => {
   const userId = get(req, 'auth.credentials._id', null);
-  const hasCompany = await UserCompany.countDocuments({ user: userId });
-  if (hasCompany) throw Boom.forbidden();
+  const hasOrWillHaveCompany = await UserCompany.countDocuments({
+    user: userId,
+    $or: [{ endDate: { $exists: false } }, { endDate: { $gte: CompaniDate().toISO() } }],
+  });
+  if (hasOrWillHaveCompany) throw Boom.forbidden();
 
   const { company } = req.payload;
   const companyExists = await Company.countDocuments({ _id: company });
