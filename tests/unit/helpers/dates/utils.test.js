@@ -70,3 +70,25 @@ describe('descendingSortBy', () => {
     ]);
   });
 });
+
+describe('durationAscendingSort', () => {
+  it('should return a positive value if b < a', () => {
+    const result = UtilsHelper.durationAscendingSort('PT1H', 'PT0.3H');
+    expect(result > 0).toBe(true);
+  });
+
+  it('should return a negative value if b > a', () => {
+    const result = UtilsHelper.durationAscendingSort('P1D', 'P2D');
+    expect(result < 0).toBe(true);
+  });
+
+  it('should return 0 if b = a', () => {
+    const result = UtilsHelper.durationAscendingSort('PT1M', 'PT1M');
+    expect(result).toBe(0);
+  });
+
+  it('should return 0 if a ~ b (to the second)', () => {
+    const result = UtilsHelper.durationAscendingSort('PT1M0.123S', 'PT1M0.222S');
+    expect(result).toBe(0);
+  });
+});
