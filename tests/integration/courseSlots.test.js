@@ -247,6 +247,18 @@ describe('COURSE SLOTS ROUTES - PUT /courseslots/{_id}', () => {
       expect(response.statusCode).toBe(403);
     });
 
+    it('should return 403 as trying to remove dates and course slot has attendances', async () => {
+      const payload = { startDate: '', endDate: '' };
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/courseslots/${courseSlotsList[4]._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload,
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
+
     it('should return 409 if slots conflict', async () => {
       const payload = {
         startDate: courseSlotsList[0].startDate,
