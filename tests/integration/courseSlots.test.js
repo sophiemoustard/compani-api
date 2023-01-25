@@ -247,7 +247,7 @@ describe('COURSE SLOTS ROUTES - PUT /courseslots/{_id}', () => {
       expect(response.statusCode).toBe(403);
     });
 
-    it('should return 403 if course slot has attendances', async () => {
+    it('should return 403 as trying to remove dates and course slot has attendances', async () => {
       const payload = { startDate: '', endDate: '' };
       const response = await app.inject({
         method: 'PUT',
