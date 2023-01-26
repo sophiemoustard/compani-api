@@ -5,7 +5,7 @@ const {
   populateDB,
   userWithCompanyLinkRequestList,
   companyLinkRequestList,
-  noRoleNoCompany,
+  noRoleNoCompanyList,
 } = require('./seed/companyLinkRequestsSeed');
 const { getTokenByCredentials, getToken } = require('./helpers/authentication');
 const { noRole } = require('../seed/authUsersSeed');
@@ -24,7 +24,7 @@ describe('COMPANY LINK REQUESTS ROUTES - POST /companylinkrequests', () => {
 
   describe('LOGGED USER', () => {
     it('should create a company link request', async () => {
-      authToken = await getTokenByCredentials(noRoleNoCompany.local);
+      authToken = await getTokenByCredentials(noRoleNoCompanyList[0].local);
 
       const response = await app.inject({
         method: 'POST',
@@ -34,7 +34,7 @@ describe('COMPANY LINK REQUESTS ROUTES - POST /companylinkrequests', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      const companyLinkRequestsCount = await CompanyLinkRequest.countDocuments({ user: noRoleNoCompany._id });
+      const companyLinkRequestsCount = await CompanyLinkRequest.countDocuments({ user: noRoleNoCompanyList[0]._id });
       expect(companyLinkRequestsCount).toEqual(1);
     });
 
@@ -51,8 +51,21 @@ describe('COMPANY LINK REQUESTS ROUTES - POST /companylinkrequests', () => {
       expect(response.statusCode).toBe(403);
     });
 
+    it('should not create a company link request if user will have a company in the future', async () => {
+      authToken = await getTokenByCredentials(noRoleNoCompanyList[1].local);
+
+      const response = await app.inject({
+        method: 'POST',
+        url: '/companylinkrequests',
+        payload: { company: authCompany._id },
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
+
     it('should not create a company link request if company does not exist', async () => {
-      authToken = await getTokenByCredentials(noRoleNoCompany.local);
+      authToken = await getTokenByCredentials(noRoleNoCompanyList[0].local);
 
       const response = await app.inject({
         method: 'POST',

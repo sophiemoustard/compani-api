@@ -6,6 +6,7 @@ const { deleteNonAuthenticationSeeds } = require('../helpers/authentication');
 const { MOBILE } = require('../../../src/helpers/constants');
 const CompanyLinkRequest = require('../../../src/models/CompanyLinkRequest');
 const UserCompany = require('../../../src/models/UserCompany');
+const { CompaniDate } = require('../../../src/helpers/dates/companiDates');
 
 const userWithCompanyLinkRequestList = [
   {
@@ -26,23 +27,42 @@ const userWithCompanyLinkRequestList = [
   },
 ];
 
-const noRoleNoCompany = {
-  _id: new ObjectId(),
-  identity: { firstname: 'pasrole', lastname: 'passtructure' },
-  refreshToken: uuidv4(),
-  local: { email: 'pasrole.passtructure@authuserseed.fr', password: 'fdsf5P56D' },
-  contact: { phone: '0798640728' },
-  picture: { link: 'qwertyuio', pictureId: 'poiuytrew' },
-  origin: MOBILE,
-};
+const noRoleNoCompanyList = [
+  {
+    _id: new ObjectId(),
+    identity: { firstname: 'pasrole', lastname: 'passtructure' },
+    refreshToken: uuidv4(),
+    local: { email: 'pasrole.passtructure@authuserseed.fr', password: 'fdsf5P56D' },
+    contact: { phone: '0798640728' },
+    picture: { link: 'qwertyuio', pictureId: 'poiuytrew' },
+    origin: MOBILE,
+  },
+  {
+    _id: new ObjectId(),
+    identity: { firstname: 'Will', lastname: 'Join' },
+    refreshToken: uuidv4(),
+    local: { email: 'will.join@authuserseed.fr', password: 'fdsf5P56D' },
+    contact: { phone: '0798640728' },
+    picture: { link: 'qwertyuio', pictureId: 'poiuytrew' },
+    origin: MOBILE,
+  },
+];
 
-const userCompany = {
-  _id: new ObjectId(),
-  user: noRoleNoCompany._id,
-  company: companyWithoutSubscription._id,
-  startDate: '2019-01-01T23:00:00.000Z',
-  endDate: '2022-11-30T22:59:59.999Z',
-};
+const userCompanies = [
+  { // trainee was in company in the past
+    _id: new ObjectId(),
+    user: noRoleNoCompanyList[0]._id,
+    company: companyWithoutSubscription._id,
+    startDate: '2019-01-01T23:00:00.000Z',
+    endDate: '2022-11-30T22:59:59.999Z',
+  },
+  { // trainee will join company in the future
+    _id: new ObjectId(),
+    user: noRoleNoCompanyList[1]._id,
+    company: companyWithoutSubscription._id,
+    startDate: CompaniDate().add('P1D').toISO(),
+  },
+];
 
 const companyLinkRequestList = [
   {
@@ -61,10 +81,10 @@ const populateDB = async () => {
   await deleteNonAuthenticationSeeds();
 
   await Promise.all([
-    User.create([...userWithCompanyLinkRequestList, noRoleNoCompany]),
+    User.create([...userWithCompanyLinkRequestList, ...noRoleNoCompanyList]),
     CompanyLinkRequest.create(companyLinkRequestList),
-    UserCompany.create(userCompany),
+    UserCompany.create(userCompanies),
   ]);
 };
 
-module.exports = { userWithCompanyLinkRequestList, companyLinkRequestList, noRoleNoCompany, populateDB };
+module.exports = { userWithCompanyLinkRequestList, companyLinkRequestList, noRoleNoCompanyList, populateDB };
