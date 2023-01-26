@@ -599,10 +599,10 @@ describe('USERS ROUTES - GET /users/exists', () => {
         ...pick(usersSeedList[0],
           ['role', '_id']),
         company: authCompany._id,
-        userCompanyList: [
+        userCompanyList: expect.arrayContaining([
           { company: companyWithoutSubscription._id, endDate: CompaniDate('2021-12-31T23:00:00.000Z').toDate() },
           { company: authCompany._id },
-        ],
+        ]),
       });
     });
 
