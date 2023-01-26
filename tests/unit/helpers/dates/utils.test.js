@@ -83,12 +83,7 @@ describe('durationAscendingSort', () => {
   });
 
   it('should return 0 if b = a', () => {
-    const result = UtilsHelper.durationAscendingSort('PT1M', 'PT1M');
-    expect(result).toBe(0);
-  });
-
-  it('should return 0 if a ~ b (to the second)', () => {
-    const result = UtilsHelper.durationAscendingSort('PT1M0.123S', 'PT1M0.222S');
+    const result = UtilsHelper.durationAscendingSort('PT1M', 'PT60S');
     expect(result).toBe(0);
   });
 });

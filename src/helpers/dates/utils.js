@@ -28,7 +28,7 @@ exports.descendingSortBy = key => (a, b) => {
 exports.durationAscendingSort = (miscDurationA, miscDurationB) => {
   const companiDurationA = CompaniDuration(miscDurationA);
   const companiDurationB = CompaniDuration(miscDurationB);
-  if (companiDurationA.subtract(companiDurationB).abs().isShorterThan('PT1S')) return 0;
+  if (companiDurationA.isEquivalentTo(companiDurationB)) return 0;
 
   return companiDurationA.isLongerThan(companiDurationB) ? 1 : -1;
 };
