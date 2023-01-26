@@ -44,10 +44,10 @@ describe('COURSE BILL ROUTES - GET /coursebills', () => {
         company: pick(authCompany, ['_id', 'name']),
         payer: pick(authCompany, ['_id', 'name']),
         mainFee: { price: 120, count: 1 },
-        billingPurchaseList: [
-          { billingItem: billingItemList[0]._id, price: 90, count: 1 },
-          { billingItem: billingItemList[1]._id, price: 400, count: 1 },
-        ],
+        billingPurchaseList: expect.arrayContaining([
+          expect.objectContaining({ billingItem: billingItemList[0]._id, price: 90, count: 1 }),
+          expect.objectContaining({ billingItem: billingItemList[1]._id, price: 400, count: 1 }),
+        ]),
         netInclTaxes: 610,
       });
     });

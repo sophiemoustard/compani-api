@@ -176,13 +176,6 @@ const userCompaniesList = [
   },
   {
     _id: new ObjectId(),
-    user: userList[11]._id,
-    company: companyWithoutSubscription._id,
-    startDate: '2019-01-01T23:00:00.000Z',
-    endDate: '2022-11-30T22:59:59.999Z',
-  },
-  {
-    _id: new ObjectId(),
     user: userList[12]._id,
     company: companyWithoutSubscription._id,
     startDate: '2019-01-01T23:00:00.000Z',
