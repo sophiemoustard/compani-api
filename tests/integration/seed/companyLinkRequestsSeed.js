@@ -27,7 +27,7 @@ const userWithCompanyLinkRequestList = [
   },
 ];
 
-const noRoleNoCompanyList = [
+const usersSeedList = [
   {
     _id: new ObjectId(),
     identity: { firstname: 'pasrole', lastname: 'passtructure' },
@@ -51,14 +51,14 @@ const noRoleNoCompanyList = [
 const userCompanies = [
   { // trainee was in company in the past
     _id: new ObjectId(),
-    user: noRoleNoCompanyList[0]._id,
+    user: usersSeedList[0]._id,
     company: companyWithoutSubscription._id,
     startDate: '2019-01-01T23:00:00.000Z',
     endDate: '2022-11-30T22:59:59.999Z',
   },
   { // trainee will join company in the future
     _id: new ObjectId(),
-    user: noRoleNoCompanyList[1]._id,
+    user: usersSeedList[1]._id,
     company: companyWithoutSubscription._id,
     startDate: CompaniDate().add('P1D').toISO(),
   },
@@ -81,10 +81,10 @@ const populateDB = async () => {
   await deleteNonAuthenticationSeeds();
 
   await Promise.all([
-    User.create([...userWithCompanyLinkRequestList, ...noRoleNoCompanyList]),
+    User.create([...userWithCompanyLinkRequestList, ...usersSeedList]),
     CompanyLinkRequest.create(companyLinkRequestList),
     UserCompany.create(userCompanies),
   ]);
 };
 
-module.exports = { userWithCompanyLinkRequestList, companyLinkRequestList, noRoleNoCompanyList, populateDB };
+module.exports = { userWithCompanyLinkRequestList, companyLinkRequestList, usersSeedList, populateDB };
