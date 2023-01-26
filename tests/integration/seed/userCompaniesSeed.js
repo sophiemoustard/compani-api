@@ -248,7 +248,7 @@ const coursesList = [
     type: INTRA,
     maxTrainees: 8,
     salesRepresentative: vendorAdmin._id,
-    companyRepresentative: trainerAndCoach._id,
+    companyRepresentative: usersSeedList[1]._id,
     contact: trainerAndCoach._id,
     expectedBillsCount: 2,
   },
@@ -269,6 +269,7 @@ const courseHistories = [
     trainee: usersSeedList[0]._id,
     createdBy: trainerOrganisationManager._id,
     createdAt: '2022-09-05T14:00:00.000Z',
+    company: company._id,
   },
   {
     action: TRAINEE_ADDITION,

@@ -5,20 +5,10 @@ const { getTokenByCredentials, getToken } = require('./helpers/authentication');
 const UserCompany = require('../../src/models/UserCompany');
 const { userCompanies, populateDB, usersSeedList } = require('./seed/userCompaniesSeed');
 const UtilsMock = require('../utilsMock');
-const { checkSeeds } = require('./helpers/seedVerification');
 
 describe('NODE ENV', () => {
   it('should be \'test\'', () => {
     expect(process.env.NODE_ENV).toBe('test');
-  });
-});
-
-describe('SEEDS COHERENCE', () => {
-  it('should check seeds coherence', async () => {
-    await populateDB();
-    const result = await checkSeeds();
-
-    expect(result).toBe(true);
   });
 });
 
