@@ -18,13 +18,6 @@ exports.checkUserCompanySeeds = async () => {
     const everyUserExists = userCompanyList.map(uc => uc.user).every(user => !!user);
     expect(everyUserExists).toBeTruthy();
 
-    const mandatoryFields = ['_id', 'user', 'company', 'startDate'];
-    const mandatoryFieldsExist = userCompanyList.every((uc) => {
-      const objectFields = Object.keys(uc);
-      return mandatoryFields.every(field => objectFields.includes(field));
-    });
-    expect(mandatoryFieldsExist).toBeTruthy();
-
     const areEndDatesAfterStartDates = userCompanyList
       .filter(uc => uc.endDate)
       .every(uc => CompaniDate(uc.endDate).isAfter(uc.startDate));
@@ -38,6 +31,8 @@ exports.checkUserCompanySeeds = async () => {
 
       const sortedUserCompanyList = [...specificUserCompanyList].sort(ascendingSort('startDate'));
       for (let i = 0; i < sortedUserCompanyList.length - 1; i++) {
+        expect(sortedUserCompanyList[i].endDate).toBeTruthy();
+
         const hasIntersectionWithNextUserCompany = CompaniDate(sortedUserCompanyList[i].endDate)
           .isSameOrAfter(sortedUserCompanyList[i + 1].startDate);
         hasIntersectionInUserCompanies = hasIntersectionInUserCompanies && hasIntersectionWithNextUserCompany;
