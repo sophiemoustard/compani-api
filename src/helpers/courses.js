@@ -144,7 +144,7 @@ const listForOperations = async (query, origin) => {
       .map(course => ({ ...course, totalTheoreticalDuration: exports.getTotalTheoreticalDuration(course) }));
   }
 
-  return courses;
+  return courses.sort((a, b) => a._id.toHexString().localeCompare(b._id.toHexString()));
 };
 
 const listForPedagogy = async (query, credentials) => {
