@@ -6,6 +6,7 @@ const Contract = require('../../../src/models/Contract');
 const Course = require('../../../src/models/Course');
 const CourseHistory = require('../../../src/models/CourseHistory');
 const Helper = require('../../../src/models/Helper');
+const SectorHistory = require('../../../src/models/SectorHistory');
 const User = require('../../../src/models/User');
 const UserCompany = require('../../../src/models/UserCompany');
 const { ascendingSort } = require('../../../src/helpers/dates');
@@ -182,6 +183,27 @@ describe('SEEDS VERIFICATION', () => {
               )
             );
           expect(areUserAndCompanyMatching).toBeTruthy();
+        });
+      });
+
+      describe('Collection SectorHistory', () => {
+        let sectorHistoryList;
+        before(async () => {
+          sectorHistoryList = await SectorHistory
+            .find()
+            .populate({ path: 'auxiliary', select: '_id', populate: { path: 'userCompanyList' } })
+            .setOptions({ allCompanies: true })
+            .lean();
+        });
+
+        it('should return true if auxiliaries are all in company at sector history startDate', () => {
+          const doAuxiliariesAreInCompanyAtSectorHistoryStartDate = sectorHistoryList
+            .every(sh => sh.auxiliary.userCompanyList
+              .some(uc => UtilsHelper.areObjectIdsEquals(uc.company, sh.company) &&
+              CompaniDate(sh.startDate).isAfter(uc.startDate)
+              )
+            );
+          expect(doAuxiliariesAreInCompanyAtSectorHistoryStartDate).toBeTruthy();
         });
       });
 

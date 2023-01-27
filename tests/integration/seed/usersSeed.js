@@ -147,7 +147,7 @@ const usersSeedList = [
     refreshToken: uuidv4(),
     administrative: { certificates: [{ driveId: '1234567890' }], driveFolder: { driveId: '0987654321' } },
     contact: { phone: '0987654321' },
-    contracts: [{ _id: contractId }],
+    contracts: [contractId],
     establishment: establishmentList[0]._id,
     picture: { publicId: 'a/public/id', link: 'https://the.complete.com/link/to/the/picture/storage/location' },
     origin: WEBAPP,
@@ -377,9 +377,24 @@ const contracts = [
 ];
 
 const sectorHistories = [
-  { auxiliary: usersSeedList[0]._id, sector: userSectors[0]._id, company: authCompany._id, startDate: '2018-12-10' },
-  { auxiliary: usersSeedList[1]._id, sector: userSectors[0]._id, company: authCompany._id, startDate: '2018-12-10' },
-  { auxiliary: usersSeedList[4]._id, sector: userSectors[0]._id, company: authCompany._id, startDate: '2018-12-10' },
+  {
+    auxiliary: usersSeedList[0]._id,
+    sector: userSectors[0]._id,
+    company: authCompany._id,
+    startDate: '2022-12-10T10:00:00.000Z',
+  },
+  {
+    auxiliary: usersSeedList[1]._id,
+    sector: userSectors[0]._id,
+    company: authCompany._id,
+    startDate: '2022-12-10T10:00:00.000Z',
+  },
+  {
+    auxiliary: usersSeedList[4]._id,
+    sector: userSectors[0]._id,
+    company: authCompany._id,
+    startDate: '2022-12-10T10:00:00.000Z',
+  },
 ];
 
 const activityList = [{ _id: new ObjectId(), name: 'great activity', type: VIDEO, cards: [] }];
