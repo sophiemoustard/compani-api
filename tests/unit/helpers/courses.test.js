@@ -281,7 +281,7 @@ describe('list', () => {
       sinon.assert.notCalled(formatCourseWithProgress);
     });
 
-    it('should return company courses #tag', async () => {
+    it('should return company courses', async () => {
       const courseIdList = [new ObjectId(), new ObjectId(), new ObjectId()];
       const coursesList = [
         { _id: courseIdList[0], misc: 'name', type: INTRA },
