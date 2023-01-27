@@ -117,8 +117,12 @@ const listBlendedForCompany = async (query, origin) => {
     true
   );
 
-  const intraCourses = courses.filter(course => course.type === INTRA);
-  const interCourses = courses.filter(course => course.type === INTER_B2B);
+  const intraCourses = courses
+    .filter(course => course.type === INTRA)
+    .sort((a, b) => a._id.toHexString().localeCompare(b._id.toHexString()));
+  const interCourses = courses
+    .filter(course => course.type === INTER_B2B)
+    .sort((a, b) => a._id.toHexString().localeCompare(b._id.toHexString()));
 
   return [
     ...intraCourses,

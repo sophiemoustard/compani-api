@@ -226,7 +226,7 @@ describe('list', () => {
 
   describe('OPERATIONS', () => {
     it('should return courses', async () => {
-      const coursesList = [{ misc: 'name' }, { misc: 'program' }];
+      const coursesList = [{ _id: new ObjectId(), misc: 'name' }, { _id: new ObjectId(), misc: 'program' }];
 
       findCourseAndPopulate.returns(coursesList);
 
@@ -281,18 +281,23 @@ describe('list', () => {
       sinon.assert.notCalled(formatCourseWithProgress);
     });
 
-    it('should return company courses', async () => {
+    it('should return company courses #tag', async () => {
+      const courseIdList = [new ObjectId(), new ObjectId(), new ObjectId()];
       const coursesList = [
-        { misc: 'name', type: INTRA },
+        { _id: courseIdList[0], misc: 'name', type: INTRA },
+        { _id: courseIdList[1], misc: 'name2', type: INTRA },
         {
+          _id: courseIdList[2],
           misc: 'program',
           type: INTER_B2B,
           trainees: [{ identity: { firstname: 'Bonjour' }, company: { _id: authCompany } }],
         },
       ];
       const returnedList = [
-        { misc: 'name', type: INTRA },
+        { _id: courseIdList[0], misc: 'name', type: INTRA },
+        { _id: courseIdList[1], misc: 'name2', type: INTRA },
         {
+          _id: courseIdList[2],
           misc: 'program',
           type: INTER_B2B,
           trainees: [
