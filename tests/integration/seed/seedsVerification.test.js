@@ -19,10 +19,13 @@ const seedList = [
 describe('SEEDS VERIFICATION', () => {
   seedList.forEach(({ label, value: seeds }) => {
     describe(`${label} SEEDS FILE`, () => {
+      before(async () => {
+        await seeds.populateDB();
+      });
+
       describe('Collection Course', () => {
         let courseList;
         before(async () => {
-          await seeds.populateDB();
           courseList = await Course
             .find()
             .populate({ path: 'trainees', select: '_id', populate: { path: 'userCompanyList' } })
@@ -69,7 +72,6 @@ describe('SEEDS VERIFICATION', () => {
       describe('Collection CourseHistory', () => {
         let courseHistoryList;
         before(async () => {
-          await seeds.populateDB();
           courseHistoryList = await CourseHistory
             .find(
               { action: { $in: [TRAINEE_ADDITION, TRAINEE_DELETION] } },
@@ -110,7 +112,6 @@ describe('SEEDS VERIFICATION', () => {
       describe('Collection UserCompany', () => {
         let userCompanyList;
         before(async () => {
-          await seeds.populateDB();
           userCompanyList = await UserCompany
             .find()
             .populate({ path: 'user', select: '_id' })
