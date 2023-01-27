@@ -2,6 +2,7 @@ const { expect } = require('expect');
 const { groupBy, get } = require('lodash');
 const { CompaniDate } = require('../../../src/helpers/dates/companiDates');
 const CompanyLinkRequest = require('../../../src/models/CompanyLinkRequest');
+const Contract = require('../../../src/models/Contract');
 const Course = require('../../../src/models/Course');
 const CourseHistory = require('../../../src/models/CourseHistory');
 const Helper = require('../../../src/models/Helper');
@@ -38,6 +39,27 @@ describe('SEEDS VERIFICATION', () => {
         it('should return false if user already has a company', () => {
           const doUsersAlreadyHaveCompany = companyLinkRequestList.some(request => get(request.user, 'company'));
           expect(doUsersAlreadyHaveCompany).toBeFalsy();
+        });
+      });
+
+      describe('Collection Contract', () => {
+        let contractList;
+        before(async () => {
+          contractList = await Contract
+            .find()
+            .populate({ path: 'user', select: '_id', populate: { path: 'userCompanyList' } })
+            .setOptions({ allCompanies: true })
+            .lean();
+        });
+
+        it('should return true if users are all in company at contrat startDate', () => {
+          const doUsersAreInCompanyAtContractStartDate = contractList
+            .every(contract => contract.user.userCompanyList
+              .some(uc => UtilsHelper.areObjectIdsEquals(uc.company, contract.company) &&
+              CompaniDate(contract.startDate).isAfter(uc.startDate)
+              )
+            );
+          expect(doUsersAreInCompanyAtContractStartDate).toBeTruthy();
         });
       });
 

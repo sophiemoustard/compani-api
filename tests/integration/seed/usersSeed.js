@@ -1,6 +1,5 @@
 const { v4: uuidv4 } = require('uuid');
 const { ObjectId } = require('mongodb');
-const moment = require('moment');
 const User = require('../../../src/models/User');
 const Step = require('../../../src/models/Step');
 const SubProgram = require('../../../src/models/SubProgram');
@@ -355,24 +354,24 @@ const contracts = [
     _id: contractId,
     serialNumber: 'sadfasdgvxcsda',
     user: usersSeedList[0]._id,
-    startDate: moment('2018-10-10').toDate(),
-    createdAt: moment('2018-10-10').toDate(),
+    startDate: '2022-10-10T10:00:00.000Z',
+    createdAt: '2018-10-10T10:00:00.000Z',
     company: authCompany._id,
   },
   {
     _id: contractNotStartedId,
     serialNumber: 'sdadsfsdfsd',
     user: usersSeedList[4]._id,
-    startDate: moment().add(1, 'month').toDate(),
-    createdAt: moment('2018-10-10').toDate(),
+    startDate: CompaniDate().add('P1M').toISO(),
+    createdAt: '2018-10-10T10:00:00.000Z',
     company: authCompany._id,
   },
   {
     _id: endedContractId,
     serialNumber: 'testserialnumber',
     user: usersSeedList[4]._id,
-    startDate: '2020-01-01T00:00:00',
-    createdAt: '2020-06-01T23:59:59',
+    startDate: '2022-01-02T00:00:00.000Z',
+    createdAt: '2020-06-01T23:59:59.000Z',
     company: authCompany._id,
   },
 ];
