@@ -1,9 +1,12 @@
 const { expect } = require('expect');
 const { groupBy, get } = require('lodash');
 const { CompaniDate } = require('../../../src/helpers/dates/companiDates');
-const UserCompany = require('../../../src/models/UserCompany');
+const CompanyLinkRequest = require('../../../src/models/CompanyLinkRequest');
 const Course = require('../../../src/models/Course');
 const CourseHistory = require('../../../src/models/CourseHistory');
+const Helper = require('../../../src/models/Helper');
+const User = require('../../../src/models/User');
+const UserCompany = require('../../../src/models/UserCompany');
 const { ascendingSort } = require('../../../src/helpers/dates');
 const UtilsHelper = require('../../../src/helpers/utils');
 const { INTRA, COACH, ADMIN_CLIENT, TRAINEE_ADDITION, TRAINEE_DELETION } = require('../../../src/helpers/constants');
@@ -21,6 +24,21 @@ describe('SEEDS VERIFICATION', () => {
     describe(`${label} SEEDS FILE`, () => {
       before(async () => {
         await seeds.populateDB();
+      });
+
+      describe('Collection CompanyLinkRequest', () => {
+        let companyLinkRequestList;
+        before(async () => {
+          companyLinkRequestList = await CompanyLinkRequest
+            .find()
+            .populate({ path: 'user', select: '_id', populate: { path: 'company' } })
+            .lean();
+        });
+
+        it('should return false if user already has a company', () => {
+          const doUsersAlreadyHaveCompany = companyLinkRequestList.some(request => get(request.user, 'company'));
+          expect(doUsersAlreadyHaveCompany).toBeFalsy();
+        });
       });
 
       describe('Collection Course', () => {
@@ -106,6 +124,55 @@ describe('SEEDS VERIFICATION', () => {
               expect(!isLastHistoryAddition || isTraineeStillInCompanyAtRegistration).toBeTruthy();
             }
           }
+        });
+      });
+
+      describe('Collection Helper', () => {
+        let helperList;
+        before(async () => {
+          await seeds.populateDB();
+          helperList = await Helper
+            .find()
+            .populate({
+              path: 'user',
+              select: '_id',
+              populate: { path: 'userCompanyList' },
+            })
+            .populate({ path: 'company', select: '_id' })
+            .setOptions({ allCompanies: true })
+            .lean();
+        });
+
+        it('should return true if every company exists', () => {
+          const companiesExist = helperList.map(helper => helper.company).every(company => !!company);
+          expect(companiesExist).toBeTruthy();
+        });
+
+        it('should return true if every user exists', () => {
+          const usersExist = helperList.map(helper => helper.user).every(user => !!user);
+          expect(usersExist).toBeTruthy();
+        });
+        it('should return true if every helper has a matching user and company', () => {
+          const areUserAndCompanyMatching = helperList
+            .every(helper => helper.user.userCompanyList
+              .some(uc => UtilsHelper.areObjectIdsEquals(uc.company, helper.company._id) &&
+              UtilsHelper.areObjectIdsEquals(uc.user, helper.user._id)
+              )
+            );
+          expect(areUserAndCompanyMatching).toBeTruthy();
+        });
+      });
+
+      describe('Collection User', () => {
+        let userList;
+        before(async () => {
+          await seeds.populateDB();
+          userList = await User.find().populate({ path: 'company' }).lean();
+        });
+
+        it('should return true if every user with client role has a company', () => {
+          const doUsersWithClientRoleHaveCompany = userList.filter(u => get(u, 'role.client')).every(u => u.company);
+          expect(doUsersWithClientRoleHaveCompany).toBeTruthy();
         });
       });
 
