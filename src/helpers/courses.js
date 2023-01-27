@@ -119,10 +119,10 @@ const listBlendedForCompany = async (query, origin) => {
 
   const intraCourses = courses
     .filter(course => course.type === INTRA)
-    .sort((a, b) => a._id.toHexString().localeCompare(b._id.toHexString()));
+    .sort((a, b) => UtilsHelper.sortStrings(a._id.toHexString(), b._id.toHexString()));
   const interCourses = courses
     .filter(course => course.type === INTER_B2B)
-    .sort((a, b) => a._id.toHexString().localeCompare(b._id.toHexString()));
+    .sort((a, b) => UtilsHelper.sortStrings(a._id.toHexString(), b._id.toHexString()));
 
   return [
     ...intraCourses,
@@ -148,7 +148,7 @@ const listForOperations = async (query, origin) => {
       .map(course => ({ ...course, totalTheoreticalDuration: exports.getTotalTheoreticalDuration(course) }));
   }
 
-  return courses.sort((a, b) => a._id.toHexString().localeCompare(b._id.toHexString()));
+  return courses.sort((a, b) => UtilsHelper.sortStrings(a._id.toHexString(), b._id.toHexString()));
 };
 
 const listForPedagogy = async (query, credentials) => {
