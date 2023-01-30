@@ -14,7 +14,7 @@ const UtilsHelper = require('../../../src/helpers/utils');
 const { INTRA, COACH, ADMIN_CLIENT, TRAINEE_ADDITION, TRAINEE_DELETION } = require('../../../src/helpers/constants');
 const userCompaniesSeed = require('./userCompaniesSeed');
 const usersSeed = require('./usersSeed');
-const { descendingSortBy } = require('../../../src/helpers/dates/utils');
+const { descendingSortBy, ascendingSortBy } = require('../../../src/helpers/dates/utils');
 
 const seedList = [
   { label: 'USERCOMPANY', value: userCompaniesSeed },
@@ -130,19 +130,27 @@ describe('SEEDS VERIFICATION', () => {
 
             for (const traineeCourseHistories of Object.values(courseHistoriesGroupedByTrainee)) {
               const lastHistory = traineeCourseHistories.sort(descendingSortBy('createdAt'))[0];
-
-              const isTraineeInCompanyBeforeAction = traineeCourseHistories.every(ch =>
-                ch.trainee.userCompanyList.some(uc => UtilsHelper.areObjectIdsEquals(uc.company, lastHistory.company) &&
-                CompaniDate(ch.createdAt).isAfter(uc.startDate)
-                )
-              );
+              let currentCompany = null;
+              const isTraineeInCompanyBeforeAction = traineeCourseHistories.sort(ascendingSortBy('createdAt'))
+                .every((ch, i) => {
+                  if (i % 2 === 0) currentCompany = ch.company;
+                  return ch.trainee.userCompanyList
+                    .some(uc => UtilsHelper.areObjectIdsEquals(uc.company, currentCompany) &&
+                    CompaniDate(ch.createdAt).isAfter(uc.startDate)
+                    );
+                }
+                );
               expect(isTraineeInCompanyBeforeAction).toBeTruthy();
 
               const isLastHistoryAddition = lastHistory.action === TRAINEE_ADDITION;
-              const isTraineeStillInCompanyAtRegistration = lastHistory.trainee.userCompanyList.some(uc =>
-                UtilsHelper.areObjectIdsEquals(uc.company, lastHistory.company) &&
-              (!uc.endDate || CompaniDate(lastHistory.createdAt).isBefore(uc.endDate))
-              );
+
+              let isTraineeStillInCompanyAtRegistration = true;
+              if (isLastHistoryAddition) {
+                isTraineeStillInCompanyAtRegistration = lastHistory.trainee.userCompanyList.some(uc =>
+                  UtilsHelper.areObjectIdsEquals(uc.company, lastHistory.company) &&
+                  (!uc.endDate || CompaniDate(lastHistory.createdAt).isBefore(uc.endDate))
+                );
+              }
 
               expect(!isLastHistoryAddition || isTraineeStillInCompanyAtRegistration).toBeTruthy();
             }

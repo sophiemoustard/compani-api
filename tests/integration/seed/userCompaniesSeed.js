@@ -269,7 +269,6 @@ const courseHistories = [
     trainee: usersSeedList[0]._id,
     createdBy: trainerOrganisationManager._id,
     createdAt: '2022-09-05T14:00:00.000Z',
-    company: company._id,
   },
   {
     action: TRAINEE_ADDITION,
