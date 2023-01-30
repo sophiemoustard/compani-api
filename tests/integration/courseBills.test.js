@@ -39,17 +39,29 @@ describe('COURSE BILL ROUTES - GET /coursebills', () => {
 
       expect(response.statusCode).toBe(200);
       expect(response.result.data.courseBills.length).toEqual(2);
-      expect(response.result.data.courseBills[0]).toMatchObject({
-        course: coursesList[0]._id,
-        company: pick(authCompany, ['_id', 'name']),
-        payer: pick(authCompany, ['_id', 'name']),
-        mainFee: { price: 120, count: 1 },
-        billingPurchaseList: expect.arrayContaining([
-          expect.objectContaining({ billingItem: billingItemList[0]._id, price: 90, count: 1 }),
-          expect.objectContaining({ billingItem: billingItemList[1]._id, price: 400, count: 1 }),
-        ]),
-        netInclTaxes: 610,
-      });
+      expect(response.result.data.courseBills).toEqual(expect.arrayContaining([
+        expect.objectContaining({
+          course: coursesList[0]._id,
+          company: pick(authCompany, ['_id', 'name']),
+          payer: pick(authCompany, ['_id', 'name']),
+          mainFee: { price: 120, count: 1 },
+          billingPurchaseList: expect.arrayContaining([
+            expect.objectContaining({ billingItem: billingItemList[0]._id, price: 90, count: 1 }),
+            expect.objectContaining({ billingItem: billingItemList[1]._id, price: 400, count: 1 }),
+          ]),
+          netInclTaxes: 610,
+        }),
+        expect.objectContaining({
+          course: coursesList[0]._id,
+          company: pick(authCompany, ['_id', 'name']),
+          payer: pick(authCompany, ['_id', 'name']),
+          mainFee: { price: 200, count: 2, description: 'yoyo' },
+          billingPurchaseList: [expect.objectContaining({ billingItem: billingItemList[0]._id, price: 9, count: 1 })],
+          netInclTaxes: 409,
+          billedAt: new Date('2022-04-07T00:00:00.000Z'),
+          number: 'FACT-00006',
+        }),
+      ]));
     });
 
     it('should get course bill for intra course (with funding organisation as payer)', async () => {

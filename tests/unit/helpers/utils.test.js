@@ -650,3 +650,23 @@ describe('getKeysOf2DepthObject', () => {
     expect(result).toEqual(['starter', 'dish.fishStew', 'dessert.cake', 'dessert.pie']);
   });
 });
+
+describe('sortStrings', () => {
+  it('should return a negative number if a > b', () => {
+    const result = UtilsHelper.sortStrings('abc', 'bcd');
+
+    expect(result).toBeLessThan(0);
+  });
+
+  it('should return a positive number if a < b', () => {
+    const result = UtilsHelper.sortStrings('bcd', 'abc');
+
+    expect(result).toBeGreaterThan(0);
+  });
+
+  it('should return 0 if a === b', () => {
+    const result = UtilsHelper.sortStrings('abc', 'abc');
+
+    expect(result).toBe(0);
+  });
+});

@@ -96,6 +96,12 @@ const companiDurationFactory = (inputDuration) => {
       return companiDurationFactory(_duration.plus(otherDuration));
     },
 
+    subtract(miscTypeOtherDuration) {
+      const otherDuration = exports._formatMiscToCompaniDuration(miscTypeOtherDuration);
+
+      return companiDurationFactory(_duration.minus(otherDuration));
+    },
+
     abs() {
       if (_duration.as('seconds') > 0) return companiDurationFactory(_duration);
       return companiDurationFactory(_duration.mapUnits(value => -value));

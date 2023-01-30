@@ -252,3 +252,5 @@ exports.getKeysOf2DepthObject = object => Object.entries(object).reduce((acc, [k
 
 exports.formatIntervalHourly = slot => `${CompaniDate(slot.startDate).format(HHhMM)} - `
   + `${CompaniDate(slot.endDate).format(HHhMM)}`;
+
+exports.sortStrings = (a, b) => a.toLowerCase().localeCompare(b.toLowerCase());
