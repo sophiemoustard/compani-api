@@ -355,7 +355,7 @@ const contracts = [
     serialNumber: 'sadfasdgvxcsda',
     user: usersSeedList[0]._id,
     startDate: '2022-10-10T10:00:00.000Z',
-    createdAt: '2018-10-10T10:00:00.000Z',
+    createdAt: '2022-10-09T10:00:00.000Z',
     company: authCompany._id,
   },
   {
@@ -363,7 +363,7 @@ const contracts = [
     serialNumber: 'sdadsfsdfsd',
     user: usersSeedList[4]._id,
     startDate: CompaniDate().add('P1M').toISO(),
-    createdAt: '2018-10-10T10:00:00.000Z',
+    createdAt: CompaniDate().add('P29D').toISO(),
     company: authCompany._id,
   },
   {
@@ -371,7 +371,7 @@ const contracts = [
     serialNumber: 'testserialnumber',
     user: usersSeedList[4]._id,
     startDate: '2022-01-02T00:00:00.000Z',
-    createdAt: '2020-06-01T23:59:59.000Z',
+    createdAt: '2022-01-01T23:59:59.000Z',
     company: authCompany._id,
   },
 ];

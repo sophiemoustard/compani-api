@@ -1,6 +1,5 @@
 const { expect } = require('expect');
 const { groupBy, get } = require('lodash');
-const { CompaniDate } = require('../../../src/helpers/dates/companiDates');
 const CompanyLinkRequest = require('../../../src/models/CompanyLinkRequest');
 const Contract = require('../../../src/models/Contract');
 const Course = require('../../../src/models/Course');
@@ -10,11 +9,13 @@ const SectorHistory = require('../../../src/models/SectorHistory');
 const User = require('../../../src/models/User');
 const UserCompany = require('../../../src/models/UserCompany');
 const { ascendingSort } = require('../../../src/helpers/dates');
+const { CompaniDate } = require('../../../src/helpers/dates/companiDates');
+const { descendingSortBy, ascendingSortBy } = require('../../../src/helpers/dates/utils');
 const UtilsHelper = require('../../../src/helpers/utils');
+const UserCompaniesHelper = require('../../../src/helpers/userCompanies');
 const { INTRA, COACH, ADMIN_CLIENT, TRAINEE_ADDITION, TRAINEE_DELETION } = require('../../../src/helpers/constants');
 const userCompaniesSeed = require('./userCompaniesSeed');
 const usersSeed = require('./usersSeed');
-const { descendingSortBy, ascendingSortBy } = require('../../../src/helpers/dates/utils');
 
 const seedList = [
   { label: 'USERCOMPANY', value: userCompaniesSeed },
@@ -24,21 +25,22 @@ const seedList = [
 describe('SEEDS VERIFICATION', () => {
   seedList.forEach(({ label, value: seeds }) => {
     describe(`${label} SEEDS FILE`, () => {
-      before(async () => {
-        await seeds.populateDB();
-      });
+      before(seeds.populateDB);
 
       describe('Collection CompanyLinkRequest', () => {
         let companyLinkRequestList;
         before(async () => {
           companyLinkRequestList = await CompanyLinkRequest
             .find()
-            .populate({ path: 'user', select: '_id', populate: { path: 'company' } })
+            .populate({ path: 'user', select: '_id', populate: { path: 'userCompanyList' } })
             .lean();
         });
 
-        it('should return false if user already has a company', () => {
-          const doUsersAlreadyHaveCompany = companyLinkRequestList.some(request => get(request.user, 'company'));
+        it('should pass if no user has or will have a company', () => {
+          const doUsersAlreadyHaveCompany = companyLinkRequestList
+            .some(request =>
+              UserCompaniesHelper.getCurrentAndFutureCompanies(get(request.user, 'userCompanyList')).length
+            );
           expect(doUsersAlreadyHaveCompany).toBeFalsy();
         });
       });
@@ -53,14 +55,14 @@ describe('SEEDS VERIFICATION', () => {
             .lean();
         });
 
-        it('should return true if users are all in company at contrat startDate', () => {
-          const doUsersAreInCompanyAtContractStartDate = contractList
+        it('should pass if all users are in company at contrat startDate', () => {
+          const areUsersInCompanyAtContractStartDate = contractList
             .every(contract => contract.user.userCompanyList
               .some(uc => UtilsHelper.areObjectIdsEquals(uc.company, contract.company) &&
-              CompaniDate(contract.startDate).isAfter(uc.startDate)
+                CompaniDate(contract.startDate).isSameOrAfter(uc.startDate)
               )
             );
-          expect(doUsersAreInCompanyAtContractStartDate).toBeTruthy();
+          expect(areUsersInCompanyAtContractStartDate).toBeTruthy();
         });
       });
 
@@ -81,7 +83,7 @@ describe('SEEDS VERIFICATION', () => {
             .lean();
         });
 
-        it('should return true if all trainees are in course companies', () => {
+        it('should pass if all trainees are in course companies', () => {
           const isEveryTraineeCompanyAttachedToCourse = courseList
             .every(course => !course.companies || course.trainees
               .every(trainee => trainee.userCompanyList
@@ -90,22 +92,22 @@ describe('SEEDS VERIFICATION', () => {
           expect(isEveryTraineeCompanyAttachedToCourse).toBeTruthy();
         });
 
-        it('should return true if companyRepresentative is defined in intra course only', () => {
+        it('should pass if companyRepresentative is defined in intra course only', () => {
           const isCompanyRepresentativeOnlyInIntraCourses = courseList
             .every(c => !c.companyRepresentative || (c.companyRepresentative && c.type === INTRA));
           expect(isCompanyRepresentativeOnlyInIntraCourses).toBeTruthy();
         });
 
-        it('should return true if companyRepresentative has good role', () => {
+        it('should pass if companyRepresentative has good role', () => {
           const areCompanyRepresentativesCoachOrAdmin = courseList.every(c => !c.companyRepresentative ||
-          [COACH, ADMIN_CLIENT].includes(get(c.companyRepresentative, 'role.client.name')));
+            [COACH, ADMIN_CLIENT].includes(get(c.companyRepresentative, 'role.client.name')));
           expect(areCompanyRepresentativesCoachOrAdmin).toBeTruthy();
         });
 
-        it('should return true if companyRepresentative is well defined', () => {
+        it('should pass if companyRepresentative is in good company', () => {
           const areCoursesAndCompanyRepresentativesInSameCompany = courseList
             .every(c => !c.companyRepresentative ||
-            UtilsHelper.areObjectIdsEquals(c.companyRepresentative.company, c.companies[0]));
+              UtilsHelper.areObjectIdsEquals(c.companyRepresentative.company, c.companies[0]));
           expect(areCoursesAndCompanyRepresentativesInSameCompany).toBeTruthy();
         });
       });
@@ -122,7 +124,7 @@ describe('SEEDS VERIFICATION', () => {
             .lean();
         });
 
-        it('should return true if all trainees are in course company at registration', () => {
+        it('should pass if all trainees are in course company at registration', () => {
           const courseHistoriesGroupedByCourse = groupBy(courseHistoryList, 'course');
 
           for (const courseHistories of Object.values(courseHistoriesGroupedByCourse)) {
@@ -136,10 +138,9 @@ describe('SEEDS VERIFICATION', () => {
                   if (i % 2 === 0) currentCompany = ch.company;
                   return ch.trainee.userCompanyList
                     .some(uc => UtilsHelper.areObjectIdsEquals(uc.company, currentCompany) &&
-                    CompaniDate(ch.createdAt).isAfter(uc.startDate)
+                      CompaniDate(ch.createdAt).isAfter(uc.startDate)
                     );
-                }
-                );
+                });
               expect(isTraineeInCompanyBeforeAction).toBeTruthy();
 
               const isLastHistoryAddition = lastHistory.action === TRAINEE_ADDITION;
@@ -148,7 +149,7 @@ describe('SEEDS VERIFICATION', () => {
               if (isLastHistoryAddition) {
                 isTraineeStillInCompanyAtRegistration = lastHistory.trainee.userCompanyList.some(uc =>
                   UtilsHelper.areObjectIdsEquals(uc.company, lastHistory.company) &&
-                  (!uc.endDate || CompaniDate(lastHistory.createdAt).isBefore(uc.endDate))
+                    (!uc.endDate || CompaniDate(lastHistory.createdAt).isBefore(uc.endDate))
                 );
               }
 
@@ -161,33 +162,29 @@ describe('SEEDS VERIFICATION', () => {
       describe('Collection Helper', () => {
         let helperList;
         before(async () => {
-          await seeds.populateDB();
           helperList = await Helper
             .find()
-            .populate({
-              path: 'user',
-              select: '_id',
-              populate: { path: 'userCompanyList' },
-            })
+            .populate({ path: 'user', select: '_id', populate: { path: 'userCompanyList' } })
             .populate({ path: 'company', select: '_id' })
             .setOptions({ allCompanies: true })
             .lean();
         });
 
-        it('should return true if every company exists', () => {
+        it('should pass if every company exists', () => {
           const companiesExist = helperList.map(helper => helper.company).every(company => !!company);
           expect(companiesExist).toBeTruthy();
         });
 
-        it('should return true if every user exists', () => {
+        it('should pass if every user exists', () => {
           const usersExist = helperList.map(helper => helper.user).every(user => !!user);
           expect(usersExist).toBeTruthy();
         });
-        it('should return true if every helper has a matching user and company', () => {
+
+        it('should pass if every helper has a matching user and company', () => {
           const areUserAndCompanyMatching = helperList
             .every(helper => helper.user.userCompanyList
               .some(uc => UtilsHelper.areObjectIdsEquals(uc.company, helper.company._id) &&
-              UtilsHelper.areObjectIdsEquals(uc.user, helper.user._id)
+                UtilsHelper.areObjectIdsEquals(uc.user, helper.user._id)
               )
             );
           expect(areUserAndCompanyMatching).toBeTruthy();
@@ -204,25 +201,24 @@ describe('SEEDS VERIFICATION', () => {
             .lean();
         });
 
-        it('should return true if auxiliaries are all in company at sector history startDate', () => {
-          const doAuxiliariesAreInCompanyAtSectorHistoryStartDate = sectorHistoryList
+        it('should pass if all auxiliaries are in company at sector history startDate', () => {
+          const areAuxiliariesInCompanyAtSectorHistoryStartDate = sectorHistoryList
             .every(sh => sh.auxiliary.userCompanyList
               .some(uc => UtilsHelper.areObjectIdsEquals(uc.company, sh.company) &&
-              CompaniDate(sh.startDate).isAfter(uc.startDate)
+                CompaniDate(sh.startDate).isAfter(uc.startDate)
               )
             );
-          expect(doAuxiliariesAreInCompanyAtSectorHistoryStartDate).toBeTruthy();
+          expect(areAuxiliariesInCompanyAtSectorHistoryStartDate).toBeTruthy();
         });
       });
 
       describe('Collection User', () => {
         let userList;
         before(async () => {
-          await seeds.populateDB();
           userList = await User.find().populate({ path: 'company' }).lean();
         });
 
-        it('should return true if every user with client role has a company', () => {
+        it('should pass if every user with client role has a company', () => {
           const doUsersWithClientRoleHaveCompany = userList.filter(u => get(u, 'role.client')).every(u => u.company);
           expect(doUsersWithClientRoleHaveCompany).toBeTruthy();
         });
@@ -238,24 +234,24 @@ describe('SEEDS VERIFICATION', () => {
             .lean();
         });
 
-        it('should return true if every company exists', () => {
+        it('should pass if every company exists', () => {
           const companiesExist = userCompanyList.map(uc => uc.company).every(company => !!company);
           expect(companiesExist).toBeTruthy();
         });
 
-        it('should return true if every user exists', () => {
+        it('should pass if every user exists', () => {
           const usersExist = userCompanyList.map(uc => uc.user).every(user => !!user);
           expect(usersExist).toBeTruthy();
         });
 
-        it('should return true if endDates are greater than startDates', () => {
+        it('should pass if endDates are greater than startDates', () => {
           const areEndDatesAfterStartDates = userCompanyList
             .filter(uc => uc.endDate)
             .every(uc => CompaniDate(uc.endDate).isAfter(uc.startDate));
           expect(areEndDatesAfterStartDates).toBeTruthy();
         });
 
-        it('should return true if no userCompany intersects with another and only last one has endDate', () => {
+        it('should pass if no userCompany intersects with another and only last one has endDate', () => {
           const userCompaniesGroupedByUser = groupBy(userCompanyList, 'user._id');
           let hasIntersectionInUserCompanies = false;
           for (const specificUserCompanyList of Object.values(userCompaniesGroupedByUser)) {
