@@ -126,7 +126,7 @@ exports.getTraineesCompanyAtCourseRegistration = async (traineeIds, courseId) =>
     .sort({ trainee: 1, createdAt: -1 })
     .lean();
 
-  const traineesCompanyAtCourseRegistration = sortedUniqBy(courseHistories, 'trainee')
+  const traineesCompanyAtCourseRegistration = sortedUniqBy(courseHistories, ch => ch.trainee.toHexString())
     .map(courseHistory => pick(courseHistory, ['trainee', 'company']));
 
   return traineesCompanyAtCourseRegistration;
