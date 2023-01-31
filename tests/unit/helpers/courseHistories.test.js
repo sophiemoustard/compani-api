@@ -1,6 +1,7 @@
 const sinon = require('sinon');
 const { expect } = require('expect');
 const { ObjectId } = require('mongodb');
+const { cloneDeep } = require('lodash');
 const CourseHistory = require('../../../src/models/CourseHistory');
 const CourseHistoriesHelper = require('../../../src/helpers/courseHistories');
 const {
@@ -571,9 +572,9 @@ describe('getTraineesCompanyAtCourseRegistration', () => {
     const companyIds = [new ObjectId(), new ObjectId()];
 
     const courseHistories = [
-      { trainee: new ObjectId(traineeIds[1]), company: companyIds[1], createdAt: '2023-01-04T12:30:00.000Z' },
-      { trainee: new ObjectId(traineeIds[0]), company: companyIds[0], createdAt: '2023-01-03T12:30:00.000Z' },
-      { trainee: new ObjectId(traineeIds[0]), company: new ObjectId(), createdAt: '2022-12-15T12:30:00.000Z' },
+      { trainee: cloneDeep(traineeIds[1]), company: companyIds[1], createdAt: '2023-01-04T12:30:00.000Z' },
+      { trainee: cloneDeep(traineeIds[0]), company: companyIds[0], createdAt: '2023-01-03T12:30:00.000Z' },
+      { trainee: cloneDeep(traineeIds[0]), company: new ObjectId(), createdAt: '2022-12-15T12:30:00.000Z' },
     ];
     find.returns(SinonMongoose.stubChainedQueries(courseHistories, ['sort', 'lean']));
 
