@@ -571,9 +571,9 @@ describe('getTraineesCompanyAtCourseRegistration', () => {
     const companyIds = [new ObjectId(), new ObjectId()];
 
     const courseHistories = [
-      { trainee: traineeIds[1], company: companyIds[1], createdAt: '2023-01-04T12:30:00.000Z' },
-      { trainee: traineeIds[0], company: companyIds[0], createdAt: '2023-01-03T12:30:00.000Z' },
-      { trainee: traineeIds[0], company: new ObjectId(), createdAt: '2022-12-15T12:30:00.000Z' },
+      { trainee: new ObjectId(traineeIds[1]), company: companyIds[1], createdAt: '2023-01-04T12:30:00.000Z' },
+      { trainee: new ObjectId(traineeIds[0]), company: companyIds[0], createdAt: '2023-01-03T12:30:00.000Z' },
+      { trainee: new ObjectId(traineeIds[0]), company: new ObjectId(), createdAt: '2022-12-15T12:30:00.000Z' },
     ];
     find.returns(SinonMongoose.stubChainedQueries(courseHistories, ['sort', 'lean']));
 
