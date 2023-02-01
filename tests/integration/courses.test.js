@@ -2600,6 +2600,19 @@ describe('COURSES ROUTES - DELETE /courses/{_id}/trainee/{traineeId}', () => {
       expect(courseHistory).toEqual(1);
     });
 
+    it('should return a 403 if trainee is not in course', async () => {
+      const courseId = courseIdFromAuthCompany.toHexString();
+      const traineeNotInCourseId = traineeFromAuthFormerlyInOther._id.toHexString();
+
+      const response = await app.inject({
+        method: 'DELETE',
+        url: `/courses/${courseId}/trainees/${traineeNotInCourseId}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
+
     it('should return 404 if course doesn\'t exist', async () => {
       const response = await app.inject({
         method: 'DELETE',
