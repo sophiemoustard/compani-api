@@ -2968,7 +2968,8 @@ describe('addTrainee', () => {
       courseFindOneAndUpdate,
       { _id: course._id },
       { $addToSet: { trainees: user._id } },
-      { companies: 1, type: 1 });
+      { projection: { companies: 1, type: 1 } }
+    );
     SinonMongoose.calledOnceWithExactly(
       userFindOne,
       [
@@ -3001,7 +3002,7 @@ describe('addTrainee', () => {
       courseFindOneAndUpdate,
       { _id: course._id },
       { $addToSet: { trainees: user._id } },
-      { companies: 1, type: 1 }
+      { projection: { companies: 1, type: 1 } }
     );
     SinonMongoose.calledOnceWithExactly(
       userFindOne,
