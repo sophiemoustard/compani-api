@@ -608,7 +608,11 @@ exports.getSMSHistory = async courseId => CourseSmsHistory.find({ course: course
   .lean();
 
 exports.addTrainee = async (courseId, payload, credentials) => {
-  await Course.updateOne({ _id: courseId }, { $addToSet: { trainees: payload.trainee } });
+  const course = await Course.findOneAndUpdate(
+    { _id: courseId },
+    { $addToSet: { trainees: payload.trainee } },
+    { companies: 1, type: 1 }
+  );
 
   const trainee = await User
     .findOne({ _id: payload.trainee }, { formationExpoTokenList: 1 })
@@ -617,7 +621,11 @@ exports.addTrainee = async (courseId, payload, credentials) => {
 
   await Promise.all([
     CourseHistoriesHelper.createHistoryOnTraineeAddition(
-      { course: courseId, traineeId: trainee._id, company: trainee.company },
+      {
+        course: courseId,
+        traineeId: trainee._id,
+        company: course.type === INTRA ? course.companies[0] : trainee.company,
+      },
       credentials._id
     ),
     NotificationHelper.sendBlendedCourseRegistrationNotification(trainee, courseId),

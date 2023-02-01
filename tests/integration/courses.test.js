@@ -2278,6 +2278,17 @@ describe('COURSES ROUTES - PUT /courses/{_id}/trainees', () => {
       expect(course).toEqual(1);
     });
 
+    it('should return 200 if user will be in company', async () => {
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/courses/${intraCourseIdFromAuthCompany}/trainees`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload: { trainee: traineeComingUpInAuthCompany._id },
+      });
+
+      expect(response.statusCode).toBe(200);
+    });
+
     it('should return 404 if course doesn\'t exist', async () => {
       const response = await app.inject({
         method: 'PUT',
@@ -2317,17 +2328,6 @@ describe('COURSES ROUTES - PUT /courses/{_id}/trainees', () => {
         url: `/courses/${intraCourseIdFromAuthCompany}/trainees`,
         headers: { Cookie: `alenvi_token=${authToken}` },
         payload: { trainee: traineeFormerlyInAuthCompany._id },
-      });
-
-      expect(response.statusCode).toBe(404);
-    });
-
-    it('should return 404 if user is not yet in company', async () => {
-      const response = await app.inject({
-        method: 'PUT',
-        url: `/courses/${intraCourseIdFromAuthCompany}/trainees`,
-        headers: { Cookie: `alenvi_token=${authToken}` },
-        payload: { trainee: traineeComingUpInAuthCompany._id },
       });
 
       expect(response.statusCode).toBe(404);
@@ -2375,6 +2375,17 @@ describe('COURSES ROUTES - PUT /courses/{_id}/trainees', () => {
       });
 
       expect(response.statusCode).toBe(409);
+    });
+
+    it('should return a 404 if user does not exist', async () => {
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/courses/${intraCourseIdWithTrainee}/trainees`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload: { trainee: new ObjectId() },
+      });
+
+      expect(response.statusCode).toBe(404);
     });
 
     it('should return a 400 if trainee is missing in payload', async () => {
