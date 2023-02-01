@@ -8,6 +8,7 @@ const UserCompany = require('../../models/UserCompany');
 const CourseSlot = require('../../models/CourseSlot');
 const Company = require('../../models/Company');
 const CourseBill = require('../../models/CourseBill');
+const AttendanceSheet = require('../../models/AttendanceSheet');
 const {
   TRAINER,
   INTRA,
@@ -28,7 +29,7 @@ const translate = require('../../helpers/translate');
 const UtilsHelper = require('../../helpers/utils');
 const CourseHistoriesHelper = require('../../helpers/courseHistories');
 const { CompaniDate } = require('../../helpers/dates/companiDates');
-const AttendanceSheet = require('../../models/AttendanceSheet');
+const UserCompaniesHelper = require('../../helpers/userCompanies');
 
 const { language } = translate;
 
@@ -240,19 +241,27 @@ exports.authorizeTraineeAddition = async (req) => {
 
     if (course.trainees.length + 1 > course.maxTrainees) throw Boom.forbidden(translate[language].maxTraineesReached);
 
-    const traineeExist = await User.countDocuments({ _id: payload.trainee });
-    if (!traineeExist) throw Boom.forbidden();
-
     const traineeIsTrainer = UtilsHelper.areObjectIdsEquals(course.trainer, payload.trainee);
     if (traineeIsTrainer) throw Boom.forbidden();
 
-    const userCompanyCurrentlyExists = await UserCompany.countDocuments({
-      user: payload.trainee,
-      company: { $in: course.companies },
-      startDate: { $lte: CompaniDate().toISO() },
-      $or: [{ endDate: { $exists: false } }, { endDate: { $gt: CompaniDate().toISO() } }],
-    });
-    if (!userCompanyCurrentlyExists) throw Boom.notFound();
+    const trainee = await User.findOne({ _id: payload.trainee }, { _id: 1 })
+      .populate({ path: 'userCompanyList' })
+      .lean();
+    if (!trainee) throw Boom.notFound();
+
+    if (course.type === INTRA) {
+      if (!UserCompaniesHelper.userIsOrWillBeInCompany(trainee.userCompanyList, course.companies[0])) {
+        throw Boom.notFound();
+      }
+    } else {
+      const userCompanyCurrentlyExists = await UserCompany.countDocuments({
+        user: payload.trainee,
+        company: { $in: course.companies },
+        startDate: { $lte: CompaniDate().toISO() },
+        $or: [{ endDate: { $exists: false } }, { endDate: { $gt: CompaniDate().toISO() } }],
+      });
+      if (!userCompanyCurrentlyExists) throw Boom.notFound();
+    }
 
     const traineeAlreadyRegistered = course.trainees.some(t => UtilsHelper.areObjectIdsEquals(t, payload.trainee));
     if (traineeAlreadyRegistered) throw Boom.conflict(translate[language].courseTraineeAlreadyExists);
