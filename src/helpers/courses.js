@@ -611,7 +611,7 @@ exports.addTrainee = async (courseId, payload, credentials) => {
   const course = await Course.findOneAndUpdate(
     { _id: courseId },
     { $addToSet: { trainees: payload.trainee } },
-    { companies: 1, type: 1 }
+    { projection: { companies: 1, type: 1 } }
   );
 
   const trainee = await User
