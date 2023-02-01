@@ -274,10 +274,11 @@ exports.authorizeTraineeAddition = async (req) => {
 };
 
 exports.authorizeTraineeDeletion = async (req) => {
-  const course = await Course.findOne({ _id: req.params._id }, { type: 1 }).lean();
+  const course = await Course.findOne({ _id: req.params._id }, { type: 1, trainees: 1 }).lean();
 
   const isTrainer = get(req, 'auth.credentials.role.vendor.name') === TRAINER;
   if (course.type === INTER_B2B && isTrainer) throw Boom.forbidden();
+  if (!UtilsHelper.doesArrayIncludeId(course.trainees, req.params.traineeId)) throw Boom.forbidden();
 
   return null;
 };
