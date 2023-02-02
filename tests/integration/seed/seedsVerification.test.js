@@ -13,7 +13,15 @@ const { CompaniDate } = require('../../../src/helpers/dates/companiDates');
 const { descendingSortBy, ascendingSortBy } = require('../../../src/helpers/dates/utils');
 const UtilsHelper = require('../../../src/helpers/utils');
 const UserCompaniesHelper = require('../../../src/helpers/userCompanies');
-const { INTRA, COACH, ADMIN_CLIENT, TRAINEE_ADDITION, TRAINEE_DELETION } = require('../../../src/helpers/constants');
+const {
+  INTRA,
+  COACH,
+  ADMIN_CLIENT,
+  TRAINEE_ADDITION,
+  TRAINEE_DELETION,
+  BLENDED,
+  STRICTLY_E_LEARNING,
+} = require('../../../src/helpers/constants');
 const userCompaniesSeed = require('./userCompaniesSeed');
 const usersSeed = require('./usersSeed');
 
@@ -75,17 +83,15 @@ describe('SEEDS VERIFICATION', () => {
             .populate({
               path: 'companyRepresentative',
               select: '_id',
-              populate: [
-                { path: 'company' },
-                { path: 'role.client', select: 'name' },
-              ],
+              populate: [{ path: 'company' }, { path: 'role.client', select: 'name' }],
             })
             .lean();
         });
 
         it('should pass if all trainees are in course companies', () => {
           const isEveryTraineeCompanyAttachedToCourse = courseList
-            .every(course => !course.companies || course.trainees
+            .filter(course => course.format === BLENDED)
+            .every(course => course.trainees
               .every(trainee => trainee.userCompanyList
                 .some(uc => UtilsHelper.doesArrayIncludeId(course.companies, uc.company))
               ));
@@ -110,6 +116,16 @@ describe('SEEDS VERIFICATION', () => {
               UtilsHelper.areObjectIdsEquals(c.companyRepresentative.company, c.companies[0]));
           expect(areCoursesAndCompanyRepresentativesInSameCompany).toBeTruthy();
         });
+
+        it('should pass if all trainees registered in restricted access courses are in good company', () => {
+          const isEveryTraineeCompanyInAccessRules = courseList
+            .filter(course => course.format === STRICTLY_E_LEARNING && get(course, 'accessRules.length'))
+            .every(course => course.trainees
+              .every(trainee => trainee.userCompanyList
+                .some(uc => UtilsHelper.doesArrayIncludeId(course.accessRules, uc.company))
+              ));
+          expect(isEveryTraineeCompanyInAccessRules).toBeTruthy();
+        });
       });
 
       describe('Collection CourseHistory', () => {
@@ -132,14 +148,16 @@ describe('SEEDS VERIFICATION', () => {
 
             for (const traineeCourseHistories of Object.values(courseHistoriesGroupedByTrainee)) {
               const lastHistory = traineeCourseHistories.sort(descendingSortBy('createdAt'))[0];
-              let currentCompany = null;
               const isTraineeInCompanyBeforeAction = traineeCourseHistories.sort(ascendingSortBy('createdAt'))
                 .every((ch, i) => {
-                  if (i % 2 === 0) currentCompany = ch.company;
-                  return ch.trainee.userCompanyList
-                    .some(uc => UtilsHelper.areObjectIdsEquals(uc.company, currentCompany) &&
+                  if (i % 2 === 0) {
+                    return ch.action === TRAINEE_ADDITION && ch.trainee.userCompanyList
+                      .some(uc => UtilsHelper.areObjectIdsEquals(uc.company, ch.company) &&
                       CompaniDate(ch.createdAt).isAfter(uc.startDate)
-                    );
+                      );
+                  }
+
+                  return ch.action === TRAINEE_DELETION;
                 });
               expect(isTraineeInCompanyBeforeAction).toBeTruthy();
 
