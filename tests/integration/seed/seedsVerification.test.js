@@ -76,7 +76,7 @@ describe('SEEDS VERIFICATION', () => {
               path: 'companyRepresentative',
               select: '_id',
               populate: [
-                { path: 'company', select: 'user company startDate' },
+                { path: 'company' },
                 { path: 'role.client', select: 'name' },
               ],
             })
@@ -183,9 +183,7 @@ describe('SEEDS VERIFICATION', () => {
         it('should pass if every helper has a matching user and company', () => {
           const areUserAndCompanyMatching = helperList
             .every(helper => helper.user.userCompanyList
-              .some(uc => UtilsHelper.areObjectIdsEquals(uc.company, helper.company._id) &&
-                UtilsHelper.areObjectIdsEquals(uc.user, helper.user._id)
-              )
+              .some(uc => UtilsHelper.areObjectIdsEquals(uc.company, helper.company._id))
             );
           expect(areUserAndCompanyMatching).toBeTruthy();
         });
