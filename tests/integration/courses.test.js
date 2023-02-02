@@ -2287,6 +2287,14 @@ describe('COURSES ROUTES - PUT /courses/{_id}/trainees', () => {
       });
 
       expect(response.statusCode).toBe(200);
+      const courseHistory = await CourseHistory.countDocuments({
+        action: TRAINEE_ADDITION,
+        trainee: traineeComingUpInAuthCompany._id,
+        course: intraCourseIdFromAuthCompany,
+        company: authCompany._id,
+      });
+
+      expect(courseHistory).toBe(1);
     });
 
     it('should return 404 if course doesn\'t exist', async () => {
