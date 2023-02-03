@@ -1,6 +1,5 @@
 const { v4: uuidv4 } = require('uuid');
 const { ObjectId } = require('mongodb');
-const moment = require('moment');
 const User = require('../../../src/models/User');
 const Step = require('../../../src/models/Step');
 const SubProgram = require('../../../src/models/SubProgram');
@@ -18,7 +17,16 @@ const { vendorAdmin } = require('../../seed/authUsersSeed');
 const ActivityHistory = require('../../../src/models/ActivityHistory');
 const Course = require('../../../src/models/Course');
 const CompanyLinkRequest = require('../../../src/models/CompanyLinkRequest');
-const { WEBAPP, MOBILE, VIDEO, INTER_B2B, INTRA, BLENDED } = require('../../../src/helpers/constants');
+const {
+  WEBAPP,
+  MOBILE,
+  VIDEO,
+  INTER_B2B,
+  INTRA,
+  INTER_B2C,
+  BLENDED,
+  STRICTLY_E_LEARNING,
+} = require('../../../src/helpers/constants');
 const Helper = require('../../../src/models/Helper');
 const {
   helperRoleId,
@@ -139,7 +147,7 @@ const usersSeedList = [
     refreshToken: uuidv4(),
     administrative: { certificates: [{ driveId: '1234567890' }], driveFolder: { driveId: '0987654321' } },
     contact: { phone: '0987654321' },
-    contracts: [{ _id: contractId }],
+    contracts: [contractId],
     establishment: establishmentList[0]._id,
     picture: { publicId: 'a/public/id', link: 'https://the.complete.com/link/to/the/picture/storage/location' },
     origin: WEBAPP,
@@ -346,32 +354,47 @@ const contracts = [
     _id: contractId,
     serialNumber: 'sadfasdgvxcsda',
     user: usersSeedList[0]._id,
-    startDate: moment('2018-10-10').toDate(),
-    createdAt: moment('2018-10-10').toDate(),
+    startDate: '2022-10-10T10:00:00.000Z',
+    createdAt: '2022-10-09T10:00:00.000Z',
     company: authCompany._id,
   },
   {
     _id: contractNotStartedId,
     serialNumber: 'sdadsfsdfsd',
     user: usersSeedList[4]._id,
-    startDate: moment().add(1, 'month').toDate(),
-    createdAt: moment('2018-10-10').toDate(),
+    startDate: CompaniDate().add('P1M').toISO(),
+    createdAt: CompaniDate().add('P29D').toISO(),
     company: authCompany._id,
   },
   {
     _id: endedContractId,
     serialNumber: 'testserialnumber',
     user: usersSeedList[4]._id,
-    startDate: '2020-01-01T00:00:00',
-    createdAt: '2020-06-01T23:59:59',
+    startDate: '2022-01-02T00:00:00.000Z',
+    createdAt: '2022-01-01T23:59:59.000Z',
     company: authCompany._id,
   },
 ];
 
 const sectorHistories = [
-  { auxiliary: usersSeedList[0]._id, sector: userSectors[0]._id, company: authCompany._id, startDate: '2018-12-10' },
-  { auxiliary: usersSeedList[1]._id, sector: userSectors[0]._id, company: authCompany._id, startDate: '2018-12-10' },
-  { auxiliary: usersSeedList[4]._id, sector: userSectors[0]._id, company: authCompany._id, startDate: '2018-12-10' },
+  {
+    auxiliary: usersSeedList[0]._id,
+    sector: userSectors[0]._id,
+    company: authCompany._id,
+    startDate: '2022-12-10T10:00:00.000Z',
+  },
+  {
+    auxiliary: usersSeedList[1]._id,
+    sector: userSectors[0]._id,
+    company: authCompany._id,
+    startDate: '2022-12-10T10:00:00.000Z',
+  },
+  {
+    auxiliary: usersSeedList[4]._id,
+    sector: userSectors[0]._id,
+    company: authCompany._id,
+    startDate: '2022-12-10T10:00:00.000Z',
+  },
 ];
 
 const activityList = [{ _id: new ObjectId(), name: 'great activity', type: VIDEO, cards: [] }];
@@ -403,11 +426,9 @@ const coursesList = [
     _id: new ObjectId(),
     subProgram: subProgram._id,
     misc: 'elearning for all',
-    type: INTER_B2B,
-    format: BLENDED,
+    type: INTER_B2C,
+    format: STRICTLY_E_LEARNING,
     trainees: [usersSeedList[12]._id],
-    companies: [authCompany._id],
-    salesRepresentative: vendorAdmin._id,
   },
 ];
 

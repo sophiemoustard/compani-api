@@ -36,6 +36,6 @@ exports.userIsOrWillBeInCompany = (userCompanyList, company) => userCompanyList
   .some(uc => (!uc.endDate || CompaniDate().isBefore(uc.endDate)) &&
     UtilsHelper.areObjectIdsEquals(uc.company, company));
 
-exports.getCurrentOrFutureCompanies = userCompanyList => compact(userCompanyList
+exports.getCurrentAndFutureCompanies = userCompanyList => compact(userCompanyList
   .filter(uc => !uc.endDate || CompaniDate().isBefore(uc.endDate))
   .map(uc => uc.company));

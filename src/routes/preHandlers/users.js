@@ -159,7 +159,7 @@ exports.authorizeUserGetById = async (req) => {
 
   const loggedCompanyId = get(credentials, 'company._id', null);
   const isLoggedUserVendor = get(credentials, 'role.vendor', null);
-  const hasCompany = UserCompaniesHelper.getCurrentOrFutureCompanies(user.userCompanyList).length || user.company;
+  const hasCompany = UserCompaniesHelper.getCurrentAndFutureCompanies(user.userCompanyList).length || user.company;
   if (!isLoggedUserVendor && hasCompany) {
     const isClientFromDifferentCompany = !UserCompaniesHelper
       .userIsOrWillBeInCompany(user.userCompanyList, loggedCompanyId);
