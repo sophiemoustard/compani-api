@@ -1,4 +1,5 @@
 const { expect } = require('expect');
+const pick = require('lodash/pick');
 const { ObjectId } = require('mongodb');
 const app = require('../../server');
 const Repetition = require('../../src/models/Repetition');
@@ -10,6 +11,7 @@ const {
   customersIdList,
   customer,
   authCompany,
+  auxiliaryList,
 } = require('./seed/repetitionsSeed');
 const { getToken } = require('./helpers/authentication');
 const { CompaniDate } = require('../../src/helpers/dates/companiDates');
@@ -62,7 +64,8 @@ describe('REPETITIONS ROUTES - GET /repetitions', () => {
         type: 'intervention',
         startDate: CompaniDate(repetitionList[0].startDate).toDate(),
         endDate: CompaniDate(repetitionList[0].endDate).toDate(),
-        auxiliary: auxiliariesIdList[0],
+        auxiliary: pick(auxiliaryList[0], ['_id', 'identity', 'picture']),
+        customer: pick(customer, ['subscriptions[0].service._id', 'subscriptions[0]._id']),
         subscription: customer.subscriptions[0]._id,
         frequency: 'every_day',
         parentId: repetitionList[0].parentId,

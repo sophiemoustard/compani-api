@@ -10,14 +10,14 @@ const sectorHistories = [
     auxiliary: userList[2]._id,
     sector: sector._id,
     company: authCompany._id,
-    startDate: '2020-12-10T00:00:00',
+    startDate: '2022-12-10T00:00:00.000Z',
   },
   {
     _id: new ObjectId(),
     auxiliary: userList[4]._id,
     sector: sector._id,
     company: authCompany._id,
-    startDate: '2018-12-10T00:00:00',
+    startDate: '2022-12-10T00:00:00.000Z',
   },
 ];
 

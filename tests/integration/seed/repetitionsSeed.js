@@ -4,6 +4,7 @@ const Repetition = require('../../../src/models/Repetition');
 const User = require('../../../src/models/User');
 const Event = require('../../../src/models/Event');
 const Sector = require('../../../src/models/Sector');
+const Service = require('../../../src/models/Service');
 const SectorHistory = require('../../../src/models/SectorHistory');
 const Customer = require('../../../src/models/Customer');
 const {
@@ -33,6 +34,22 @@ const sectorHistory = {
   sector: sector._id,
 };
 
+const service = {
+  _id: new ObjectId(),
+  company: authCompany._id,
+  nature: 'hourly',
+  versions: [
+    {
+      name: 'version 1',
+      createdAt: '2019-06-01T23:00:00.000Z',
+      defaultUnitAmount: 12,
+      exemptFromCharges: false,
+      startDate: '2022-01-16 17:58:15.000Z',
+      vat: 12,
+    },
+  ],
+};
+
 const customer = {
   _id: customersIdList[0],
   identity: { title: 'mr', firstname: 'test', lastname: 'Couciy' },
@@ -48,9 +65,9 @@ const customer = {
   },
   subscriptions: [{
     _id: new ObjectId(),
-    service: new ObjectId(),
+    service: service._id,
     versions: [
-      { unitTTCRate: 10, weeklyHours: 8, evenings: 0, sundays: 2, createdAt: '2019-06-01T23:00:00' },
+      { unitTTCRate: 10, weeklyHours: 8, evenings: 0, sundays: 2, createdAt: '2019-06-01T23:00:00.000Z' },
     ],
   }],
 };
@@ -180,6 +197,7 @@ const populateDB = async () => {
     Event.create(eventList),
     Customer.create(customer),
     Sector.create(sector),
+    Service.create(service),
     SectorHistory.create(sectorHistory),
   ]);
 };
@@ -188,8 +206,9 @@ module.exports = {
   repetitionList,
   eventList,
   auxiliariesIdList,
-  customersIdList,
   customer,
+  auxiliaryList,
+  customersIdList,
   authCompany,
   populateDB,
 };

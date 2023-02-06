@@ -80,6 +80,12 @@ exports.authorizeUpdate = async (req) => {
       .lean();
     if (!courseSlot) throw Boom.notFound(translate[language].courseSlotNotFound);
 
+    const { startDate, endDate } = req.payload;
+    if (!startDate && !endDate) {
+      const attendances = await Attendance.countDocuments({ courseSlot: req.params._id });
+      if (attendances) throw Boom.forbidden(translate[language].courseSlotWithAttendances);
+    }
+
     const courseId = get(courseSlot, 'course') || '';
     await formatAndCheckAuthorization(courseId, req.auth.credentials);
     await checkPayload(courseSlot, req.payload);

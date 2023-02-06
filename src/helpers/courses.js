@@ -117,8 +117,13 @@ const listBlendedForCompany = async (query, origin) => {
     true
   );
 
-  const intraCourses = courses.filter(course => course.type === INTRA);
-  const interCourses = courses.filter(course => course.type === INTER_B2B);
+  // We sort courses by _id to have a consistent sort in the kanban even for two courses with same lastSlot's startDate
+  const intraCourses = courses
+    .filter(course => course.type === INTRA)
+    .sort((a, b) => UtilsHelper.sortStrings(a._id.toHexString(), b._id.toHexString()));
+  const interCourses = courses
+    .filter(course => course.type === INTER_B2B)
+    .sort((a, b) => UtilsHelper.sortStrings(a._id.toHexString(), b._id.toHexString()));
 
   return [
     ...intraCourses,
@@ -144,7 +149,7 @@ const listForOperations = async (query, origin) => {
       .map(course => ({ ...course, totalTheoreticalDuration: exports.getTotalTheoreticalDuration(course) }));
   }
 
-  return courses;
+  return courses.sort((a, b) => UtilsHelper.sortStrings(a._id.toHexString(), b._id.toHexString()));
 };
 
 const listForPedagogy = async (query, credentials) => {

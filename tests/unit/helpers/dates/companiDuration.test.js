@@ -436,6 +436,28 @@ describe('MANIPULATE', () => {
     });
   });
 
+  describe('subtract', () => {
+    let _formatMiscToCompaniDuration;
+
+    beforeEach(() => {
+      _formatMiscToCompaniDuration = sinon.spy(CompaniDurationsHelper, '_formatMiscToCompaniDuration');
+    });
+
+    afterEach(() => {
+      _formatMiscToCompaniDuration.restore();
+    });
+
+    it('should decrease duration by amount', () => {
+      const result = CompaniDurationsHelper.CompaniDuration('P1D').subtract('PT2H5M');
+
+      expect(result).toEqual(expect.objectContaining({ _getDuration: expect.any(luxon.Duration) }));
+      const expectedAmountInMs = ((24 - 2) * 60 - 5) * 60 * 1000;
+      expect(result._getDuration.toMillis()).toBe(expectedAmountInMs);
+      sinon.assert.calledWithExactly(_formatMiscToCompaniDuration.getCall(0), 'P1D');
+      sinon.assert.calledWithExactly(_formatMiscToCompaniDuration.getCall(1), 'PT2H5M');
+    });
+  });
+
   describe('abs', () => {
     it('should return same value, as it is positive', () => {
       const duration = CompaniDurationsHelper.CompaniDuration('P1DT-13H-4M32S'); // 39392000 ms

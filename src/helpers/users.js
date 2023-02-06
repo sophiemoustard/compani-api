@@ -168,7 +168,7 @@ exports.userExists = async (email, credentials) => {
   };
 
   return loggedUserHasVendorRole || sameCompany ||
-    (!UserCompaniesHelper.getCurrentOrFutureCompanies(targetUser.userCompanyList).length && !targetUser.company)
+    (!UserCompaniesHelper.getCurrentAndFutureCompanies(targetUser.userCompanyList).length && !targetUser.company)
     ? { exists: !!targetUser, user: formattedUser }
     : { exists: !!targetUser, user: {} };
 };
