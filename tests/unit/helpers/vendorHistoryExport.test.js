@@ -519,7 +519,7 @@ describe('exportCourseHistory', () => {
     ));
     findAttendanceSheet.returns(SinonMongoose.stubChainedQueries(
       [{ course: courseList[0]._id }],
-      ['lean']
+      ['setOptions', 'lean']
     ));
     getTraineesWithElearningProgress.onCall(0).returns([
       { _id: traineeList[0]._id, firstMobileConnection: traineeList[0].firstMobileConnection, steps: [], progress: {} },
@@ -871,7 +871,11 @@ describe('exportCourseHistory', () => {
     );
     SinonMongoose.calledOnceWithExactly(
       findAttendanceSheet,
-      [{ query: 'find', args: [{ course: { $in: courseIdList }, select: 'course' }] }, { query: 'lean' }]
+      [
+        { query: 'find', args: [{ course: { $in: courseIdList }, select: 'course' }] },
+        { query: 'setOptions', args: [{ isVendorUser: !!get(credentials, 'role.vendor') }] },
+        { query: 'lean' },
+      ]
     );
     sinon.assert.calledOnceWithExactly(
       findCourseHistory,

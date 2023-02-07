@@ -34,14 +34,14 @@ exports.create = async (payload) => {
   await AttendanceSheet.create({ ...omit(payload, 'file'), company, file: fileUploaded });
 };
 
-exports.list = async (courseId, companyId) => {
-  const attendanceSheets = await AttendanceSheet.find({ course: courseId })
-    .populate({ path: 'trainee', select: 'identity company', populate: { path: 'company' } })
+exports.list = async (courseId, company, credentials) => {
+  const attendanceSheets = await AttendanceSheet
+    .find({ course: courseId, ...(company && { company }) })
+    .populate({ path: 'trainee', select: 'identity' })
+    .setOptions({ isVendorUser: !!get(credentials, 'role.vendor') })
     .lean();
 
-  return companyId
-    ? attendanceSheets.filter(a => UtilsHelper.areObjectIdsEquals(get(a, 'trainee.company'), companyId))
-    : attendanceSheets;
+  return attendanceSheets;
 };
 
 exports.delete = async (attendanceSheet) => {

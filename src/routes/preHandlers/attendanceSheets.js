@@ -4,7 +4,7 @@ const { CompaniDate } = require('../../helpers/dates/companiDates');
 const UtilsHelper = require('../../helpers/utils');
 const Course = require('../../models/Course');
 const AttendanceSheet = require('../../models/AttendanceSheet');
-const { INTRA, INTER_B2B, TRAINER, DAY } = require('../../helpers/constants');
+const { INTRA, TRAINER, DAY } = require('../../helpers/constants');
 
 const isTrainerAuthorized = (courseTrainer, credentials) => {
   const loggedUserId = get(credentials, '_id');
@@ -29,7 +29,7 @@ exports.authorizeAttendanceSheetsGet = async (req) => {
 
   if (!UtilsHelper.doesArrayIncludeId(course.companies, loggedUserCompany)) throw Boom.forbidden();
 
-  return course.type === INTER_B2B ? loggedUserCompany : null;
+  return loggedUserCompany;
 };
 
 exports.authorizeAttendanceSheetCreation = async (req) => {
@@ -56,13 +56,15 @@ exports.authorizeAttendanceSheetCreation = async (req) => {
 };
 
 exports.authorizeAttendanceSheetDeletion = async (req) => {
+  const { credentials } = req.auth;
+
   const attendanceSheet = await AttendanceSheet
     .findOne({ _id: req.params._id })
     .populate({ path: 'course', select: 'archivedAt trainer' })
+    .setOptions({ isVendorUser: !!get(credentials, 'role.vendor') })
     .lean();
   if (get(attendanceSheet, 'course.archivedAt')) throw Boom.forbidden();
 
-  const { credentials } = req.auth;
   isTrainerAuthorized(get(attendanceSheet, 'course.trainer'), credentials);
 
   return attendanceSheet || Boom.notFound();

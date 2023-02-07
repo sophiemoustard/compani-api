@@ -130,7 +130,10 @@ exports.exportCourseHistory = async (startDate, endDate, credentials) => {
       .populate({ path: 'questionnaire', select: 'type' })
       .lean(),
     CourseSmsHistory.find({ course: { $in: courseIds }, select: 'course' }).lean(),
-    AttendanceSheet.find({ course: { $in: courseIds }, select: 'course' }).lean(),
+    AttendanceSheet
+      .find({ course: { $in: courseIds }, select: 'course' })
+      .setOptions({ isVendorUser: !!get(credentials, 'role.vendor') })
+      .lean(),
     CourseHistory.find(
       {
         course: { $in: courseIds },
