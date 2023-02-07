@@ -32,7 +32,7 @@ describe('list', () => {
 
     find.returns(SinonMongoose.stubChainedQueries(attendanceSheets, ['populate', 'setOptions', 'lean']));
 
-    const result = await attendanceSheetHelper.list(courseId, null, credentials);
+    const result = await attendanceSheetHelper.list(courseId, credentials);
 
     expect(result).toMatchObject(attendanceSheets);
     SinonMongoose.calledOnceWithExactly(
@@ -66,7 +66,7 @@ describe('list', () => {
 
     find.returns(SinonMongoose.stubChainedQueries(attendanceSheets, ['populate', 'setOptions', 'lean']));
 
-    const result = await attendanceSheetHelper.list(courseId, authCompanyId, credentials);
+    const result = await attendanceSheetHelper.list(courseId, credentials);
 
     expect(result).toMatchObject(attendanceSheets);
     SinonMongoose.calledOnceWithExactly(

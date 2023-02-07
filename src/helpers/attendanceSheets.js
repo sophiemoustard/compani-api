@@ -34,11 +34,14 @@ exports.create = async (payload) => {
   await AttendanceSheet.create({ ...omit(payload, 'file'), company, file: fileUploaded });
 };
 
-exports.list = async (courseId, company, credentials) => {
+exports.list = async (course, credentials) => {
+  const isVendorUser = !!get(credentials, 'role.vendor');
+  const company = get(credentials, 'company._id');
+
   const attendanceSheets = await AttendanceSheet
-    .find({ course: courseId, ...(company && { company }) })
+    .find({ course, ...(!isVendorUser && { company }) })
     .populate({ path: 'trainee', select: 'identity' })
-    .setOptions({ isVendorUser: !!get(credentials, 'role.vendor') })
+    .setOptions({ isVendorUser })
     .lean();
 
   return attendanceSheets;
