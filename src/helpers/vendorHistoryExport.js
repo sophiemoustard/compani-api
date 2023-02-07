@@ -124,13 +124,14 @@ exports.exportCourseHistory = async (startDate, endDate, credentials) => {
   if (!filteredCourses.length) return [[NO_DATA]];
 
   const courseIds = filteredCourses.map(course => course._id);
+  const isVendorUser = [TRAINING_ORGANISATION_MANAGER, VENDOR_ADMIN].includes(get(credentials, 'role.vendor.name'));
   const [questionnaireHistories, smsList, attendanceSheetList, estimatedStartDateHistories] = await Promise.all([
     QuestionnaireHistory
       .find({ course: { $in: courseIds }, select: 'course questionnaire' })
       .populate({ path: 'questionnaire', select: 'type' })
       .lean(),
     CourseSmsHistory.find({ course: { $in: courseIds }, select: 'course' }).lean(),
-    AttendanceSheet.find({ course: { $in: courseIds }, select: 'course' }).lean(),
+    AttendanceSheet.find({ course: { $in: courseIds }, select: 'course' }).setOptions({ isVendorUser }).lean(),
     CourseHistory.find(
       {
         course: { $in: courseIds },

@@ -476,7 +476,10 @@ exports.authorizeCourseCompanyDeletion = async (req) => {
     slot.attendances.some(attendance => UtilsHelper.areObjectIdsEquals(companyId, attendance.company)));
   if (hasAttendancesFromCompany) throw Boom.forbidden(translate[language].companyTraineeAttendedToCourse);
 
-  const attendanceSheets = await AttendanceSheet.find({ course: course._id }, { company: 1 }).lean();
+  const attendanceSheets = await AttendanceSheet
+    .find({ course: course._id }, { company: 1 })
+    .setOptions({ isVendorUser })
+    .lean();
 
   const hasAttendanceSheetsFromCompany = attendanceSheets
     .some(sheet => UtilsHelper.areObjectIdsEquals(companyId, sheet.company));

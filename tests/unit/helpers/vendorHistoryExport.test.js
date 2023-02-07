@@ -362,7 +362,7 @@ describe('exportCourseHistory', () => {
     },
   ];
 
-  const credentials = { company: { _id: new ObjectId(), role: { vendor: { name: TRAINING_ORGANISATION_MANAGER } } } };
+  const credentials = { company: { _id: new ObjectId() }, role: { vendor: { name: TRAINING_ORGANISATION_MANAGER } } };
 
   let findCourseSlot;
   let findCourse;
@@ -402,7 +402,7 @@ describe('exportCourseHistory', () => {
     findCourseSlot.returns(SinonMongoose.stubChainedQueries(courseSlotList, ['lean']));
     findCourse.returns(SinonMongoose.stubChainedQueries([]));
 
-    const result = await ExportHelper.exportCourseHistory('2021-01-14T23:00:00.000Z', '2022-01-20T22:59:59.000Z');
+    const result = await ExportHelper.exportCourseHistory('2021-01-14T23:00:00.000Z', '2022-01-20T22:59:59.000Z', credentials);
 
     expect(result).toEqual([[NO_DATA]]);
     SinonMongoose.calledOnceWithExactly(
@@ -519,7 +519,7 @@ describe('exportCourseHistory', () => {
     ));
     findAttendanceSheet.returns(SinonMongoose.stubChainedQueries(
       [{ course: courseList[0]._id }],
-      ['lean']
+      ['setOptions', 'lean']
     ));
     getTraineesWithElearningProgress.onCall(0).returns([
       { _id: traineeList[0]._id, firstMobileConnection: traineeList[0].firstMobileConnection, steps: [], progress: {} },
@@ -871,7 +871,17 @@ describe('exportCourseHistory', () => {
     );
     SinonMongoose.calledOnceWithExactly(
       findAttendanceSheet,
-      [{ query: 'find', args: [{ course: { $in: courseIdList }, select: 'course' }] }, { query: 'lean' }]
+      [
+        { query: 'find', args: [{ course: { $in: courseIdList }, select: 'course' }] },
+        {
+          query: 'setOptions',
+          args: [{
+            isVendorUser: [TRAINING_ORGANISATION_MANAGER, VENDOR_ADMIN]
+              .includes(get(credentials, 'role.vendor.name')),
+          }],
+        },
+        { query: 'lean' },
+      ]
     );
     sinon.assert.calledOnceWithExactly(
       findCourseHistory,

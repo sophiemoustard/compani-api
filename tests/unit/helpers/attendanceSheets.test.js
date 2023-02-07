@@ -1,6 +1,7 @@
 const sinon = require('sinon');
 const { expect } = require('expect');
 const { ObjectId } = require('mongodb');
+const get = require('lodash/get');
 const User = require('../../../src/models/User');
 const Course = require('../../../src/models/Course');
 const AttendanceSheet = require('../../../src/models/AttendanceSheet');
@@ -9,6 +10,7 @@ const attendanceSheetHelper = require('../../../src/helpers/attendanceSheets');
 const SinonMongoose = require('../sinonMongoose');
 const GCloudStorageHelper = require('../../../src/helpers/gCloudStorage');
 const UtilsHelper = require('../../../src/helpers/utils');
+const { VENDOR_ADMIN, COACH } = require('../../../src/helpers/constants');
 
 describe('list', () => {
   let find;
@@ -19,7 +21,8 @@ describe('list', () => {
     find.restore();
   });
 
-  it('should return course attendance sheets', async () => {
+  it('should return course attendance sheets as vendor role', async () => {
+    const credentials = { role: { vendor: { name: VENDOR_ADMIN } } };
     const courseId = new ObjectId();
     const attendanceSheets = [{
       course: courseId,
@@ -27,48 +30,51 @@ describe('list', () => {
       date: '2020-04-03T10:00:00.000Z',
     }];
 
-    find.returns(SinonMongoose.stubChainedQueries(attendanceSheets));
+    find.returns(SinonMongoose.stubChainedQueries(attendanceSheets, ['populate', 'setOptions', 'lean']));
 
-    const result = await attendanceSheetHelper.list(courseId, null);
+    const result = await attendanceSheetHelper.list(courseId, credentials);
 
     expect(result).toMatchObject(attendanceSheets);
     SinonMongoose.calledOnceWithExactly(
       find,
       [
         { query: 'find', args: [{ course: courseId }] },
-        { query: 'populate', args: [{ path: 'trainee', select: 'identity company', populate: { path: 'company' } }] },
+        { query: 'populate', args: [{ path: 'trainee', select: 'identity' }] },
+        { query: 'setOptions', args: [{ isVendorUser: !!get(credentials, 'role.vendor') }] },
         { query: 'lean' },
       ]
     );
   });
 
-  it('should return course attendance sheets from logged user company', async () => {
-    const courseId = new ObjectId();
+  it('should return course attendance sheets as client user with company', async () => {
     const authCompanyId = new ObjectId();
-    const otherCompanyId = new ObjectId();
+    const credentials = { company: { _id: authCompanyId }, role: { client: { name: COACH } } };
+
+    const courseId = new ObjectId();
     const attendanceSheets = [
       {
         course: courseId,
         file: { publicId: 'mon upload avec un trainne de authCompany', link: 'www.test.com' },
-        trainee: { _id: new ObjectId(), company: authCompanyId, identity: { firstname: 'Helo', name: 'World' } },
+        trainee: { _id: new ObjectId(), identity: { firstname: 'Helo', name: 'World' } },
       },
       {
         course: courseId,
         file: { publicId: 'mon upload avec un trainne de otherCompany', link: 'www.test.com' },
-        trainee: { _id: new ObjectId(), company: otherCompanyId, identity: { firstname: 'Aline', name: 'Opiné' } },
+        trainee: { _id: new ObjectId(), identity: { firstname: 'Aline', name: 'Opiné' } },
       },
     ];
 
-    find.returns(SinonMongoose.stubChainedQueries(attendanceSheets));
+    find.returns(SinonMongoose.stubChainedQueries(attendanceSheets, ['populate', 'setOptions', 'lean']));
 
-    const result = await attendanceSheetHelper.list(courseId, authCompanyId);
+    const result = await attendanceSheetHelper.list(courseId, credentials);
 
-    expect(result).toMatchObject([attendanceSheets[0]]);
+    expect(result).toMatchObject(attendanceSheets);
     SinonMongoose.calledOnceWithExactly(
       find,
       [
-        { query: 'find', args: [{ course: courseId }] },
-        { query: 'populate', args: [{ path: 'trainee', select: 'identity company', populate: { path: 'company' } }] },
+        { query: 'find', args: [{ course: courseId, company: authCompanyId }] },
+        { query: 'populate', args: [{ path: 'trainee', select: 'identity' }] },
+        { query: 'setOptions', args: [{ isVendorUser: !!get(credentials, 'role.vendor') }] },
         { query: 'lean' },
       ]
     );
