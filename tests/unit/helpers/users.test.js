@@ -766,6 +766,7 @@ describe('userExists', () => {
     company,
     userCompanyList: [{ company }],
   };
+
   const userWithoutCompany = { ...user, company: null, userCompanyList: [] };
   const vendorCredentials = { role: { vendor: { _id: new ObjectId() } }, company: { _id: new ObjectId() } };
   const clientCredentials = { role: { client: { _id: new ObjectId() } }, company: { _id: new ObjectId() } };
@@ -889,6 +890,47 @@ describe('userExists', () => {
 
     expect(rep.exists).toBe(true);
     expect(rep.user).toEqual(omit(userWithoutCompany, 'local'));
+
+    SinonMongoose.calledOnceWithExactly(
+      findOne,
+      [
+        { query: 'findOne', args: [{ 'local.email': email }, { role: 1 }] },
+        { query: 'populate', args: [{ path: 'company' }] },
+        { query: 'populate', args: [{ path: 'userCompanyList', options: { sort: { startDate: 1 } } }] },
+        { query: 'lean' },
+      ]
+    );
+  });
+
+  it('should find targeted user and give some infos, as targeted user has only ending company', async () => {
+    const userId = new ObjectId();
+    const roleId = new ObjectId();
+
+    const userWithEndingCompany = {
+      _id: userId,
+      local: { email: 'test@compani.fr', password: 'notshow' },
+      contact: { phone: '0987654321' },
+      identity: { firstname: 'test', lastname: 'test' },
+      role: { client: roleId },
+      mentor: 'mentor',
+      userCompanyList: [
+        { company, startDate: '2021-01-01T00:00:00.000Z', endDate: '2022-01-01T00:00:00.000Z' },
+        { company, startDate: '2024-01-01T00:00:00.000Z', endDate: '2025-01-01T00:00:00.000Z' },
+      ],
+    };
+
+    findOne.returns(SinonMongoose.stubChainedQueries(userWithEndingCompany));
+
+    const rep = await UsersHelper.userExists(email, clientCredentials);
+
+    expect(rep.exists).toBe(true);
+    expect(rep.user).toEqual({
+      _id: userId,
+      local: { email: 'test@compani.fr' },
+      contact: { phone: '0987654321' },
+      identity: { firstname: 'test', lastname: 'test' },
+      role: { client: roleId },
+    });
 
     SinonMongoose.calledOnceWithExactly(
       findOne,
