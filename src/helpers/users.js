@@ -174,18 +174,32 @@ exports.userExists = async (email, credentials) => {
   const companyId = get(credentials, 'company._id');
   const loggedUserHasVendorRole = has(credentials, 'role.vendor');
   const sameCompany = UserCompaniesHelper.userIsOrWillBeInCompany(targetUser.userCompanyList, companyId);
-  const formattedUser = {
-    ...pick(targetUser, ['role', '_id', 'company']),
-    userCompanyList: targetUser.userCompanyList
-      .filter(uc => (loggedUserHasVendorRole ? true : UtilsHelper.areObjectIdsEquals(companyId, uc.company)))
-      .map(uc => (pick(uc, ['company', 'endDate']))),
-  };
 
   const currentAndFuturCompanies = UserCompaniesHelper.getCurrentAndFutureCompanies(targetUser.userCompanyList);
 
-  return loggedUserHasVendorRole || sameCompany || !currentAndFuturCompanies.length
-    ? { exists: true, user: formattedUser }
-    : { exists: true, user: {} };
+  const canReadAllUserInfo = loggedUserHasVendorRole || sameCompany || !currentAndFuturCompanies.length;
+  if (canReadAllUserInfo) {
+    const formattedUser = {
+      ...pick(targetUser, ['role', '_id', 'company']),
+      userCompanyList: targetUser.userCompanyList
+        .filter(uc => (loggedUserHasVendorRole ? true : UtilsHelper.areObjectIdsEquals(companyId, uc.company)))
+        .map(uc => (pick(uc, ['company', 'endDate']))),
+    };
+
+    return { exists: true, user: formattedUser };
+  }
+
+  const doesEveryUserCompanyHasEndDate = targetUser.userCompanyList.every(uc => uc.endDate);
+  if (doesEveryUserCompanyHasEndDate) {
+    const formattedUser = pick(
+      targetUser,
+      ['_id', 'local.email', 'identity.firstname', 'identity.lastname', 'contact.phone', 'endDate', 'role']
+    );
+
+    return { exists: true, user: formattedUser };
+  }
+
+  return { exists: true, user: {} };
 };
 
 exports.saveCertificateDriveId = async (userId, fileInfo) =>
