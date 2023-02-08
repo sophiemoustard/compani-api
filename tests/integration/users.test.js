@@ -601,8 +601,12 @@ describe('USERS ROUTES - GET /users/exists', () => {
         ...pick(usersSeedList[0], fieldsToPick),
         company: authCompany._id,
         userCompanyList: expect.arrayContaining([
-          { company: companyWithoutSubscription._id, endDate: CompaniDate('2021-12-31T23:00:00.000Z').toDate() },
-          { company: authCompany._id },
+          {
+            company: companyWithoutSubscription._id,
+            endDate: CompaniDate('2021-12-31T23:00:00.000Z').toDate(),
+            startDate: CompaniDate('2021-01-01T23:00:00.000Z').toDate(),
+          },
+          { company: authCompany._id, startDate: CompaniDate('2022-01-01T23:00:00.000Z').toDate() },
         ]),
       });
     });
@@ -630,7 +634,7 @@ describe('USERS ROUTES - GET /users/exists', () => {
         expectedOutput: {
           ...pick(usersSeedList[0], fieldsToPick),
           company: authCompany._id,
-          userCompanyList: [{ company: authCompany._id }],
+          userCompanyList: [{ company: authCompany._id, startDate: CompaniDate('2022-01-01T23:00:00.000Z').toDate() }],
         },
       },
     ];
