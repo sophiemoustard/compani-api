@@ -606,6 +606,7 @@ const questionnaireHistory = {
   questionnaire: questionnaire._id,
   user: coach._id,
   questionnaireAnswersList: [{ card: cardsList[2]._id, answerList: ['4'] }],
+  company: authCompany._id,
 };
 
 const courseSmsHistory = {

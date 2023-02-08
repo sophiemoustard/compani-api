@@ -245,7 +245,7 @@ const generateConvocationPdf = async (req, h) => {
 
 const getQuestionnaires = async (req) => {
   try {
-    const questionnaires = await CoursesHelper.getQuestionnaires(req.params._id);
+    const questionnaires = await CoursesHelper.getQuestionnaires(req.params._id, req.auth.credentials);
 
     return { message: translate[language].questionnairesFound, data: { questionnaires } };
   } catch (e) {
