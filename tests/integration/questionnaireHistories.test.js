@@ -10,6 +10,7 @@ const {
   coursesList,
 } = require('./seed/questionnaireHistoriesSeed');
 const { getTokenByCredentials } = require('./helpers/authentication');
+const { companyWithoutSubscription } = require('../seed/authCompaniesSeed');
 const { noRoleNoCompany } = require('../seed/authUsersSeed');
 const QuestionnaireHistory = require('../../src/models/QuestionnaireHistory');
 
@@ -49,7 +50,8 @@ describe('QUESTIONNAIRE HISTORIES ROUTES - POST /questionnairehistories', () => 
       });
 
       expect(response.statusCode).toBe(200);
-      const questionnaireHistoriesCount = await QuestionnaireHistory.countDocuments();
+      const questionnaireHistoriesCount = await QuestionnaireHistory
+        .countDocuments({ company: companyWithoutSubscription._id });
       expect(questionnaireHistoriesCount).toBe(1);
     });
 
@@ -133,6 +135,7 @@ describe('QUESTIONNAIRE HISTORIES ROUTES - POST /questionnairehistories', () => 
         course: coursesList[0]._id,
         user: questionnaireHistoriesUsersList[0],
         questionnaire: questionnairesList[0]._id,
+        company: companyWithoutSubscription._id,
       };
 
       await QuestionnaireHistory.create(payload);
@@ -140,7 +143,7 @@ describe('QUESTIONNAIRE HISTORIES ROUTES - POST /questionnairehistories', () => 
       const response = await app.inject({
         method: 'POST',
         url: '/questionnairehistories',
-        payload,
+        payload: omit(payload, 'company'),
         headers: { 'x-access-token': authToken },
       });
 

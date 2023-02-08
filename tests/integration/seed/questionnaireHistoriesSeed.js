@@ -1,11 +1,12 @@
 const { ObjectId } = require('mongodb');
 const Questionnaire = require('../../../src/models/Questionnaire');
 const Course = require('../../../src/models/Course');
+const CourseHistory = require('../../../src/models/CourseHistory');
 const Card = require('../../../src/models/Card');
-const { userList } = require('../../seed/authUsersSeed');
+const { userList, trainerOrganisationManager } = require('../../seed/authUsersSeed');
 const { deleteNonAuthenticationSeeds } = require('../helpers/authentication');
-const { INTER_B2B } = require('../../../src/helpers/constants');
-const { authCompany } = require('../../seed/authCompaniesSeed');
+const { INTER_B2B, TRAINEE_ADDITION } = require('../../../src/helpers/constants');
+const { authCompany, companyWithoutSubscription } = require('../../seed/authCompaniesSeed');
 
 const questionnaireHistoriesUsersList = [userList[6]._id, userList[5]._id];
 
@@ -49,6 +50,23 @@ const coursesList = [
   },
 ];
 
+const courseHistoriesList = [
+  {
+    action: TRAINEE_ADDITION,
+    course: coursesList[0]._id,
+    trainee: questionnaireHistoriesUsersList[0],
+    company: companyWithoutSubscription._id,
+    createdBy: trainerOrganisationManager._id,
+  },
+  {
+    action: TRAINEE_ADDITION,
+    course: coursesList[0]._id,
+    trainee: questionnaireHistoriesUsersList[1],
+    company: authCompany._id,
+    createdBy: trainerOrganisationManager._id,
+  },
+];
+
 const populateDB = async () => {
   await deleteNonAuthenticationSeeds();
 
@@ -56,6 +74,7 @@ const populateDB = async () => {
     Questionnaire.create(questionnairesList),
     Course.create(coursesList),
     Card.create(cardsList),
+    CourseHistory.create(courseHistoriesList),
   ]);
 };
 
