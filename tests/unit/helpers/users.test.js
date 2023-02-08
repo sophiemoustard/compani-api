@@ -765,6 +765,7 @@ describe('userExists', () => {
     role: { client: { _id: new ObjectId() } },
     company,
     userCompanyList: [{ company }],
+    serialNumber: '123',
   };
 
   const userWithoutCompany = { ...user, company: null, userCompanyList: [] };
@@ -783,7 +784,7 @@ describe('userExists', () => {
     const rep = await UsersHelper.userExists(email, vendorCredentials);
 
     expect(rep.exists).toBe(true);
-    expect(rep.user).toEqual(omit(user, 'local'));
+    expect(rep.user).toEqual(omit(user, 'serialNumber'));
 
     SinonMongoose.calledOnceWithExactly(
       findOne,
@@ -863,7 +864,7 @@ describe('userExists', () => {
 
     expect(rep.exists).toBe(true);
     expect(rep.user).toEqual(
-      { ...omit(userWithoutCompany, 'local'), userCompanyList: [{ company: clientCredentials.company._id }] }
+      { ...omit(userWithoutCompany, 'serialNumber'), userCompanyList: [{ company: clientCredentials.company._id }] }
     );
 
     SinonMongoose.calledOnceWithExactly(
@@ -919,7 +920,7 @@ describe('userExists', () => {
     const rep = await UsersHelper.userExists(email, clientCredentials);
 
     expect(rep.exists).toBe(true);
-    expect(rep.user).toEqual(omit(userWithoutCompany, 'local'));
+    expect(rep.user).toEqual(omit(userWithoutCompany, 'serialNumber'));
 
     SinonMongoose.calledOnceWithExactly(
       findOne,
@@ -966,7 +967,7 @@ describe('userExists', () => {
       contact: { phone: '0987654321' },
       identity: { firstname: 'test', lastname: 'test' },
       role: { client: roleId },
-      userCompanyList: { endDate: '2025-01-01T00:00:00.000Z' },
+      userCompanyList: [{ endDate: '2025-01-01T00:00:00.000Z' }],
     });
 
     SinonMongoose.calledOnceWithExactly(
