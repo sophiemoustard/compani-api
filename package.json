@@ -45,6 +45,8 @@
     "dotenv": "~16.0.0",
     "feedparser-promised": "~2.0.1",
     "flat": "~5.0.2",
+    "form-data": "~4.0.0",
+    "get-stream": "~6.0.0",
     "handlebars": "~4.7.5",
     "hapi-auth-jwt2": "~10.2.0",
     "hapi-sentry": "~3.2.0",
@@ -81,8 +83,6 @@
     "eslint-plugin-import": "~2.26.0",
     "eslint-plugin-mocha": "~10.1.0",
     "expect": "~29.3.1",
-    "form-data": "~4.0.0",
-    "get-stream": "~6.0.0",
     "mocha": "~10.2.0",
     "sinon": "~15.0.1"
   }
