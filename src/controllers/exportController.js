@@ -119,7 +119,8 @@ const exportHistory = async (req, h) => {
         exportArray = await HistoryExportHelper.exportTransportsHistory(startDate, endDate, credentials);
         break;
       case END_OF_COURSE:
-        exportArray = await VendorHistoryExportHelper.exportEndOfCourseQuestionnaireHistory(startDate, endDate);
+        exportArray = await VendorHistoryExportHelper
+          .exportEndOfCourseQuestionnaireHistory(startDate, endDate, credentials);
         break;
       case COURSE_BILL:
         exportArray =

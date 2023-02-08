@@ -501,7 +501,8 @@ describe('exportCourseHistory', () => {
   it('should return an array with the header and 4 rows', async () => {
     findCourseSlot.returns(SinonMongoose.stubChainedQueries(courseSlotList, ['lean']));
     findCourse.returns(SinonMongoose.stubChainedQueries(courseList));
-    findQuestionnaireHistory.returns(SinonMongoose.stubChainedQueries(questionnaireHistoriesList));
+    findQuestionnaireHistory
+      .returns(SinonMongoose.stubChainedQueries(questionnaireHistoriesList, ['populate', 'setOptions', 'lean']));
     findCourseHistory.returns(SinonMongoose.stubChainedQueries(estimatedStartDateHistoriesList));
     groupSlotsByDate.onCall(0).returns([[courseSlotList[0], courseSlotList[1]]]);
     groupSlotsByDate.onCall(1).returns([[courseSlotList[2]], [courseSlotList[3]]]);
@@ -862,6 +863,7 @@ describe('exportCourseHistory', () => {
       [
         { query: 'find', args: [{ course: { $in: courseIdList }, select: 'course questionnaire' }] },
         { query: 'populate', args: [{ path: 'questionnaire', select: 'type' }] },
+        { query: 'setOptions', args: [{ isVendorUser: true }] },
         { query: 'lean' },
       ]
     );
@@ -1161,6 +1163,7 @@ describe('exportCourseSlotHistory', () => {
 });
 
 describe('exportEndOfCourseQuestionnaireHistory', () => {
+  const credentials = { role: { vendor: { name: TRAINING_ORGANISATION_MANAGER } } };
   const cards = [
     { _id: new ObjectId(), template: 'transition' },
     { _id: new ObjectId(), question: 'Ca va ?', template: 'open_question' },
@@ -1255,7 +1258,8 @@ describe('exportEndOfCourseQuestionnaireHistory', () => {
     findOneQuestionnaire.returns(SinonMongoose.stubChainedQueries({ cards, histories: [] }));
     const exportArray = await ExportHelper.exportEndOfCourseQuestionnaireHistory(
       '2021-06-25T12:00:00.000Z',
-      '2021-06-30:12:00.000Z'
+      '2021-06-30:12:00.000Z',
+      credentials
     );
 
     expect(exportArray).toEqual([['Aucune donnée sur la période sélectionnée']]);
@@ -1266,7 +1270,8 @@ describe('exportEndOfCourseQuestionnaireHistory', () => {
 
     const exportArray = await ExportHelper.exportEndOfCourseQuestionnaireHistory(
       '2021-06-25T12:00:00.000Z',
-      '2021-06-30:12:00.000Z'
+      '2021-06-30:12:00.000Z',
+      credentials
     );
 
     expect(exportArray).toEqual([
@@ -1325,6 +1330,7 @@ describe('exportEndOfCourseQuestionnaireHistory', () => {
           query: 'populate',
           args: [{
             path: 'histories',
+            options: { isVendorUser: true },
             match: { createdAt: { $gte: '2021-06-25T12:00:00.000Z', $lte: '2021-06-30:12:00.000Z' } },
             populate: [
               {

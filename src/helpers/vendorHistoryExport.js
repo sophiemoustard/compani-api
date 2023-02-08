@@ -129,6 +129,7 @@ exports.exportCourseHistory = async (startDate, endDate, credentials) => {
     QuestionnaireHistory
       .find({ course: { $in: courseIds }, select: 'course questionnaire' })
       .populate({ path: 'questionnaire', select: 'type' })
+      .setOptions({ isVendorUser })
       .lean(),
     CourseSmsHistory.find({ course: { $in: courseIds }, select: 'course' }).lean(),
     AttendanceSheet.find({ course: { $in: courseIds }, select: 'course' }).setOptions({ isVendorUser }).lean(),
@@ -305,14 +306,16 @@ const _getAnswerForExport = (questionnaireCard, questionnaireHistoryAnswersList)
     : '';
 };
 
-exports.exportEndOfCourseQuestionnaireHistory = async (startDate, endDate) => {
+exports.exportEndOfCourseQuestionnaireHistory = async (startDate, endDate, credentials) => {
   const rows = [];
+  const isVendorUser = [TRAINING_ORGANISATION_MANAGER, VENDOR_ADMIN].includes(get(credentials, 'role.vendor.name'));
 
   const endOfCourseQuestionnaire = await Questionnaire
     .findOne({ type: END_OF_COURSE })
     .populate({ path: 'cards', select: 'question template' })
     .populate({
       path: 'histories',
+      options: { isVendorUser },
       match: { createdAt: { $gte: startDate, $lte: endDate } },
       populate: [
         {
