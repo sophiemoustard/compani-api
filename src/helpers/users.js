@@ -183,9 +183,10 @@ exports.userExists = async (email, credentials) => {
   const currentAndFuturCompanies = UserCompaniesHelper.getCurrentAndFutureCompanies(targetUser.userCompanyList);
 
   const canReadAllUserInfo = loggedUserHasVendorRole || sameCompany || !currentAndFuturCompanies.length;
+  const commonFieldsToPick = ['_id', 'local.email', 'identity.firstname', 'identity.lastname', 'contact.phone', 'role'];
   if (canReadAllUserInfo) {
     const formattedUser = {
-      ...pick(targetUser, ['role', '_id', 'company']),
+      ...pick(targetUser, [...commonFieldsToPick, 'company']),
       userCompanyList: targetUser.userCompanyList
         .filter(uc => (loggedUserHasVendorRole ? true : UtilsHelper.areObjectIdsEquals(companyId, uc.company)))
         .map(uc => (pick(uc, ['company', 'endDate']))),
@@ -197,11 +198,8 @@ exports.userExists = async (email, credentials) => {
   const doesEveryUserCompanyHasEndDate = targetUser.userCompanyList.every(uc => uc.endDate);
   if (doesEveryUserCompanyHasEndDate) {
     const formattedUser = {
-      ...pick(
-        targetUser,
-        ['_id', 'local.email', 'identity.firstname', 'identity.lastname', 'contact.phone', 'role']
-      ),
-      userCompanyList: { endDate: targetUser.userCompanyList.sort(descendingSortBy('startDate'))[0].endDate },
+      ...pick(targetUser, commonFieldsToPick),
+      userCompanyList: [{ endDate: targetUser.userCompanyList.sort(descendingSortBy('startDate'))[0].endDate }],
     };
 
     return { exists: true, user: formattedUser };
