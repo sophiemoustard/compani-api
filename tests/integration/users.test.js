@@ -565,6 +565,7 @@ describe('USERS ROUTES - GET /users', () => {
 });
 
 describe('USERS ROUTES - GET /users/exists', () => {
+  const fieldsToPick = ['_id', 'local.email', 'identity.firstname', 'identity.lastname', 'contact.phone', 'role'];
   let authToken;
   beforeEach(populateDB);
 
@@ -597,8 +598,7 @@ describe('USERS ROUTES - GET /users/exists', () => {
       expect(res.statusCode).toBe(200);
       expect(res.result.data.exists).toBe(true);
       expect(res.result.data.user).toEqual({
-        ...pick(usersSeedList[0],
-          ['role', '_id']),
+        ...pick(usersSeedList[0], fieldsToPick),
         company: authCompany._id,
         userCompanyList: expect.arrayContaining([
           { company: companyWithoutSubscription._id, endDate: CompaniDate('2021-12-31T23:00:00.000Z').toDate() },
@@ -622,9 +622,17 @@ describe('USERS ROUTES - GET /users/exists', () => {
 
   describe('Other roles', () => {
     const roles = [
-      { name: 'helper', expectedCode: 200 },
-      { name: 'auxiliary_without_company', expectedCode: 200 },
-      { name: 'coach', expectedCode: 200 },
+      { name: 'helper', expectedCode: 200, expectedOutput: {} },
+      { name: 'auxiliary_without_company', expectedCode: 200, expectedOutput: {} },
+      {
+        name: 'coach',
+        expectedCode: 200,
+        expectedOutput: {
+          ...pick(usersSeedList[0], fieldsToPick),
+          company: authCompany._id,
+          userCompanyList: [{ company: authCompany._id }],
+        },
+      },
     ];
     roles.forEach((role) => {
       it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
@@ -639,11 +647,7 @@ describe('USERS ROUTES - GET /users/exists', () => {
 
         if (response.result.data) {
           expect(response.result.data.exists).toBe(true);
-          expect(response.result.data.user).toEqual({
-            ...pick(usersSeedList[0], ['role', '_id']),
-            company: authCompany._id,
-            userCompanyList: [{ company: authCompany._id }],
-          });
+          expect(response.result.data.user).toEqual(role.expectedOutput);
         }
       });
     });

@@ -967,7 +967,7 @@ describe('userExists', () => {
       contact: { phone: '0987654321' },
       identity: { firstname: 'test', lastname: 'test' },
       role: { client: roleId },
-      userCompanyList: [{ endDate: '2025-01-01T00:00:00.000Z' }],
+      userCompanyList: [{ startDate: '2024-01-01T00:00:00.000Z', endDate: '2025-01-01T00:00:00.000Z' }],
     });
 
     SinonMongoose.calledOnceWithExactly(
