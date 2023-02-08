@@ -770,7 +770,7 @@ describe('userExists', () => {
 
   const userWithoutCompany = { ...user, company: null, userCompanyList: [] };
   const vendorCredentials = { role: { vendor: { _id: new ObjectId() } }, company: { _id: new ObjectId() } };
-  const clientCredentials = { role: { client: { _id: new ObjectId() } }, company: { _id: new ObjectId() } };
+  const clientCredentials = { role: { client: { name: 'coach' } }, company: { _id: new ObjectId() } };
   beforeEach(() => {
     findOne = sinon.stub(User, 'findOne');
   });
@@ -852,19 +852,21 @@ describe('userExists', () => {
     );
   });
 
-  it('should only confirm targeted user exist, as targeted user has good company in the future', async () => {
-    findOne.returns(SinonMongoose.stubChainedQueries(
+  it('should confirm targeted user exist and send info, as targeted user has same company in the future', async () => {
+    const userCompanyList = [
       {
-        ...userWithoutCompany,
-        userCompanyList: [{ company: clientCredentials.company._id, startDate: CompaniDate().add('P1D').toISO() }],
-      }
-    ));
+        company: clientCredentials.company._id,
+        startDate: CompaniDate().add('P1D').toISO(),
+        user: userWithoutCompany._id,
+      },
+    ];
+    findOne.returns(SinonMongoose.stubChainedQueries({ ...userWithoutCompany, userCompanyList }));
 
     const rep = await UsersHelper.userExists(email, clientCredentials);
 
     expect(rep.exists).toBe(true);
     expect(rep.user).toEqual(
-      { ...omit(userWithoutCompany, 'serialNumber'), userCompanyList: [{ company: clientCredentials.company._id }] }
+      { ...omit(userWithoutCompany, 'serialNumber'), userCompanyList: [omit(userCompanyList[0], 'user')] }
     );
 
     SinonMongoose.calledOnceWithExactly(
@@ -951,8 +953,8 @@ describe('userExists', () => {
       role: { client: roleId },
       mentor: 'mentor',
       userCompanyList: [
-        { company, startDate: '2021-01-01T00:00:00.000Z', endDate: '2022-01-01T00:00:00.000Z' },
-        { company, startDate: '2024-01-01T00:00:00.000Z', endDate: '2025-01-01T00:00:00.000Z' },
+        { company, startDate: '2021-01-01T00:00:00.000Z', endDate: '2022-01-01T00:00:00.000Z', user: userId },
+        { company, startDate: '2024-01-01T00:00:00.000Z', endDate: '2025-01-01T00:00:00.000Z', user: userId },
       ],
     };
 
@@ -967,7 +969,7 @@ describe('userExists', () => {
       contact: { phone: '0987654321' },
       identity: { firstname: 'test', lastname: 'test' },
       role: { client: roleId },
-      userCompanyList: [{ startDate: '2024-01-01T00:00:00.000Z', endDate: '2025-01-01T00:00:00.000Z' }],
+      userCompanyList: [{ company, startDate: '2024-01-01T00:00:00.000Z', endDate: '2025-01-01T00:00:00.000Z' }],
     });
 
     SinonMongoose.calledOnceWithExactly(

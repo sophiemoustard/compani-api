@@ -173,25 +173,29 @@ exports.userExists = async (email, credentials) => {
     .populate({ path: 'company' })
     .populate({ path: 'userCompanyList', options: { sort: { startDate: 1 } } })
     .lean();
+
   if (!targetUser) return { exists: false, user: {} };
   if (!credentials) return { exists: true, user: {} };
 
   const companyId = get(credentials, 'company._id');
   const loggedUserHasVendorRole = has(credentials, 'role.vendor');
+
   const loggedUserHasCoachRights = [COACH, CLIENT_ADMIN].includes(get(credentials, 'role.client.name'));
   const sameCompany = UserCompaniesHelper.userIsOrWillBeInCompany(targetUser.userCompanyList, companyId);
   const currentAndFuturCompanies = UserCompaniesHelper.getCurrentAndFutureCompanies(targetUser.userCompanyList);
+  const coachCanReadAllUserInfo = loggedUserHasCoachRights && (sameCompany || !currentAndFuturCompanies.length);
 
-  const canReadAllUserInfo = loggedUserHasVendorRole ||
-    (loggedUserHasCoachRights && (sameCompany || !currentAndFuturCompanies.length));
-  const commonFieldsToPick = ['_id', 'local.email', 'identity.firstname', 'identity.lastname', 'contact.phone', 'role'];
+  const commonFieldsToPick = {
+    user: ['_id', 'local.email', 'identity.firstname', 'identity.lastname', 'contact.phone', 'role'],
+    userCompany: ['company', 'startDate', 'endDate'],
+  };
 
-  if (canReadAllUserInfo) {
+  if (loggedUserHasVendorRole || coachCanReadAllUserInfo) {
     const formattedUser = {
-      ...pick(targetUser, [...commonFieldsToPick, 'company']),
+      ...pick(targetUser, [...commonFieldsToPick.user, 'company']),
       userCompanyList: targetUser.userCompanyList
         .filter(uc => (loggedUserHasVendorRole ? true : UtilsHelper.areObjectIdsEquals(companyId, uc.company)))
-        .map(uc => (pick(uc, ['company', 'endDate']))),
+        .map(uc => (pick(uc, commonFieldsToPick.userCompany))),
     };
 
     return { exists: true, user: formattedUser };
@@ -200,9 +204,9 @@ exports.userExists = async (email, credentials) => {
   const doesEveryUserCompanyHasEndDate = targetUser.userCompanyList.every(uc => uc.endDate);
   if (loggedUserHasCoachRights && doesEveryUserCompanyHasEndDate) {
     const formattedUser = {
-      ...pick(targetUser, commonFieldsToPick),
+      ...pick(targetUser, commonFieldsToPick.user),
       userCompanyList: [
-        pick(targetUser.userCompanyList.sort(descendingSortBy('startDate'))[0], ['startDate', 'endDate']),
+        pick(targetUser.userCompanyList.sort(descendingSortBy('startDate'))[0], commonFieldsToPick.userCompany),
       ],
     };
 
