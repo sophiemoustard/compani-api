@@ -16,7 +16,7 @@ const UserCompany = require('../models/UserCompany');
 const Contract = require('../models/Contract');
 const translate = require('./translate');
 const GCloudStorageHelper = require('./gCloudStorage');
-const { TRAINER, AUXILIARY_ROLES, HELPER, AUXILIARY_WITHOUT_COMPANY } = require('./constants');
+const { TRAINER, AUXILIARY_ROLES, HELPER, AUXILIARY_WITHOUT_COMPANY, CLIENT_ADMIN, COACH } = require('./constants');
 const SectorHistoriesHelper = require('./sectorHistories');
 const GDriveStorageHelper = require('./gDriveStorage');
 const UtilsHelper = require('./utils');
@@ -178,12 +178,15 @@ exports.userExists = async (email, credentials) => {
 
   const companyId = get(credentials, 'company._id');
   const loggedUserHasVendorRole = has(credentials, 'role.vendor');
+  const loggedUserHasCoachRights = [COACH, CLIENT_ADMIN].includes(get(credentials, 'role.client.name'));
   const sameCompany = UserCompaniesHelper.userIsOrWillBeInCompany(targetUser.userCompanyList, companyId);
 
   const currentAndFuturCompanies = UserCompaniesHelper.getCurrentAndFutureCompanies(targetUser.userCompanyList);
 
-  const canReadAllUserInfo = loggedUserHasVendorRole || sameCompany || !currentAndFuturCompanies.length;
+  const canReadAllUserInfo = loggedUserHasVendorRole ||
+    (loggedUserHasCoachRights && (sameCompany || !currentAndFuturCompanies.length));
   const commonFieldsToPick = ['_id', 'local.email', 'identity.firstname', 'identity.lastname', 'contact.phone', 'role'];
+
   if (canReadAllUserInfo) {
     const formattedUser = {
       ...pick(targetUser, [...commonFieldsToPick, 'company']),
@@ -196,10 +199,12 @@ exports.userExists = async (email, credentials) => {
   }
 
   const doesEveryUserCompanyHasEndDate = targetUser.userCompanyList.every(uc => uc.endDate);
-  if (doesEveryUserCompanyHasEndDate) {
+  if (loggedUserHasCoachRights && doesEveryUserCompanyHasEndDate) {
     const formattedUser = {
       ...pick(targetUser, commonFieldsToPick),
-      userCompanyList: [{ endDate: targetUser.userCompanyList.sort(descendingSortBy('startDate'))[0].endDate }],
+      userCompanyList: [
+        pick(targetUser.userCompanyList.sort(descendingSortBy('startDate'))[0], ['startDate', 'endDate']),
+      ],
     };
 
     return { exists: true, user: formattedUser };
