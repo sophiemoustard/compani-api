@@ -180,7 +180,6 @@ exports.userExists = async (email, credentials) => {
   const loggedUserHasVendorRole = has(credentials, 'role.vendor');
   const loggedUserHasCoachRights = [COACH, CLIENT_ADMIN].includes(get(credentials, 'role.client.name'));
   const sameCompany = UserCompaniesHelper.userIsOrWillBeInCompany(targetUser.userCompanyList, companyId);
-
   const currentAndFuturCompanies = UserCompaniesHelper.getCurrentAndFutureCompanies(targetUser.userCompanyList);
 
   const canReadAllUserInfo = loggedUserHasVendorRole ||
