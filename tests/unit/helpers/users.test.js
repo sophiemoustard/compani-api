@@ -788,7 +788,13 @@ describe('userExists', () => {
     SinonMongoose.calledOnceWithExactly(
       findOne,
       [
-        { query: 'findOne', args: [{ 'local.email': email }, { role: 1 }] },
+        {
+          query: 'findOne',
+          args: [
+            { 'local.email': email },
+            { role: 1, 'local.email': 1, 'identity.firstname': 1, 'identity.lastname': 1, 'contact.phone': 1 },
+          ],
+        },
         { query: 'populate', args: [{ path: 'company' }] },
         { query: 'populate', args: [{ path: 'userCompanyList', options: { sort: { startDate: 1 } } }] },
         { query: 'lean' },
@@ -807,7 +813,13 @@ describe('userExists', () => {
     SinonMongoose.calledOnceWithExactly(
       findOne,
       [
-        { query: 'findOne', args: [{ 'local.email': nonExistantEmail }, { role: 1 }] },
+        {
+          query: 'findOne',
+          args: [
+            { 'local.email': nonExistantEmail },
+            { role: 1, 'local.email': 1, 'identity.firstname': 1, 'identity.lastname': 1, 'contact.phone': 1 },
+          ],
+        },
         { query: 'populate', args: [{ path: 'company' }] },
         { query: 'populate', args: [{ path: 'userCompanyList', options: { sort: { startDate: 1 } } }] },
         { query: 'lean' },
@@ -825,7 +837,13 @@ describe('userExists', () => {
     SinonMongoose.calledOnceWithExactly(
       findOne,
       [
-        { query: 'findOne', args: [{ 'local.email': email }, { role: 1 }] },
+        {
+          query: 'findOne',
+          args: [
+            { 'local.email': email },
+            { role: 1, 'local.email': 1, 'identity.firstname': 1, 'identity.lastname': 1, 'contact.phone': 1 },
+          ],
+        },
         { query: 'populate', args: [{ path: 'company' }] },
         { query: 'populate', args: [{ path: 'userCompanyList', options: { sort: { startDate: 1 } } }] },
         { query: 'lean' },
@@ -851,7 +869,13 @@ describe('userExists', () => {
     SinonMongoose.calledOnceWithExactly(
       findOne,
       [
-        { query: 'findOne', args: [{ 'local.email': email }, { role: 1 }] },
+        {
+          query: 'findOne',
+          args: [
+            { 'local.email': email },
+            { role: 1, 'local.email': 1, 'identity.firstname': 1, 'identity.lastname': 1, 'contact.phone': 1 },
+          ],
+        },
         { query: 'populate', args: [{ path: 'company' }] },
         { query: 'populate', args: [{ path: 'userCompanyList', options: { sort: { startDate: 1 } } }] },
         { query: 'lean' },
@@ -875,7 +899,13 @@ describe('userExists', () => {
     SinonMongoose.calledOnceWithExactly(
       findOne,
       [
-        { query: 'findOne', args: [{ 'local.email': email }, { role: 1 }] },
+        {
+          query: 'findOne',
+          args: [
+            { 'local.email': email },
+            { role: 1, 'local.email': 1, 'identity.firstname': 1, 'identity.lastname': 1, 'contact.phone': 1 },
+          ],
+        },
         { query: 'populate', args: [{ path: 'company' }] },
         { query: 'populate', args: [{ path: 'userCompanyList', options: { sort: { startDate: 1 } } }] },
         { query: 'lean' },
@@ -894,7 +924,13 @@ describe('userExists', () => {
     SinonMongoose.calledOnceWithExactly(
       findOne,
       [
-        { query: 'findOne', args: [{ 'local.email': email }, { role: 1 }] },
+        {
+          query: 'findOne',
+          args: [
+            { 'local.email': email },
+            { role: 1, 'local.email': 1, 'identity.firstname': 1, 'identity.lastname': 1, 'contact.phone': 1 },
+          ],
+        },
         { query: 'populate', args: [{ path: 'company' }] },
         { query: 'populate', args: [{ path: 'userCompanyList', options: { sort: { startDate: 1 } } }] },
         { query: 'lean' },
@@ -930,12 +966,19 @@ describe('userExists', () => {
       contact: { phone: '0987654321' },
       identity: { firstname: 'test', lastname: 'test' },
       role: { client: roleId },
+      userCompanyList: { endDate: '2025-01-01T00:00:00.000Z' },
     });
 
     SinonMongoose.calledOnceWithExactly(
       findOne,
       [
-        { query: 'findOne', args: [{ 'local.email': email }, { role: 1 }] },
+        {
+          query: 'findOne',
+          args: [
+            { 'local.email': email },
+            { role: 1, 'local.email': 1, 'identity.firstname': 1, 'identity.lastname': 1, 'contact.phone': 1 },
+          ],
+        },
         { query: 'populate', args: [{ path: 'company' }] },
         { query: 'populate', args: [{ path: 'userCompanyList', options: { sort: { startDate: 1 } } }] },
         { query: 'lean' },
@@ -954,7 +997,13 @@ describe('userExists', () => {
     SinonMongoose.calledOnceWithExactly(
       findOne,
       [
-        { query: 'findOne', args: [{ 'local.email': email }, { role: 1 }] },
+        {
+          query: 'findOne',
+          args: [
+            { 'local.email': email },
+            { role: 1, 'local.email': 1, 'identity.firstname': 1, 'identity.lastname': 1, 'contact.phone': 1 },
+          ],
+        },
         { query: 'populate', args: [{ path: 'company' }] },
         { query: 'populate', args: [{ path: 'userCompanyList', options: { sort: { startDate: 1 } } }] },
         { query: 'lean' },
