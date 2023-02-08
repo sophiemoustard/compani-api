@@ -23,6 +23,7 @@ const UtilsHelper = require('./utils');
 const HelpersHelper = require('./helpers');
 const UserCompaniesHelper = require('./userCompanies');
 const { CompaniDate } = require('./dates/companiDates');
+const { descendingSortBy } = require('./dates/utils');
 
 const { language } = translate;
 
@@ -164,7 +165,11 @@ exports.getUser = async (userId, credentials) => {
 };
 
 exports.userExists = async (email, credentials) => {
-  const targetUser = await User.findOne({ 'local.email': email }, { role: 1 })
+  const targetUser = await User
+    .findOne(
+      { 'local.email': email },
+      { role: 1, 'local.email': 1, 'identity.firstname': 1, 'identity.lastname': 1, 'contact.phone': 1 }
+    )
     .populate({ path: 'company' })
     .populate({ path: 'userCompanyList', options: { sort: { startDate: 1 } } })
     .lean();
@@ -191,10 +196,13 @@ exports.userExists = async (email, credentials) => {
 
   const doesEveryUserCompanyHasEndDate = targetUser.userCompanyList.every(uc => uc.endDate);
   if (doesEveryUserCompanyHasEndDate) {
-    const formattedUser = pick(
-      targetUser,
-      ['_id', 'local.email', 'identity.firstname', 'identity.lastname', 'contact.phone', 'endDate', 'role']
-    );
+    const formattedUser = {
+      ...pick(
+        targetUser,
+        ['_id', 'local.email', 'identity.firstname', 'identity.lastname', 'contact.phone', 'role']
+      ),
+      userCompanyList: { endDate: targetUser.userCompanyList.sort(descendingSortBy('startDate'))[0].endDate },
+    };
 
     return { exists: true, user: formattedUser };
   }
