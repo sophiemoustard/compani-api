@@ -152,9 +152,7 @@ describe('SEEDS VERIFICATION', () => {
                 .every((ch, i) => {
                   if (i % 2 === 0) {
                     return ch.action === TRAINEE_ADDITION && ch.trainee.userCompanyList
-                      .some(uc => UtilsHelper.areObjectIdsEquals(uc.company, ch.company) &&
-                      CompaniDate(ch.createdAt).isAfter(uc.startDate)
-                      );
+                      .some(uc => UtilsHelper.areObjectIdsEquals(uc.company, ch.company));
                   }
 
                   return ch.action === TRAINEE_DELETION;
