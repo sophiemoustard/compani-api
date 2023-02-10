@@ -71,7 +71,7 @@ describe('QUESTIONNAIRE HISTORIES ROUTES - POST /questionnairehistories', () => 
 
       expect(response.statusCode).toBe(200);
       const questionnaireHistoriesCount = await QuestionnaireHistory.countDocuments();
-      expect(questionnaireHistoriesCount).toBe(1);
+      expect(questionnaireHistoriesCount).toBe(2);
     });
 
     it('should return 400 if questionnaire answer without card', async () => {
@@ -133,17 +133,14 @@ describe('QUESTIONNAIRE HISTORIES ROUTES - POST /questionnairehistories', () => 
     it('should return a 409 if a questionnaire history already exists for this course and user', async () => {
       const payload = {
         course: coursesList[0]._id,
-        user: questionnaireHistoriesUsersList[0],
+        user: questionnaireHistoriesUsersList[2],
         questionnaire: questionnairesList[0]._id,
-        company: companyWithoutSubscription._id,
       };
-
-      await QuestionnaireHistory.create(payload);
 
       const response = await app.inject({
         method: 'POST',
         url: '/questionnairehistories',
-        payload: omit(payload, 'company'),
+        payload,
         headers: { 'x-access-token': authToken },
       });
 
