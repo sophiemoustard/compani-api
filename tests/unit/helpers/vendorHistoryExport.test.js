@@ -1195,8 +1195,8 @@ describe('exportEndOfCourseQuestionnaireHistory', () => {
           identity: { firstname: '', lastname: 'Zizou' },
           local: { email: 'zizou@2027.com' },
           contact: { phone: '0600000000' },
-          company: { name: 'créole' },
         },
+        company: { name: 'créole' },
         questionnaire: {
           _id: new ObjectId(),
           type: 'end_of_course',
@@ -1225,8 +1225,8 @@ describe('exportEndOfCourseQuestionnaireHistory', () => {
           identity: { firstname: 'Bob', lastname: 'Marley' },
           local: { email: 'bob@marley.com' },
           contact: {},
-          company: { name: 'Reggae Music' },
         },
+        company: { name: 'Reggae Music' },
         questionnaire: {
           _id: new ObjectId(),
           type: 'end_of_course',
@@ -1341,11 +1341,8 @@ describe('exportEndOfCourseQuestionnaireHistory', () => {
                   { path: 'trainer', select: 'identity' },
                 ],
               },
-              {
-                path: 'user',
-                select: 'identity local.email contact.phone company',
-                populate: { path: 'company', populate: { path: 'company', select: 'name' } },
-              },
+              { path: 'user', select: 'identity local.email contact.phone' },
+              { path: 'company', select: 'name' },
               { path: 'questionnaireAnswersList.card', select: 'qcAnswers' },
             ],
           }],
