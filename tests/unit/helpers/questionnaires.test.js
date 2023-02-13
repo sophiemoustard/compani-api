@@ -606,7 +606,7 @@ describe('getFollowUp', () => {
     questionnaireFindOne.restore();
   });
 
-  it('should return follow up for intra course', async () => {
+  it('should return follow up for course', async () => {
     const questionnaireId = new ObjectId();
     const courseId = new ObjectId();
     const companyId = new ObjectId();
@@ -626,15 +626,10 @@ describe('getFollowUp', () => {
         {
           _id: new ObjectId(),
           course: course._id,
-          user: { company: companyId },
+          company: companyId,
           questionnaireAnswersList: [
             {
-              card: {
-                _id: cardsIds[0],
-                template: 'open_question',
-                isMandatory: true,
-                question: 'aimez-vous ce test ?',
-              },
+              card: { _id: cardsIds[0], template: 'open_question', isMandatory: true, question: 'aimes-tu ce test ?' },
               answerList: ['blabla'],
             },
             {
@@ -652,14 +647,14 @@ describe('getFollowUp', () => {
         {
           _id: new ObjectId(),
           course: course._id,
-          user: { company: companyId },
+          company: companyId,
           questionnaireAnswersList: [
             {
               card: {
                 _id: cardsIds[0],
                 template: 'open_question',
                 isMandatory: true,
-                question: 'aimez-vous ce test ?',
+                question: 'aimes-tu ce test ?',
               },
               answerList: ['test test'],
             },
@@ -684,11 +679,7 @@ describe('getFollowUp', () => {
     const result = await QuestionnaireHelper.getFollowUp(questionnaireId, courseId, credentials);
 
     expect(result).toMatchObject({
-      course: {
-        programName: 'test',
-        companyName: 'company',
-        misc: 'infos',
-      },
+      course: { programName: 'test', companyName: 'company', misc: 'infos' },
       questionnaire: { type: EXPECTATIONS, name: 'questionnaire' },
       followUp: [
         {
@@ -697,7 +688,7 @@ describe('getFollowUp', () => {
             { answer: 'test test', course: course._id, traineeCompany: companyId },
           ],
           isMandatory: true,
-          question: 'aimez-vous ce test ?',
+          question: 'aimes-tu ce test ?',
           template: 'open_question',
         },
         {
@@ -729,7 +720,7 @@ describe('getFollowUp', () => {
       questionnaireFindOne,
       [
         { query: 'findOne', args: [{ _id: questionnaireId }] },
-        { query: 'select', args: ['type name'] },
+        { query: 'select', args: ['type name company'] },
         {
           query: 'populate',
           args: [{
@@ -746,7 +737,6 @@ describe('getFollowUp', () => {
                   { path: 'subProgram', select: 'program', populate: { path: 'program', select: '_id -subPrograms' } },
                 ],
               },
-              { path: 'user', select: '_id', populate: { path: 'company' } },
             ],
           }],
         },
@@ -755,156 +745,7 @@ describe('getFollowUp', () => {
     );
   });
 
-  it('should return follow up for inter b2b course', async () => {
-    const questionnaireId = new ObjectId();
-    const courseId = new ObjectId();
-    const companyAId = new ObjectId();
-    const companyBId = new ObjectId();
-    const course = {
-      _id: courseId,
-      subProgram: { program: { name: 'test' } },
-      misc: 'infos',
-      type: INTER_B2B,
-    };
-    const cardsIds = [new ObjectId(), new ObjectId()];
-    const questionnaire = {
-      _id: questionnaireId,
-      type: EXPECTATIONS,
-      name: 'questionnaire',
-      histories: [
-        {
-          _id: new ObjectId(),
-          course: course._id,
-          user: { company: companyAId },
-          questionnaireAnswersList: [
-            {
-              card: {
-                _id: cardsIds[0],
-                template: 'open_question',
-                isMandatory: true,
-                question: 'aimez-vous ce test ?',
-              },
-              answerList: ['blabla'],
-            },
-            {
-              card: {
-                _id: cardsIds[1],
-                template: 'survey',
-                isMandatory: true,
-                question: 'combien aimez vous ce test sur une échelle de 1 à 5 ?',
-                label: { left: '1', right: '5' },
-              },
-              answerList: ['3'],
-            },
-          ],
-        },
-        {
-          _id: new ObjectId(),
-          course: course._id,
-          user: { company: companyBId },
-          questionnaireAnswersList: [
-            {
-              card: {
-                _id: cardsIds[0],
-                template: 'open_question',
-                isMandatory: true,
-                question: 'aimez-vous ce test ?',
-              },
-              answerList: ['test test'],
-            },
-            {
-              card: {
-                _id: cardsIds[1],
-                template: 'survey',
-                isMandatory: true,
-                question: 'combien aimez vous ce test sur une échelle de 1 à 5 ?',
-                label: { left: '1', right: '5' },
-              },
-              answerList: ['2'],
-            },
-          ],
-        },
-      ],
-    };
-
-    courseFindOne.returns(SinonMongoose.stubChainedQueries(course, ['select', 'populate', 'lean']));
-    questionnaireFindOne.returns(SinonMongoose.stubChainedQueries(questionnaire, ['select', 'populate', 'lean']));
-
-    const result = await QuestionnaireHelper.getFollowUp(questionnaireId, courseId, credentials);
-
-    expect(result).toMatchObject({
-      course: {
-        programName: 'test',
-        companyName: '',
-        misc: 'infos',
-      },
-      questionnaire: { type: EXPECTATIONS, name: 'questionnaire' },
-      followUp: [
-        {
-          answers: [
-            { answer: 'blabla', course: course._id, traineeCompany: companyAId },
-            { answer: 'test test', course: course._id, traineeCompany: companyBId },
-          ],
-          isMandatory: true,
-          question: 'aimez-vous ce test ?',
-          template: 'open_question',
-        },
-        {
-          answers: [
-            { answer: '3', course: course._id, traineeCompany: companyAId },
-            { answer: '2', course: course._id, traineeCompany: companyBId },
-          ],
-          isMandatory: true,
-          question: 'combien aimez vous ce test sur une échelle de 1 à 5 ?',
-          template: 'survey',
-          label: { left: '1', right: '5' },
-        },
-      ],
-    });
-    SinonMongoose.calledOnceWithExactly(
-      courseFindOne,
-      [
-        { query: 'findOne', args: [{ _id: courseId }] },
-        { query: 'select', args: ['subProgram companies misc type'] },
-        {
-          query: 'populate',
-          args: [{ path: 'subProgram', select: 'program', populate: [{ path: 'program', select: 'name' }] }],
-        },
-        { query: 'populate', args: [{ path: 'companies', select: 'name' }] },
-        { query: 'lean' },
-      ]
-    );
-    SinonMongoose.calledOnceWithExactly(
-      questionnaireFindOne,
-      [
-        { query: 'findOne', args: [{ _id: questionnaireId }] },
-        { query: 'select', args: ['type name'] },
-        {
-          query: 'populate',
-          args: [{
-            path: 'histories',
-            match: { course: courseId },
-            options: { isVendorUser: true },
-            populate: [
-              { path: 'questionnaireAnswersList.card', select: '-createdAt -updatedAt' },
-              {
-                path: 'course',
-                select: 'trainer subProgram',
-                populate: [
-                  { path: 'trainer', select: 'identity' },
-                  { path: 'subProgram', select: 'program', populate: { path: 'program', select: '_id -subPrograms' } },
-                ],
-              },
-              { path: 'user', select: '_id', populate: { path: 'company' } },
-            ],
-          }],
-        },
-        { query: 'lean' },
-      ]
-    );
-  });
-
-  it('should return follow up for a questionnaire', async () => {
+  it('should return follow up for for all courses', async () => {
     const questionnaireId = new ObjectId();
     const cardsIds = [new ObjectId(), new ObjectId()];
     const companyId = ObjectId();
@@ -916,15 +757,10 @@ describe('getFollowUp', () => {
         {
           _id: new ObjectId(),
           course: new ObjectId(),
-          user: { company: companyId },
+          company: companyId,
           questionnaireAnswersList: [
             {
-              card: {
-                _id: cardsIds[0],
-                template: 'open_question',
-                isMandatory: true,
-                question: 'aimez-vous ce test ?',
-              },
+              card: { _id: cardsIds[0], template: 'open_question', isMandatory: true, question: 'aimes-tu ce test ?' },
               answerList: ['blabla'],
             },
             {
@@ -942,15 +778,10 @@ describe('getFollowUp', () => {
         {
           _id: new ObjectId(),
           course: new ObjectId(),
-          user: { company: companyId },
+          company: companyId,
           questionnaireAnswersList: [
             {
-              card: {
-                _id: cardsIds[0],
-                template: 'open_question',
-                isMandatory: true,
-                question: 'aimez-vous ce test ?',
-              },
+              card: { _id: cardsIds[0], template: 'open_question', isMandatory: true, question: 'aimes-tu ce test ?' },
               answerList: ['test test'],
             },
             {
@@ -981,7 +812,7 @@ describe('getFollowUp', () => {
             { answer: 'test test', course: questionnaire.histories[1].course },
           ],
           isMandatory: true,
-          question: 'aimez-vous ce test ?',
+          question: 'aimes-tu ce test ?',
           template: 'open_question',
         },
         {
@@ -1000,7 +831,7 @@ describe('getFollowUp', () => {
       questionnaireFindOne,
       [
         { query: 'findOne', args: [{ _id: questionnaireId }] },
-        { query: 'select', args: ['type name'] },
+        { query: 'select', args: ['type name company'] },
         {
           query: 'populate',
           args: [{
@@ -1017,7 +848,6 @@ describe('getFollowUp', () => {
                   { path: 'subProgram', select: 'program', populate: { path: 'program', select: '_id -subPrograms' } },
                 ],
               },
-              { path: 'user', select: '_id', populate: { path: 'company' } },
             ],
           }],
         },
@@ -1044,9 +874,9 @@ describe('getFollowUp', () => {
       histories: [{
         _id: new ObjectId(),
         course: course._id,
-        user: { company: companyId },
+        company: companyId,
         questionnaireAnswersList: [{
-          card: { _id: new ObjectId(), template: 'open_question', isMandatory: true, question: 'aimez-vous ce test ?' },
+          card: { _id: new ObjectId(), template: 'open_question', isMandatory: true, question: 'aimes-tu ce test ?' },
           answerList: [''],
         }],
       }],
@@ -1083,7 +913,7 @@ describe('getFollowUp', () => {
       questionnaireFindOne,
       [
         { query: 'findOne', args: [{ _id: questionnaireId }] },
-        { query: 'select', args: ['type name'] },
+        { query: 'select', args: ['type name company'] },
         {
           query: 'populate',
           args: [{
@@ -1100,7 +930,6 @@ describe('getFollowUp', () => {
                   { path: 'subProgram', select: 'program', populate: { path: 'program', select: '_id -subPrograms' } },
                 ],
               },
-              { path: 'user', select: '_id', populate: { path: 'company' } },
             ],
           }],
         },
@@ -1157,7 +986,7 @@ describe('getFollowUp', () => {
       questionnaireFindOne,
       [
         { query: 'findOne', args: [{ _id: questionnaireId }] },
-        { query: 'select', args: ['type name'] },
+        { query: 'select', args: ['type name company'] },
         {
           query: 'populate',
           args: [{
@@ -1174,7 +1003,6 @@ describe('getFollowUp', () => {
                   { path: 'subProgram', select: 'program', populate: { path: 'program', select: '_id -subPrograms' } },
                 ],
               },
-              { path: 'user', select: '_id', populate: { path: 'company' } },
             ],
           }],
         },
@@ -1201,7 +1029,7 @@ describe('getFollowUp', () => {
       histories: [{
         _id: new ObjectId(),
         course: course._id,
-        user: { company: companyId },
+        company: companyId,
         questionnaireAnswersList: [],
       }],
     };
@@ -1237,7 +1065,7 @@ describe('getFollowUp', () => {
       questionnaireFindOne,
       [
         { query: 'findOne', args: [{ _id: questionnaireId }] },
-        { query: 'select', args: ['type name'] },
+        { query: 'select', args: ['type name company'] },
         {
           query: 'populate',
           args: [{
@@ -1254,7 +1082,6 @@ describe('getFollowUp', () => {
                   { path: 'subProgram', select: 'program', populate: { path: 'program', select: '_id -subPrograms' } },
                 ],
               },
-              { path: 'user', select: '_id', populate: { path: 'company' } },
             ],
           }],
         },

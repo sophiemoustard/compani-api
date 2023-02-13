@@ -98,7 +98,7 @@ const formatQuestionnaireAnswersWithCourse = async (courseId, questionnaireAnswe
 exports.getFollowUp = async (id, courseId, credentials) => {
   const isVendorUser = !!get(credentials, 'role.vendor');
   const questionnaire = await Questionnaire.findOne({ _id: id })
-    .select('type name')
+    .select('type name company')
     .populate({
       path: 'histories',
       match: courseId ? { course: courseId } : null,
@@ -113,7 +113,6 @@ exports.getFollowUp = async (id, courseId, credentials) => {
             { path: 'subProgram', select: 'program', populate: { path: 'program', select: '_id -subPrograms' } },
           ],
         },
-        { path: 'user', select: '_id', populate: { path: 'company' } },
       ],
     })
     .lean();
@@ -126,7 +125,7 @@ exports.getFollowUp = async (id, courseId, credentials) => {
 
       if (!followUp[answer.card._id]) followUp[answer.card._id] = { ...answer.card, answers: [] };
       followUp[answer.card._id].answers
-        .push(...answerList.map(a => ({ answer: a, course: history.course, traineeCompany: history.user.company })));
+        .push(...answerList.map(a => ({ answer: a, course: history.course, traineeCompany: history.company })));
     }
   }
 
