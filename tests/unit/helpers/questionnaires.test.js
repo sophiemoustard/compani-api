@@ -11,7 +11,6 @@ const {
   PUBLISHED,
   END_OF_COURSE,
   INTRA,
-  INTER_B2B,
   TRAINING_ORGANISATION_MANAGER,
   TRAINER,
 } = require('../../../src/helpers/constants');
@@ -629,7 +628,7 @@ describe('getFollowUp', () => {
           company: companyId,
           questionnaireAnswersList: [
             {
-              card: { _id: cardsIds[0], template: 'open_question', isMandatory: true, question: 'aimes-tu ce test ?' },
+              card: { _id: cardsIds[0], template: 'open_question', isMandatory: true, question: 'aimes-tu ce test ?' },
               answerList: ['blabla'],
             },
             {
