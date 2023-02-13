@@ -881,10 +881,15 @@ exports.generateConvocationPdf = async (courseId) => {
   return { pdf, courseName };
 };
 
-exports.getQuestionnaires = async (courseId) => {
+exports.getQuestionnaires = async (courseId, credentials) => {
+  const isVendorUser = !!get(credentials, 'role.vendor');
   const questionnaires = await Questionnaire.find({ status: { $ne: DRAFT } })
     .select('type name')
-    .populate({ path: 'historiesCount', match: { course: courseId, questionnaireAnswersList: { $ne: [] } } })
+    .populate({
+      path: 'historiesCount',
+      match: { course: courseId, questionnaireAnswersList: { $ne: [] } },
+      options: { isVendorUser },
+    })
     .lean();
 
   return questionnaires.filter(questionnaire => questionnaire.historiesCount);

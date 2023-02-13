@@ -1581,36 +1581,42 @@ const questionnaireHistoriesList = [
     course: coursesList[0]._id,
     user: traineeList[0]._id,
     questionnaire: questionnaireList[0]._id,
+    company: authCompany._id,
   },
   { // 1
     _id: new ObjectId(),
     course: coursesList[0]._id,
     user: traineeList[0]._id,
     questionnaire: questionnaireList[1]._id,
+    company: authCompany._id,
   },
   { // 2
     _id: new ObjectId(),
     course: coursesList[0]._id,
     user: traineeList[1]._id,
     questionnaire: questionnaireList[1]._id,
+    company: otherCompany._id,
   },
   { // 3
     _id: new ObjectId(),
     course: coursesList[0]._id,
     user: traineeList[2]._id,
     questionnaire: questionnaireList[0]._id,
+    company: authCompany._id,
   },
   { // 4
     _id: new ObjectId(),
     course: coursesList[1]._id,
     user: traineeList[3]._id,
     questionnaire: questionnaireList[0]._id,
+    company: authCompany._id,
   },
   { // 5
     _id: new ObjectId(),
     course: coursesList[1]._id,
     user: traineeList[3]._id,
     questionnaire: questionnaireList[1]._id,
+    company: authCompany._id,
   },
   { // 6 end of course questionnaire all questions answered
     _id: new ObjectId(),
@@ -1623,6 +1629,7 @@ const questionnaireHistoriesList = [
       { card: cardList[3]._id, answerList: [cardList[3].qcAnswers[1]._id.toHexString()] },
     ],
     createdAt: '2021-01-20T10:31:37.000Z',
+    company: authCompany._id,
   },
   { // 7 expectation questionnaire
     _id: new ObjectId(),
@@ -1630,6 +1637,7 @@ const questionnaireHistoriesList = [
     user: traineeList[0]._id,
     questionnaire: questionnaireList[0]._id,
     createdAt: '2021-02-18T10:00:00.000Z',
+    company: authCompany._id,
   },
   { // 8 end of course questionnaire only one answer
     _id: new ObjectId(),
@@ -1641,6 +1649,7 @@ const questionnaireHistoriesList = [
       answerList: [cardList[3].qcAnswers[0]._id.toHexString(), cardList[3].qcAnswers[1]._id.toHexString()],
     }],
     createdAt: '2021-01-27T20:31:04.000Z',
+    company: otherCompany._id,
   },
 ];
 

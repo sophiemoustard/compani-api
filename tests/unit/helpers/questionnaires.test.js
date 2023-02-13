@@ -6,7 +6,15 @@ const Course = require('../../../src/models/Course');
 const Card = require('../../../src/models/Card');
 const QuestionnaireHelper = require('../../../src/helpers/questionnaires');
 const CardHelper = require('../../../src/helpers/cards');
-const { EXPECTATIONS, PUBLISHED, END_OF_COURSE, INTRA, INTER_B2B } = require('../../../src/helpers/constants');
+const {
+  EXPECTATIONS,
+  PUBLISHED,
+  END_OF_COURSE,
+  INTRA,
+  INTER_B2B,
+  TRAINING_ORGANISATION_MANAGER,
+  TRAINER,
+} = require('../../../src/helpers/constants');
 const SinonMongoose = require('../sinonMongoose');
 const UtilsMock = require('../../utilsMock');
 
@@ -37,16 +45,21 @@ describe('list', () => {
   });
 
   it('should return questionnaires', async () => {
+    const credentials = { role: { vendor: { name: TRAINING_ORGANISATION_MANAGER } } };
     const questionnairesList = [{ name: 'test' }, { name: 'test2' }];
 
     find.returns(SinonMongoose.stubChainedQueries(questionnairesList));
 
-    const result = await QuestionnaireHelper.list();
+    const result = await QuestionnaireHelper.list(credentials);
 
     expect(result).toMatchObject(questionnairesList);
     SinonMongoose.calledOnceWithExactly(
       find,
-      [{ query: 'find' }, { query: 'populate', args: [{ path: 'historiesCount' }] }, { query: 'lean' }]
+      [
+        { query: 'find' },
+        { query: 'populate', args: [{ path: 'historiesCount', options: { isVendorUser: true } }] },
+        { query: 'lean' },
+      ]
     );
   });
 });
@@ -251,7 +264,14 @@ describe('getUserQuestionnaires', () => {
       findOneQuestionnaire,
       [
         { query: 'findOne', args: [{ type: EXPECTATIONS, status: PUBLISHED }, { type: 1, name: 1 }] },
-        { query: 'populate', args: [{ path: 'histories', match: { course: course._id, user: credentials._id } }] },
+        {
+          query: 'populate',
+          args: [{
+            path: 'histories',
+            match: { course: course._id, user: credentials._id },
+            options: { requestingOwnInfos: true },
+          }],
+        },
         { query: 'lean', args: [{ virtuals: true }] },
       ]
     );
@@ -289,7 +309,14 @@ describe('getUserQuestionnaires', () => {
       findOneQuestionnaire,
       [
         { query: 'findOne', args: [{ type: EXPECTATIONS, status: PUBLISHED }, { type: 1, name: 1 }] },
-        { query: 'populate', args: [{ path: 'histories', match: { course: course._id, user: credentials._id } }] },
+        {
+          query: 'populate',
+          args: [{
+            path: 'histories',
+            match: { course: course._id, user: credentials._id },
+            options: { requestingOwnInfos: true },
+          }],
+        },
         { query: 'lean', args: [{ virtuals: true }] },
       ]
     );
@@ -323,7 +350,14 @@ describe('getUserQuestionnaires', () => {
       findOneQuestionnaire,
       [
         { query: 'findOne', args: [{ type: EXPECTATIONS, status: PUBLISHED }, { type: 1, name: 1 }] },
-        { query: 'populate', args: [{ path: 'histories', match: { course: course._id, user: credentials._id } }] },
+        {
+          query: 'populate',
+          args: [{
+            path: 'histories',
+            match: { course: course._id, user: credentials._id },
+            options: { requestingOwnInfos: true },
+          }],
+        },
         { query: 'lean', args: [{ virtuals: true }] },
       ]
     );
@@ -354,7 +388,14 @@ describe('getUserQuestionnaires', () => {
       findOneQuestionnaire,
       [
         { query: 'findOne', args: [{ type: EXPECTATIONS, status: PUBLISHED }, { type: 1, name: 1 }] },
-        { query: 'populate', args: [{ path: 'histories', match: { course: course._id, user: credentials._id } }] },
+        {
+          query: 'populate',
+          args: [{
+            path: 'histories',
+            match: { course: course._id, user: credentials._id },
+            options: { requestingOwnInfos: true },
+          }],
+        },
         { query: 'lean', args: [{ virtuals: true }] },
       ]
     );
@@ -415,7 +456,14 @@ describe('getUserQuestionnaires', () => {
       findOneQuestionnaire,
       [
         { query: 'findOne', args: [{ type: END_OF_COURSE, status: PUBLISHED }, { type: 1, name: 1 }] },
-        { query: 'populate', args: [{ path: 'histories', match: { course: course._id, user: credentials._id } }] },
+        {
+          query: 'populate',
+          args: [{
+            path: 'histories',
+            match: { course: course._id, user: credentials._id },
+            options: { requestingOwnInfos: true },
+          }],
+        },
         { query: 'lean', args: [{ virtuals: true }] },
       ]
     );
@@ -455,7 +503,14 @@ describe('getUserQuestionnaires', () => {
       findOneQuestionnaire,
       [
         { query: 'findOne', args: [{ type: END_OF_COURSE, status: PUBLISHED }, { type: 1, name: 1 }] },
-        { query: 'populate', args: [{ path: 'histories', match: { course: course._id, user: credentials._id } }] },
+        {
+          query: 'populate',
+          args: [{
+            path: 'histories',
+            match: { course: course._id, user: credentials._id },
+            options: { requestingOwnInfos: true },
+          }],
+        },
         { query: 'lean', args: [{ virtuals: true }] },
       ]
     );
@@ -491,7 +546,14 @@ describe('getUserQuestionnaires', () => {
       findOneQuestionnaire,
       [
         { query: 'findOne', args: [{ type: END_OF_COURSE, status: PUBLISHED }, { type: 1, name: 1 }] },
-        { query: 'populate', args: [{ path: 'histories', match: { course: course._id, user: credentials._id } }] },
+        {
+          query: 'populate',
+          args: [{
+            path: 'histories',
+            match: { course: course._id, user: credentials._id },
+            options: { requestingOwnInfos: true },
+          }],
+        },
         { query: 'lean', args: [{ virtuals: true }] },
       ]
     );
@@ -533,6 +595,8 @@ describe('getUserQuestionnaires', () => {
 describe('getFollowUp', () => {
   let courseFindOne;
   let questionnaireFindOne;
+  const credentials = { role: { vendor: { name: TRAINER } } };
+
   beforeEach(() => {
     courseFindOne = sinon.stub(Course, 'findOne');
     questionnaireFindOne = sinon.stub(Questionnaire, 'findOne');
@@ -617,7 +681,7 @@ describe('getFollowUp', () => {
     courseFindOne.returns(SinonMongoose.stubChainedQueries(course, ['select', 'populate', 'lean']));
     questionnaireFindOne.returns(SinonMongoose.stubChainedQueries(questionnaire, ['select', 'populate', 'lean']));
 
-    const result = await QuestionnaireHelper.getFollowUp(questionnaireId, courseId);
+    const result = await QuestionnaireHelper.getFollowUp(questionnaireId, courseId, credentials);
 
     expect(result).toMatchObject({
       course: {
@@ -670,6 +734,7 @@ describe('getFollowUp', () => {
           query: 'populate',
           args: [{
             path: 'histories',
+            options: { isVendorUser: true },
             match: { course: courseId },
             populate: [
               { path: 'questionnaireAnswersList.card', select: '-createdAt -updatedAt' },
@@ -765,7 +830,7 @@ describe('getFollowUp', () => {
     courseFindOne.returns(SinonMongoose.stubChainedQueries(course, ['select', 'populate', 'lean']));
     questionnaireFindOne.returns(SinonMongoose.stubChainedQueries(questionnaire, ['select', 'populate', 'lean']));
 
-    const result = await QuestionnaireHelper.getFollowUp(questionnaireId, courseId);
+    const result = await QuestionnaireHelper.getFollowUp(questionnaireId, courseId, credentials);
 
     expect(result).toMatchObject({
       course: {
@@ -819,6 +884,7 @@ describe('getFollowUp', () => {
           args: [{
             path: 'histories',
             match: { course: courseId },
+            options: { isVendorUser: true },
             populate: [
               { path: 'questionnaireAnswersList.card', select: '-createdAt -updatedAt' },
               {
@@ -904,7 +970,7 @@ describe('getFollowUp', () => {
 
     questionnaireFindOne.returns(SinonMongoose.stubChainedQueries(questionnaire, ['select', 'populate', 'lean']));
 
-    const result = await QuestionnaireHelper.getFollowUp(questionnaireId);
+    const result = await QuestionnaireHelper.getFollowUp(questionnaireId, null, credentials);
 
     expect(result).toMatchObject({
       questionnaire: { type: EXPECTATIONS, name: 'questionnaire' },
@@ -940,6 +1006,7 @@ describe('getFollowUp', () => {
           args: [{
             path: 'histories',
             match: null,
+            options: { isVendorUser: true },
             populate: [
               { path: 'questionnaireAnswersList.card', select: '-createdAt -updatedAt' },
               {
@@ -988,7 +1055,7 @@ describe('getFollowUp', () => {
     courseFindOne.returns(SinonMongoose.stubChainedQueries(course, ['select', 'populate', 'lean']));
     questionnaireFindOne.returns(SinonMongoose.stubChainedQueries(questionnaire, ['select', 'populate', 'lean']));
 
-    const result = await QuestionnaireHelper.getFollowUp(questionnaireId, courseId);
+    const result = await QuestionnaireHelper.getFollowUp(questionnaireId, courseId, credentials);
 
     expect(result).toMatchObject({
       course: {
@@ -1021,6 +1088,7 @@ describe('getFollowUp', () => {
           query: 'populate',
           args: [{
             path: 'histories',
+            options: { isVendorUser: true },
             match: { course: courseId },
             populate: [
               { path: 'questionnaireAnswersList.card', select: '-createdAt -updatedAt' },
@@ -1061,7 +1129,7 @@ describe('getFollowUp', () => {
     courseFindOne.returns(SinonMongoose.stubChainedQueries(course, ['select', 'populate', 'lean']));
     questionnaireFindOne.returns(SinonMongoose.stubChainedQueries(questionnaire, ['select', 'populate', 'lean']));
 
-    const result = await QuestionnaireHelper.getFollowUp(questionnaireId, courseId);
+    const result = await QuestionnaireHelper.getFollowUp(questionnaireId, courseId, credentials);
 
     expect(result).toMatchObject({
       course: {
@@ -1094,6 +1162,7 @@ describe('getFollowUp', () => {
           query: 'populate',
           args: [{
             path: 'histories',
+            options: { isVendorUser: true },
             match: { course: courseId },
             populate: [
               { path: 'questionnaireAnswersList.card', select: '-createdAt -updatedAt' },
@@ -1140,7 +1209,7 @@ describe('getFollowUp', () => {
     courseFindOne.returns(SinonMongoose.stubChainedQueries(course, ['select', 'populate', 'lean']));
     questionnaireFindOne.returns(SinonMongoose.stubChainedQueries(questionnaire, ['select', 'populate', 'lean']));
 
-    const result = await QuestionnaireHelper.getFollowUp(questionnaireId, courseId);
+    const result = await QuestionnaireHelper.getFollowUp(questionnaireId, courseId, credentials);
 
     expect(result).toMatchObject({
       course: {
@@ -1173,6 +1242,7 @@ describe('getFollowUp', () => {
           query: 'populate',
           args: [{
             path: 'histories',
+            options: { isVendorUser: true },
             match: { course: courseId },
             populate: [
               { path: 'questionnaireAnswersList.card', select: '-createdAt -updatedAt' },

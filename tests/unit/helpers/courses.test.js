@@ -44,6 +44,7 @@ const {
   VENDOR_ADMIN,
   VENDOR_ROLES,
   INTER_B2C,
+  TRAINER,
 } = require('../../../src/helpers/constants');
 const CourseRepository = require('../../../src/repositories/CourseRepository');
 const CourseHistoriesHelper = require('../../../src/helpers/courseHistories');
@@ -4006,6 +4007,7 @@ describe('getQuestionnaires', () => {
   });
 
   it('should return questionnaires with answers', async () => {
+    const credentials = { role: { vendor: { name: TRAINER } } };
     const courseId = new ObjectId();
     const questionnaires = [
       { name: 'test', type: 'expectations', historiesCount: 1 },
@@ -4014,7 +4016,7 @@ describe('getQuestionnaires', () => {
 
     findQuestionnaire.returns(SinonMongoose.stubChainedQueries(questionnaires, ['select', 'populate', 'lean']));
 
-    const result = await CourseHelper.getQuestionnaires(courseId);
+    const result = await CourseHelper.getQuestionnaires(courseId, credentials);
 
     expect(result).toMatchObject([questionnaires[0]]);
     SinonMongoose.calledOnceWithExactly(
@@ -4024,7 +4026,11 @@ describe('getQuestionnaires', () => {
         { query: 'select', args: ['type name'] },
         {
           query: 'populate',
-          args: [{ path: 'historiesCount', match: { course: courseId, questionnaireAnswersList: { $ne: [] } } }],
+          args: [{
+            path: 'historiesCount',
+            match: { course: courseId, questionnaireAnswersList: { $ne: [] } },
+            options: { isVendorUser: true },
+          }],
         },
         { query: 'lean' },
       ]
