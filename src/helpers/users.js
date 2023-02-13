@@ -23,7 +23,6 @@ const UtilsHelper = require('./utils');
 const HelpersHelper = require('./helpers');
 const UserCompaniesHelper = require('./userCompanies');
 const { CompaniDate } = require('./dates/companiDates');
-const { descendingSortBy } = require('./dates/utils');
 
 const { language } = translate;
 
@@ -184,33 +183,27 @@ exports.userExists = async (email, credentials) => {
   const sameCompany = UserCompaniesHelper.userIsOrWillBeInCompany(targetUser.userCompanyList, companyId);
   const currentAndFuturCompanies = UserCompaniesHelper.getCurrentAndFutureCompanies(targetUser.userCompanyList);
   const coachCanReadAllUserInfo = loggedUserHasCoachRights && (sameCompany || !currentAndFuturCompanies.length);
-
-  const commonFieldsToPick = {
-    user: ['_id', 'local.email', 'identity.firstname', 'identity.lastname', 'contact.phone', 'role'],
-    userCompany: ['company', 'startDate', 'endDate'],
-  };
-
-  if (loggedUserHasVendorRole || coachCanReadAllUserInfo) {
-    const formattedUser = {
-      ...pick(targetUser, [...commonFieldsToPick.user, 'company']),
-      userCompanyList: targetUser.userCompanyList
-        .filter(uc => (loggedUserHasVendorRole ? true : UtilsHelper.areObjectIdsEquals(companyId, uc.company)))
-        .map(uc => (pick(uc, commonFieldsToPick.userCompany))),
-    };
-
-    return { exists: true, user: formattedUser };
-  }
-
   const doesEveryUserCompanyHasEndDate = targetUser.userCompanyList.every(uc => uc.endDate);
-  if (loggedUserHasCoachRights && doesEveryUserCompanyHasEndDate) {
-    const formattedUser = {
-      ...pick(targetUser, commonFieldsToPick.user),
-      userCompanyList: [
-        pick(targetUser.userCompanyList.sort(descendingSortBy('startDate'))[0], commonFieldsToPick.userCompany),
-      ],
-    };
+  const canReadInfo = loggedUserHasVendorRole || coachCanReadAllUserInfo ||
+    (loggedUserHasCoachRights && doesEveryUserCompanyHasEndDate);
 
-    return { exists: true, user: formattedUser };
+  if (canReadInfo) {
+    let userCompanyList;
+    if (loggedUserHasVendorRole) userCompanyList = targetUser.userCompanyList;
+    else if (coachCanReadAllUserInfo) {
+      userCompanyList = targetUser.userCompanyList.filter(uc => UtilsHelper.areObjectIdsEquals(companyId, uc.company));
+    } else {
+      userCompanyList = [UtilsHelper.getLastVersion(targetUser.userCompanyList, 'startDate')];
+    }
+
+    const userFieldsToPick = ['_id', 'local.email', 'identity.firstname', 'identity.lastname', 'contact.phone', 'role'];
+    return {
+      exists: true,
+      user: {
+        ...pick(targetUser, [...userFieldsToPick, (loggedUserHasVendorRole || coachCanReadAllUserInfo) && 'company']),
+        userCompanyList: userCompanyList.map(uc => pick(uc, ['company', 'startDate', 'endDate'])),
+      },
+    };
   }
 
   return { exists: true, user: {} };
