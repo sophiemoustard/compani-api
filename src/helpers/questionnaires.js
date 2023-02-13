@@ -18,9 +18,9 @@ const { CompaniDate } = require('./dates/companiDates');
 exports.create = async payload => Questionnaire.create(payload);
 
 exports.list = async (credentials) => {
-  const isVendorUser = [TRAINING_ORGANISATION_MANAGER, VENDOR_ADMIN].includes(get(credentials, 'role.vendor.name'));
+  const isRofOrAdmin = [TRAINING_ORGANISATION_MANAGER, VENDOR_ADMIN].includes(get(credentials, 'role.vendor.name'));
 
-  return Questionnaire.find().populate({ path: 'historiesCount', options: { isVendorUser } }).lean();
+  return Questionnaire.find().populate({ path: 'historiesCount', options: { isVendorUser: isRofOrAdmin } }).lean();
 };
 
 exports.getQuestionnaire = async id => Questionnaire.findOne({ _id: id })

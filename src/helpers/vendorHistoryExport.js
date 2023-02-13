@@ -308,14 +308,14 @@ const _getAnswerForExport = (questionnaireCard, questionnaireHistoryAnswersList)
 
 exports.exportEndOfCourseQuestionnaireHistory = async (startDate, endDate, credentials) => {
   const rows = [];
-  const isVendorUser = [TRAINING_ORGANISATION_MANAGER, VENDOR_ADMIN].includes(get(credentials, 'role.vendor.name'));
+  const isRofOrAdmin = [TRAINING_ORGANISATION_MANAGER, VENDOR_ADMIN].includes(get(credentials, 'role.vendor.name'));
 
   const endOfCourseQuestionnaire = await Questionnaire
     .findOne({ type: END_OF_COURSE })
     .populate({ path: 'cards', select: 'question template' })
     .populate({
       path: 'histories',
-      options: { isVendorUser },
+      options: { isVendorUser: isRofOrAdmin },
       match: { createdAt: { $gte: startDate, $lte: endDate } },
       populate: [
         {
