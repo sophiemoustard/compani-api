@@ -1669,7 +1669,7 @@ const questionnaireHistoriesList = [
       card: cardList[3]._id,
       answerList: [cardList[3].qcAnswers[1]._id.toHexString()],
     }],
-    createdAt: '2021-01-27T20:30:04.000Z',
+    createdAt: '2022-12-10T20:30:04.000Z',
     company: companyWithoutSubscription._id,
   },
 ];
