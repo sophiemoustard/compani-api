@@ -184,7 +184,14 @@ const userCompanies = [
     startDate: '2020-01-01T10:00:00.000Z',
     endDate: '2021-03-01T10:00:00.000Z',
   },
-  { // 6 coming up in auth company
+  { // 6 currently in other company
+    _id: new ObjectId(),
+    user: traineeComingUpInAuthCompany._id,
+    company: otherCompany._id,
+    startDate: '2020-01-01T10:00:00.000Z',
+    endDate: CompaniDate().add('P4M29D').toISO(),
+  },
+  { // 7 coming up in auth company
     _id: new ObjectId(),
     user: traineeComingUpInAuthCompany._id,
     company: authCompany._id,
@@ -850,7 +857,6 @@ module.exports = {
   subProgramsList,
   programsList,
   traineeFromOtherCompany,
-  traineeWithoutCompany,
   courseSmsHistory,
   traineeFromAuthCompanyWithFormationExpoToken,
   userCompanies,

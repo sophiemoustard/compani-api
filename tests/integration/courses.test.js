@@ -30,7 +30,6 @@ const {
   coursesList,
   subProgramsList,
   programsList,
-  traineeWithoutCompany,
   traineeFromOtherCompany,
   traineeFromAuthCompanyWithFormationExpoToken,
   userCompanies,
@@ -2352,15 +2351,15 @@ describe('COURSES ROUTES - PUT /courses/{_id}/trainees', () => {
       expect(response.statusCode).toBe(404);
     });
 
-    it('should return a 404 if user is not from course companies', async () => {
+    it('should return a 422 if company in payload', async () => {
       const response = await app.inject({
         method: 'PUT',
-        url: `/courses/${interb2bCourseIdFromOtherCompany}/trainees`,
+        url: `/courses/${intraCourseIdFromOtherCompany}/trainees`,
         headers: { Cookie: `alenvi_token=${authToken}` },
-        payload: { trainee: traineeFromAuthCompanyWithFormationExpoToken._id },
+        payload: { trainee: traineeFromAuthCompanyWithFormationExpoToken._id, company: authCompany._id },
       });
 
-      expect(response.statusCode).toBe(404);
+      expect(response.statusCode).toBe(422);
     });
 
     it('should return a 403 if user is already course trainer', async () => {
@@ -2413,26 +2412,59 @@ describe('COURSES ROUTES - PUT /courses/{_id}/trainees', () => {
       authToken = await getToken('training_organisation_manager');
     });
 
-    it('should add user to inter b2b course', async () => {
+    it('should add user to inter b2b course with current company', async () => {
       const response = await app.inject({
         method: 'PUT',
         url: `/courses/${interb2bCourseIdFromAuthCompany}/trainees`,
         headers: { Cookie: `alenvi_token=${authToken}` },
-        payload: { trainee: traineeFromAuthCompanyWithFormationExpoToken._id },
+        payload: { trainee: traineeComingUpInAuthCompany._id, company: otherCompany._id },
       });
 
       expect(response.statusCode).toBe(200);
     });
 
-    it('should return a 403 if trainee has no company', async () => {
+    it('should add user to inter b2b course with future company', async () => {
       const response = await app.inject({
         method: 'PUT',
         url: `/courses/${interb2bCourseIdFromAuthCompany}/trainees`,
-        payload: { trainee: traineeWithoutCompany._id },
         headers: { Cookie: `alenvi_token=${authToken}` },
+        payload: { trainee: traineeComingUpInAuthCompany._id, company: authCompany._id },
+      });
+
+      expect(response.statusCode).toBe(200);
+    });
+
+    it('should return a 409 if user company is not from course companies', async () => {
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/courses/${interb2bCourseIdFromOtherCompany}/trainees`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload: { trainee: traineeFromAuthCompanyWithFormationExpoToken._id, company: authCompany._id },
+      });
+
+      expect(response.statusCode).toBe(409);
+    });
+
+    it('should return a 404 if user is not from company in payload', async () => {
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/courses/${interb2bCourseIdFromOtherCompany}/trainees`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload: { trainee: traineeFromAuthCompanyWithFormationExpoToken._id, company: thirdCompany._id },
       });
 
       expect(response.statusCode).toBe(404);
+    });
+
+    it('should return a 422 if no company in payload', async () => {
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/courses/${interb2bCourseIdFromAuthCompany}/trainees`,
+        payload: { trainee: traineeFromAuthCompanyWithFormationExpoToken._id },
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(422);
     });
   });
 
@@ -2474,7 +2506,7 @@ describe('COURSES ROUTES - PUT /courses/{_id}/trainees', () => {
         method: 'PUT',
         url: `/courses/${interb2bCourseIdFromAuthCompany}/trainees`,
         headers: { Cookie: `alenvi_token=${authToken}` },
-        payload: { trainee: traineeFromAuthCompanyWithFormationExpoToken._id },
+        payload: { trainee: traineeFromAuthCompanyWithFormationExpoToken._id, company: authCompany._id },
       });
 
       expect(response.statusCode).toBe(403);

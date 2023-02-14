@@ -312,6 +312,7 @@ describe('getLearnerList', () => {
           query: 'populate',
           args: [{ path: 'activityHistories', select: 'updatedAt', options: { sort: { updatedAt: -1 } } }],
         },
+        { query: 'populate', args: [{ path: 'userCompanyList', populate: { path: 'company', select: 'name' } }] },
         { query: 'setOptions', args: [{ isVendorUser: !!get(credentials, 'role.vendor') }] },
         { query: 'lean' },
       ]
@@ -383,6 +384,7 @@ describe('getLearnerList', () => {
           query: 'populate',
           args: [{ path: 'activityHistories', select: 'updatedAt', options: { sort: { updatedAt: -1 } } }],
         },
+        { query: 'populate', args: [{ path: 'userCompanyList', populate: { path: 'company', select: 'name' } }] },
         { query: 'setOptions', args: [{ isVendorUser: false }] },
         { query: 'lean' },
       ]
@@ -453,6 +455,7 @@ describe('getLearnerList', () => {
           query: 'populate',
           args: [{ path: 'activityHistories', select: 'updatedAt', options: { sort: { updatedAt: -1 } } }],
         },
+        { query: 'populate', args: [{ path: 'userCompanyList', populate: { path: 'company', select: 'name' } }] },
         { query: 'setOptions', args: [{ isVendorUser: false }] },
         { query: 'lean' },
       ]
@@ -528,6 +531,7 @@ describe('getLearnerList', () => {
           query: 'populate',
           args: [{ path: 'activityHistories', select: 'updatedAt', options: { sort: { updatedAt: -1 } } }],
         },
+        { query: 'populate', args: [{ path: 'userCompanyList', populate: { path: 'company', select: 'name' } }] },
         { query: 'setOptions', args: [{ isVendorUser: false }] },
         { query: 'lean' },
       ]
