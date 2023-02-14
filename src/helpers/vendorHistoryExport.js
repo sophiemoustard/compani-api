@@ -326,11 +326,8 @@ exports.exportEndOfCourseQuestionnaireHistory = async (startDate, endDate, crede
             { path: 'trainer', select: 'identity' },
           ],
         },
-        {
-          path: 'user',
-          select: 'identity local.email contact.phone company',
-          populate: { path: 'company', populate: { path: 'company', select: 'name' } },
-        },
+        { path: 'user', select: 'identity local.email contact.phone' },
+        { path: 'company', select: 'name' },
         { path: 'questionnaireAnswersList.card', select: 'qcAnswers' },
       ],
     })
@@ -349,7 +346,7 @@ exports.exportEndOfCourseQuestionnaireHistory = async (startDate, endDate, crede
       Programme: get(qHistory, 'course.subProgram.program.name') || '',
       'Sous-programme': get(qHistory, 'course.subProgram.name'),
       'Prénom Nom intervenant(e)': UtilsHelper.formatIdentity(get(qHistory, 'course.trainer.identity') || '', 'FL'),
-      Structure: get(qHistory, 'user.company.name'),
+      Structure: get(qHistory, 'company.name'),
       'Date de réponse': CompaniDate(qHistory.createdAt).format(`${DD_MM_YYYY} ${HH_MM_SS}`),
       'Prénom Nom répondant(e)': UtilsHelper.formatIdentity(get(qHistory, 'user.identity') || '', 'FL'),
       'Mail répondant(e)': get(qHistory, 'user.local.email'),

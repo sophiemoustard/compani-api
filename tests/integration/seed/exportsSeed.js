@@ -76,6 +76,7 @@ const {
   CASH,
   CHECK,
   ESTIMATED_START_DATE_EDITION,
+  TRAINEE_ADDITION,
 } = require('../../../src/helpers/constants');
 const { auxiliaryRoleId, helperRoleId } = require('../../seed/authRolesSeed');
 
@@ -147,100 +148,107 @@ const establishment = {
   company: authCompany,
 };
 
-const auxiliaryList = [{
-  _id: new ObjectId(),
-  establishment: establishment._id,
-  identity: {
-    firstname: 'Lulu',
-    lastname: 'Uiui',
-    title: MISTER,
-    birthDate: moment('1992-01-01').toDate(),
-    birthCountry: 'FR',
-    birthState: '75',
-    birthCity: 'Paris',
-    nationality: 'FR',
-    socialSecurityNumber: '012345678912345',
-  },
-  administrative: { transportInvoice: { transportType: 'public' } },
-  contact: {
-    address: {
-      fullAddress: '37 rue de ponthieu 75008 Paris',
-      zipCode: '75008',
-      city: 'Paris',
-      street: '37 rue de Ponthieu',
-      location: { type: 'Point', coordinates: [2.377133, 48.801389] },
+const auxiliaryList = [
+  {
+    _id: new ObjectId(),
+    establishment: establishment._id,
+    identity: {
+      firstname: 'Lulu',
+      lastname: 'Uiui',
+      title: MISTER,
+      birthDate: moment('1992-01-01').toDate(),
+      birthCountry: 'FR',
+      birthState: '75',
+      birthCity: 'Paris',
+      nationality: 'FR',
+      socialSecurityNumber: '012345678912345',
     },
-    phone: '0123456789',
-  },
-  role: { client: auxiliaryRoleId },
-  local: { email: 'export_auxiliary_1@alenvi.io' },
-  refreshToken: uuidv4(),
-  contracts: [contract1Id, contract2Id],
-  origin: WEBAPP,
-}, {
-  _id: new ObjectId(),
-  establishment: establishment._id,
-  identity: {
-    firstname: 'Lili',
-    lastname: 'Lolo',
-    title: MISTER,
-    birthDate: moment('1992-01-01').toDate(),
-    birthCountry: 'FR',
-    birthState: '75',
-    birthCity: 'Paris',
-    nationality: 'FR',
-    socialSecurityNumber: '012345678912345',
-  },
-  contact: {
-    address: {
-      fullAddress: '37 rue de ponthieu 75008 Paris',
-      zipCode: '75008',
-      city: 'Paris',
-      street: '37 rue de Ponthieu',
-      location: { type: 'Point', coordinates: [2.377133, 48.801389] },
+    administrative: { transportInvoice: { transportType: 'public' } },
+    contact: {
+      address: {
+        fullAddress: '37 rue de ponthieu 75008 Paris',
+        zipCode: '75008',
+        city: 'Paris',
+        street: '37 rue de Ponthieu',
+        location: { type: 'Point', coordinates: [2.377133, 48.801389] },
+      },
+      phone: '0123456789',
     },
-    phone: '0123456789',
+    role: { client: auxiliaryRoleId },
+    local: { email: 'export_auxiliary_1@alenvi.io' },
+    refreshToken: uuidv4(),
+    contracts: [contract1Id, contract2Id],
+    origin: WEBAPP,
   },
-  role: { client: auxiliaryRoleId },
-  local: { email: 'export_auxiliary_2@alenvi.io' },
-  refreshToken: uuidv4(),
-  contracts: [contract3Id],
-  origin: WEBAPP,
-  administrative: { transportInvoice: { transportType: 'private' } },
-}];
+  {
+    _id: new ObjectId(),
+    establishment: establishment._id,
+    identity: {
+      firstname: 'Lili',
+      lastname: 'Lolo',
+      title: MISTER,
+      birthDate: moment('1992-01-01').toDate(),
+      birthCountry: 'FR',
+      birthState: '75',
+      birthCity: 'Paris',
+      nationality: 'FR',
+      socialSecurityNumber: '012345678912345',
+    },
+    contact: {
+      address: {
+        fullAddress: '37 rue de ponthieu 75008 Paris',
+        zipCode: '75008',
+        city: 'Paris',
+        street: '37 rue de Ponthieu',
+        location: { type: 'Point', coordinates: [2.377133, 48.801389] },
+      },
+      phone: '0123456789',
+    },
+    role: { client: auxiliaryRoleId },
+    local: { email: 'export_auxiliary_2@alenvi.io' },
+    refreshToken: uuidv4(),
+    contracts: [contract3Id],
+    origin: WEBAPP,
+    administrative: { transportInvoice: { transportType: 'private' } },
+  },
+];
 
-const contractList = [{
-  _id: contract1Id,
-  serialNumber: 'safsdgsdgsd',
-  user: auxiliaryList[0]._id,
-  versions: [
-    {
-      weeklyHours: 12,
-      grossHourlyRate: 10,
-      startDate: '2018-01-01T00:00:00.000Z',
-      endDate: '2020-01-01T00:00:00.000Z',
-    },
-  ],
-  startDate: '2018-01-01T00:00:00.000Z',
-  endDate: '2020-01-01T00:00:00.000Z',
-  endNotificationDate: '2020-01-01T00:00:00.000Z',
-  endReason: 'mutation',
-  company: authCompany._id,
-}, {
-  _id: contract2Id,
-  serialNumber: 'sfasdfsdf',
-  user: auxiliaryList[0]._id,
-  versions: [{ weeklyHours: 12, grossHourlyRate: 10, startDate: '2020-02-01T10:00:00.000Z' }],
-  startDate: '2020-02-01T00:00:00.000Z',
-  company: authCompany._id,
-}, {
-  _id: contract3Id,
-  serialNumber: 'nckxavhsasidf',
-  user: auxiliaryList[1]._id,
-  versions: [{ weeklyHours: 12, grossHourlyRate: 10, startDate: '2020-02-01T10:00:00.000Z' }],
-  startDate: '2020-02-01T10:00:00.000Z',
-  company: authCompany._id,
-}];
+const contractList = [
+  {
+    _id: contract1Id,
+    serialNumber: 'safsdgsdgsd',
+    user: auxiliaryList[0]._id,
+    versions: [
+      {
+        weeklyHours: 12,
+        grossHourlyRate: 10,
+        startDate: '2018-01-01T00:00:00.000Z',
+        endDate: '2020-01-01T00:00:00.000Z',
+      },
+    ],
+    startDate: '2018-01-01T00:00:00.000Z',
+    endDate: '2020-01-01T00:00:00.000Z',
+    endNotificationDate: '2020-01-01T00:00:00.000Z',
+    endReason: 'mutation',
+    company: authCompany._id,
+  },
+  {
+    _id: contract2Id,
+    serialNumber: 'sfasdfsdf',
+    user: auxiliaryList[0]._id,
+    versions: [{ weeklyHours: 12, grossHourlyRate: 10, startDate: '2020-02-01T10:00:00.000Z' }],
+    startDate: '2020-02-01T00:00:00.000Z',
+    company: authCompany._id,
+  },
+  {
+    _id: contract3Id,
+    serialNumber: 'nckxavhsasidf',
+    user: auxiliaryList[1]._id,
+    versions: [{ weeklyHours: 12, grossHourlyRate: 10, startDate: '2020-02-01T10:00:00.000Z' }],
+    startDate: '2020-02-01T10:00:00.000Z',
+    company: authCompany._id,
+  },
+];
 
 const sectorHistories = [
   {
@@ -1086,8 +1094,8 @@ const userCompanies = [
     _id: new ObjectId(),
     user: auxiliaryList[0]._id,
     company: companyWithoutSubscription._id,
-    startDate: '2022-01-01T23:00:00.000Z',
-    endDate: '2022-11-30T23:00:00.000Z',
+    startDate: '2021-01-01T23:00:00.000Z',
+    endDate: '2021-11-30T23:00:00.000Z',
   },
   { _id: new ObjectId(), user: auxiliaryList[0]._id, company: authCompany._id },
   { _id: new ObjectId(), user: auxiliaryList[1]._id, company: authCompany._id },
@@ -1132,9 +1140,9 @@ const coursesList = [
     trainer: trainer._id,
     salesRepresentative: salesRepresentative._id,
     contact: salesRepresentative._id,
-    trainees: [traineeList[3]._id, traineeList[4]._id],
+    trainees: [traineeList[3]._id, traineeList[4]._id, auxiliaryList[0]._id],
     estimatedStartDate: '2022-01-12T08:00:00.000Z',
-    companies: [authCompany._id, otherCompany._id],
+    companies: [authCompany._id, otherCompany._id, companyWithoutSubscription._id],
   },
   { // 3 with 1 bill
     _id: new ObjectId(),
@@ -1575,6 +1583,7 @@ const questionnaireList = [
     cards: cardList.map(c => c._id),
   },
 ];
+
 const questionnaireHistoriesList = [
   { // 0
     _id: new ObjectId(),
@@ -1651,6 +1660,18 @@ const questionnaireHistoriesList = [
     createdAt: '2021-01-27T20:31:04.000Z',
     company: otherCompany._id,
   },
+  { // 9 questionnaire histories for old user company
+    _id: new ObjectId(),
+    course: coursesList[2]._id,
+    user: auxiliaryList[0]._id,
+    questionnaire: questionnaireList[1]._id,
+    questionnaireAnswersList: [{
+      card: cardList[3]._id,
+      answerList: [cardList[3].qcAnswers[1]._id.toHexString()],
+    }],
+    createdAt: '2021-12-10T20:30:04.000Z',
+    company: companyWithoutSubscription._id,
+  },
 ];
 
 const courseHistoriesList = [
@@ -1674,6 +1695,14 @@ const courseHistoriesList = [
     action: ESTIMATED_START_DATE_EDITION,
     update: { estimatedStartDate: { to: '2022-01-12T08:00:00.000Z' } },
     createdBy: new ObjectId(),
+  },
+  {
+    _id: new ObjectId(),
+    course: coursesList[2]._id,
+    action: TRAINEE_ADDITION,
+    createdBy: new ObjectId(),
+    trainee: auxiliaryList[0]._id,
+    company: companyWithoutSubscription._id,
   },
 ];
 
