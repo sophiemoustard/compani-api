@@ -258,7 +258,7 @@ exports.authorizeTraineeAddition = async (req) => {
     } else {
       const currentAndFuturCompanies = UserCompaniesHelper.getCurrentAndFutureCompanies(trainee.userCompanyList);
       if (!UtilsHelper.doesArrayIncludeId(currentAndFuturCompanies, payload.company)) throw Boom.notFound();
-      if (!UtilsHelper.doesArrayIncludeId(course.companies, payload.company)) throw Boom.notFound();
+      if (!UtilsHelper.doesArrayIncludeId(course.companies, payload.company)) throw Boom.conflict();
     }
 
     const traineeAlreadyRegistered = course.trainees.some(t => UtilsHelper.areObjectIdsEquals(t, payload.trainee));

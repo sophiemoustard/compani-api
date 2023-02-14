@@ -614,9 +614,7 @@ exports.addTrainee = async (courseId, payload, credentials) => {
     { projection: { companies: 1, type: 1 } }
   );
 
-  const trainee = await User
-    .findOne({ _id: payload.trainee }, { formationExpoTokenList: 1 })
-    .lean();
+  const trainee = await User.findOne({ _id: payload.trainee }, { formationExpoTokenList: 1 }).lean();
 
   await Promise.all([
     CourseHistoriesHelper.createHistoryOnTraineeAddition(
