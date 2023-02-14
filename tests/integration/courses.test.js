@@ -2434,7 +2434,7 @@ describe('COURSES ROUTES - PUT /courses/{_id}/trainees', () => {
       expect(response.statusCode).toBe(200);
     });
 
-    it('should return a 404 if user company is not from course companies', async () => {
+    it('should return a 409 if user company is not from course companies', async () => {
       const response = await app.inject({
         method: 'PUT',
         url: `/courses/${interb2bCourseIdFromOtherCompany}/trainees`,
@@ -2442,7 +2442,7 @@ describe('COURSES ROUTES - PUT /courses/{_id}/trainees', () => {
         payload: { trainee: traineeFromAuthCompanyWithFormationExpoToken._id, company: authCompany._id },
       });
 
-      expect(response.statusCode).toBe(404);
+      expect(response.statusCode).toBe(409);
     });
 
     it('should return a 404 if user is not from company in payload', async () => {
