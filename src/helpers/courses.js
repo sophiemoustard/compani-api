@@ -616,7 +616,6 @@ exports.addTrainee = async (courseId, payload, credentials) => {
 
   const trainee = await User
     .findOne({ _id: payload.trainee }, { formationExpoTokenList: 1 })
-    .populate({ path: 'company' })
     .lean();
 
   await Promise.all([
@@ -624,7 +623,7 @@ exports.addTrainee = async (courseId, payload, credentials) => {
       {
         course: courseId,
         traineeId: trainee._id,
-        company: course.type === INTRA ? course.companies[0] : trainee.company,
+        company: course.type === INTRA ? course.companies[0] : payload.company,
       },
       credentials._id
     ),

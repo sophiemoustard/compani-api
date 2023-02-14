@@ -4,7 +4,6 @@ const has = require('lodash/has');
 const pick = require('lodash/pick');
 const Course = require('../../models/Course');
 const User = require('../../models/User');
-const UserCompany = require('../../models/UserCompany');
 const CourseSlot = require('../../models/CourseSlot');
 const Company = require('../../models/Company');
 const CourseBill = require('../../models/CourseBill');
@@ -236,6 +235,9 @@ exports.authorizeTraineeAddition = async (req) => {
       .findOne({ _id: req.params._id }, { trainees: 1, type: 1, companies: 1, maxTrainees: 1, trainer: 1 })
       .lean();
 
+    if (course.type === INTRA && !!payload.company) throw Boom.badData();
+    if (course.type === INTER_B2B && !payload.company) throw Boom.badData();
+
     const isTrainer = get(req, 'auth.credentials.role.vendor.name') === TRAINER;
     if (course.type === INTER_B2B && isTrainer) throw Boom.forbidden();
 
@@ -254,13 +256,9 @@ exports.authorizeTraineeAddition = async (req) => {
         throw Boom.notFound();
       }
     } else {
-      const userCompanyCurrentlyExists = await UserCompany.countDocuments({
-        user: payload.trainee,
-        company: { $in: course.companies },
-        startDate: { $lte: CompaniDate().toISO() },
-        $or: [{ endDate: { $exists: false } }, { endDate: { $gt: CompaniDate().toISO() } }],
-      });
-      if (!userCompanyCurrentlyExists) throw Boom.notFound();
+      const currentAndFuturCompanies = UserCompaniesHelper.getCurrentAndFutureCompanies(trainee.userCompanyList);
+      if (!UtilsHelper.doesArrayIncludeId(currentAndFuturCompanies, payload.company)) throw Boom.notFound();
+      if (!UtilsHelper.doesArrayIncludeId(course.companies, payload.company)) throw Boom.notFound();
     }
 
     const traineeAlreadyRegistered = course.trainees.some(t => UtilsHelper.areObjectIdsEquals(t, payload.trainee));
