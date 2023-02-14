@@ -2953,13 +2953,13 @@ describe('addTrainee', () => {
   });
 
   it('should add a course trainee using existing user (INTER)', async () => {
-    const user = { _id: new ObjectId(), formationExpoTokenList: 'ExponentPushToken[bla]', company: new ObjectId() };
+    const user = { _id: new ObjectId(), formationExpoTokenList: 'ExponentPushToken[bla]' };
     const course = { _id: new ObjectId(), misc: 'Test', type: INTER_B2B };
-    const payload = { trainee: user._id };
+    const payload = { trainee: user._id, company: new ObjectId() };
     const credentials = { _id: new ObjectId(), company: { _id: new ObjectId() } };
 
     userFindOne.returns(user);
-    userFindOne.returns(SinonMongoose.stubChainedQueries(user));
+    userFindOne.returns(SinonMongoose.stubChainedQueries(user, ['lean']));
     courseFindOneAndUpdate.returns(course);
 
     await CourseHelper.addTrainee(course._id, payload, credentials);
@@ -2974,26 +2974,25 @@ describe('addTrainee', () => {
       userFindOne,
       [
         { query: 'findOne', args: [{ _id: user._id }, { formationExpoTokenList: 1 }] },
-        { query: 'populate', args: [{ path: 'company' }] },
         { query: 'lean' },
       ]
     );
     sinon.assert.calledOnceWithExactly(
       createHistoryOnTraineeAddition,
-      { course: course._id, traineeId: user._id, company: user.company },
+      { course: course._id, traineeId: user._id, company: payload.company },
       credentials._id
     );
     sinon.assert.calledOnceWithExactly(sendBlendedCourseRegistrationNotification, user, course._id);
   });
 
   it('should add a course trainee using existing user (INTRA)', async () => {
-    const user = { _id: new ObjectId(), formationExpoTokenList: 'ExponentPushToken[bla]', company: new ObjectId() };
+    const user = { _id: new ObjectId(), formationExpoTokenList: 'ExponentPushToken[bla]' };
     const course = { _id: new ObjectId(), misc: 'Test', type: INTRA, companies: [new ObjectId()] };
     const payload = { trainee: user._id };
     const credentials = { _id: new ObjectId(), company: { _id: new ObjectId() } };
 
     userFindOne.returns(user);
-    userFindOne.returns(SinonMongoose.stubChainedQueries(user));
+    userFindOne.returns(SinonMongoose.stubChainedQueries(user, ['lean']));
     courseFindOneAndUpdate.returns(course);
 
     await CourseHelper.addTrainee(course._id, payload, credentials);
@@ -3008,7 +3007,6 @@ describe('addTrainee', () => {
       userFindOne,
       [
         { query: 'findOne', args: [{ _id: user._id }, { formationExpoTokenList: 1 }] },
-        { query: 'populate', args: [{ path: 'company' }] },
         { query: 'lean' },
       ]
     );
