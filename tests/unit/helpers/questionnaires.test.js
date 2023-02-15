@@ -719,22 +719,20 @@ describe('getFollowUp', () => {
       questionnaireFindOne,
       [
         { query: 'findOne', args: [{ _id: questionnaireId }] },
-        { query: 'select', args: ['type name company'] },
+        { query: 'select', args: ['type name'] },
         {
           query: 'populate',
           args: [{
             path: 'histories',
-            options: { isVendorUser: true },
             match: { course: courseId },
+            options: { isVendorUser: true },
+            select: '-__v -createdAt -updatedAt',
             populate: [
-              { path: 'questionnaireAnswersList.card', select: '-createdAt -updatedAt' },
+              { path: 'questionnaireAnswersList.card', select: '-__v -createdAt -updatedAt' },
               {
                 path: 'course',
                 select: 'trainer subProgram',
-                populate: [
-                  { path: 'trainer', select: 'identity' },
-                  { path: 'subProgram', select: 'program', populate: { path: 'program', select: '_id -subPrograms' } },
-                ],
+                populate: { path: 'subProgram', select: 'program', populate: { path: 'program', select: '_id' } },
               },
             ],
           }],
@@ -830,22 +828,20 @@ describe('getFollowUp', () => {
       questionnaireFindOne,
       [
         { query: 'findOne', args: [{ _id: questionnaireId }] },
-        { query: 'select', args: ['type name company'] },
+        { query: 'select', args: ['type name'] },
         {
           query: 'populate',
           args: [{
             path: 'histories',
             match: null,
             options: { isVendorUser: true },
+            select: '-__v -createdAt -updatedAt',
             populate: [
-              { path: 'questionnaireAnswersList.card', select: '-createdAt -updatedAt' },
+              { path: 'questionnaireAnswersList.card', select: '-__v -createdAt -updatedAt' },
               {
                 path: 'course',
                 select: 'trainer subProgram',
-                populate: [
-                  { path: 'trainer', select: 'identity' },
-                  { path: 'subProgram', select: 'program', populate: { path: 'program', select: '_id -subPrograms' } },
-                ],
+                populate: { path: 'subProgram', select: 'program', populate: { path: 'program', select: '_id' } },
               },
             ],
           }],
@@ -912,22 +908,20 @@ describe('getFollowUp', () => {
       questionnaireFindOne,
       [
         { query: 'findOne', args: [{ _id: questionnaireId }] },
-        { query: 'select', args: ['type name company'] },
+        { query: 'select', args: ['type name'] },
         {
           query: 'populate',
           args: [{
             path: 'histories',
-            options: { isVendorUser: true },
             match: { course: courseId },
+            options: { isVendorUser: true },
+            select: '-__v -createdAt -updatedAt',
             populate: [
-              { path: 'questionnaireAnswersList.card', select: '-createdAt -updatedAt' },
+              { path: 'questionnaireAnswersList.card', select: '-__v -createdAt -updatedAt' },
               {
                 path: 'course',
                 select: 'trainer subProgram',
-                populate: [
-                  { path: 'trainer', select: 'identity' },
-                  { path: 'subProgram', select: 'program', populate: { path: 'program', select: '_id -subPrograms' } },
-                ],
+                populate: { path: 'subProgram', select: 'program', populate: { path: 'program', select: '_id' } },
               },
             ],
           }],
@@ -985,22 +979,20 @@ describe('getFollowUp', () => {
       questionnaireFindOne,
       [
         { query: 'findOne', args: [{ _id: questionnaireId }] },
-        { query: 'select', args: ['type name company'] },
+        { query: 'select', args: ['type name'] },
         {
           query: 'populate',
           args: [{
             path: 'histories',
-            options: { isVendorUser: true },
             match: { course: courseId },
+            options: { isVendorUser: true },
+            select: '-__v -createdAt -updatedAt',
             populate: [
-              { path: 'questionnaireAnswersList.card', select: '-createdAt -updatedAt' },
+              { path: 'questionnaireAnswersList.card', select: '-__v -createdAt -updatedAt' },
               {
                 path: 'course',
                 select: 'trainer subProgram',
-                populate: [
-                  { path: 'trainer', select: 'identity' },
-                  { path: 'subProgram', select: 'program', populate: { path: 'program', select: '_id -subPrograms' } },
-                ],
+                populate: { path: 'subProgram', select: 'program', populate: { path: 'program', select: '_id' } },
               },
             ],
           }],
@@ -1064,22 +1056,20 @@ describe('getFollowUp', () => {
       questionnaireFindOne,
       [
         { query: 'findOne', args: [{ _id: questionnaireId }] },
-        { query: 'select', args: ['type name company'] },
+        { query: 'select', args: ['type name'] },
         {
           query: 'populate',
           args: [{
             path: 'histories',
-            options: { isVendorUser: true },
             match: { course: courseId },
+            options: { isVendorUser: true },
+            select: '-__v -createdAt -updatedAt',
             populate: [
-              { path: 'questionnaireAnswersList.card', select: '-createdAt -updatedAt' },
+              { path: 'questionnaireAnswersList.card', select: '-__v -createdAt -updatedAt' },
               {
                 path: 'course',
                 select: 'trainer subProgram',
-                populate: [
-                  { path: 'trainer', select: 'identity' },
-                  { path: 'subProgram', select: 'program', populate: { path: 'program', select: '_id -subPrograms' } },
-                ],
+                populate: { path: 'subProgram', select: 'program', populate: { path: 'program', select: '_id' } },
               },
             ],
           }],

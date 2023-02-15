@@ -259,33 +259,6 @@ describe('QUESTIONNAIRE ROUTES - GET /questionnaires/{_id}/follow-up', () => {
   let authToken;
   beforeEach(populateDB);
 
-  describe('TRAINING_ORGANISATION_MANAGER', () => {
-    beforeEach(async () => {
-      authToken = await getToken('training_organisation_manager');
-    });
-
-    it('should get questionnaire answers', async () => {
-      const questionnaireId = questionnairesList[0]._id;
-
-      const response = await app.inject({
-        method: 'GET',
-        url: `/questionnaires/${questionnaireId.toHexString()}/follow-up`,
-        headers: { Cookie: `alenvi_token=${authToken}` },
-      });
-
-      expect(response.statusCode).toBe(200);
-      expect(response.result.data.followUp.followUp.length).toBe(1);
-      expect(response.result.data.followUp.followUp[0].answers.length).toBe(2);
-      const answerForNewCompany = response.result.data.followUp.followUp[0].answers
-        .find(a => UtilsHelper.areObjectIdsEquals(a.course._id, coursesList[0]._id));
-      expect(answerForNewCompany.traineeCompany).toEqual(authCompany._id);
-
-      const answerForOldCompany = response.result.data.followUp.followUp[0].answers
-        .find(a => UtilsHelper.areObjectIdsEquals(a.course._id, coursesList[2]._id));
-      expect(answerForOldCompany.traineeCompany).toEqual(companyWithoutSubscription._id);
-    });
-  });
-
   describe('TRAINER', () => {
     beforeEach(async () => {
       authToken = await getToken('trainer');
@@ -402,6 +375,14 @@ describe('QUESTIONNAIRE ROUTES - GET /questionnaires/{_id}/follow-up', () => {
 
       expect(response.statusCode).toBe(200);
       expect(response.result.data.followUp.followUp.length).toBe(1);
+      expect(response.result.data.followUp.followUp[0].answers.length).toBe(2);
+      const answerForNewCompany = response.result.data.followUp.followUp[0].answers
+        .find(a => UtilsHelper.areObjectIdsEquals(a.course._id, coursesList[0]._id));
+      expect(answerForNewCompany.traineeCompany).toEqual(authCompany._id);
+
+      const answerForOldCompany = response.result.data.followUp.followUp[0].answers
+        .find(a => UtilsHelper.areObjectIdsEquals(a.course._id, coursesList[2]._id));
+      expect(answerForOldCompany.traineeCompany).toEqual(companyWithoutSubscription._id);
     });
   });
 });

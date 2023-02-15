@@ -98,20 +98,18 @@ const formatQuestionnaireAnswersWithCourse = async (courseId, questionnaireAnswe
 exports.getFollowUp = async (id, courseId, credentials) => {
   const isVendorUser = !!get(credentials, 'role.vendor');
   const questionnaire = await Questionnaire.findOne({ _id: id })
-    .select('type name company')
+    .select('type name')
     .populate({
       path: 'histories',
       match: courseId ? { course: courseId } : null,
       options: { isVendorUser },
+      select: '-__v -createdAt -updatedAt',
       populate: [
-        { path: 'questionnaireAnswersList.card', select: '-createdAt -updatedAt' },
+        { path: 'questionnaireAnswersList.card', select: '-__v -createdAt -updatedAt' },
         {
           path: 'course',
           select: 'trainer subProgram',
-          populate: [
-            { path: 'trainer', select: 'identity' },
-            { path: 'subProgram', select: 'program', populate: { path: 'program', select: '_id -subPrograms' } },
-          ],
+          populate: { path: 'subProgram', select: 'program', populate: { path: 'program', select: '_id' } },
         },
       ],
     })
