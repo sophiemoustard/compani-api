@@ -264,6 +264,13 @@ const usersSeedList = [
     refreshToken: uuidv4(),
     origin: WEBAPP,
   },
+  { // 14 trainee twice in same company and detach from both
+    _id: new ObjectId(),
+    identity: { firstname: 'twice in same', lastname: 'company' },
+    local: { email: 'twice@alenvi.io' },
+    refreshToken: uuidv4(),
+    origin: WEBAPP,
+  },
 ];
 
 const companyLinkRequest = {
@@ -341,6 +348,18 @@ const userCompanies = [
     user: usersSeedList[13]._id,
     company: authCompany._id,
     startDate: CompaniDate().add('P1D').toISO(),
+  },
+  { // trainee twice in same company and detach from both
+    user: usersSeedList[14]._id,
+    company: companyWithoutSubscription,
+    startDate: '2019-01-01T08:00:00.000Z',
+    endDate: '2022-12-01T22:59:59.999Z',
+  },
+  { // trainee twice in same company and detach from both
+    user: usersSeedList[14]._id,
+    company: companyWithoutSubscription,
+    startDate: '2022-12-02T08:00:00.000Z',
+    endDate: '2022-12-31T22:59:59.999Z',
   },
 ];
 
