@@ -9,19 +9,19 @@ const CompanyLinkRequest = require('../../../src/models/CompanyLinkRequest');
 const { CompaniDate } = require('../../../src/helpers/dates/companiDates');
 
 describe('create', () => {
-  let findOne;
+  let find;
   let create;
   let deleteManyCompanyLinkRequest;
 
   beforeEach(() => {
     create = sinon.stub(UserCompany, 'create');
-    findOne = sinon.stub(UserCompany, 'findOne');
+    find = sinon.stub(UserCompany, 'find');
     deleteManyCompanyLinkRequest = sinon.stub(CompanyLinkRequest, 'deleteMany');
   });
 
   afterEach(() => {
     create.restore();
-    findOne.restore();
+    find.restore();
     deleteManyCompanyLinkRequest.restore();
   });
 
@@ -31,22 +31,24 @@ describe('create', () => {
     const startDate = '2022-12-13T14:15:00.000Z';
     const userCompanyStartDate = '2022-12-12T23:00:00.000Z';
 
-    findOne.returns(SinonMongoose.stubChainedQueries(null, ['lean']));
+    find.returns(SinonMongoose.stubChainedQueries([], ['sort', 'limit', 'lean']));
 
     await UserCompaniesHelper.create({ user: userId, company: companyId, startDate });
 
     sinon.assert.calledOnceWithExactly(create, { user: userId, company: companyId, startDate: userCompanyStartDate });
     sinon.assert.calledOnceWithExactly(deleteManyCompanyLinkRequest, { user: userId });
     SinonMongoose.calledOnceWithExactly(
-      findOne,
+      find,
       [
         {
-          query: 'findOne',
+          query: 'find',
           args: [
             { user: userId, $or: [{ endDate: { $exists: false } }, { endDate: { $gt: userCompanyStartDate } }] },
             { endDate: 1 },
           ],
         },
+        { query: 'sort', args: [{ startDate: -1 }] },
+        { query: 'limit', args: [1] },
         { query: 'lean' },
       ]
     );
@@ -57,7 +59,7 @@ describe('create', () => {
     const userId = new ObjectId();
     const companyId = new ObjectId();
 
-    findOne.returns(SinonMongoose.stubChainedQueries(null, ['lean']));
+    find.returns(SinonMongoose.stubChainedQueries([], ['sort', 'limit', 'lean']));
 
     await UserCompaniesHelper.create({ user: userId, company: companyId });
 
@@ -67,15 +69,17 @@ describe('create', () => {
     );
     sinon.assert.calledOnceWithExactly(deleteManyCompanyLinkRequest, { user: userId });
     SinonMongoose.calledOnceWithExactly(
-      findOne,
+      find,
       [
         {
-          query: 'findOne',
+          query: 'find',
           args: [
             { user: userId, $or: [{ endDate: { $exists: false } }, { endDate: { $gt: '2020-12-09T23:00:00.000Z' } }] },
             { endDate: 1 },
           ],
         },
+        { query: 'sort', args: [{ startDate: -1 }] },
+        { query: 'limit', args: [1] },
         { query: 'lean' },
       ]
     );
@@ -90,9 +94,9 @@ describe('create', () => {
       const endDate = '2021-08-11T21:59:59.999Z';
 
       try {
-        findOne.returns(SinonMongoose.stubChainedQueries(
-          { user, company: new ObjectId(), startDate, endDate },
-          ['lean']
+        find.returns(SinonMongoose.stubChainedQueries(
+          [{ user, company: new ObjectId(), startDate, endDate }],
+          ['sort', 'limit', 'lean']
         ));
 
         await UserCompaniesHelper.create({ user, company, startDate });
@@ -106,10 +110,10 @@ describe('create', () => {
       sinon.assert.notCalled(create);
       sinon.assert.notCalled(deleteManyCompanyLinkRequest);
       SinonMongoose.calledOnceWithExactly(
-        findOne,
+        find,
         [
           {
-            query: 'findOne',
+            query: 'find',
             args: [
               {
                 user,
@@ -118,6 +122,8 @@ describe('create', () => {
               { endDate: 1 },
             ],
           },
+          { query: 'sort', args: [{ startDate: -1 }] },
+          { query: 'limit', args: [1] },
           { query: 'lean' },
         ]
       );
@@ -129,7 +135,9 @@ describe('create', () => {
     const startDate = '2020-12-12T23:00:00.000Z';
 
     try {
-      findOne.returns(SinonMongoose.stubChainedQueries({ user, company: new ObjectId(), startDate }, ['lean']));
+      find.returns(
+        SinonMongoose.stubChainedQueries([{ user, company: new ObjectId(), startDate }], ['sort', 'limit', 'lean'])
+      );
 
       await UserCompaniesHelper.create({ user, company, startDate });
 
@@ -142,10 +150,10 @@ describe('create', () => {
     sinon.assert.notCalled(create);
     sinon.assert.notCalled(deleteManyCompanyLinkRequest);
     SinonMongoose.calledOnceWithExactly(
-      findOne,
+      find,
       [
         {
-          query: 'findOne',
+          query: 'find',
           args: [
             {
               user,
@@ -154,6 +162,8 @@ describe('create', () => {
             { endDate: 1 },
           ],
         },
+        { query: 'sort', args: [{ startDate: -1 }] },
+        { query: 'limit', args: [1] },
         { query: 'lean' },
       ]
     );

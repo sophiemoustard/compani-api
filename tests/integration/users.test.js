@@ -1492,6 +1492,17 @@ describe('USERS ROUTES - PUT /users/:id', () => {
       expect(res.statusCode).toBe(409);
       expect(res.result.message).toBe('Ce compte est déjà rattaché à une structure.');
     });
+
+    it('should return good message if try to link user with 2 inactive companies with wrong start date', async () => {
+      const res = await app.inject({
+        method: 'PUT',
+        url: `/users/${usersSeedList[14]._id}`,
+        payload: { company: authCompany._id, userCompanyStartDate: '2022-11-28T23:00:00.000Z' },
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+      expect(res.statusCode).toBe(409);
+      expect(res.result.message).toBe('Ce compte est déjà rattaché à une structure jusqu\'au 31/12/2022.');
+    });
   });
 
   describe('TRAINER', () => {
