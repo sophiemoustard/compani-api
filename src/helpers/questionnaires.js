@@ -103,17 +103,14 @@ exports.getFollowUp = async (id, courseId, credentials) => {
       path: 'histories',
       match: courseId ? { course: courseId } : null,
       options: { isVendorUser },
+      select: '-__v -createdAt -updatedAt',
       populate: [
-        { path: 'questionnaireAnswersList.card', select: '-createdAt -updatedAt' },
+        { path: 'questionnaireAnswersList.card', select: '-__v -createdAt -updatedAt' },
         {
           path: 'course',
           select: 'trainer subProgram',
-          populate: [
-            { path: 'trainer', select: 'identity' },
-            { path: 'subProgram', select: 'program', populate: { path: 'program', select: '_id -subPrograms' } },
-          ],
+          populate: { path: 'subProgram', select: 'program', populate: { path: 'program', select: '_id' } },
         },
-        { path: 'user', select: '_id', populate: { path: 'company' } },
       ],
     })
     .lean();
@@ -126,7 +123,7 @@ exports.getFollowUp = async (id, courseId, credentials) => {
 
       if (!followUp[answer.card._id]) followUp[answer.card._id] = { ...answer.card, answers: [] };
       followUp[answer.card._id].answers
-        .push(...answerList.map(a => ({ answer: a, course: history.course, traineeCompany: history.user.company })));
+        .push(...answerList.map(a => ({ answer: a, course: history.course, traineeCompany: history.company })));
     }
   }
 

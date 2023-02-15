@@ -4,10 +4,12 @@ const { ObjectId } = require('mongodb');
 const app = require('../../server');
 const Questionnaire = require('../../src/models/Questionnaire');
 const Card = require('../../src/models/Card');
+const UtilsHelper = require('../../src/helpers/utils');
 const { populateDB, questionnairesList, cardsList, coursesList } = require('./seed/questionnairesSeed');
 const { getToken, getTokenByCredentials } = require('./helpers/authentication');
 const { noRoleNoCompany } = require('../seed/authUsersSeed');
 const { SURVEY, PUBLISHED, DRAFT } = require('../../src/helpers/constants');
+const { companyWithoutSubscription, authCompany } = require('../seed/authCompaniesSeed');
 
 describe('NODE ENV', () => {
   it('should be \'test\'', () => {
@@ -373,6 +375,14 @@ describe('QUESTIONNAIRE ROUTES - GET /questionnaires/{_id}/follow-up', () => {
 
       expect(response.statusCode).toBe(200);
       expect(response.result.data.followUp.followUp.length).toBe(1);
+      expect(response.result.data.followUp.followUp[0].answers.length).toBe(2);
+      const answerForNewCompany = response.result.data.followUp.followUp[0].answers
+        .find(a => UtilsHelper.areObjectIdsEquals(a.course._id, coursesList[0]._id));
+      expect(answerForNewCompany.traineeCompany).toEqual(authCompany._id);
+
+      const answerForOldCompany = response.result.data.followUp.followUp[0].answers
+        .find(a => UtilsHelper.areObjectIdsEquals(a.course._id, coursesList[2]._id));
+      expect(answerForOldCompany.traineeCompany).toEqual(companyWithoutSubscription._id);
     });
   });
 });

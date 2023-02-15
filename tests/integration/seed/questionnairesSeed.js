@@ -80,8 +80,8 @@ const coursesList = [
     type: INTER_B2B,
     salesRepresentative: new ObjectId(),
     trainer: new ObjectId(),
-    trainees: [],
-    companies: [],
+    trainees: [traineeList[0]._id],
+    companies: [companyWithoutSubscription._id],
   },
 ];
 
@@ -104,13 +104,22 @@ const slots = [{
   step: new ObjectId(),
 }];
 
-const questionnaireHistories = [{
-  course: coursesList[0]._id,
-  company: authCompany._id,
-  questionnaire: questionnairesList[0]._id,
-  user: traineeList[0]._id,
-  questionnaireAnswersList: [{ card: cardsList[1]._id, answerList: ['blabla'] }],
-}];
+const questionnaireHistories = [
+  {
+    course: coursesList[0]._id,
+    company: authCompany._id,
+    questionnaire: questionnairesList[0]._id,
+    user: traineeList[0]._id,
+    questionnaireAnswersList: [{ card: cardsList[1]._id, answerList: ['blabla'] }],
+  },
+  {
+    course: coursesList[2]._id,
+    company: companyWithoutSubscription._id,
+    questionnaire: questionnairesList[0]._id,
+    user: traineeList[0]._id,
+    questionnaireAnswersList: [{ card: cardsList[1]._id, answerList: ['blabla2'] }],
+  },
+];
 
 const populateDB = async () => {
   await deleteNonAuthenticationSeeds();
