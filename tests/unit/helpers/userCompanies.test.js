@@ -257,7 +257,18 @@ describe('getCurrentAndFutureCompanies', () => {
     const userCompanies = [
       { user, company: new ObjectId(), startDate: '2021-10-25T23:59:59.999Z', endDate: '2022-10-25T23:59:59.999Z' },
       { user, company: authCompany, startDate: '2022-10-26T00:00:00.000Z', endDate: CompaniDate().add('P1D').toISO() },
-      { user, company: otherCompany, startDate: CompaniDate().add('P2D').toISO() },
+      {
+        user,
+        company: otherCompany,
+        startDate: CompaniDate().add('P2D').toISO(),
+        endDate: CompaniDate().add('P4D').toISO(),
+      },
+      {
+        user,
+        company: authCompany,
+        startDate: CompaniDate().add('P6D').toISO(),
+        endDate: CompaniDate().add('P7D').toISO(),
+      },
     ];
 
     const res = await UserCompaniesHelper.getCurrentAndFutureCompanies(userCompanies);
