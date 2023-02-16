@@ -21,7 +21,7 @@ exports.create = async ({ user, company, startDate = CompaniDate() }) => {
     .limit(1)
     .lean();
 
-  if (!userCompany[0]) {
+  if (!userCompany.length) {
     await CompanyLinkRequest.deleteMany({ user });
     await UserCompany.create({ user, company, startDate: userCompanyStartDate });
   } else {
