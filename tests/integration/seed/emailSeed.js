@@ -53,7 +53,7 @@ const helperFromOtherCompany = {
   origin: WEBAPP,
 };
 
-const futureTraineeFromAutCompany = {
+const futureTraineeFromAuthCompany = {
   _id: new ObjectId(),
   identity: { firstname: 'future', lastname: 'Trainee' },
   local: { email: 'future_trainee@alenvi.io' },
@@ -67,7 +67,7 @@ const emailUsers = [
   trainerFromOtherCompany,
   helperFromOtherCompany,
   coachFromOtherCompany,
-  futureTraineeFromAutCompany,
+  futureTraineeFromAuthCompany,
 ];
 
 const userCompanies = [
@@ -84,7 +84,7 @@ const userCompanies = [
   { _id: new ObjectId(), user: trainerFromOtherCompany._id, company: otherCompany._id },
   {
     _id: new ObjectId(),
-    user: futureTraineeFromAutCompany._id,
+    user: futureTraineeFromAuthCompany._id,
     company: authCompany._id,
     startDate: CompaniDate().add('P1D').toISO(),
   },
@@ -103,5 +103,5 @@ module.exports = {
   trainerFromOtherCompany,
   helperFromOtherCompany,
   coachFromOtherCompany,
-  futureTraineeFromAutCompany,
+  futureTraineeFromAuthCompany,
 };
