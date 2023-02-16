@@ -1,6 +1,7 @@
 const { ObjectId } = require('mongodb');
 const { v4: uuidv4 } = require('uuid');
 const { WEBAPP } = require('../../../src/helpers/constants');
+const { CompaniDate } = require('../../../src/helpers/dates/companiDates');
 const User = require('../../../src/models/User');
 const UserCompany = require('../../../src/models/UserCompany');
 const { otherCompany, authCompany, companyWithoutSubscription } = require('../../seed/authCompaniesSeed');
@@ -19,7 +20,7 @@ const emailUser = {
 const emailUserFromOtherCompany = {
   _id: new ObjectId(),
   identity: { firstname: 'otherCompany', lastname: 'Test' },
-  local: { email: 'email_user_other_company@alenvi.io', password: '123456!eR' },
+  local: { email: 'email_user_other_company@alenvi.io' },
   refreshToken: uuidv4(),
   role: { client: clientAdminRoleId },
   origin: WEBAPP,
@@ -28,7 +29,7 @@ const emailUserFromOtherCompany = {
 const coachFromOtherCompany = {
   _id: new ObjectId(),
   identity: { firstname: 'coach', lastname: 'Test' },
-  local: { email: 'coach_email_user@alenvi.io', password: '123456!eR' },
+  local: { email: 'coach_email_user@alenvi.io' },
   refreshToken: uuidv4(),
   role: { client: coachRoleId },
   origin: WEBAPP,
@@ -46,9 +47,17 @@ const trainerFromOtherCompany = {
 const helperFromOtherCompany = {
   _id: new ObjectId(),
   identity: { firstname: 'helper', lastname: 'Test' },
-  local: { email: 'helper_email_user@alenvi.io', password: '123456!eR' },
+  local: { email: 'helper_email_user@alenvi.io' },
   refreshToken: uuidv4(),
   role: { client: helperRoleId },
+  origin: WEBAPP,
+};
+
+const futureTraineeFromAutCompany = {
+  _id: new ObjectId(),
+  identity: { firstname: 'future', lastname: 'Trainee' },
+  local: { email: 'future_trainee@alenvi.io' },
+  refreshToken: uuidv4(),
   origin: WEBAPP,
 };
 
@@ -58,6 +67,7 @@ const emailUsers = [
   trainerFromOtherCompany,
   helperFromOtherCompany,
   coachFromOtherCompany,
+  futureTraineeFromAutCompany,
 ];
 
 const userCompanies = [
@@ -72,6 +82,12 @@ const userCompanies = [
   { _id: new ObjectId(), user: emailUser._id, company: authCompany._id },
   { _id: new ObjectId(), user: emailUserFromOtherCompany._id, company: otherCompany._id },
   { _id: new ObjectId(), user: trainerFromOtherCompany._id, company: otherCompany._id },
+  {
+    _id: new ObjectId(),
+    user: futureTraineeFromAutCompany._id,
+    company: authCompany._id,
+    startDate: CompaniDate().add('P1D').toISO(),
+  },
 ];
 
 const populateDB = async () => {
@@ -87,4 +103,5 @@ module.exports = {
   trainerFromOtherCompany,
   helperFromOtherCompany,
   coachFromOtherCompany,
+  futureTraineeFromAutCompany,
 };
