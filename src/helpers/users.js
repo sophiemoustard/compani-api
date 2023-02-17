@@ -16,7 +16,7 @@ const UserCompany = require('../models/UserCompany');
 const Contract = require('../models/Contract');
 const translate = require('./translate');
 const GCloudStorageHelper = require('./gCloudStorage');
-const { TRAINER, AUXILIARY_ROLES, HELPER, AUXILIARY_WITHOUT_COMPANY } = require('./constants');
+const { TRAINER, AUXILIARY_ROLES, HELPER, AUXILIARY_WITHOUT_COMPANY, CLIENT_ADMIN, COACH } = require('./constants');
 const SectorHistoriesHelper = require('./sectorHistories');
 const GDriveStorageHelper = require('./gDriveStorage');
 const UtilsHelper = require('./utils');
@@ -80,24 +80,37 @@ exports.getUsersListWithSectorHistories = async (query, credentials) => {
     .lean({ virtuals: true, autopopulate: true });
 };
 
-exports.getLearnerList = async (query, credentials) => {
-  let userQuery = {};
-  if (query.companies) {
-    const rolesToExclude = await Role.find({ name: { $in: [HELPER, AUXILIARY_WITHOUT_COMPANY] } }).lean();
-    const usersCompany = await UserCompany.find(
-      {
-        company: { $in: query.companies },
-        startDate: { $lte: CompaniDate().toISO() },
-        $or: [{ endDate: { $exists: false } }, { endDate: { $gte: CompaniDate().toISO() } }],
-      },
-      { user: 1 }
-    ).lean();
-
-    userQuery = {
-      _id: { $in: usersCompany.map(uc => uc.user) },
-      'role.client': { $not: { $in: rolesToExclude.map(r => r._id) } },
+const formatQueryForLearnerList = async (query) => {
+  let userCompanyQuery = { company: { $in: query.companies } };
+  if (query.startDate && query.endDate) {
+    userCompanyQuery = {
+      ...userCompanyQuery,
+      startDate: { $lt: CompaniDate(query.endDate).toISO() },
+      $or: [{ endDate: { $gt: CompaniDate(query.startDate).toISO() } }, { endDate: { $exists: false } }],
+    };
+  } else if (query.startDate) {
+    userCompanyQuery = {
+      ...userCompanyQuery,
+      $or: [{ endDate: { $exists: false } }, { endDate: { $gt: CompaniDate(query.startDate).toISO() } }],
+    };
+  } else {
+    userCompanyQuery = {
+      ...userCompanyQuery,
+      startDate: { $lt: CompaniDate().toISO() },
+      $or: [{ endDate: { $exists: false } }, { endDate: { $gt: CompaniDate().toISO() } }],
     };
   }
+  const rolesToExclude = await Role.find({ name: { $in: [HELPER, AUXILIARY_WITHOUT_COMPANY] } }).lean();
+  const usersCompany = await UserCompany.find(userCompanyQuery, { user: 1 }).lean();
+
+  return {
+    _id: { $in: usersCompany.map(uc => uc.user) },
+    'role.client': { $not: { $in: rolesToExclude.map(r => r._id) } },
+  };
+};
+
+exports.getLearnerList = async (query, credentials) => {
+  const userQuery = query.companies ? await formatQueryForLearnerList(query) : {};
 
   const learnerList = await User
     .find(userQuery, 'identity.firstname identity.lastname picture local.email', { autopopulate: false })
@@ -105,6 +118,7 @@ exports.getLearnerList = async (query, credentials) => {
     .populate({ path: 'blendedCoursesCount' })
     .populate({ path: 'eLearningCoursesCount' })
     .populate({ path: 'activityHistories', select: 'updatedAt', options: { sort: { updatedAt: -1 } } })
+    .populate({ path: 'userCompanyList', populate: { path: 'company', select: 'name' } })
     .setOptions({ isVendorUser: !!get(credentials, 'role.vendor') })
     .lean();
 
@@ -117,6 +131,8 @@ exports.getLearnerList = async (query, credentials) => {
 
 exports.getUser = async (userId, credentials) => {
   const companyId = get(credentials, 'company._id') || null;
+  const isVendorUser = has(credentials, 'role.vendor');
+  const requestingOwnInfos = UtilsHelper.areObjectIdsEquals(userId, credentials._id);
 
   const user = await User.findOne({ _id: userId })
     .populate({ path: 'contracts', select: '-__v -createdAt -updatedAt' })
@@ -125,52 +141,73 @@ exports.getUser = async (userId, credentials) => {
       path: 'sector',
       select: '_id sector',
       match: { company: companyId },
-      options: {
-        isVendorUser: has(credentials, 'role.vendor'),
-        requestingOwnInfos: UtilsHelper.areObjectIdsEquals(userId, credentials._id),
-      },
+      options: { isVendorUser, requestingOwnInfos },
     })
     .populate({
       path: 'customers',
       select: '-__v -createdAt -updatedAt',
       match: { company: companyId },
-      options: {
-        isVendorUser: has(credentials, 'role.vendor'),
-        requestingOwnInfos: UtilsHelper.areObjectIdsEquals(userId, credentials._id),
-      },
+      options: { isVendorUser, requestingOwnInfos },
     })
     .populate({ path: 'companyLinkRequest', populate: { path: 'company', select: '_id name' } })
     .populate({ path: 'establishment', select: 'siret' })
     .populate({ path: 'userCompanyList' })
-    .setOptions({ credentials })
     .lean({ autopopulate: true, virtuals: true });
 
   if (!user) throw Boom.notFound(translate[language].userNotFound);
 
-  return user;
+  return isVendorUser || requestingOwnInfos
+    ? user
+    : {
+      ...user,
+      userCompanyList: user.userCompanyList.filter(uc => UtilsHelper.areObjectIdsEquals(companyId, get(uc, 'company'))),
+    };
 };
 
 exports.userExists = async (email, credentials) => {
-  const targetUser = await User.findOne({ 'local.email': email }, { role: 1 })
+  const targetUser = await User
+    .findOne(
+      { 'local.email': email },
+      { role: 1, 'local.email': 1, 'identity.firstname': 1, 'identity.lastname': 1, 'contact.phone': 1 }
+    )
     .populate({ path: 'company' })
-    .populate({ path: 'userCompanyList', sort: { startDate: 1 } })
-    .setOptions({ credentials })
+    .populate({ path: 'userCompanyList', options: { sort: { startDate: 1 } } })
     .lean();
+
   if (!targetUser) return { exists: false, user: {} };
   if (!credentials) return { exists: true, user: {} };
 
+  const companyId = get(credentials, 'company._id');
   const loggedUserHasVendorRole = has(credentials, 'role.vendor');
-  const sameCompany = UserCompaniesHelper
-    .userIsOrWillBeInCompany(targetUser.userCompanyList, get(credentials, 'company._id'));
-  const formattedUser = {
-    ...pick(targetUser, ['role', '_id', 'company']),
-    userCompanyList: targetUser.userCompanyList.map(uc => (pick(uc, ['company', 'endDate']))),
-  };
 
-  return loggedUserHasVendorRole || sameCompany ||
-    (!UserCompaniesHelper.getCurrentAndFutureCompanies(targetUser.userCompanyList).length && !targetUser.company)
-    ? { exists: !!targetUser, user: formattedUser }
-    : { exists: !!targetUser, user: {} };
+  const loggedUserHasCoachRights = [COACH, CLIENT_ADMIN].includes(get(credentials, 'role.client.name'));
+  const sameCompany = UserCompaniesHelper.userIsOrWillBeInCompany(targetUser.userCompanyList, companyId);
+  const currentAndFuturCompanies = UserCompaniesHelper.getCurrentAndFutureCompanies(targetUser.userCompanyList);
+  const coachCanReadAllUserInfo = loggedUserHasCoachRights && (sameCompany || !currentAndFuturCompanies.length);
+  const doesEveryUserCompanyHasEndDate = targetUser.userCompanyList.every(uc => uc.endDate);
+  const canReadInfo = loggedUserHasVendorRole || coachCanReadAllUserInfo ||
+    (loggedUserHasCoachRights && doesEveryUserCompanyHasEndDate);
+
+  if (canReadInfo) {
+    let userCompanyList;
+    if (loggedUserHasVendorRole) userCompanyList = targetUser.userCompanyList;
+    else if (coachCanReadAllUserInfo) {
+      userCompanyList = targetUser.userCompanyList.filter(uc => UtilsHelper.areObjectIdsEquals(companyId, uc.company));
+    } else {
+      userCompanyList = [UtilsHelper.getLastVersion(targetUser.userCompanyList, 'startDate')];
+    }
+
+    const userFieldsToPick = ['_id', 'local.email', 'identity.firstname', 'identity.lastname', 'contact.phone', 'role'];
+    return {
+      exists: true,
+      user: {
+        ...pick(targetUser, [...userFieldsToPick, (loggedUserHasVendorRole || coachCanReadAllUserInfo) && 'company']),
+        userCompanyList: userCompanyList.map(uc => pick(uc, ['company', 'startDate', 'endDate'])),
+      },
+    };
+  }
+
+  return { exists: true, user: {} };
 };
 
 exports.saveCertificateDriveId = async (userId, fileInfo) =>

@@ -25,7 +25,8 @@ const {
 } = require('../../src/helpers/constants');
 const {
   usersSeedList,
-  usersFromOtherCompanyList,
+  usersFromOtherCompany,
+  usersFromDifferentCompanyList,
   populateDB,
   customer,
   customerFromOtherCompany,
@@ -34,7 +35,7 @@ const {
   sectorHistories,
   establishmentList,
   auxiliaryFromOtherCompany,
-  traineeWhoLeftOtherCompany,
+  traineeWhoLeftCompanyWithoutSubscription,
 } = require('./seed/usersSeed');
 const { getToken, getTokenByCredentials } = require('./helpers/authentication');
 const { otherCompany, authCompany, companyWithoutSubscription } = require('../seed/authCompaniesSeed');
@@ -477,18 +478,21 @@ describe('USERS ROUTES - GET /users', () => {
       expect(res.result.data.users.every(u => get(u, 'role.client.name') === COACH)).toBeTruthy();
     });
 
-    // it('should get all auxiliaries and helpers users (company A), role as an array of strings', async () => {
-    //   const res = await app.inject({
-    //     method: 'GET',
-    //     url: `/users?company=${authCompany._id}&role=helper&role=auxiliary`,
-    //     headers: { Cookie: `alenvi_token=${authToken}` },
-    //   });
+    it(
+      'should get all auxiliaries and helpers users (company A in past or future), role as an array of strings',
+      async () => {
+        const res = await app.inject({
+          method: 'GET',
+          url: `/users?company=${authCompany._id}&role=helper&role=auxiliary`,
+          headers: { Cookie: `alenvi_token=${authToken}` },
+        });
 
-    //   expect(res.statusCode).toBe(200);
-    //   expect(res.result.data.users.length).toBe(5);
-    //   expect(res.result.data.users.every(u => [HELPER, AUXILIARY]
-    //     .includes(get(u, 'role.client.name')))).toBeTruthy();
-    // });
+        expect(res.statusCode).toBe(200);
+        expect(res.result.data.users.length).toBe(6);
+        expect(res.result.data.users.every(u => [HELPER, AUXILIARY]
+          .includes(get(u, 'role.client.name')))).toBeTruthy();
+      }
+    );
 
     it('should return 400 if wrong role in query', async () => {
       const res = await app.inject({
@@ -524,20 +528,20 @@ describe('USERS ROUTES - GET /users', () => {
       });
 
       expect(res.statusCode).toBe(200);
-      const countUserInDB = userList.length + usersSeedList.length + usersFromOtherCompanyList.length;
+      const countUserInDB = userList.length + usersSeedList.length + usersFromDifferentCompanyList.length;
       expect(res.result.data.users.length).toBe(countUserInDB);
     });
 
-    // it('should get users from an other companies', async () => {
-    //   const res = await app.inject({
-    //     method: 'GET',
-    //     url: `/users?company=${otherCompany._id}`,
-    //     headers: { Cookie: `alenvi_token=${authToken}` },
-    //   });
+    it('should get users from an other company', async () => {
+      const res = await app.inject({
+        method: 'GET',
+        url: `/users?company=${otherCompany._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
 
-    //   expect(res.statusCode).toBe(200);
-    //   expect(res.result.data.users.length).toBe(usersFromOtherCompanyList.length);
-    // });
+      expect(res.statusCode).toBe(200);
+      expect(res.result.data.users.length).toBe(usersFromOtherCompany.length);
+    });
   });
 
   describe('Other roles', () => {
@@ -564,6 +568,7 @@ describe('USERS ROUTES - GET /users', () => {
 });
 
 describe('USERS ROUTES - GET /users/exists', () => {
+  const fieldsToPick = ['_id', 'local.email', 'identity.firstname', 'identity.lastname', 'contact.phone', 'role'];
   let authToken;
   beforeEach(populateDB);
 
@@ -596,12 +601,15 @@ describe('USERS ROUTES - GET /users/exists', () => {
       expect(res.statusCode).toBe(200);
       expect(res.result.data.exists).toBe(true);
       expect(res.result.data.user).toEqual({
-        ...pick(usersSeedList[0],
-          ['role', '_id']),
+        ...pick(usersSeedList[0], fieldsToPick),
         company: authCompany._id,
         userCompanyList: expect.arrayContaining([
-          { company: companyWithoutSubscription._id, endDate: CompaniDate('2021-12-31T23:00:00.000Z').toDate() },
-          { company: authCompany._id },
+          {
+            company: companyWithoutSubscription._id,
+            endDate: CompaniDate('2021-12-31T23:00:00.000Z').toDate(),
+            startDate: CompaniDate('2021-01-01T23:00:00.000Z').toDate(),
+          },
+          { company: authCompany._id, startDate: CompaniDate('2022-01-01T23:00:00.000Z').toDate() },
         ]),
       });
     });
@@ -621,9 +629,17 @@ describe('USERS ROUTES - GET /users/exists', () => {
 
   describe('Other roles', () => {
     const roles = [
-      { name: 'helper', expectedCode: 200 },
-      { name: 'auxiliary_without_company', expectedCode: 200 },
-      { name: 'coach', expectedCode: 200 },
+      { name: 'helper', expectedCode: 200, expectedOutput: {} },
+      { name: 'auxiliary_without_company', expectedCode: 200, expectedOutput: {} },
+      {
+        name: 'coach',
+        expectedCode: 200,
+        expectedOutput: {
+          ...pick(usersSeedList[0], fieldsToPick),
+          company: authCompany._id,
+          userCompanyList: [{ company: authCompany._id, startDate: CompaniDate('2022-01-01T23:00:00.000Z').toDate() }],
+        },
+      },
     ];
     roles.forEach((role) => {
       it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
@@ -638,11 +654,7 @@ describe('USERS ROUTES - GET /users/exists', () => {
 
         if (response.result.data) {
           expect(response.result.data.exists).toBe(true);
-          expect(response.result.data.user).toEqual({
-            ...pick(usersSeedList[0], ['role', '_id']),
-            company: authCompany._id,
-            userCompanyList: [{ company: authCompany._id }],
-          });
+          expect(response.result.data.user).toEqual(role.expectedOutput);
         }
       });
     });
@@ -658,16 +670,16 @@ describe('USERS ROUTES - GET /users/sector-histories', () => {
       authToken = await getToken('coach');
     });
 
-    // it('should get all auxiliary users', async () => {
-    //   const res = await app.inject({
-    //     method: 'GET',
-    //     url: `/users/sector-histories?company=${authCompany._id}`,
-    //     headers: { Cookie: `alenvi_token=${authToken}` },
-    //   });
+    it('should get all auxiliary users (company A in past or future)', async () => {
+      const res = await app.inject({
+        method: 'GET',
+        url: `/users/sector-histories?company=${authCompany._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
 
-    //   expect(res.statusCode).toBe(200);
-    //   expect(res.result.data.users.length).toBe(7);
-    // });
+      expect(res.statusCode).toBe(200);
+      expect(res.result.data.users.length).toBe(8);
+    });
 
     it('should return a 403 if try to get other company', async () => {
       const res = await app.inject({
@@ -708,9 +720,9 @@ describe('USERS ROUTES - GET /users/learners', () => {
   let authToken;
   beforeEach(populateDB);
 
-  describe('TRAINER', () => {
+  describe('TRAINING_ORGANISATION_MANAGER', () => {
     beforeEach(async () => {
-      authToken = await getToken('trainer');
+      authToken = await getToken('training_organisation_manager');
       UtilsMock.mockCurrentDate('2022-12-20T15:00:00.000Z');
     });
     afterEach(() => {
@@ -725,8 +737,31 @@ describe('USERS ROUTES - GET /users/learners', () => {
       });
 
       expect(res.statusCode).toBe(200);
-      const countUserInDB = userList.length + usersSeedList.length + usersFromOtherCompanyList.length;
+      const countUserInDB = userList.length + usersSeedList.length + usersFromDifferentCompanyList.length;
       expect(res.result.data.users.length).toEqual(countUserInDB);
+    });
+
+    it('should return future or current learners from a specific company (potential trainees list)', async () => {
+      const res = await app.inject({
+        method: 'GET',
+        url: `/users/learners?companies=${authCompany._id}&startDate=2022-12-20T15:00:00.000Z`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(res.statusCode).toBe(200);
+      expect(res.result.data.users.length).toBe(17);
+    });
+
+    it('should return learners at a certain date from a specific company (attendances)', async () => {
+      const res = await app.inject({
+        method: 'GET',
+        url: `/users/learners?companies=${authCompany._id}`
+          + '&startDate=2021-12-19T23:00:00.000Z&endDate=2021-12-20T22:59:59.999Z',
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(res.statusCode).toBe(200);
+      expect(res.result.data.users.length).toBe(6);
     });
 
     it('should return active learners from a specific company', async () => {
@@ -751,6 +786,27 @@ describe('USERS ROUTES - GET /users/learners', () => {
       expect(res.statusCode).toBe(200);
       expect(res.result.data.users.every(u => UtilsHelper.areObjectIdsEquals(u.company._id, authCompany._id) ||
         UtilsHelper.areObjectIdsEquals(u.company._id, otherCompany._id))).toBeTruthy();
+    });
+
+    it('should return 400 if endDate but no startDate', async () => {
+      const res = await app.inject({
+        method: 'GET',
+        url: `/users/learners?companies=${authCompany._id}&endDate=2021-12-19T23:00:00.000Z`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(res.statusCode).toBe(400);
+    });
+
+    it('should return 400 if startDate greater than endDate', async () => {
+      const res = await app.inject({
+        method: 'GET',
+        url: `/users/learners?companies=${authCompany._id}`
+        + '&startDate=2021-12-20T22:59:59.999Z&endDate=2021-12-19T23:00:00.000Z',
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(res.statusCode).toBe(400);
     });
   });
 
@@ -822,18 +878,18 @@ describe('USERS ROUTES - GET /users/active', () => {
       authToken = await getToken('coach');
     });
 
-    // it('should get all active auxiliaries (company A)', async () => {
-    //   const res = await app.inject({
-    //     method: 'GET',
-    //     url: `/users/active?company=${authCompany._id}&role=auxiliary`,
-    //     headers: { Cookie: `alenvi_token=${authToken}` },
-    //   });
+    it('should get all active auxiliaries (company A in past or future)', async () => {
+      const res = await app.inject({
+        method: 'GET',
+        url: `/users/active?company=${authCompany._id}&role=auxiliary`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
 
-    //   expect(res.statusCode).toBe(200);
-    //   expect(res.result.data.users.length).toBe(3);
-    //   expect(res.result.data.users.every(u => u.isActive)).toBeTruthy();
-    //   expect(res.result.data.users.every(u => u.role.client.name === 'auxiliary')).toBeTruthy();
-    // });
+      expect(res.statusCode).toBe(200);
+      expect(res.result.data.users.length).toBe(4);
+      expect(res.result.data.users.every(u => u.isActive)).toBeTruthy();
+      expect(res.result.data.users.every(u => u.role.client.name === 'auxiliary')).toBeTruthy();
+    });
 
     it('should return a 403 if not from the same company', async () => {
       const res = await app.inject({
@@ -845,23 +901,23 @@ describe('USERS ROUTES - GET /users/active', () => {
     });
   });
 
-  // describe('TRAINING_ORGANISATION_MANAGER', () => {
-  //   beforeEach(async () => {
-  //     authToken = await getToken('training_organisation_manager');
-  //   });
+  describe('TRAINING_ORGANISATION_MANAGER', () => {
+    beforeEach(async () => {
+      authToken = await getToken('training_organisation_manager');
+    });
 
-  //   it('should get all active users from other company if role vendor', async () => {
-  //     const res = await app.inject({
-  //       method: 'GET',
-  //       url: `/users/active?company=${otherCompany._id}`,
-  //       headers: { Cookie: `alenvi_token=${authToken}` },
-  //     });
+    it('should get all active users from other company if role vendor', async () => {
+      const res = await app.inject({
+        method: 'GET',
+        url: `/users/active?company=${otherCompany._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
 
-  //     expect(res.statusCode).toBe(200);
-  //     expect(res.result.data.users.length).toBe(1);
-  //     expect(res.result.data.users.every(u => u.isActive)).toBeTruthy();
-  //   });
-  // });
+      expect(res.statusCode).toBe(200);
+      expect(res.result.data.users.length).toBe(1);
+      expect(res.result.data.users.every(u => u.isActive)).toBeTruthy();
+    });
+  });
 
   describe('Other roles', () => {
     const roles = [
@@ -1225,14 +1281,14 @@ describe('USERS ROUTES - PUT /users/:id', () => {
     it('should update previously detached learner with new company', async () => {
       const res = await app.inject({
         method: 'PUT',
-        url: `/users/${traineeWhoLeftOtherCompany._id.toHexString()}`,
+        url: `/users/${traineeWhoLeftCompanyWithoutSubscription._id.toHexString()}`,
         payload: { company: authCompany._id, userCompanyStartDate: '2022-12-20T12:00:00.000Z' },
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(res.statusCode).toBe(200);
       const createdUserCompany = await UserCompany.countDocuments({
-        user: traineeWhoLeftOtherCompany._id,
+        user: traineeWhoLeftCompanyWithoutSubscription._id,
         company: authCompany._id,
         startDate: '2022-12-19T23:00:00.000Z',
       });
@@ -1378,14 +1434,14 @@ describe('USERS ROUTES - PUT /users/:id', () => {
     it('should update previously detached learner with new company', async () => {
       const res = await app.inject({
         method: 'PUT',
-        url: `/users/${traineeWhoLeftOtherCompany._id.toHexString()}`,
+        url: `/users/${traineeWhoLeftCompanyWithoutSubscription._id.toHexString()}`,
         payload: { company: authCompany._id, userCompanyStartDate: '2022-12-20T12:00:00.000Z' },
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(res.statusCode).toBe(200);
       const createdUserCompany = await UserCompany.countDocuments({
-        user: traineeWhoLeftOtherCompany._id,
+        user: traineeWhoLeftCompanyWithoutSubscription._id,
         company: authCompany._id,
         startDate: '2022-12-19T23:00:00.000Z',
       });
@@ -1438,6 +1494,17 @@ describe('USERS ROUTES - PUT /users/:id', () => {
       });
       expect(res.statusCode).toBe(409);
       expect(res.result.message).toBe('Ce compte est déjà rattaché à une structure.');
+    });
+
+    it('should return good message if try to link user with 2 inactive companies with wrong start date', async () => {
+      const res = await app.inject({
+        method: 'PUT',
+        url: `/users/${usersSeedList[14]._id}`,
+        payload: { company: authCompany._id, userCompanyStartDate: '2022-11-28T23:00:00.000Z' },
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+      expect(res.statusCode).toBe(409);
+      expect(res.result.message).toBe('Ce compte est déjà rattaché à une structure jusqu\'au 31/12/2022.');
     });
   });
 
