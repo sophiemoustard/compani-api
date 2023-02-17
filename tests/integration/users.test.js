@@ -670,7 +670,7 @@ describe('USERS ROUTES - GET /users/sector-histories', () => {
       authToken = await getToken('coach');
     });
 
-    it('should get all auxiliary users (from Company in past or future)', async () => {
+    it('should get all auxiliary users (company A in past or future)', async () => {
       const res = await app.inject({
         method: 'GET',
         url: `/users/sector-histories?company=${authCompany._id}`,
