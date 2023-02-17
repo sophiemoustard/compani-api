@@ -478,18 +478,21 @@ describe('USERS ROUTES - GET /users', () => {
       expect(res.result.data.users.every(u => get(u, 'role.client.name') === COACH)).toBeTruthy();
     });
 
-    // it('should get all auxiliaries and helpers users (company A), role as an array of strings', async () => {
-    //   const res = await app.inject({
-    //     method: 'GET',
-    //     url: `/users?company=${authCompany._id}&role=helper&role=auxiliary`,
-    //     headers: { Cookie: `alenvi_token=${authToken}` },
-    //   });
+    it(
+      'should get all auxiliaries and helpers users (company A in past or future), role as an array of strings',
+      async () => {
+        const res = await app.inject({
+          method: 'GET',
+          url: `/users?company=${authCompany._id}&role=helper&role=auxiliary`,
+          headers: { Cookie: `alenvi_token=${authToken}` },
+        });
 
-    //   expect(res.statusCode).toBe(200);
-    //   expect(res.result.data.users.length).toBe(5);
-    //   expect(res.result.data.users.every(u => [HELPER, AUXILIARY]
-    //     .includes(get(u, 'role.client.name')))).toBeTruthy();
-    // });
+        expect(res.statusCode).toBe(200);
+        expect(res.result.data.users.length).toBe(6);
+        expect(res.result.data.users.every(u => [HELPER, AUXILIARY]
+          .includes(get(u, 'role.client.name')))).toBeTruthy();
+      }
+    );
 
     it('should return 400 if wrong role in query', async () => {
       const res = await app.inject({
@@ -667,16 +670,16 @@ describe('USERS ROUTES - GET /users/sector-histories', () => {
       authToken = await getToken('coach');
     });
 
-    // it('should get all auxiliary users', async () => {
-    //   const res = await app.inject({
-    //     method: 'GET',
-    //     url: `/users/sector-histories?company=${authCompany._id}`,
-    //     headers: { Cookie: `alenvi_token=${authToken}` },
-    //   });
+    it('should get all auxiliary users (company A in past or future)', async () => {
+      const res = await app.inject({
+        method: 'GET',
+        url: `/users/sector-histories?company=${authCompany._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
 
-    //   expect(res.statusCode).toBe(200);
-    //   expect(res.result.data.users.length).toBe(7);
-    // });
+      expect(res.statusCode).toBe(200);
+      expect(res.result.data.users.length).toBe(8);
+    });
 
     it('should return a 403 if try to get other company', async () => {
       const res = await app.inject({
@@ -875,18 +878,18 @@ describe('USERS ROUTES - GET /users/active', () => {
       authToken = await getToken('coach');
     });
 
-    // it('should get all active auxiliaries (company A)', async () => {
-    //   const res = await app.inject({
-    //     method: 'GET',
-    //     url: `/users/active?company=${authCompany._id}&role=auxiliary`,
-    //     headers: { Cookie: `alenvi_token=${authToken}` },
-    //   });
+    it('should get all active auxiliaries (company A in past or future)', async () => {
+      const res = await app.inject({
+        method: 'GET',
+        url: `/users/active?company=${authCompany._id}&role=auxiliary`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
 
-    //   expect(res.statusCode).toBe(200);
-    //   expect(res.result.data.users.length).toBe(3);
-    //   expect(res.result.data.users.every(u => u.isActive)).toBeTruthy();
-    //   expect(res.result.data.users.every(u => u.role.client.name === 'auxiliary')).toBeTruthy();
-    // });
+      expect(res.statusCode).toBe(200);
+      expect(res.result.data.users.length).toBe(4);
+      expect(res.result.data.users.every(u => u.isActive)).toBeTruthy();
+      expect(res.result.data.users.every(u => u.role.client.name === 'auxiliary')).toBeTruthy();
+    });
 
     it('should return a 403 if not from the same company', async () => {
       const res = await app.inject({
