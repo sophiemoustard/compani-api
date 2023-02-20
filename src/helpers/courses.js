@@ -380,10 +380,10 @@ exports.formatActivity = (activity) => {
 
 exports.formatStep = step => ({ ...step, activities: step.activities.map(a => exports.formatActivity(a)) });
 
-exports.getCourseFollowUp = async (courseId, company) => {
-  const courseWithTrainees = await Course.findOne({ _id: courseId }, { trainees: 1 }).lean();
+exports.getCourseFollowUp = async (course, company) => {
+  const courseWithTrainees = await Course.findOne({ _id: course }, { trainees: 1, format: 1 }).lean();
 
-  const courseFollowUp = await Course.findOne({ _id: courseId }, { subProgram: 1 })
+  const courseFollowUp = await Course.findOne({ _id: course }, { subProgram: 1 })
     .populate({
       path: 'subProgram',
       select: 'name steps program',
@@ -407,12 +407,21 @@ exports.getCourseFollowUp = async (courseId, company) => {
     .populate({
       path: 'trainees',
       select: 'identity.firstname identity.lastname firstMobileConnection',
-      populate: { path: 'company' },
+      ...(courseWithTrainees.format === STRICTLY_E_LEARNING && !!company && { populate: { path: 'company' } }),
     })
     .lean();
 
-  const filteredTrainees = courseFollowUp.trainees
-    .filter(t => !company || UtilsHelper.areObjectIdsEquals(t.company, company));
+  let filteredTrainees = [];
+  if (!company) filteredTrainees = courseFollowUp.trainees;
+  else if (courseWithTrainees.format === STRICTLY_E_LEARNING) {
+    filteredTrainees = courseFollowUp.trainees.filter(t => UtilsHelper.areObjectIdsEquals(t.company, company));
+  } else {
+    const traineesCompanyAtCourseRegistration = await CourseHistoriesHelper
+      .getTraineesCompanyAtCourseRegistration(courseFollowUp.trainees.map(t => t._id), course);
+    const traineesCompany = mapValues(keyBy(traineesCompanyAtCourseRegistration, 'trainee'), 'company');
+    filteredTrainees = courseFollowUp.trainees
+      .filter(trainee => UtilsHelper.areObjectIdsEquals(traineesCompany[trainee._id], company));
+  }
 
   return {
     ...courseFollowUp,
