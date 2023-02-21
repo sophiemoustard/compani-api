@@ -1,6 +1,6 @@
 const Boom = require('@hapi/boom');
 const SubProgramHelper = require('../helpers/subPrograms');
-const StepHelper = require('../helpers/steps');
+const StepsHelper = require('../helpers/steps');
 const translate = require('../helpers/translate');
 
 const { language } = translate;
@@ -18,7 +18,7 @@ const update = async (req) => {
 
 const addStep = async (req) => {
   try {
-    await StepHelper.addStep(req.params._id, req.payload);
+    await StepsHelper.addStep(req.params._id, req.payload);
 
     return { message: translate[language].subProgramUpdated };
   } catch (e) {
@@ -40,7 +40,7 @@ const reuseStep = async (req) => {
 
 const detachStep = async (req) => {
   try {
-    await StepHelper.detachStep(req.params._id, req.params.stepId);
+    await StepsHelper.detachStep(req.params._id, req.params.stepId);
 
     return { message: translate[language].subProgramUpdated };
   } catch (e) {

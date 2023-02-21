@@ -24,7 +24,7 @@ const UtilsHelper = require('../../../src/helpers/utils');
 const PdfHelper = require('../../../src/helpers/pdf');
 const ZipHelper = require('../../../src/helpers/zip');
 const DocxHelper = require('../../../src/helpers/docx');
-const StepHelper = require('../../../src/helpers/steps');
+const StepsHelper = require('../../../src/helpers/steps');
 const NotificationHelper = require('../../../src/helpers/notifications');
 const {
   COURSE_SMS,
@@ -1183,7 +1183,7 @@ describe('formatCourseWithProgress', () => {
   let getCourseProgress;
   beforeEach(() => {
     getCourseProgress = sinon.stub(CourseHelper, 'getCourseProgress');
-    getProgress = sinon.stub(StepHelper, 'getProgress');
+    getProgress = sinon.stub(StepsHelper, 'getProgress');
   });
   afterEach(() => {
     getCourseProgress.restore();
@@ -2606,7 +2606,7 @@ describe('getTraineesWithElearningProgress', () => {
   let getProgress;
   let getCourseProgress;
   beforeEach(() => {
-    getProgress = sinon.stub(StepHelper, 'getProgress');
+    getProgress = sinon.stub(StepsHelper, 'getProgress');
     getCourseProgress = sinon.stub(CourseHelper, 'getCourseProgress');
   });
   afterEach(() => {
