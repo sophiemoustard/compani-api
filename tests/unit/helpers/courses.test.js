@@ -3414,7 +3414,7 @@ describe('formatCourseForDocuments', () => {
   });
 });
 
-describe('generateCompletionCertificate', () => {
+describe('generateCompletionCertificates', () => {
   let courseFindOne;
   let attendanceFind;
   let formatCourseForDocuments;
@@ -3426,6 +3426,7 @@ describe('generateCompletionCertificate', () => {
   let downloadFileById;
   let tmpDir;
   let getPdf;
+  let getTraineesCompanyAtCourseRegistration;
   beforeEach(() => {
     courseFindOne = sinon.stub(Course, 'findOne');
     attendanceFind = sinon.stub(Attendance, 'find');
@@ -3439,6 +3440,8 @@ describe('generateCompletionCertificate', () => {
     downloadFileById = sinon.stub(Drive, 'downloadFileById');
     tmpDir = sinon.stub(os, 'tmpdir').returns('/path');
     getPdf = sinon.stub(CompletionCertificate, 'getPdf');
+    getTraineesCompanyAtCourseRegistration = sinon
+      .stub(CourseHistoriesHelper, 'getTraineesCompanyAtCourseRegistration');
   });
   afterEach(() => {
     courseFindOne.restore();
@@ -3453,6 +3456,7 @@ describe('generateCompletionCertificate', () => {
     downloadFileById.restore();
     tmpDir.restore();
     getPdf.restore();
+    getTraineesCompanyAtCourseRegistration.restore();
   });
 
   it('should download completion certificates from webapp (vendor)', async () => {
@@ -3471,9 +3475,9 @@ describe('generateCompletionCertificate', () => {
     const traineeId3 = new ObjectId();
     const course = {
       trainees: [
-        { _id: traineeId1, identity: { lastname: 'trainee 1' }, company: new ObjectId() },
-        { _id: traineeId2, identity: { lastname: 'trainee 2' }, company: new ObjectId() },
-        { _id: traineeId3, identity: { lastname: 'trainee 3' }, company: new ObjectId() },
+        { _id: traineeId1, identity: { lastname: 'trainee 1' } },
+        { _id: traineeId2, identity: { lastname: 'trainee 2' } },
+        { _id: traineeId3, identity: { lastname: 'trainee 3' } },
       ],
       misc: 'Bonjour je suis une formation',
       slots: [{ _id: new ObjectId() }, { _id: new ObjectId() }],
@@ -3578,7 +3582,7 @@ describe('generateCompletionCertificate', () => {
     SinonMongoose.calledOnceWithExactly(courseFindOne, [
       { query: 'findOne', args: [{ _id: courseId }] },
       { query: 'populate', args: [{ path: 'slots', select: 'startDate endDate' }] },
-      { query: 'populate', args: [{ path: 'trainees', select: 'identity', populate: { path: 'company' } }] },
+      { query: 'populate', args: [{ path: 'trainees', select: 'identity' }] },
       {
         query: 'populate',
         args: [{
@@ -3598,6 +3602,7 @@ describe('generateCompletionCertificate', () => {
         { query: 'lean' },
       ]);
     sinon.assert.notCalled(getPdf);
+    sinon.assert.notCalled(getTraineesCompanyAtCourseRegistration);
   });
 
   it('should download completion certificates from webapp (client)', async () => {
@@ -3610,9 +3615,9 @@ describe('generateCompletionCertificate', () => {
     const traineeId3 = new ObjectId();
     const course = {
       trainees: [
-        { _id: traineeId1, identity: { lastname: 'trainee 1' }, company: companyId },
-        { _id: traineeId2, identity: { lastname: 'trainee 2' }, company: new ObjectId() },
-        { _id: traineeId3, identity: { lastname: 'trainee 3' }, company: new ObjectId() },
+        { _id: traineeId1, identity: { lastname: 'trainee 1' } },
+        { _id: traineeId2, identity: { lastname: 'trainee 2' } },
+        { _id: traineeId3, identity: { lastname: 'trainee 3' } },
       ],
       misc: 'Bonjour je suis une formation',
       slots: [{ _id: new ObjectId() }, { _id: new ObjectId() }],
@@ -3639,6 +3644,11 @@ describe('generateCompletionCertificate', () => {
       program: { learningGoals: 'Apprendre', name: 'nom du programme' },
       courseDuration: '8h',
     });
+    getTraineesCompanyAtCourseRegistration.returns([
+      { trainee: traineeId1, company: companyId },
+      { trainee: traineeId2, company: new ObjectId() },
+      { trainee: traineeId3, company: new ObjectId() },
+    ]);
     createDocx.returns('1.docx');
     formatIdentity.returns('trainee 1');
     getTotalDuration.returns('4h30');
@@ -3675,7 +3685,7 @@ describe('generateCompletionCertificate', () => {
     SinonMongoose.calledOnceWithExactly(courseFindOne, [
       { query: 'findOne', args: [{ _id: courseId }] },
       { query: 'populate', args: [{ path: 'slots', select: 'startDate endDate' }] },
-      { query: 'populate', args: [{ path: 'trainees', select: 'identity', populate: { path: 'company' } }] },
+      { query: 'populate', args: [{ path: 'trainees', select: 'identity' }] },
       {
         query: 'populate',
         args: [{
@@ -3694,6 +3704,7 @@ describe('generateCompletionCertificate', () => {
         { query: 'setOptions', args: [{ isVendorUser: VENDOR_ROLES.includes(get(credentials, 'role.vendor.name')) }] },
         { query: 'lean' },
       ]);
+    getTraineesCompanyAtCourseRegistration.calledOnceWithExactly(course.trainees, courseId);
     sinon.assert.notCalled(getPdf);
   });
 
@@ -3707,9 +3718,9 @@ describe('generateCompletionCertificate', () => {
     const traineeId3 = new ObjectId();
     const course = {
       trainees: [
-        { _id: traineeId1, identity: { lastname: 'trainee 1' }, company: new ObjectId() },
-        { _id: traineeId2, identity: { lastname: 'trainee 2' }, company: new ObjectId() },
-        { _id: traineeId3, identity: { lastname: 'trainee 3' }, company: new ObjectId() },
+        { _id: traineeId1, identity: { lastname: 'trainee 1' } },
+        { _id: traineeId2, identity: { lastname: 'trainee 2' } },
+        { _id: traineeId3, identity: { lastname: 'trainee 3' } },
       ],
       misc: 'Bonjour je suis une formation',
       slots: [{ _id: new ObjectId() }, { _id: new ObjectId() }],
@@ -3756,7 +3767,7 @@ describe('generateCompletionCertificate', () => {
     SinonMongoose.calledOnceWithExactly(courseFindOne, [
       { query: 'findOne', args: [{ _id: courseId }] },
       { query: 'populate', args: [{ path: 'slots', select: 'startDate endDate' }] },
-      { query: 'populate', args: [{ path: 'trainees', select: 'identity', populate: { path: 'company' } }] },
+      { query: 'populate', args: [{ path: 'trainees', select: 'identity' }] },
       {
         query: 'populate',
         args: [{
@@ -3780,6 +3791,7 @@ describe('generateCompletionCertificate', () => {
     sinon.assert.notCalled(createReadStream);
     sinon.assert.notCalled(generateZip);
     sinon.assert.notCalled(downloadFileById);
+    sinon.assert.notCalled(getTraineesCompanyAtCourseRegistration);
   });
 });
 
