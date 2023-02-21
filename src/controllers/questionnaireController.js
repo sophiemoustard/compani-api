@@ -6,7 +6,7 @@ const { language } = translate;
 
 const list = async (req) => {
   try {
-    const questionnaires = await QuestionnaireHelper.list();
+    const questionnaires = await QuestionnaireHelper.list(req.auth.credentials);
 
     return {
       message: questionnaires.length
@@ -96,7 +96,7 @@ const getUserQuestionnaires = async (req) => {
 
 const getFollowUp = async (req) => {
   try {
-    const followUp = await QuestionnaireHelper.getFollowUp(req.params._id, req.query.course);
+    const followUp = await QuestionnaireHelper.getFollowUp(req.params._id, req.query.course, req.auth.credentials);
 
     return { message: translate[language].questionnaireFound, data: { followUp } };
   } catch (e) {

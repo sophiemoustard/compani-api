@@ -362,7 +362,7 @@ describe('exportCourseHistory', () => {
     },
   ];
 
-  const credentials = { company: { _id: new ObjectId(), role: { vendor: { name: TRAINING_ORGANISATION_MANAGER } } } };
+  const credentials = { company: { _id: new ObjectId() }, role: { vendor: { name: TRAINING_ORGANISATION_MANAGER } } };
 
   let findCourseSlot;
   let findCourse;
@@ -402,7 +402,7 @@ describe('exportCourseHistory', () => {
     findCourseSlot.returns(SinonMongoose.stubChainedQueries(courseSlotList, ['lean']));
     findCourse.returns(SinonMongoose.stubChainedQueries([]));
 
-    const result = await ExportHelper.exportCourseHistory('2021-01-14T23:00:00.000Z', '2022-01-20T22:59:59.000Z');
+    const result = await ExportHelper.exportCourseHistory('2021-01-14T23:00:00.000Z', '2022-01-20T22:59:59.000Z', credentials);
 
     expect(result).toEqual([[NO_DATA]]);
     SinonMongoose.calledOnceWithExactly(
@@ -501,7 +501,8 @@ describe('exportCourseHistory', () => {
   it('should return an array with the header and 4 rows', async () => {
     findCourseSlot.returns(SinonMongoose.stubChainedQueries(courseSlotList, ['lean']));
     findCourse.returns(SinonMongoose.stubChainedQueries(courseList));
-    findQuestionnaireHistory.returns(SinonMongoose.stubChainedQueries(questionnaireHistoriesList));
+    findQuestionnaireHistory
+      .returns(SinonMongoose.stubChainedQueries(questionnaireHistoriesList, ['populate', 'setOptions', 'lean']));
     findCourseHistory.returns(SinonMongoose.stubChainedQueries(estimatedStartDateHistoriesList));
     groupSlotsByDate.onCall(0).returns([[courseSlotList[0], courseSlotList[1]]]);
     groupSlotsByDate.onCall(1).returns([[courseSlotList[2]], [courseSlotList[3]]]);
@@ -519,7 +520,7 @@ describe('exportCourseHistory', () => {
     ));
     findAttendanceSheet.returns(SinonMongoose.stubChainedQueries(
       [{ course: courseList[0]._id }],
-      ['lean']
+      ['setOptions', 'lean']
     ));
     getTraineesWithElearningProgress.onCall(0).returns([
       { _id: traineeList[0]._id, firstMobileConnection: traineeList[0].firstMobileConnection, steps: [], progress: {} },
@@ -862,6 +863,7 @@ describe('exportCourseHistory', () => {
       [
         { query: 'find', args: [{ course: { $in: courseIdList }, select: 'course questionnaire' }] },
         { query: 'populate', args: [{ path: 'questionnaire', select: 'type' }] },
+        { query: 'setOptions', args: [{ isVendorUser: true }] },
         { query: 'lean' },
       ]
     );
@@ -871,7 +873,17 @@ describe('exportCourseHistory', () => {
     );
     SinonMongoose.calledOnceWithExactly(
       findAttendanceSheet,
-      [{ query: 'find', args: [{ course: { $in: courseIdList }, select: 'course' }] }, { query: 'lean' }]
+      [
+        { query: 'find', args: [{ course: { $in: courseIdList }, select: 'course' }] },
+        {
+          query: 'setOptions',
+          args: [{
+            isVendorUser: [TRAINING_ORGANISATION_MANAGER, VENDOR_ADMIN]
+              .includes(get(credentials, 'role.vendor.name')),
+          }],
+        },
+        { query: 'lean' },
+      ]
     );
     sinon.assert.calledOnceWithExactly(
       findCourseHistory,
@@ -1151,6 +1163,7 @@ describe('exportCourseSlotHistory', () => {
 });
 
 describe('exportEndOfCourseQuestionnaireHistory', () => {
+  const credentials = { role: { vendor: { name: TRAINING_ORGANISATION_MANAGER } } };
   const cards = [
     { _id: new ObjectId(), template: 'transition' },
     { _id: new ObjectId(), question: 'Ca va ?', template: 'open_question' },
@@ -1182,8 +1195,8 @@ describe('exportEndOfCourseQuestionnaireHistory', () => {
           identity: { firstname: '', lastname: 'Zizou' },
           local: { email: 'zizou@2027.com' },
           contact: { phone: '0600000000' },
-          company: { name: 'créole' },
         },
+        company: { name: 'créole' },
         questionnaire: {
           _id: new ObjectId(),
           type: 'end_of_course',
@@ -1212,8 +1225,8 @@ describe('exportEndOfCourseQuestionnaireHistory', () => {
           identity: { firstname: 'Bob', lastname: 'Marley' },
           local: { email: 'bob@marley.com' },
           contact: {},
-          company: { name: 'Reggae Music' },
         },
+        company: { name: 'Reggae Music' },
         questionnaire: {
           _id: new ObjectId(),
           type: 'end_of_course',
@@ -1245,7 +1258,8 @@ describe('exportEndOfCourseQuestionnaireHistory', () => {
     findOneQuestionnaire.returns(SinonMongoose.stubChainedQueries({ cards, histories: [] }));
     const exportArray = await ExportHelper.exportEndOfCourseQuestionnaireHistory(
       '2021-06-25T12:00:00.000Z',
-      '2021-06-30:12:00.000Z'
+      '2021-06-30:12:00.000Z',
+      credentials
     );
 
     expect(exportArray).toEqual([['Aucune donnée sur la période sélectionnée']]);
@@ -1256,7 +1270,8 @@ describe('exportEndOfCourseQuestionnaireHistory', () => {
 
     const exportArray = await ExportHelper.exportEndOfCourseQuestionnaireHistory(
       '2021-06-25T12:00:00.000Z',
-      '2021-06-30:12:00.000Z'
+      '2021-06-30:12:00.000Z',
+      credentials
     );
 
     expect(exportArray).toEqual([
@@ -1315,6 +1330,7 @@ describe('exportEndOfCourseQuestionnaireHistory', () => {
           query: 'populate',
           args: [{
             path: 'histories',
+            options: { isVendorUser: true },
             match: { createdAt: { $gte: '2021-06-25T12:00:00.000Z', $lte: '2021-06-30:12:00.000Z' } },
             populate: [
               {
@@ -1325,11 +1341,8 @@ describe('exportEndOfCourseQuestionnaireHistory', () => {
                   { path: 'trainer', select: 'identity' },
                 ],
               },
-              {
-                path: 'user',
-                select: 'identity local.email contact.phone company',
-                populate: { path: 'company', populate: { path: 'company', select: 'name' } },
-              },
+              { path: 'user', select: 'identity local.email contact.phone' },
+              { path: 'company', select: 'name' },
               { path: 'questionnaireAnswersList.card', select: 'qcAnswers' },
             ],
           }],

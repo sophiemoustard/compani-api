@@ -1,5 +1,6 @@
 const Boom = require('@hapi/boom');
 const compact = require('lodash/compact');
+const uniqBy = require('lodash/uniqBy');
 const translate = require('./translate');
 const { DD_MM_YYYY, DAY } = require('./constants');
 const { CompaniDate } = require('./dates/companiDates');
@@ -12,18 +13,22 @@ const { language } = translate;
 exports.create = async ({ user, company, startDate = CompaniDate() }) => {
   const userCompanyStartDate = CompaniDate(startDate).startOf(DAY).toISO();
 
-  const userCompany = await UserCompany.findOne(
-    { user, $or: [{ endDate: { $exists: false } }, { endDate: { $gt: userCompanyStartDate } }] },
-    { endDate: 1 }
-  ).lean();
+  const userCompany = await UserCompany
+    .find(
+      { user, $or: [{ endDate: { $exists: false } }, { endDate: { $gt: userCompanyStartDate } }] },
+      { endDate: 1 }
+    )
+    .sort({ startDate: -1 })
+    .limit(1)
+    .lean();
 
-  if (!userCompany) {
+  if (!userCompany.length) {
     await CompanyLinkRequest.deleteMany({ user });
     await UserCompany.create({ user, company, startDate: userCompanyStartDate });
   } else {
-    const errorMessage = userCompany.endDate
+    const errorMessage = userCompany[0].endDate
       ? translate[language].userAlreadyLinkedToCompanyUntil
-        .replace('{DATE}', CompaniDate(userCompany.endDate).format(DD_MM_YYYY))
+        .replace('{DATE}', CompaniDate(userCompany[0].endDate).format(DD_MM_YYYY))
       : translate[language].userAlreadyLinkedToCompany;
     throw Boom.conflict(errorMessage);
   }
@@ -36,6 +41,10 @@ exports.userIsOrWillBeInCompany = (userCompanyList, company) => userCompanyList
   .some(uc => (!uc.endDate || CompaniDate().isBefore(uc.endDate)) &&
     UtilsHelper.areObjectIdsEquals(uc.company, company));
 
-exports.getCurrentAndFutureCompanies = userCompanyList => compact(userCompanyList
-  .filter(uc => !uc.endDate || CompaniDate().isBefore(uc.endDate))
-  .map(uc => uc.company));
+exports.getCurrentAndFutureCompanies = (userCompanyList) => {
+  const currentAndFutureCompanies = compact(userCompanyList
+    .filter(uc => !uc.endDate || CompaniDate().isBefore(uc.endDate))
+    .map(uc => uc.company));
+
+  return uniqBy(currentAndFutureCompanies, '_id');
+};

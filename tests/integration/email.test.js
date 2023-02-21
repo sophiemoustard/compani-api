@@ -9,9 +9,11 @@ const {
   trainerFromOtherCompany,
   coachFromOtherCompany,
   helperFromOtherCompany,
+  futureTraineeFromAuthCompany,
 } = require('./seed/emailSeed');
 const { getToken } = require('./helpers/authentication');
 const NodemailerHelper = require('../../src/helpers/nodemailer');
+const { TRAINEE } = require('../../src/helpers/constants');
 
 describe('NODE ENV', () => {
   it('should be \'test\'', () => {
@@ -114,6 +116,21 @@ describe('EMAIL ROUTES - POST emails/send-welcome', () => {
           url: '/email/send-welcome',
           headers: { Cookie: `alenvi_token=${authToken}` },
           payload,
+        });
+
+        expect(response.statusCode).toBe(200);
+        expect(response.result.data.mailInfo).toEqual('emailSent');
+        sinon.assert.calledWithExactly(sendinBlueTransporter);
+      });
+
+    it('should send a welcoming email as sender is coach and receiver is a future registered trainee in auth company',
+      async () => {
+        const authToken = await getToken('coach');
+        const response = await app.inject({
+          method: 'POST',
+          url: '/email/send-welcome',
+          headers: { Cookie: `alenvi_token=${authToken}` },
+          payload: { email: futureTraineeFromAuthCompany.local.email, type: TRAINEE },
         });
 
         expect(response.statusCode).toBe(200);

@@ -4,10 +4,10 @@ const has = require('lodash/has');
 const pick = require('lodash/pick');
 const Course = require('../../models/Course');
 const User = require('../../models/User');
-const UserCompany = require('../../models/UserCompany');
 const CourseSlot = require('../../models/CourseSlot');
 const Company = require('../../models/Company');
 const CourseBill = require('../../models/CourseBill');
+const AttendanceSheet = require('../../models/AttendanceSheet');
 const {
   TRAINER,
   INTRA,
@@ -28,7 +28,7 @@ const translate = require('../../helpers/translate');
 const UtilsHelper = require('../../helpers/utils');
 const CourseHistoriesHelper = require('../../helpers/courseHistories');
 const { CompaniDate } = require('../../helpers/dates/companiDates');
-const AttendanceSheet = require('../../models/AttendanceSheet');
+const UserCompaniesHelper = require('../../helpers/userCompanies');
 
 const { language } = translate;
 
@@ -235,24 +235,31 @@ exports.authorizeTraineeAddition = async (req) => {
       .findOne({ _id: req.params._id }, { trainees: 1, type: 1, companies: 1, maxTrainees: 1, trainer: 1 })
       .lean();
 
+    if (course.type === INTRA && !!payload.company) throw Boom.badData();
+    if (course.type === INTER_B2B && !payload.company) throw Boom.badData();
+
     const isTrainer = get(req, 'auth.credentials.role.vendor.name') === TRAINER;
     if (course.type === INTER_B2B && isTrainer) throw Boom.forbidden();
 
     if (course.trainees.length + 1 > course.maxTrainees) throw Boom.forbidden(translate[language].maxTraineesReached);
 
-    const traineeExist = await User.countDocuments({ _id: payload.trainee });
-    if (!traineeExist) throw Boom.forbidden();
-
     const traineeIsTrainer = UtilsHelper.areObjectIdsEquals(course.trainer, payload.trainee);
     if (traineeIsTrainer) throw Boom.forbidden();
 
-    const userCompanyCurrentlyExists = await UserCompany.countDocuments({
-      user: payload.trainee,
-      company: { $in: course.companies },
-      startDate: { $lte: CompaniDate().toISO() },
-      $or: [{ endDate: { $exists: false } }, { endDate: { $gt: CompaniDate().toISO() } }],
-    });
-    if (!userCompanyCurrentlyExists) throw Boom.notFound();
+    const trainee = await User.findOne({ _id: payload.trainee }, { _id: 1 })
+      .populate({ path: 'userCompanyList' })
+      .lean();
+    if (!trainee) throw Boom.notFound();
+
+    if (course.type === INTRA) {
+      if (!UserCompaniesHelper.userIsOrWillBeInCompany(trainee.userCompanyList, course.companies[0])) {
+        throw Boom.notFound();
+      }
+    } else {
+      const currentAndFuturCompanies = UserCompaniesHelper.getCurrentAndFutureCompanies(trainee.userCompanyList);
+      if (!UtilsHelper.doesArrayIncludeId(currentAndFuturCompanies, payload.company)) throw Boom.notFound();
+      if (!UtilsHelper.doesArrayIncludeId(course.companies, payload.company)) throw Boom.conflict();
+    }
 
     const traineeAlreadyRegistered = course.trainees.some(t => UtilsHelper.areObjectIdsEquals(t, payload.trainee));
     if (traineeAlreadyRegistered) throw Boom.conflict(translate[language].courseTraineeAlreadyExists);
@@ -265,10 +272,11 @@ exports.authorizeTraineeAddition = async (req) => {
 };
 
 exports.authorizeTraineeDeletion = async (req) => {
-  const course = await Course.findOne({ _id: req.params._id }, { type: 1 }).lean();
+  const course = await Course.findOne({ _id: req.params._id }, { type: 1, trainees: 1 }).lean();
 
   const isTrainer = get(req, 'auth.credentials.role.vendor.name') === TRAINER;
   if (course.type === INTER_B2B && isTrainer) throw Boom.forbidden();
+  if (!UtilsHelper.doesArrayIncludeId(course.trainees, req.params.traineeId)) throw Boom.forbidden();
 
   return null;
 };
@@ -476,7 +484,10 @@ exports.authorizeCourseCompanyDeletion = async (req) => {
     slot.attendances.some(attendance => UtilsHelper.areObjectIdsEquals(companyId, attendance.company)));
   if (hasAttendancesFromCompany) throw Boom.forbidden(translate[language].companyTraineeAttendedToCourse);
 
-  const attendanceSheets = await AttendanceSheet.find({ course: course._id }, { company: 1 }).lean();
+  const attendanceSheets = await AttendanceSheet
+    .find({ course: course._id }, { company: 1 })
+    .setOptions({ isVendorUser })
+    .lean();
 
   const hasAttendanceSheetsFromCompany = attendanceSheets
     .some(sheet => UtilsHelper.areObjectIdsEquals(companyId, sheet.company));

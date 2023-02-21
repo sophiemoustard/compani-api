@@ -3,13 +3,25 @@ const Questionnaire = require('../models/Questionnaire');
 const Course = require('../models/Course');
 const Card = require('../models/Card');
 const CardHelper = require('./cards');
-const { EXPECTATIONS, PUBLISHED, STRICTLY_E_LEARNING, END_OF_COURSE, INTRA } = require('./constants');
+const {
+  EXPECTATIONS,
+  PUBLISHED,
+  STRICTLY_E_LEARNING,
+  END_OF_COURSE,
+  INTRA,
+  TRAINING_ORGANISATION_MANAGER,
+  VENDOR_ADMIN,
+} = require('./constants');
 const DatesUtilsHelper = require('./dates/utils');
 const { CompaniDate } = require('./dates/companiDates');
 
 exports.create = async payload => Questionnaire.create(payload);
 
-exports.list = async () => Questionnaire.find().populate({ path: 'historiesCount' }).lean();
+exports.list = async (credentials) => {
+  const isRofOrAdmin = [TRAINING_ORGANISATION_MANAGER, VENDOR_ADMIN].includes(get(credentials, 'role.vendor.name'));
+
+  return Questionnaire.find().populate({ path: 'historiesCount', options: { isVendorUser: isRofOrAdmin } }).lean();
+};
 
 exports.getQuestionnaire = async id => Questionnaire.findOne({ _id: id })
   .populate({ path: 'cards', select: '-__v -createdAt -updatedAt' })
@@ -30,7 +42,11 @@ exports.removeCard = async (cardId) => {
 
 exports.findQuestionnaire = async (course, credentials, type) => Questionnaire
   .findOne({ type, status: PUBLISHED }, { type: 1, name: 1 })
-  .populate({ path: 'histories', match: { course: course._id, user: credentials._id } })
+  .populate({
+    path: 'histories',
+    match: { course: course._id, user: credentials._id },
+    options: { requestingOwnInfos: true },
+  })
   .lean({ virtuals: true });
 
 exports.getUserQuestionnaires = async (courseId, credentials) => {
@@ -79,23 +95,22 @@ const formatQuestionnaireAnswersWithCourse = async (courseId, questionnaireAnswe
   };
 };
 
-exports.getFollowUp = async (id, courseId) => {
+exports.getFollowUp = async (id, courseId, credentials) => {
+  const isVendorUser = !!get(credentials, 'role.vendor');
   const questionnaire = await Questionnaire.findOne({ _id: id })
     .select('type name')
     .populate({
       path: 'histories',
       match: courseId ? { course: courseId } : null,
+      options: { isVendorUser },
+      select: '-__v -createdAt -updatedAt',
       populate: [
-        { path: 'questionnaireAnswersList.card', select: '-createdAt -updatedAt' },
+        { path: 'questionnaireAnswersList.card', select: '-__v -createdAt -updatedAt' },
         {
           path: 'course',
           select: 'trainer subProgram',
-          populate: [
-            { path: 'trainer', select: 'identity' },
-            { path: 'subProgram', select: 'program', populate: { path: 'program', select: '_id -subPrograms' } },
-          ],
+          populate: { path: 'subProgram', select: 'program', populate: { path: 'program', select: '_id' } },
         },
-        { path: 'user', select: '_id', populate: { path: 'company' } },
       ],
     })
     .lean();
@@ -108,7 +123,7 @@ exports.getFollowUp = async (id, courseId) => {
 
       if (!followUp[answer.card._id]) followUp[answer.card._id] = { ...answer.card, answers: [] };
       followUp[answer.card._id].answers
-        .push(...answerList.map(a => ({ answer: a, course: history.course, traineeCompany: history.user.company })));
+        .push(...answerList.map(a => ({ answer: a, course: history.course, traineeCompany: history.company })));
     }
   }
 

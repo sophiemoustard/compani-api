@@ -124,13 +124,15 @@ exports.exportCourseHistory = async (startDate, endDate, credentials) => {
   if (!filteredCourses.length) return [[NO_DATA]];
 
   const courseIds = filteredCourses.map(course => course._id);
+  const isVendorUser = [TRAINING_ORGANISATION_MANAGER, VENDOR_ADMIN].includes(get(credentials, 'role.vendor.name'));
   const [questionnaireHistories, smsList, attendanceSheetList, estimatedStartDateHistories] = await Promise.all([
     QuestionnaireHistory
       .find({ course: { $in: courseIds }, select: 'course questionnaire' })
       .populate({ path: 'questionnaire', select: 'type' })
+      .setOptions({ isVendorUser })
       .lean(),
     CourseSmsHistory.find({ course: { $in: courseIds }, select: 'course' }).lean(),
-    AttendanceSheet.find({ course: { $in: courseIds }, select: 'course' }).lean(),
+    AttendanceSheet.find({ course: { $in: courseIds }, select: 'course' }).setOptions({ isVendorUser }).lean(),
     CourseHistory.find(
       {
         course: { $in: courseIds },
@@ -304,14 +306,16 @@ const _getAnswerForExport = (questionnaireCard, questionnaireHistoryAnswersList)
     : '';
 };
 
-exports.exportEndOfCourseQuestionnaireHistory = async (startDate, endDate) => {
+exports.exportEndOfCourseQuestionnaireHistory = async (startDate, endDate, credentials) => {
   const rows = [];
+  const isRofOrAdmin = [TRAINING_ORGANISATION_MANAGER, VENDOR_ADMIN].includes(get(credentials, 'role.vendor.name'));
 
   const endOfCourseQuestionnaire = await Questionnaire
     .findOne({ type: END_OF_COURSE })
     .populate({ path: 'cards', select: 'question template' })
     .populate({
       path: 'histories',
+      options: { isVendorUser: isRofOrAdmin },
       match: { createdAt: { $gte: startDate, $lte: endDate } },
       populate: [
         {
@@ -322,11 +326,8 @@ exports.exportEndOfCourseQuestionnaireHistory = async (startDate, endDate) => {
             { path: 'trainer', select: 'identity' },
           ],
         },
-        {
-          path: 'user',
-          select: 'identity local.email contact.phone company',
-          populate: { path: 'company', populate: { path: 'company', select: 'name' } },
-        },
+        { path: 'user', select: 'identity local.email contact.phone' },
+        { path: 'company', select: 'name' },
         { path: 'questionnaireAnswersList.card', select: 'qcAnswers' },
       ],
     })
@@ -345,7 +346,7 @@ exports.exportEndOfCourseQuestionnaireHistory = async (startDate, endDate) => {
       Programme: get(qHistory, 'course.subProgram.program.name') || '',
       'Sous-programme': get(qHistory, 'course.subProgram.name'),
       'Prénom Nom intervenant(e)': UtilsHelper.formatIdentity(get(qHistory, 'course.trainer.identity') || '', 'FL'),
-      Structure: get(qHistory, 'user.company.name'),
+      Structure: get(qHistory, 'company.name'),
       'Date de réponse': CompaniDate(qHistory.createdAt).format(`${DD_MM_YYYY} ${HH_MM_SS}`),
       'Prénom Nom répondant(e)': UtilsHelper.formatIdentity(get(qHistory, 'user.identity') || '', 'FL'),
       'Mail répondant(e)': get(qHistory, 'user.local.email'),

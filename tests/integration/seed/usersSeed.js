@@ -119,7 +119,7 @@ const auxiliaryFromOtherCompany = {
   origin: WEBAPP,
 };
 
-const traineeWhoLeftOtherCompany = {
+const traineeWhoLeftCompanyWithoutSubscription = {
   _id: new ObjectId(),
   identity: { firstname: 'trainee_changed_company', lastname: 'test' },
   local: { email: 'trainee_changed_company@alenvi.io' },
@@ -127,12 +127,13 @@ const traineeWhoLeftOtherCompany = {
   origin: WEBAPP,
 };
 
-const usersFromOtherCompanyList = [
+const usersFromOtherCompany = [
   helperFromOtherCompany,
   coachFromOtherCompany,
   auxiliaryFromOtherCompany,
-  traineeWhoLeftOtherCompany,
 ];
+
+const usersFromDifferentCompanyList = [...usersFromOtherCompany, traineeWhoLeftCompanyWithoutSubscription];
 
 const contractId = new ObjectId();
 const contractNotStartedId = new ObjectId();
@@ -263,6 +264,13 @@ const usersSeedList = [
     refreshToken: uuidv4(),
     origin: WEBAPP,
   },
+  { // 14 trainee twice in same company and detach from both
+    _id: new ObjectId(),
+    identity: { firstname: 'twice in same', lastname: 'company' },
+    local: { email: 'twice@alenvi.io' },
+    refreshToken: uuidv4(),
+    origin: WEBAPP,
+  },
 ];
 
 const companyLinkRequest = {
@@ -331,7 +339,7 @@ const userCompanies = [
   { user: usersSeedList[8]._id, company: authCompany._id, startDate: '2022-01-01T23:00:00.000Z' },
   { user: usersSeedList[10]._id, company: authCompany._id, startDate: '2022-12-30T23:00:00.000Z' },
   {
-    user: traineeWhoLeftOtherCompany._id,
+    user: traineeWhoLeftCompanyWithoutSubscription._id,
     company: companyWithoutSubscription._id,
     startDate: '2019-01-01T08:00:00.000Z',
     endDate: '2022-12-01T02:59:59.999Z',
@@ -340,6 +348,18 @@ const userCompanies = [
     user: usersSeedList[13]._id,
     company: authCompany._id,
     startDate: CompaniDate().add('P1D').toISO(),
+  },
+  { // trainee twice in same company and detach from both
+    user: usersSeedList[14]._id,
+    company: companyWithoutSubscription,
+    startDate: '2019-01-01T08:00:00.000Z',
+    endDate: '2022-12-01T22:59:59.999Z',
+  },
+  { // trainee twice in same company and detach from both
+    user: usersSeedList[14]._id,
+    company: companyWithoutSubscription,
+    startDate: '2022-12-02T08:00:00.000Z',
+    endDate: '2022-12-31T22:59:59.999Z',
   },
 ];
 
@@ -458,7 +478,7 @@ const populateDB = async () => {
     SectorHistory.create(sectorHistories),
     Step.create(stepList),
     SubProgram.create(subProgram),
-    User.create([...usersSeedList, ...usersFromOtherCompanyList]),
+    User.create([...usersSeedList, ...usersFromDifferentCompanyList]),
     UserCompany.create(userCompanies),
     CompanyLinkRequest.create(companyLinkRequest),
   ]);
@@ -466,13 +486,14 @@ const populateDB = async () => {
 
 module.exports = {
   usersSeedList,
-  usersFromOtherCompanyList,
+  usersFromDifferentCompanyList,
+  usersFromOtherCompany,
   populateDB,
   isInList,
   customer,
   customerFromOtherCompany,
   helperFromOtherCompany,
-  traineeWhoLeftOtherCompany,
+  traineeWhoLeftCompanyWithoutSubscription,
   userSectors,
   sectorHistories,
   establishmentList,
