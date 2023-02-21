@@ -203,7 +203,8 @@ const listForPedagogy = async (query, credentials) => {
     .select('_id misc')
     .lean({ autopopulate: true, virtuals: true });
 
-  return courses.map(course => exports.formatCourseWithProgress(course));
+  const shouldComputePresence = true;
+  return courses.map(course => exports.formatCourseWithProgress(course, shouldComputePresence));
 };
 
 exports.list = async (query, credentials) => {

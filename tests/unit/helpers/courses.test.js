@@ -605,8 +605,8 @@ describe('list', () => {
         ]
       );
 
-      sinon.assert.calledWithExactly(formatCourseWithProgress.getCall(0), coursesList[0]);
-      sinon.assert.calledWithExactly(formatCourseWithProgress.getCall(1), coursesList[1]);
+      sinon.assert.calledWithExactly(formatCourseWithProgress.getCall(0), coursesList[0], true);
+      sinon.assert.calledWithExactly(formatCourseWithProgress.getCall(1), coursesList[1], true);
     });
 
     it('should return courses for trainees, client', async () => {
@@ -827,8 +827,8 @@ describe('list', () => {
         ]
       );
 
-      sinon.assert.calledWithExactly(formatCourseWithProgress.getCall(0), coursesList[0]);
-      sinon.assert.calledWithExactly(formatCourseWithProgress.getCall(1), coursesList[1]);
+      sinon.assert.calledWithExactly(formatCourseWithProgress.getCall(0), coursesList[0], true);
+      sinon.assert.calledWithExactly(formatCourseWithProgress.getCall(1), coursesList[1], true);
     });
 
     it('should return courses for loggedUser', async () => {
@@ -1055,8 +1055,8 @@ describe('list', () => {
         ]
       );
 
-      sinon.assert.calledWithExactly(formatCourseWithProgress.getCall(0), coursesList[0]);
-      sinon.assert.calledWithExactly(formatCourseWithProgress.getCall(1), coursesList[1]);
+      sinon.assert.calledWithExactly(formatCourseWithProgress.getCall(0), coursesList[0], true);
+      sinon.assert.calledWithExactly(formatCourseWithProgress.getCall(1), coursesList[1], true);
     });
   });
 });
