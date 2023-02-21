@@ -213,24 +213,19 @@ exports.list = async (query, credentials) => {
     : listForPedagogy(filteredQuery, credentials);
 };
 
-const getStepProgress = (step) => {
-  if (has(step, 'progress.live')) return step.progress.live;
-  return step.progress.eLearning;
-};
-
 exports.getCourseProgress = (steps) => {
   if (!steps || !steps.length) return {};
 
+  const blendedStepsCombinedProgress = steps
+    .map(step => (has(step, 'progress.live') ? step.progress.live : step.progress.eLearning))
+    .reduce((acc, value) => acc + value, 0);
+
   const elearningProgressSteps = steps.filter(step => has(step, 'progress.eLearning'));
-
-  const presenceProgressSteps = steps.filter(step => step.progress.presence);
-
-  const blendedStepsCombinedProgress = steps.map(step => getStepProgress(step)).reduce((acc, value) => acc + value, 0);
-
   const eLearningStepsCombinedProgress = elearningProgressSteps
     .map(step => step.progress.eLearning)
     .reduce((acc, value) => acc + value, 0);
 
+  const presenceProgressSteps = steps.filter(step => step.progress.presence);
   const combinedPresenceProgress = presenceProgressSteps.length
     ? {
       attendanceDuration: presenceProgressSteps
