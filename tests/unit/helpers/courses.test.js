@@ -1185,11 +1185,13 @@ describe('formatCourseWithProgress', () => {
     getCourseProgress = sinon.stub(CourseHelper, 'getCourseProgress');
     getProgress = sinon.stub(StepsHelper, 'getProgress');
   });
+
   afterEach(() => {
     getCourseProgress.restore();
     getProgress.restore();
   });
-  it('should format course', async () => {
+
+  it('should format course with presence progress', async () => {
     const stepId = new ObjectId();
     const course = {
       misc: 'name',
@@ -1227,7 +1229,8 @@ describe('formatCourseWithProgress', () => {
       presence: { attendanceDuration: { minutes: 0 }, maxDuration: { minutes: 601 } },
     });
 
-    const result = await CourseHelper.formatCourseWithProgress(course);
+    const result = await CourseHelper.formatCourseWithProgress(course, true);
+
     expect(result).toMatchObject({
       ...course,
       subProgram: {
@@ -1246,8 +1249,8 @@ describe('formatCourseWithProgress', () => {
         presence: { attendanceDuration: { minutes: 0 }, maxDuration: { minutes: 601 } },
       },
     });
-    sinon.assert.calledWithExactly(getProgress.getCall(0), course.subProgram.steps[0], []);
-    sinon.assert.calledWithExactly(getProgress.getCall(1), course.subProgram.steps[1], course.slots);
+    sinon.assert.calledWithExactly(getProgress.getCall(0), course.subProgram.steps[0], [], true);
+    sinon.assert.calledWithExactly(getProgress.getCall(1), course.subProgram.steps[1], course.slots, true);
     sinon.assert.calledWithExactly(getCourseProgress.getCall(0), [
       { ...course.subProgram.steps[0], slots: [], progress: { eLearning: 1 } },
       {
@@ -1255,6 +1258,58 @@ describe('formatCourseWithProgress', () => {
         slots: course.slots,
         progress: { live: 1, presence: { attendanceDuration: { minutes: 0 }, maxDuration: { minutes: 601 } } },
       },
+    ]);
+  });
+
+  it('should format course without presence progress', async () => {
+    const stepId = new ObjectId();
+    const course = {
+      misc: 'name',
+      _id: new ObjectId(),
+      subProgram: {
+        steps: [{
+          _id: new ObjectId(),
+          activities: [{ activityHistories: [{}, {}] }],
+          name: 'Développement personnel full stack',
+          type: 'e_learning',
+          areActivitiesValid: false,
+        },
+        {
+          _id: stepId,
+          activities: [],
+          name: 'Développer des équipes agiles et autonomes',
+          type: 'on_site',
+          areActivitiesValid: true,
+        },
+        ],
+      },
+      slots: [
+        { startDate: '2020-11-03T09:00:00.000Z', endDate: '2020-11-03T12:00:00.000Z', step: stepId, attendances: [] },
+        { startDate: '2020-11-04T09:00:00.000Z', endDate: '2020-11-04T16:01:00.000Z', step: stepId, attendances: [] },
+      ],
+    };
+    getProgress.onCall(0).returns({ eLearning: 1 });
+    getProgress.onCall(1).returns({ live: 1 });
+    getCourseProgress.returns({ eLearning: 1, live: 1 });
+
+    const result = await CourseHelper.formatCourseWithProgress(course);
+
+    expect(result).toMatchObject({
+      ...course,
+      subProgram: {
+        ...course.subProgram,
+        steps: [
+          { ...course.subProgram.steps[0], progress: { eLearning: 1 } },
+          { ...course.subProgram.steps[1], progress: { live: 1 } },
+        ],
+      },
+      progress: { eLearning: 1, live: 1 },
+    });
+    sinon.assert.calledWithExactly(getProgress.getCall(0), course.subProgram.steps[0], [], false);
+    sinon.assert.calledWithExactly(getProgress.getCall(1), course.subProgram.steps[1], course.slots, false);
+    sinon.assert.calledWithExactly(getCourseProgress.getCall(0), [
+      { ...course.subProgram.steps[0], slots: [], progress: { eLearning: 1 } },
+      { ...course.subProgram.steps[1], slots: course.slots, progress: { live: 1 } },
     ]);
   });
 });

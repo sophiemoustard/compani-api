@@ -251,12 +251,12 @@ exports.getCourseProgress = (steps) => {
   };
 };
 
-exports.formatCourseWithProgress = (course) => {
+exports.formatCourseWithProgress = (course, shouldComputePresence = false) => {
   const steps = course.subProgram.steps
     .map((step) => {
       const slots = course.slots.filter(slot => UtilsHelper.areObjectIdsEquals(slot.step._id, step._id));
 
-      return { ...step, slots, progress: StepsHelper.getProgress(step, slots) };
+      return { ...step, slots, progress: StepsHelper.getProgress(step, slots, shouldComputePresence) };
     });
 
   return {
