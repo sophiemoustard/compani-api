@@ -180,6 +180,7 @@ describe('getProgress', () => {
     getLiveStepProgress.restore();
     getPresenceStepProgress.restore();
   });
+
   it('should get progress for elearning step', async () => {
     const step = {
       _id: new ObjectId(),
@@ -216,9 +217,35 @@ describe('getProgress', () => {
       },
     ];
     getLiveStepProgress.returns(1);
-    getPresenceStepProgress.returns({ attendanceDuration: 421, maxDuration: 601 });
 
     const result = await StepsHelper.getProgress(step, slots);
+    expect(result).toEqual({ live: 1 });
+    sinon.assert.calledOnceWithExactly(getLiveStepProgress, slots);
+    sinon.assert.notCalled(getPresenceStepProgress);
+  });
+
+  it('should get progress for live and presence', async () => {
+    const stepId = new ObjectId();
+    const step = {
+      _id: stepId,
+      activities: [],
+      name: 'Développer des équipes agiles et autonomes',
+      type: 'on_site',
+      areActivitiesValid: true,
+    };
+    const slots = [
+      { startDate: '2020-11-03T09:00:00.000Z', endDate: '2020-11-03T12:00:00.000Z', step: stepId, attendances: [] },
+      {
+        startDate: '2020-11-04T09:00:00.000Z',
+        endDate: '2020-11-04T16:01:00.000Z',
+        step: stepId,
+        attendances: [{ _id: new ObjectId() }],
+      },
+    ];
+    getLiveStepProgress.returns(1);
+    getPresenceStepProgress.returns({ attendanceDuration: 421, maxDuration: 601 });
+
+    const result = await StepsHelper.getProgress(step, slots, true);
     expect(result).toEqual({ live: 1, presence: { attendanceDuration: 421, maxDuration: 601 } });
     sinon.assert.calledOnceWithExactly(getLiveStepProgress, slots);
     sinon.assert.calledOnceWithExactly(getPresenceStepProgress, slots);

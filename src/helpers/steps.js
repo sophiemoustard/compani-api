@@ -51,12 +51,15 @@ exports.getPresenceStepProgress = (slots) => {
   };
 };
 
-exports.getProgress = (step, slots = []) => (step.type === E_LEARNING
-  ? { eLearning: exports.getElearningStepProgress(step) }
-  : {
-    live: exports.getLiveStepProgress(slots),
-    presence: exports.getPresenceStepProgress(slots),
-  });
+exports.getProgress = (step, slots = [], shouldComputePresence = false) => (
+  {
+    ...(step.type === E_LEARNING
+      ? { eLearning: exports.getElearningStepProgress(step) }
+      : { live: exports.getLiveStepProgress(slots) }
+    ),
+    ...(shouldComputePresence && { presence: exports.getPresenceStepProgress(slots) }),
+  }
+);
 
 exports.list = async (programId) => {
   const steps = await Step.find()
