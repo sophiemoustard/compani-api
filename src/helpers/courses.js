@@ -491,9 +491,7 @@ const _getCourseForPedagogy = async (courseId, credentials) => {
           populate: {
             path: 'activities',
             select: 'name type activityHistories',
-            populate: [
-              { path: 'activityHistories', match: { user: credentials._id } },
-            ],
+            populate: { path: 'activityHistories', match: { user: credentials._id } },
           },
         },
       ],
@@ -501,10 +499,7 @@ const _getCourseForPedagogy = async (courseId, credentials) => {
     .populate({
       path: 'slots',
       select: 'startDate endDate step address meetingLink',
-      populate: [
-        { path: 'step', select: 'type' },
-        { path: 'attendances', match: { trainee: credentials._id }, options: { requestingOwnInfos: true } },
-      ],
+      populate: { path: 'step', select: 'type' },
     })
     .populate({ path: 'trainer', select: 'identity.firstname identity.lastname biography picture' })
     .populate({ path: 'contact', select: 'identity.firstname identity.lastname contact.phone local.email' })
@@ -529,7 +524,7 @@ const _getCourseForPedagogy = async (courseId, credentials) => {
     const areLastSlotAttendancesValidated = !!(lastSlot &&
       await Attendance.countDocuments({ courseSlot: lastSlot._id }));
 
-    return exports.formatCourseWithProgress({ ...course, areLastSlotAttendancesValidated });
+    return { ...exports.formatCourseWithProgress(course), areLastSlotAttendancesValidated };
   }
 
   return exports.formatCourseWithProgress(course);

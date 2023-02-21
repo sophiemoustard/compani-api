@@ -1729,9 +1729,7 @@ describe('getCourse', () => {
                   populate: {
                     path: 'activities',
                     select: 'name type activityHistories',
-                    populate: [
-                      { path: 'activityHistories', match: { user: loggedUser._id } },
-                    ],
+                    populate: { path: 'activityHistories', match: { user: loggedUser._id } },
                   },
                 },
               ],
@@ -1743,26 +1741,17 @@ describe('getCourse', () => {
               {
                 path: 'slots',
                 select: 'startDate endDate step address meetingLink',
-                populate: [
-                  { path: 'step', select: 'type' },
-                  { path: 'attendances', match: { trainee: loggedUser._id }, options: { requestingOwnInfos: true } },
-                ],
+                populate: { path: 'step', select: 'type' },
               },
             ],
           },
           {
             query: 'populate',
-            args: [{
-              path: 'trainer',
-              select: 'identity.firstname identity.lastname biography picture',
-            }],
+            args: [{ path: 'trainer', select: 'identity.firstname identity.lastname biography picture' }],
           },
           {
             query: 'populate',
-            args: [{
-              path: 'contact',
-              select: 'identity.firstname identity.lastname contact.phone local.email',
-            }],
+            args: [{ path: 'contact', select: 'identity.firstname identity.lastname contact.phone local.email' }],
           },
           { query: 'select', args: ['_id misc'] },
           { query: 'lean', args: [{ virtuals: true, autopopulate: true }] },
@@ -1890,9 +1879,7 @@ describe('getCourse', () => {
                   populate: {
                     path: 'activities',
                     select: 'name type activityHistories',
-                    populate: [
-                      { path: 'activityHistories', match: { user: loggedUser._id } },
-                    ],
+                    populate: { path: 'activityHistories', match: { user: loggedUser._id } },
                   },
                 },
               ],
@@ -1904,36 +1891,24 @@ describe('getCourse', () => {
               {
                 path: 'slots',
                 select: 'startDate endDate step address meetingLink',
-                populate: [
-                  { path: 'step', select: 'type' },
-                  { path: 'attendances', match: { trainee: loggedUser._id }, options: { requestingOwnInfos: true } },
-                ],
+                populate: { path: 'step', select: 'type' },
               },
             ],
           },
           {
             query: 'populate',
-            args: [{
-              path: 'trainer',
-              select: 'identity.firstname identity.lastname biography picture',
-            }],
+            args: [{ path: 'trainer', select: 'identity.firstname identity.lastname biography picture' }],
           },
           {
             query: 'populate',
-            args: [{
-              path: 'contact',
-              select: 'identity.firstname identity.lastname contact.phone local.email',
-            }],
+            args: [{ path: 'contact', select: 'identity.firstname identity.lastname contact.phone local.email' }],
           },
           { query: 'select', args: ['_id misc'] },
           { query: 'lean', args: [{ virtuals: true, autopopulate: true }] },
         ]
       );
 
-      sinon.assert.calledOnceWithExactly(
-        formatCourseWithProgress,
-        { ...course, areLastSlotAttendancesValidated: false }
-      );
+      sinon.assert.calledOnceWithExactly(formatCourseWithProgress, course);
       sinon.assert.calledOnceWithExactly(attendanceCountDocuments, { courseSlot: lastSlotId });
     });
 
@@ -2054,9 +2029,7 @@ describe('getCourse', () => {
                   populate: {
                     path: 'activities',
                     select: 'name type activityHistories',
-                    populate: [
-                      { path: 'activityHistories', match: { user: loggedUser._id } },
-                    ],
+                    populate: { path: 'activityHistories', match: { user: loggedUser._id } },
                   },
                 },
               ],
@@ -2068,36 +2041,24 @@ describe('getCourse', () => {
               {
                 path: 'slots',
                 select: 'startDate endDate step address meetingLink',
-                populate: [
-                  { path: 'step', select: 'type' },
-                  { path: 'attendances', match: { trainee: loggedUser._id }, options: { requestingOwnInfos: true } },
-                ],
+                populate: { path: 'step', select: 'type' },
               },
             ],
           },
           {
             query: 'populate',
-            args: [{
-              path: 'trainer',
-              select: 'identity.firstname identity.lastname biography picture',
-            }],
+            args: [{ path: 'trainer', select: 'identity.firstname identity.lastname biography picture' }],
           },
           {
             query: 'populate',
-            args: [{
-              path: 'contact',
-              select: 'identity.firstname identity.lastname contact.phone local.email',
-            }],
+            args: [{ path: 'contact', select: 'identity.firstname identity.lastname contact.phone local.email' }],
           },
           { query: 'select', args: ['_id misc'] },
           { query: 'lean', args: [{ virtuals: true, autopopulate: true }] },
         ]
       );
 
-      sinon.assert.calledOnceWithExactly(
-        formatCourseWithProgress,
-        { ...course, areLastSlotAttendancesValidated: true }
-      );
+      sinon.assert.calledOnceWithExactly(formatCourseWithProgress, course);
       sinon.assert.calledOnceWithExactly(attendanceCountDocuments, { courseSlot: lastSlotId });
     });
 
@@ -2178,9 +2139,7 @@ describe('getCourse', () => {
                   populate: {
                     path: 'activities',
                     select: 'name type activityHistories',
-                    populate: [
-                      { path: 'activityHistories', match: { user: loggedUser._id } },
-                    ],
+                    populate: { path: 'activityHistories', match: { user: loggedUser._id } },
                   },
                 },
               ],
@@ -2192,26 +2151,17 @@ describe('getCourse', () => {
               {
                 path: 'slots',
                 select: 'startDate endDate step address meetingLink',
-                populate: [
-                  { path: 'step', select: 'type' },
-                  { path: 'attendances', match: { trainee: loggedUser._id }, options: { requestingOwnInfos: true } },
-                ],
+                populate: { path: 'step', select: 'type' },
               },
             ],
           },
           {
             query: 'populate',
-            args: [{
-              path: 'trainer',
-              select: 'identity.firstname identity.lastname biography picture',
-            }],
+            args: [{ path: 'trainer', select: 'identity.firstname identity.lastname biography picture' }],
           },
           {
             query: 'populate',
-            args: [{
-              path: 'contact',
-              select: 'identity.firstname identity.lastname contact.phone local.email',
-            }],
+            args: [{ path: 'contact', select: 'identity.firstname identity.lastname contact.phone local.email' }],
           },
           { query: 'select', args: ['_id misc'] },
           { query: 'lean', args: [{ virtuals: true, autopopulate: true }] },
