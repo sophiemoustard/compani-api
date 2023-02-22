@@ -486,8 +486,11 @@ const _getCourseForPedagogy = async (courseId, credentials) => {
           select: 'name type activities theoreticalDuration',
           populate: {
             path: 'activities',
-            select: 'name type activityHistories',
-            populate: { path: 'activityHistories', match: { user: credentials._id } },
+            select: 'name type cards activityHistories',
+            populate: [
+              { path: 'activityHistories', match: { user: credentials._id } },
+              { path: 'cards', select: 'template' },
+            ],
           },
         },
       ],
