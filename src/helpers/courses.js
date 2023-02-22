@@ -203,7 +203,8 @@ const listForPedagogy = async (query, credentials) => {
     .select('_id misc')
     .lean({ autopopulate: true, virtuals: true });
 
-  return courses.map(course => exports.formatCourseWithProgress(course));
+  const shouldComputePresence = true;
+  return courses.map(course => exports.formatCourseWithProgress(course, shouldComputePresence));
 };
 
 exports.list = async (query, credentials) => {
@@ -213,24 +214,19 @@ exports.list = async (query, credentials) => {
     : listForPedagogy(filteredQuery, credentials);
 };
 
-const getStepProgress = (step) => {
-  if (has(step, 'progress.live')) return step.progress.live;
-  return step.progress.eLearning;
-};
-
 exports.getCourseProgress = (steps) => {
   if (!steps || !steps.length) return {};
 
+  const blendedStepsCombinedProgress = steps
+    .map(step => (has(step, 'progress.live') ? step.progress.live : step.progress.eLearning))
+    .reduce((acc, value) => acc + value, 0);
+
   const elearningProgressSteps = steps.filter(step => has(step, 'progress.eLearning'));
-
-  const presenceProgressSteps = steps.filter(step => step.progress.presence);
-
-  const blendedStepsCombinedProgress = steps.map(step => getStepProgress(step)).reduce((acc, value) => acc + value, 0);
-
   const eLearningStepsCombinedProgress = elearningProgressSteps
     .map(step => step.progress.eLearning)
     .reduce((acc, value) => acc + value, 0);
 
+  const presenceProgressSteps = steps.filter(step => step.progress.presence);
   const combinedPresenceProgress = presenceProgressSteps.length
     ? {
       attendanceDuration: presenceProgressSteps
@@ -251,12 +247,12 @@ exports.getCourseProgress = (steps) => {
   };
 };
 
-exports.formatCourseWithProgress = (course) => {
+exports.formatCourseWithProgress = (course, shouldComputePresence = false) => {
   const steps = course.subProgram.steps
     .map((step) => {
       const slots = course.slots.filter(slot => UtilsHelper.areObjectIdsEquals(slot.step._id, step._id));
 
-      return { ...step, slots, progress: StepsHelper.getProgress(step, slots) };
+      return { ...step, slots, progress: StepsHelper.getProgress(step, slots, shouldComputePresence) };
     });
 
   return {
@@ -512,10 +508,7 @@ const _getCourseForPedagogy = async (courseId, credentials) => {
     .populate({
       path: 'slots',
       select: 'startDate endDate step address meetingLink',
-      populate: [
-        { path: 'step', select: 'type' },
-        { path: 'attendances', match: { trainee: credentials._id }, options: { requestingOwnInfos: true } },
-      ],
+      populate: { path: 'step', select: 'type' },
     })
     .populate({ path: 'trainer', select: 'identity.firstname identity.lastname biography picture' })
     .populate({ path: 'contact', select: 'identity.firstname identity.lastname contact.phone local.email' })
@@ -540,7 +533,7 @@ const _getCourseForPedagogy = async (courseId, credentials) => {
     const areLastSlotAttendancesValidated = !!(lastSlot &&
       await Attendance.countDocuments({ courseSlot: lastSlot._id }));
 
-    return exports.formatCourseWithProgress({ ...course, areLastSlotAttendancesValidated });
+    return { ...exports.formatCourseWithProgress(course), areLastSlotAttendancesValidated };
   }
 
   return exports.formatCourseWithProgress(course);

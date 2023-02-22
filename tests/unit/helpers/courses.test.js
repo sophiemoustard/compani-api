@@ -24,7 +24,7 @@ const UtilsHelper = require('../../../src/helpers/utils');
 const PdfHelper = require('../../../src/helpers/pdf');
 const ZipHelper = require('../../../src/helpers/zip');
 const DocxHelper = require('../../../src/helpers/docx');
-const StepHelper = require('../../../src/helpers/steps');
+const StepsHelper = require('../../../src/helpers/steps');
 const NotificationHelper = require('../../../src/helpers/notifications');
 const {
   COURSE_SMS,
@@ -605,8 +605,8 @@ describe('list', () => {
         ]
       );
 
-      sinon.assert.calledWithExactly(formatCourseWithProgress.getCall(0), coursesList[0]);
-      sinon.assert.calledWithExactly(formatCourseWithProgress.getCall(1), coursesList[1]);
+      sinon.assert.calledWithExactly(formatCourseWithProgress.getCall(0), coursesList[0], true);
+      sinon.assert.calledWithExactly(formatCourseWithProgress.getCall(1), coursesList[1], true);
     });
 
     it('should return courses for trainees, client', async () => {
@@ -827,8 +827,8 @@ describe('list', () => {
         ]
       );
 
-      sinon.assert.calledWithExactly(formatCourseWithProgress.getCall(0), coursesList[0]);
-      sinon.assert.calledWithExactly(formatCourseWithProgress.getCall(1), coursesList[1]);
+      sinon.assert.calledWithExactly(formatCourseWithProgress.getCall(0), coursesList[0], true);
+      sinon.assert.calledWithExactly(formatCourseWithProgress.getCall(1), coursesList[1], true);
     });
 
     it('should return courses for loggedUser', async () => {
@@ -1055,8 +1055,8 @@ describe('list', () => {
         ]
       );
 
-      sinon.assert.calledWithExactly(formatCourseWithProgress.getCall(0), coursesList[0]);
-      sinon.assert.calledWithExactly(formatCourseWithProgress.getCall(1), coursesList[1]);
+      sinon.assert.calledWithExactly(formatCourseWithProgress.getCall(0), coursesList[0], true);
+      sinon.assert.calledWithExactly(formatCourseWithProgress.getCall(1), coursesList[1], true);
     });
   });
 });
@@ -1183,13 +1183,15 @@ describe('formatCourseWithProgress', () => {
   let getCourseProgress;
   beforeEach(() => {
     getCourseProgress = sinon.stub(CourseHelper, 'getCourseProgress');
-    getProgress = sinon.stub(StepHelper, 'getProgress');
+    getProgress = sinon.stub(StepsHelper, 'getProgress');
   });
+
   afterEach(() => {
     getCourseProgress.restore();
     getProgress.restore();
   });
-  it('should format course', async () => {
+
+  it('should format course with presence progress', async () => {
     const stepId = new ObjectId();
     const course = {
       misc: 'name',
@@ -1227,7 +1229,8 @@ describe('formatCourseWithProgress', () => {
       presence: { attendanceDuration: { minutes: 0 }, maxDuration: { minutes: 601 } },
     });
 
-    const result = await CourseHelper.formatCourseWithProgress(course);
+    const result = await CourseHelper.formatCourseWithProgress(course, true);
+
     expect(result).toMatchObject({
       ...course,
       subProgram: {
@@ -1246,8 +1249,8 @@ describe('formatCourseWithProgress', () => {
         presence: { attendanceDuration: { minutes: 0 }, maxDuration: { minutes: 601 } },
       },
     });
-    sinon.assert.calledWithExactly(getProgress.getCall(0), course.subProgram.steps[0], []);
-    sinon.assert.calledWithExactly(getProgress.getCall(1), course.subProgram.steps[1], course.slots);
+    sinon.assert.calledWithExactly(getProgress.getCall(0), course.subProgram.steps[0], [], true);
+    sinon.assert.calledWithExactly(getProgress.getCall(1), course.subProgram.steps[1], course.slots, true);
     sinon.assert.calledWithExactly(getCourseProgress.getCall(0), [
       { ...course.subProgram.steps[0], slots: [], progress: { eLearning: 1 } },
       {
@@ -1255,6 +1258,58 @@ describe('formatCourseWithProgress', () => {
         slots: course.slots,
         progress: { live: 1, presence: { attendanceDuration: { minutes: 0 }, maxDuration: { minutes: 601 } } },
       },
+    ]);
+  });
+
+  it('should format course without presence progress', async () => {
+    const stepId = new ObjectId();
+    const course = {
+      misc: 'name',
+      _id: new ObjectId(),
+      subProgram: {
+        steps: [{
+          _id: new ObjectId(),
+          activities: [{ activityHistories: [{}, {}] }],
+          name: 'Développement personnel full stack',
+          type: 'e_learning',
+          areActivitiesValid: false,
+        },
+        {
+          _id: stepId,
+          activities: [],
+          name: 'Développer des équipes agiles et autonomes',
+          type: 'on_site',
+          areActivitiesValid: true,
+        },
+        ],
+      },
+      slots: [
+        { startDate: '2020-11-03T09:00:00.000Z', endDate: '2020-11-03T12:00:00.000Z', step: stepId, attendances: [] },
+        { startDate: '2020-11-04T09:00:00.000Z', endDate: '2020-11-04T16:01:00.000Z', step: stepId, attendances: [] },
+      ],
+    };
+    getProgress.onCall(0).returns({ eLearning: 1 });
+    getProgress.onCall(1).returns({ live: 1 });
+    getCourseProgress.returns({ eLearning: 1, live: 1 });
+
+    const result = await CourseHelper.formatCourseWithProgress(course);
+
+    expect(result).toMatchObject({
+      ...course,
+      subProgram: {
+        ...course.subProgram,
+        steps: [
+          { ...course.subProgram.steps[0], progress: { eLearning: 1 } },
+          { ...course.subProgram.steps[1], progress: { live: 1 } },
+        ],
+      },
+      progress: { eLearning: 1, live: 1 },
+    });
+    sinon.assert.calledWithExactly(getProgress.getCall(0), course.subProgram.steps[0], [], false);
+    sinon.assert.calledWithExactly(getProgress.getCall(1), course.subProgram.steps[1], course.slots, false);
+    sinon.assert.calledWithExactly(getCourseProgress.getCall(0), [
+      { ...course.subProgram.steps[0], slots: [], progress: { eLearning: 1 } },
+      { ...course.subProgram.steps[1], slots: course.slots, progress: { live: 1 } },
     ]);
   });
 });
@@ -1689,26 +1744,17 @@ describe('getCourse', () => {
               {
                 path: 'slots',
                 select: 'startDate endDate step address meetingLink',
-                populate: [
-                  { path: 'step', select: 'type' },
-                  { path: 'attendances', match: { trainee: loggedUser._id }, options: { requestingOwnInfos: true } },
-                ],
+                populate: { path: 'step', select: 'type' },
               },
             ],
           },
           {
             query: 'populate',
-            args: [{
-              path: 'trainer',
-              select: 'identity.firstname identity.lastname biography picture',
-            }],
+            args: [{ path: 'trainer', select: 'identity.firstname identity.lastname biography picture' }],
           },
           {
             query: 'populate',
-            args: [{
-              path: 'contact',
-              select: 'identity.firstname identity.lastname contact.phone local.email',
-            }],
+            args: [{ path: 'contact', select: 'identity.firstname identity.lastname contact.phone local.email' }],
           },
           { query: 'select', args: ['_id misc'] },
           { query: 'lean', args: [{ virtuals: true, autopopulate: true }] },
@@ -1851,36 +1897,24 @@ describe('getCourse', () => {
               {
                 path: 'slots',
                 select: 'startDate endDate step address meetingLink',
-                populate: [
-                  { path: 'step', select: 'type' },
-                  { path: 'attendances', match: { trainee: loggedUser._id }, options: { requestingOwnInfos: true } },
-                ],
+                populate: { path: 'step', select: 'type' },
               },
             ],
           },
           {
             query: 'populate',
-            args: [{
-              path: 'trainer',
-              select: 'identity.firstname identity.lastname biography picture',
-            }],
+            args: [{ path: 'trainer', select: 'identity.firstname identity.lastname biography picture' }],
           },
           {
             query: 'populate',
-            args: [{
-              path: 'contact',
-              select: 'identity.firstname identity.lastname contact.phone local.email',
-            }],
+            args: [{ path: 'contact', select: 'identity.firstname identity.lastname contact.phone local.email' }],
           },
           { query: 'select', args: ['_id misc'] },
           { query: 'lean', args: [{ virtuals: true, autopopulate: true }] },
         ]
       );
 
-      sinon.assert.calledOnceWithExactly(
-        formatCourseWithProgress,
-        { ...course, areLastSlotAttendancesValidated: false }
-      );
+      sinon.assert.calledOnceWithExactly(formatCourseWithProgress, course);
       sinon.assert.calledOnceWithExactly(attendanceCountDocuments, { courseSlot: lastSlotId });
     });
 
@@ -2016,36 +2050,24 @@ describe('getCourse', () => {
               {
                 path: 'slots',
                 select: 'startDate endDate step address meetingLink',
-                populate: [
-                  { path: 'step', select: 'type' },
-                  { path: 'attendances', match: { trainee: loggedUser._id }, options: { requestingOwnInfos: true } },
-                ],
+                populate: { path: 'step', select: 'type' },
               },
             ],
           },
           {
             query: 'populate',
-            args: [{
-              path: 'trainer',
-              select: 'identity.firstname identity.lastname biography picture',
-            }],
+            args: [{ path: 'trainer', select: 'identity.firstname identity.lastname biography picture' }],
           },
           {
             query: 'populate',
-            args: [{
-              path: 'contact',
-              select: 'identity.firstname identity.lastname contact.phone local.email',
-            }],
+            args: [{ path: 'contact', select: 'identity.firstname identity.lastname contact.phone local.email' }],
           },
           { query: 'select', args: ['_id misc'] },
           { query: 'lean', args: [{ virtuals: true, autopopulate: true }] },
         ]
       );
 
-      sinon.assert.calledOnceWithExactly(
-        formatCourseWithProgress,
-        { ...course, areLastSlotAttendancesValidated: true }
-      );
+      sinon.assert.calledOnceWithExactly(formatCourseWithProgress, course);
       sinon.assert.calledOnceWithExactly(attendanceCountDocuments, { courseSlot: lastSlotId });
     });
 
@@ -2141,26 +2163,17 @@ describe('getCourse', () => {
               {
                 path: 'slots',
                 select: 'startDate endDate step address meetingLink',
-                populate: [
-                  { path: 'step', select: 'type' },
-                  { path: 'attendances', match: { trainee: loggedUser._id }, options: { requestingOwnInfos: true } },
-                ],
+                populate: { path: 'step', select: 'type' },
               },
             ],
           },
           {
             query: 'populate',
-            args: [{
-              path: 'trainer',
-              select: 'identity.firstname identity.lastname biography picture',
-            }],
+            args: [{ path: 'trainer', select: 'identity.firstname identity.lastname biography picture' }],
           },
           {
             query: 'populate',
-            args: [{
-              path: 'contact',
-              select: 'identity.firstname identity.lastname contact.phone local.email',
-            }],
+            args: [{ path: 'contact', select: 'identity.firstname identity.lastname contact.phone local.email' }],
           },
           { query: 'select', args: ['_id misc'] },
           { query: 'lean', args: [{ virtuals: true, autopopulate: true }] },
@@ -2689,7 +2702,7 @@ describe('getTraineesWithElearningProgress', () => {
   let getProgress;
   let getCourseProgress;
   beforeEach(() => {
-    getProgress = sinon.stub(StepHelper, 'getProgress');
+    getProgress = sinon.stub(StepsHelper, 'getProgress');
     getCourseProgress = sinon.stub(CourseHelper, 'getCourseProgress');
   });
   afterEach(() => {

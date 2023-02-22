@@ -1,5 +1,5 @@
 const Boom = require('@hapi/boom');
-const StepHelper = require('../helpers/steps');
+const StepsHelper = require('../helpers/steps');
 const ActivityHelper = require('../helpers/activities');
 const translate = require('../helpers/translate');
 
@@ -7,7 +7,7 @@ const { language } = translate;
 
 const update = async (req) => {
   try {
-    await StepHelper.updateStep(req.params._id, req.payload);
+    await StepsHelper.updateStep(req.params._id, req.payload);
 
     return { message: translate[language].stepUpdated };
   } catch (e) {
@@ -29,7 +29,7 @@ const addActivity = async (req) => {
 
 const reuseActivity = async (req) => {
   try {
-    await StepHelper.reuseActivity(req.params._id, req.payload);
+    await StepsHelper.reuseActivity(req.params._id, req.payload);
 
     return { message: translate[language].stepUpdated };
   } catch (e) {
@@ -51,7 +51,7 @@ const detachActivity = async (req) => {
 
 const list = async (req) => {
   try {
-    const steps = await StepHelper.list(req.query.program);
+    const steps = await StepsHelper.list(req.query.program);
 
     return { data: { steps }, message: translate[language].stepsFound };
   } catch (e) {
