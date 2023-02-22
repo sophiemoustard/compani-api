@@ -789,21 +789,27 @@ const generateCompletionCertificateWord = async (courseData, courseAttendances, 
   return { name: `Attestation - ${traineeIdentity}.docx`, file: fs.createReadStream(filePath) };
 };
 
-const getTraineelist = (course, credentials) => {
+const getTraineeList = async (course, credentials) => {
   const isRofOrAdmin = [VENDOR_ADMIN, TRAINING_ORGANISATION_MANAGER].includes(get(credentials, 'role.vendor.name'));
   const isCourseTrainer = [TRAINER].includes(get(credentials, 'role.vendor.name')) &&
     UtilsHelper.areObjectIdsEquals(credentials._id, course.trainer);
   const canAccessAllTrainees = isRofOrAdmin || isCourseTrainer;
 
-  return canAccessAllTrainees
-    ? course.trainees
-    : course.trainees.filter(t => UtilsHelper.areObjectIdsEquals(t.company, get(credentials, 'company._id')));
+  if (canAccessAllTrainees) return course.trainees;
+
+  const traineesCompanyAtCourseRegistration = await CourseHistoriesHelper
+    .getTraineesCompanyAtCourseRegistration(course.trainees, course._id);
+  const traineesCompany = mapValues(keyBy(traineesCompanyAtCourseRegistration, 'trainee'), 'company');
+  const loggedUserCompany = get(credentials, 'company._id');
+
+  return course.trainees
+    .filter(trainee => UtilsHelper.areObjectIdsEquals(traineesCompany[trainee._id], loggedUserCompany));
 };
 
 exports.generateCompletionCertificates = async (courseId, credentials, origin = null) => {
   const course = await Course.findOne({ _id: courseId })
     .populate({ path: 'slots', select: 'startDate endDate' })
-    .populate({ path: 'trainees', select: 'identity', populate: { path: 'company' } })
+    .populate({ path: 'trainees', select: 'identity' })
     .populate({ path: 'subProgram', select: 'program', populate: { path: 'program', select: 'name learningGoals' } })
     .lean();
 
@@ -825,7 +831,8 @@ exports.generateCompletionCertificates = async (courseId, credentials, origin = 
     fileId: process.env.GOOGLE_DRIVE_TRAINING_CERTIFICATE_TEMPLATE_ID,
     tmpFilePath: templatePath,
   });
-  const promises = getTraineelist(course, credentials)
+  const traineeList = await getTraineeList(course, credentials);
+  const promises = traineeList
     .map(trainee => generateCompletionCertificateWord(courseData, attendances, trainee, templatePath));
 
   return ZipHelper.generateZip('attestations.zip', await Promise.all(promises));
