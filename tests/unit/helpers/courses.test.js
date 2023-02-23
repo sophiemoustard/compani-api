@@ -3288,19 +3288,26 @@ describe('formatInterCourseForPdf', () => {
   let formatIdentity;
   let getTotalDuration;
   let formatInterCourseSlotsForPdf;
+  let getTraineesCompanyAtCourseRegistration;
   beforeEach(() => {
     formatIdentity = sinon.stub(UtilsHelper, 'formatIdentity');
     getTotalDuration = sinon.stub(UtilsHelper, 'getTotalDuration');
     formatInterCourseSlotsForPdf = sinon.stub(CourseHelper, 'formatInterCourseSlotsForPdf');
+    getTraineesCompanyAtCourseRegistration = sinon
+      .stub(CourseHistoriesHelper, 'getTraineesCompanyAtCourseRegistration');
   });
   afterEach(() => {
     formatIdentity.restore();
     getTotalDuration.restore();
     formatInterCourseSlotsForPdf.restore();
+    getTraineesCompanyAtCourseRegistration.restore();
   });
 
-  it('should format course for pdf', () => {
+  it('should format course for pdf', async () => {
+    const traineeIds = [new ObjectId(), new ObjectId()];
+    const company = { _id: ObjectId(), name: 'alenvi' };
     const course = {
+      _id: ObjectId(),
       slots: [
         { startDate: '2020-03-20T09:00:00', endDate: '2020-03-20T11:00:00', step: { type: 'on_site' } },
         { startDate: '2020-04-21T09:00:00', endDate: '2020-04-21T11:30:00', step: { type: 'on_site' } },
@@ -3310,8 +3317,8 @@ describe('formatInterCourseForPdf', () => {
       misc: 'des infos en plus',
       trainer: { identity: { lastname: 'MasterClass' } },
       trainees: [
-        { identity: { lastname: 'trainee 1' }, company: { name: 'alenvi', tradeName: 'Pfiou' } },
-        { identity: { lastname: 'trainee 2' }, company: { name: 'alenvi', tradeName: 'Pfiou' } },
+        { _id: traineeIds[0], identity: { lastname: 'trainee 1' }, company },
+        { _id: traineeIds[1], identity: { lastname: 'trainee 2' }, company },
       ],
       subProgram: { program: { name: 'programme de formation' } },
     };
@@ -3325,8 +3332,10 @@ describe('formatInterCourseForPdf', () => {
     formatIdentity.onCall(1).returns('trainee 1');
     formatIdentity.onCall(2).returns('trainee 2');
     getTotalDuration.returns('7h');
+    getTraineesCompanyAtCourseRegistration
+      .returns([{ trainee: traineeIds[0], company }, { trainee: traineeIds[1], company }]);
 
-    const result = CourseHelper.formatInterCourseForPdf(course);
+    const result = await CourseHelper.formatInterCourseForPdf(course);
 
     expect(result).toEqual({
       trainees: [
@@ -3360,6 +3369,7 @@ describe('formatInterCourseForPdf', () => {
     sinon.assert.calledWithExactly(formatIdentity.getCall(1), { lastname: 'trainee 1' }, 'FL');
     sinon.assert.calledWithExactly(formatIdentity.getCall(2), { lastname: 'trainee 2' }, 'FL');
     sinon.assert.calledOnceWithExactly(getTotalDuration, sortedSlots);
+    sinon.assert.calledOnceWithExactly(getTraineesCompanyAtCourseRegistration, course.trainees, course._id, true);
     sinon.assert.callCount(formatInterCourseSlotsForPdf, 3);
   });
 });
@@ -3408,11 +3418,7 @@ describe('generateAttendanceSheets', () => {
       },
       {
         query: 'populate',
-        args: [{
-          path: 'trainees',
-          select: 'identity company',
-          populate: { path: 'company', populate: { path: 'company', select: 'name' } },
-        }],
+        args: [{ path: 'trainees', select: 'identity' }],
       },
       { query: 'populate', args: [{ path: 'trainer', select: 'identity' }] },
       {
@@ -3447,11 +3453,7 @@ describe('generateAttendanceSheets', () => {
       },
       {
         query: 'populate',
-        args: [{
-          path: 'trainees',
-          select: 'identity company',
-          populate: { path: 'company', populate: { path: 'company', select: 'name' } },
-        }],
+        args: [{ path: 'trainees', select: 'identity' }],
       },
       { query: 'populate', args: [{ path: 'trainer', select: 'identity' }] },
       {

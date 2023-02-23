@@ -686,7 +686,7 @@ exports.formatIntraCourseForPdf = (course) => {
   };
 };
 
-exports.formatInterCourseForPdf = (course) => {
+exports.formatInterCourseForPdf = async (course) => {
   const possibleMisc = course.misc ? ` - ${course.misc}` : '';
   const name = course.subProgram.program.name + possibleMisc;
   const filteredSlots = course.slots
@@ -704,10 +704,15 @@ exports.formatInterCourseForPdf = (course) => {
     duration: UtilsHelper.getTotalDuration(filteredSlots),
   };
 
+  const populateCompany = true;
+  const traineesCompanyAtCourseRegistration = await CourseHistoriesHelper
+    .getTraineesCompanyAtCourseRegistration(course.trainees, course._id, populateCompany);
+  const traineesCompany = mapValues(keyBy(traineesCompanyAtCourseRegistration, 'trainee'), 'company');
+
   return {
     trainees: course.trainees.map(trainee => ({
       traineeName: UtilsHelper.formatIdentity(trainee.identity, 'FL'),
-      company: get(trainee, 'company.name') || '',
+      company: traineesCompany[trainee._id].name,
       course: { ...courseData },
     })),
   };
@@ -718,18 +723,14 @@ exports.generateAttendanceSheets = async (courseId) => {
     .findOne({ _id: courseId }, { misc: 1, type: 1 })
     .populate({ path: 'companies', select: 'name' })
     .populate({ path: 'slots', select: 'step startDate endDate address', populate: { path: 'step', select: 'type' } })
-    .populate({
-      path: 'trainees',
-      select: 'identity company',
-      populate: { path: 'company', populate: { path: 'company', select: 'name' } },
-    })
+    .populate({ path: 'trainees', select: 'identity' })
     .populate({ path: 'trainer', select: 'identity' })
     .populate({ path: 'subProgram', select: 'program', populate: { path: 'program', select: 'name' } })
     .lean();
 
   const pdf = course.type === INTRA
     ? await IntraAttendanceSheet.getPdf(exports.formatIntraCourseForPdf(course))
-    : await InterAttendanceSheet.getPdf(exports.formatInterCourseForPdf(course));
+    : await InterAttendanceSheet.getPdf(await exports.formatInterCourseForPdf(course));
 
   return { fileName: 'emargement.pdf', pdf };
 };
