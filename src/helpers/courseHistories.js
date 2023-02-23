@@ -120,10 +120,10 @@ exports.createHistoryOnCompanyDeletion = (payload, userId) =>
 exports.getTraineesCompanyAtCourseRegistration = async (traineeIds, courseId) => {
   const courseHistories = await CourseHistory
     .find(
-      { course: courseId, trainee: { $in: traineeIds }, action: TRAINEE_ADDITION },
+      { course: courseId, action: TRAINEE_ADDITION, trainee: { $in: traineeIds } },
       { trainee: 1, company: 1, createdAt: 1 }
     )
-    .sort({ trainee: 1, createdAt: -1 })
+    .sort({ createdAt: -1, trainee: 1 })
     .lean();
 
   const traineesCompanyAtCourseRegistration = sortedUniqBy(courseHistories, ch => ch.trainee.toHexString())
