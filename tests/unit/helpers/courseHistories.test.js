@@ -595,7 +595,7 @@ describe('getTraineesCompanyAtCourseRegistration', () => {
             { trainee: 1, company: 1, createdAt: 1 },
           ],
         },
-        { query: 'populate', args: [false] },
+        { query: 'populate', args: [{}] },
         { query: 'sort', args: [{ trainee: 1, createdAt: -1 }] },
         { query: 'lean' },
       ]
