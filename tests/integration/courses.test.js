@@ -2741,7 +2741,8 @@ describe('COURSES ROUTES - DELETE /courses/{_id}/trainee/{traineeId}', () => {
 
 describe('COURSES ROUTES - GET /:_id/attendance-sheets', () => {
   let authToken;
-  const courseIdFromAuthCompany = coursesList[2]._id;
+  const intraCourseIdFromAuthCompany = coursesList[2]._id;
+  const interCourseIdFromAuthCompany = coursesList[5]._id;
   const courseIdWithoutOnSiteSlotFromAuth = coursesList[12]._id;
   const courseIdFromOtherCompany = coursesList[1]._id;
   beforeEach(populateDB);
@@ -2751,10 +2752,20 @@ describe('COURSES ROUTES - GET /:_id/attendance-sheets', () => {
       authToken = await getToken('training_organisation_manager');
     });
 
-    it('should return 200', async () => {
+    it('should return 200 for intra course', async () => {
       const response = await app.inject({
         method: 'GET',
-        url: `/courses/${courseIdFromAuthCompany}/attendance-sheets`,
+        url: `/courses/${intraCourseIdFromAuthCompany}/attendance-sheets`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(200);
+    });
+
+    it('should return 200 for inter course', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/courses/${interCourseIdFromAuthCompany}/attendance-sheets`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -2795,7 +2806,7 @@ describe('COURSES ROUTES - GET /:_id/attendance-sheets', () => {
         authToken = await getToken(role.name);
         const response = await app.inject({
           method: 'GET',
-          url: `/courses/${courseIdFromAuthCompany}/attendance-sheets`,
+          url: `/courses/${intraCourseIdFromAuthCompany}/attendance-sheets`,
           headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
@@ -2818,7 +2829,7 @@ describe('COURSES ROUTES - GET /:_id/attendance-sheets', () => {
       authToken = await getTokenByCredentials(trainer.local);
       const response = await app.inject({
         method: 'GET',
-        url: `/courses/${courseIdFromAuthCompany}/attendance-sheets`,
+        url: `/courses/${intraCourseIdFromAuthCompany}/attendance-sheets`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
