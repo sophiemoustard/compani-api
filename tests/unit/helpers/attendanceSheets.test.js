@@ -5,8 +5,8 @@ const get = require('lodash/get');
 const User = require('../../../src/models/User');
 const Course = require('../../../src/models/Course');
 const AttendanceSheet = require('../../../src/models/AttendanceSheet');
-const UserCompany = require('../../../src/models/UserCompany');
 const attendanceSheetHelper = require('../../../src/helpers/attendanceSheets');
+const CourseHistoriesHelper = require('../../../src/helpers/courseHistories');
 const SinonMongoose = require('../sinonMongoose');
 const GCloudStorageHelper = require('../../../src/helpers/gCloudStorage');
 const UtilsHelper = require('../../../src/helpers/utils');
@@ -87,7 +87,7 @@ describe('create', () => {
   let formatIdentity;
   let create;
   let courseFindOne;
-  let userCompanyFindOne;
+  let getTraineesCompanyAtCourseRegistration;
 
   beforeEach(() => {
     uploadCourseFile = sinon.stub(GCloudStorageHelper, 'uploadCourseFile');
@@ -95,7 +95,8 @@ describe('create', () => {
     formatIdentity = sinon.stub(UtilsHelper, 'formatIdentity');
     create = sinon.stub(AttendanceSheet, 'create');
     courseFindOne = sinon.stub(Course, 'findOne');
-    userCompanyFindOne = sinon.stub(UserCompany, 'findOne');
+    getTraineesCompanyAtCourseRegistration = sinon
+      .stub(CourseHistoriesHelper, 'getTraineesCompanyAtCourseRegistration');
   });
 
   afterEach(() => {
@@ -104,7 +105,7 @@ describe('create', () => {
     formatIdentity.restore();
     create.restore();
     courseFindOne.restore();
-    userCompanyFindOne.restore();
+    getTraineesCompanyAtCourseRegistration.restore();
   });
 
   it('should create an attendance sheet for INTRA course', async () => {
@@ -139,7 +140,7 @@ describe('create', () => {
     );
     sinon.assert.notCalled(userFindOne);
     sinon.assert.notCalled(formatIdentity);
-    sinon.assert.notCalled(userCompanyFindOne);
+    sinon.assert.notCalled(getTraineesCompanyAtCourseRegistration);
   });
 
   it('should create an attendance sheet for INTER course', async () => {
@@ -150,13 +151,12 @@ describe('create', () => {
     const course = { _id: courseId, companies: [new ObjectId()] };
     const payload = { trainee: traineeId, course: courseId, file: 'test.pdf' };
     const user = { _id: traineeId, identity: { firstName: 'monsieur', lastname: 'patate' } };
-    const userCompany = { user: traineeId, company: companyId };
 
     uploadCourseFile.returns({ publicId: 'yo', link: 'yo' });
     courseFindOne.returns(SinonMongoose.stubChainedQueries(course, ['lean']));
     userFindOne.returns(SinonMongoose.stubChainedQueries(user, ['lean']));
     formatIdentity.returns('monsieurPATATE');
-    userCompanyFindOne.returns(SinonMongoose.stubChainedQueries(userCompany, ['lean']));
+    getTraineesCompanyAtCourseRegistration.returns([{ trainee: traineeId, company: companyId }]);
 
     await attendanceSheetHelper.create(payload);
 
@@ -179,10 +179,6 @@ describe('create', () => {
       { firstName: 'monsieur', lastname: 'patate' },
       'FL'
     );
-    SinonMongoose.calledOnceWithExactly(
-      userCompanyFindOne,
-      [{ query: 'findOne', args: [{ user: traineeId }, { company: 1 }] }, { query: 'lean' }]
-    );
     sinon.assert.calledOnceWithExactly(
       uploadCourseFile,
       { fileName: 'emargement_monsieurPATATE', file: 'test.pdf' }
@@ -196,6 +192,7 @@ describe('create', () => {
         company: companyId,
       }
     );
+    sinon.assert.calledOnceWithExactly(getTraineesCompanyAtCourseRegistration, [traineeId], courseId);
   });
 });
 
