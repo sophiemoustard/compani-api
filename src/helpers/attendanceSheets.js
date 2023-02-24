@@ -3,7 +3,7 @@ const get = require('lodash/get');
 const AttendanceSheet = require('../models/AttendanceSheet');
 const User = require('../models/User');
 const Course = require('../models/Course');
-const UserCompany = require('../models/UserCompany');
+const CourseHistoriesHelper = require('./courseHistories');
 const GCloudStorageHelper = require('./gCloudStorage');
 const UtilsHelper = require('./utils');
 const { CompaniDate } = require('./dates/companiDates');
@@ -22,8 +22,9 @@ exports.create = async (payload) => {
     const { identity } = await User.findOne({ _id: payload.trainee }, { identity: 1 }).lean();
     fileName = UtilsHelper.formatIdentity(identity, 'FL');
 
-    const userCompany = await UserCompany.findOne({ user: payload.trainee }, { company: 1 }).lean();
-    company = userCompany.company;
+    const traineeCompanyAtCourseRegistration = await CourseHistoriesHelper
+      .getTraineesCompanyAtCourseRegistration([payload.trainee], payload.course);
+    company = get(traineeCompanyAtCourseRegistration[0], 'company');
   }
 
   const fileUploaded = await GCloudStorageHelper.uploadCourseFile({
