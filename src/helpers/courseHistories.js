@@ -123,7 +123,7 @@ exports.getTraineesCompanyAtCourseRegistration = async (traineeIds, courseId, po
       { course: courseId, trainee: { $in: traineeIds }, action: TRAINEE_ADDITION },
       { trainee: 1, company: 1, createdAt: 1 }
     )
-    .populate(populateCompany ? { path: 'company', select: 'name' } : {})
+    .populate(populateCompany && { path: 'company', select: 'name' })
     .sort({ trainee: 1, createdAt: -1 })
     .lean();
 
