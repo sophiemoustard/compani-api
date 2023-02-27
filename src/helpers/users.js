@@ -5,23 +5,36 @@ const get = require('lodash/get');
 const has = require('lodash/has');
 const pick = require('lodash/pick');
 const omit = require('lodash/omit');
+const uniqBy = require('lodash/uniqBy');
 const flat = require('flat');
 const { v4: uuidv4 } = require('uuid');
+const { groupBy } = require('lodash');
 const CompanyLinkRequest = require('../models/CompanyLinkRequest');
 const ActivityHistory = require('../models/ActivityHistory');
 const Role = require('../models/Role');
 const User = require('../models/User');
 const Course = require('../models/Course');
+const CourseHistory = require('../models/CourseHistory');
 const UserCompany = require('../models/UserCompany');
 const Contract = require('../models/Contract');
 const translate = require('./translate');
 const GCloudStorageHelper = require('./gCloudStorage');
-const { TRAINER, AUXILIARY_ROLES, HELPER, AUXILIARY_WITHOUT_COMPANY, CLIENT_ADMIN, COACH } = require('./constants');
+const {
+  TRAINER,
+  AUXILIARY_ROLES,
+  HELPER,
+  AUXILIARY_WITHOUT_COMPANY,
+  CLIENT_ADMIN,
+  COACH,
+  TRAINEE_ADDITION,
+  STRICTLY_E_LEARNING,
+} = require('./constants');
 const SectorHistoriesHelper = require('./sectorHistories');
 const GDriveStorageHelper = require('./gDriveStorage');
 const UtilsHelper = require('./utils');
 const HelpersHelper = require('./helpers');
 const UserCompaniesHelper = require('./userCompanies');
+const DatesUtilsHelper = require('./dates/utils');
 const { CompaniDate } = require('./dates/companiDates');
 
 const { language } = translate;
@@ -115,17 +128,65 @@ exports.getLearnerList = async (query, credentials) => {
   const learnerList = await User
     .find(userQuery, 'identity.firstname identity.lastname picture local.email', { autopopulate: false })
     .populate({ path: 'company', populate: { path: 'company', select: 'name' } })
-    .populate({ path: 'blendedCoursesCount' })
-    .populate({ path: 'eLearningCoursesCount' })
     .populate({ path: 'activityHistories', select: 'updatedAt', options: { sort: { updatedAt: -1 } } })
     .populate({ path: 'userCompanyList', populate: { path: 'company', select: 'name' } })
     .setOptions({ isVendorUser: !!get(credentials, 'role.vendor') })
     .lean();
 
+  let blendedCourseRegistrations = {};
+  let eLearningCoursesGroupedByTrainee = {};
+  if (!Array.isArray(query.companies)) {
+    const blendedCourseAdditionHistories = await CourseHistory
+      .find({ trainee: { $in: learnerList.map(learner => learner._id) }, action: TRAINEE_ADDITION })
+      .populate({ path: 'course', select: 'trainees' })
+      .lean();
+
+    const eLearningCourseRegistrations = await Course
+      .find({ trainees: { $in: learnerList.map(learner => learner._id) }, format: STRICTLY_E_LEARNING })
+      .lean();
+
+    blendedCourseRegistrations = groupBy(blendedCourseAdditionHistories
+      .filter(history => UtilsHelper.doesArrayIncludeId(history.course.trainees, history.trainee)), 'trainee');
+
+    const traineeELearningCourseList = eLearningCourseRegistrations
+      .map(course => course.trainees.map(trainee => ({ trainee, course })))
+      .flat();
+    eLearningCoursesGroupedByTrainee = groupBy(traineeELearningCourseList, 'trainee');
+
+    for (const learner of learnerList) {
+      if (blendedCourseRegistrations[learner._id]) {
+        blendedCourseRegistrations[learner._id] = blendedCourseRegistrations[learner._id]
+          .sort(DatesUtilsHelper.descendingSortBy('createdAt'));
+        blendedCourseRegistrations[learner._id] = uniqBy(blendedCourseRegistrations[learner._id], 'course._id');
+      } else {
+        blendedCourseRegistrations[learner._id] = [];
+      }
+      if (eLearningCoursesGroupedByTrainee[learner._id]) {
+        eLearningCoursesGroupedByTrainee[learner._id] = eLearningCoursesGroupedByTrainee[learner._id]
+          .map(tc => tc.course);
+      } else {
+        eLearningCoursesGroupedByTrainee[learner._id] = [];
+      }
+    }
+  }
+
   return learnerList.map(learner => ({
     ...omit(learner, 'activityHistories'),
     activityHistoryCount: learner.activityHistories.length,
     lastActivityHistory: learner.activityHistories[0],
+    ...(!Array.isArray(query.companies) && {
+      blendedCoursesCount: !query.companies
+        ? blendedCourseRegistrations[learner._id].length
+        : blendedCourseRegistrations[learner._id]
+          .filter(history => UtilsHelper.areObjectIdsEquals(history.company, query.companies))
+          .length,
+      eLearningCoursesCount: !query.companies
+        ? eLearningCoursesGroupedByTrainee[learner._id].length
+        : eLearningCoursesGroupedByTrainee[learner._id]
+          .filter(course => !course.accessRules || UtilsHelper.doesArrayIncludeId(course.accessRules, query.companies))
+          .length,
+    }
+    ),
   }));
 };
 
