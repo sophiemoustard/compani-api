@@ -5,6 +5,7 @@ const CourseSlot = require('../../models/CourseSlot');
 const Course = require('../../models/Course');
 const User = require('../../models/User');
 const Attendance = require('../../models/Attendance');
+const UserCompany = require('../../models/UserCompany');
 const {
   TRAINER,
   TRAINING_ORGANISATION_MANAGER,
@@ -13,7 +14,7 @@ const {
   COACH,
 } = require('../../helpers/constants');
 const UtilsHelper = require('../../helpers/utils');
-const UserCompany = require('../../models/UserCompany');
+const { CompaniDate } = require('../../helpers/dates/companiDates');
 
 const isTrainerAuthorized = (loggedUserId, trainer) => {
   if (!UtilsHelper.areObjectIdsEquals(loggedUserId, trainer)) throw Boom.forbidden();
@@ -91,7 +92,7 @@ exports.authorizeUnsubscribedAttendancesGet = async (req) => {
 
 exports.authorizeAttendanceCreation = async (req) => {
   const courseSlot = await CourseSlot.findOne({ _id: req.payload.courseSlot }, { course: 1 })
-    .populate({ path: 'course', select: 'trainer companies archivedAt' })
+    .populate({ path: 'course', select: 'trainer companies archivedAt trainees' })
     .lean();
   if (!courseSlot) throw Boom.notFound();
 
@@ -100,18 +101,22 @@ exports.authorizeAttendanceCreation = async (req) => {
 
   const { course } = courseSlot;
   if (course.archivedAt) throw Boom.forbidden();
+  if (!course.companies.length) throw Boom.badData();
 
   if (req.payload.trainee) {
     const attendance = await Attendance.countDocuments(req.payload);
     if (attendance) throw Boom.conflict();
 
-    if (!course.companies.length) throw Boom.badData();
+    const isTraineeRegistered = UtilsHelper.doesArrayIncludeId(course.trainees, req.payload.trainee);
 
     const doesTraineeBelongToCompany = await UserCompany.countDocuments({
       user: req.payload.trainee,
       company: { $in: course.companies },
+      startDate: { $lte: CompaniDate().toISO() },
+      $or: [{ endDate: { $exists: false } }, { endDate: { $gte: CompaniDate().toISO() } }],
     });
-    if (!doesTraineeBelongToCompany) throw Boom.forbidden();
+
+    if (!isTraineeRegistered && !doesTraineeBelongToCompany) throw Boom.forbidden();
   }
 
   return null;

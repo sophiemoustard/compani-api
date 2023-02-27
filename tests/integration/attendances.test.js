@@ -58,6 +58,17 @@ describe('ATTENDANCES ROUTES - POST /attendances', () => {
       expect(courseSlotAttendancesAfter).toBe(courseSlotAttendancesBefore + 2);
     });
 
+    it('should add attendances for registered trainee event if not in the company anymore', async () => {
+      const response = await app.inject({
+        method: 'POST',
+        url: '/attendances',
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload: { courseSlot: slotsList[6]._id, trainee: traineeList[0]._id },
+      });
+
+      expect(response.statusCode).toBe(200);
+    });
+
     it('should return 400 if no courseSlot', async () => {
       const response = await app.inject({
         method: 'POST',
@@ -67,6 +78,17 @@ describe('ATTENDANCES ROUTES - POST /attendances', () => {
       });
 
       expect(response.statusCode).toBe(400);
+    });
+
+    it('should return 422 if no company is linked to the course', async () => {
+      const response = await app.inject({
+        method: 'POST',
+        url: '/attendances',
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload: { courseSlot: slotsList[7]._id },
+      });
+
+      expect(response.statusCode).toBe(422);
     });
 
     it('should return 404 if wrong courseSlot', async () => {
@@ -80,7 +102,7 @@ describe('ATTENDANCES ROUTES - POST /attendances', () => {
       expect(response.statusCode).toBe(404);
     });
 
-    it('should return 403 if trainee doesn\'t belong to a company linked with course', async () => {
+    it('should return 403 if trainee is not registered and doesn\'t currently belong to a company', async () => {
       const response = await app.inject({
         method: 'POST',
         url: '/attendances',
