@@ -12,7 +12,7 @@ const {
 } = require('./seed/attendancesSeed');
 const { getToken, getTokenByCredentials } = require('./helpers/authentication');
 const { trainerAndCoach } = require('../seed/authUsersSeed');
-const { authCompany } = require('../seed/authCompaniesSeed');
+const { authCompany, companyWithoutSubscription } = require('../seed/authCompaniesSeed');
 
 describe('NODE ENV', () => {
   it('should be \'test\'', () => {
@@ -30,7 +30,11 @@ describe('ATTENDANCES ROUTES - POST /attendances', () => {
     });
 
     it('should add an attendance', async () => {
-      const courseSlotAttendancesBefore = await Attendance.countDocuments({ courseSlot: slotsList[0]._id });
+      const courseSlotAttendancesBefore = await Attendance.countDocuments({
+        courseSlot: slotsList[0]._id,
+        company: authCompany._id,
+      });
+
       const response = await app.inject({
         method: 'POST',
         url: '/attendances',
@@ -39,12 +43,18 @@ describe('ATTENDANCES ROUTES - POST /attendances', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      const courseSlotAttendancesAfter = await Attendance.countDocuments({ courseSlot: slotsList[0]._id });
+      const courseSlotAttendancesAfter = await Attendance.countDocuments({
+        courseSlot: slotsList[0]._id,
+        company: authCompany._id,
+      });
       expect(courseSlotAttendancesAfter).toBe(courseSlotAttendancesBefore + 1);
     });
 
     it('should add attendances for all trainee without attendance for this courseSlot', async () => {
-      const courseSlotAttendancesBefore = await Attendance.countDocuments({ courseSlot: slotsList[0]._id });
+      const courseSlotAttendancesBefore = await Attendance.countDocuments({
+        courseSlot: slotsList[0]._id,
+        company: authCompany._id,
+      });
 
       const response = await app.inject({
         method: 'POST',
@@ -54,7 +64,10 @@ describe('ATTENDANCES ROUTES - POST /attendances', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      const courseSlotAttendancesAfter = await Attendance.countDocuments({ courseSlot: slotsList[0]._id });
+      const courseSlotAttendancesAfter = await Attendance.countDocuments({
+        courseSlot: slotsList[0]._id,
+        company: authCompany._id,
+      });
       expect(courseSlotAttendancesAfter).toBe(courseSlotAttendancesBefore + 2);
     });
 
@@ -67,6 +80,12 @@ describe('ATTENDANCES ROUTES - POST /attendances', () => {
       });
 
       expect(response.statusCode).toBe(200);
+      const attendanceCount = await Attendance.countDocuments({
+        courseSlot: slotsList[6]._id,
+        trainee: traineeList[0]._id,
+        company: companyWithoutSubscription._id,
+      });
+      expect(attendanceCount).toBe(1);
     });
 
     it('should return 400 if no courseSlot', async () => {
