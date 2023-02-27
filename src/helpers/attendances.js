@@ -1,18 +1,21 @@
 const get = require('lodash/get');
 const pick = require('lodash/pick');
 const groupBy = require('lodash/groupBy');
+const mapValues = require('lodash/mapValues');
+const keyBy = require('lodash/keyBy');
 const Attendance = require('../models/Attendance');
 const Course = require('../models/Course');
 const UtilsHelper = require('./utils');
-const { BLENDED, INTRA, VENDOR_ROLES } = require('./constants');
 const CourseSlot = require('../models/CourseSlot');
 const User = require('../models/User');
+const { BLENDED, INTRA, VENDOR_ROLES } = require('./constants');
+const CourseHistoriesHelper = require('./courseHistories');
 
-const createSingleAttendance = async (payload, course, traineeId) => {
+const createSingleAttendance = async (payload, course, traineeId, traineesCompany = {}) => {
   if (course.type === INTRA) return Attendance.create({ ...payload, company: course.companies[0] });
 
-  const traineeFromCourseInDb = course.trainees.find(t => UtilsHelper.areObjectIdsEquals(t._id, traineeId));
-  if (traineeFromCourseInDb) return Attendance.create({ ...payload, company: traineeFromCourseInDb.company });
+  const traineeFromCourseInDb = course.trainees.find(tId => UtilsHelper.areObjectIdsEquals(tId, traineeId));
+  if (traineeFromCourseInDb) return Attendance.create({ ...payload, company: traineesCompany[traineeId] });
 
   const unsubscribedTraineeUserCompany = await User
     .findOne({ _id: traineeId }, { company: 1 })
@@ -22,19 +25,21 @@ const createSingleAttendance = async (payload, course, traineeId) => {
   return Attendance.create({ ...payload, company: unsubscribedTraineeUserCompany.company });
 };
 
-const createManyAttendances = async (course, courseSlotId, credentials) => {
-  const traineesIdList = course.trainees.map(t => t._id);
+const createManyAttendances = async (course, courseSlotId, credentials, traineesCompany = {}) => {
   const existingAttendances = await Attendance
-    .find({ courseSlot: courseSlotId, trainee: { $in: traineesIdList } })
+    .find({ courseSlot: courseSlotId, trainee: { $in: course.trainees } })
     .setOptions({ isVendorUser: VENDOR_ROLES.includes(get(credentials, 'role.vendor.name')) })
     .lean();
+
   const traineesWithAttendance = existingAttendances.map(a => a.trainee);
-  const newAttendances = course.trainees
-    .filter(t => !UtilsHelper.doesArrayIncludeId(traineesWithAttendance, t._id))
-    .map(t => ({
+  const traineesWithoutAttendances = course.trainees
+    .filter(tId => !UtilsHelper.doesArrayIncludeId(traineesWithAttendance, tId));
+
+  const newAttendances = traineesWithoutAttendances
+    .map(tId => ({
       courseSlot: courseSlotId,
-      trainee: t._id,
-      company: course.type === INTRA ? course.companies[0] : t.company,
+      trainee: tId,
+      company: course.type === INTRA ? course.companies[0] : traineesCompany[tId],
     }));
 
   return Attendance.insertMany(newAttendances);
@@ -44,17 +49,17 @@ exports.create = async (payload, credentials) => {
   const { courseSlot: courseSlotId, trainee: traineeId } = payload;
 
   const courseSlot = await CourseSlot.findById(courseSlotId, { course: 1 })
-    .populate({
-      path: 'course',
-      select: 'type trainees companies',
-      populate: { path: 'trainees', select: 'company', populate: { path: 'company' } },
-    })
+    .populate({ path: 'course', select: 'type trainees companies' })
     .lean();
   const { course } = courseSlot;
 
-  if (traineeId) return createSingleAttendance(payload, course, traineeId);
+  const traineesCompanyAtCourseRegistration = await CourseHistoriesHelper
+    .getTraineesCompanyAtCourseRegistration(course.trainees, course._id);
+  const traineesCompany = mapValues(keyBy(traineesCompanyAtCourseRegistration, 'trainee'), 'company');
 
-  return createManyAttendances(course, courseSlotId, credentials);
+  if (traineeId) return createSingleAttendance(payload, course, traineeId, traineesCompany);
+
+  return createManyAttendances(course, courseSlotId, credentials, traineesCompany);
 };
 
 exports.list = async (query, company, credentials) => Attendance
