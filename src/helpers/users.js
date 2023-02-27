@@ -183,7 +183,9 @@ exports.getLearnerList = async (query, credentials) => {
       eLearningCoursesCount: !query.companies
         ? eLearningCoursesGroupedByTrainee[learner._id].length
         : eLearningCoursesGroupedByTrainee[learner._id]
-          .filter(course => !course.accessRules || UtilsHelper.doesArrayIncludeId(course.accessRules, query.companies))
+          .filter(course => !course.accessRules.length ||
+            UtilsHelper.doesArrayIncludeId(course.accessRules, query.companies)
+          )
           .length,
     }
     ),

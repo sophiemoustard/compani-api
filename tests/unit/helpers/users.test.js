@@ -453,7 +453,7 @@ describe('getLearnerList', () => {
     const eLearningCourses = [
       { _id: new ObjectId(), trainees: [users[0]._id, users[1]._id], accessRules: [companyId] },
       { _id: new ObjectId(), trainees: [users[0]._id], accessRules: [new ObjectId()] },
-      { _id: new ObjectId(), trainees: [users[1]._id] },
+      { _id: new ObjectId(), trainees: [users[1]._id], accessRules: [] },
     ];
 
     findUserCompany.returns(SinonMongoose.stubChainedQueries(usersCompany, ['lean']));
