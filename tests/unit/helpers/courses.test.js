@@ -8,6 +8,7 @@ const { PassThrough } = require('stream');
 const Boom = require('@hapi/boom');
 const { get } = require('lodash');
 const UtilsMock = require('../../utilsMock');
+const Company = require('../../../src/models/Company');
 const Course = require('../../../src/models/Course');
 const CourseBill = require('../../../src/models/CourseBill');
 const SubProgram = require('../../../src/models/SubProgram');
@@ -3289,23 +3290,26 @@ describe('formatInterCourseForPdf', () => {
   let getTotalDuration;
   let formatInterCourseSlotsForPdf;
   let getTraineesCompanyAtCourseRegistration;
+  let findCompanies;
   beforeEach(() => {
     formatIdentity = sinon.stub(UtilsHelper, 'formatIdentity');
     getTotalDuration = sinon.stub(UtilsHelper, 'getTotalDuration');
     formatInterCourseSlotsForPdf = sinon.stub(CourseHelper, 'formatInterCourseSlotsForPdf');
     getTraineesCompanyAtCourseRegistration = sinon
       .stub(CourseHistoriesHelper, 'getTraineesCompanyAtCourseRegistration');
+    findCompanies = sinon.stub(Company, 'find');
   });
   afterEach(() => {
     formatIdentity.restore();
     getTotalDuration.restore();
     formatInterCourseSlotsForPdf.restore();
     getTraineesCompanyAtCourseRegistration.restore();
+    findCompanies.restore();
   });
 
   it('should format course for pdf', async () => {
     const traineeIds = [new ObjectId(), new ObjectId()];
-    const company = { _id: ObjectId(), name: 'alenvi' };
+    const companyId = new ObjectId();
     const course = {
       _id: ObjectId(),
       slots: [
@@ -3317,8 +3321,8 @@ describe('formatInterCourseForPdf', () => {
       misc: 'des infos en plus',
       trainer: { identity: { lastname: 'MasterClass' } },
       trainees: [
-        { _id: traineeIds[0], identity: { lastname: 'trainee 1' }, company },
-        { _id: traineeIds[1], identity: { lastname: 'trainee 2' }, company },
+        { _id: traineeIds[0], identity: { lastname: 'trainee 1' } },
+        { _id: traineeIds[1], identity: { lastname: 'trainee 2' } },
       ],
       subProgram: { program: { name: 'programme de formation' } },
     };
@@ -3333,7 +3337,8 @@ describe('formatInterCourseForPdf', () => {
     formatIdentity.onCall(2).returns('trainee 2');
     getTotalDuration.returns('7h');
     getTraineesCompanyAtCourseRegistration
-      .returns([{ trainee: traineeIds[0], company }, { trainee: traineeIds[1], company }]);
+      .returns([{ trainee: traineeIds[0], company: companyId }, { trainee: traineeIds[1], company: companyId }]);
+    findCompanies.returns(SinonMongoose.stubChainedQueries([{ _id: companyId, name: 'alenvi' }], ['lean']));
 
     const result = await CourseHelper.formatInterCourseForPdf(course);
 
@@ -3369,8 +3374,15 @@ describe('formatInterCourseForPdf', () => {
     sinon.assert.calledWithExactly(formatIdentity.getCall(1), { lastname: 'trainee 1' }, 'FL');
     sinon.assert.calledWithExactly(formatIdentity.getCall(2), { lastname: 'trainee 2' }, 'FL');
     sinon.assert.calledOnceWithExactly(getTotalDuration, sortedSlots);
-    sinon.assert.calledOnceWithExactly(getTraineesCompanyAtCourseRegistration, course.trainees, course._id, true);
+    sinon.assert.calledOnceWithExactly(getTraineesCompanyAtCourseRegistration, course.trainees, course._id);
     sinon.assert.callCount(formatInterCourseSlotsForPdf, 3);
+    SinonMongoose.calledOnceWithExactly(
+      findCompanies,
+      [
+        { query: 'find', args: [{ _id: { $in: [companyId] } }, { name: 1 }] },
+        { query: 'lean' },
+      ]
+    );
   });
 });
 

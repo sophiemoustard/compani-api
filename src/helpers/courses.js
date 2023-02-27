@@ -10,6 +10,7 @@ const fs = require('fs');
 const os = require('os');
 const Boom = require('@hapi/boom');
 const { CompaniDate } = require('./dates/companiDates');
+const Company = require('../models/Company');
 const Course = require('../models/Course');
 const User = require('../models/User');
 const Questionnaire = require('../models/Questionnaire');
@@ -704,15 +705,18 @@ exports.formatInterCourseForPdf = async (course) => {
     duration: UtilsHelper.getTotalDuration(filteredSlots),
   };
 
-  const populateCompany = true;
   const traineesCompanyAtCourseRegistration = await CourseHistoriesHelper
-    .getTraineesCompanyAtCourseRegistration(course.trainees, course._id, populateCompany);
+    .getTraineesCompanyAtCourseRegistration(course.trainees, course._id);
   const traineesCompany = mapValues(keyBy(traineesCompanyAtCourseRegistration, 'trainee'), 'company');
+  const companiesList = await Company
+    .find({ _id: { $in: [...new Set(traineesCompanyAtCourseRegistration.map(t => t.company))] } }, { name: 1 })
+    .lean();
+  const companiesById = mapValues(keyBy(companiesList, '_id'), 'name');
 
   return {
     trainees: course.trainees.map(trainee => ({
       traineeName: UtilsHelper.formatIdentity(trainee.identity, 'FL'),
-      company: traineesCompany[trainee._id].name,
+      company: companiesById[traineesCompany[trainee._id]],
       course: { ...courseData },
     })),
   };

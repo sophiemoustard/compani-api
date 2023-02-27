@@ -576,7 +576,7 @@ describe('getTraineesCompanyAtCourseRegistration', () => {
       { trainee: cloneDeep(traineeIds[0]), company: companyIds[0], createdAt: '2023-01-03T12:30:00.000Z' },
       { trainee: cloneDeep(traineeIds[0]), company: new ObjectId(), createdAt: '2022-12-15T12:30:00.000Z' },
     ];
-    find.returns(SinonMongoose.stubChainedQueries(courseHistories, ['populate', 'sort', 'lean']));
+    find.returns(SinonMongoose.stubChainedQueries(courseHistories, ['sort', 'lean']));
 
     const result = await CourseHistoriesHelper.getTraineesCompanyAtCourseRegistration(traineeIds, courseId);
 
@@ -595,43 +595,6 @@ describe('getTraineesCompanyAtCourseRegistration', () => {
             { trainee: 1, company: 1, createdAt: 1 },
           ],
         },
-        { query: 'populate', args: [false] },
-        { query: 'sort', args: [{ trainee: 1, createdAt: -1 }] },
-        { query: 'lean' },
-      ]
-    );
-  });
-
-  it('should list trainees and the populated company ', async () => {
-    const courseId = new ObjectId();
-    const traineeIds = [new ObjectId(), new ObjectId()];
-    const companyList = [{ _id: new ObjectId(), name: 'Alenvi' }, { _id: new ObjectId(), name: 'EPS' }];
-
-    const courseHistories = [
-      { trainee: cloneDeep(traineeIds[1]), company: companyList[1], createdAt: '2023-01-04T12:30:00.000Z' },
-      { trainee: cloneDeep(traineeIds[0]), company: companyList[0], createdAt: '2023-01-03T12:30:00.000Z' },
-      { trainee: cloneDeep(traineeIds[0]), company: new ObjectId(), createdAt: '2022-12-15T12:30:00.000Z' },
-    ];
-    find.returns(SinonMongoose.stubChainedQueries(courseHistories, ['populate', 'sort', 'lean']));
-
-    const result = await CourseHistoriesHelper.getTraineesCompanyAtCourseRegistration(traineeIds, courseId, true);
-
-    expect(result).toEqual([
-      { trainee: traineeIds[1], company: courseHistories[0].company },
-      { trainee: traineeIds[0], company: courseHistories[1].company },
-    ]);
-
-    SinonMongoose.calledOnceWithExactly(
-      find,
-      [
-        {
-          query: 'find',
-          args: [
-            { course: courseId, trainee: { $in: traineeIds }, action: TRAINEE_ADDITION },
-            { trainee: 1, company: 1, createdAt: 1 },
-          ],
-        },
-        { query: 'populate', args: [{ path: 'company', select: 'name' }] },
         { query: 'sort', args: [{ trainee: 1, createdAt: -1 }] },
         { query: 'lean' },
       ]

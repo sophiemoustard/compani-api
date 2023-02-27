@@ -117,13 +117,12 @@ exports.createHistoryOnCompanyAddition = (payload, userId) =>
 exports.createHistoryOnCompanyDeletion = (payload, userId) =>
   exports.createHistory(payload.course, userId, COMPANY_DELETION, { company: payload.company });
 
-exports.getTraineesCompanyAtCourseRegistration = async (traineeIds, courseId, populateCompany = false) => {
+exports.getTraineesCompanyAtCourseRegistration = async (traineeIds, courseId) => {
   const courseHistories = await CourseHistory
     .find(
       { course: courseId, trainee: { $in: traineeIds }, action: TRAINEE_ADDITION },
       { trainee: 1, company: 1, createdAt: 1 }
     )
-    .populate(populateCompany && { path: 'company', select: 'name' })
     .sort({ trainee: 1, createdAt: -1 })
     .lean();
 
