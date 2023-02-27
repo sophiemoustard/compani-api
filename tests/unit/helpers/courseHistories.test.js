@@ -3,6 +3,7 @@ const { expect } = require('expect');
 const { ObjectId } = require('mongodb');
 const { cloneDeep } = require('lodash');
 const CourseHistory = require('../../../src/models/CourseHistory');
+const Course = require('../../../src/models/Course');
 const CourseHistoriesHelper = require('../../../src/helpers/courseHistories');
 const {
   SLOT_CREATION,
@@ -13,6 +14,8 @@ const {
   ESTIMATED_START_DATE_EDITION,
   COMPANY_ADDITION,
   COMPANY_DELETION,
+  INTRA,
+  INTER_B2B,
 } = require('../../../src/helpers/constants');
 const SinonMongoose = require('../sinonMongoose');
 
@@ -557,26 +560,45 @@ describe('createHistoryOnCompanyDeletion', () => {
 });
 
 describe('getTraineesCompanyAtCourseRegistration', () => {
-  let find;
+  let courseHistoryFind;
+  let CourseFindById;
 
   beforeEach(() => {
-    find = sinon.stub(CourseHistory, 'find');
+    courseHistoryFind = sinon.stub(CourseHistory, 'find');
+    CourseFindById = sinon.stub(Course, 'findById');
   });
   afterEach(() => {
-    find.restore();
+    courseHistoryFind.restore();
+    CourseFindById.restore();
   });
 
-  it('should list trainees and the company that registered them in the course', async () => {
+  it('should list trainees and the company that registered them in the course (INTRA)', async () => {
+    const courseId = new ObjectId();
+    const traineeIds = [new ObjectId(), new ObjectId()];
+    const companyId = new ObjectId();
+
+    CourseFindById.returns(SinonMongoose.stubChainedQueries({ type: INTRA, companies: [companyId] }, ['lean']));
+
+    const result = await CourseHistoriesHelper.getTraineesCompanyAtCourseRegistration(traineeIds, courseId);
+
+    expect(result).toEqual([
+      { trainee: traineeIds[0], company: companyId },
+      { trainee: traineeIds[1], company: companyId },
+    ]);
+  });
+
+  it('should list trainees and the company that registered them in the course (INTER)', async () => {
     const courseId = new ObjectId();
     const traineeIds = [new ObjectId(), new ObjectId()];
     const companyIds = [new ObjectId(), new ObjectId()];
-
     const courseHistories = [
       { trainee: cloneDeep(traineeIds[1]), company: companyIds[1], createdAt: '2023-01-04T12:30:00.000Z' },
       { trainee: cloneDeep(traineeIds[0]), company: companyIds[0], createdAt: '2023-01-03T12:30:00.000Z' },
       { trainee: cloneDeep(traineeIds[0]), company: new ObjectId(), createdAt: '2022-12-15T12:30:00.000Z' },
     ];
-    find.returns(SinonMongoose.stubChainedQueries(courseHistories, ['sort', 'lean']));
+
+    CourseFindById.returns(SinonMongoose.stubChainedQueries({ type: INTER_B2B, companies: companyIds }, ['lean']));
+    courseHistoryFind.returns(SinonMongoose.stubChainedQueries(courseHistories, ['sort', 'lean']));
 
     const result = await CourseHistoriesHelper.getTraineesCompanyAtCourseRegistration(traineeIds, courseId);
 
@@ -586,7 +608,7 @@ describe('getTraineesCompanyAtCourseRegistration', () => {
     ]);
 
     SinonMongoose.calledOnceWithExactly(
-      find,
+      courseHistoryFind,
       [
         {
           query: 'find',

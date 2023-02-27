@@ -8,14 +8,14 @@ const Course = require('../models/Course');
 const UtilsHelper = require('./utils');
 const CourseSlot = require('../models/CourseSlot');
 const User = require('../models/User');
-const { BLENDED, INTRA, VENDOR_ROLES } = require('./constants');
+const { BLENDED, VENDOR_ROLES } = require('./constants');
 const CourseHistoriesHelper = require('./courseHistories');
 
-const createSingleAttendance = async (payload, course, traineeId, traineesCompany = {}) => {
-  if (course.type === INTRA) return Attendance.create({ ...payload, company: course.companies[0] });
-
+const createSingleAttendance = async (payload, course, traineeId, traineesCompanyForAttendance) => {
   const traineeFromCourseInDb = course.trainees.find(tId => UtilsHelper.areObjectIdsEquals(tId, traineeId));
-  if (traineeFromCourseInDb) return Attendance.create({ ...payload, company: traineesCompany[traineeId] });
+  if (traineeFromCourseInDb) {
+    return Attendance.create({ ...payload, company: traineesCompanyForAttendance[traineeId] });
+  }
 
   const unsubscribedTraineeUserCompany = await User
     .findOne({ _id: traineeId }, { company: 1 })
@@ -25,7 +25,7 @@ const createSingleAttendance = async (payload, course, traineeId, traineesCompan
   return Attendance.create({ ...payload, company: unsubscribedTraineeUserCompany.company });
 };
 
-const createManyAttendances = async (course, courseSlotId, credentials, traineesCompany = {}) => {
+const createManyAttendances = async (course, courseSlotId, credentials, traineesCompanyForAttendance) => {
   const existingAttendances = await Attendance
     .find({ courseSlot: courseSlotId, trainee: { $in: course.trainees } })
     .setOptions({ isVendorUser: VENDOR_ROLES.includes(get(credentials, 'role.vendor.name')) })
@@ -36,11 +36,7 @@ const createManyAttendances = async (course, courseSlotId, credentials, trainees
     .filter(tId => !UtilsHelper.doesArrayIncludeId(traineesWithAttendance, tId));
 
   const newAttendances = traineesWithoutAttendances
-    .map(tId => ({
-      courseSlot: courseSlotId,
-      trainee: tId,
-      company: course.type === INTRA ? course.companies[0] : traineesCompany[tId],
-    }));
+    .map(tId => ({ courseSlot: courseSlotId, trainee: tId, company: traineesCompanyForAttendance[tId] }));
 
   return Attendance.insertMany(newAttendances);
 };
@@ -51,15 +47,17 @@ exports.create = async (payload, credentials) => {
   const courseSlot = await CourseSlot.findById(courseSlotId, { course: 1 })
     .populate({ path: 'course', select: 'type trainees companies' })
     .lean();
+
   const { course } = courseSlot;
+  const traineeList = traineeId ? [traineeId] : course.trainees;
+  const traineesCompanyListForAttendance = await CourseHistoriesHelper
+    .getTraineesCompanyAtCourseRegistration(traineeList, course._id);
 
-  const traineesCompanyAtCourseRegistration = await CourseHistoriesHelper
-    .getTraineesCompanyAtCourseRegistration(course.trainees, course._id);
-  const traineesCompany = mapValues(keyBy(traineesCompanyAtCourseRegistration, 'trainee'), 'company');
+  const traineesCompanyForAttendance = mapValues(keyBy(traineesCompanyListForAttendance, 'trainee'), 'company');
 
-  if (traineeId) return createSingleAttendance(payload, course, traineeId, traineesCompany);
+  if (traineeId) return createSingleAttendance(payload, course, traineeId, traineesCompanyForAttendance);
 
-  return createManyAttendances(course, courseSlotId, credentials, traineesCompany);
+  return createManyAttendances(course, courseSlotId, credentials, traineesCompanyForAttendance);
 };
 
 exports.list = async (query, company, credentials) => Attendance
