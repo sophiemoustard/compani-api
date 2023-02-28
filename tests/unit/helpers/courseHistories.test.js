@@ -3,7 +3,6 @@ const { expect } = require('expect');
 const { ObjectId } = require('mongodb');
 const { cloneDeep } = require('lodash');
 const CourseHistory = require('../../../src/models/CourseHistory');
-const Course = require('../../../src/models/Course');
 const CourseHistoriesHelper = require('../../../src/helpers/courseHistories');
 const {
   SLOT_CREATION,
@@ -14,8 +13,6 @@ const {
   ESTIMATED_START_DATE_EDITION,
   COMPANY_ADDITION,
   COMPANY_DELETION,
-  INTRA,
-  INTER_B2B,
 } = require('../../../src/helpers/constants');
 const SinonMongoose = require('../sinonMongoose');
 
@@ -561,30 +558,12 @@ describe('createHistoryOnCompanyDeletion', () => {
 
 describe('getTraineesCompanyAtCourseRegistration', () => {
   let courseHistoryFind;
-  let CourseFindById;
 
   beforeEach(() => {
     courseHistoryFind = sinon.stub(CourseHistory, 'find');
-    CourseFindById = sinon.stub(Course, 'findById');
   });
   afterEach(() => {
     courseHistoryFind.restore();
-    CourseFindById.restore();
-  });
-
-  it('should list trainees and the company that registered them in the course (INTRA)', async () => {
-    const courseId = new ObjectId();
-    const traineeIds = [new ObjectId(), new ObjectId()];
-    const companyId = new ObjectId();
-
-    CourseFindById.returns(SinonMongoose.stubChainedQueries({ type: INTRA, companies: [companyId] }, ['lean']));
-
-    const result = await CourseHistoriesHelper.getTraineesCompanyAtCourseRegistration(traineeIds, courseId);
-
-    expect(result).toEqual([
-      { trainee: traineeIds[0], company: companyId },
-      { trainee: traineeIds[1], company: companyId },
-    ]);
   });
 
   it('should list trainees and the company that registered them in the course (INTER)', async () => {
@@ -597,7 +576,6 @@ describe('getTraineesCompanyAtCourseRegistration', () => {
       { trainee: cloneDeep(traineeIds[0]), company: new ObjectId(), createdAt: '2022-12-15T12:30:00.000Z' },
     ];
 
-    CourseFindById.returns(SinonMongoose.stubChainedQueries({ type: INTER_B2B, companies: companyIds }, ['lean']));
     courseHistoryFind.returns(SinonMongoose.stubChainedQueries(courseHistories, ['sort', 'lean']));
 
     const result = await CourseHistoriesHelper.getTraineesCompanyAtCourseRegistration(traineeIds, courseId);

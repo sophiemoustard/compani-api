@@ -2,7 +2,6 @@ const pick = require('lodash/pick');
 const sortedUniqBy = require('lodash/sortedUniqBy');
 const { CompaniDate } = require('./dates/companiDates');
 const CourseHistory = require('../models/CourseHistory');
-const Course = require('../models/Course');
 const {
   SLOT_CREATION,
   SLOT_DELETION,
@@ -15,7 +14,6 @@ const {
   DAY,
   COMPANY_ADDITION,
   COMPANY_DELETION,
-  INTRA,
 } = require('./constants');
 
 exports.createHistory = async (course, createdBy, action, payload) =>
@@ -120,9 +118,6 @@ exports.createHistoryOnCompanyDeletion = (payload, userId) =>
   exports.createHistory(payload.course, userId, COMPANY_DELETION, { company: payload.company });
 
 exports.getTraineesCompanyAtCourseRegistration = async (traineeIds, courseId) => {
-  const course = await Course.findById(courseId, { type: 1, companies: 1 }).lean();
-  if (course.type === INTRA) return traineeIds.map(t => ({ trainee: t, company: course.companies[0] }));
-
   const courseHistories = await CourseHistory
     .find(
       { course: courseId, trainee: { $in: traineeIds }, action: TRAINEE_ADDITION },
