@@ -155,9 +155,9 @@ exports.getLearnerList = async (query, credentials) => {
 
     for (const learner of learnerList) {
       if (blendedCourseRegistrations[learner._id]) {
-        blendedCourseRegistrations[learner._id] = blendedCourseRegistrations[learner._id]
+        const learnerRegistration = blendedCourseRegistrations[learner._id]
           .sort(DatesUtilsHelper.descendingSortBy('createdAt'));
-        blendedCourseRegistrations[learner._id] = uniqBy(blendedCourseRegistrations[learner._id], 'course._id');
+        blendedCourseRegistrations[learner._id] = uniqBy(learnerRegistration, 'course._id');
       } else {
         blendedCourseRegistrations[learner._id] = [];
       }
