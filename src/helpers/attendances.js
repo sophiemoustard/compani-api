@@ -11,8 +11,9 @@ const User = require('../models/User');
 const { BLENDED, VENDOR_ROLES } = require('./constants');
 const CourseHistoriesHelper = require('./courseHistories');
 
-const createSingleAttendance = async (payload, course, traineeId, traineesCompanyForAttendance) => {
-  const traineeFromCourseInDb = course.trainees.find(tId => UtilsHelper.areObjectIdsEquals(tId, traineeId));
+const createSingleAttendance = async (payload, courseTrainees, traineeId, traineesCompanyForAttendance) => {
+  const traineeFromCourseInDb = courseTrainees.find(tId => UtilsHelper.areObjectIdsEquals(tId, traineeId));
+  console.log('traineeFromCourseInDb', traineeFromCourseInDb);
   if (traineeFromCourseInDb) {
     return Attendance.create({ ...payload, company: traineesCompanyForAttendance[traineeId] });
   }
@@ -25,14 +26,14 @@ const createSingleAttendance = async (payload, course, traineeId, traineesCompan
   return Attendance.create({ ...payload, company: unsubscribedTraineeUserCompany.company });
 };
 
-const createManyAttendances = async (course, courseSlotId, credentials, traineesCompanyForAttendance) => {
+const createManyAttendances = async (courseTrainees, courseSlotId, credentials, traineesCompanyForAttendance) => {
   const existingAttendances = await Attendance
-    .find({ courseSlot: courseSlotId, trainee: { $in: course.trainees } })
+    .find({ courseSlot: courseSlotId, trainee: { $in: courseTrainees } })
     .setOptions({ isVendorUser: VENDOR_ROLES.includes(get(credentials, 'role.vendor.name')) })
     .lean();
 
   const traineesWithAttendance = existingAttendances.map(a => a.trainee);
-  const traineesWithoutAttendances = course.trainees
+  const traineesWithoutAttendances = courseTrainees
     .filter(tId => !UtilsHelper.doesArrayIncludeId(traineesWithAttendance, tId));
 
   const newAttendances = traineesWithoutAttendances
@@ -55,9 +56,9 @@ exports.create = async (payload, credentials) => {
 
   const traineesCompanyForAttendance = mapValues(keyBy(traineesCompanyListForAttendance, 'trainee'), 'company');
 
-  if (traineeId) return createSingleAttendance(payload, course, traineeId, traineesCompanyForAttendance);
+  if (traineeId) return createSingleAttendance(payload, course.trainees, traineeId, traineesCompanyForAttendance);
 
-  return createManyAttendances(course, courseSlotId, credentials, traineesCompanyForAttendance);
+  return createManyAttendances(course.trainees, courseSlotId, credentials, traineesCompanyForAttendance);
 };
 
 exports.list = async (query, company, credentials) => Attendance
