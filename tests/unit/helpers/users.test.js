@@ -299,7 +299,7 @@ describe('getLearnerList', () => {
       { _id: new ObjectId(), activityHistories: [{ _id: new ObjectId() }] },
       { _id: new ObjectId(), activityHistories: [{ _id: new ObjectId() }] },
     ];
-    const usersWithVirtuals = [
+    const learnerList = [
       {
         _id: users[0]._id,
         activityHistoryCount: 1,
@@ -354,7 +354,7 @@ describe('getLearnerList', () => {
 
     const result = await UsersHelper.getLearnerList(query, credentials);
 
-    expect(result).toEqual(usersWithVirtuals);
+    expect(result).toEqual(learnerList);
     sinon.assert.notCalled(findRole);
     sinon.assert.notCalled(findUserCompany);
     SinonMongoose.calledOnceWithExactly(
@@ -406,7 +406,7 @@ describe('getLearnerList', () => {
       { user: users[0]._id, startDate: '2022-12-20T15:30:00.000Z' },
       { user: users[1]._id, startDate: '2022-12-19T15:30:00.000Z' },
     ];
-    const usersWithVirtuals = [
+    const learnerList = [
       {
         _id: users[0]._id,
         activityHistoryCount: 1,
@@ -464,7 +464,7 @@ describe('getLearnerList', () => {
 
     const result = await UsersHelper.getLearnerList(query, credentials);
 
-    expect(result).toEqual(usersWithVirtuals);
+    expect(result).toEqual(learnerList);
     SinonMongoose.calledOnceWithExactly(
       findRole,
       [{ query: 'find', args: [{ name: { $in: [HELPER, AUXILIARY_WITHOUT_COMPANY] } }] }, { query: 'lean' }]
@@ -538,7 +538,7 @@ describe('getLearnerList', () => {
       { user: users[0]._id, startDate: '2022-12-20T15:30:00.000Z' },
       { user: users[1]._id, startDate: '2022-12-19T15:30:00.000Z' },
     ];
-    const usersWithVirtuals = [
+    const learnerList = [
       { _id: users[0]._id, activityHistoryCount: 1, lastActivityHistory: users[0].activityHistories[0] },
       { _id: users[1]._id, activityHistoryCount: 1, lastActivityHistory: users[1].activityHistories[0] },
     ];
@@ -549,7 +549,7 @@ describe('getLearnerList', () => {
 
     const result = await UsersHelper.getLearnerList(query, credentials);
 
-    expect(result).toEqual(usersWithVirtuals);
+    expect(result).toEqual(learnerList);
     SinonMongoose.calledOnceWithExactly(
       findRole,
       [{ query: 'find', args: [{ name: { $in: [HELPER, AUXILIARY_WITHOUT_COMPANY] } }] }, { query: 'lean' }]
@@ -610,7 +610,7 @@ describe('getLearnerList', () => {
       { user: users[0]._id, startDate: '2022-12-20T15:30:00.000Z' },
       { user: users[1]._id, startDate: '2022-12-19T15:30:00.000Z' },
     ];
-    const usersWithVirtuals = [
+    const learnerList = [
       { _id: users[0]._id, activityHistoryCount: 1, lastActivityHistory: users[0].activityHistories[0] },
       { _id: users[1]._id, activityHistoryCount: 1, lastActivityHistory: users[1].activityHistories[0] },
     ];
@@ -621,7 +621,7 @@ describe('getLearnerList', () => {
 
     const result = await UsersHelper.getLearnerList(query, credentials);
 
-    expect(result).toEqual(usersWithVirtuals);
+    expect(result).toEqual(learnerList);
     SinonMongoose.calledOnceWithExactly(
       findRole,
       [{ query: 'find', args: [{ name: { $in: [HELPER, AUXILIARY_WITHOUT_COMPANY] } }] }, { query: 'lean' }]
@@ -685,7 +685,7 @@ describe('getLearnerList', () => {
       { user: users[0]._id, startDate: '2020-12-20T15:30:00.000Z' },
       { user: users[1]._id, startDate: '2020-12-19T15:30:00.000Z' },
     ];
-    const usersWithVirtuals = [
+    const learnerList = [
       { _id: users[0]._id, activityHistoryCount: 1, lastActivityHistory: users[0].activityHistories[0] },
       { _id: users[1]._id, activityHistoryCount: 1, lastActivityHistory: users[1].activityHistories[0] },
     ];
@@ -696,7 +696,7 @@ describe('getLearnerList', () => {
 
     const result = await UsersHelper.getLearnerList(query, credentials);
 
-    expect(result).toEqual(usersWithVirtuals);
+    expect(result).toEqual(learnerList);
     SinonMongoose.calledOnceWithExactly(
       findRole,
       [{ query: 'find', args: [{ name: { $in: [HELPER, AUXILIARY_WITHOUT_COMPANY] } }] }, { query: 'lean' }]
