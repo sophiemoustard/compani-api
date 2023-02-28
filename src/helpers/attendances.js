@@ -13,7 +13,6 @@ const CourseHistoriesHelper = require('./courseHistories');
 
 const createSingleAttendance = async (payload, courseTrainees, traineeId, traineesCompanyForAttendance) => {
   const traineeFromCourseInDb = courseTrainees.find(tId => UtilsHelper.areObjectIdsEquals(tId, traineeId));
-  console.log('traineeFromCourseInDb', traineeFromCourseInDb);
   if (traineeFromCourseInDb) {
     return Attendance.create({ ...payload, company: traineesCompanyForAttendance[traineeId] });
   }
