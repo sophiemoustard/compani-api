@@ -118,17 +118,6 @@ exports.createHistoryOnCompanyDeletion = (payload, userId) =>
   exports.createHistory(payload.course, userId, COMPANY_DELETION, { company: payload.company });
 
 exports.getTraineesCompanyAtCourseRegistration = async (traineeIds, courseId) => {
-  const explanation = await CourseHistory
-    .find(
-      { course: courseId, action: TRAINEE_ADDITION, trainee: { $in: traineeIds } },
-      { trainee: 1, company: 1, createdAt: 1, _id: 0 }
-    )
-    .sort({ createdAt: -1, trainee: 1 })
-    .lean()
-    .explain();
-
-  console.log('explanation', explanation.queryPlanner.winningPlan);
-
   const courseHistories = await CourseHistory
     .find(
       { course: courseId, action: TRAINEE_ADDITION, trainee: { $in: traineeIds } },
