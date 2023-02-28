@@ -12,8 +12,7 @@ const { BLENDED, VENDOR_ROLES } = require('./constants');
 const CourseHistoriesHelper = require('./courseHistories');
 
 const createSingleAttendance = async (payload, courseTrainees, traineeId, traineesCompanyForAttendance) => {
-  const traineeFromCourseInDb = courseTrainees.find(tId => UtilsHelper.areObjectIdsEquals(tId, traineeId));
-  if (traineeFromCourseInDb) {
+  if (UtilsHelper.doesArrayIncludeId(courseTrainees, traineeId)) {
     return Attendance.create({ ...payload, company: traineesCompanyForAttendance[traineeId] });
   }
 
