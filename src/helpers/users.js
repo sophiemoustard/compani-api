@@ -136,14 +136,15 @@ exports.getLearnerList = async (query, credentials) => {
   let blendedCourseRegistrations = {};
   let eLearningCoursesGroupedByTrainee = {};
   if (!Array.isArray(query.companies)) {
-    const blendedCourseAdditionHistories = await CourseHistory
-      .find({ trainee: { $in: learnerList.map(learner => learner._id) }, action: TRAINEE_ADDITION })
-      .populate({ path: 'course', select: 'trainees' })
-      .lean();
-
-    const eLearningCourseRegistrations = await Course
-      .find({ trainees: { $in: learnerList.map(learner => learner._id) }, format: STRICTLY_E_LEARNING })
-      .lean();
+    const [blendedCourseAdditionHistories, eLearningCourseRegistrations] = await Promise.all([
+      CourseHistory
+        .find({ trainee: { $in: learnerList.map(learner => learner._id) }, action: TRAINEE_ADDITION })
+        .populate({ path: 'course', select: 'trainees' })
+        .lean(),
+      Course
+        .find({ trainees: { $in: learnerList.map(learner => learner._id) }, format: STRICTLY_E_LEARNING })
+        .lean(),
+    ]);
 
     blendedCourseRegistrations = groupBy(blendedCourseAdditionHistories
       .filter(history => UtilsHelper.doesArrayIncludeId(history.course.trainees, history.trainee)), 'trainee');
