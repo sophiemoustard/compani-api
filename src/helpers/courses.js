@@ -4,7 +4,6 @@ const has = require('lodash/has');
 const omit = require('lodash/omit');
 const groupBy = require('lodash/groupBy');
 const keyBy = require('lodash/keyBy');
-const compact = require('lodash/compact');
 const mapValues = require('lodash/mapValues');
 const fs = require('fs');
 const os = require('os');
@@ -166,15 +165,17 @@ const listForOperations = async (query, origin) => {
 
 const listForPedagogy = async (query, credentials) => {
   const traineeId = query.trainee || get(credentials, '_id');
-  const trainee = await User.findOne({ _id: traineeId }).populate({ path: 'userCompanyList' }).lean();
-  const traineeCompanies = query.company ? [query.company] : compact(trainee.userCompanyList.map(uc => uc.company));
+  const trainee = await User.findOne({ _id: traineeId }).lean();
 
   const courses = await Course.find(
     {
       trainees: trainee._id,
       $or: [
-        { format: STRICTLY_E_LEARNING, $or: [{ accessRules: [] }, { accessRules: { $in: traineeCompanies } }] },
-        { format: BLENDED, companies: { $in: traineeCompanies } },
+        {
+          format: STRICTLY_E_LEARNING,
+          ...(query.company && { $or: [{ accessRules: [] }, { accessRules: query.company }] }),
+        },
+        { format: BLENDED, ...(query.company && { companies: query.company }) },
       ],
     },
     { format: 1 }
@@ -205,9 +206,10 @@ const listForPedagogy = async (query, credentials) => {
         { path: 'step', select: 'type' },
         {
           path: 'attendances',
-          match: { trainee: trainee._id, company: { $in: traineeCompanies } },
+          match: { trainee: trainee._id, ...(query.company && { company: query.company }) },
           options: {
             isVendorUser: [TRAINING_ORGANISATION_MANAGER, VENDOR_ADMIN].includes(get(credentials, 'role.vendor.name')),
+            requestingOwnInfos: UtilsHelper.areObjectIdsEquals(traineeId, credentials._id),
           },
         },
       ],
@@ -215,8 +217,19 @@ const listForPedagogy = async (query, credentials) => {
     .select('_id misc')
     .lean({ autopopulate: true, virtuals: true });
 
+  let filteredCourses = courses;
+  if (query.company) {
+    const companyAtCourseRegistration = await CourseHistoriesHelper.getCompanyAtCourseRegistrationList(
+      { key: TRAINEE, value: traineeId }, { key: COURSE, value: courses.map(course => course._id) }
+    );
+    const traineeCompanies = mapValues(keyBy(companyAtCourseRegistration, 'course'), 'company');
+    filteredCourses = courses
+      .filter(course => course.format === STRICTLY_E_LEARNING ||
+        UtilsHelper.areObjectIdsEquals(traineeCompanies[course._id], query.company));
+  }
+
   const shouldComputePresence = true;
-  return courses.map(course => exports.formatCourseWithProgress(course, shouldComputePresence));
+  return filteredCourses.map(course => exports.formatCourseWithProgress(course, shouldComputePresence));
 };
 
 exports.list = async (query, credentials) => {

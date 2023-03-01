@@ -340,7 +340,7 @@ describe('COURSES ROUTES - GET /courses', () => {
     });
 
     expect(response.statusCode).toBe(200);
-    expect(response.result.data.courses.length).toBe(1);
+    expect(response.result.data.courses.length).toBe(2);
   });
 
   describe('TRAINING_ORGANISATION_MANAGER', () => {
@@ -427,7 +427,7 @@ describe('COURSES ROUTES - GET /courses', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      expect(response.result.data.courses.length).toEqual(4);
+      expect(response.result.data.courses.length).toEqual(5);
     });
 
     it('should return 400 if no action', async () => {
@@ -587,6 +587,7 @@ describe('COURSES ROUTES - GET /courses', () => {
 
       const resultCourseIds = response.result.data.courses.map(course => course._id);
       expect(resultCourseIds.length).toBe(2);
+      expect(UtilsHelper.doesArrayIncludeId(resultCourseIds, coursesList[19]._id)).toBeFalsy();
       [coursesList[7]._id, coursesList[8]._id]
         .forEach(courseId => expect(UtilsHelper.doesArrayIncludeId(resultCourseIds, courseId)).toBeTruthy());
     });
@@ -3418,7 +3419,7 @@ describe('COURSES ROUTES - DELETE /courses/{_id}/companies{companyId}', () => {
     it('should return a 403 if company has attendance sheet', async () => {
       const response = await app.inject({
         method: 'DELETE',
-        url: `/courses/${coursesList[19]._id}/companies/${otherCompany._id}`,
+        url: `/courses/${coursesList[12]._id}/companies/${authCompany._id}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 

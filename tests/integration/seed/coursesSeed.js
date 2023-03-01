@@ -404,7 +404,7 @@ const coursesList = [
     type: INTER_B2C,
     format: STRICTLY_E_LEARNING,
     trainees: [traineeFromOtherCompany._id, traineeFromAuthFormerlyInOther._id, noRole._id],
-    accessRules: [otherCompany._id],
+    accessRules: [otherCompany._id, thirdCompany._id],
     salesRepresentative: vendorAdmin._id,
   },
   { // 12 course with no on-site slot
@@ -412,7 +412,7 @@ const coursesList = [
     subProgram: subProgramsList[1]._id,
     misc: 'inter_b2b',
     type: INTER_B2B,
-    trainees: [coach._id],
+    trainees: [],
     companies: [authCompany._id],
     salesRepresentative: vendorAdmin._id,
   },
@@ -502,7 +502,7 @@ const coursesList = [
     misc: 'inter b2b session',
     type: INTER_B2B,
     format: BLENDED,
-    trainees: [],
+    trainees: [traineeFromAuthFormerlyInOther._id],
     companies: [authCompany._id, thirdCompany._id, otherCompany._id],
     trainer: trainer._id,
     salesRepresentative: vendorAdmin._id,
@@ -639,13 +639,6 @@ const courseHistories = [
   },
   {
     action: TRAINEE_ADDITION,
-    course: coursesList[7]._id,
-    trainee: auxiliary._id,
-    company: authCompany._id,
-    createdBy: trainerOrganisationManager._id,
-  },
-  {
-    action: TRAINEE_ADDITION,
     course: coursesList[0]._id,
     trainee: coach._id,
     company: authCompany._id,
@@ -765,6 +758,13 @@ const courseHistories = [
   },
   {
     action: TRAINEE_ADDITION,
+    course: coursesList[7]._id,
+    trainee: auxiliary._id,
+    company: authCompany._id,
+    createdBy: trainerOrganisationManager._id,
+  },
+  {
+    action: TRAINEE_ADDITION,
     course: coursesList[9]._id,
     trainee: coach._id,
     company: authCompany._id,
@@ -873,6 +873,13 @@ const courseHistories = [
     course: coursesList[18]._id,
     trainee: clientAdmin._id,
     company: authCompany._id,
+    createdBy: trainerOrganisationManager._id,
+  },
+  {
+    action: TRAINEE_ADDITION,
+    course: coursesList[19]._id,
+    trainee: traineeFromAuthFormerlyInOther._id,
+    company: otherCompany._id,
     createdBy: trainerOrganisationManager._id,
   },
 ];
@@ -1006,10 +1013,10 @@ const attendanceList = [{
 const attendanceSheetList = [
   {
     _id: new ObjectId(),
-    trainee: traineeFromOtherCompany._id,
-    course: coursesList[19]._id,
+    trainee: traineeFromAuthFormerlyInOther._id,
+    course: coursesList[12]._id,
     file: { publicId: 'publicId', link: 'https://link.com' },
-    company: otherCompany._id,
+    company: authCompany._id,
   },
 ];
 
