@@ -387,14 +387,9 @@ describe('COURSES ROUTES - GET /courses', () => {
           },
           step: { _id: expect.any(ObjectId), type: ON_SITE },
         }],
-        trainees: expect.arrayContaining([expect.objectContaining({
-          _id: expect.any(ObjectId),
-          company: expect.objectContaining(pick(otherCompany, ['_id', 'name'])),
-        })]),
+        trainees: expect.arrayContaining([expect.any(ObjectId)]),
         slotsToPlan: [{ _id: expect.any(ObjectId), course: course._id }],
       }));
-      expect(course.trainees[0].local).toBeUndefined();
-      expect(course.trainees[0].refreshtoken).toBeUndefined();
 
       const archivedCourse = response.result.data.courses
         .find(c => UtilsHelper.areObjectIdsEquals(coursesList[14]._id, c._id));
