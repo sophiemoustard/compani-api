@@ -591,11 +591,11 @@ describe('getTraineesCompanyAtCourseRegistration', () => {
         {
           query: 'find',
           args: [
-            { course: courseId, trainee: { $in: traineeIds }, action: TRAINEE_ADDITION },
-            { trainee: 1, company: 1, createdAt: 1 },
+            { course: courseId, action: TRAINEE_ADDITION, trainee: { $in: traineeIds } },
+            { trainee: 1, company: 1, createdAt: 1, _id: 0 },
           ],
         },
-        { query: 'sort', args: [{ trainee: 1, createdAt: -1 }] },
+        { query: 'sort', args: [{ createdAt: -1, trainee: 1 }] },
         { query: 'lean' },
       ]
     );
