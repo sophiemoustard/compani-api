@@ -179,23 +179,17 @@ exports.getLearnerList = async (query, credentials) => {
     .setOptions({ isVendorUser: !!get(credentials, 'role.vendor') })
     .lean();
 
-  let eLearningCoursesCountByTrainee = {};
-  let blendedCoursesCountByTrainee = {};
-  if (isDirectory) {
-    (
-      { eLearningCoursesCountByTrainee, blendedCoursesCountByTrainee } =
-        await computeCoursesCountByTrainees(learnerList, query.companies)
-    );
-  }
+  if (!isDirectory) return learnerList;
+
+  const { eLearningCoursesCountByTrainee, blendedCoursesCountByTrainee } =
+        await computeCoursesCountByTrainees(learnerList, query.companies);
 
   return learnerList.map(learner => ({
     ...omit(learner, 'activityHistories'),
-    ...(isDirectory && {
-      activityHistoryCount: learner.activityHistories.length,
-      lastActivityHistory: learner.activityHistories[0],
-      eLearningCoursesCount: eLearningCoursesCountByTrainee[learner._id],
-      blendedCoursesCount: blendedCoursesCountByTrainee[learner._id],
-    }),
+    activityHistoryCount: learner.activityHistories.length,
+    lastActivityHistory: learner.activityHistories[0],
+    eLearningCoursesCount: eLearningCoursesCountByTrainee[learner._id],
+    blendedCoursesCount: blendedCoursesCountByTrainee[learner._id],
   }));
 };
 
