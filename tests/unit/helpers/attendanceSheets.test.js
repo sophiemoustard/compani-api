@@ -10,7 +10,7 @@ const CourseHistoriesHelper = require('../../../src/helpers/courseHistories');
 const SinonMongoose = require('../sinonMongoose');
 const GCloudStorageHelper = require('../../../src/helpers/gCloudStorage');
 const UtilsHelper = require('../../../src/helpers/utils');
-const { VENDOR_ADMIN, COACH } = require('../../../src/helpers/constants');
+const { VENDOR_ADMIN, COACH, COURSE, TRAINEE } = require('../../../src/helpers/constants');
 
 describe('list', () => {
   let find;
@@ -87,7 +87,7 @@ describe('create', () => {
   let formatIdentity;
   let create;
   let courseFindOne;
-  let getTraineesCompanyAtCourseRegistration;
+  let getCompanyAtCourseRegistrationList;
 
   beforeEach(() => {
     uploadCourseFile = sinon.stub(GCloudStorageHelper, 'uploadCourseFile');
@@ -95,8 +95,8 @@ describe('create', () => {
     formatIdentity = sinon.stub(UtilsHelper, 'formatIdentity');
     create = sinon.stub(AttendanceSheet, 'create');
     courseFindOne = sinon.stub(Course, 'findOne');
-    getTraineesCompanyAtCourseRegistration = sinon
-      .stub(CourseHistoriesHelper, 'getTraineesCompanyAtCourseRegistration');
+    getCompanyAtCourseRegistrationList = sinon
+      .stub(CourseHistoriesHelper, 'getCompanyAtCourseRegistrationList');
   });
 
   afterEach(() => {
@@ -105,7 +105,7 @@ describe('create', () => {
     formatIdentity.restore();
     create.restore();
     courseFindOne.restore();
-    getTraineesCompanyAtCourseRegistration.restore();
+    getCompanyAtCourseRegistrationList.restore();
   });
 
   it('should create an attendance sheet for INTRA course', async () => {
@@ -140,7 +140,7 @@ describe('create', () => {
     );
     sinon.assert.notCalled(userFindOne);
     sinon.assert.notCalled(formatIdentity);
-    sinon.assert.notCalled(getTraineesCompanyAtCourseRegistration);
+    sinon.assert.notCalled(getCompanyAtCourseRegistrationList);
   });
 
   it('should create an attendance sheet for INTER course', async () => {
@@ -156,7 +156,7 @@ describe('create', () => {
     courseFindOne.returns(SinonMongoose.stubChainedQueries(course, ['lean']));
     userFindOne.returns(SinonMongoose.stubChainedQueries(user, ['lean']));
     formatIdentity.returns('monsieurPATATE');
-    getTraineesCompanyAtCourseRegistration.returns([{ trainee: traineeId, company: companyId }]);
+    getCompanyAtCourseRegistrationList.returns([{ trainee: traineeId, company: companyId }]);
 
     await attendanceSheetHelper.create(payload);
 
@@ -192,7 +192,11 @@ describe('create', () => {
         company: companyId,
       }
     );
-    sinon.assert.calledOnceWithExactly(getTraineesCompanyAtCourseRegistration, [traineeId], courseId);
+    sinon.assert.calledOnceWithExactly(
+      getCompanyAtCourseRegistrationList,
+      { key: COURSE, value: courseId },
+      { key: TRAINEE, value: [traineeId] }
+    );
   });
 });
 

@@ -13,6 +13,8 @@ const {
   ESTIMATED_START_DATE_EDITION,
   COMPANY_ADDITION,
   COMPANY_DELETION,
+  COURSE,
+  TRAINEE,
 } = require('../../../src/helpers/constants');
 const SinonMongoose = require('../sinonMongoose');
 
@@ -556,7 +558,7 @@ describe('createHistoryOnCompanyDeletion', () => {
   });
 });
 
-describe('getTraineesCompanyAtCourseRegistration', () => {
+describe('getCompanyAtCourseRegistrationList', () => {
   let courseHistoryFind;
 
   beforeEach(() => {
@@ -578,7 +580,8 @@ describe('getTraineesCompanyAtCourseRegistration', () => {
 
     courseHistoryFind.returns(SinonMongoose.stubChainedQueries(courseHistories, ['sort', 'lean']));
 
-    const result = await CourseHistoriesHelper.getTraineesCompanyAtCourseRegistration(traineeIds, courseId);
+    const result = await CourseHistoriesHelper
+      .getCompanyAtCourseRegistrationList({ key: COURSE, value: courseId }, { key: TRAINEE, value: traineeIds });
 
     expect(result).toEqual([
       { trainee: traineeIds[1], company: courseHistories[0].company },

@@ -7,7 +7,7 @@ const CourseHistoriesHelper = require('./courseHistories');
 const GCloudStorageHelper = require('./gCloudStorage');
 const UtilsHelper = require('./utils');
 const { CompaniDate } = require('./dates/companiDates');
-const { DAY_MONTH_YEAR } = require('./constants');
+const { DAY_MONTH_YEAR, COURSE, TRAINEE } = require('./constants');
 
 exports.create = async (payload) => {
   let fileName;
@@ -23,7 +23,9 @@ exports.create = async (payload) => {
     fileName = UtilsHelper.formatIdentity(identity, 'FL');
 
     const traineeCompanyAtCourseRegistration = await CourseHistoriesHelper
-      .getTraineesCompanyAtCourseRegistration([payload.trainee], payload.course);
+      .getCompanyAtCourseRegistrationList(
+        { key: COURSE, value: payload.course }, { key: TRAINEE, value: [payload.trainee] }
+      );
     company = get(traineeCompanyAtCourseRegistration[0], 'company');
   }
 

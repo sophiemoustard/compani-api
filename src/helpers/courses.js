@@ -48,6 +48,8 @@ const {
   PT0S,
   DAY,
   VENDOR_ROLES,
+  COURSE,
+  TRAINEE,
 } = require('./constants');
 const CourseHistoriesHelper = require('./courseHistories');
 const NotificationHelper = require('./notifications');
@@ -326,8 +328,9 @@ const getCourseForOperations = async (courseId, credentials, origin) => {
 
   let blendedCourseTrainees;
   if (fetchedCourse.format === BLENDED) {
-    const traineesCompanyAtCourseRegistration = await CourseHistoriesHelper
-      .getTraineesCompanyAtCourseRegistration(fetchedCourse.trainees.map(t => t._id), courseId);
+    const traineesCompanyAtCourseRegistration = await CourseHistoriesHelper.getCompanyAtCourseRegistrationList(
+      { key: COURSE, value: courseId }, { key: TRAINEE, value: fetchedCourse.trainees.map(t => t._id) }
+    );
 
     const traineesCompany = mapValues(keyBy(traineesCompanyAtCourseRegistration, 'trainee'), 'company');
     blendedCourseTrainees = fetchedCourse.trainees
@@ -423,8 +426,9 @@ exports.getCourseFollowUp = async (course, company) => {
   else if (isELearningWithCompany) {
     filteredTrainees = courseFollowUp.trainees.filter(t => UtilsHelper.areObjectIdsEquals(t.company, company));
   } else {
-    const traineesCompanyAtCourseRegistration = await CourseHistoriesHelper
-      .getTraineesCompanyAtCourseRegistration(courseFollowUp.trainees.map(t => t._id), course);
+    const traineesCompanyAtCourseRegistration = await CourseHistoriesHelper.getCompanyAtCourseRegistrationList(
+      { key: COURSE, value: course }, { key: TRAINEE, value: courseFollowUp.trainees.map(t => t._id) }
+    );
     const traineesCompany = mapValues(keyBy(traineesCompanyAtCourseRegistration, 'trainee'), 'company');
     filteredTrainees = courseFollowUp.trainees
       .filter(trainee => UtilsHelper.areObjectIdsEquals(traineesCompany[trainee._id], company));
@@ -715,7 +719,7 @@ exports.formatInterCourseForPdf = async (course) => {
   };
 
   const traineesCompanyAtCourseRegistration = await CourseHistoriesHelper
-    .getTraineesCompanyAtCourseRegistration(course.trainees, course._id);
+    .getCompanyAtCourseRegistrationList({ key: COURSE, value: course._id }, { key: TRAINEE, value: course.trainees });
   const traineesCompany = mapValues(keyBy(traineesCompanyAtCourseRegistration, 'trainee'), 'company');
   const companiesList = await Company
     .find({ _id: { $in: [...new Set(traineesCompanyAtCourseRegistration.map(t => t.company))] } }, { name: 1 })
@@ -805,7 +809,7 @@ const getTraineeList = async (course, credentials) => {
   if (canAccessAllTrainees) return course.trainees;
 
   const traineesCompanyAtCourseRegistration = await CourseHistoriesHelper
-    .getTraineesCompanyAtCourseRegistration(course.trainees, course._id);
+    .getCompanyAtCourseRegistrationList({ key: COURSE, value: course._id }, { key: TRAINEE, value: course.trainees });
   const traineesCompany = mapValues(keyBy(traineesCompanyAtCourseRegistration, 'trainee'), 'company');
   const loggedUserCompany = get(credentials, 'company._id');
 

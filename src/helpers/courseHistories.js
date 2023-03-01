@@ -117,17 +117,17 @@ exports.createHistoryOnCompanyAddition = (payload, userId) =>
 exports.createHistoryOnCompanyDeletion = (payload, userId) =>
   exports.createHistory(payload.course, userId, COMPANY_DELETION, { company: payload.company });
 
-exports.getTraineesCompanyAtCourseRegistration = async (traineeIds, courseId) => {
+exports.getCompanyAtCourseRegistrationList = async (singleton, list) => {
   const courseHistories = await CourseHistory
     .find(
-      { course: courseId, action: TRAINEE_ADDITION, trainee: { $in: traineeIds } },
-      { trainee: 1, company: 1, createdAt: 1, _id: 0 }
+      { [singleton.key]: singleton.value, action: TRAINEE_ADDITION, [list.key]: { $in: list.value } },
+      { [list.key]: 1, company: 1, createdAt: 1, _id: 0 }
     )
-    .sort({ createdAt: -1, trainee: 1 })
+    .sort({ createdAt: -1, [list.key]: 1 })
     .lean();
 
-  const traineesCompanyAtCourseRegistration = sortedUniqBy(courseHistories, ch => ch.trainee.toHexString())
-    .map(courseHistory => pick(courseHistory, ['trainee', 'company']));
+  const traineesCompanyAtCourseRegistration = sortedUniqBy(courseHistories, ch => ch[list.key].toHexString())
+    .map(courseHistory => pick(courseHistory, [list.key, 'company']));
 
   return traineesCompanyAtCourseRegistration;
 };
