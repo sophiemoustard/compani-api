@@ -557,26 +557,26 @@ describe('createHistoryOnCompanyDeletion', () => {
 });
 
 describe('getTraineesCompanyAtCourseRegistration', () => {
-  let find;
+  let courseHistoryFind;
 
   beforeEach(() => {
-    find = sinon.stub(CourseHistory, 'find');
+    courseHistoryFind = sinon.stub(CourseHistory, 'find');
   });
   afterEach(() => {
-    find.restore();
+    courseHistoryFind.restore();
   });
 
-  it('should list trainees and the company that registered them in the course', async () => {
+  it('should list trainees and the company that registered them in the course (INTER)', async () => {
     const courseId = new ObjectId();
     const traineeIds = [new ObjectId(), new ObjectId()];
     const companyIds = [new ObjectId(), new ObjectId()];
-
     const courseHistories = [
       { trainee: cloneDeep(traineeIds[1]), company: companyIds[1], createdAt: '2023-01-04T12:30:00.000Z' },
       { trainee: cloneDeep(traineeIds[0]), company: companyIds[0], createdAt: '2023-01-03T12:30:00.000Z' },
       { trainee: cloneDeep(traineeIds[0]), company: new ObjectId(), createdAt: '2022-12-15T12:30:00.000Z' },
     ];
-    find.returns(SinonMongoose.stubChainedQueries(courseHistories, ['sort', 'lean']));
+
+    courseHistoryFind.returns(SinonMongoose.stubChainedQueries(courseHistories, ['sort', 'lean']));
 
     const result = await CourseHistoriesHelper.getTraineesCompanyAtCourseRegistration(traineeIds, courseId);
 
@@ -586,7 +586,7 @@ describe('getTraineesCompanyAtCourseRegistration', () => {
     ]);
 
     SinonMongoose.calledOnceWithExactly(
-      find,
+      courseHistoryFind,
       [
         {
           query: 'find',

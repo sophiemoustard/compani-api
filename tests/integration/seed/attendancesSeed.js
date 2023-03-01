@@ -8,10 +8,11 @@ const SubProgram = require('../../../src/models/SubProgram');
 const User = require('../../../src/models/User');
 const UserCompany = require('../../../src/models/UserCompany');
 const { otherCompany, authCompany, companyWithoutSubscription } = require('../../seed/authCompaniesSeed');
-const { WEBAPP, INTRA, INTER_B2B } = require('../../../src/helpers/constants');
+const { WEBAPP, INTRA, INTER_B2B, TRAINEE_ADDITION } = require('../../../src/helpers/constants');
 const { deleteNonAuthenticationSeeds } = require('../helpers/authentication');
 const { trainerRoleId, vendorAdminRoleId } = require('../../seed/authRolesSeed');
 const { trainer } = require('../../seed/authUsersSeed');
+const CourseHistory = require('../../../src/models/CourseHistory');
 
 const userList = [
   {
@@ -46,6 +47,7 @@ const programList = [
   { _id: new ObjectId(), name: 'Program 2', subPrograms: [subProgramIdList[1]] },
   { _id: new ObjectId(), name: 'Program 3', subPrograms: [subProgramIdList[2]] },
 ];
+
 const subProgramList = [
   { _id: subProgramIdList[0], name: 'Subprogram 1', program: programList[0] },
   { _id: subProgramIdList[1], name: 'Subprogram 2', program: programList[1] },
@@ -184,8 +186,17 @@ const coursesList = [
     _id: new ObjectId(),
     subProgram: subProgramList[0],
     type: INTER_B2B,
-    trainees: [traineeList[5]._id, traineeList[6]._id],
-    companies: [otherCompany._id, authCompany._id],
+    trainees: [traineeList[5]._id, traineeList[6]._id, traineeList[0]._id],
+    companies: [otherCompany._id, authCompany._id, companyWithoutSubscription._id],
+    trainer,
+    salesRepresentative: userList[2]._id,
+  },
+  { // 7 no company linked
+    _id: new ObjectId(),
+    subProgram: subProgramList[0],
+    type: INTER_B2B,
+    trainees: [],
+    companies: [],
     trainer,
     salesRepresentative: userList[2]._id,
   },
@@ -234,6 +245,20 @@ const slotsList = [
     course: coursesList[5],
     step: new ObjectId(),
   },
+  { // 6 - slot for coursesList[6]
+    _id: new ObjectId(),
+    startDate: '2020-01-25T10:00:00.000Z',
+    endDate: '2020-01-25T14:00:00.000Z',
+    course: coursesList[6],
+    step: new ObjectId(),
+  },
+  { // 7 - slot for coursesList[7]
+    _id: new ObjectId(),
+    startDate: '2020-01-25T10:00:00.000Z',
+    endDate: '2020-01-25T14:00:00.000Z',
+    course: coursesList[7],
+    step: new ObjectId(),
+  },
 ];
 
 const attendancesList = [
@@ -266,6 +291,107 @@ const userCompanyList = [
   { user: traineeList[9]._id, company: otherCompany._id },
 ];
 
+const courseHistoryList = [
+  {
+    action: TRAINEE_ADDITION,
+    course: coursesList[0]._id,
+    company: authCompany._id,
+    createdBy: userList[2]._id,
+    trainee: traineeList[0]._id,
+  },
+  {
+    action: TRAINEE_ADDITION,
+    course: coursesList[0]._id,
+    company: authCompany._id,
+    createdBy: userList[0]._id,
+    trainee: traineeList[3]._id,
+  },
+  {
+    action: TRAINEE_ADDITION,
+    course: coursesList[0]._id,
+    company: authCompany._id,
+    createdBy: userList[0]._id,
+    trainee: traineeList[8]._id,
+  },
+  {
+    action: TRAINEE_ADDITION,
+    course: coursesList[1]._id,
+    company: authCompany._id,
+    createdBy: userList[0]._id,
+    trainee: traineeList[0]._id,
+  },
+  {
+    action: TRAINEE_ADDITION,
+    course: coursesList[2]._id,
+    company: otherCompany._id,
+    createdBy: userList[0]._id,
+    trainee: traineeList[9]._id,
+  },
+  {
+    action: TRAINEE_ADDITION,
+    course: coursesList[2]._id,
+    company: otherCompany._id,
+    createdBy: userList[0]._id,
+    trainee: traineeList[2]._id,
+  },
+  {
+    action: TRAINEE_ADDITION,
+    course: coursesList[3]._id,
+    company: otherCompany._id,
+    createdBy: userList[0]._id,
+    trainee: traineeList[2]._id,
+  },
+  {
+    action: TRAINEE_ADDITION,
+    course: coursesList[3]._id,
+    company: authCompany._id,
+    createdBy: userList[0]._id,
+    trainee: traineeList[2]._id,
+  },
+  {
+    action: TRAINEE_ADDITION,
+    course: coursesList[4]._id,
+    company: otherCompany._id,
+    createdBy: userList[0]._id,
+    trainee: traineeList[4]._id,
+  },
+  {
+    action: TRAINEE_ADDITION,
+    course: coursesList[5]._id,
+    company: authCompany._id,
+    createdBy: userList[0]._id,
+    trainee: traineeList[0]._id,
+  },
+  {
+    action: TRAINEE_ADDITION,
+    course: coursesList[5]._id,
+    company: authCompany._id,
+    createdBy: userList[0]._id,
+    trainee: traineeList[8]._id,
+  },
+  {
+    action: TRAINEE_ADDITION,
+    course: coursesList[6]._id,
+    company: companyWithoutSubscription._id,
+    createdBy: userList[0]._id,
+    trainee: traineeList[0]._id,
+  },
+  {
+    action: TRAINEE_ADDITION,
+    course: coursesList[6]._id,
+    company: authCompany._id,
+    createdBy: userList[0]._id,
+    trainee: traineeList[5]._id,
+  },
+  {
+    action: TRAINEE_ADDITION,
+    course: coursesList[6]._id,
+    company: otherCompany._id,
+    createdBy: userList[0]._id,
+    trainee: traineeList[6]._id,
+  },
+];
+
 const populateDB = async () => {
   await deleteNonAuthenticationSeeds();
 
@@ -277,6 +403,7 @@ const populateDB = async () => {
     UserCompany.create(userCompanyList),
     Program.create(programList),
     SubProgram.create(subProgramList),
+    CourseHistory.create(courseHistoryList),
   ]);
 };
 

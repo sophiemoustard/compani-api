@@ -1,18 +1,20 @@
 const get = require('lodash/get');
 const pick = require('lodash/pick');
 const groupBy = require('lodash/groupBy');
+const mapValues = require('lodash/mapValues');
+const keyBy = require('lodash/keyBy');
 const Attendance = require('../models/Attendance');
 const Course = require('../models/Course');
 const UtilsHelper = require('./utils');
-const { BLENDED, INTRA, VENDOR_ROLES } = require('./constants');
 const CourseSlot = require('../models/CourseSlot');
 const User = require('../models/User');
+const { BLENDED, VENDOR_ROLES } = require('./constants');
+const CourseHistoriesHelper = require('./courseHistories');
 
-const createSingleAttendance = async (payload, course, traineeId) => {
-  if (course.type === INTRA) return Attendance.create({ ...payload, company: course.companies[0] });
-
-  const traineeFromCourseInDb = course.trainees.find(t => UtilsHelper.areObjectIdsEquals(t._id, traineeId));
-  if (traineeFromCourseInDb) return Attendance.create({ ...payload, company: traineeFromCourseInDb.company });
+const createSingleAttendance = async (payload, courseTrainees, traineeId, traineesCompanyForAttendance) => {
+  if (UtilsHelper.doesArrayIncludeId(courseTrainees, traineeId)) {
+    return Attendance.create({ ...payload, company: traineesCompanyForAttendance[traineeId] });
+  }
 
   const unsubscribedTraineeUserCompany = await User
     .findOne({ _id: traineeId }, { company: 1 })
@@ -22,20 +24,18 @@ const createSingleAttendance = async (payload, course, traineeId) => {
   return Attendance.create({ ...payload, company: unsubscribedTraineeUserCompany.company });
 };
 
-const createManyAttendances = async (course, courseSlotId, credentials) => {
-  const traineesIdList = course.trainees.map(t => t._id);
+const createManyAttendances = async (courseTrainees, courseSlotId, credentials, traineesCompanyForAttendance) => {
   const existingAttendances = await Attendance
-    .find({ courseSlot: courseSlotId, trainee: { $in: traineesIdList } })
+    .find({ courseSlot: courseSlotId, trainee: { $in: courseTrainees } })
     .setOptions({ isVendorUser: VENDOR_ROLES.includes(get(credentials, 'role.vendor.name')) })
     .lean();
+
   const traineesWithAttendance = existingAttendances.map(a => a.trainee);
-  const newAttendances = course.trainees
-    .filter(t => !UtilsHelper.doesArrayIncludeId(traineesWithAttendance, t._id))
-    .map(t => ({
-      courseSlot: courseSlotId,
-      trainee: t._id,
-      company: course.type === INTRA ? course.companies[0] : t.company,
-    }));
+  const traineesWithoutAttendances = courseTrainees
+    .filter(tId => !UtilsHelper.doesArrayIncludeId(traineesWithAttendance, tId));
+
+  const newAttendances = traineesWithoutAttendances
+    .map(tId => ({ courseSlot: courseSlotId, trainee: tId, company: traineesCompanyForAttendance[tId] }));
 
   return Attendance.insertMany(newAttendances);
 };
@@ -44,17 +44,19 @@ exports.create = async (payload, credentials) => {
   const { courseSlot: courseSlotId, trainee: traineeId } = payload;
 
   const courseSlot = await CourseSlot.findById(courseSlotId, { course: 1 })
-    .populate({
-      path: 'course',
-      select: 'type trainees companies',
-      populate: { path: 'trainees', select: 'company', populate: { path: 'company' } },
-    })
+    .populate({ path: 'course', select: 'type trainees companies' })
     .lean();
+
   const { course } = courseSlot;
+  const traineeList = traineeId ? [traineeId] : course.trainees;
+  const traineesCompanyListForAttendance = await CourseHistoriesHelper
+    .getTraineesCompanyAtCourseRegistration(traineeList, course._id);
 
-  if (traineeId) return createSingleAttendance(payload, course, traineeId);
+  const traineesCompanyForAttendance = mapValues(keyBy(traineesCompanyListForAttendance, 'trainee'), 'company');
 
-  return createManyAttendances(course, courseSlotId, credentials);
+  if (traineeId) return createSingleAttendance(payload, course.trainees, traineeId, traineesCompanyForAttendance);
+
+  return createManyAttendances(course.trainees, courseSlotId, credentials, traineesCompanyForAttendance);
 };
 
 exports.list = async (query, company, credentials) => Attendance
