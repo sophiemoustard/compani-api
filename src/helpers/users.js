@@ -28,6 +28,7 @@ const {
   COACH,
   TRAINEE_ADDITION,
   STRICTLY_E_LEARNING,
+  DIRECTORY,
 } = require('./constants');
 const SectorHistoriesHelper = require('./sectorHistories');
 const GDriveStorageHelper = require('./gDriveStorage');
@@ -122,74 +123,79 @@ const formatQueryForLearnerList = async (query) => {
   };
 };
 
+const computeCoursesCountByTrainees = async (learnerList, company) => {
+  const learnersIdList = learnerList.map(learner => learner._id);
+  const [blendedCourseRegistrationHistoriesForTrainees, eLearningCoursesForTrainees] = await Promise.all([
+    CourseHistory
+      .find({ trainee: { $in: learnersIdList }, action: TRAINEE_ADDITION, ...(company && { company }) })
+      .populate({ path: 'course', select: 'trainees' })
+      .lean(),
+    Course
+      .find({
+        trainees: { $in: learnersIdList },
+        format: STRICTLY_E_LEARNING,
+        ...(company && { $or: [{ accessRules: company }, { accessRules: [] }] }),
+      })
+      .lean(),
+  ]);
+
+  const eLearningRegistrationList = eLearningCoursesForTrainees
+    .map(course => course.trainees.map(trainee => ({ trainee, course })))
+    .flat();
+  const eLearningCoursesGroupedByTrainee = groupBy(eLearningRegistrationList, 'trainee');
+
+  const traineesCurrentRegistrationList = blendedCourseRegistrationHistoriesForTrainees
+    .filter(history => UtilsHelper.doesArrayIncludeId(history.course.trainees, history.trainee));
+  const blendedCoursesGroupedByTrainee = groupBy(traineesCurrentRegistrationList, 'trainee');
+
+  const blendedCoursesCountByTrainee = {};
+  const eLearningCoursesCountByTrainee = {};
+  for (const learner of learnerList) {
+    if (blendedCoursesGroupedByTrainee[learner._id]) {
+      const learnerRegistration = blendedCoursesGroupedByTrainee[learner._id]
+        .sort(DatesUtilsHelper.descendingSortBy('createdAt'));
+      blendedCoursesGroupedByTrainee[learner._id] = uniqBy(learnerRegistration, 'course._id');
+    }
+    blendedCoursesCountByTrainee[learner._id] = (blendedCoursesGroupedByTrainee[learner._id] || []).length;
+    eLearningCoursesCountByTrainee[learner._id] = (eLearningCoursesGroupedByTrainee[learner._id] || []).length;
+  }
+
+  return { eLearningCoursesCountByTrainee, blendedCoursesCountByTrainee };
+};
+
 exports.getLearnerList = async (query, credentials) => {
   const userQuery = query.companies ? await formatQueryForLearnerList(query) : {};
+  const isDirectory = query.action === DIRECTORY;
 
   const learnerList = await User
     .find(userQuery, 'identity.firstname identity.lastname picture local.email', { autopopulate: false })
     .populate({ path: 'company', populate: { path: 'company', select: 'name' } })
-    .populate({ path: 'activityHistories', select: 'updatedAt', options: { sort: { updatedAt: -1 } } })
+    .populate(isDirectory && {
+      path: 'activityHistories',
+      select: 'updatedAt',
+      options: { sort: { updatedAt: -1 } },
+    })
     .populate({ path: 'userCompanyList', populate: { path: 'company', select: 'name' } })
     .setOptions({ isVendorUser: !!get(credentials, 'role.vendor') })
     .lean();
 
-  let blendedCourseRegistrations = {};
-  let eLearningCoursesGroupedByTrainee = {};
-  if (!Array.isArray(query.companies)) {
-    const [blendedCourseAdditionHistories, eLearningCourseRegistrations] = await Promise.all([
-      CourseHistory
-        .find({ trainee: { $in: learnerList.map(learner => learner._id) }, action: TRAINEE_ADDITION })
-        .populate({ path: 'course', select: 'trainees' })
-        .lean(),
-      Course
-        .find({ trainees: { $in: learnerList.map(learner => learner._id) }, format: STRICTLY_E_LEARNING })
-        .lean(),
-    ]);
-
-    blendedCourseRegistrations = groupBy(blendedCourseAdditionHistories
-      .filter(history => UtilsHelper.doesArrayIncludeId(history.course.trainees, history.trainee)), 'trainee');
-
-    const traineeELearningCourseList = eLearningCourseRegistrations
-      .map(course => course.trainees.map(trainee => ({ trainee, course })))
-      .flat();
-    eLearningCoursesGroupedByTrainee = groupBy(traineeELearningCourseList, 'trainee');
-
-    for (const learner of learnerList) {
-      if (blendedCourseRegistrations[learner._id]) {
-        const learnerRegistration = blendedCourseRegistrations[learner._id]
-          .sort(DatesUtilsHelper.descendingSortBy('createdAt'));
-        blendedCourseRegistrations[learner._id] = uniqBy(learnerRegistration, 'course._id');
-      } else {
-        blendedCourseRegistrations[learner._id] = [];
-      }
-      if (eLearningCoursesGroupedByTrainee[learner._id]) {
-        eLearningCoursesGroupedByTrainee[learner._id] = eLearningCoursesGroupedByTrainee[learner._id]
-          .map(tc => tc.course);
-      } else {
-        eLearningCoursesGroupedByTrainee[learner._id] = [];
-      }
-    }
+  let eLearningCoursesCountByTrainee = {};
+  let blendedCoursesCountByTrainee = {};
+  if (isDirectory) {
+    (
+      { eLearningCoursesCountByTrainee, blendedCoursesCountByTrainee } =
+        await computeCoursesCountByTrainees(learnerList, query.companies)
+    );
   }
 
   return learnerList.map(learner => ({
     ...omit(learner, 'activityHistories'),
-    activityHistoryCount: learner.activityHistories.length,
-    lastActivityHistory: learner.activityHistories[0],
-    ...(!Array.isArray(query.companies) && {
-      blendedCoursesCount: !query.companies
-        ? blendedCourseRegistrations[learner._id].length
-        : blendedCourseRegistrations[learner._id]
-          .filter(history => UtilsHelper.areObjectIdsEquals(history.company, query.companies))
-          .length,
-      eLearningCoursesCount: !query.companies
-        ? eLearningCoursesGroupedByTrainee[learner._id].length
-        : eLearningCoursesGroupedByTrainee[learner._id]
-          .filter(course => !course.accessRules.length ||
-            UtilsHelper.doesArrayIncludeId(course.accessRules, query.companies)
-          )
-          .length,
-    }
-    ),
+    ...(isDirectory && {
+      activityHistoryCount: learner.activityHistories.length,
+      lastActivityHistory: learner.activityHistories[0],
+      eLearningCoursesCount: eLearningCoursesCountByTrainee[learner._id],
+      blendedCoursesCount: blendedCoursesCountByTrainee[learner._id],
+    }),
   }));
 };
 

@@ -29,6 +29,8 @@ const {
   WEBAPP,
   TRAINEE_ADDITION,
   STRICTLY_E_LEARNING,
+  DIRECTORY,
+  COURSE,
 } = require('../../../src/helpers/constants');
 const ActivityHistory = require('../../../src/models/ActivityHistory');
 const { CompaniDate } = require('../../../src/helpers/dates/companiDates');
@@ -293,7 +295,7 @@ describe('getLearnerList', () => {
   });
 
   it('should get all learners (vendor directory)', async () => {
-    const query = {};
+    const query = { action: DIRECTORY };
     const credentials = { role: { vendor: new ObjectId() } };
     const users = [
       { _id: new ObjectId(), activityHistories: [{ _id: new ObjectId() }] },
@@ -393,7 +395,7 @@ describe('getLearnerList', () => {
 
   it('should get all company learners (client directory)', async () => {
     const companyId = new ObjectId();
-    const query = { companies: companyId };
+    const query = { companies: companyId, action: DIRECTORY };
     const credentials = { role: { vendor: new ObjectId() } };
     const roleId1 = new ObjectId();
     const roleId2 = new ObjectId();
@@ -439,12 +441,6 @@ describe('getLearnerList', () => {
       },
       {
         course: { _id: courseIds[1], trainees: [users[0]._id, users[1]._id] },
-        trainee: users[0]._id,
-        createdAt: '2022-12-20T15:30:00.000Z',
-        company: new ObjectId(),
-      },
-      {
-        course: { _id: courseIds[1], trainees: [users[0]._id, users[1]._id] },
         trainee: users[1]._id,
         createdAt: '2022-12-20T15:30:00.000Z',
         company: companyId,
@@ -452,7 +448,6 @@ describe('getLearnerList', () => {
     ];
     const eLearningCourses = [
       { _id: new ObjectId(), trainees: [users[0]._id, users[1]._id], accessRules: [companyId] },
-      { _id: new ObjectId(), trainees: [users[0]._id], accessRules: [new ObjectId()] },
       { _id: new ObjectId(), trainees: [users[1]._id], accessRules: [] },
     ];
 
@@ -510,7 +505,10 @@ describe('getLearnerList', () => {
     SinonMongoose.calledOnceWithExactly(
       findCourseHistory,
       [
-        { query: 'find', args: [{ trainee: { $in: [users[0]._id, users[1]._id] }, action: TRAINEE_ADDITION }] },
+        {
+          query: 'find',
+          args: [{ trainee: { $in: [users[0]._id, users[1]._id] }, action: TRAINEE_ADDITION, company: companyId }],
+        },
         { query: 'populate', args: [{ path: 'course', select: 'trainees' }] },
         { query: 'lean' },
       ]
@@ -518,29 +516,29 @@ describe('getLearnerList', () => {
     SinonMongoose.calledOnceWithExactly(
       findCourse,
       [
-        { query: 'find', args: [{ trainees: { $in: [users[0]._id, users[1]._id] }, format: STRICTLY_E_LEARNING }] },
+        {
+          query: 'find',
+          args: [{
+            trainees: { $in: [users[0]._id, users[1]._id] },
+            format: STRICTLY_E_LEARNING,
+            $or: [{ accessRules: companyId }, { accessRules: [] }],
+          }],
+        },
         { query: 'lean' },
       ]
     );
   });
 
   it('should get learners from company to date', async () => {
-    const query = { companies: [new ObjectId()] };
+    const query = { companies: new ObjectId(), action: COURSE };
     const credentials = { role: { client: new ObjectId() } };
     const roleId1 = new ObjectId();
     const roleId2 = new ObjectId();
     const rolesToExclude = [{ _id: roleId1 }, { _id: roleId2 }];
-    const users = [
-      { _id: new ObjectId(), activityHistories: [{ _id: new ObjectId() }] },
-      { _id: new ObjectId(), activityHistories: [{ _id: new ObjectId() }] },
-    ];
+    const users = [{ _id: new ObjectId() }, { _id: new ObjectId() }];
     const usersCompany = [
       { user: users[0]._id, startDate: '2022-12-20T15:30:00.000Z' },
       { user: users[1]._id, startDate: '2022-12-19T15:30:00.000Z' },
-    ];
-    const learnerList = [
-      { _id: users[0]._id, activityHistoryCount: 1, lastActivityHistory: users[0].activityHistories[0] },
-      { _id: users[1]._id, activityHistoryCount: 1, lastActivityHistory: users[1].activityHistories[0] },
     ];
 
     findUserCompany.returns(SinonMongoose.stubChainedQueries(usersCompany, ['lean']));
@@ -549,7 +547,7 @@ describe('getLearnerList', () => {
 
     const result = await UsersHelper.getLearnerList(query, credentials);
 
-    expect(result).toEqual(learnerList);
+    expect(result).toEqual(users);
     SinonMongoose.calledOnceWithExactly(
       findRole,
       [{ query: 'find', args: [{ name: { $in: [HELPER, AUXILIARY_WITHOUT_COMPANY] } }] }, { query: 'lean' }]
@@ -583,10 +581,7 @@ describe('getLearnerList', () => {
           ],
         },
         { query: 'populate', args: [{ path: 'company', populate: { path: 'company', select: 'name' } }] },
-        {
-          query: 'populate',
-          args: [{ path: 'activityHistories', select: 'updatedAt', options: { sort: { updatedAt: -1 } } }],
-        },
+        { query: 'populate', args: [false] },
         { query: 'populate', args: [{ path: 'userCompanyList', populate: { path: 'company', select: 'name' } }] },
         { query: 'setOptions', args: [{ isVendorUser: false }] },
         { query: 'lean' },
@@ -597,22 +592,15 @@ describe('getLearnerList', () => {
   });
 
   it('should get current or future learners from company', async () => {
-    const query = { companies: [new ObjectId()], startDate: '2022-12-21T16:00:00.000Z' };
+    const query = { companies: new ObjectId(), startDate: '2022-12-21T16:00:00.000Z', action: COURSE };
     const credentials = { role: { client: new ObjectId() } };
     const roleId1 = new ObjectId();
     const roleId2 = new ObjectId();
     const rolesToExclude = [{ _id: roleId1 }, { _id: roleId2 }];
-    const users = [
-      { _id: new ObjectId(), activityHistories: [{ _id: new ObjectId() }] },
-      { _id: new ObjectId(), activityHistories: [{ _id: new ObjectId() }] },
-    ];
+    const users = [{ _id: new ObjectId() }, { _id: new ObjectId() }];
     const usersCompany = [
       { user: users[0]._id, startDate: '2022-12-20T15:30:00.000Z' },
       { user: users[1]._id, startDate: '2022-12-19T15:30:00.000Z' },
-    ];
-    const learnerList = [
-      { _id: users[0]._id, activityHistoryCount: 1, lastActivityHistory: users[0].activityHistories[0] },
-      { _id: users[1]._id, activityHistoryCount: 1, lastActivityHistory: users[1].activityHistories[0] },
     ];
 
     findUserCompany.returns(SinonMongoose.stubChainedQueries(usersCompany, ['lean']));
@@ -621,7 +609,7 @@ describe('getLearnerList', () => {
 
     const result = await UsersHelper.getLearnerList(query, credentials);
 
-    expect(result).toEqual(learnerList);
+    expect(result).toEqual(users);
     SinonMongoose.calledOnceWithExactly(
       findRole,
       [{ query: 'find', args: [{ name: { $in: [HELPER, AUXILIARY_WITHOUT_COMPANY] } }] }, { query: 'lean' }]
@@ -654,10 +642,7 @@ describe('getLearnerList', () => {
           ],
         },
         { query: 'populate', args: [{ path: 'company', populate: { path: 'company', select: 'name' } }] },
-        {
-          query: 'populate',
-          args: [{ path: 'activityHistories', select: 'updatedAt', options: { sort: { updatedAt: -1 } } }],
-        },
+        { query: 'populate', args: [false] },
         { query: 'populate', args: [{ path: 'userCompanyList', populate: { path: 'company', select: 'name' } }] },
         { query: 'setOptions', args: [{ isVendorUser: false }] },
         { query: 'lean' },
@@ -669,25 +654,19 @@ describe('getLearnerList', () => {
 
   it('should get learners at a certain date', async () => {
     const query = {
-      companies: [new ObjectId()],
+      companies: new ObjectId(),
       startDate: '2022-12-19T23:00:00.000Z',
       endDate: '2022-12-20T22:59:59.999Z',
+      action: COURSE,
     };
     const credentials = { role: { client: new ObjectId() } };
     const roleId1 = new ObjectId();
     const roleId2 = new ObjectId();
     const rolesToExclude = [{ _id: roleId1 }, { _id: roleId2 }];
-    const users = [
-      { _id: new ObjectId(), activityHistories: [{ _id: new ObjectId() }] },
-      { _id: new ObjectId(), activityHistories: [{ _id: new ObjectId() }] },
-    ];
+    const users = [{ _id: new ObjectId() }, { _id: new ObjectId() }];
     const usersCompany = [
       { user: users[0]._id, startDate: '2020-12-20T15:30:00.000Z' },
       { user: users[1]._id, startDate: '2020-12-19T15:30:00.000Z' },
-    ];
-    const learnerList = [
-      { _id: users[0]._id, activityHistoryCount: 1, lastActivityHistory: users[0].activityHistories[0] },
-      { _id: users[1]._id, activityHistoryCount: 1, lastActivityHistory: users[1].activityHistories[0] },
     ];
 
     findUserCompany.returns(SinonMongoose.stubChainedQueries(usersCompany, ['lean']));
@@ -696,7 +675,7 @@ describe('getLearnerList', () => {
 
     const result = await UsersHelper.getLearnerList(query, credentials);
 
-    expect(result).toEqual(learnerList);
+    expect(result).toEqual(users);
     SinonMongoose.calledOnceWithExactly(
       findRole,
       [{ query: 'find', args: [{ name: { $in: [HELPER, AUXILIARY_WITHOUT_COMPANY] } }] }, { query: 'lean' }]
@@ -730,10 +709,7 @@ describe('getLearnerList', () => {
           ],
         },
         { query: 'populate', args: [{ path: 'company', populate: { path: 'company', select: 'name' } }] },
-        {
-          query: 'populate',
-          args: [{ path: 'activityHistories', select: 'updatedAt', options: { sort: { updatedAt: -1 } } }],
-        },
+        { query: 'populate', args: [false] },
         { query: 'populate', args: [{ path: 'userCompanyList', populate: { path: 'company', select: 'name' } }] },
         { query: 'setOptions', args: [{ isVendorUser: false }] },
         { query: 'lean' },
