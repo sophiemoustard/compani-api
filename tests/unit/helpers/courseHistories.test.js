@@ -603,4 +603,40 @@ describe('getCompanyAtCourseRegistrationList', () => {
       ]
     );
   });
+
+  it('should list courses and the company at registration', async () => {
+    const traineeId = new ObjectId();
+    const courseIds = [new ObjectId(), new ObjectId()];
+    const companyIds = [new ObjectId(), new ObjectId()];
+
+    const courseHistories = [
+      { trainee: traineeId, company: companyIds[1], createdAt: '2023-01-04T12:30:00.000Z', course: courseIds[1] },
+      { trainee: traineeId, company: companyIds[0], createdAt: '2023-01-03T12:30:00.000Z', course: courseIds[0] },
+      { trainee: traineeId, company: new ObjectId(), createdAt: '2022-12-15T12:30:00.000Z', course: courseIds[0] },
+    ];
+    courseHistoryFind.returns(SinonMongoose.stubChainedQueries(courseHistories, ['sort', 'lean']));
+
+    const result = await CourseHistoriesHelper
+      .getCompanyAtCourseRegistrationList({ key: TRAINEE, value: traineeId }, { key: COURSE, value: courseIds });
+
+    expect(result).toEqual([
+      { course: courseIds[1], company: courseHistories[0].company },
+      { course: courseIds[0], company: courseHistories[1].company },
+    ]);
+
+    SinonMongoose.calledOnceWithExactly(
+      courseHistoryFind,
+      [
+        {
+          query: 'find',
+          args: [
+            { trainee: traineeId, action: TRAINEE_ADDITION, course: { $in: courseIds } },
+            { course: 1, company: 1, createdAt: 1, _id: 0 },
+          ],
+        },
+        { query: 'sort', args: [{ createdAt: -1, course: 1 }] },
+        { query: 'lean' },
+      ]
+    );
+  });
 });

@@ -126,8 +126,8 @@ exports.getCompanyAtCourseRegistrationList = async (singleton, list) => {
     .sort({ createdAt: -1, [list.key]: 1 })
     .lean();
 
-  const traineesCompanyAtCourseRegistration = sortedUniqBy(courseHistories, ch => ch[list.key].toHexString())
+  const companyAtCourseRegistrationList = sortedUniqBy(courseHistories, ch => ch[list.key].toHexString())
     .map(courseHistory => pick(courseHistory, [list.key, 'company']));
 
-  return traineesCompanyAtCourseRegistration;
+  return companyAtCourseRegistrationList;
 };
