@@ -123,7 +123,7 @@ const formatQueryForLearnerList = async (query) => {
   };
 };
 
-const computeCoursesCountByTrainees = async (learnerList, company) => {
+const computeCoursesCountByTrainee = async (learnerList, company) => {
   const learnersIdList = learnerList.map(learner => learner._id);
   const [blendedCourseRegistrationHistoriesForTrainees, eLearningCoursesForTrainees] = await Promise.all([
     CourseHistory
@@ -144,9 +144,9 @@ const computeCoursesCountByTrainees = async (learnerList, company) => {
     .flat();
   const eLearningCoursesGroupedByTrainee = groupBy(eLearningRegistrationList, 'trainee');
 
-  const traineesCurrentRegistrationList = blendedCourseRegistrationHistoriesForTrainees
+  const traineesRegistrationList = blendedCourseRegistrationHistoriesForTrainees
     .filter(history => UtilsHelper.doesArrayIncludeId(history.course.trainees, history.trainee));
-  const blendedCoursesGroupedByTrainee = groupBy(traineesCurrentRegistrationList, 'trainee');
+  const blendedCoursesGroupedByTrainee = groupBy(traineesRegistrationList, 'trainee');
 
   const blendedCoursesCountByTrainee = {};
   const eLearningCoursesCountByTrainee = {};
@@ -181,8 +181,10 @@ exports.getLearnerList = async (query, credentials) => {
 
   if (!isDirectory) return learnerList;
 
-  const { eLearningCoursesCountByTrainee, blendedCoursesCountByTrainee } =
-        await computeCoursesCountByTrainees(learnerList, query.companies);
+  const {
+    eLearningCoursesCountByTrainee,
+    blendedCoursesCountByTrainee,
+  } = await computeCoursesCountByTrainee(learnerList, query.companies);
 
   return learnerList.map(learner => ({
     ...omit(learner, 'activityHistories'),
