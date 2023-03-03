@@ -126,13 +126,22 @@ const listBlendedForCompany = async (query, origin) => {
     .filter(course => course.type === INTER_B2B)
     .sort((a, b) => UtilsHelper.sortStrings(a._id.toHexString(), b._id.toHexString()));
 
+  const traineesCompanyForCourseList = {};
+  for (const course of interCourses) {
+    const traineesCompanyAtCourseRegistration = await CourseHistoriesHelper
+      .getTraineesCompanyAtCourseRegistration(course.trainees, course._id);
+    const traineesCompany = mapValues(keyBy(traineesCompanyAtCourseRegistration, 'trainee'), 'company');
+
+    traineesCompanyForCourseList[course._id] = traineesCompany;
+  }
+
   return [
     ...intraCourses,
     ...interCourses
       .map(course => ({
         ...course,
-        trainees: course.trainees.filter(t =>
-          (t.company ? UtilsHelper.areObjectIdsEquals(t.company._id, query.company) : false)),
+        trainees: course.trainees
+          .filter(tId => UtilsHelper.areObjectIdsEquals(traineesCompanyForCourseList[course._id][tId], query.company)),
       })),
   ];
 };

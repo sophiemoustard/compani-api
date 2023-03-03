@@ -207,6 +207,7 @@ describe('list', () => {
   let find;
   let getTotalTheoreticalDurationSpy;
   let formatCourseWithProgress;
+  let getTraineesCompanyAtCourseRegistration;
   const authCompany = new ObjectId();
   const credentials = { _id: new ObjectId(), role: { vendor: { name: TRAINING_ORGANISATION_MANAGER } } };
   const isVendorUser = [TRAINING_ORGANISATION_MANAGER, VENDOR_ADMIN].includes(get(credentials, 'role.vendor.name'));
@@ -217,13 +218,17 @@ describe('list', () => {
     find = sinon.stub(Course, 'find');
     getTotalTheoreticalDurationSpy = sinon.spy(CourseHelper, 'getTotalTheoreticalDuration');
     formatCourseWithProgress = sinon.stub(CourseHelper, 'formatCourseWithProgress');
+    getTraineesCompanyAtCourseRegistration = sinon
+      .stub(CourseHistoriesHelper, 'getTraineesCompanyAtCourseRegistration');
   });
+
   afterEach(() => {
     findCourseAndPopulate.restore();
     userFindOne.restore();
     find.restore();
     getTotalTheoreticalDurationSpy.restore();
     formatCourseWithProgress.restore();
+    getTraineesCompanyAtCourseRegistration.restore();
   });
 
   describe('OPERATIONS', () => {
@@ -285,31 +290,23 @@ describe('list', () => {
 
     it('should return company courses', async () => {
       const courseIdList = [new ObjectId(), new ObjectId(), new ObjectId()];
+      const traineeIdList = [new ObjectId(), new ObjectId()];
       const coursesList = [
         { _id: courseIdList[0], misc: 'name', type: INTRA },
         { _id: courseIdList[1], misc: 'name2', type: INTRA },
-        {
-          _id: courseIdList[2],
-          misc: 'program',
-          type: INTER_B2B,
-          trainees: [{ identity: { firstname: 'Bonjour' }, company: { _id: authCompany } }],
-        },
+        { _id: courseIdList[2], misc: 'program', type: INTER_B2B, trainees: [traineeIdList[0]] },
       ];
       const returnedList = [
         { _id: courseIdList[0], misc: 'name', type: INTRA },
         { _id: courseIdList[1], misc: 'name2', type: INTRA },
-        {
-          _id: courseIdList[2],
-          misc: 'program',
-          type: INTER_B2B,
-          trainees: [
-            { identity: { firstname: 'Bonjour' }, company: { _id: authCompany } },
-            { identity: { firstname: 'Au revoir' }, company: { _id: new ObjectId() } },
-          ],
-        },
+        { _id: courseIdList[2], misc: 'program', type: INTER_B2B, trainees: traineeIdList },
       ];
 
       findCourseAndPopulate.returns(returnedList);
+      getTraineesCompanyAtCourseRegistration.returns([
+        { trainee: traineeIdList[0], company: authCompany },
+        { trainee: traineeIdList[1], company: new ObjectId() },
+      ]);
 
       const query = {
         company: authCompany.toHexString(),
@@ -318,6 +315,7 @@ describe('list', () => {
         action: 'operations',
         origin: 'webapp',
       };
+
       const result = await CourseHelper.list(query, credentials);
 
       expect(result).toMatchObject(coursesList);
