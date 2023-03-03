@@ -251,6 +251,7 @@ describe('list', () => {
       sinon.assert.notCalled(userFindOne);
       sinon.assert.notCalled(find);
       sinon.assert.notCalled(formatCourseWithProgress);
+      sinon.assert.notCalled(getCompanyAtCourseRegistrationList);
     });
 
     it('should return eLearning courses', async () => {
@@ -287,6 +288,7 @@ describe('list', () => {
       sinon.assert.notCalled(userFindOne);
       sinon.assert.notCalled(find);
       sinon.assert.notCalled(formatCourseWithProgress);
+      sinon.assert.notCalled(getCompanyAtCourseRegistrationList);
     });
 
     it('should return company courses', async () => {
@@ -330,6 +332,11 @@ describe('list', () => {
       sinon.assert.notCalled(userFindOne);
       sinon.assert.notCalled(find);
       sinon.assert.notCalled(formatCourseWithProgress);
+      sinon.assert.calledOnceWithExactly(
+        getCompanyAtCourseRegistrationList,
+        { key: COURSE, value: courseIdList[2] },
+        { key: TRAINEE, value: traineeIdList }
+      );
     });
 
     it('should return company eLearning courses', async () => {
@@ -380,6 +387,7 @@ describe('list', () => {
       sinon.assert.notCalled(userFindOne);
       sinon.assert.notCalled(find);
       sinon.assert.notCalled(formatCourseWithProgress);
+      sinon.assert.notCalled(getCompanyAtCourseRegistrationList);
     });
   });
 

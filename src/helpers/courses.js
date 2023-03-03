@@ -130,7 +130,7 @@ const listBlendedForCompany = async (query, origin) => {
   const traineesCompanyForCourseList = {};
   for (const course of interCourses) {
     const traineesCompanyAtCourseRegistration = await CourseHistoriesHelper
-      .getTraineesCompanyAtCourseRegistration(course.trainees, course._id);
+      .getCompanyAtCourseRegistrationList({ key: COURSE, value: course._id }, { key: TRAINEE, value: course.trainees });
     const traineesCompany = mapValues(keyBy(traineesCompanyAtCourseRegistration, 'trainee'), 'company');
 
     traineesCompanyForCourseList[course._id] = traineesCompany;
