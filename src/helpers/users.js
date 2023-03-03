@@ -140,8 +140,7 @@ const computeCoursesCountByTrainee = async (learnerList, company) => {
   ]);
 
   const eLearningRegistrationList = eLearningCoursesForTrainees
-    .map(course => course.trainees.map(trainee => ({ trainee, course })))
-    .flat();
+    .flatMap(course => course.trainees.map(trainee => ({ trainee, course })));
   const eLearningCoursesGroupedByTrainee = groupBy(eLearningRegistrationList, 'trainee');
 
   const traineesRegistrationList = blendedCourseRegistrationHistoriesForTrainees

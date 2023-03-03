@@ -312,8 +312,7 @@ describe('getLearnerList', () => {
       {
         _id: users[1]._id,
         activityHistoryCount: 1,
-        lastActivityHistory:
-         users[1].activityHistories[0],
+        lastActivityHistory: users[1].activityHistories[0],
         blendedCoursesCount: 1,
         eLearningCoursesCount: 2,
       },
@@ -331,10 +330,7 @@ describe('getLearnerList', () => {
         createdAt: '2022-12-22T15:30:00.000Z',
       },
       {
-        course: {
-          _id: courseIds[1],
-          trainees: [users[1]._id],
-        },
+        course: { _id: courseIds[1], trainees: [users[1]._id] },
         trainee: users[0]._id,
         createdAt: '2022-12-20T15:30:00.000Z',
       },
@@ -419,8 +415,7 @@ describe('getLearnerList', () => {
       {
         _id: users[1]._id,
         activityHistoryCount: 1,
-        lastActivityHistory:
-         users[1].activityHistories[0],
+        lastActivityHistory: users[1].activityHistories[0],
         blendedCoursesCount: 1,
         eLearningCoursesCount: 2,
       },
