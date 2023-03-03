@@ -23,6 +23,8 @@ const {
   OTHER,
   OPERATIONS,
   CONVOCATION,
+  COURSE,
+  TRAINEE,
 } = require('../../helpers/constants');
 const translate = require('../../helpers/translate');
 const UtilsHelper = require('../../helpers/utils');
@@ -472,8 +474,9 @@ exports.authorizeCourseCompanyDeletion = async (req) => {
 
   if (!UtilsHelper.doesArrayIncludeId(course.companies, companyId) || course.type !== INTER_B2B) throw Boom.forbidden();
 
-  const traineesCompanyAtCourseRegistration = await CourseHistoriesHelper
-    .getTraineesCompanyAtCourseRegistration(course.trainees, req.params._id);
+  const traineesCompanyAtCourseRegistration = await CourseHistoriesHelper.getCompanyAtCourseRegistrationList(
+    { key: COURSE, value: req.params._id }, { key: TRAINEE, value: course.trainees }
+  );
   const companiesAtRegistration = traineesCompanyAtCourseRegistration.map(traineeCompany => traineeCompany.company);
 
   if (UtilsHelper.doesArrayIncludeId(companiesAtRegistration, companyId)) {

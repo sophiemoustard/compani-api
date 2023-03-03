@@ -8,7 +8,7 @@ const Course = require('../models/Course');
 const UtilsHelper = require('./utils');
 const CourseSlot = require('../models/CourseSlot');
 const User = require('../models/User');
-const { BLENDED, VENDOR_ROLES } = require('./constants');
+const { BLENDED, VENDOR_ROLES, COURSE, TRAINEE } = require('./constants');
 const CourseHistoriesHelper = require('./courseHistories');
 
 const createSingleAttendance = async (payload, courseTrainees, traineeId, traineesCompanyForAttendance) => {
@@ -50,7 +50,7 @@ exports.create = async (payload, credentials) => {
   const { course } = courseSlot;
   const traineeList = traineeId ? [traineeId] : course.trainees;
   const traineesCompanyListForAttendance = await CourseHistoriesHelper
-    .getTraineesCompanyAtCourseRegistration(traineeList, course._id);
+    .getCompanyAtCourseRegistrationList({ key: COURSE, value: course._id }, { key: TRAINEE, value: traineeList });
 
   const traineesCompanyForAttendance = mapValues(keyBy(traineesCompanyListForAttendance, 'trainee'), 'company');
 

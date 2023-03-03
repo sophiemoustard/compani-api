@@ -13,6 +13,8 @@ const {
   INTER_B2B,
   TRAINING_ORGANISATION_MANAGER,
   VENDOR_ROLES,
+  COURSE,
+  TRAINEE,
 } = require('../../../src/helpers/constants');
 const CourseSlot = require('../../../src/models/CourseSlot');
 const User = require('../../../src/models/User');
@@ -26,16 +28,16 @@ describe('create', () => {
   let courseSlotFindById;
   let find;
   let userFindOne;
-  let getTraineesCompanyAtCourseRegistration;
+  let getCompanyAtCourseRegistrationList;
   beforeEach(() => {
     insertMany = sinon.stub(Attendance, 'insertMany');
     create = sinon.stub(Attendance, 'create');
     courseSlotFindById = sinon.stub(CourseSlot, 'findById');
     find = sinon.stub(Attendance, 'find');
     userFindOne = sinon.stub(User, 'findOne');
-    getTraineesCompanyAtCourseRegistration = sinon.stub(
+    getCompanyAtCourseRegistrationList = sinon.stub(
       CourseHistoriesHelper,
-      'getTraineesCompanyAtCourseRegistration'
+      'getCompanyAtCourseRegistrationList'
     );
   });
 
@@ -45,7 +47,7 @@ describe('create', () => {
     courseSlotFindById.restore();
     find.restore();
     userFindOne.restore();
-    getTraineesCompanyAtCourseRegistration.restore();
+    getCompanyAtCourseRegistrationList.restore();
   });
 
   it('should add a single attendance on INTRA course', async () => {
@@ -58,7 +60,7 @@ describe('create', () => {
       companies: [company],
     };
     courseSlotFindById.returns(SinonMongoose.stubChainedQueries({ course }));
-    getTraineesCompanyAtCourseRegistration.returns([{ trainee: payload.trainee, company }]);
+    getCompanyAtCourseRegistrationList.returns([{ trainee: payload.trainee, company }]);
 
     await AttendanceHelper.create(payload, credentials);
 
@@ -71,7 +73,11 @@ describe('create', () => {
       ]
     );
     sinon.assert.calledOnceWithExactly(create, { ...payload, company });
-    sinon.assert.calledOnceWithExactly(getTraineesCompanyAtCourseRegistration, [payload.trainee], course._id);
+    sinon.assert.calledOnceWithExactly(
+      getCompanyAtCourseRegistrationList,
+      { key: COURSE, value: course._id },
+      { key: TRAINEE, value: [payload.trainee] }
+    );
     sinon.assert.notCalled(userFindOne);
     sinon.assert.notCalled(insertMany);
     sinon.assert.notCalled(find);
@@ -89,7 +95,7 @@ describe('create', () => {
       companies: [otherCompany, company],
     };
     courseSlotFindById.returns(SinonMongoose.stubChainedQueries({ course }));
-    getTraineesCompanyAtCourseRegistration.returns([{ trainee, company }]);
+    getCompanyAtCourseRegistrationList.returns([{ trainee, company }]);
 
     await AttendanceHelper.create(payload, credentials);
 
@@ -102,7 +108,11 @@ describe('create', () => {
       ]
     );
     sinon.assert.calledOnceWithExactly(create, { ...payload, company });
-    sinon.assert.calledOnceWithExactly(getTraineesCompanyAtCourseRegistration, [trainee], course._id);
+    sinon.assert.calledOnceWithExactly(
+      getCompanyAtCourseRegistrationList,
+      { key: COURSE, value: course._id },
+      { key: TRAINEE, value: [trainee] }
+    );
     sinon.assert.notCalled(userFindOne);
     sinon.assert.notCalled(insertMany);
     sinon.assert.notCalled(find);
@@ -120,7 +130,7 @@ describe('create', () => {
     };
     courseSlotFindById.returns(SinonMongoose.stubChainedQueries({ course }));
     userFindOne.returns(SinonMongoose.stubChainedQueries({ company }));
-    getTraineesCompanyAtCourseRegistration.returns([]);
+    getCompanyAtCourseRegistrationList.returns([]);
 
     await AttendanceHelper.create(payload, credentials);
 
@@ -141,7 +151,11 @@ describe('create', () => {
       ]
     );
     sinon.assert.calledOnceWithExactly(create, { ...payload, company });
-    sinon.assert.calledOnceWithExactly(getTraineesCompanyAtCourseRegistration, [payload.trainee], course._id);
+    sinon.assert.calledOnceWithExactly(
+      getCompanyAtCourseRegistrationList,
+      { key: COURSE, value: course._id },
+      { key: TRAINEE, value: [payload.trainee] }
+    );
     sinon.assert.notCalled(insertMany);
     sinon.assert.notCalled(find);
   });
@@ -163,7 +177,7 @@ describe('create', () => {
       SinonMongoose
         .stubChainedQueries([{ courseSlot, trainee: course.trainees[0]._id }], ['setOptions', 'lean'])
     );
-    getTraineesCompanyAtCourseRegistration.returns([
+    getCompanyAtCourseRegistrationList.returns([
       { trainee: courseTrainees[0], company },
       { trainee: courseTrainees[1], company },
       { trainee: courseTrainees[2], company },
@@ -195,7 +209,11 @@ describe('create', () => {
         { courseSlot, trainee: course.trainees[2]._id, company },
       ]
     );
-    sinon.assert.calledOnceWithExactly(getTraineesCompanyAtCourseRegistration, course.trainees, course._id);
+    sinon.assert.calledOnceWithExactly(
+      getCompanyAtCourseRegistrationList,
+      { key: COURSE, value: course._id },
+      { key: TRAINEE, value: course.trainees }
+    );
     sinon.assert.notCalled(userFindOne);
     sinon.assert.notCalled(create);
   });
@@ -217,7 +235,7 @@ describe('create', () => {
       SinonMongoose
         .stubChainedQueries([{ courseSlot, trainee: course.trainees[0]._id }], ['setOptions', 'lean'])
     );
-    getTraineesCompanyAtCourseRegistration.returns([
+    getCompanyAtCourseRegistrationList.returns([
       { trainee: courseTrainees[0], company: companies[0] },
       { trainee: courseTrainees[1], company: companies[1] },
       { trainee: courseTrainees[2], company: companies[2] },
@@ -249,7 +267,11 @@ describe('create', () => {
         { courseSlot, trainee: course.trainees[2]._id, company: companies[2] },
       ]
     );
-    sinon.assert.calledOnceWithExactly(getTraineesCompanyAtCourseRegistration, course.trainees, course._id);
+    sinon.assert.calledOnceWithExactly(
+      getCompanyAtCourseRegistrationList,
+      { key: COURSE, value: course._id },
+      { key: TRAINEE, value: course.trainees }
+    );
     sinon.assert.notCalled(userFindOne);
     sinon.assert.notCalled(create);
   });
