@@ -4,12 +4,12 @@ const has = require('lodash/has');
 const omit = require('lodash/omit');
 const groupBy = require('lodash/groupBy');
 const keyBy = require('lodash/keyBy');
-const compact = require('lodash/compact');
 const mapValues = require('lodash/mapValues');
 const fs = require('fs');
 const os = require('os');
 const Boom = require('@hapi/boom');
 const { CompaniDate } = require('./dates/companiDates');
+const Company = require('../models/Company');
 const Course = require('../models/Course');
 const User = require('../models/User');
 const Questionnaire = require('../models/Questionnaire');
@@ -47,6 +47,8 @@ const {
   PT0S,
   DAY,
   VENDOR_ROLES,
+  COURSE,
+  TRAINEE,
 } = require('./constants');
 const CourseHistoriesHelper = require('./courseHistories');
 const NotificationHelper = require('./notifications');
@@ -125,13 +127,22 @@ const listBlendedForCompany = async (query, origin) => {
     .filter(course => course.type === INTER_B2B)
     .sort((a, b) => UtilsHelper.sortStrings(a._id.toHexString(), b._id.toHexString()));
 
+  const traineesCompanyForCourseList = {};
+  for (const course of interCourses) {
+    const traineesCompanyAtCourseRegistration = await CourseHistoriesHelper
+      .getCompanyAtCourseRegistrationList({ key: COURSE, value: course._id }, { key: TRAINEE, value: course.trainees });
+    const traineesCompany = mapValues(keyBy(traineesCompanyAtCourseRegistration, 'trainee'), 'company');
+
+    traineesCompanyForCourseList[course._id] = traineesCompany;
+  }
+
   return [
     ...intraCourses,
     ...interCourses
       .map(course => ({
         ...course,
-        trainees: course.trainees.filter(t =>
-          (t.company ? UtilsHelper.areObjectIdsEquals(t.company._id, query.company) : false)),
+        trainees: course.trainees
+          .filter(tId => UtilsHelper.areObjectIdsEquals(traineesCompanyForCourseList[course._id][tId], query.company)),
       })),
   ];
 };
@@ -154,15 +165,17 @@ const listForOperations = async (query, origin) => {
 
 const listForPedagogy = async (query, credentials) => {
   const traineeId = query.trainee || get(credentials, '_id');
-  const trainee = await User.findOne({ _id: traineeId }).populate({ path: 'userCompanyList' }).lean();
-  const traineeCompanies = query.company ? [query.company] : compact(trainee.userCompanyList.map(uc => uc.company));
+  const trainee = await User.findOne({ _id: traineeId }).lean();
 
   const courses = await Course.find(
     {
       trainees: trainee._id,
       $or: [
-        { format: STRICTLY_E_LEARNING, $or: [{ accessRules: [] }, { accessRules: { $in: traineeCompanies } }] },
-        { format: BLENDED, companies: { $in: traineeCompanies } },
+        {
+          format: STRICTLY_E_LEARNING,
+          ...(query.company && { $or: [{ accessRules: [] }, { accessRules: query.company }] }),
+        },
+        { format: BLENDED, ...(query.company && { companies: query.company }) },
       ],
     },
     { format: 1 }
@@ -193,9 +206,10 @@ const listForPedagogy = async (query, credentials) => {
         { path: 'step', select: 'type' },
         {
           path: 'attendances',
-          match: { trainee: trainee._id, company: { $in: traineeCompanies } },
+          match: { trainee: trainee._id, ...(query.company && { company: query.company }) },
           options: {
             isVendorUser: [TRAINING_ORGANISATION_MANAGER, VENDOR_ADMIN].includes(get(credentials, 'role.vendor.name')),
+            requestingOwnInfos: UtilsHelper.areObjectIdsEquals(traineeId, credentials._id),
           },
         },
       ],
@@ -203,7 +217,19 @@ const listForPedagogy = async (query, credentials) => {
     .select('_id misc')
     .lean({ autopopulate: true, virtuals: true });
 
-  return courses.map(course => exports.formatCourseWithProgress(course));
+  let filteredCourses = courses;
+  if (query.company) {
+    const companyAtCourseRegistration = await CourseHistoriesHelper.getCompanyAtCourseRegistrationList(
+      { key: TRAINEE, value: traineeId }, { key: COURSE, value: courses.map(course => course._id) }
+    );
+    const traineeCompanies = mapValues(keyBy(companyAtCourseRegistration, 'course'), 'company');
+    filteredCourses = courses
+      .filter(course => course.format === STRICTLY_E_LEARNING ||
+        UtilsHelper.areObjectIdsEquals(traineeCompanies[course._id], query.company));
+  }
+
+  const shouldComputePresence = true;
+  return filteredCourses.map(course => exports.formatCourseWithProgress(course, shouldComputePresence));
 };
 
 exports.list = async (query, credentials) => {
@@ -213,24 +239,19 @@ exports.list = async (query, credentials) => {
     : listForPedagogy(filteredQuery, credentials);
 };
 
-const getStepProgress = (step) => {
-  if (has(step, 'progress.live')) return step.progress.live;
-  return step.progress.eLearning;
-};
-
 exports.getCourseProgress = (steps) => {
   if (!steps || !steps.length) return {};
 
+  const blendedStepsCombinedProgress = steps
+    .map(step => (has(step, 'progress.live') ? step.progress.live : step.progress.eLearning))
+    .reduce((acc, value) => acc + value, 0);
+
   const elearningProgressSteps = steps.filter(step => has(step, 'progress.eLearning'));
-
-  const presenceProgressSteps = steps.filter(step => step.progress.presence);
-
-  const blendedStepsCombinedProgress = steps.map(step => getStepProgress(step)).reduce((acc, value) => acc + value, 0);
-
   const eLearningStepsCombinedProgress = elearningProgressSteps
     .map(step => step.progress.eLearning)
     .reduce((acc, value) => acc + value, 0);
 
+  const presenceProgressSteps = steps.filter(step => step.progress.presence);
   const combinedPresenceProgress = presenceProgressSteps.length
     ? {
       attendanceDuration: presenceProgressSteps
@@ -251,12 +272,12 @@ exports.getCourseProgress = (steps) => {
   };
 };
 
-exports.formatCourseWithProgress = (course) => {
+exports.formatCourseWithProgress = (course, shouldComputePresence = false) => {
   const steps = course.subProgram.steps
     .map((step) => {
       const slots = course.slots.filter(slot => UtilsHelper.areObjectIdsEquals(slot.step._id, step._id));
 
-      return { ...step, slots, progress: StepsHelper.getProgress(step, slots) };
+      return { ...step, slots, progress: StepsHelper.getProgress(step, slots, shouldComputePresence) };
     });
 
   return {
@@ -320,8 +341,9 @@ const getCourseForOperations = async (courseId, credentials, origin) => {
 
   let blendedCourseTrainees;
   if (fetchedCourse.format === BLENDED) {
-    const traineesCompanyAtCourseRegistration = await CourseHistoriesHelper
-      .getTraineesCompanyAtCourseRegistration(fetchedCourse.trainees.map(t => t._id), courseId);
+    const traineesCompanyAtCourseRegistration = await CourseHistoriesHelper.getCompanyAtCourseRegistrationList(
+      { key: COURSE, value: courseId }, { key: TRAINEE, value: fetchedCourse.trainees.map(t => t._id) }
+    );
 
     const traineesCompany = mapValues(keyBy(traineesCompanyAtCourseRegistration, 'trainee'), 'company');
     blendedCourseTrainees = fetchedCourse.trainees
@@ -380,10 +402,11 @@ exports.formatActivity = (activity) => {
 
 exports.formatStep = step => ({ ...step, activities: step.activities.map(a => exports.formatActivity(a)) });
 
-exports.getCourseFollowUp = async (courseId, company) => {
-  const courseWithTrainees = await Course.findOne({ _id: courseId }, { trainees: 1 }).lean();
+exports.getCourseFollowUp = async (course, company) => {
+  const courseWithTrainees = await Course.findOne({ _id: course }, { trainees: 1, format: 1 }).lean();
+  const isELearningWithCompany = courseWithTrainees.format === STRICTLY_E_LEARNING && !!company;
 
-  const courseFollowUp = await Course.findOne({ _id: courseId }, { subProgram: 1 })
+  const courseFollowUp = await Course.findOne({ _id: course }, { subProgram: 1 })
     .populate({
       path: 'subProgram',
       select: 'name steps program',
@@ -407,12 +430,22 @@ exports.getCourseFollowUp = async (courseId, company) => {
     .populate({
       path: 'trainees',
       select: 'identity.firstname identity.lastname firstMobileConnection',
-      populate: { path: 'company' },
+      ...(isELearningWithCompany && { populate: { path: 'company' } }),
     })
     .lean();
 
-  const filteredTrainees = courseFollowUp.trainees
-    .filter(t => !company || UtilsHelper.areObjectIdsEquals(t.company, company));
+  let filteredTrainees = [];
+  if (!company) filteredTrainees = courseFollowUp.trainees;
+  else if (isELearningWithCompany) {
+    filteredTrainees = courseFollowUp.trainees.filter(t => UtilsHelper.areObjectIdsEquals(t.company, company));
+  } else {
+    const traineesCompanyAtCourseRegistration = await CourseHistoriesHelper.getCompanyAtCourseRegistrationList(
+      { key: COURSE, value: course }, { key: TRAINEE, value: courseFollowUp.trainees.map(t => t._id) }
+    );
+    const traineesCompany = mapValues(keyBy(traineesCompanyAtCourseRegistration, 'trainee'), 'company');
+    filteredTrainees = courseFollowUp.trainees
+      .filter(trainee => UtilsHelper.areObjectIdsEquals(traineesCompany[trainee._id], company));
+  }
 
   return {
     ...courseFollowUp,
@@ -502,10 +535,7 @@ const _getCourseForPedagogy = async (courseId, credentials) => {
     .populate({
       path: 'slots',
       select: 'startDate endDate step address meetingLink',
-      populate: [
-        { path: 'step', select: 'type' },
-        { path: 'attendances', match: { trainee: credentials._id }, options: { requestingOwnInfos: true } },
-      ],
+      populate: { path: 'step', select: 'type' },
     })
     .populate({ path: 'trainer', select: 'identity.firstname identity.lastname biography picture' })
     .populate({ path: 'contact', select: 'identity.firstname identity.lastname contact.phone local.email' })
@@ -530,7 +560,7 @@ const _getCourseForPedagogy = async (courseId, credentials) => {
     const areLastSlotAttendancesValidated = !!(lastSlot &&
       await Attendance.countDocuments({ courseSlot: lastSlot._id }));
 
-    return exports.formatCourseWithProgress({ ...course, areLastSlotAttendancesValidated });
+    return { ...exports.formatCourseWithProgress(course), areLastSlotAttendancesValidated };
   }
 
   return exports.formatCourseWithProgress(course);
@@ -683,7 +713,7 @@ exports.formatIntraCourseForPdf = (course) => {
   };
 };
 
-exports.formatInterCourseForPdf = (course) => {
+exports.formatInterCourseForPdf = async (course) => {
   const possibleMisc = course.misc ? ` - ${course.misc}` : '';
   const name = course.subProgram.program.name + possibleMisc;
   const filteredSlots = course.slots
@@ -701,10 +731,18 @@ exports.formatInterCourseForPdf = (course) => {
     duration: UtilsHelper.getTotalDuration(filteredSlots),
   };
 
+  const traineesCompanyAtCourseRegistration = await CourseHistoriesHelper
+    .getCompanyAtCourseRegistrationList({ key: COURSE, value: course._id }, { key: TRAINEE, value: course.trainees });
+  const traineesCompany = mapValues(keyBy(traineesCompanyAtCourseRegistration, 'trainee'), 'company');
+  const companiesList = await Company
+    .find({ _id: { $in: [...new Set(traineesCompanyAtCourseRegistration.map(t => t.company))] } }, { name: 1 })
+    .lean();
+  const companiesById = mapValues(keyBy(companiesList, '_id'), 'name');
+
   return {
     trainees: course.trainees.map(trainee => ({
       traineeName: UtilsHelper.formatIdentity(trainee.identity, 'FL'),
-      company: get(trainee, 'company.name') || '',
+      company: companiesById[traineesCompany[trainee._id]],
       course: { ...courseData },
     })),
   };
@@ -715,18 +753,14 @@ exports.generateAttendanceSheets = async (courseId) => {
     .findOne({ _id: courseId }, { misc: 1, type: 1 })
     .populate({ path: 'companies', select: 'name' })
     .populate({ path: 'slots', select: 'step startDate endDate address', populate: { path: 'step', select: 'type' } })
-    .populate({
-      path: 'trainees',
-      select: 'identity company',
-      populate: { path: 'company', populate: { path: 'company', select: 'name' } },
-    })
+    .populate({ path: 'trainees', select: 'identity' })
     .populate({ path: 'trainer', select: 'identity' })
     .populate({ path: 'subProgram', select: 'program', populate: { path: 'program', select: 'name' } })
     .lean();
 
   const pdf = course.type === INTRA
     ? await IntraAttendanceSheet.getPdf(exports.formatIntraCourseForPdf(course))
-    : await InterAttendanceSheet.getPdf(exports.formatInterCourseForPdf(course));
+    : await InterAttendanceSheet.getPdf(await exports.formatInterCourseForPdf(course));
 
   return { fileName: 'emargement.pdf', pdf };
 };
@@ -779,21 +813,27 @@ const generateCompletionCertificateWord = async (courseData, courseAttendances, 
   return { name: `Attestation - ${traineeIdentity}.docx`, file: fs.createReadStream(filePath) };
 };
 
-const getTraineelist = (course, credentials) => {
+const getTraineeList = async (course, credentials) => {
   const isRofOrAdmin = [VENDOR_ADMIN, TRAINING_ORGANISATION_MANAGER].includes(get(credentials, 'role.vendor.name'));
   const isCourseTrainer = [TRAINER].includes(get(credentials, 'role.vendor.name')) &&
     UtilsHelper.areObjectIdsEquals(credentials._id, course.trainer);
   const canAccessAllTrainees = isRofOrAdmin || isCourseTrainer;
 
-  return canAccessAllTrainees
-    ? course.trainees
-    : course.trainees.filter(t => UtilsHelper.areObjectIdsEquals(t.company, get(credentials, 'company._id')));
+  if (canAccessAllTrainees) return course.trainees;
+
+  const traineesCompanyAtCourseRegistration = await CourseHistoriesHelper
+    .getCompanyAtCourseRegistrationList({ key: COURSE, value: course._id }, { key: TRAINEE, value: course.trainees });
+  const traineesCompany = mapValues(keyBy(traineesCompanyAtCourseRegistration, 'trainee'), 'company');
+  const loggedUserCompany = get(credentials, 'company._id');
+
+  return course.trainees
+    .filter(trainee => UtilsHelper.areObjectIdsEquals(traineesCompany[trainee._id], loggedUserCompany));
 };
 
 exports.generateCompletionCertificates = async (courseId, credentials, origin = null) => {
   const course = await Course.findOne({ _id: courseId })
     .populate({ path: 'slots', select: 'startDate endDate' })
-    .populate({ path: 'trainees', select: 'identity', populate: { path: 'company' } })
+    .populate({ path: 'trainees', select: 'identity' })
     .populate({ path: 'subProgram', select: 'program', populate: { path: 'program', select: 'name learningGoals' } })
     .lean();
 
@@ -815,7 +855,8 @@ exports.generateCompletionCertificates = async (courseId, credentials, origin = 
     fileId: process.env.GOOGLE_DRIVE_TRAINING_CERTIFICATE_TEMPLATE_ID,
     tmpFilePath: templatePath,
   });
-  const promises = getTraineelist(course, credentials)
+  const traineeList = await getTraineeList(course, credentials);
+  const promises = traineeList
     .map(trainee => generateCompletionCertificateWord(courseData, attendances, trainee, templatePath));
 
   return ZipHelper.generateZip('attestations.zip', await Promise.all(promises));

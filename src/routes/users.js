@@ -21,6 +21,7 @@ const {
   addExpoToken,
   removeExpoToken,
 } = require('../controllers/userController');
+const { COURSE, DIRECTORY } = require('../helpers/constants');
 const { CIVILITY_OPTIONS } = require('../models/schemaDefinitions/identity');
 const { ORIGIN_OPTIONS, USER_ROLE_LIST } = require('../models/User');
 const {
@@ -181,6 +182,7 @@ exports.plugin = {
         auth: { scope: ['users:list'] },
         validate: {
           query: Joi.object({
+            action: Joi.string().required().valid(DIRECTORY, COURSE),
             companies: objectIdOrArray,
             startDate: dateToISOString,
             endDate: Joi.when(

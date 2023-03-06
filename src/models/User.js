@@ -20,8 +20,6 @@ const {
   TRAINING_ORGANISATION_MANAGER,
   TRAINER,
   HELPER,
-  BLENDED,
-  STRICTLY_E_LEARNING,
   MOBILE,
   WEBAPP,
   PUBLIC_TRANSPORT,
@@ -347,22 +345,6 @@ UserSchema.virtual(
 UserSchema.virtual(
   'sectorHistories',
   { ref: 'SectorHistory', localField: '_id', foreignField: 'auxiliary', options: { sort: { startDate: -1 } } }
-);
-
-UserSchema.virtual(
-  'blendedCoursesCount',
-  { ref: 'Course', localField: '_id', foreignField: 'trainees', count: true, options: { match: { format: BLENDED } } }
-);
-
-UserSchema.virtual(
-  'eLearningCoursesCount',
-  {
-    ref: 'Course',
-    localField: '_id',
-    foreignField: 'trainees',
-    count: true,
-    options: { match: { format: STRICTLY_E_LEARNING } },
-  }
 );
 
 UserSchema.virtual(

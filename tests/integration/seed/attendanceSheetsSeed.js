@@ -2,13 +2,15 @@ const { ObjectId } = require('mongodb');
 const { v4: uuidv4 } = require('uuid');
 const AttendanceSheet = require('../../../src/models/AttendanceSheet');
 const Course = require('../../../src/models/Course');
+const CourseHistory = require('../../../src/models/CourseHistory');
 const CourseSlot = require('../../../src/models/CourseSlot');
 const { authCompany, otherCompany, companyWithoutSubscription } = require('../../seed/authCompaniesSeed');
-const { WEBAPP, INTRA, INTER_B2B } = require('../../../src/helpers/constants');
+const { WEBAPP, INTRA, INTER_B2B, TRAINEE_ADDITION } = require('../../../src/helpers/constants');
 const { deleteNonAuthenticationSeeds } = require('../helpers/authentication');
 const UserCompany = require('../../../src/models/UserCompany');
 const User = require('../../../src/models/User');
 const { vendorAdminRoleId } = require('../../seed/authRolesSeed');
+const { trainerOrganisationManager } = require('../../seed/authUsersSeed');
 
 const userList = [
   {
@@ -104,6 +106,44 @@ const coursesList = [
   },
 ];
 
+const courseHistoriesList = [
+  {
+    action: TRAINEE_ADDITION,
+    course: coursesList[0]._id,
+    trainee: userList[1]._id,
+    company: authCompany._id,
+    createdBy: trainerOrganisationManager._id,
+  },
+  {
+    action: TRAINEE_ADDITION,
+    course: coursesList[1]._id,
+    trainee: userList[1]._id,
+    company: authCompany._id,
+    createdBy: trainerOrganisationManager._id,
+  },
+  {
+    action: TRAINEE_ADDITION,
+    course: coursesList[1]._id,
+    trainee: userList[2]._id,
+    company: otherCompany._id,
+    createdBy: trainerOrganisationManager._id,
+  },
+  {
+    action: TRAINEE_ADDITION,
+    course: coursesList[3]._id,
+    trainee: userList[1]._id,
+    company: authCompany._id,
+    createdBy: trainerOrganisationManager._id,
+  },
+  {
+    action: TRAINEE_ADDITION,
+    course: coursesList[4]._id,
+    trainee: userList[2]._id,
+    company: otherCompany._id,
+    createdBy: trainerOrganisationManager._id,
+  },
+];
+
 const attendanceSheetList = [
   {
     _id: new ObjectId(),
@@ -159,6 +199,7 @@ const populateDB = async () => {
     CourseSlot.create(slotsList),
     User.create(userList),
     UserCompany.create(userCompaniesList),
+    CourseHistory.create(courseHistoriesList),
   ]);
 };
 

@@ -13,6 +13,8 @@ const {
   ESTIMATED_START_DATE_EDITION,
   COMPANY_ADDITION,
   COMPANY_DELETION,
+  COURSE,
+  TRAINEE,
 } = require('../../../src/helpers/constants');
 const SinonMongoose = require('../sinonMongoose');
 
@@ -556,29 +558,30 @@ describe('createHistoryOnCompanyDeletion', () => {
   });
 });
 
-describe('getTraineesCompanyAtCourseRegistration', () => {
-  let find;
+describe('getCompanyAtCourseRegistrationList', () => {
+  let courseHistoryFind;
 
   beforeEach(() => {
-    find = sinon.stub(CourseHistory, 'find');
+    courseHistoryFind = sinon.stub(CourseHistory, 'find');
   });
   afterEach(() => {
-    find.restore();
+    courseHistoryFind.restore();
   });
 
-  it('should list trainees and the company that registered them in the course', async () => {
+  it('should list trainees and the company that registered them in the course (INTER)', async () => {
     const courseId = new ObjectId();
     const traineeIds = [new ObjectId(), new ObjectId()];
     const companyIds = [new ObjectId(), new ObjectId()];
-
     const courseHistories = [
       { trainee: cloneDeep(traineeIds[1]), company: companyIds[1], createdAt: '2023-01-04T12:30:00.000Z' },
       { trainee: cloneDeep(traineeIds[0]), company: companyIds[0], createdAt: '2023-01-03T12:30:00.000Z' },
       { trainee: cloneDeep(traineeIds[0]), company: new ObjectId(), createdAt: '2022-12-15T12:30:00.000Z' },
     ];
-    find.returns(SinonMongoose.stubChainedQueries(courseHistories, ['sort', 'lean']));
 
-    const result = await CourseHistoriesHelper.getTraineesCompanyAtCourseRegistration(traineeIds, courseId);
+    courseHistoryFind.returns(SinonMongoose.stubChainedQueries(courseHistories, ['sort', 'lean']));
+
+    const result = await CourseHistoriesHelper
+      .getCompanyAtCourseRegistrationList({ key: COURSE, value: courseId }, { key: TRAINEE, value: traineeIds });
 
     expect(result).toEqual([
       { trainee: traineeIds[1], company: courseHistories[0].company },
@@ -586,16 +589,52 @@ describe('getTraineesCompanyAtCourseRegistration', () => {
     ]);
 
     SinonMongoose.calledOnceWithExactly(
-      find,
+      courseHistoryFind,
       [
         {
           query: 'find',
           args: [
-            { course: courseId, trainee: { $in: traineeIds }, action: TRAINEE_ADDITION },
-            { trainee: 1, company: 1, createdAt: 1 },
+            { course: courseId, action: TRAINEE_ADDITION, trainee: { $in: traineeIds } },
+            { trainee: 1, company: 1, createdAt: 1, _id: 0 },
           ],
         },
-        { query: 'sort', args: [{ trainee: 1, createdAt: -1 }] },
+        { query: 'sort', args: [{ createdAt: -1, trainee: 1 }] },
+        { query: 'lean' },
+      ]
+    );
+  });
+
+  it('should list courses and the company at registration', async () => {
+    const traineeId = new ObjectId();
+    const courseIds = [new ObjectId(), new ObjectId()];
+    const companyIds = [new ObjectId(), new ObjectId()];
+
+    const courseHistories = [
+      { trainee: traineeId, company: companyIds[1], createdAt: '2023-01-04T12:30:00.000Z', course: courseIds[1] },
+      { trainee: traineeId, company: companyIds[0], createdAt: '2023-01-03T12:30:00.000Z', course: courseIds[0] },
+      { trainee: traineeId, company: new ObjectId(), createdAt: '2022-12-15T12:30:00.000Z', course: courseIds[0] },
+    ];
+    courseHistoryFind.returns(SinonMongoose.stubChainedQueries(courseHistories, ['sort', 'lean']));
+
+    const result = await CourseHistoriesHelper
+      .getCompanyAtCourseRegistrationList({ key: TRAINEE, value: traineeId }, { key: COURSE, value: courseIds });
+
+    expect(result).toEqual([
+      { course: courseIds[1], company: courseHistories[0].company },
+      { course: courseIds[0], company: courseHistories[1].company },
+    ]);
+
+    SinonMongoose.calledOnceWithExactly(
+      courseHistoryFind,
+      [
+        {
+          query: 'find',
+          args: [
+            { trainee: traineeId, action: TRAINEE_ADDITION, course: { $in: courseIds } },
+            { course: 1, company: 1, createdAt: 1, _id: 0 },
+          ],
+        },
+        { query: 'sort', args: [{ createdAt: -1, course: 1 }] },
         { query: 'lean' },
       ]
     );

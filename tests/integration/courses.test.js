@@ -340,7 +340,7 @@ describe('COURSES ROUTES - GET /courses', () => {
     });
 
     expect(response.statusCode).toBe(200);
-    expect(response.result.data.courses.length).toBe(1);
+    expect(response.result.data.courses.length).toBe(2);
   });
 
   describe('TRAINING_ORGANISATION_MANAGER', () => {
@@ -387,14 +387,9 @@ describe('COURSES ROUTES - GET /courses', () => {
           },
           step: { _id: expect.any(ObjectId), type: ON_SITE },
         }],
-        trainees: expect.arrayContaining([expect.objectContaining({
-          _id: expect.any(ObjectId),
-          company: expect.objectContaining(pick(otherCompany, ['_id', 'name'])),
-        })]),
+        trainees: expect.arrayContaining([expect.any(ObjectId)]),
         slotsToPlan: [{ _id: expect.any(ObjectId), course: course._id }],
       }));
-      expect(course.trainees[0].local).toBeUndefined();
-      expect(course.trainees[0].refreshtoken).toBeUndefined();
 
       const archivedCourse = response.result.data.courses
         .find(c => UtilsHelper.areObjectIdsEquals(coursesList[14]._id, c._id));
@@ -432,7 +427,7 @@ describe('COURSES ROUTES - GET /courses', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      expect(response.result.data.courses.length).toEqual(4);
+      expect(response.result.data.courses.length).toEqual(5);
     });
 
     it('should return 400 if no action', async () => {
@@ -592,6 +587,7 @@ describe('COURSES ROUTES - GET /courses', () => {
 
       const resultCourseIds = response.result.data.courses.map(course => course._id);
       expect(resultCourseIds.length).toBe(2);
+      expect(UtilsHelper.doesArrayIncludeId(resultCourseIds, coursesList[19]._id)).toBeFalsy();
       [coursesList[7]._id, coursesList[8]._id]
         .forEach(courseId => expect(UtilsHelper.doesArrayIncludeId(resultCourseIds, courseId)).toBeTruthy());
     });
@@ -2741,7 +2737,8 @@ describe('COURSES ROUTES - DELETE /courses/{_id}/trainee/{traineeId}', () => {
 
 describe('COURSES ROUTES - GET /:_id/attendance-sheets', () => {
   let authToken;
-  const courseIdFromAuthCompany = coursesList[2]._id;
+  const intraCourseIdFromAuthCompany = coursesList[2]._id;
+  const interCourseIdFromAuthCompany = coursesList[5]._id;
   const courseIdWithoutOnSiteSlotFromAuth = coursesList[12]._id;
   const courseIdFromOtherCompany = coursesList[1]._id;
   beforeEach(populateDB);
@@ -2751,10 +2748,20 @@ describe('COURSES ROUTES - GET /:_id/attendance-sheets', () => {
       authToken = await getToken('training_organisation_manager');
     });
 
-    it('should return 200', async () => {
+    it('should return 200 for intra course', async () => {
       const response = await app.inject({
         method: 'GET',
-        url: `/courses/${courseIdFromAuthCompany}/attendance-sheets`,
+        url: `/courses/${intraCourseIdFromAuthCompany}/attendance-sheets`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(200);
+    });
+
+    it('should return 200 for inter course', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/courses/${interCourseIdFromAuthCompany}/attendance-sheets`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -2795,7 +2802,7 @@ describe('COURSES ROUTES - GET /:_id/attendance-sheets', () => {
         authToken = await getToken(role.name);
         const response = await app.inject({
           method: 'GET',
-          url: `/courses/${courseIdFromAuthCompany}/attendance-sheets`,
+          url: `/courses/${intraCourseIdFromAuthCompany}/attendance-sheets`,
           headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
@@ -2818,7 +2825,7 @@ describe('COURSES ROUTES - GET /:_id/attendance-sheets', () => {
       authToken = await getTokenByCredentials(trainer.local);
       const response = await app.inject({
         method: 'GET',
-        url: `/courses/${courseIdFromAuthCompany}/attendance-sheets`,
+        url: `/courses/${intraCourseIdFromAuthCompany}/attendance-sheets`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -3412,7 +3419,7 @@ describe('COURSES ROUTES - DELETE /courses/{_id}/companies{companyId}', () => {
     it('should return a 403 if company has attendance sheet', async () => {
       const response = await app.inject({
         method: 'DELETE',
-        url: `/courses/${coursesList[19]._id}/companies/${otherCompany._id}`,
+        url: `/courses/${coursesList[12]._id}/companies/${authCompany._id}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 

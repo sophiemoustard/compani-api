@@ -732,31 +732,43 @@ describe('USERS ROUTES - GET /users/learners', () => {
     it('should return all learners', async () => {
       const res = await app.inject({
         method: 'GET',
-        url: '/users/learners',
+        url: '/users/learners?action=directory',
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(res.statusCode).toBe(200);
       const countUserInDB = userList.length + usersSeedList.length + usersFromDifferentCompanyList.length;
       expect(res.result.data.users.length).toEqual(countUserInDB);
+      expect(res.result.data.users
+        .every(user => ['activityHistoryCount', 'lastActivityHistory', 'blendedCoursesCount', 'eLearningCoursesCount']
+          .every(key => Object.keys(user).includes(key))
+        )
+      )
+        .toBeTruthy();
     });
 
     it('should return future or current learners from a specific company (potential trainees list)', async () => {
       const res = await app.inject({
         method: 'GET',
-        url: `/users/learners?companies=${authCompany._id}&startDate=2022-12-20T15:00:00.000Z`,
+        url: `/users/learners?companies=${authCompany._id}&startDate=2022-12-20T15:00:00.000Z&action=course`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(res.statusCode).toBe(200);
       expect(res.result.data.users.length).toBe(17);
+      expect(res.result.data.users
+        .every(user => ['activityHistoryCount', 'lastActivityHistory', 'blendedCoursesCount', 'eLearningCoursesCount']
+          .every(key => !Object.keys(user).includes(key))
+        )
+      )
+        .toBeTruthy();
     });
 
     it('should return learners at a certain date from a specific company (attendances)', async () => {
       const res = await app.inject({
         method: 'GET',
         url: `/users/learners?companies=${authCompany._id}`
-          + '&startDate=2021-12-19T23:00:00.000Z&endDate=2021-12-20T22:59:59.999Z',
+          + '&startDate=2021-12-19T23:00:00.000Z&endDate=2021-12-20T22:59:59.999Z&action=course',
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -767,7 +779,7 @@ describe('USERS ROUTES - GET /users/learners', () => {
     it('should return active learners from a specific company', async () => {
       const res = await app.inject({
         method: 'GET',
-        url: `/users/learners?companies=${authCompany._id}`,
+        url: `/users/learners?companies=${authCompany._id}&action=directory`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -779,7 +791,7 @@ describe('USERS ROUTES - GET /users/learners', () => {
     it('should return active learners from several companies', async () => {
       const res = await app.inject({
         method: 'GET',
-        url: `/users/learners?companies=${authCompany._id}&companies=${otherCompany._id}`,
+        url: `/users/learners?companies=${authCompany._id}&companies=${otherCompany._id}&action=course`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -791,7 +803,7 @@ describe('USERS ROUTES - GET /users/learners', () => {
     it('should return 400 if endDate but no startDate', async () => {
       const res = await app.inject({
         method: 'GET',
-        url: `/users/learners?companies=${authCompany._id}&endDate=2021-12-19T23:00:00.000Z`,
+        url: `/users/learners?companies=${authCompany._id}&endDate=2021-12-19T23:00:00.000Z&action=course`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -802,7 +814,7 @@ describe('USERS ROUTES - GET /users/learners', () => {
       const res = await app.inject({
         method: 'GET',
         url: `/users/learners?companies=${authCompany._id}`
-        + '&startDate=2021-12-20T22:59:59.999Z&endDate=2021-12-19T23:00:00.000Z',
+        + '&startDate=2021-12-20T22:59:59.999Z&endDate=2021-12-19T23:00:00.000Z&action=course',
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -822,7 +834,7 @@ describe('USERS ROUTES - GET /users/learners', () => {
     it('should return 200 if coach requests active learners from his company', async () => {
       const res = await app.inject({
         method: 'GET',
-        url: `/users/learners?companies=${authCompany._id}`,
+        url: `/users/learners?companies=${authCompany._id}&action=directory`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -841,7 +853,7 @@ describe('USERS ROUTES - GET /users/learners', () => {
     it('should return 403 if client admin request learners from other company', async () => {
       const res = await app.inject({
         method: 'GET',
-        url: `/users/learners?companies=${otherCompany._id}`,
+        url: `/users/learners?companies=${otherCompany._id}&action=directory`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -859,7 +871,7 @@ describe('USERS ROUTES - GET /users/learners', () => {
         authToken = await getToken(role.name);
         const response = await app.inject({
           method: 'GET',
-          url: '/users/learners',
+          url: '/users/learners?action=directory',
           headers: { Cookie: `alenvi_token=${authToken}` },
         });
 

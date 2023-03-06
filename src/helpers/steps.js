@@ -51,12 +51,13 @@ exports.getPresenceStepProgress = (slots) => {
   };
 };
 
-exports.getProgress = (step, slots = []) => (step.type === E_LEARNING
-  ? { eLearning: exports.getElearningStepProgress(step) }
-  : {
+exports.getProgress = (step, slots = [], shouldComputePresence = false) => {
+  if (step.type === E_LEARNING) return { eLearning: exports.getElearningStepProgress(step) };
+  return {
     live: exports.getLiveStepProgress(slots),
-    presence: exports.getPresenceStepProgress(slots),
-  });
+    ...(shouldComputePresence && { presence: exports.getPresenceStepProgress(slots) }),
+  };
+};
 
 exports.list = async (programId) => {
   const steps = await Step.find()

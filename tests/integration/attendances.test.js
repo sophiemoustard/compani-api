@@ -12,7 +12,7 @@ const {
 } = require('./seed/attendancesSeed');
 const { getToken, getTokenByCredentials } = require('./helpers/authentication');
 const { trainerAndCoach } = require('../seed/authUsersSeed');
-const { authCompany } = require('../seed/authCompaniesSeed');
+const { authCompany, companyWithoutSubscription } = require('../seed/authCompaniesSeed');
 
 describe('NODE ENV', () => {
   it('should be \'test\'', () => {
@@ -30,7 +30,11 @@ describe('ATTENDANCES ROUTES - POST /attendances', () => {
     });
 
     it('should add an attendance', async () => {
-      const courseSlotAttendancesBefore = await Attendance.countDocuments({ courseSlot: slotsList[0]._id });
+      const courseSlotAttendancesBefore = await Attendance.countDocuments({
+        courseSlot: slotsList[0]._id,
+        company: authCompany._id,
+      });
+
       const response = await app.inject({
         method: 'POST',
         url: '/attendances',
@@ -39,12 +43,18 @@ describe('ATTENDANCES ROUTES - POST /attendances', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      const courseSlotAttendancesAfter = await Attendance.countDocuments({ courseSlot: slotsList[0]._id });
+      const courseSlotAttendancesAfter = await Attendance.countDocuments({
+        courseSlot: slotsList[0]._id,
+        company: authCompany._id,
+      });
       expect(courseSlotAttendancesAfter).toBe(courseSlotAttendancesBefore + 1);
     });
 
     it('should add attendances for all trainee without attendance for this courseSlot', async () => {
-      const courseSlotAttendancesBefore = await Attendance.countDocuments({ courseSlot: slotsList[0]._id });
+      const courseSlotAttendancesBefore = await Attendance.countDocuments({
+        courseSlot: slotsList[0]._id,
+        company: authCompany._id,
+      });
 
       const response = await app.inject({
         method: 'POST',
@@ -54,8 +64,28 @@ describe('ATTENDANCES ROUTES - POST /attendances', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      const courseSlotAttendancesAfter = await Attendance.countDocuments({ courseSlot: slotsList[0]._id });
+      const courseSlotAttendancesAfter = await Attendance.countDocuments({
+        courseSlot: slotsList[0]._id,
+        company: authCompany._id,
+      });
       expect(courseSlotAttendancesAfter).toBe(courseSlotAttendancesBefore + 2);
+    });
+
+    it('should add attendances for registered trainee even if not in the company anymore', async () => {
+      const response = await app.inject({
+        method: 'POST',
+        url: '/attendances',
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload: { courseSlot: slotsList[6]._id, trainee: traineeList[0]._id },
+      });
+
+      expect(response.statusCode).toBe(200);
+      const attendanceCount = await Attendance.countDocuments({
+        courseSlot: slotsList[6]._id,
+        trainee: traineeList[0]._id,
+        company: companyWithoutSubscription._id,
+      });
+      expect(attendanceCount).toBe(1);
     });
 
     it('should return 400 if no courseSlot', async () => {
@@ -69,6 +99,17 @@ describe('ATTENDANCES ROUTES - POST /attendances', () => {
       expect(response.statusCode).toBe(400);
     });
 
+    it('should return 422 if no company is linked to the course', async () => {
+      const response = await app.inject({
+        method: 'POST',
+        url: '/attendances',
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload: { courseSlot: slotsList[7]._id },
+      });
+
+      expect(response.statusCode).toBe(422);
+    });
+
     it('should return 404 if wrong courseSlot', async () => {
       const response = await app.inject({
         method: 'POST',
@@ -80,16 +121,19 @@ describe('ATTENDANCES ROUTES - POST /attendances', () => {
       expect(response.statusCode).toBe(404);
     });
 
-    it('should return 403 if trainee doesn\'t belong to a company linked with course', async () => {
-      const response = await app.inject({
-        method: 'POST',
-        url: '/attendances',
-        headers: { Cookie: `alenvi_token=${authToken}` },
-        payload: { trainee: traineeList[2]._id, courseSlot: slotsList[0]._id },
-      });
+    it(
+      'should return 403 if trainee is not registered and doesn\'t currently belong to a company related to the course',
+      async () => {
+        const response = await app.inject({
+          method: 'POST',
+          url: '/attendances',
+          headers: { Cookie: `alenvi_token=${authToken}` },
+          payload: { trainee: traineeList[2]._id, courseSlot: slotsList[0]._id },
+        });
 
-      expect(response.statusCode).toBe(403);
-    });
+        expect(response.statusCode).toBe(403);
+      }
+    );
 
     it('should return 409 if trainee and courseSlot are already added', async () => {
       const response = await app.inject({

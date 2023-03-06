@@ -606,4 +606,6 @@ module.exports = {
   // COURSE BILLING
   LIST: 'list',
   BALANCE: 'balance',
+  // LEARNERS
+  DIRECTORY: 'directory',
 };

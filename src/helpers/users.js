@@ -2,9 +2,11 @@ const Boom = require('@hapi/boom');
 const moment = require('moment');
 const pickBy = require('lodash/pickBy');
 const get = require('lodash/get');
+const groupBy = require('lodash/groupBy');
 const has = require('lodash/has');
 const pick = require('lodash/pick');
 const omit = require('lodash/omit');
+const uniqBy = require('lodash/uniqBy');
 const flat = require('flat');
 const { v4: uuidv4 } = require('uuid');
 const CompanyLinkRequest = require('../models/CompanyLinkRequest');
@@ -12,16 +14,28 @@ const ActivityHistory = require('../models/ActivityHistory');
 const Role = require('../models/Role');
 const User = require('../models/User');
 const Course = require('../models/Course');
+const CourseHistory = require('../models/CourseHistory');
 const UserCompany = require('../models/UserCompany');
 const Contract = require('../models/Contract');
 const translate = require('./translate');
 const GCloudStorageHelper = require('./gCloudStorage');
-const { TRAINER, AUXILIARY_ROLES, HELPER, AUXILIARY_WITHOUT_COMPANY, CLIENT_ADMIN, COACH } = require('./constants');
+const {
+  TRAINER,
+  AUXILIARY_ROLES,
+  HELPER,
+  AUXILIARY_WITHOUT_COMPANY,
+  CLIENT_ADMIN,
+  COACH,
+  TRAINEE_ADDITION,
+  STRICTLY_E_LEARNING,
+  DIRECTORY,
+} = require('./constants');
 const SectorHistoriesHelper = require('./sectorHistories');
 const GDriveStorageHelper = require('./gDriveStorage');
 const UtilsHelper = require('./utils');
 const HelpersHelper = require('./helpers');
 const UserCompaniesHelper = require('./userCompanies');
+const DatesUtilsHelper = require('./dates/utils');
 const { CompaniDate } = require('./dates/companiDates');
 
 const { language } = translate;
@@ -109,23 +123,74 @@ const formatQueryForLearnerList = async (query) => {
   };
 };
 
+const computeCoursesCountByTrainee = async (learnerList, company) => {
+  const learnersIdList = learnerList.map(learner => learner._id);
+  const [blendedCourseRegistrationHistoriesForTrainees, eLearningCoursesForTrainees] = await Promise.all([
+    CourseHistory
+      .find({ trainee: { $in: learnersIdList }, action: TRAINEE_ADDITION, ...(company && { company }) })
+      .populate({ path: 'course', select: 'trainees' })
+      .lean(),
+    Course
+      .find({
+        trainees: { $in: learnersIdList },
+        format: STRICTLY_E_LEARNING,
+        ...(company && { $or: [{ accessRules: company }, { accessRules: [] }] }),
+      })
+      .lean(),
+  ]);
+
+  const eLearningRegistrationList = eLearningCoursesForTrainees
+    .flatMap(course => course.trainees.map(trainee => ({ trainee, course })));
+  const eLearningCoursesGroupedByTrainee = groupBy(eLearningRegistrationList, 'trainee');
+
+  const traineesRegistrationList = blendedCourseRegistrationHistoriesForTrainees
+    .filter(history => UtilsHelper.doesArrayIncludeId(history.course.trainees, history.trainee));
+  const blendedCoursesGroupedByTrainee = groupBy(traineesRegistrationList, 'trainee');
+
+  const blendedCoursesCountByTrainee = {};
+  const eLearningCoursesCountByTrainee = {};
+  for (const learner of learnerList) {
+    if (blendedCoursesGroupedByTrainee[learner._id]) {
+      const learnerRegistration = blendedCoursesGroupedByTrainee[learner._id]
+        .sort(DatesUtilsHelper.descendingSortBy('createdAt'));
+      blendedCoursesGroupedByTrainee[learner._id] = uniqBy(learnerRegistration, 'course._id');
+    }
+    blendedCoursesCountByTrainee[learner._id] = (blendedCoursesGroupedByTrainee[learner._id] || []).length;
+    eLearningCoursesCountByTrainee[learner._id] = (eLearningCoursesGroupedByTrainee[learner._id] || []).length;
+  }
+
+  return { eLearningCoursesCountByTrainee, blendedCoursesCountByTrainee };
+};
+
 exports.getLearnerList = async (query, credentials) => {
   const userQuery = query.companies ? await formatQueryForLearnerList(query) : {};
+  const isDirectory = query.action === DIRECTORY;
 
   const learnerList = await User
     .find(userQuery, 'identity.firstname identity.lastname picture local.email', { autopopulate: false })
     .populate({ path: 'company', populate: { path: 'company', select: 'name' } })
-    .populate({ path: 'blendedCoursesCount' })
-    .populate({ path: 'eLearningCoursesCount' })
-    .populate({ path: 'activityHistories', select: 'updatedAt', options: { sort: { updatedAt: -1 } } })
+    .populate(isDirectory && {
+      path: 'activityHistories',
+      select: 'updatedAt',
+      options: { sort: { updatedAt: -1 } },
+    })
     .populate({ path: 'userCompanyList', populate: { path: 'company', select: 'name' } })
     .setOptions({ isVendorUser: !!get(credentials, 'role.vendor') })
     .lean();
+
+  if (!isDirectory) return learnerList;
+
+  const {
+    eLearningCoursesCountByTrainee,
+    blendedCoursesCountByTrainee,
+  } = await computeCoursesCountByTrainee(learnerList, query.companies);
 
   return learnerList.map(learner => ({
     ...omit(learner, 'activityHistories'),
     activityHistoryCount: learner.activityHistories.length,
     lastActivityHistory: learner.activityHistories[0],
+    eLearningCoursesCount: eLearningCoursesCountByTrainee[learner._id],
+    blendedCoursesCount: blendedCoursesCountByTrainee[learner._id],
   }));
 };
 
