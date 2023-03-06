@@ -345,7 +345,7 @@ exports.exportEndOfCourseQuestionnaireHistory = async (startDate, endDate, crede
     const row = {
       'Id formation': get(qHistory, 'course._id') || DELETED_COURSE,
       Programme: get(qHistory, 'course.subProgram.program.name') || '',
-      'Sous-programme': get(qHistory, 'course.subProgram.name'),
+      'Sous-programme': get(qHistory, 'course.subProgram.name') || '',
       'Prénom Nom intervenant(e)': UtilsHelper.formatIdentity(get(qHistory, 'course.trainer.identity') || '', 'FL'),
       Structure: get(qHistory, 'company.name'),
       'Date de réponse': CompaniDate(qHistory.createdAt).format(`${DD_MM_YYYY} ${HH_MM_SS}`),
