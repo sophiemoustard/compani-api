@@ -365,7 +365,6 @@ module.exports = {
   REMINDER: 'reminder',
   OPERATIONS: 'operations',
   PEDAGOGY: 'pedagogy',
-  DELETED_COURSE: 'Formation supprimée',
   // PROGRAMS
   DRAFT: 'draft',
   PUBLISHED: 'published',
