@@ -23,7 +23,6 @@ const {
   HH_MM_SS,
   DAY,
   ESTIMATED_START_DATE_EDITION,
-  DELETED_COURSE,
 } = require('./constants');
 const { CompaniDate } = require('./dates/companiDates');
 const DatesUtilsHelper = require('./dates/utils');
@@ -343,7 +342,7 @@ exports.exportEndOfCourseQuestionnaireHistory = async (startDate, endDate, crede
       }), {});
 
     const row = {
-      'Id formation': get(qHistory, 'course._id') || DELETED_COURSE,
+      'Id formation': get(qHistory, 'course._id') || '',
       Programme: get(qHistory, 'course.subProgram.program.name') || '',
       'Sous-programme': get(qHistory, 'course.subProgram.name') || '',
       'Prénom Nom intervenant(e)': UtilsHelper.formatIdentity(get(qHistory, 'course.trainer.identity') || '', 'FL'),

@@ -25,7 +25,6 @@ const {
   CHECK,
   REFUND,
   ESTIMATED_START_DATE_EDITION,
-  DELETED_COURSE,
 } = require('../../../src/helpers/constants');
 const CourseSlot = require('../../../src/models/CourseSlot');
 const Course = require('../../../src/models/Course');
@@ -1344,7 +1343,7 @@ describe('exportEndOfCourseQuestionnaireHistory', () => {
         'Non',
       ],
       [
-        DELETED_COURSE,
+        '',
         '',
         '',
         '',
