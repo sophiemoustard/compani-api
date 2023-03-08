@@ -1242,6 +1242,31 @@ describe('exportEndOfCourseQuestionnaireHistory', () => {
         createdAt: '2021-06-30T12:40:29.561Z',
         updatedAt: '2022-03-03T12:40:29.561Z',
       },
+      { // 2 course is deleted
+        _id: new ObjectId(),
+        course: null,
+        user: {
+          _id: new ObjectId(),
+          identity: { firstname: 'Bob', lastname: 'Marley' },
+          local: { email: 'bob@marley.com' },
+          contact: {},
+        },
+        company: { name: 'Reggae Music' },
+        questionnaire: {
+          _id: new ObjectId(),
+          type: 'end_of_course',
+          cards,
+        },
+        questionnaireAnswersList: [
+          {
+            card: { _id: cards[3]._id, qcAnswers: cards[3].qcAnswers },
+            answerList: [cards[3].qcAnswers[2]._id.toHexString()],
+          },
+          { card: { _id: cards[2]._id }, answerList: ['1'] },
+        ],
+        createdAt: '2021-06-30T12:40:29.561Z',
+        updatedAt: '2022-03-03T12:40:29.561Z',
+      },
     ],
   };
   let findOneQuestionnaire;
@@ -1308,6 +1333,20 @@ describe('exportEndOfCourseQuestionnaireHistory', () => {
         'DO IT !',
         'JUST',
         'Shia LABEOUF',
+        'Reggae Music',
+        '30/06/2021 14:40:29',
+        'Bob MARLEY',
+        'bob@marley.com',
+        '',
+        '', // no answer here
+        '1',
+        'Non',
+      ],
+      [
+        '',
+        '',
+        '',
+        '',
         'Reggae Music',
         '30/06/2021 14:40:29',
         'Bob MARLEY',

@@ -46,6 +46,7 @@ exports.findQuestionnaire = async (course, credentials, type) => Questionnaire
     path: 'histories',
     match: { course: course._id, user: credentials._id },
     options: { requestingOwnInfos: true },
+    select: { _id: 1 },
   })
   .lean({ virtuals: true });
 
