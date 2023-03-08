@@ -12,7 +12,7 @@ const updateRole = {
       const role = await Role.findOne({ name: AUXILIARY_WITHOUT_COMPANY }).lean();
 
       const updatedUsers = await User.updateMany(
-        { inactivityDate: moment().startOf('M').toDate() },
+        { inactivityDate: { $lte: moment().startOf('M').toDate() }, 'role.client': { $ne: role._id } },
         { $set: { 'role.client': role._id } }
       );
       updatedUsersCount = updatedUsers.modifiedCount;
