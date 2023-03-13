@@ -1,10 +1,13 @@
 const { expect } = require('expect');
 const { groupBy, get } = require('lodash');
+const Attendance = require('../../../src/models/Attendance');
+const AttendanceSheet = require('../../../src/models/AttendanceSheet');
 const CompanyLinkRequest = require('../../../src/models/CompanyLinkRequest');
 const Contract = require('../../../src/models/Contract');
 const Course = require('../../../src/models/Course');
 const CourseHistory = require('../../../src/models/CourseHistory');
 const Helper = require('../../../src/models/Helper');
+const QuestionnaireHistory = require('../../../src/models/QuestionnaireHistory');
 const SectorHistory = require('../../../src/models/SectorHistory');
 const User = require('../../../src/models/User');
 const UserCompany = require('../../../src/models/UserCompany');
@@ -22,10 +25,16 @@ const {
   BLENDED,
   STRICTLY_E_LEARNING,
 } = require('../../../src/helpers/constants');
+const attendancesSeed = require('./attendancesSeed');
+const attendanceSheetsSeed = require('./attendanceSheetsSeed');
+const questionnaireHistoriesSeed = require('./questionnaireHistoriesSeed');
 const userCompaniesSeed = require('./userCompaniesSeed');
 const usersSeed = require('./usersSeed');
 
 const seedList = [
+  { label: 'ATTENDANCE', value: attendancesSeed },
+  { label: 'ATTENDANCESHEET', value: attendanceSheetsSeed },
+  { label: 'QUESTIONNAIREHISTORY', value: questionnaireHistoriesSeed },
   { label: 'USERCOMPANY', value: userCompaniesSeed },
   { label: 'USER', value: usersSeed },
 ];
@@ -34,6 +43,45 @@ describe('SEEDS VERIFICATION', () => {
   seedList.forEach(({ label, value: seeds }) => {
     describe(`${label} SEEDS FILE`, () => {
       before(seeds.populateDB);
+
+      describe('Collection Attendance', () => {
+        let attendanceList;
+        before(async () => {
+          attendanceList = await Attendance
+            .find()
+            .populate({ path: 'trainee', select: 'id', populate: { path: 'userCompanyList' } })
+            .setOptions({ allCompanies: true })
+            .lean();
+        });
+
+        it('should passs if all attendance\'s trainee are in attendance\'s company', () => {
+          const areTraineesInCompany = attendanceList
+            .every(attendance => attendance.trainee.userCompanyList
+              .some(uc => UtilsHelper.areObjectIdsEquals(uc.company, attendance.company))
+            );
+          expect(areTraineesInCompany).toBeTruthy();
+        });
+      });
+
+      describe('Collection AttendanceSheet', () => {
+        let attendanceSheetList;
+        before(async () => {
+          attendanceSheetList = await AttendanceSheet
+            .find()
+            .populate({ path: 'trainee', select: 'id', populate: { path: 'userCompanyList' } })
+            .setOptions({ allCompanies: true })
+            .lean();
+        });
+
+        it('should passs if all attendance sheet\'s trainee are in attendance sheet\'s company', () => {
+          const areTraineesInCompany = attendanceSheetList
+            .filter(attendanceSheet => attendanceSheet.trainee)
+            .every(attendanceSheet => attendanceSheet.trainee.userCompanyList
+              .some(uc => UtilsHelper.areObjectIdsEquals(uc.company, attendanceSheet.company))
+            );
+          expect(areTraineesInCompany).toBeTruthy();
+        });
+      });
 
       describe('Collection CompanyLinkRequest', () => {
         let companyLinkRequestList;
@@ -202,6 +250,25 @@ describe('SEEDS VERIFICATION', () => {
               .some(uc => UtilsHelper.areObjectIdsEquals(uc.company, helper.company._id))
             );
           expect(areUserAndCompanyMatching).toBeTruthy();
+        });
+      });
+
+      describe('Collection QuestionnaireHistory', () => {
+        let questionnaireHistoryList;
+        before(async () => {
+          questionnaireHistoryList = await QuestionnaireHistory
+            .find()
+            .populate({ path: 'user', select: 'id', populate: { path: 'userCompanyList' } })
+            .setOptions({ allCompanies: true })
+            .lean();
+        });
+
+        it('should passs if all questionnaire history\'s user are in questionnaire history\'s company', () => {
+          const areUsersInCompany = questionnaireHistoryList
+            .every(questionnaireHistory => questionnaireHistory.user.userCompanyList
+              .some(uc => UtilsHelper.areObjectIdsEquals(uc.company, questionnaireHistory.company))
+            );
+          expect(areUsersInCompany).toBeTruthy();
         });
       });
 

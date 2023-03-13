@@ -67,6 +67,7 @@ const courseHistoriesList = [
     trainee: questionnaireHistoriesUsersList[0],
     company: companyWithoutSubscription._id,
     createdBy: trainerOrganisationManager._id,
+    createdAt: '2020-01-01T23:00:00.000Z',
   },
   {
     action: TRAINEE_ADDITION,
@@ -74,6 +75,15 @@ const courseHistoriesList = [
     trainee: questionnaireHistoriesUsersList[1],
     company: authCompany._id,
     createdBy: trainerOrganisationManager._id,
+    createdAt: '2020-01-01T23:00:00.000Z',
+  },
+  {
+    action: TRAINEE_ADDITION,
+    course: coursesList[0]._id,
+    trainee: questionnaireHistoriesUsersList[2],
+    company: authCompany._id,
+    createdBy: trainerOrganisationManager._id,
+    createdAt: '2020-01-01T23:00:00.000Z',
   },
 ];
 
