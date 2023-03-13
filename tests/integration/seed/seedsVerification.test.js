@@ -54,7 +54,7 @@ describe('SEEDS VERIFICATION', () => {
             .lean();
         });
 
-        it('should passs if all attendance\'s trainee are in attendance\'s company', () => {
+        it('should pass if all attendance\'s trainee are in attendance\'s company', () => {
           const areTraineesInCompany = attendanceList
             .every(attendance => attendance.trainee.userCompanyList
               .some(uc => UtilsHelper.areObjectIdsEquals(uc.company, attendance.company))
@@ -73,7 +73,7 @@ describe('SEEDS VERIFICATION', () => {
             .lean();
         });
 
-        it('should passs if all attendance sheet\'s trainee are in attendance sheet\'s company', () => {
+        it('should pass if all attendance sheet\'s trainee are in attendance sheet\'s company', () => {
           const areTraineesInCompany = attendanceSheetList
             .filter(attendanceSheet => attendanceSheet.trainee)
             .every(attendanceSheet => attendanceSheet.trainee.userCompanyList
@@ -263,7 +263,7 @@ describe('SEEDS VERIFICATION', () => {
             .lean();
         });
 
-        it('should passs if all questionnaire history\'s user are in questionnaire history\'s company', () => {
+        it('should pass if all questionnaire history\'s user are in questionnaire history\'s company', () => {
           const areUsersInCompany = questionnaireHistoryList
             .every(questionnaireHistory => questionnaireHistory.user.userCompanyList
               .some(uc => UtilsHelper.areObjectIdsEquals(uc.company, questionnaireHistory.company))
