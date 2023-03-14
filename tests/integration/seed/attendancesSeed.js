@@ -280,15 +280,15 @@ const userCompanyList = [
     startDate: '2022-01-01T23:00:00.000Z',
     endDate: '2022-11-30T23:00:00.000Z',
   },
-  { user: traineeList[0]._id, company: authCompany._id },
-  { user: traineeList[2]._id, company: otherCompany._id },
-  { user: traineeList[3]._id, company: authCompany._id },
-  { user: traineeList[4]._id, company: otherCompany._id },
-  { user: traineeList[5]._id, company: authCompany._id },
-  { user: traineeList[6]._id, company: otherCompany._id },
-  { user: traineeList[7]._id, company: otherCompany._id },
-  { user: traineeList[8]._id, company: authCompany._id },
-  { user: traineeList[9]._id, company: otherCompany._id },
+  { user: traineeList[0]._id, company: authCompany._id, startDate: '2023-01-01T23:00:00.000Z' },
+  { user: traineeList[2]._id, company: otherCompany._id, startDate: '2023-01-01T23:00:00.000Z' },
+  { user: traineeList[3]._id, company: authCompany._id, startDate: '2023-01-01T23:00:00.000Z' },
+  { user: traineeList[4]._id, company: otherCompany._id, startDate: '2023-01-01T23:00:00.000Z' },
+  { user: traineeList[5]._id, company: authCompany._id, startDate: '2023-01-01T23:00:00.000Z' },
+  { user: traineeList[6]._id, company: otherCompany._id, startDate: '2023-01-01T23:00:00.000Z' },
+  { user: traineeList[7]._id, company: otherCompany._id, startDate: '2023-01-01T23:00:00.000Z' },
+  { user: traineeList[8]._id, company: authCompany._id, startDate: '2023-01-01T23:00:00.000Z' },
+  { user: traineeList[9]._id, company: otherCompany._id, startDate: '2023-01-01T23:00:00.000Z' },
 ];
 
 const courseHistoryList = [
@@ -298,6 +298,7 @@ const courseHistoryList = [
     company: authCompany._id,
     createdBy: userList[2]._id,
     trainee: traineeList[0]._id,
+    createdAt: '2023-01-03T14:00:00.000Z',
   },
   {
     action: TRAINEE_ADDITION,
@@ -305,6 +306,7 @@ const courseHistoryList = [
     company: authCompany._id,
     createdBy: userList[0]._id,
     trainee: traineeList[3]._id,
+    createdAt: '2023-01-03T14:00:00.000Z',
   },
   {
     action: TRAINEE_ADDITION,
@@ -312,6 +314,7 @@ const courseHistoryList = [
     company: authCompany._id,
     createdBy: userList[0]._id,
     trainee: traineeList[8]._id,
+    createdAt: '2023-01-03T14:00:00.000Z',
   },
   {
     action: TRAINEE_ADDITION,
@@ -319,6 +322,7 @@ const courseHistoryList = [
     company: authCompany._id,
     createdBy: userList[0]._id,
     trainee: traineeList[0]._id,
+    createdAt: '2023-01-03T14:00:00.000Z',
   },
   {
     action: TRAINEE_ADDITION,
@@ -326,6 +330,7 @@ const courseHistoryList = [
     company: otherCompany._id,
     createdBy: userList[0]._id,
     trainee: traineeList[9]._id,
+    createdAt: '2023-01-03T14:00:00.000Z',
   },
   {
     action: TRAINEE_ADDITION,
@@ -333,6 +338,7 @@ const courseHistoryList = [
     company: otherCompany._id,
     createdBy: userList[0]._id,
     trainee: traineeList[2]._id,
+    createdAt: '2023-01-03T14:00:00.000Z',
   },
   {
     action: TRAINEE_ADDITION,
@@ -340,13 +346,7 @@ const courseHistoryList = [
     company: otherCompany._id,
     createdBy: userList[0]._id,
     trainee: traineeList[2]._id,
-  },
-  {
-    action: TRAINEE_ADDITION,
-    course: coursesList[3]._id,
-    company: authCompany._id,
-    createdBy: userList[0]._id,
-    trainee: traineeList[2]._id,
+    createdAt: '2023-01-03T14:00:00.000Z',
   },
   {
     action: TRAINEE_ADDITION,
@@ -354,6 +354,7 @@ const courseHistoryList = [
     company: otherCompany._id,
     createdBy: userList[0]._id,
     trainee: traineeList[4]._id,
+    createdAt: '2023-01-03T14:00:00.000Z',
   },
   {
     action: TRAINEE_ADDITION,
@@ -361,6 +362,7 @@ const courseHistoryList = [
     company: authCompany._id,
     createdBy: userList[0]._id,
     trainee: traineeList[0]._id,
+    createdAt: '2023-01-03T14:00:00.000Z',
   },
   {
     action: TRAINEE_ADDITION,
@@ -368,6 +370,7 @@ const courseHistoryList = [
     company: authCompany._id,
     createdBy: userList[0]._id,
     trainee: traineeList[8]._id,
+    createdAt: '2023-01-03T14:00:00.000Z',
   },
   {
     action: TRAINEE_ADDITION,
@@ -375,6 +378,7 @@ const courseHistoryList = [
     company: companyWithoutSubscription._id,
     createdBy: userList[0]._id,
     trainee: traineeList[0]._id,
+    createdAt: '2022-01-03T14:00:00.000Z',
   },
   {
     action: TRAINEE_ADDITION,
@@ -382,6 +386,7 @@ const courseHistoryList = [
     company: authCompany._id,
     createdBy: userList[0]._id,
     trainee: traineeList[5]._id,
+    createdAt: '2023-01-03T14:00:00.000Z',
   },
   {
     action: TRAINEE_ADDITION,
@@ -389,6 +394,7 @@ const courseHistoryList = [
     company: otherCompany._id,
     createdBy: userList[0]._id,
     trainee: traineeList[6]._id,
+    createdAt: '2023-01-03T14:00:00.000Z',
   },
 ];
 
