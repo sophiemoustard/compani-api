@@ -1,6 +1,7 @@
 const Boom = require('@hapi/boom');
 const compact = require('lodash/compact');
-const uniq = require('lodash/uniq');
+const uniqBy = require('lodash/uniqBy');
+const has = require('lodash/has');
 const translate = require('./translate');
 const { DD_MM_YYYY, DAY } = require('./constants');
 const { CompaniDate } = require('./dates/companiDates');
@@ -46,5 +47,6 @@ exports.getCurrentAndFutureCompanies = (userCompanyList) => {
     .filter(uc => !uc.endDate || CompaniDate().isBefore(uc.endDate))
     .map(uc => uc.company));
 
-  return uniq(currentAndFutureCompanies);
+  const getCompanyId = company => (has(company, '_id') ? company._id : company);
+  return uniqBy(currentAndFutureCompanies, getCompanyId);
 };
