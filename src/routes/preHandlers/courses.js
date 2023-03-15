@@ -514,3 +514,15 @@ exports.authorizeGetConvocationPdf = async (req) => {
 
   return null;
 };
+
+exports.authorizeGenerateTrainingContract = async (req) => {
+  const course = await Course
+    .findOne({ _id: req.params._id }, { _id: 1 })
+    .populate({ path: 'companies', select: 'address' })
+    .lean();
+
+  if (!course) throw Boom.notFound();
+  if (!course.companies[0].address) throw Boom.forbidden(translate[language].courseCompanyAddressMissing);
+
+  return null;
+};

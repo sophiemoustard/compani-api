@@ -4,6 +4,7 @@ const NumbersHelper = require('../../../helpers/numbers');
 const FileHelper = require('../../../helpers/file');
 const CourseBillHelper = require('../../../helpers/courseBills');
 const { COPPER_GREY_200 } = require('../../../helpers/constants');
+const { formatSiret } = require('../utils');
 
 const getImages = async () => {
   const imageList = [
@@ -12,9 +13,6 @@ const getImages = async () => {
 
   return FileHelper.downloadImages(imageList);
 };
-
-const formatSiret = siret => siret &&
-  `${siret.slice(0, 3)} ${siret.slice(3, 6)} ${siret.slice(6, 9)} ${siret.slice(9, 14)}`;
 
 exports.getHeader = async (data, isBill = false) => {
   const [compani] = await getImages();

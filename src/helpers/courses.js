@@ -3,6 +3,7 @@ const get = require('lodash/get');
 const has = require('lodash/has');
 const omit = require('lodash/omit');
 const groupBy = require('lodash/groupBy');
+const compact = require('lodash/compact');
 const keyBy = require('lodash/keyBy');
 const mapValues = require('lodash/mapValues');
 const fs = require('fs');
@@ -41,6 +42,7 @@ const {
   TRAINER,
   REMOTE,
   OPERATIONS,
+  SHORT_DURATION_H_MM,
   HHhMM,
   DD_MM_YYYY,
   HH_MM,
@@ -52,10 +54,12 @@ const {
 } = require('./constants');
 const CourseHistoriesHelper = require('./courseHistories');
 const NotificationHelper = require('./notifications');
+const VendorCompaniesHelper = require('./vendorCompanies');
 const InterAttendanceSheet = require('../data/pdf/attendanceSheet/interAttendanceSheet');
 const IntraAttendanceSheet = require('../data/pdf/attendanceSheet/intraAttendanceSheet');
 const CourseConvocation = require('../data/pdf/courseConvocation');
 const CompletionCertificate = require('../data/pdf/completionCertificate');
+const TrainingContract = require('../data/pdf/trainingContract');
 const CourseBill = require('../models/CourseBill');
 const CourseSlot = require('../models/CourseSlot');
 const CourseHistory = require('../models/CourseHistory');
@@ -950,3 +954,97 @@ exports.removeCourseCompany = async (courseId, companyId, credentials) => Promis
   Course.updateOne({ _id: courseId }, { $pull: { companies: companyId } }),
   CourseHistoriesHelper.createHistoryOnCompanyDeletion({ course: courseId, company: companyId }, credentials._id),
 ]);
+
+const computeCourseDuration = (slots, slotsToPlan, steps) => {
+  if (slotsToPlan.length) {
+    const theoreticalDurationList = steps
+      .filter(step => step.type !== E_LEARNING)
+      .map(step => step.theoreticalDuration);
+    if (theoreticalDurationList.some(duration => !duration)) throw Boom.badData();
+
+    return theoreticalDurationList
+      .reduce((acc, duration) => acc.add(duration), CompaniDuration())
+      .format(SHORT_DURATION_H_MM);
+  }
+  const slotsDuration = CompaniDuration(UtilsHelper.getISOTotalDuration(slots));
+
+  return CompaniDuration(slotsDuration).format(SHORT_DURATION_H_MM);
+};
+
+const computeElearnigDuration = (steps) => {
+  if (!steps.some(step => step.type === E_LEARNING)) return '';
+  const elearningDuration = steps
+    .filter(step => step.type === E_LEARNING)
+    .reduce((acc, step) => acc.add(step.theoreticalDuration), CompaniDuration())
+    .toISO();
+
+  return CompaniDuration(elearningDuration).format(SHORT_DURATION_H_MM);
+};
+
+const getDates = (slots) => {
+  const slotDatesWithDuplicate = slots
+    .sort(DatesUtilsHelper.ascendingSortBy('startDate'))
+    .map(slot => CompaniDate(slot.startDate).format(DD_MM_YYYY));
+
+  return [...new Set(slotDatesWithDuplicate)];
+};
+
+const getAddressList = (slots, hasRemoteSteps) => {
+  const fullAddressList = compact(slots.map(slot => get(slot, 'address.fullAddress')));
+  if ([...new Set(fullAddressList)].length <= 2) {
+    return hasRemoteSteps
+      ? [...new Set(fullAddressList), 'Cette formation contient des créneaux en distanciel']
+      : [...new Set(fullAddressList)];
+  }
+  const cityList = compact(slots.map(slot => get(slot, 'address.city')));
+  return hasRemoteSteps
+    ? [...new Set(cityList), 'Cette formation contient des créneaux en distanciel']
+    : [...new Set(cityList)];
+};
+
+// make sure code is similar to front part in TrainingContractInfoModal
+const formatCourseForTrainingContract = (course, vendorCompany, price) => {
+  const { companies, subProgram, slots, slotsToPlan, trainer } = course;
+  const hasRemoteSteps = subProgram.steps.some(step => step.type === REMOTE);
+
+  return {
+    vendorCompany,
+    company: { name: companies[0].name, address: companies[0].address.fullAddress },
+    programName: subProgram.program.name,
+    learningGoals: subProgram.program.learningGoals,
+    slotsCount: slots.length + slotsToPlan.length,
+    liveDuration: computeCourseDuration(slots, slotsToPlan, subProgram.steps),
+    eLearningDuration: computeElearnigDuration(subProgram.steps),
+    misc: course.misc,
+    learnersCount: course.trainees.length,
+    dates: getDates(slots),
+    addressList: getAddressList(slots, hasRemoteSteps),
+    trainer: UtilsHelper.formatIdentity(get(trainer, 'identity'), 'FL'),
+    price,
+  };
+};
+
+exports.generateTrainingContract = async (courseId, payload) => {
+  const course = await Course
+    .findOne({ _id: courseId }, { trainees: 1, misc: 1 })
+    .populate([
+      { path: 'companies', select: 'name address' },
+      {
+        path: 'subProgram',
+        select: 'program steps',
+        populate: [
+          { path: 'program', select: 'name learningGoals' },
+          { path: 'steps', select: 'theoreticalDuration type' },
+        ],
+      },
+      { path: 'slots', select: 'startDate endDate address meetingLink' },
+      { path: 'slotsToPlan', select: 'step' },
+      { path: 'trainer', select: 'identity.firstname identity.lastname' },
+    ])
+    .lean();
+  const vendorCompany = await VendorCompaniesHelper.get();
+
+  const pdf = await TrainingContract.getPdf(formatCourseForTrainingContract(course, vendorCompany, payload.price));
+
+  return { fileName: 'convention.pdf', pdf };
+};

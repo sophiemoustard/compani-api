@@ -236,6 +236,10 @@ exports.getTotalDurationForExport = (timePeriods) => {
   return exports.formatFloatForExport(totalDuration.asHours());
 };
 
+exports.getISOTotalDuration = timePeriods => timePeriods
+  .reduce((acc, tp) => acc.add(CompaniDate(tp.endDate).diff(tp.startDate, 'seconds')), CompaniDuration())
+  .toISO();
+
 exports.getDuration = (startDate, endDate) =>
   CompaniDuration(CompaniDate(endDate).diff(startDate, 'minutes')).format(SHORT_DURATION_H_MM);
 

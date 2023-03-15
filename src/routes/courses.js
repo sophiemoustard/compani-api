@@ -23,6 +23,7 @@ const {
   getQuestionnaires,
   addCompany,
   removeCompany,
+  generateTrainingContract,
 } = require('../controllers/courseController');
 const { MESSAGE_TYPE } = require('../models/CourseSmsHistory');
 const { COURSE_TYPES, COURSE_FORMATS } = require('../models/Course');
@@ -45,6 +46,7 @@ const {
   authorizeSmsSending,
   authorizeCourseCompanyAddition,
   authorizeCourseCompanyDeletion,
+  authorizeGenerateTrainingContract,
 } = require('./preHandlers/courses');
 const { INTRA, OPERATIONS, MOBILE, WEBAPP, PEDAGOGY } = require('../helpers/constants');
 const { ORIGIN_OPTIONS } = require('../models/User');
@@ -363,6 +365,20 @@ exports.plugin = {
         pre: [{ method: authorizeCourseEdit }, { method: authorizeCourseCompanyDeletion }],
       },
       handler: removeCompany,
+    });
+
+    server.route({
+      method: 'POST',
+      path: '/{_id}/trainingcontracts',
+      options: {
+        auth: { scope: ['courses:create'] },
+        validate: {
+          params: Joi.object({ _id: Joi.objectId().required() }),
+          payload: Joi.object({ price: Joi.number().positive().integer() }),
+        },
+        pre: [{ method: authorizeGenerateTrainingContract }],
+      },
+      handler: generateTrainingContract,
     });
   },
 };

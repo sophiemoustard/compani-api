@@ -729,7 +729,7 @@ module.exports = {
     courseBillCreated: 'Facture de la formation créée.',
     courseBillUpdated: 'Facture de la formation mise à jour.',
     courseBillingItemAlreadyAdded: 'Article déjà ajouté à la facture.',
-    courseCompanyAddressMissing: 'Erreur lors de la facturation, l\'adresse de la structure cliente est manquante.',
+    courseCompanyAddressMissing: 'L\'adresse de la structure cliente est manquante.',
     /* Course billing items */
     courseBillingItemExists: 'Article de facturation existant.',
     courseBillingItemsFound: 'Articles de facturation trouvés.',
