@@ -955,7 +955,7 @@ exports.removeCourseCompany = async (courseId, companyId, credentials) => Promis
   CourseHistoriesHelper.createHistoryOnCompanyDeletion({ course: courseId, company: companyId }, credentials._id),
 ]);
 
-const computeCourseDuration = (slots, slotsToPlan, steps) => {
+const computeLiveDuration = (slots, slotsToPlan, steps) => {
   if (slotsToPlan.length) {
     const theoreticalDurationList = steps
       .filter(step => step.type !== E_LEARNING)
@@ -991,15 +991,17 @@ const getDates = (slots) => {
 
 const getAddressList = (slots, hasRemoteSteps) => {
   const fullAddressList = compact(slots.map(slot => get(slot, 'address.fullAddress')));
-  if ([...new Set(fullAddressList)].length <= 2) {
+  const uniqFullAddressList = [...new Set(fullAddressList)];
+  if (uniqFullAddressList.length <= 2) {
     return hasRemoteSteps
-      ? [...new Set(fullAddressList), 'Cette formation contient des créneaux en distanciel']
-      : [...new Set(fullAddressList)];
+      ? [...uniqFullAddressList, 'Cette formation contient des créneaux en distanciel']
+      : uniqFullAddressList;
   }
   const cityList = compact(slots.map(slot => get(slot, 'address.city')));
+  const uniqCityList = [...new Set(cityList)];
   return hasRemoteSteps
-    ? [...new Set(cityList), 'Cette formation contient des créneaux en distanciel']
-    : [...new Set(cityList)];
+    ? [...uniqCityList, 'Cette formation contient des créneaux en distanciel']
+    : uniqCityList;
 };
 
 // make sure code is similar to front part in TrainingContractInfoModal
@@ -1013,10 +1015,10 @@ const formatCourseForTrainingContract = (course, vendorCompany, price) => {
     programName: subProgram.program.name,
     learningGoals: subProgram.program.learningGoals,
     slotsCount: slots.length + slotsToPlan.length,
-    liveDuration: computeCourseDuration(slots, slotsToPlan, subProgram.steps),
+    liveDuration: computeLiveDuration(slots, slotsToPlan, subProgram.steps),
     eLearningDuration: computeElearnigDuration(subProgram.steps),
     misc: course.misc,
-    learnersCount: course.trainees.length,
+    learnersCount: course.maxTrainees,
     dates: getDates(slots),
     addressList: getAddressList(slots, hasRemoteSteps),
     trainer: UtilsHelper.formatIdentity(get(trainer, 'identity'), 'FL'),
@@ -1026,7 +1028,7 @@ const formatCourseForTrainingContract = (course, vendorCompany, price) => {
 
 exports.generateTrainingContract = async (courseId, payload) => {
   const course = await Course
-    .findOne({ _id: courseId }, { trainees: 1, misc: 1 })
+    .findOne({ _id: courseId }, { maxTrainees: 1, misc: 1 })
     .populate([
       { path: 'companies', select: 'name address' },
       {

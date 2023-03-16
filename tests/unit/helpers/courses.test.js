@@ -4304,7 +4304,7 @@ describe('generateTrainingContract', () => {
     const course = {
       _id: new ObjectId(),
       misc: 'Test',
-      trainees: [{ _id: new ObjectId() }],
+      maxTrainees: 5,
       companies: [{
         name: 'Alenvi',
         address: {
@@ -4344,7 +4344,7 @@ describe('generateTrainingContract', () => {
       liveDuration: '0h40',
       eLearningDuration: '0h20',
       misc: 'Test',
-      learnersCount: 1,
+      learnersCount: 5,
       dates: ['03/11/2020'],
       addressList: ['14 rue de ponthieu 75008 Paris', 'Cette formation contient des créneaux en distanciel'],
       trainer: 'Jean BONBEUR',
@@ -4362,7 +4362,7 @@ describe('generateTrainingContract', () => {
     SinonMongoose.calledOnceWithExactly(
       courseFindOne,
       [
-        { query: 'findOne', args: [{ _id: course._id }, { trainees: 1, misc: 1 }] },
+        { query: 'findOne', args: [{ _id: course._id }, { maxTrainees: 1, misc: 1 }] },
         {
           query: 'populate',
           args: [[
@@ -4390,7 +4390,7 @@ describe('generateTrainingContract', () => {
     const course = {
       _id: new ObjectId(),
       misc: 'Test',
-      trainees: [{ _id: new ObjectId() }],
+      maxTrainees: 5,
       companies: [{
         name: 'Alenvi',
         address: {
@@ -4440,7 +4440,7 @@ describe('generateTrainingContract', () => {
       liveDuration: '6h',
       eLearningDuration: '',
       misc: 'Test',
-      learnersCount: 1,
+      learnersCount: 5,
       dates: ['03/11/2020', '04/11/2020', '05/11/2020'],
       addressList: ['Paris'],
       trainer: 'Jean BONBEUR',
@@ -4458,7 +4458,7 @@ describe('generateTrainingContract', () => {
     SinonMongoose.calledOnceWithExactly(
       courseFindOne,
       [
-        { query: 'findOne', args: [{ _id: course._id }, { trainees: 1, misc: 1 }] },
+        { query: 'findOne', args: [{ _id: course._id }, { maxTrainees: 1, misc: 1 }] },
         {
           query: 'populate',
           args: [[

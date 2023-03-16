@@ -34,7 +34,7 @@ const getHeader = (data, compani) => [
     stack: [
       { text: 'Et', color: COPPER_600 },
       { text: get(data, 'company.name') },
-      { text: get(data, 'company.address.fullAddress') || '' },
+      { text: get(data, 'company.address') || '' },
     ],
     marginBottom: 36,
   },
@@ -104,14 +104,14 @@ exports.getPdfContent = async (data) => {
           },
           {
             text: `Durée : ${data.slotsCount} créneaux - ${data.liveDuration}`
-            + `${data.eLearningDuration ? ` (+ ${data.eLearningDuration} de e-learning)` : ''}`,
+              + `${data.eLearningDuration ? ` (+ ${data.eLearningDuration} de e-learning)` : ''}`,
           },
-          { text: `Effectif formé : jusqu'à ${data.learnersCount} stagiaires` },
+          { text: `Effectif formé : ${data.misc} jusqu'à ${data.learnersCount} stagiaires` },
           formatDatesList(data.dates),
           formatAddressList(data.addressList),
           { text: `Intervenant(e) : ${data.trainer}`, marginBottom: 16 },
           { text: `Prix total TTC : ${data.price} €` },
-          { text: '(Ce prix comprend les frais de formateurs', italics: true },
+          { text: '(Ce prix comprend les frais de formateurs)', italics: true },
           {
             text: 'En tant qu’organisme de formation, Compani est exonéré de la Taxe sur la Valeur Ajoutée (TVA).',
             italics: true,

@@ -3504,6 +3504,17 @@ describe('COURSES ROUTES - POST /courses/{_id}/trainingcontracts', () => {
       expect(response.statusCode).toBe(400);
     });
 
+    it('should return 400 if no price', async () => {
+      const response = await app.inject({
+        method: 'POST',
+        url: `/courses/${intraCourseIdFromAuthCompany}/trainingcontracts`,
+        payload: {},
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
+
     it('should return a 403 if company has no address', async () => {
       const response = await app.inject({
         method: 'POST',
