@@ -405,7 +405,7 @@ describe('COURSES ROUTES - GET /courses', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      expect(response.result.data.courses.length).toEqual(17);
+      expect(response.result.data.courses.length).toEqual(18);
     });
 
     it('should get strictly e-learning courses (ops webapp)', async () => {
@@ -3451,6 +3451,85 @@ describe('COURSES ROUTES - DELETE /courses/{_id}/companies{companyId}', () => {
         const response = await app.inject({
           method: 'DELETE',
           url: `/courses/${interb2bCourseId}/companies/${thirdCompany._id}`,
+          headers: { Cookie: `alenvi_token=${authToken}` },
+        });
+
+        expect(response.statusCode).toBe(role.expectedCode);
+      });
+    });
+  });
+});
+
+describe('COURSES ROUTES - POST /courses/{_id}/trainingcontracts', () => {
+  let authToken;
+  const intraCourseIdFromAuthCompany = coursesList[0]._id;
+  beforeEach(populateDB);
+
+  describe('TRAINING_ORGANISATION_MANAGER', () => {
+    beforeEach(async () => {
+      authToken = await getToken('training_organisation_manager');
+    });
+
+    it('should return 200 for intra course', async () => {
+      const response = await app.inject({
+        method: 'POST',
+        url: `/courses/${intraCourseIdFromAuthCompany}/trainingcontracts`,
+        payload: { price: 4300 },
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(200);
+    });
+
+    it('should return a 404 if course does not exist', async () => {
+      const invalidId = (new ObjectId()).toHexString();
+      const response = await app.inject({
+        method: 'POST',
+        url: `/courses/${invalidId}/trainingcontracts`,
+        payload: { price: 4300 },
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(404);
+    });
+
+    it('should return 400 if price not greater than 0', async () => {
+      const response = await app.inject({
+        method: 'POST',
+        url: `/courses/${intraCourseIdFromAuthCompany}/trainingcontracts`,
+        payload: { price: 0 },
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
+
+    it('should return a 403 if company has no address', async () => {
+      const response = await app.inject({
+        method: 'POST',
+        url: `/courses/${coursesList[20]._id}/trainingcontracts`,
+        payload: { price: 4300 },
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(403);
+      expect(response.result.message).toBeDefined();
+    });
+  });
+
+  describe('Other roles', () => {
+    const roles = [
+      { name: 'helper', expectedCode: 403 },
+      { name: 'planning_referent', expectedCode: 403 },
+      { name: 'coach', expectedCode: 403 },
+    ];
+    roles.forEach((role) => {
+      it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+        authToken = await getToken(role.name);
+        const response = await app.inject({
+          method: 'POST',
+          url: `/courses/${intraCourseIdFromAuthCompany}/trainingcontracts`,
+          payload: { price: 4300 },
           headers: { Cookie: `alenvi_token=${authToken}` },
         });
 

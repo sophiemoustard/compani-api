@@ -27,6 +27,7 @@ const ZipHelper = require('../../../src/helpers/zip');
 const DocxHelper = require('../../../src/helpers/docx');
 const StepsHelper = require('../../../src/helpers/steps');
 const NotificationHelper = require('../../../src/helpers/notifications');
+const VendorCompaniesHelper = require('../../../src/helpers/vendorCompanies');
 const {
   COURSE_SMS,
   BLENDED,
@@ -56,6 +57,7 @@ const InterAttendanceSheet = require('../../../src/data/pdf/attendanceSheet/inte
 const IntraAttendanceSheet = require('../../../src/data/pdf/attendanceSheet/intraAttendanceSheet');
 const CourseConvocation = require('../../../src/data/pdf/courseConvocation');
 const CompletionCertificate = require('../../../src/data/pdf/completionCertificate');
+const TrainingContract = require('../../../src/data/pdf/trainingContract');
 
 describe('createCourse', () => {
   let create;
@@ -4276,6 +4278,206 @@ describe('removeCourseCompany', () => {
       createHistoryOnCompanyDeletion,
       { course: course._id, company: companyId },
       credentials._id
+    );
+  });
+});
+
+describe('generateTrainingContract', () => {
+  let courseFindOne;
+  let vendorCompanyGet;
+  let trainingContractGetPdf;
+
+  beforeEach(() => {
+    courseFindOne = sinon.stub(Course, 'findOne');
+    vendorCompanyGet = sinon.stub(VendorCompaniesHelper, 'get');
+    trainingContractGetPdf = sinon.stub(TrainingContract, 'getPdf');
+  });
+
+  afterEach(() => {
+    courseFindOne.restore();
+    vendorCompanyGet.restore();
+    trainingContractGetPdf.restore();
+  });
+
+  it('should download training contract for intra course with slots to plan & elearning and remote steps', async () => {
+    const payload = { price: 12 };
+    const course = {
+      _id: new ObjectId(),
+      misc: 'Test',
+      trainees: [{ _id: new ObjectId() }],
+      companies: [{
+        name: 'Alenvi',
+        address: {
+          fullAddress: '12 rue de ponthieu 75008 Paris',
+          zipCode: '75008',
+          city: 'Paris',
+          street: '12 rue de Ponthieu',
+        },
+      }],
+      subProgram: {
+        program: { name: 'Programme', learningGoals: 'bien apprendre' },
+        steps: [
+          { theoreticalDuration: 'PT1200S', type: E_LEARNING },
+          { theoreticalDuration: 'PT1200S', type: REMOTE },
+          { theoreticalDuration: 'PT1200S', type: ON_SITE },
+        ],
+      },
+      slots: [
+        {
+          startDate: '2020-11-03T09:00:00.000Z',
+          endDate: '2020-11-03T11:00:00.000Z',
+          address: { fullAddress: '14 rue de ponthieu 75008 Paris' },
+        },
+      ],
+      slotsToPlan: [{ _id: new ObjectId() }],
+      trainer: { identity: { lastname: 'Bonbeur', firstname: 'Jean' } },
+    };
+
+    const vendorCompany = { name: 'Compani', address: { fullAddress: '140 rue de ponthieu 75008 Paris' } };
+
+    const formattedCourse = {
+      vendorCompany,
+      company: { name: 'Alenvi', address: '12 rue de ponthieu 75008 Paris' },
+      programName: 'Programme',
+      learningGoals: 'bien apprendre',
+      slotsCount: 2,
+      liveDuration: '0h40',
+      eLearningDuration: '0h20',
+      misc: 'Test',
+      learnersCount: 1,
+      dates: ['03/11/2020'],
+      addressList: ['14 rue de ponthieu 75008 Paris', 'Cette formation contient des créneaux en distanciel'],
+      trainer: 'Jean BONBEUR',
+      price: 12,
+    };
+
+    vendorCompanyGet.returns(vendorCompany);
+
+    courseFindOne.returns(SinonMongoose.stubChainedQueries(course));
+
+    await CourseHelper.generateTrainingContract(course._id, payload);
+
+    sinon.assert.calledOnceWithExactly(vendorCompanyGet);
+    sinon.assert.calledOnceWithExactly(trainingContractGetPdf, formattedCourse);
+    SinonMongoose.calledOnceWithExactly(
+      courseFindOne,
+      [
+        { query: 'findOne', args: [{ _id: course._id }, { trainees: 1, misc: 1 }] },
+        {
+          query: 'populate',
+          args: [[
+            { path: 'companies', select: 'name address' },
+            {
+              path: 'subProgram',
+              select: 'program steps',
+              populate: [
+                { path: 'program', select: 'name learningGoals' },
+                { path: 'steps', select: 'theoreticalDuration type' },
+              ],
+            },
+            { path: 'slots', select: 'startDate endDate address meetingLink' },
+            { path: 'slotsToPlan', select: 'step' },
+            { path: 'trainer', select: 'identity.firstname identity.lastname' },
+          ]],
+        },
+        { query: 'lean' },
+      ]
+    );
+  });
+
+  it('should download training contract for intra course without slots to plan & only on_site steps', async () => {
+    const payload = { price: 12 };
+    const course = {
+      _id: new ObjectId(),
+      misc: 'Test',
+      trainees: [{ _id: new ObjectId() }],
+      companies: [{
+        name: 'Alenvi',
+        address: {
+          fullAddress: '12 rue de ponthieu 75008 Paris',
+          zipCode: '75008',
+          city: 'Paris',
+          street: '12 rue de Ponthieu',
+        },
+      }],
+      subProgram: {
+        program: { name: 'Programme', learningGoals: 'bien apprendre' },
+        steps: [
+          { theoreticalDuration: 'PT1200S', type: ON_SITE },
+          { theoreticalDuration: 'PT1200S', type: ON_SITE },
+          { theoreticalDuration: 'PT1200S', type: ON_SITE },
+        ],
+      },
+      slots: [
+        {
+          startDate: '2020-11-05T09:00:00.000Z',
+          endDate: '2020-11-05T11:00:00.000Z',
+          address: { city: 'Paris', fullAddress: '14 rue de ponthieu 75008 Paris' },
+        },
+        {
+          startDate: '2020-11-03T09:00:00.000Z',
+          endDate: '2020-11-03T11:00:00.000Z',
+          address: { city: 'Paris', fullAddress: '34 rue de ponthieu 75008 Paris' },
+        },
+        {
+          startDate: '2020-11-04T09:00:00.000Z',
+          endDate: '2020-11-04T11:00:00.000Z',
+          address: { city: 'Paris', fullAddress: '24 rue de ponthieu 75008 Paris' },
+        },
+      ],
+      slotsToPlan: [],
+      trainer: { identity: { lastname: 'Bonbeur', firstname: 'Jean' } },
+    };
+
+    const vendorCompany = { name: 'Compani', address: { fullAddress: '140 rue de ponthieu 75008 Paris' } };
+
+    const formattedCourse = {
+      vendorCompany,
+      company: { name: 'Alenvi', address: '12 rue de ponthieu 75008 Paris' },
+      programName: 'Programme',
+      learningGoals: 'bien apprendre',
+      slotsCount: 3,
+      liveDuration: '6h',
+      eLearningDuration: '',
+      misc: 'Test',
+      learnersCount: 1,
+      dates: ['03/11/2020', '04/11/2020', '05/11/2020'],
+      addressList: ['Paris'],
+      trainer: 'Jean BONBEUR',
+      price: 12,
+    };
+
+    vendorCompanyGet.returns(vendorCompany);
+
+    courseFindOne.returns(SinonMongoose.stubChainedQueries(course));
+
+    await CourseHelper.generateTrainingContract(course._id, payload);
+
+    sinon.assert.calledOnceWithExactly(vendorCompanyGet);
+    sinon.assert.calledOnceWithExactly(trainingContractGetPdf, formattedCourse);
+    SinonMongoose.calledOnceWithExactly(
+      courseFindOne,
+      [
+        { query: 'findOne', args: [{ _id: course._id }, { trainees: 1, misc: 1 }] },
+        {
+          query: 'populate',
+          args: [[
+            { path: 'companies', select: 'name address' },
+            {
+              path: 'subProgram',
+              select: 'program steps',
+              populate: [
+                { path: 'program', select: 'name learningGoals' },
+                { path: 'steps', select: 'theoreticalDuration type' },
+              ],
+            },
+            { path: 'slots', select: 'startDate endDate address meetingLink' },
+            { path: 'slotsToPlan', select: 'step' },
+            { path: 'trainer', select: 'identity.firstname identity.lastname' },
+          ]],
+        },
+        { query: 'lean' },
+      ]
     );
   });
 });
