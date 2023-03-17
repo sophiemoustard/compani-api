@@ -47,6 +47,5 @@ exports.getCurrentAndFutureCompanies = (userCompanyList) => {
     .filter(uc => !uc.endDate || CompaniDate().isBefore(uc.endDate))
     .map(uc => uc.company));
 
-  const getCompanyId = company => (has(company, '_id') ? company._id : company);
-  return uniqBy(currentAndFutureCompanies, getCompanyId);
+  return uniqBy(currentAndFutureCompanies, company => (has(company, '_id') ? company._id : company));
 };
