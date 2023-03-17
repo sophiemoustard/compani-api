@@ -1,7 +1,7 @@
 const get = require('lodash/get');
 const PdfHelper = require('../../helpers/pdf');
 const FileHelper = require('../../helpers/file');
-const { formatSiret } = require('./utils');
+const UtilsHelper = require('../../helpers/utils');
 const { COPPER_600, COPPER_100 } = require('../../helpers/constants');
 
 const getImages = async () => {
@@ -25,7 +25,7 @@ const getHeader = (data, compani) => [
       { text: 'Entre l\'organisme de formation', color: COPPER_600 },
       { text: get(data, 'vendorCompany.name'), bold: true },
       { text: get(data, 'vendorCompany.address.fullAddress') || '' },
-      { text: `SIRET : ${formatSiret(get(data, 'vendorCompany.siret') || '')}` },
+      { text: `SIRET : ${UtilsHelper.formatSiret(get(data, 'vendorCompany.siret') || '')}` },
       { text: `Numéro de déclaration d'activité : ${get(data, 'vendorCompany.activityDeclarationNumber') || ''}` },
     ],
     marginBottom: 16,

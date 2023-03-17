@@ -4,7 +4,6 @@ const NumbersHelper = require('../../../helpers/numbers');
 const FileHelper = require('../../../helpers/file');
 const CourseBillHelper = require('../../../helpers/courseBills');
 const { COPPER_GREY_200 } = require('../../../helpers/constants');
-const { formatSiret } = require('../utils');
 
 const getImages = async () => {
   const imageList = [
@@ -62,7 +61,7 @@ exports.getHeader = async (data, isBill = false) => {
         {
           text: `${get(data, 'vendorCompany.address.zipCode') || ''} ${get(data, 'vendorCompany.address.city') || ''}`,
         },
-        { text: `Siret : ${formatSiret(get(data, 'vendorCompany.siret') || '')}` },
+        { text: `Siret : ${UtilsHelper.formatSiret(get(data, 'vendorCompany.siret') || '')}` },
       ],
       marginBottom: 36,
     },
