@@ -1,4 +1,3 @@
-const Boom = require('@hapi/boom');
 const compact = require('lodash/compact');
 const get = require('lodash/get');
 const DatesUtilsHelper = require('./dates/utils');
@@ -12,7 +11,6 @@ const computeLiveDuration = (slots, slotsToPlan, steps) => {
     const theoreticalDurationList = steps
       .filter(step => step.type !== E_LEARNING)
       .map(step => step.theoreticalDuration);
-    if (theoreticalDurationList.some(duration => !duration)) throw Boom.badData();
 
     return theoreticalDurationList
       .reduce((acc, duration) => acc.add(duration), CompaniDuration())
