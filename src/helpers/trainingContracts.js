@@ -1,11 +1,35 @@
 const compact = require('lodash/compact');
 const get = require('lodash/get');
+const omit = require('lodash/omit');
+const GCloudStorageHelper = require('./gCloudStorage');
 const DatesUtilsHelper = require('./dates/utils');
 const UtilsHelper = require('./utils');
 const { E_LEARNING, SHORT_DURATION_H_MM, DD_MM_YYYY, REMOTE } = require('./constants');
 const { CompaniDate } = require('./dates/companiDates');
 const { CompaniDuration } = require('./dates/companiDurations');
+const Course = require('../models/Course');
+const TrainingContract = require('../models/TrainingContract');
 
+exports.create = async (payload) => {
+  const course = await Course
+    .findOne({ _id: payload.course }, { companies: 1, subProgram: 1 })
+    .populate([
+      { path: 'companies', select: 'name' },
+      { path: 'subProgram', select: 'program', populate: [{ path: 'program', select: 'name' }] },
+    ])
+    .lean();
+
+  const programName = `${course.subProgram.program.name}`;
+  const companyName = `${course.companies[0].name}`;
+
+  const fileName = `convention_${programName}_${companyName}`;
+  const fileUploaded = await GCloudStorageHelper.uploadCourseFile({
+    fileName,
+    file: payload.file,
+  });
+
+  return TrainingContract.create({ ...omit(payload, 'file'), file: fileUploaded });
+};
 const computeLiveDuration = (slots, slotsToPlan, steps) => {
   if (slotsToPlan.length) {
     const theoreticalDurationList = steps

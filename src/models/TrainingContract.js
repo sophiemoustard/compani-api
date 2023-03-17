@@ -11,4 +11,4 @@ TrainingContractSchema.pre('find', validateQuery);
 TrainingContractSchema.pre('aggregate', validateAggregation);
 queryMiddlewareList.map(middleware => TrainingContractSchema.pre(middleware, formatQuery));
 
-module.exports = mongoose.model('QuestionnaireHistory', TrainingContractSchema);
+module.exports = mongoose.model('TrainingContract', TrainingContractSchema);

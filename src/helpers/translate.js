@@ -407,6 +407,8 @@ module.exports = {
     /* VendorCompanies */
     userAlreadyLinkedToCompany: 'User already linked to company.',
     userAlreadyLinkedToCompanyUntil: 'User already linked to company until {DATE}.',
+    /* TrainingContracts */
+    trainingContractCreated: 'training contract created',
   },
   'fr-FR': {
     /* Global errors */
@@ -815,5 +817,7 @@ module.exports = {
     /* VendorCompanies */
     userAlreadyLinkedToCompany: 'Ce compte est déjà rattaché à une structure.',
     userAlreadyLinkedToCompanyUntil: 'Ce compte est déjà rattaché à une structure jusqu\'au {DATE}.',
+    /* TrainingContracts */
+    trainingContractCreated: 'Convention de formation créée',
   },
 };
