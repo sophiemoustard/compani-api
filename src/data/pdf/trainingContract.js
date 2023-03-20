@@ -32,7 +32,7 @@ const getHeader = (data, compani) => [
       { text: get(data, 'company.name') },
       { text: get(data, 'company.address') || '' },
     ],
-    marginBottom: 36,
+    marginBottom: 20,
   },
 ];
 
@@ -61,22 +61,11 @@ const getFooter = (data, signature) => [
 
 ];
 
-const formatDatesList = (dates) => {
-  const formattedDates = dates.flatMap((date, i) => (i < (dates.length - 1) ? `${date} - ` : date));
-
-  return { text: `Dates : ${formattedDates.join('')}` };
-};
-
 const formatAddressList = (addressList) => {
   if (addressList.length === 1) return { text: `Lieu : ${addressList[0]}` };
   const formattedList = addressList.flatMap(address => ({ text: `- ${address}`, marginLeft: 8 }));
 
-  return {
-    stack: [
-      { text: 'Lieux : ' },
-      ...formattedList,
-    ],
-  };
+  return { stack: [{ text: 'Lieux : ' }, ...formattedList] };
 };
 
 exports.getPdfContent = async (data) => {
@@ -99,7 +88,7 @@ exports.getPdfContent = async (data) => {
               + `${data.eLearningDuration ? ` (+ ${data.eLearningDuration} de e-learning)` : ''}`,
           },
           { text: `Effectif formé : ${data.misc} jusqu'à ${data.learnersCount} stagiaires` },
-          formatDatesList(data.dates),
+          { text: `Dates : ${data.dates.join(' - ')}` },
           formatAddressList(data.addressList),
           { text: `Intervenant(e) : ${data.trainer}`, marginBottom: 16 },
           { text: `Prix total TTC : ${data.price} €` },

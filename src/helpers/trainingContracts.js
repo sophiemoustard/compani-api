@@ -49,8 +49,10 @@ const getAddressList = (slots, steps) => {
       ? [...uniqFullAddressList, 'Cette formation contient des créneaux en distanciel']
       : uniqFullAddressList;
   }
+
   const cityList = compact(slots.map(slot => get(slot, 'address.city')));
   const uniqCityList = [...new Set(cityList)];
+
   return hasRemoteSteps
     ? [...uniqCityList, 'Cette formation contient des créneaux en distanciel']
     : uniqCityList;

@@ -62,7 +62,7 @@ describe('getPdfContent', () => {
           { text: 'Alenvi' },
           { text: '12 rue de ponthieu 75008 Paris' },
         ],
-        marginBottom: 36,
+        marginBottom: 20,
       },
     ];
 
@@ -194,7 +194,7 @@ describe('getPdfContent', () => {
           { text: 'Alenvi' },
           { text: '12 rue de ponthieu 75008 Paris' },
         ],
-        marginBottom: 36,
+        marginBottom: 20,
       },
     ];
 

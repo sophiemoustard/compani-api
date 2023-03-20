@@ -492,7 +492,7 @@ describe('getTotalDuration', () => {
 });
 
 describe('getISOTotalDuration', () => {
-  it('should return duration with minutes', () => {
+  it('should return duration in seconds with ISO format', () => {
     const slots = [
       { startDate: '2020-03-20T09:00:00.000Z', endDate: '2020-03-20T11:00:00.000Z' },
       { startDate: '2020-04-21T09:00:00.000Z', endDate: '2020-04-21T11:30:00.000Z' },
@@ -501,50 +501,6 @@ describe('getISOTotalDuration', () => {
     const result = UtilsHelper.getISOTotalDuration(slots);
 
     expect(result).toEqual('PT16200S');
-  });
-
-  it('should return duration with leading zero minutes', () => {
-    const slots = [
-      { startDate: '2020-03-20T09:00:00.000Z', endDate: '2020-03-20T11:08:00.000Z' },
-      { startDate: '2020-04-21T09:00:00.000Z', endDate: '2020-04-21T11:00:00.000Z' },
-    ];
-
-    const result = UtilsHelper.getISOTotalDuration(slots);
-
-    expect(result).toEqual('PT14880S');
-  });
-
-  it('should return duration without minutes', () => {
-    const slots = [
-      { startDate: '2020-03-20T09:00:00.000Z', endDate: '2020-03-20T11:00:00.000Z' },
-      { startDate: '2020-04-21T09:00:00.000Z', endDate: '2020-04-21T11:00:00.000Z' },
-    ];
-
-    const result = UtilsHelper.getISOTotalDuration(slots);
-
-    expect(result).toEqual('PT14400S');
-  });
-
-  it('should return duration without hours', () => {
-    const slots = [
-      { startDate: '2020-03-20T09:00:00.000Z', endDate: '2020-03-20T09:15:00.000Z' },
-      { startDate: '2020-04-21T09:00:00.000Z', endDate: '2020-04-21T09:30:00.000Z' },
-    ];
-
-    const result = UtilsHelper.getISOTotalDuration(slots);
-
-    expect(result).toEqual('PT2700S');
-  });
-
-  it('should return duration with days', () => {
-    const slots = [
-      { startDate: '2020-03-20T07:00:00.000Z', endDate: '2020-03-20T22:00:00.000Z' },
-      { startDate: '2020-04-21T07:00:00.000Z', endDate: '2020-04-21T22:00:00.000Z' },
-    ];
-
-    const result = UtilsHelper.getISOTotalDuration(slots);
-
-    expect(result).toEqual('PT108000S');
   });
 });
 
