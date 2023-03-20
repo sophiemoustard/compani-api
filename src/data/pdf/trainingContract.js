@@ -83,29 +83,14 @@ const formatAddressList = (addressList) => {
   };
 };
 
-const computeCanvasHeight = (data) => {
-  const learningGoalsCount = (data.learningGoals.match(/- /g) || []).length;
-  let linesCount = 9 + learningGoalsCount;
-  if (data.dates.length >= 8) linesCount += 2;
-  else linesCount += 1;
-  if (data.addressList.length > 1) linesCount += data.addressList.length + 1;
-  else linesCount += 1;
-
-  return linesCount * 18;
-};
-
 exports.getPdfContent = async (data) => {
   const [compani, signature] = await getImages();
   const header = getHeader(data, compani);
 
   const body = [
-    {
-      columns: [
-        [
-          {
-            canvas: [{ type: 'rect', x: 0, y: 0, w: 515, h: computeCanvasHeight(data), r: 0, color: COPPER_100 }],
-            absolutePosition: { x: 40, y: 300 },
-          },
+    [
+      {
+        stack: [
           { text: data.programName, bold: true },
           {
             stack: [
@@ -129,12 +114,19 @@ exports.getPdfContent = async (data) => {
             fontSize: 8,
           },
         ],
-      ],
-      marginLeft: 16,
+        margin: 16,
+      },
+    ],
+  ];
+
+  const table = [
+    {
+      table: { body, widths: ['100%'] },
+      layout: { vLineWidth: () => 0, hLineWidth: () => 0, fillColor: COPPER_100 },
     },
   ];
 
-  const content = [header, body];
+  const content = [header, table];
 
   return {
     template: {

@@ -70,37 +70,44 @@ describe('getPdfContent', () => {
       },
     ];
 
-    const body = [
+    const table = [
       {
-        columns: [
+        table:
+        {
+          body:
           [
-            {
-              canvas: [{ type: 'rect', x: 0, y: 0, w: 515, h: 320, r: 0, color: COPPER_100 }],
-              absolutePosition: { x: 40, y: 300 },
-            },
-            { text: data.programName, bold: true },
-            { stack: [{ text: 'Objectifs :' }, { text: 'bien apprendre', marginLeft: 16 }] },
-            { text: 'Durée : 3 créneaux - 6h (+ 2h de e-learning)' },
-            { text: 'Effectif formé : Groupe 1 jusqu\'à 8 stagiaires' },
-            { text: 'Dates : 03/11/2020 - 04/11/2020 - 05/11/2020' },
-            {
-              stack: [
-                { text: 'Lieux : ' },
-                { text: '- 14 rue de ponthieu 75008 Paris', marginLeft: 8 },
-                { text: '- 22 avenue Daumesnil 75012 Paris', marginLeft: 8 },
-              ],
-            },
-            { text: 'Intervenant(e) : Jean BONBEUR', marginBottom: 16 },
-            { text: 'Prix total TTC : 12 €' },
-            { text: '(Ce prix comprend les frais de formateurs)', italics: true },
-            {
-              text: 'En tant qu’organisme de formation, Compani est exonéré de la Taxe sur la Valeur Ajoutée (TVA).',
-              italics: true,
-              fontSize: 8,
-            },
+            [
+              {
+                stack: [
+                  { text: data.programName, bold: true },
+                  { stack: [{ text: 'Objectifs :' }, { text: 'bien apprendre', marginLeft: 16 }] },
+                  { text: 'Durée : 3 créneaux - 6h (+ 2h de e-learning)' },
+                  { text: 'Effectif formé : Groupe 1 jusqu\'à 8 stagiaires' },
+                  { text: 'Dates : 03/11/2020 - 04/11/2020 - 05/11/2020' },
+                  {
+                    stack: [
+                      { text: 'Lieux : ' },
+                      { text: '- 14 rue de ponthieu 75008 Paris', marginLeft: 8 },
+                      { text: '- 22 avenue Daumesnil 75012 Paris', marginLeft: 8 },
+                    ],
+                  },
+                  { text: 'Intervenant(e) : Jean BONBEUR', marginBottom: 16 },
+                  { text: 'Prix total TTC : 12 €' },
+                  { text: '(Ce prix comprend les frais de formateurs)', italics: true },
+                  {
+                    text:
+                      'En tant qu’organisme de formation, Compani est exonéré de la Taxe sur la Valeur Ajoutée (TVA).',
+                    italics: true,
+                    fontSize: 8,
+                  },
+                ],
+                margin: 16,
+              },
+            ],
           ],
-        ],
-        marginLeft: 16,
+          widths: ['100%'],
+        },
+        layout: { vLineWidth: () => 0, hLineWidth: () => 0, fillColor: COPPER_100 },
       },
     ];
 
@@ -130,7 +137,7 @@ describe('getPdfContent', () => {
     ];
 
     const pdf = {
-      content: [header, body].flat(),
+      content: [header, table].flat(),
       defaultStyle: { font: 'SourceSans', fontSize: 12 },
       pageMargins: [40, 40, 40, 160],
       footer,
@@ -199,31 +206,36 @@ describe('getPdfContent', () => {
       },
     ];
 
-    const body = [
+    const table = [
       {
-        columns: [
-          [
-            {
-              canvas: [{ type: 'rect', x: 0, y: 0, w: 515, h: 320, r: 0, color: COPPER_100 }],
-              absolutePosition: { x: 40, y: 300 },
-            },
-            { text: data.programName, bold: true },
-            { stack: [{ text: 'Objectifs :' }, { text: 'bien apprendre', marginLeft: 16 }] },
-            { text: 'Durée : 3 créneaux - 6h' },
-            { text: 'Effectif formé : Groupe 1 jusqu\'à 8 stagiaires' },
-            { text: 'Dates : 03/11/2020 - 04/11/2020 - 05/11/2020' },
-            { text: 'Lieu : Paris' },
-            { text: 'Intervenant(e) : Jean BONBEUR', marginBottom: 16 },
-            { text: 'Prix total TTC : 12 €' },
-            { text: '(Ce prix comprend les frais de formateurs)', italics: true },
-            {
-              text: 'En tant qu’organisme de formation, Compani est exonéré de la Taxe sur la Valeur Ajoutée (TVA).',
-              italics: true,
-              fontSize: 8,
-            },
+        table: {
+          body: [
+            [
+              {
+                stack: [
+                  { text: data.programName, bold: true },
+                  { stack: [{ text: 'Objectifs :' }, { text: 'bien apprendre', marginLeft: 16 }] },
+                  { text: 'Durée : 3 créneaux - 6h' },
+                  { text: 'Effectif formé : Groupe 1 jusqu\'à 8 stagiaires' },
+                  { text: 'Dates : 03/11/2020 - 04/11/2020 - 05/11/2020' },
+                  { text: 'Lieu : Paris' },
+                  { text: 'Intervenant(e) : Jean BONBEUR', marginBottom: 16 },
+                  { text: 'Prix total TTC : 12 €' },
+                  { text: '(Ce prix comprend les frais de formateurs)', italics: true },
+                  {
+                    text:
+                      'En tant qu’organisme de formation, Compani est exonéré de la Taxe sur la Valeur Ajoutée (TVA).',
+                    italics: true,
+                    fontSize: 8,
+                  },
+                ],
+                margin: 16,
+              },
+            ],
           ],
-        ],
-        marginLeft: 16,
+          widths: ['100%'],
+        },
+        layout: { vLineWidth: () => 0, hLineWidth: () => 0, fillColor: COPPER_100 },
       },
     ];
 
@@ -253,7 +265,7 @@ describe('getPdfContent', () => {
     ];
 
     const pdf = {
-      content: [header, body].flat(),
+      content: [header, table].flat(),
       defaultStyle: { font: 'SourceSans', fontSize: 12 },
       pageMargins: [40, 40, 40, 160],
       footer,
