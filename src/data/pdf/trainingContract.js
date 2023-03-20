@@ -14,11 +14,7 @@ const getImages = async () => {
 };
 
 const getHeader = (data, compani) => [
-  { image: compani, width: 154, height: 32, alignment: 'right', marginBottom: 24 },
-  {
-    canvas: [{ type: 'rect', x: 0, y: 0, w: 154, h: 32, r: 0, fillOpacity: 0.5, color: 'white' }],
-    absolutePosition: { x: 400, y: 40 },
-  },
+  { image: compani, width: 154, height: 32, alignment: 'right', marginBottom: 24, opacity: 0.5 },
   { text: 'CONVENTION DE FORMATION', alignment: 'center', fontSize: 24, bold: true, marginBottom: 24 },
   {
     stack: [
