@@ -83,6 +83,17 @@ const formatAddressList = (addressList) => {
   };
 };
 
+const computeCanvasHeight = (data) => {
+  const learningGoalsCount = (data.learningGoals.match(/- /g) || []).length;
+  let linesCount = 9 + learningGoalsCount;
+  if (data.dates.length >= 8) linesCount += 2;
+  else linesCount += 1;
+  if (data.addressList.length > 1) linesCount += data.addressList.length + 1;
+  else linesCount += 1;
+
+  return linesCount * 18;
+};
+
 exports.getPdfContent = async (data) => {
   const [compani, signature] = await getImages();
   const header = getHeader(data, compani);
@@ -92,7 +103,7 @@ exports.getPdfContent = async (data) => {
       columns: [
         [
           {
-            canvas: [{ type: 'rect', x: 0, y: 0, w: 515, h: 320, r: 0, color: COPPER_100 }],
+            canvas: [{ type: 'rect', x: 0, y: 0, w: 515, h: computeCanvasHeight(data), r: 0, color: COPPER_100 }],
             absolutePosition: { x: 40, y: 300 },
           },
           { text: data.programName, bold: true },
