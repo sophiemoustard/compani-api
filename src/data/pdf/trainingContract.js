@@ -84,7 +84,7 @@ exports.getPdfContent = async (data) => {
             ],
           },
           {
-            text: `Durée : ${data.slotsCount} créneaux - ${data.liveDuration}`
+            text: `Durée : ${UtilsHelper.formatQuantity('créneau', data.slotsCount, 'x')} - ${data.liveDuration}`
               + `${data.eLearningDuration ? ` (+ ${data.eLearningDuration} de e-learning)` : ''}`,
           },
           { text: `Effectif formé : ${data.misc || ''} jusqu'à ${data.learnersCount} stagiaires` },

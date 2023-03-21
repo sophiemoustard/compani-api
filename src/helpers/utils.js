@@ -264,3 +264,10 @@ exports.formatSiret = siret => (
     ? `${siret.slice(0, 3)} ${siret.slice(3, 6)} ${siret.slice(6, 9)} ${siret.slice(9, 14)}`
     : ''
 );
+
+exports.formatQuantity = (label, quantity, pluralMark = 's') => {
+  let itemLabel = label;
+  if (quantity > 1) itemLabel = label.split(' ').map(word => `${word}${pluralMark}`).join(' ');
+
+  return `${quantity} ${itemLabel}`;
+};

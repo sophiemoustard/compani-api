@@ -683,3 +683,17 @@ describe('sortStrings', () => {
     expect(result).toBe(0);
   });
 });
+
+describe('formatQuantity', () => {
+  it('should return plural label with default plural mark', () => {
+    const result = UtilsHelper.formatQuantity('formation', 4);
+
+    expect(result).toBe('4 formations');
+  });
+
+  it('should return plural label with other plural mark', () => {
+    const result = UtilsHelper.formatQuantity('créneau', 4, 'x');
+
+    expect(result).toBe('4 créneaux');
+  });
+});
