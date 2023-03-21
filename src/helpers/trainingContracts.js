@@ -28,7 +28,7 @@ exports.create = async (payload) => {
     file: payload.file,
   });
 
-  return TrainingContract.create({ ...omit(payload, 'file'), file: fileUploaded });
+  return TrainingContract.create({ ...omit(payload, 'file'), link: fileUploaded.link });
 };
 const computeLiveDuration = (slots, slotsToPlan, steps) => {
   if (slotsToPlan.length) {

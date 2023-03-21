@@ -1,12 +1,14 @@
 const Boom = require('@hapi/boom');
 const Course = require('../../models/Course');
-const UtilsHelper = require('../../helpers/utils');
+const TrainingContract = require('../../models/TrainingContract');
 
 exports.authorizeTrainingContractUpload = async (req) => {
-  const course = await Course.findOne({ _id: req.payload._id }, { companies: 1 }).lean();
-
+  const { course: courseId, company } = req.payload;
+  const course = await Course.countDocuments({ _id: courseId, companies: company });
   if (!course) throw Boom.notFound();
-  if (UtilsHelper.doesArrayIncludeId(course.companies, req.payload.company)) throw Boom.forbidden();
+
+  const trainingContractAlreadyExists = await TrainingContract.countDocuments({ course: courseId, company });
+  if (trainingContractAlreadyExists) throw Boom.forbidden();
 
   return null;
 };
