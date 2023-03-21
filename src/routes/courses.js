@@ -374,7 +374,7 @@ exports.plugin = {
         auth: { scope: ['courses:create'] },
         validate: {
           params: Joi.object({ _id: Joi.objectId().required() }),
-          payload: Joi.object({ price: Joi.number().positive().integer().required() }),
+          payload: Joi.object({ price: Joi.number().positive().required() }),
         },
         pre: [{ method: authorizeGenerateTrainingContract }],
       },

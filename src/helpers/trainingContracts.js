@@ -16,19 +16,17 @@ const computeLiveDuration = (slots, slotsToPlan, steps) => {
       .reduce((acc, duration) => acc.add(duration), CompaniDuration())
       .format(SHORT_DURATION_H_MM);
   }
-  const slotsDuration = CompaniDuration(UtilsHelper.getISOTotalDuration(slots));
 
-  return CompaniDuration(slotsDuration).format(SHORT_DURATION_H_MM);
+  return CompaniDuration(UtilsHelper.getISOTotalDuration(slots)).format(SHORT_DURATION_H_MM);
 };
 
 const computeElearnigDuration = (steps) => {
   if (!steps.some(step => step.type === E_LEARNING)) return '';
-  const elearningDuration = steps
+
+  return steps
     .filter(step => step.type === E_LEARNING)
     .reduce((acc, step) => acc.add(step.theoreticalDuration), CompaniDuration())
-    .toISO();
-
-  return CompaniDuration(elearningDuration).format(SHORT_DURATION_H_MM);
+    .format(SHORT_DURATION_H_MM);
 };
 
 const getDates = (slots) => {
