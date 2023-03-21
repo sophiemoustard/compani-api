@@ -820,7 +820,7 @@ describe('COURSE BILL ROUTES - PUT /coursebills/{_id}', () => {
       });
 
       expect(response.statusCode).toBe(403);
-      expect(response.result.message.startsWith('Erreur lors de la facturation, l\'adresse')).toBeTruthy();
+      expect(response.result.message).toEqual('L\'adresse de la structure cliente est manquante.');
     });
 
     it('should return 403 if adding payer on validated bill', async () => {

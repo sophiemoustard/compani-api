@@ -13,9 +13,6 @@ const getImages = async () => {
   return FileHelper.downloadImages(imageList);
 };
 
-const formatSiret = siret => siret &&
-  `${siret.slice(0, 3)} ${siret.slice(3, 6)} ${siret.slice(6, 9)} ${siret.slice(9, 14)}`;
-
 exports.getHeader = async (data, isBill = false) => {
   const [compani] = await getImages();
 
@@ -64,7 +61,7 @@ exports.getHeader = async (data, isBill = false) => {
         {
           text: `${get(data, 'vendorCompany.address.zipCode') || ''} ${get(data, 'vendorCompany.address.city') || ''}`,
         },
-        { text: `Siret : ${formatSiret(get(data, 'vendorCompany.siret') || '')}` },
+        { text: `Siret : ${UtilsHelper.formatSiret(get(data, 'vendorCompany.siret') || '')}` },
       ],
       marginBottom: 36,
     },

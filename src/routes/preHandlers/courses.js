@@ -17,6 +17,7 @@ const {
   COACH,
   TRAINING_ORGANISATION_MANAGER,
   STRICTLY_E_LEARNING,
+  E_LEARNING,
   BLENDED,
   ON_SITE,
   MOBILE,
@@ -511,6 +512,34 @@ exports.authorizeCourseCompanyDeletion = async (req) => {
 exports.authorizeGetConvocationPdf = async (req) => {
   const course = await Course.countDocuments({ _id: req.params._id });
   if (!course) throw Boom.notFound();
+
+  return null;
+};
+
+exports.authorizeGenerateTrainingContract = async (req) => {
+  const course = await Course
+    .findOne({ _id: req.params._id }, { _id: 1 })
+    .populate([
+      { path: 'companies', select: 'address' },
+      {
+        path: 'subProgram',
+        select: 'steps',
+        populate: [{ path: 'steps', select: 'theoreticalDuration type' }],
+      },
+      { path: 'slotsToPlan' },
+    ])
+    .lean();
+
+  if (!course) throw Boom.notFound();
+  if (!course.companies[0].address) throw Boom.forbidden(translate[language].courseCompanyAddressMissing);
+  if (course.slotsToPlan.length) {
+    const theoreticalDurationList = course.subProgram.steps
+      .filter(step => step.type !== E_LEARNING)
+      .map(step => step.theoreticalDuration);
+    if (theoreticalDurationList.some(duration => !duration)) {
+      throw Boom.badData(translate[language].stepsTheoreticalDurationsNotDefined);
+    }
+  }
 
   return null;
 };

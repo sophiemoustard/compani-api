@@ -4,6 +4,7 @@ const { deleteNonAuthenticationSeeds } = require('../helpers/authentication');
 const vendorCompany = {
   name: 'Test Company',
   siret: '12345678901234',
+  activityDeclarationNumber: '13736343575',
   address: {
     fullAddress: '12 rue du test 92160 Antony',
     street: '12 rue du test',

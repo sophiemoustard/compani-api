@@ -17,6 +17,7 @@ const programList = [{ _id: new ObjectId(), name: 'Program 1', subPrograms: [sub
 const vendorCompany = {
   name: 'Vendor Company',
   siret: '12345678901234',
+  activityDeclarationNumber: '13736343575',
   address: {
     fullAddress: '32 Rue du Loup 33000 Bordeaux',
     street: '32 Rue du Loup',

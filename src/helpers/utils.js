@@ -3,7 +3,7 @@ const isEmpty = require('lodash/isEmpty');
 const { ObjectId } = require('mongodb');
 const Intl = require('intl');
 const moment = require('../extensions/moment');
-const { CIVILITY_LIST, SHORT_DURATION_H_MM, HHhMM } = require('./constants');
+const { CIVILITY_LIST, SHORT_DURATION_H_MM, HHhMM, SECOND } = require('./constants');
 const DatesHelper = require('./dates');
 const { CompaniDate } = require('./dates/companiDates');
 const { CompaniDuration } = require('./dates/companiDurations');
@@ -236,6 +236,10 @@ exports.getTotalDurationForExport = (timePeriods) => {
   return exports.formatFloatForExport(totalDuration.asHours());
 };
 
+exports.getISOTotalDuration = timePeriods => timePeriods
+  .reduce((acc, tp) => acc.add(CompaniDate(tp.endDate).diff(tp.startDate, SECOND)), CompaniDuration())
+  .toISO();
+
 exports.getDuration = (startDate, endDate) =>
   CompaniDuration(CompaniDate(endDate).diff(startDate, 'minutes')).format(SHORT_DURATION_H_MM);
 
@@ -254,3 +258,16 @@ exports.formatIntervalHourly = slot => `${CompaniDate(slot.startDate).format(HHh
   + `${CompaniDate(slot.endDate).format(HHhMM)}`;
 
 exports.sortStrings = (a, b) => a.toLowerCase().localeCompare(b.toLowerCase());
+
+exports.formatSiret = siret => (
+  siret
+    ? `${siret.slice(0, 3)} ${siret.slice(3, 6)} ${siret.slice(6, 9)} ${siret.slice(9, 14)}`
+    : ''
+);
+
+exports.formatQuantity = (label, quantity, pluralMark = 's') => {
+  let itemLabel = label;
+  if (quantity > 1) itemLabel = label.split(' ').map(word => `${word}${pluralMark}`).join(' ');
+
+  return `${quantity} ${itemLabel}`;
+};

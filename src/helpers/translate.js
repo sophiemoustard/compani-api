@@ -278,6 +278,7 @@ module.exports = {
     /* Steps */
     stepUpdated: 'Step updated.',
     stepsFound: 'Steps found.',
+    stepsTheoreticalDurationsNotDefined: 'Some program steps theoretical durations are not defined.',
     /* Activities */
     activityFound: 'Activity found.',
     activityUpdated: 'Activity updated.',
@@ -685,6 +686,7 @@ module.exports = {
     /* Steps */
     stepsFound: 'Liste des étapes trouvée.',
     stepUpdated: 'Étape mise à jour.',
+    stepsTheoreticalDurationsNotDefined: 'Certaines durées théoriques des étapes du programme ne sont pas renseignées.',
     /* Activities */
     activityFound: 'Activité trouvée.',
     activityUpdated: 'Activité mise à jour.',
@@ -729,7 +731,7 @@ module.exports = {
     courseBillCreated: 'Facture de la formation créée.',
     courseBillUpdated: 'Facture de la formation mise à jour.',
     courseBillingItemAlreadyAdded: 'Article déjà ajouté à la facture.',
-    courseCompanyAddressMissing: 'Erreur lors de la facturation, l\'adresse de la structure cliente est manquante.',
+    courseCompanyAddressMissing: 'L\'adresse de la structure cliente est manquante.',
     /* Course billing items */
     courseBillingItemExists: 'Article de facturation existant.',
     courseBillingItemsFound: 'Articles de facturation trouvés.',

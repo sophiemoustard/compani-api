@@ -23,6 +23,7 @@ const ZipHelper = require('./zip');
 const SmsHelper = require('./sms');
 const DocxHelper = require('./docx');
 const StepsHelper = require('./steps');
+const TrainingContractsHelper = require('./trainingContracts');
 const drive = require('../models/Google/Drive');
 const {
   INTRA,
@@ -52,10 +53,12 @@ const {
 } = require('./constants');
 const CourseHistoriesHelper = require('./courseHistories');
 const NotificationHelper = require('./notifications');
+const VendorCompaniesHelper = require('./vendorCompanies');
 const InterAttendanceSheet = require('../data/pdf/attendanceSheet/interAttendanceSheet');
 const IntraAttendanceSheet = require('../data/pdf/attendanceSheet/intraAttendanceSheet');
 const CourseConvocation = require('../data/pdf/courseConvocation');
 const CompletionCertificate = require('../data/pdf/completionCertificate');
+const TrainingContract = require('../data/pdf/trainingContract');
 const CourseBill = require('../models/CourseBill');
 const CourseSlot = require('../models/CourseSlot');
 const CourseHistory = require('../models/CourseHistory');
@@ -950,3 +953,30 @@ exports.removeCourseCompany = async (courseId, companyId, credentials) => Promis
   Course.updateOne({ _id: courseId }, { $pull: { companies: companyId } }),
   CourseHistoriesHelper.createHistoryOnCompanyDeletion({ course: courseId, company: companyId }, credentials._id),
 ]);
+
+exports.generateTrainingContract = async (courseId, payload) => {
+  const course = await Course
+    .findOne({ _id: courseId }, { maxTrainees: 1, misc: 1 })
+    .populate([
+      { path: 'companies', select: 'name address' },
+      {
+        path: 'subProgram',
+        select: 'program steps',
+        populate: [
+          { path: 'program', select: 'name learningGoals' },
+          { path: 'steps', select: 'theoreticalDuration type' },
+        ],
+      },
+      { path: 'slots', select: 'startDate endDate address meetingLink' },
+      { path: 'slotsToPlan', select: '_id' },
+      { path: 'trainer', select: 'identity.firstname identity.lastname' },
+    ])
+    .lean();
+
+  const vendorCompany = await VendorCompaniesHelper.get();
+  const formattedCourse = TrainingContractsHelper.formatCourseForTrainingContract(course, vendorCompany, payload.price);
+  const pdf = await TrainingContract.getPdf(formattedCourse);
+  const fileName = `convention_${formattedCourse.programName}_${formattedCourse.company.name}.pdf`;
+
+  return { fileName, pdf };
+};
