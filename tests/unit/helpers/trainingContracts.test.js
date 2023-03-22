@@ -44,7 +44,7 @@ describe('create', () => {
     );
     sinon.assert.calledOnceWithExactly(
       create,
-      { course: courseId, company: companyId, link: 'yo' }
+      { course: courseId, company: companyId, file: { publicId: 'yo', link: 'yo' } }
     );
     SinonMongoose.calledOnceWithExactly(
       courseFindOne,

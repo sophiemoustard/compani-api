@@ -3,7 +3,10 @@ const { validateQuery, validateAggregation, formatQuery, queryMiddlewareList } =
 
 const TrainingContractSchema = mongoose.Schema({
   course: { type: mongoose.Schema.Types.ObjectId, ref: 'Course', required: true },
-  link: { type: String, trim: true, required: true },
+  file: {
+    publicId: { type: String, required: true },
+    link: { type: String, trim: true, required: true },
+  },
   company: { type: mongoose.Schema.Types.ObjectId, ref: 'Company', required: true },
 }, { timestamps: true });
 
