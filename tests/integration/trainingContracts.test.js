@@ -57,7 +57,7 @@ describe('COURSES ROUTES - POST /trainingcontracts', () => {
         company: authCompany._id,
         file: { publicId: '1234567890', link: 'ceciestunautrelien' },
       });
-      expect(contractTraing).toBeTruthy();
+      expect(contractTraing).toBe(1);
     });
 
     it('should return 404 if course with company not found', async () => {

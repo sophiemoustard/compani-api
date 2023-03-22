@@ -6,12 +6,9 @@ const { language } = translate;
 
 const create = async (req) => {
   try {
-    const trainingContract = await TrainingContractsHelper.create(req.payload);
+    await TrainingContractsHelper.create(req.payload);
 
-    return {
-      message: translate[language].trainingContractCreated,
-      data: { trainingContract },
-    };
+    return { message: translate[language].trainingContractCreated };
   } catch (e) {
     req.log('error', e);
     return Boom.isBoom(e) ? e : Boom.badImplementation(e);

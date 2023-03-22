@@ -19,8 +19,8 @@ exports.create = async (payload) => {
     ])
     .lean();
 
-  const programName = `${course.subProgram.program.name}`;
-  const companyName = `${course.companies[0].name}`;
+  const programName = course.subProgram.program.name;
+  const companyName = course.companies[0].name;
 
   const fileName = `convention_${programName}_${companyName}`;
   const fileUploaded = await GCloudStorageHelper.uploadCourseFile({
@@ -28,7 +28,7 @@ exports.create = async (payload) => {
     file: payload.file,
   });
 
-  return TrainingContract.create({ ...omit(payload, 'file'), file: fileUploaded });
+  await TrainingContract.create({ ...omit(payload, 'file'), file: fileUploaded });
 };
 const computeLiveDuration = (slots, slotsToPlan, steps) => {
   if (slotsToPlan.length) {
