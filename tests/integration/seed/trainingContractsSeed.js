@@ -52,7 +52,7 @@ const courseList = [
 const trainingContract = {
   course: courseList[1]._id,
   company: authCompany._id,
-  link: 'https://cloudstorage.com',
+  link: 'ceciestunlien',
 };
 
 const populateDB = async () => {

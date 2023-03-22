@@ -21,15 +21,14 @@ describe('COURSES ROUTES - POST /trainingcontracts', () => {
   let authToken;
   let uploadCourseFileStub;
 
-  beforeEach(() => {
+  beforeEach(async () => {
+    await populateDB();
     uploadCourseFileStub = sinon.stub(GCloudStorageHelper, 'uploadCourseFile')
-      .returns({ link: 'http://test.com/file.pdf' });
+      .returns({ link: 'ceciestunlien' });
   });
   afterEach(() => {
     uploadCourseFileStub.restore();
   });
-
-  beforeEach(populateDB);
 
   describe('TRAINING_ORGANISATION_MANAGER', () => {
     beforeEach(async () => {
@@ -43,7 +42,7 @@ describe('COURSES ROUTES - POST /trainingcontracts', () => {
         file: fs.createReadStream(path.join(__dirname, 'assets/test_esign.pdf')),
       };
       const form = generateFormData(formData);
-      uploadCourseFileStub.returns({ publicId: '1234567890', link: 'https://test.com/file.pdf' });
+      uploadCourseFileStub.returns({ publicId: '1234567890', link: 'ceciestunautrelien' });
 
       const response = await app.inject({
         method: 'POST',
@@ -54,7 +53,7 @@ describe('COURSES ROUTES - POST /trainingcontracts', () => {
 
       expect(response.statusCode).toBe(200);
       const contractTraing = await TrainingContract
-        .countDocuments({ course: courseList[0]._id, company: authCompany._id });
+        .countDocuments({ course: courseList[0]._id, company: authCompany._id, link: 'ceciestunautrelien' });
       expect(contractTraing).toBeTruthy();
     });
 

@@ -12,6 +12,7 @@ exports.plugin = {
       method: 'POST',
       path: '/',
       options: {
+        auth: { scope: ['courses:create'] },
         payload: formDataPayload(),
         validate: {
           payload: Joi.object({
@@ -20,7 +21,6 @@ exports.plugin = {
             company: Joi.objectId().required(),
           }),
         },
-        auth: { scope: ['courses:create'] },
         pre: [{ method: authorizeTrainingContractUpload }],
       },
       handler: create,
