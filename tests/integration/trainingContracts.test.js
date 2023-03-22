@@ -1,4 +1,5 @@
 const { expect } = require('expect');
+const sinon = require('sinon');
 const fs = require('fs');
 const path = require('path');
 const GetStream = require('get-stream');
@@ -8,6 +9,7 @@ const { authCompany, otherCompany } = require('../seed/authCompaniesSeed');
 const { populateDB, courseList } = require('./seed/trainingContractsSeed');
 const { getToken } = require('./helpers/authentication');
 const { generateFormData } = require('./utils');
+const GCloudStorageHelper = require('../../src/helpers/gCloudStorage');
 
 describe('NODE ENV', () => {
   it('should be \'test\'', () => {
@@ -17,6 +19,15 @@ describe('NODE ENV', () => {
 
 describe('COURSES ROUTES - POST /trainingcontracts', () => {
   let authToken;
+  let uploadCourseFileStub;
+
+  beforeEach(() => {
+    uploadCourseFileStub = sinon.stub(GCloudStorageHelper, 'uploadCourseFile')
+      .returns({ link: 'http://test.com/file.pdf' });
+  });
+  afterEach(() => {
+    uploadCourseFileStub.restore();
+  });
 
   beforeEach(populateDB);
 
@@ -32,6 +43,7 @@ describe('COURSES ROUTES - POST /trainingcontracts', () => {
         file: fs.createReadStream(path.join(__dirname, 'assets/test_esign.pdf')),
       };
       const form = generateFormData(formData);
+      uploadCourseFileStub.returns({ publicId: '1234567890', link: 'https://test.com/file.pdf' });
 
       const response = await app.inject({
         method: 'POST',
@@ -53,6 +65,7 @@ describe('COURSES ROUTES - POST /trainingcontracts', () => {
         file: fs.createReadStream(path.join(__dirname, 'assets/test_esign.pdf')),
       };
       const form = generateFormData(formData);
+      uploadCourseFileStub.returns({ publicId: '1234567890', link: 'https://test.com/file.pdf' });
 
       const response = await app.inject({
         method: 'POST',
@@ -71,6 +84,7 @@ describe('COURSES ROUTES - POST /trainingcontracts', () => {
         file: fs.createReadStream(path.join(__dirname, 'assets/test_esign.pdf')),
       };
       const form = generateFormData(formData);
+      uploadCourseFileStub.returns({ publicId: '1234567890', link: 'https://test.com/file.pdf' });
 
       const response = await app.inject({
         method: 'POST',
@@ -101,6 +115,7 @@ describe('COURSES ROUTES - POST /trainingcontracts', () => {
         };
 
         const form = generateFormData(formData);
+        uploadCourseFileStub.returns({ publicId: '1234567890', link: 'https://test.com/file.pdf' });
 
         const response = await app.inject({
           method: 'POST',
