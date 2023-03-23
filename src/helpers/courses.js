@@ -290,6 +290,9 @@ exports.formatCourseWithProgress = (course, shouldComputePresence = false) => {
   };
 };
 
+const filterCourseTrainees = (courseTrainees, fieldToCompare, credentials) => courseTrainees
+  .filter(t => UtilsHelper.areObjectIdsEquals(get(t, fieldToCompare), get(credentials, 'company._id')));
+
 const getCourseForOperations = async (courseId, credentials, origin) => {
   const fetchedCourse = await Course.findOne({ _id: courseId })
     .populate([
@@ -342,15 +345,16 @@ const getCourseForOperations = async (courseId, credentials, origin) => {
     ])
     .lean();
 
+  const isBlended = fetchedCourse.format === BLENDED;
   let blendedCourseTrainees;
-  if (fetchedCourse.format === BLENDED) {
+  if (isBlended) {
     const traineesCompanyAtCourseRegistration = await CourseHistoriesHelper.getCompanyAtCourseRegistrationList(
       { key: COURSE, value: courseId }, { key: TRAINEE, value: fetchedCourse.trainees.map(t => t._id) }
     );
 
     const traineesCompany = mapValues(keyBy(traineesCompanyAtCourseRegistration, 'trainee'), 'company');
     blendedCourseTrainees = fetchedCourse.trainees
-      .map(trainee => ({ ...trainee, company: traineesCompany[trainee._id] }));
+      .map(trainee => ({ ...trainee, registrationCompany: traineesCompany[trainee._id] }));
   }
 
   // A coach/client_admin is not supposed to read infos on trainees from other companies
@@ -363,11 +367,14 @@ const getCourseForOperations = async (courseId, credentials, origin) => {
     };
   }
 
+  const trainees = isBlended
+    ? filterCourseTrainees(blendedCourseTrainees, 'registrationCompany', credentials)
+    : filterCourseTrainees(fetchedCourse.trainees, 'company', credentials);
+
   return {
     ...fetchedCourse,
     totalTheoreticalDuration: exports.getTotalTheoreticalDuration(fetchedCourse),
-    trainees: (blendedCourseTrainees || fetchedCourse.trainees)
-      .filter(t => UtilsHelper.areObjectIdsEquals(get(t, 'company'), get(credentials, 'company._id'))),
+    trainees,
   };
 };
 
@@ -745,7 +752,7 @@ exports.formatInterCourseForPdf = async (course) => {
   return {
     trainees: course.trainees.map(trainee => ({
       traineeName: UtilsHelper.formatIdentity(trainee.identity, 'FL'),
-      company: companiesById[traineesCompany[trainee._id]],
+      registrationCompany: companiesById[traineesCompany[trainee._id]],
       course: { ...courseData },
     })),
   };

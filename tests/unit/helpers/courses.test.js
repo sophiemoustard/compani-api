@@ -1387,7 +1387,10 @@ describe('getCourse', () => {
       expect(result).toMatchObject({
         ...course,
         totalTheoreticalDuration: 'PT5400S',
-        trainees: [{ _id: traineeIds[0], company: authCompanyId }, { _id: traineeIds[1], company: otherCompanyId }],
+        trainees: [
+          { _id: traineeIds[0], registrationCompany: authCompanyId },
+          { _id: traineeIds[1], registrationCompany: otherCompanyId },
+        ],
       });
 
       SinonMongoose.calledOnceWithExactly(
@@ -1459,7 +1462,7 @@ describe('getCourse', () => {
 
       const courseWithFilteredTrainees = {
         type: INTER_B2B,
-        trainees: [{ _id: traineeIds[0], company: authCompanyId }],
+        trainees: [{ _id: traineeIds[0], registrationCompany: authCompanyId }],
         totalTheoreticalDuration: 'PT0S',
       };
 
@@ -1559,8 +1562,8 @@ describe('getCourse', () => {
         ...course,
         totalTheoreticalDuration: 'PT5400S',
         trainees: [
-          { _id: traineeIds[0], company: authCompanyId },
-          { _id: traineeIds[1], company: otherCompanyId },
+          { _id: traineeIds[0], registrationCompany: authCompanyId },
+          { _id: traineeIds[1], registrationCompany: otherCompanyId },
         ],
       });
 
@@ -3369,7 +3372,7 @@ describe('formatInterCourseForPdf', () => {
       trainees: [
         {
           traineeName: 'trainee 1',
-          company: 'alenvi',
+          registrationCompany: 'alenvi',
           course: {
             name: 'programme de formation - des infos en plus',
             slots: ['slot', 'slot', 'slot'],
@@ -3381,7 +3384,7 @@ describe('formatInterCourseForPdf', () => {
         },
         {
           traineeName: 'trainee 2',
-          company: 'alenvi',
+          registrationCompany: 'alenvi',
           course: {
             name: 'programme de formation - des infos en plus',
             slots: ['slot', 'slot', 'slot'],
