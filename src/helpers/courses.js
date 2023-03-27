@@ -342,32 +342,27 @@ const getCourseForOperations = async (courseId, credentials, origin) => {
     ])
     .lean();
 
-  let blendedCourseTrainees;
-  if (fetchedCourse.format === BLENDED) {
+  let courseTrainees = fetchedCourse.trainees;
+  const isBlended = fetchedCourse.format === BLENDED;
+  if (isBlended) {
     const traineesCompanyAtCourseRegistration = await CourseHistoriesHelper.getCompanyAtCourseRegistrationList(
       { key: COURSE, value: courseId }, { key: TRAINEE, value: fetchedCourse.trainees.map(t => t._id) }
     );
 
     const traineesCompany = mapValues(keyBy(traineesCompanyAtCourseRegistration, 'trainee'), 'company');
-    blendedCourseTrainees = fetchedCourse.trainees
-      .map(trainee => ({ ...trainee, company: traineesCompany[trainee._id] }));
+    courseTrainees = fetchedCourse.trainees
+      .map(trainee => ({ ...trainee, registrationCompany: traineesCompany[trainee._id] }));
   }
 
   // A coach/client_admin is not supposed to read infos on trainees from other companies
   // espacially for INTER_B2B courses.
-  if (get(credentials, 'role.vendor')) {
-    return {
-      ...fetchedCourse,
-      totalTheoreticalDuration: exports.getTotalTheoreticalDuration(fetchedCourse),
-      ...(blendedCourseTrainees && { trainees: blendedCourseTrainees }),
-    };
-  }
-
   return {
     ...fetchedCourse,
     totalTheoreticalDuration: exports.getTotalTheoreticalDuration(fetchedCourse),
-    trainees: (blendedCourseTrainees || fetchedCourse.trainees)
-      .filter(t => UtilsHelper.areObjectIdsEquals(get(t, 'company'), get(credentials, 'company._id'))),
+    trainees: get(credentials, 'role.vendor')
+      ? courseTrainees
+      : courseTrainees.filter(t => UtilsHelper
+        .areObjectIdsEquals(get(t, isBlended ? 'registrationCompany' : 'company'), get(credentials, 'company._id'))),
   };
 };
 
@@ -745,7 +740,7 @@ exports.formatInterCourseForPdf = async (course) => {
   return {
     trainees: course.trainees.map(trainee => ({
       traineeName: UtilsHelper.formatIdentity(trainee.identity, 'FL'),
-      company: companiesById[traineesCompany[trainee._id]],
+      registrationCompany: companiesById[traineesCompany[trainee._id]],
       course: { ...courseData },
     })),
   };
