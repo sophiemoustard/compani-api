@@ -96,7 +96,7 @@ exports.getPdfContent = async (data) => {
           { text: `Dates : ${data.dates.join(' - ')}` },
           formatAddressList(data.addressList),
           { text: `Intervenant(e) : ${data.trainer}`, marginBottom: 16 },
-          { text: data.type === INTER_B2B ? `Prix TTC par stagiaire : ${data.price} €` : '' },
+          ...(data.type === INTER_B2B && [{ text: `Prix TTC par stagiaire : ${data.price}` }]),
           { text: `Prix total TTC : ${totalPrice} €` },
           { text: '(Ce prix comprend les frais de formateurs)', italics: true },
           {

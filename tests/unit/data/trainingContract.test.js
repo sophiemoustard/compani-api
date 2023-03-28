@@ -89,7 +89,6 @@ describe('getPdfContent', () => {
                     ],
                   },
                   { text: 'Intervenant(e) : Jean BONBEUR', marginBottom: 16 },
-                  { text: '' },
                   { text: 'Prix total TTC : 12 €' },
                   { text: '(Ce prix comprend les frais de formateurs)', italics: true },
                   {
