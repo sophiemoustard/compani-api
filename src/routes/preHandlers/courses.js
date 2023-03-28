@@ -531,11 +531,11 @@ exports.authorizeGenerateTrainingContract = async (req) => {
     .lean();
 
   if (!course) throw Boom.notFound();
-  const courseCompaniesIds = course.companies.map(company => company._id);
-  if (!UtilsHelper.doesArrayIncludeId(courseCompaniesIds, req.payload.company)) throw Boom.forbidden();
+
   const company = course.type === INTER_B2B
     ? course.companies.find(c => UtilsHelper.areObjectIdsEquals(c._id, req.payload.company))
     : course.companies[0];
+  if (!UtilsHelper.areObjectIdsEquals(get(company, '_id'), req.payload.company)) throw Boom.forbidden();
   if (!company.address) throw Boom.forbidden(translate[language].courseCompanyAddressMissing);
   if (course.slotsToPlan.length) {
     const theoreticalDurationList = course.subProgram.steps

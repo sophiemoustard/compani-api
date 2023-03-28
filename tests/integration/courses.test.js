@@ -3553,7 +3553,7 @@ describe('COURSES ROUTES - POST /courses/{_id}/trainingcontracts', () => {
     it('should return a 403 if company is not in course', async () => {
       const response = await app.inject({
         method: 'POST',
-        url: `/courses/${intraCourseIdFromAuthCompany}/trainingcontracts`,
+        url: `/courses/${interCourseIdFromAuthCompany}/trainingcontracts`,
         payload: { price: 4300, company: thirdCompany._id },
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
