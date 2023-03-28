@@ -2391,6 +2391,7 @@ describe('getCourseFollowUp', () => {
           args: [{
             path: 'trainees',
             select: 'identity.firstname identity.lastname firstMobileConnection',
+            populate: { path: 'company' },
           }],
         },
         { query: 'lean' },
@@ -2467,6 +2468,7 @@ describe('getCourseFollowUp', () => {
           args: [{
             path: 'trainees',
             select: 'identity.firstname identity.lastname firstMobileConnection',
+            populate: { path: 'company' },
           }],
         },
         { query: 'lean' },

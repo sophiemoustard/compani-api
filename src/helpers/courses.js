@@ -402,7 +402,6 @@ exports.formatStep = step => ({ ...step, activities: step.activities.map(a => ex
 
 exports.getCourseFollowUp = async (course, company) => {
   const courseWithTrainees = await Course.findOne({ _id: course }, { trainees: 1, format: 1 }).lean();
-  const isELearningWithCompany = courseWithTrainees.format === STRICTLY_E_LEARNING && !!company;
 
   const courseFollowUp = await Course.findOne({ _id: course }, { subProgram: 1 })
     .populate({
@@ -428,13 +427,13 @@ exports.getCourseFollowUp = async (course, company) => {
     .populate({
       path: 'trainees',
       select: 'identity.firstname identity.lastname firstMobileConnection',
-      ...(isELearningWithCompany && { populate: { path: 'company' } }),
+      populate: { path: 'company' },
     })
     .lean();
 
   let filteredTrainees = [];
   if (!company) filteredTrainees = courseFollowUp.trainees;
-  else if (isELearningWithCompany) {
+  else if (courseWithTrainees.format === STRICTLY_E_LEARNING && !!company) {
     filteredTrainees = courseFollowUp.trainees.filter(t => UtilsHelper.areObjectIdsEquals(t.company, company));
   } else {
     const traineesCompanyAtCourseRegistration = await CourseHistoriesHelper.getCompanyAtCourseRegistrationList(
