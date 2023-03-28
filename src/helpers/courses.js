@@ -951,9 +951,9 @@ exports.removeCourseCompany = async (courseId, companyId, credentials) => Promis
 
 exports.generateTrainingContract = async (courseId, payload) => {
   const course = await Course
-    .findOne({ _id: courseId }, { maxTrainees: 1, misc: 1 })
+    .findOne({ _id: courseId }, { maxTrainees: 1, misc: 1, type: 1, trainees: 1 })
     .populate([
-      { path: 'companies', select: 'name address' },
+      { path: 'companies', select: 'name address', match: { _id: payload.company } },
       {
         path: 'subProgram',
         select: 'program steps',
@@ -969,7 +969,8 @@ exports.generateTrainingContract = async (courseId, payload) => {
     .lean();
 
   const vendorCompany = await VendorCompaniesHelper.get();
-  const formattedCourse = TrainingContractsHelper.formatCourseForTrainingContract(course, vendorCompany, payload.price);
+  const formattedCourse = await TrainingContractsHelper
+    .formatCourseForTrainingContract(course, vendorCompany, payload.price);
   const pdf = await TrainingContract.getPdf(formattedCourse);
   const fileName = `convention_${formattedCourse.programName}_${formattedCourse.company.name}.pdf`;
 

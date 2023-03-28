@@ -518,7 +518,7 @@ exports.authorizeGetConvocationPdf = async (req) => {
 
 exports.authorizeGenerateTrainingContract = async (req) => {
   const course = await Course
-    .findOne({ _id: req.params._id }, { _id: 1 })
+    .findOne({ _id: req.params._id }, { _id: 1, type: 1 })
     .populate([
       { path: 'companies', select: 'address' },
       {
@@ -531,7 +531,12 @@ exports.authorizeGenerateTrainingContract = async (req) => {
     .lean();
 
   if (!course) throw Boom.notFound();
-  if (!course.companies[0].address) throw Boom.forbidden(translate[language].courseCompanyAddressMissing);
+  const courseCompaniesIds = course.companies.map(company => company._id);
+  if (!UtilsHelper.doesArrayIncludeId(courseCompaniesIds, req.payload.company)) throw Boom.forbidden();
+  const company = course.type === INTER_B2B
+    ? course.companies.find(c => UtilsHelper.areObjectIdsEquals(c._id, req.payload.company))
+    : course.companies[0];
+  if (!company.address) throw Boom.forbidden(translate[language].courseCompanyAddressMissing);
   if (course.slotsToPlan.length) {
     const theoreticalDurationList = course.subProgram.steps
       .filter(step => step.type !== E_LEARNING)

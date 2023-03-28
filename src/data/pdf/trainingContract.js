@@ -2,7 +2,7 @@ const get = require('lodash/get');
 const PdfHelper = require('../../helpers/pdf');
 const FileHelper = require('../../helpers/file');
 const UtilsHelper = require('../../helpers/utils');
-const { COPPER_600, COPPER_100 } = require('../../helpers/constants');
+const { COPPER_600, COPPER_100, INTRA, INTER_B2B } = require('../../helpers/constants');
 
 const getImages = async () => {
   const imageList = [
@@ -72,6 +72,9 @@ exports.getPdfContent = async (data) => {
   const [compani, signature] = await getImages();
   const header = getHeader(data, compani);
 
+  const learnersCount = UtilsHelper.formatQuantity('stagiaire', data.learnersCount);
+  const totalPrice = data.type === INTRA ? data.price : data.learnersCount * data.price;
+
   const body = [
     [
       {
@@ -87,11 +90,14 @@ exports.getPdfContent = async (data) => {
             text: `Durée : ${UtilsHelper.formatQuantity('créneau', data.slotsCount, 'x')} - ${data.liveDuration}`
               + `${data.eLearningDuration ? ` (+ ${data.eLearningDuration} de e-learning)` : ''}`,
           },
-          { text: `Effectif formé : ${data.misc || ''} jusqu'à ${data.learnersCount} stagiaires` },
+          {
+            text: `Effectif formé : ${data.misc || ''} ${data.type === INTRA ? 'jusqu\'à ' : ''}${learnersCount}`,
+          },
           { text: `Dates : ${data.dates.join(' - ')}` },
           formatAddressList(data.addressList),
           { text: `Intervenant(e) : ${data.trainer}`, marginBottom: 16 },
-          { text: `Prix total TTC : ${data.price} €` },
+          { text: data.type === INTER_B2B ? `Prix TTC par stagiaire : ${data.price} €` : '' },
+          { text: `Prix total TTC : ${totalPrice} €` },
           { text: '(Ce prix comprend les frais de formateurs)', italics: true },
           {
             text: 'En tant qu’organisme de formation, Compani est exonéré de la Taxe sur la Valeur Ajoutée (TVA).',
