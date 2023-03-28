@@ -4,7 +4,6 @@ const Course = require('../../../src/models/Course');
 const Program = require('../../../src/models/Program');
 const SubProgram = require('../../../src/models/SubProgram');
 const CourseSlot = require('../../../src/models/CourseSlot');
-const Company = require('../../../src/models/Company');
 const CourseSmsHistory = require('../../../src/models/CourseSmsHistory');
 const CourseHistory = require('../../../src/models/CourseHistory');
 const User = require('../../../src/models/User');
@@ -48,16 +47,6 @@ const {
 } = require('../../../src/helpers/constants');
 const { auxiliaryRoleId, trainerRoleId, coachRoleId } = require('../../seed/authRolesSeed');
 const { CompaniDate } = require('../../../src/helpers/dates/companiDates');
-
-const companyWithoutAddress = {
-  _id: ObjectId(),
-  name: 'Structure sans adresse',
-  prefixNumber: 45,
-  folderId: '0987654321',
-  directDebitsFolderId: '1234567890',
-  customersFolderId: 'asfdhljk',
-  auxiliariesFolderId: 'erqutop',
-};
 
 const traineeFromAuthFormerlyInOther = {
   _id: new ObjectId(),
@@ -523,20 +512,6 @@ const coursesList = [
     companies: [authCompany._id, thirdCompany._id, otherCompany._id],
     trainer: trainer._id,
     salesRepresentative: vendorAdmin._id,
-  },
-  { // 20
-    _id: new ObjectId(),
-    subProgram: subProgramsList[0]._id,
-    misc: 'first session',
-    trainer: vendorAdmin._id,
-    trainees: [coach._id],
-    companies: [companyWithoutAddress._id],
-    type: INTRA,
-    maxTrainees: 8,
-    salesRepresentative: vendorAdmin._id,
-    companyRepresentative: trainerAndCoach._id,
-    contact: trainerAndCoach._id,
-    expectedBillsCount: 2,
   },
 ];
 
@@ -1060,7 +1035,6 @@ const populateDB = async () => {
     Attendance.create(attendanceList),
     AttendanceSheet.create(attendanceSheetList),
     Card.create(cardsList),
-    Company.create(companyWithoutAddress),
     Course.create(coursesList),
     CourseBill.create(courseBillsList),
     CourseCreditNote.create(courseCreditNoteList),

@@ -3,7 +3,7 @@ const { expect } = require('expect');
 const FileHelper = require('../../../src/helpers/file');
 const PdfHelper = require('../../../src/helpers/pdf');
 const TrainingContract = require('../../../src/data/pdf/trainingContract');
-const { COPPER_600, COPPER_100 } = require('../../../src/helpers/constants');
+const { COPPER_600, COPPER_100, INTRA, INTER_B2B } = require('../../../src/helpers/constants');
 
 describe('getPdfContent', () => {
   let downloadImages;
@@ -16,11 +16,12 @@ describe('getPdfContent', () => {
     downloadImages.restore();
   });
 
-  it('it should format and return pdf content (several address + elearningDuration)', async () => {
+  it('it should format and return pdf content (intra + several address + elearningDuration)', async () => {
     const paths = ['src/data/pdf/tmp/compani.png', 'src/data/pdf/tmp/signature.png'];
     downloadImages.returns(paths);
 
     const data = {
+      type: INTRA,
       vendorCompany: {
         name: 'Compani',
         address: { fullAddress: '12 rue Daumesnil 75012 Paris' },
@@ -88,6 +89,7 @@ describe('getPdfContent', () => {
                     ],
                   },
                   { text: 'Intervenant(e) : Jean BONBEUR', marginBottom: 16 },
+                  { text: '' },
                   { text: 'Prix total TTC : 12 €' },
                   { text: '(Ce prix comprend les frais de formateurs)', italics: true },
                   {
@@ -148,11 +150,12 @@ describe('getPdfContent', () => {
     sinon.assert.calledOnceWithExactly(downloadImages, imageList);
   });
 
-  it('it should format and return pdf content (single address + no elearningDuration)', async () => {
+  it('it should format and return pdf content (inter + single address + no elearningDuration)', async () => {
     const paths = ['src/data/pdf/tmp/compani.png', 'src/data/pdf/tmp/signature.png'];
     downloadImages.returns(paths);
 
     const data = {
+      type: INTER_B2B,
       vendorCompany: {
         name: 'Compani',
         address: { fullAddress: '12 rue Daumesnil 75012 Paris' },
@@ -208,11 +211,12 @@ describe('getPdfContent', () => {
                   { text: data.programName, bold: true },
                   { stack: [{ text: 'Objectifs :' }, { text: 'bien apprendre', marginLeft: 16 }] },
                   { text: 'Durée : 3 créneaux - 6h' },
-                  { text: 'Effectif formé : Groupe 1 jusqu\'à 8 stagiaires' },
+                  { text: 'Effectif formé : Groupe 1 8 stagiaires' },
                   { text: 'Dates : 03/11/2020 - 04/11/2020 - 05/11/2020' },
                   { text: 'Lieu : Paris' },
                   { text: 'Intervenant(e) : Jean BONBEUR', marginBottom: 16 },
-                  { text: 'Prix total TTC : 12 €' },
+                  { text: 'Prix TTC par stagiaire : 12 €' },
+                  { text: 'Prix total TTC : 96 €' },
                   { text: '(Ce prix comprend les frais de formateurs)', italics: true },
                   {
                     text:
