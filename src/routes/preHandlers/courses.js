@@ -532,10 +532,8 @@ exports.authorizeGenerateTrainingContract = async (req) => {
 
   if (!course) throw Boom.notFound();
 
-  const company = course.type === INTER_B2B
-    ? course.companies.find(c => UtilsHelper.areObjectIdsEquals(c._id, req.payload.company))
-    : course.companies[0];
-  if (!UtilsHelper.areObjectIdsEquals(get(company, '_id'), req.payload.company)) throw Boom.forbidden();
+  const company = course.companies.find(c => UtilsHelper.areObjectIdsEquals(c._id, req.payload.company));
+  if (!company) throw Boom.forbidden();
   if (!company.address) throw Boom.forbidden(translate[language].courseCompanyAddressMissing);
   if (course.slotsToPlan.length) {
     const theoreticalDurationList = course.subProgram.steps
