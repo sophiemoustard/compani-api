@@ -531,7 +531,10 @@ exports.authorizeGenerateTrainingContract = async (req) => {
     .lean();
 
   if (!course) throw Boom.notFound();
-  if (!course.companies[0].address) throw Boom.forbidden(translate[language].courseCompanyAddressMissing);
+
+  const company = course.companies.find(c => UtilsHelper.areObjectIdsEquals(c._id, req.payload.company));
+  if (!company) throw Boom.forbidden();
+  if (!company.address) throw Boom.forbidden(translate[language].courseCompanyAddressMissing);
   if (course.slotsToPlan.length) {
     const theoreticalDurationList = course.subProgram.steps
       .filter(step => step.type !== E_LEARNING)

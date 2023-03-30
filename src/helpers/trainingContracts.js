@@ -1,14 +1,17 @@
 const compact = require('lodash/compact');
 const get = require('lodash/get');
 const omit = require('lodash/omit');
+const keyBy = require('lodash/keyBy');
+const mapValues = require('lodash/mapValues');
 const GCloudStorageHelper = require('./gCloudStorage');
 const DatesUtilsHelper = require('./dates/utils');
 const UtilsHelper = require('./utils');
-const { E_LEARNING, SHORT_DURATION_H_MM, DD_MM_YYYY, REMOTE } = require('./constants');
+const { E_LEARNING, SHORT_DURATION_H_MM, DD_MM_YYYY, REMOTE, INTRA, COURSE, TRAINEE } = require('./constants');
 const { CompaniDate } = require('./dates/companiDates');
 const { CompaniDuration } = require('./dates/companiDurations');
 const Course = require('../models/Course');
 const TrainingContract = require('../models/TrainingContract');
+const CourseHistoriesHelper = require('./courseHistories');
 
 exports.create = async (payload) => {
   const course = await Course
@@ -80,11 +83,24 @@ const getAddressList = (slots, steps) => {
     : uniqCityList;
 };
 
+const getLearnersCount = async (course) => {
+  if (course.type === INTRA) return course.maxTrainees;
+
+  const traineesCompanyAtCourseRegistration = await CourseHistoriesHelper
+    .getCompanyAtCourseRegistrationList({ key: COURSE, value: course._id }, { key: TRAINEE, value: course.trainees });
+
+  const traineesCompany = mapValues(keyBy(traineesCompanyAtCourseRegistration, 'trainee'), 'company');
+
+  return course.trainees
+    .filter(trainee => UtilsHelper.areObjectIdsEquals(course.companies[0]._id, traineesCompany[trainee._id])).length;
+};
+
 // make sure code is similar to front part in TrainingContractInfoModal
-exports.formatCourseForTrainingContract = (course, vendorCompany, price) => {
+exports.formatCourseForTrainingContract = async (course, vendorCompany, price) => {
   const { companies, subProgram, slots, slotsToPlan, trainer } = course;
 
   return {
+    type: course.type,
     vendorCompany,
     company: { name: companies[0].name, address: companies[0].address.fullAddress },
     programName: subProgram.program.name,
@@ -93,7 +109,7 @@ exports.formatCourseForTrainingContract = (course, vendorCompany, price) => {
     liveDuration: computeLiveDuration(slots, slotsToPlan, subProgram.steps),
     eLearningDuration: computeElearnigDuration(subProgram.steps),
     misc: course.misc,
-    learnersCount: course.maxTrainees,
+    learnersCount: await getLearnersCount(course),
     dates: getDates(slots),
     addressList: getAddressList(slots, subProgram.steps),
     trainer: UtilsHelper.formatIdentity(get(trainer, 'identity'), 'FL'),

@@ -405,7 +405,7 @@ describe('COURSES ROUTES - GET /courses', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      expect(response.result.data.courses.length).toEqual(18);
+      expect(response.result.data.courses.length).toEqual(17);
     });
 
     it('should get strictly e-learning courses (ops webapp)', async () => {
@@ -3463,6 +3463,7 @@ describe('COURSES ROUTES - DELETE /courses/{_id}/companies{companyId}', () => {
 describe('COURSES ROUTES - POST /courses/{_id}/trainingcontracts', () => {
   let authToken;
   const intraCourseIdFromAuthCompany = coursesList[0]._id;
+  const interCourseIdFromAuthCompany = coursesList[10]._id;
   beforeEach(populateDB);
 
   describe('TRAINING_ORGANISATION_MANAGER', () => {
@@ -3474,7 +3475,18 @@ describe('COURSES ROUTES - POST /courses/{_id}/trainingcontracts', () => {
       const response = await app.inject({
         method: 'POST',
         url: `/courses/${intraCourseIdFromAuthCompany}/trainingcontracts`,
-        payload: { price: 4300 },
+        payload: { price: 4300, company: authCompany._id },
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(200);
+    });
+
+    it('should return 200 for inter_b2b course', async () => {
+      const response = await app.inject({
+        method: 'POST',
+        url: `/courses/${interCourseIdFromAuthCompany}/trainingcontracts`,
+        payload: { price: 4300, company: otherCompany._id },
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -3486,7 +3498,7 @@ describe('COURSES ROUTES - POST /courses/{_id}/trainingcontracts', () => {
       const response = await app.inject({
         method: 'POST',
         url: `/courses/${invalidId}/trainingcontracts`,
-        payload: { price: 4300 },
+        payload: { price: 4300, company: authCompany._id },
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -3497,7 +3509,7 @@ describe('COURSES ROUTES - POST /courses/{_id}/trainingcontracts', () => {
       const response = await app.inject({
         method: 'POST',
         url: `/courses/${intraCourseIdFromAuthCompany}/trainingcontracts`,
-        payload: { price: 0 },
+        payload: { price: 0, company: authCompany._id },
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -3508,7 +3520,18 @@ describe('COURSES ROUTES - POST /courses/{_id}/trainingcontracts', () => {
       const response = await app.inject({
         method: 'POST',
         url: `/courses/${intraCourseIdFromAuthCompany}/trainingcontracts`,
-        payload: {},
+        payload: { company: authCompany._id },
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
+
+    it('should return 400 if no company', async () => {
+      const response = await app.inject({
+        method: 'POST',
+        url: `/courses/${intraCourseIdFromAuthCompany}/trainingcontracts`,
+        payload: { price: 4300 },
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -3518,8 +3541,20 @@ describe('COURSES ROUTES - POST /courses/{_id}/trainingcontracts', () => {
     it('should return a 403 if company has no address', async () => {
       const response = await app.inject({
         method: 'POST',
-        url: `/courses/${coursesList[20]._id}/trainingcontracts`,
-        payload: { price: 4300 },
+        url: `/courses/${coursesList[5]._id}/trainingcontracts`,
+        payload: { price: 4300, company: thirdCompany._id },
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(403);
+      expect(response.result.message).toBeDefined();
+    });
+
+    it('should return a 403 if company is not in course', async () => {
+      const response = await app.inject({
+        method: 'POST',
+        url: `/courses/${interCourseIdFromAuthCompany}/trainingcontracts`,
+        payload: { price: 4300, company: thirdCompany._id },
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -3531,7 +3566,7 @@ describe('COURSES ROUTES - POST /courses/{_id}/trainingcontracts', () => {
       const response = await app.inject({
         method: 'POST',
         url: `/courses/${coursesList[2]._id}/trainingcontracts`,
-        payload: { price: 4300 },
+        payload: { price: 4300, company: authCompany._id },
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
