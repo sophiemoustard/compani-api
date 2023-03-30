@@ -26,3 +26,18 @@ exports.authorizeTrainingContractGet = async (req) => {
 
   return null;
 };
+
+exports.authorizeTrainingContractDeletion = async (req) => {
+  const { credentials } = req.auth;
+
+  const trainingContract = await TrainingContract
+    .findOne({ _id: req.params._id })
+    .populate({ path: 'course', select: 'archivedAt' })
+    .setOptions({ isVendorUser: !!get(credentials, 'role.vendor') })
+    .lean();
+
+  if (!trainingContract) throw Boom.notFound();
+  if (get(trainingContract, 'course.archivedAt')) throw Boom.forbidden();
+
+  return null;
+};

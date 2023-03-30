@@ -408,9 +408,10 @@ module.exports = {
     userAlreadyLinkedToCompany: 'User already linked to company.',
     userAlreadyLinkedToCompanyUntil: 'User already linked to company until {DATE}.',
     /* TrainingContracts */
-    trainingContractCreated: 'training contract created',
-    trainingContractsFound: 'training contracts found',
-    trainingContractsNotFound: 'training contracts not found',
+    trainingContractCreated: 'Training contract created',
+    trainingContractsFound: 'Training contracts found',
+    trainingContractsNotFound: 'Training contracts not found',
+    trainingContractDeleted: 'Training contract deleted',
   },
   'fr-FR': {
     /* Global errors */
@@ -822,6 +823,7 @@ module.exports = {
     /* TrainingContracts */
     trainingContractCreated: 'Convention de formation créée',
     trainingContractsFound: 'Conventions de formation trouvées',
-    trainingContractsNotFound: 'Conventions de formation non trouvés',
+    trainingContractsNotFound: 'Conventions de formation non trouvées',
+    trainingContractDeleted: 'Convention de formation supprimée',
   },
 };

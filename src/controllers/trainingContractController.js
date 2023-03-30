@@ -31,4 +31,15 @@ const list = async (req) => {
   }
 };
 
-module.exports = { create, list };
+const deleteTrainingContract = async (req) => {
+  try {
+    await TrainingContractsHelper.delete(req.params._id);
+
+    return { message: translate[language].trainingContractDeleted };
+  } catch (e) {
+    req.log('error', e);
+    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
+  }
+};
+
+module.exports = { create, list, deleteTrainingContract };
