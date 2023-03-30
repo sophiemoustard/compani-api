@@ -433,7 +433,7 @@ exports.getCourseFollowUp = async (course, company) => {
 
   let filteredTrainees = [];
   if (!company) filteredTrainees = courseFollowUp.trainees;
-  else if (courseWithTrainees.format === STRICTLY_E_LEARNING && !!company) {
+  else if (courseWithTrainees.format === STRICTLY_E_LEARNING) {
     filteredTrainees = courseFollowUp.trainees.filter(t => UtilsHelper.areObjectIdsEquals(t.company, company));
   } else {
     const traineesCompanyAtCourseRegistration = await CourseHistoriesHelper.getCompanyAtCourseRegistrationList(
