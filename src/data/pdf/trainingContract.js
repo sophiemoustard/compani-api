@@ -91,7 +91,8 @@ exports.getPdfContent = async (data) => {
               + `${data.eLearningDuration ? ` (+ ${data.eLearningDuration} de e-learning)` : ''}`,
           },
           {
-            text: `Effectif formé : ${data.misc || ''} ${data.type === INTRA ? 'jusqu\'à ' : ''}${learnersCount}`,
+            text: `Effectif formé : ${data.misc ? `${data.misc}, ` : ''}${data.type === INTRA ? 'jusqu\'à ' : ''}`
+            + `${learnersCount}`,
           },
           { text: `Dates : ${data.dates.join(' - ')}` },
           formatAddressList(data.addressList),

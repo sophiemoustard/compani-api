@@ -518,7 +518,7 @@ exports.authorizeGetConvocationPdf = async (req) => {
 
 exports.authorizeGenerateTrainingContract = async (req) => {
   const course = await Course
-    .findOne({ _id: req.params._id }, { _id: 1, type: 1 })
+    .findOne({ _id: req.params._id }, { _id: 1 })
     .populate([
       { path: 'companies', select: 'address' },
       {

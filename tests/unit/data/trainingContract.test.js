@@ -79,7 +79,7 @@ describe('getPdfContent', () => {
                   { text: data.programName, bold: true },
                   { stack: [{ text: 'Objectifs :' }, { text: 'bien apprendre', marginLeft: 16 }] },
                   { text: 'Durée : 3 créneaux - 6h (+ 2h de e-learning)' },
-                  { text: 'Effectif formé : Groupe 1 jusqu\'à 8 stagiaires' },
+                  { text: 'Effectif formé : Groupe 1, jusqu\'à 8 stagiaires' },
                   { text: 'Dates : 03/11/2020 - 04/11/2020 - 05/11/2020' },
                   {
                     stack: [
@@ -210,7 +210,7 @@ describe('getPdfContent', () => {
                   { text: data.programName, bold: true },
                   { stack: [{ text: 'Objectifs :' }, { text: 'bien apprendre', marginLeft: 16 }] },
                   { text: 'Durée : 3 créneaux - 6h' },
-                  { text: 'Effectif formé : Groupe 1 8 stagiaires' },
+                  { text: 'Effectif formé : Groupe 1, 8 stagiaires' },
                   { text: 'Dates : 03/11/2020 - 04/11/2020 - 05/11/2020' },
                   { text: 'Lieu : Paris' },
                   { text: 'Intervenant(e) : Jean BONBEUR', marginBottom: 16 },
