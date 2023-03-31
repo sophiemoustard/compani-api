@@ -158,11 +158,7 @@ describe('delete', () => {
     sinon.assert.calledOnceWithExactly(deleteOne, { _id: trainingContract._id });
     SinonMongoose.calledOnceWithExactly(
       findOne,
-      [
-        { query: 'findOne', args: [{ _id: trainingContract._id }] },
-        // { query: 'setOptions', args: [{ isVendorUser: !!get(credentials, 'role.vendor') }] },
-        { query: 'lean' },
-      ]
+      [{ query: 'findOne', args: [{ _id: trainingContract._id }] }, { query: 'lean' }]
     );
   });
 });

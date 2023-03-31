@@ -51,7 +51,7 @@ exports.list = async (course, credentials) => {
 };
 
 exports.delete = async (attendanceSheet) => {
-  await GCloudStorageHelper.deleteCourseFile(attendanceSheet.file.publicId);
+  await AttendanceSheet.deleteOne({ _id: attendanceSheet._id });
 
-  return AttendanceSheet.deleteOne({ _id: attendanceSheet._id });
+  return GCloudStorageHelper.deleteCourseFile(attendanceSheet.file.publicId);
 };
