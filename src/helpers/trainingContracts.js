@@ -38,12 +38,10 @@ exports.list = async (course, credentials) => {
   const isVendorUser = !!get(credentials, 'role.vendor');
   const company = get(credentials, 'company._id');
 
-  const trainingContracts = await TrainingContract
+  return TrainingContract
     .find({ course, ...(!isVendorUser && { company }) })
     .setOptions({ isVendorUser })
     .lean();
-
-  return trainingContracts;
 };
 
 const computeLiveDuration = (slots, slotsToPlan, steps) => {

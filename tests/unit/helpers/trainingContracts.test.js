@@ -1,6 +1,5 @@
 const sinon = require('sinon');
 const { expect } = require('expect');
-const get = require('lodash/get');
 const { ObjectId } = require('mongodb');
 const Course = require('../../../src/models/Course');
 const TrainingContract = require('../../../src/models/TrainingContract');
@@ -93,7 +92,7 @@ describe('list', () => {
       find,
       [
         { query: 'find', args: [{ course: courseId }] },
-        { query: 'setOptions', args: [{ isVendorUser: !!get(credentials, 'role.vendor') }] },
+        { query: 'setOptions', args: [{ isVendorUser: true }] },
         { query: 'lean' },
       ]
     );
@@ -126,7 +125,7 @@ describe('list', () => {
       find,
       [
         { query: 'find', args: [{ course: courseId, company: authCompanyId }] },
-        { query: 'setOptions', args: [{ isVendorUser: !!get(credentials, 'role.vendor') }] },
+        { query: 'setOptions', args: [{ isVendorUser: false }] },
         { query: 'lean' },
       ]
     );

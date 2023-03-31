@@ -3,7 +3,7 @@ Joi.objectId = require('joi-objectid')(Joi);
 const { create, list } = require('../controllers/trainingContractController');
 const {
   authorizeTrainingContractUpload,
-  authorizeTrainingContractDownload,
+  authorizeTrainingContractGet,
 } = require('./preHandlers/trainingContracts');
 
 const { formDataPayload } = require('./validations/utils');
@@ -37,7 +37,7 @@ exports.plugin = {
         validate: {
           query: Joi.object({ course: Joi.objectId().required() }),
         },
-        pre: [{ method: authorizeTrainingContractDownload }],
+        pre: [{ method: authorizeTrainingContractGet }],
       },
       handler: list,
     });

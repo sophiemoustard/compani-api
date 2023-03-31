@@ -14,7 +14,7 @@ exports.authorizeTrainingContractUpload = async (req) => {
   return null;
 };
 
-exports.authorizeTrainingContractDownload = async (req) => {
+exports.authorizeTrainingContractGet = async (req) => {
   const { course: courseId } = req.query;
   const { credentials } = req.auth;
   const isVendorUser = !!get(credentials, 'role.vendor');
