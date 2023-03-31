@@ -1,6 +1,6 @@
 const Joi = require('joi');
 Joi.objectId = require('joi-objectid')(Joi);
-const { create, list, deleteTrainingContract } = require('../controllers/trainingContractController');
+const { create, list, remove } = require('../controllers/trainingContractController');
 const {
   authorizeTrainingContractUpload,
   authorizeTrainingContractGet,
@@ -53,7 +53,7 @@ exports.plugin = {
         auth: { scope: ['courses:create'] },
         pre: [{ method: authorizeTrainingContractDeletion }],
       },
-      handler: deleteTrainingContract,
+      handler: remove,
     });
   },
 };

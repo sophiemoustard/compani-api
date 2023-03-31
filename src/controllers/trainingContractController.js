@@ -31,7 +31,7 @@ const list = async (req) => {
   }
 };
 
-const deleteTrainingContract = async (req) => {
+const remove = async (req) => {
   try {
     await TrainingContractsHelper.delete(req.params._id);
 
@@ -42,4 +42,4 @@ const deleteTrainingContract = async (req) => {
   }
 };
 
-module.exports = { create, list, deleteTrainingContract };
+module.exports = { create, list, remove };
