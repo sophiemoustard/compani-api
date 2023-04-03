@@ -1,7 +1,10 @@
 const Joi = require('joi');
 Joi.objectId = require('joi-objectid')(Joi);
-const { create } = require('../controllers/trainingContractController');
-const { authorizeTrainingContractUpload } = require('./preHandlers/trainingContracts');
+const { create, list } = require('../controllers/trainingContractController');
+const {
+  authorizeTrainingContractUpload,
+  authorizeTrainingContractGet,
+} = require('./preHandlers/trainingContracts');
 
 const { formDataPayload } = require('./validations/utils');
 
@@ -24,6 +27,19 @@ exports.plugin = {
         pre: [{ method: authorizeTrainingContractUpload }],
       },
       handler: create,
+    });
+
+    server.route({
+      method: 'GET',
+      path: '/',
+      options: {
+        auth: { scope: ['trainingcontracts:read'] },
+        validate: {
+          query: Joi.object({ course: Joi.objectId().required() }),
+        },
+        pre: [{ method: authorizeTrainingContractGet }],
+      },
+      handler: list,
     });
   },
 };

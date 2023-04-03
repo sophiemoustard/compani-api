@@ -33,6 +33,17 @@ exports.create = async (payload) => {
 
   await TrainingContract.create({ ...omit(payload, 'file'), file: fileUploaded });
 };
+
+exports.list = async (course, credentials) => {
+  const isVendorUser = !!get(credentials, 'role.vendor');
+  const company = get(credentials, 'company._id');
+
+  return TrainingContract
+    .find({ course, ...(!isVendorUser && { company }) })
+    .setOptions({ isVendorUser })
+    .lean();
+};
+
 const computeLiveDuration = (slots, slotsToPlan, steps) => {
   if (slotsToPlan.length) {
     const theoreticalDurationList = steps

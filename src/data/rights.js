@@ -59,6 +59,7 @@ const rights = [
   { permission: 'taxcertificates:edit', rolesConcerned: [CLIENT_ADMIN, COACH], subscription: ERP, description: 'Éditer une attestation fiscale' },
   { permission: 'taxcertificates:read', rolesConcerned: [CLIENT_ADMIN, COACH], subscription: ERP, description: 'Consulter une attestation fiscale' },
   { permission: 'timestamp:edit', rolesConcerned: [AUXILIARY, PLANNING_REFERENT], subscription: ERP, description: 'Horodater un évènement' },
+  { permission: 'trainingcontracts:read', rolesConcerned: [CLIENT_ADMIN, COACH, VENDOR_ADMIN, TRAINING_ORGANISATION_MANAGER], description: 'Récupérer les conventions de formation' },
   { permission: 'users:edit', rolesConcerned: [CLIENT_ADMIN, COACH, VENDOR_ADMIN, TRAINING_ORGANISATION_MANAGER, TRAINER], description: 'Editer un(e) utilisateur(rice)' },
   { permission: 'users:exist', rolesConcerned: [CLIENT_ADMIN, COACH, VENDOR_ADMIN, TRAINING_ORGANISATION_MANAGER, TRAINER], description: 'Verifier si un email existe déjà en base' },
   { permission: 'users:list', rolesConcerned: [CLIENT_ADMIN, COACH, AUXILIARY, PLANNING_REFERENT, VENDOR_ADMIN, TRAINING_ORGANISATION_MANAGER, TRAINER], description: 'Accéder à la liste des utilisateurs' },

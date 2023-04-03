@@ -409,6 +409,8 @@ module.exports = {
     userAlreadyLinkedToCompanyUntil: 'User already linked to company until {DATE}.',
     /* TrainingContracts */
     trainingContractCreated: 'training contract created',
+    trainingContractsFound: 'training contracts found',
+    trainingContractsNotFound: 'training contracts not found',
   },
   'fr-FR': {
     /* Global errors */
@@ -819,5 +821,7 @@ module.exports = {
     userAlreadyLinkedToCompanyUntil: 'Ce compte est déjà rattaché à une structure jusqu\'au {DATE}.',
     /* TrainingContracts */
     trainingContractCreated: 'Convention de formation créée',
+    trainingContractsFound: 'Conventions de formation trouvées',
+    trainingContractsNotFound: 'Conventions de formation non trouvés',
   },
 };

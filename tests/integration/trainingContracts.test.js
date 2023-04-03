@@ -3,6 +3,7 @@ const sinon = require('sinon');
 const fs = require('fs');
 const path = require('path');
 const GetStream = require('get-stream');
+const { ObjectId } = require('mongodb');
 const app = require('../../server');
 const TrainingContract = require('../../src/models/TrainingContract');
 const { authCompany, otherCompany } = require('../seed/authCompaniesSeed');
@@ -17,7 +18,7 @@ describe('NODE ENV', () => {
   });
 });
 
-describe('COURSES ROUTES - POST /trainingcontracts', () => {
+describe('TRAINING CONTRACTS ROUTES - POST /trainingcontracts', () => {
   let authToken;
   let uploadCourseFileStub;
 
@@ -124,6 +125,90 @@ describe('COURSES ROUTES - POST /trainingcontracts', () => {
           url: '/trainingcontracts',
           headers: { ...form.getHeaders(), Cookie: `alenvi_token=${authToken}` },
           payload: await GetStream(form),
+        });
+
+        expect(response.statusCode).toBe(role.expectedCode);
+      });
+    });
+  });
+});
+
+describe('TRAINING CONTRACTS ROUTES - GET /trainingcontracts', () => {
+  let authToken;
+
+  describe('TRAINING_ORGANISATION_MANAGER', () => {
+    beforeEach(populateDB);
+    beforeEach(async () => {
+      authToken = await getToken('training_organisation_manager');
+    });
+
+    it('should get course\'s training contracts', async () => {
+      const trainingContractsLength = await TrainingContract.countDocuments({ course: courseList[1]._id });
+
+      const response = await app.inject({
+        method: 'GET',
+        url: `/trainingcontracts?course=${courseList[1]._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(200);
+      expect(response.result.data.trainingContracts.length).toEqual(trainingContractsLength);
+    });
+
+    it('should return a 404 if course doesn\'t exist', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/trainingcontracts?course=${new ObjectId()}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(404);
+    });
+  });
+
+  describe('COACH', () => {
+    beforeEach(populateDB);
+    beforeEach(async () => {
+      authToken = await getToken('coach');
+    });
+
+    it('should get course\'s training contract if user is in company', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/trainingcontracts?course=${courseList[0]._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(200);
+    });
+
+    it('should return a 404 if user company is not attached to course and user has no vendor role', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/trainingcontracts?course=${courseList[2]._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(404);
+    });
+  });
+
+  describe('Other roles', () => {
+    beforeEach(populateDB);
+
+    const roles = [
+      { name: 'trainer', expectedCode: 403 },
+      { name: 'helper', expectedCode: 403 },
+      { name: 'planning_referent', expectedCode: 403 },
+    ];
+
+    roles.forEach((role) => {
+      it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+        authToken = await getToken(role.name);
+        const response = await app.inject({
+          method: 'GET',
+          url: `/trainingcontracts?course=${courseList[0]._id}`,
+          headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
         expect(response.statusCode).toBe(role.expectedCode);

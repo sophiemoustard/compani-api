@@ -15,4 +15,20 @@ const create = async (req) => {
   }
 };
 
-module.exports = { create };
+const list = async (req) => {
+  try {
+    const trainingContracts = await TrainingContractsHelper.list(req.query.course, req.auth.credentials);
+
+    return {
+      message: trainingContracts.length
+        ? translate[language].trainingContractsFound
+        : translate[language].trainingContractsNotFound,
+      data: { trainingContracts },
+    };
+  } catch (e) {
+    req.log('error', e);
+    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
+  }
+};
+
+module.exports = { create, list };

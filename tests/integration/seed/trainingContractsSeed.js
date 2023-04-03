@@ -3,7 +3,7 @@ const Course = require('../../../src/models/Course');
 const Program = require('../../../src/models/Program');
 const SubProgram = require('../../../src/models/SubProgram');
 const TrainingContract = require('../../../src/models/TrainingContract');
-const { authCompany } = require('../../seed/authCompaniesSeed');
+const { authCompany, otherCompany } = require('../../seed/authCompaniesSeed');
 const { deleteNonAuthenticationSeeds } = require('../helpers/authentication');
 const { vendorAdmin, helper, clientAdmin, coach, trainer, trainerAndCoach } = require('../../seed/authUsersSeed');
 const { INTRA } = require('../../../src/helpers/constants');
@@ -36,7 +36,7 @@ const courseList = [
   { // 1
     _id: new ObjectId(),
     subProgram: subProgram._id,
-    misc: 'second irst session',
+    misc: 'second session',
     trainer: trainer._id,
     trainees: [clientAdmin._id, vendorAdmin._id],
     companies: [authCompany._id],
@@ -45,6 +45,18 @@ const courseList = [
     salesRepresentative: vendorAdmin._id,
     companyRepresentative: trainerAndCoach._id,
     contact: trainerAndCoach._id,
+    expectedBillsCount: 2,
+  },
+  { // 2
+    _id: new ObjectId(),
+    subProgram: subProgram._id,
+    misc: 'third session',
+    trainer: trainer._id,
+    trainees: [],
+    companies: [otherCompany._id],
+    type: INTRA,
+    maxTrainees: 8,
+    salesRepresentative: vendorAdmin._id,
     expectedBillsCount: 2,
   },
 ];
