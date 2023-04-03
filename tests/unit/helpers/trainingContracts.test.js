@@ -131,3 +131,34 @@ describe('list', () => {
     );
   });
 });
+
+describe('delete', () => {
+  let findOne;
+  let deleteOne;
+  let deleteCourseFile;
+  beforeEach(() => {
+    findOne = sinon.stub(TrainingContract, 'findOne');
+    deleteOne = sinon.stub(TrainingContract, 'deleteOne');
+    deleteCourseFile = sinon.stub(GCloudStorageHelper, 'deleteCourseFile');
+  });
+  afterEach(() => {
+    findOne.restore();
+    deleteOne.restore();
+    deleteCourseFile.restore();
+  });
+
+  it('should remove a training contract', async () => {
+    const trainingContract = { _id: new ObjectId(), file: { publicId: 'yo' } };
+
+    findOne.returns(SinonMongoose.stubChainedQueries(trainingContract, ['lean']));
+
+    await trainingContractsHelper.delete(trainingContract._id);
+
+    sinon.assert.calledOnceWithExactly(deleteCourseFile, 'yo');
+    sinon.assert.calledOnceWithExactly(deleteOne, { _id: trainingContract._id });
+    SinonMongoose.calledOnceWithExactly(
+      findOne,
+      [{ query: 'findOne', args: [{ _id: trainingContract._id }] }, { query: 'lean' }]
+    );
+  });
+});

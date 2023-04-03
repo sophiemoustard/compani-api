@@ -1,9 +1,10 @@
 const Joi = require('joi');
 Joi.objectId = require('joi-objectid')(Joi);
-const { create, list } = require('../controllers/trainingContractController');
+const { create, list, remove } = require('../controllers/trainingContractController');
 const {
   authorizeTrainingContractUpload,
   authorizeTrainingContractGet,
+  authorizeTrainingContractDeletion,
 } = require('./preHandlers/trainingContracts');
 
 const { formDataPayload } = require('./validations/utils');
@@ -40,6 +41,19 @@ exports.plugin = {
         pre: [{ method: authorizeTrainingContractGet }],
       },
       handler: list,
+    });
+
+    server.route({
+      method: 'DELETE',
+      path: '/{_id}',
+      options: {
+        validate: {
+          params: Joi.object({ _id: Joi.objectId().required() }),
+        },
+        auth: { scope: ['courses:create'] },
+        pre: [{ method: authorizeTrainingContractDeletion }],
+      },
+      handler: remove,
     });
   },
 };

@@ -7,7 +7,7 @@ const { ObjectId } = require('mongodb');
 const app = require('../../server');
 const TrainingContract = require('../../src/models/TrainingContract');
 const { authCompany, otherCompany } = require('../seed/authCompaniesSeed');
-const { populateDB, courseList } = require('./seed/trainingContractsSeed');
+const { populateDB, courseList, trainingContractList } = require('./seed/trainingContractsSeed');
 const { getToken } = require('./helpers/authentication');
 const { generateFormData } = require('./utils');
 const GCloudStorageHelper = require('../../src/helpers/gCloudStorage');
@@ -208,6 +208,85 @@ describe('TRAINING CONTRACTS ROUTES - GET /trainingcontracts', () => {
         const response = await app.inject({
           method: 'GET',
           url: `/trainingcontracts?course=${courseList[0]._id}`,
+          headers: { Cookie: `alenvi_token=${authToken}` },
+        });
+
+        expect(response.statusCode).toBe(role.expectedCode);
+      });
+    });
+  });
+});
+
+describe('TRAINING CONTRACTS ROUTES - DELETE /trainingcontracts/{_id}', () => {
+  let authToken;
+  let deleteCourseFile;
+
+  describe('TRAINING_ORGANISATION_MANAGER', () => {
+    beforeEach(populateDB);
+    beforeEach(async () => {
+      authToken = await getToken('training_organisation_manager');
+      deleteCourseFile = sinon.stub(GCloudStorageHelper, 'deleteCourseFile');
+    });
+    afterEach(() => {
+      deleteCourseFile.restore();
+    });
+
+    it('should delete a training contract', async () => {
+      const trainingContractsLength = await TrainingContract.countDocuments();
+      const response = await app.inject({
+        method: 'DELETE',
+        url: `/trainingcontracts/${trainingContractList[0]._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(200);
+      expect(await TrainingContract.countDocuments()).toEqual(trainingContractsLength - 1);
+      sinon.assert.calledOnce(deleteCourseFile);
+    });
+
+    it('should return a 404 if training contract does not exist', async () => {
+      const response = await app.inject({
+        method: 'DELETE',
+        url: `/trainingcontracts/${new ObjectId()}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(404);
+    });
+
+    it('should return a 403 if course is archived', async () => {
+      const response = await app.inject({
+        method: 'DELETE',
+        url: `/trainingcontracts/${trainingContractList[1]._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
+  });
+
+  describe('Other roles', () => {
+    beforeEach(populateDB);
+    beforeEach(async () => {
+      deleteCourseFile = sinon.stub(GCloudStorageHelper, 'deleteCourseFile');
+    });
+    afterEach(() => {
+      deleteCourseFile.restore();
+    });
+
+    const roles = [
+      { name: 'client_admin', expectedCode: 403 },
+      { name: 'helper', expectedCode: 403 },
+      { name: 'planning_referent', expectedCode: 403 },
+      { name: 'trainer', expectedCode: 403 },
+    ];
+
+    roles.forEach((role) => {
+      it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+        authToken = await getToken(role.name);
+        const response = await app.inject({
+          method: 'DELETE',
+          url: `/trainingcontracts/${trainingContractList[0]._id}`,
           headers: { Cookie: `alenvi_token=${authToken}` },
         });
 

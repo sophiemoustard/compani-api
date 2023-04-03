@@ -6,7 +6,7 @@ const TrainingContract = require('../../../src/models/TrainingContract');
 const { authCompany, otherCompany } = require('../../seed/authCompaniesSeed');
 const { deleteNonAuthenticationSeeds } = require('../helpers/authentication');
 const { vendorAdmin, helper, clientAdmin, coach, trainer, trainerAndCoach } = require('../../seed/authUsersSeed');
-const { INTRA } = require('../../../src/helpers/constants');
+const { INTRA, INTER_B2B } = require('../../../src/helpers/constants');
 
 const subProgram = { _id: new ObjectId(), name: 'sous-programme 1' };
 
@@ -59,13 +59,34 @@ const courseList = [
     salesRepresentative: vendorAdmin._id,
     expectedBillsCount: 2,
   },
+  { // 3 archived course
+    _id: new ObjectId(),
+    subProgram: subProgram._id,
+    misc: 'fourth session',
+    trainer: trainer._id,
+    trainees: [coach._id],
+    companies: [authCompany._id, otherCompany._id],
+    type: INTER_B2B,
+    salesRepresentative: vendorAdmin._id,
+    expectedBillsCount: 2,
+    archivedAt: '2023-01-03T14:00:00.000Z',
+  },
 ];
 
-const trainingContract = {
-  course: courseList[1]._id,
-  company: authCompany._id,
-  file: { publicId: '123test', link: 'ceciestunlien' },
-};
+const trainingContractList = [
+  {
+    _id: new ObjectId(),
+    course: courseList[1]._id,
+    company: authCompany._id,
+    file: { publicId: '123test', link: 'ceciestunlien' },
+  },
+  {
+    _id: new ObjectId(),
+    course: courseList[3]._id,
+    company: authCompany._id,
+    file: { publicId: '124test', link: 'celaestunlien' },
+  },
+];
 
 const populateDB = async () => {
   await deleteNonAuthenticationSeeds();
@@ -74,11 +95,12 @@ const populateDB = async () => {
     SubProgram.create(subProgram),
     Program.create(program),
     Course.create(courseList),
-    TrainingContract.create(trainingContract),
+    TrainingContract.create(trainingContractList),
   ]);
 };
 
 module.exports = {
   populateDB,
   courseList,
+  trainingContractList,
 };

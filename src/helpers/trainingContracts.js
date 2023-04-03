@@ -44,6 +44,13 @@ exports.list = async (course, credentials) => {
     .lean();
 };
 
+exports.delete = async (trainingContractId) => {
+  const trainingContract = await TrainingContract.findOne({ _id: trainingContractId }).lean();
+  await TrainingContract.deleteOne({ _id: trainingContract._id });
+
+  return GCloudStorageHelper.deleteCourseFile(trainingContract.file.publicId);
+};
+
 const computeLiveDuration = (slots, slotsToPlan, steps) => {
   if (slotsToPlan.length) {
     const theoreticalDurationList = steps
