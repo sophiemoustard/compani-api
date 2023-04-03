@@ -166,11 +166,23 @@ describe('TRAINING CONTRACTS ROUTES - GET /trainingcontracts', () => {
     });
   });
 
-  describe('Other roles', () => {
+  describe('COACH', () => {
     beforeEach(populateDB);
+    beforeEach(async () => {
+      authToken = await getToken('coach');
+    });
+
+    it('should get course\'s training contract if user is in company', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/trainingcontracts?course=${courseList[0]._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(200);
+    });
 
     it('should return a 404 if user company is not attached to course and user has no vendor role', async () => {
-      authToken = await getToken('coach');
       const response = await app.inject({
         method: 'GET',
         url: `/trainingcontracts?course=${courseList[2]._id}`,
@@ -179,12 +191,15 @@ describe('TRAINING CONTRACTS ROUTES - GET /trainingcontracts', () => {
 
       expect(response.statusCode).toBe(404);
     });
+  });
+
+  describe('Other roles', () => {
+    beforeEach(populateDB);
 
     const roles = [
       { name: 'trainer', expectedCode: 403 },
       { name: 'helper', expectedCode: 403 },
       { name: 'planning_referent', expectedCode: 403 },
-      { name: 'coach', expectedCode: 200 },
     ];
 
     roles.forEach((role) => {
