@@ -86,6 +86,7 @@ describe('VENDOR COMPANY ROUTES - PUT /vendorcompanies', () => {
         },
       },
       { key: 'siret', value: '12345678901235' },
+      { key: 'activityDeclarationNumber', value: '10736353175' },
     ];
     payloads.forEach((payload) => {
       it(`should update vendor company ${payload.key}`, async () => {
@@ -120,6 +121,7 @@ describe('VENDOR COMPANY ROUTES - PUT /vendorcompanies', () => {
         value: '12 rue de ponthieu 75008 Paris',
       },
       { key: 'siret', value: '13244' },
+      { key: 'activityDeclarationNumber', value: '' },
     ];
     wrongValues.forEach((payload) => {
       it(`should not update vendor company ${payload.key} with wrong value`, async () => {
