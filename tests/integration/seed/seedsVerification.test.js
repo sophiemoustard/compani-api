@@ -138,6 +138,7 @@ describe('SEEDS VERIFICATION', () => {
               select: '_id',
               populate: [{ path: 'company' }, { path: 'role.client', select: 'name' }],
             })
+            .populate({ path: 'trainer', select: 'role.vendor' })
             .populate({ path: 'subProgram', select: '_id' })
             .lean();
         });
@@ -243,6 +244,18 @@ describe('SEEDS VERIFICATION', () => {
             .every(course => course.type === INTER_B2C);
 
           expect(everyELearningCourseHasGoodType).toBeTruthy();
+        });
+
+        it('should pass if trainer is never in trainees list', () => {
+          const IsTrainerIncludedInTrainees = courseList
+            .filter(c => has(c, 'trainer'))
+            .some(c => UtilsHelper.doesArrayIncludeId(c.trainees.map(t => t._id), c.trainer._id));
+          expect(IsTrainerIncludedInTrainees).toBeFalsy();
+        });
+
+        it('should pass if trainer has good role', () => {
+          const haveTrainersVendorRole = courseList.every(c => !has(c, 'trainer') || has(c.trainer, 'role.vendor'));
+          expect(haveTrainersVendorRole).toBeTruthy();
         });
       });
 

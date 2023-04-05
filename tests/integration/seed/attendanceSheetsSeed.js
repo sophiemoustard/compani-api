@@ -10,7 +10,7 @@ const { WEBAPP, INTRA, INTER_B2B, TRAINEE_ADDITION } = require('../../../src/hel
 const { deleteNonAuthenticationSeeds } = require('../helpers/authentication');
 const UserCompany = require('../../../src/models/UserCompany');
 const User = require('../../../src/models/User');
-const { vendorAdminRoleId } = require('../../seed/authRolesSeed');
+const { vendorAdminRoleId, trainerRoleId } = require('../../seed/authRolesSeed');
 const { trainerOrganisationManager } = require('../../seed/authUsersSeed');
 
 const userList = [
@@ -39,6 +39,7 @@ const userList = [
     _id: new ObjectId(),
     identity: { firstname: 'trainer', lastname: 'FromOtherCompany' },
     local: { email: 'trainerFromOtherCompany@compani.fr' },
+    role: { vendor: trainerRoleId },
     origin: WEBAPP,
   },
 ];

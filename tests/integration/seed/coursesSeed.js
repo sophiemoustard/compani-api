@@ -295,7 +295,7 @@ const coursesList = [
     subProgram: subProgramsList[0]._id,
     contact: vendorAdmin._id,
     misc: 'team formation',
-    trainer: new ObjectId(),
+    trainer: trainerAndCoach._id,
     trainees: [traineeFromOtherCompany._id, traineeFromAuthFormerlyInOther._id],
     companies: [otherCompany._id],
     type: INTRA,
@@ -401,7 +401,7 @@ const coursesList = [
   { // 10 course with contact
     _id: new ObjectId(),
     subProgram: subProgramsList[0]._id,
-    trainer: coach._id,
+    trainer: trainerAndCoach._id,
     misc: 'inter_b2b',
     type: INTER_B2B,
     trainees: [traineeFromOtherCompany._id],
