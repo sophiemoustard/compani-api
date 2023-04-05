@@ -273,6 +273,11 @@ describe('SEEDS VERIFICATION', () => {
             });
           expect(isContactGoodUser).toBeTruthy();
         });
+
+        it('should pass if no access rules for blended courses #tag', () => {
+          const haveBlendedCoursesAccessRules = courseList.some(c => c.format === BLENDED && c.accessRules.length);
+          expect(haveBlendedCoursesAccessRules).toBeFalsy();
+        });
       });
 
       describe('Collection CourseHistory', () => {

@@ -389,14 +389,12 @@ const coursesList = [
   { // 9 course with access rules and trainee that can't have access to the course but has already suscribed
     _id: new ObjectId(),
     subProgram: subProgramsList[0]._id,
-    trainer: trainer._id,
     misc: 'inter_b2b with accessRules',
-    type: INTER_B2B,
-    format: BLENDED,
+    type: INTER_B2C,
+    format: STRICTLY_E_LEARNING,
     trainees: [coach._id, traineeFromOtherCompany._id],
     companies: [otherCompany._id, authCompany._id],
     accessRules: [authCompany._id, new ObjectId()],
-    salesRepresentative: vendorAdmin._id,
   },
   { // 10 course with contact
     _id: new ObjectId(),
@@ -1026,24 +1024,17 @@ const slots = [
   },
   { // 13
     _id: new ObjectId(),
-    startDate: '2020-03-09T08:00:00.000Z',
-    endDate: '2020-03-09T10:00:00.000Z',
-    course: coursesList[9]._id,
-    step: stepList[0]._id,
-  },
-  { // 14
-    _id: new ObjectId(),
     startDate: '2020-03-10T08:00:00.000Z',
     endDate: '2020-03-10T10:00:00.000Z',
     course: coursesList[13]._id,
     step: stepList[0]._id,
   },
-  { // 15
+  { // 14
     _id: new ObjectId(),
     course: coursesList[16]._id,
     step: stepList[0]._id,
   },
-  { // 16
+  { // 15
     _id: new ObjectId(),
     startDate: '2020-03-07T08:00:00.000Z',
     endDate: '2020-03-07T10:00:00.000Z',
@@ -1055,7 +1046,7 @@ const slots = [
 const attendanceList = [{
   _id: new ObjectId(),
   trainee: traineeFromThirdCompany._id,
-  courseSlot: slots[16]._id,
+  courseSlot: slots[15]._id,
   company: thirdCompany._id,
 }];
 
