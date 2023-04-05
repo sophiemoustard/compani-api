@@ -97,6 +97,8 @@ describe('TRAINING CONTRACTS ROUTES - POST /trainingcontracts', () => {
       });
 
       expect(response.statusCode).toBe(403);
+      expect(response.result.message)
+        .toBe('Une convention associée à cette formation existe déjà pour cette structure.');
     });
   });
 
