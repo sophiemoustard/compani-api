@@ -361,7 +361,6 @@ const coursesList = [
     type: INTER_B2C,
     trainees: [],
     format: STRICTLY_E_LEARNING,
-    salesRepresentative: vendorAdmin._id,
   },
   { // 7 course with slots to plan
     _id: new ObjectId(),
@@ -384,7 +383,6 @@ const coursesList = [
     format: STRICTLY_E_LEARNING,
     trainees: [traineeFromAuthFormerlyInOther._id],
     accessRules: [authCompany._id],
-    salesRepresentative: vendorAdmin._id,
   },
   { // 9 course with access rules and trainee that can't have access to the course but has already suscribed
     _id: new ObjectId(),
@@ -415,7 +413,6 @@ const coursesList = [
     format: STRICTLY_E_LEARNING,
     trainees: [traineeFromOtherCompany._id, traineeFromAuthFormerlyInOther._id, noRole._id],
     accessRules: [otherCompany._id, thirdCompany._id],
-    salesRepresentative: vendorAdmin._id,
   },
   { // 12 course with no on-site slot
     _id: new ObjectId(),

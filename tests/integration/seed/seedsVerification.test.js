@@ -27,6 +27,8 @@ const {
   STRICTLY_E_LEARNING,
   INTER_B2B,
   INTER_B2C,
+  TRAINING_ORGANISATION_MANAGER,
+  VENDOR_ADMIN,
 } = require('../../../src/helpers/constants');
 const attendancesSeed = require('./attendancesSeed');
 const attendanceSheetsSeed = require('./attendanceSheetsSeed');
@@ -138,7 +140,11 @@ describe('SEEDS VERIFICATION', () => {
               select: '_id',
               populate: [{ path: 'company' }, { path: 'role.client', select: 'name' }],
             })
-            .populate({ path: 'salesRepresentative', select: '_id' })
+            .populate({
+              path: 'salesRepresentative',
+              select: '_id',
+              populate: [{ path: 'role.vendor', select: 'name' }],
+            })
             .populate({ path: 'trainer', select: 'role.vendor' })
             .populate({ path: 'subProgram', select: '_id' })
             .lean();
@@ -274,9 +280,23 @@ describe('SEEDS VERIFICATION', () => {
           expect(isContactGoodUser).toBeTruthy();
         });
 
-        it('should pass if no access rules for blended courses #tag', () => {
+        it('should pass if no access rules for blended courses', () => {
           const haveBlendedCoursesAccessRules = courseList.some(c => c.format === BLENDED && c.accessRules.length);
           expect(haveBlendedCoursesAccessRules).toBeFalsy();
+        });
+
+        it('should pass if only blended courses have sales representative', () => {
+          const DoELearningCoursesHaveSalesRepresentative = courseList
+            .some(c => c.format === STRICTLY_E_LEARNING && c.salesRepresentative);
+          expect(DoELearningCoursesHaveSalesRepresentative).toBeFalsy();
+        });
+
+        it('should pass if all sales representative are rof or vendor admin', () => {
+          const haveAllSalesRepresentativesGoodRole = courseList
+            .filter(c => c.salesRepresentative)
+            .every(c => [TRAINING_ORGANISATION_MANAGER, VENDOR_ADMIN]
+              .includes(get(c.salesRepresentative, 'role.vendor.name')));
+          expect(haveAllSalesRepresentativesGoodRole).toBeTruthy();
         });
       });
 

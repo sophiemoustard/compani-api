@@ -5,7 +5,7 @@ const CourseHistory = require('../../../src/models/CourseHistory');
 const Card = require('../../../src/models/Card');
 const QuestionnaireHistory = require('../../../src/models/QuestionnaireHistory');
 const SubProgram = require('../../../src/models/SubProgram');
-const { userList, trainerOrganisationManager } = require('../../seed/authUsersSeed');
+const { userList, trainerOrganisationManager, vendorAdmin } = require('../../seed/authUsersSeed');
 const { deleteNonAuthenticationSeeds } = require('../helpers/authentication');
 const { INTER_B2B, TRAINEE_ADDITION } = require('../../../src/helpers/constants');
 const { authCompany, companyWithoutSubscription } = require('../../seed/authCompaniesSeed');
@@ -39,7 +39,7 @@ const coursesList = [
     format: 'blended',
     subProgram: subProgram._id,
     type: INTER_B2B,
-    salesRepresentative: new ObjectId(),
+    salesRepresentative: vendorAdmin._id,
     trainees: [questionnaireHistoriesUsersList[0], questionnaireHistoriesUsersList[2]],
     companies: [authCompany._id],
   },
@@ -48,7 +48,7 @@ const coursesList = [
     format: 'blended',
     subProgram: subProgram._id,
     type: INTER_B2B,
-    salesRepresentative: new ObjectId(),
+    salesRepresentative: vendorAdmin._id,
     trainees: [questionnaireHistoriesUsersList[1]],
     companies: [authCompany._id],
   },
