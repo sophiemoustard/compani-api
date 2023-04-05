@@ -412,6 +412,7 @@ module.exports = {
     trainingContractsFound: 'Training contracts found',
     trainingContractsNotFound: 'Training contracts not found',
     trainingContractDeleted: 'Training contract deleted',
+    trainingContractAlreadyExists: 'Training contract already exists for this course and company.',
   },
   'fr-FR': {
     /* Global errors */
@@ -813,7 +814,7 @@ module.exports = {
     userCompanyUpdated: 'Informations sur la structure de l\'apprenant(e) mises à jour.',
     userDetachmentBeforeLastSubscription: 'Vous ne pouvez pas détacher cette personne avant le {DATE}.',
     userCompanyDetachmentBeforeAttachment: 'La date de détachement de l\'utilisateur ne peut être antérieure à son '
-    + 'rattachement.',
+      + 'rattachement.',
     /* VendorCompanies */
     vendorCompanyFound: 'Structure vendeuse trouvée.',
     vendorCompanyUpdated: 'Structure vendeuse mise à jour.',
@@ -825,5 +826,7 @@ module.exports = {
     trainingContractsFound: 'Conventions de formation trouvées',
     trainingContractsNotFound: 'Conventions de formation non trouvées',
     trainingContractDeleted: 'Convention de formation supprimée',
+    trainingContractAlreadyExists: 'Une convention associée à cette formation existe déjà pour cette '
+      + 'structure.',
   },
 };

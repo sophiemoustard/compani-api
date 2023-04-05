@@ -2,6 +2,9 @@ const Boom = require('@hapi/boom');
 const get = require('lodash/get');
 const Course = require('../../models/Course');
 const TrainingContract = require('../../models/TrainingContract');
+const translate = require('../../helpers/translate');
+
+const { language } = translate;
 
 exports.authorizeTrainingContractUpload = async (req) => {
   const { course: courseId, company } = req.payload;
@@ -9,7 +12,7 @@ exports.authorizeTrainingContractUpload = async (req) => {
   if (!course) throw Boom.notFound();
 
   const trainingContractAlreadyExists = await TrainingContract.countDocuments({ course: courseId, company });
-  if (trainingContractAlreadyExists) throw Boom.forbidden();
+  if (trainingContractAlreadyExists) throw Boom.forbidden(translate[language].trainingContractAlreadyExists);
 
   return null;
 };
