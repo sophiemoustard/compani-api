@@ -25,6 +25,8 @@ const {
   TRAINEE_DELETION,
   BLENDED,
   STRICTLY_E_LEARNING,
+  INTER_B2B,
+  INTER_B2C,
 } = require('../../../src/helpers/constants');
 const attendancesSeed = require('./attendancesSeed');
 const attendanceSheetsSeed = require('./attendanceSheetsSeed');
@@ -225,6 +227,22 @@ describe('SEEDS VERIFICATION', () => {
             .filter(course => course.format === STRICTLY_E_LEARNING)
             .some(course => has(course, 'companies'));
           expect(someELearningCourseHasCompanies).toBeFalsy();
+        });
+
+        it('should pass if every blended course is intra ou inter_b2b', () => {
+          const everyBlendedCourseHasGoodType = courseList
+            .filter(course => course.format === BLENDED)
+            .every(course => [INTRA, INTER_B2B].includes(course.type));
+
+          expect(everyBlendedCourseHasGoodType).toBeTruthy();
+        });
+
+        it('should pass if every strictly e-learning course is inter_b2c', () => {
+          const everyELearningCourseHasGoodType = courseList
+            .filter(course => course.format === STRICTLY_E_LEARNING)
+            .every(course => course.type === INTER_B2C);
+
+          expect(everyELearningCourseHasGoodType).toBeTruthy();
         });
       });
 
