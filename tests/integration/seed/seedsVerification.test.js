@@ -138,6 +138,7 @@ describe('SEEDS VERIFICATION', () => {
               select: '_id',
               populate: [{ path: 'company' }, { path: 'role.client', select: 'name' }],
             })
+            .populate({ path: 'salesRepresentative', select: '_id' })
             .populate({ path: 'trainer', select: 'role.vendor' })
             .populate({ path: 'subProgram', select: '_id' })
             .lean();
@@ -256,6 +257,21 @@ describe('SEEDS VERIFICATION', () => {
         it('should pass if trainer has good role', () => {
           const haveTrainersVendorRole = courseList.every(c => !has(c, 'trainer') || has(c.trainer, 'role.vendor'));
           expect(haveTrainersVendorRole).toBeTruthy();
+        });
+
+        it('should pass if contact is trainer, company representative or sales representative', () => {
+          const isContactGoodUser = courseList
+            .filter(c => has(c, 'contact'))
+            .every((c) => {
+              const acceptedUsers = compact([
+                get(c, 'salesRepresentative._id'),
+                get(c, 'trainer._id'),
+                get(c, 'companyRepresentative._id'),
+              ]);
+
+              return UtilsHelper.doesArrayIncludeId(acceptedUsers, c.contact._id);
+            });
+          expect(isContactGoodUser).toBeTruthy();
         });
       });
 
