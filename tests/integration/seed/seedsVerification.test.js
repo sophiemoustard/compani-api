@@ -147,6 +147,8 @@ describe('SEEDS VERIFICATION', () => {
             })
             .populate({ path: 'trainer', select: 'role.vendor' })
             .populate({ path: 'subProgram', select: '_id' })
+            .populate({ path: 'slots', select: 'endDate' })
+            .populate({ path: 'slotsToPlan' })
             .lean();
         });
 
@@ -303,6 +305,35 @@ describe('SEEDS VERIFICATION', () => {
           const DoELearningCoursesHaveEstimatedStartDate = courseList
             .some(c => c.format === STRICTLY_E_LEARNING && c.estimatedStartDate);
           expect(DoELearningCoursesHaveEstimatedStartDate).toBeFalsy();
+        });
+
+        it('should pass if archive date is defined for blended courses only', () => {
+          const DoELearningCoursesHaveArchiveDate = courseList
+            .some(c => c.format === STRICTLY_E_LEARNING && c.archivedAt);
+          expect(DoELearningCoursesHaveArchiveDate).toBeFalsy();
+        });
+
+        it('should pass if archive date is always after last slot', () => {
+          const isArchiveDateAfterLastSlot = courseList
+            .every((c) => {
+              if (!c.archivedAt || !c.slots.length) return true;
+              const lastSlot = c.slots[c.slots.length - 1];
+
+              return CompaniDate(c.archivedAt).isAfter(lastSlot.endDate);
+            });
+          expect(isArchiveDateAfterLastSlot).toBeTruthy();
+        });
+
+        it('should pass if course with archive date always have trainees and slots', () => {
+          const DoArchivedCoursesHaveSlotsAndTrainees = courseList
+            .every(c => !c.archivedAt || (c.slots.length && c.trainees.length));
+          expect(DoArchivedCoursesHaveSlotsAndTrainees).toBeTruthy();
+        });
+
+        it('should pass if course with archive date never have slots to plan', () => {
+          const DoArchivedCoursesHaveSlotsToPlan = courseList
+            .some(c => c.archivedAt && c.slotsToPlan.length);
+          expect(DoArchivedCoursesHaveSlotsToPlan).toBeFalsy();
         });
       });
 
