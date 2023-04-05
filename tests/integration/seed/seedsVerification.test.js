@@ -1,10 +1,11 @@
 const { expect } = require('expect');
-const { groupBy, get } = require('lodash');
+const { groupBy, get, has, compact } = require('lodash');
 const Attendance = require('../../../src/models/Attendance');
 const AttendanceSheet = require('../../../src/models/AttendanceSheet');
 const CompanyLinkRequest = require('../../../src/models/CompanyLinkRequest');
 const Contract = require('../../../src/models/Contract');
 const Course = require('../../../src/models/Course');
+const Company = require('../../../src/models/Company');
 const CourseHistory = require('../../../src/models/CourseHistory');
 const Helper = require('../../../src/models/Helper');
 const QuestionnaireHistory = require('../../../src/models/QuestionnaireHistory');
@@ -181,6 +182,49 @@ describe('SEEDS VERIFICATION', () => {
         it('should pass if every subprogram exists', () => {
           const coursesExist = courseList.map(course => course.subProgram).every(subProgram => !!subProgram);
           expect(coursesExist).toBeTruthy();
+        });
+
+        it('should pass if every blended course has companies field', () => {
+          const everyBlendedCourseHasCompanies = courseList
+            .filter(course => course.format === BLENDED)
+            .every(course => has(course, 'companies'));
+          expect(everyBlendedCourseHasCompanies).toBeTruthy();
+        });
+
+        it('should pass if every company exists', async () => {
+          const companiesIds = compact(courseList.flatMap(course => course.companies)).map(c => c.toHexString());
+          const uniqCompaniesIds = [...new Set(companiesIds)];
+
+          const companiesCount = await Company.countDocuments({ _id: { $in: uniqCompaniesIds } });
+
+          expect(companiesCount).toEqual(uniqCompaniesIds.length);
+        });
+
+        it('should pass if none course has company in duplicate', () => {
+          const someCompaniesAreInDuplicate = courseList
+            .filter(course => get(course, 'companies.length'))
+            .some((course) => {
+              const companiesWithoutDuplicates = [...new Set(course.companies.map(c => c.toHexString()))];
+
+              return course.companies.length !== companiesWithoutDuplicates.length;
+            });
+
+          expect(someCompaniesAreInDuplicate).toBeFalsy();
+        });
+
+        it('should pass if every intra course has company', () => {
+          const everyIntraCourseHasCompany = courseList
+            .filter(course => course.type === INTRA)
+            .every(course => course.companies.length === 1);
+
+          expect(everyIntraCourseHasCompany).toBeTruthy();
+        });
+
+        it('should pass if none e-learning course has companies field', () => {
+          const someELearningCourseHasCompanies = courseList
+            .filter(course => course.format === STRICTLY_E_LEARNING)
+            .some(course => has(course, 'companies'));
+          expect(someELearningCourseHasCompanies).toBeFalsy();
         });
       });
 
