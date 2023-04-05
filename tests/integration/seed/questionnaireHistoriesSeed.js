@@ -4,6 +4,7 @@ const Course = require('../../../src/models/Course');
 const CourseHistory = require('../../../src/models/CourseHistory');
 const Card = require('../../../src/models/Card');
 const QuestionnaireHistory = require('../../../src/models/QuestionnaireHistory');
+const SubProgram = require('../../../src/models/SubProgram');
 const { userList, trainerOrganisationManager } = require('../../seed/authUsersSeed');
 const { deleteNonAuthenticationSeeds } = require('../helpers/authentication');
 const { INTER_B2B, TRAINEE_ADDITION } = require('../../../src/helpers/constants');
@@ -30,11 +31,13 @@ const questionnairesList = [
   },
 ];
 
+const subProgram = { _id: new ObjectId(), name: 'Subprogram 1' };
+
 const coursesList = [
   {
     _id: new ObjectId(),
     format: 'blended',
-    subProgram: new ObjectId(),
+    subProgram: subProgram._id,
     type: INTER_B2B,
     salesRepresentative: new ObjectId(),
     trainees: [questionnaireHistoriesUsersList[0], questionnaireHistoriesUsersList[2]],
@@ -43,7 +46,7 @@ const coursesList = [
   {
     _id: new ObjectId(),
     format: 'blended',
-    subProgram: new ObjectId(),
+    subProgram: subProgram._id,
     type: INTER_B2B,
     salesRepresentative: new ObjectId(),
     trainees: [questionnaireHistoriesUsersList[1]],
@@ -96,6 +99,7 @@ const populateDB = async () => {
     Course.create(coursesList),
     Card.create(cardsList),
     CourseHistory.create(courseHistoriesList),
+    SubProgram.create(subProgram),
   ]);
 };
 

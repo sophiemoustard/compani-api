@@ -135,6 +135,7 @@ describe('SEEDS VERIFICATION', () => {
               select: '_id',
               populate: [{ path: 'company' }, { path: 'role.client', select: 'name' }],
             })
+            .populate({ path: 'subProgram', select: '_id' })
             .lean();
         });
 
@@ -175,6 +176,11 @@ describe('SEEDS VERIFICATION', () => {
                 .some(uc => UtilsHelper.doesArrayIncludeId(course.accessRules, uc.company))
               ));
           expect(isEveryTraineeCompanyInAccessRules).toBeTruthy();
+        });
+
+        it('should pass if every subprogram exists', () => {
+          const coursesExist = courseList.map(course => course.subProgram).every(subProgram => !!subProgram);
+          expect(coursesExist).toBeTruthy();
         });
       });
 

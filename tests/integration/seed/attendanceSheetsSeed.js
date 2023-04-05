@@ -4,6 +4,7 @@ const AttendanceSheet = require('../../../src/models/AttendanceSheet');
 const Course = require('../../../src/models/Course');
 const CourseHistory = require('../../../src/models/CourseHistory');
 const CourseSlot = require('../../../src/models/CourseSlot');
+const SubProgram = require('../../../src/models/SubProgram');
 const { authCompany, otherCompany, companyWithoutSubscription } = require('../../seed/authCompaniesSeed');
 const { WEBAPP, INTRA, INTER_B2B, TRAINEE_ADDITION } = require('../../../src/helpers/constants');
 const { deleteNonAuthenticationSeeds } = require('../helpers/authentication');
@@ -57,10 +58,12 @@ const userCompaniesList = [
   { _id: new ObjectId(), user: userList[3]._id, company: otherCompany._id },
 ];
 
+const subProgram = { _id: new ObjectId(), name: 'Subprogram 1' };
+
 const coursesList = [
   { // 0
     _id: new ObjectId(),
-    subProgram: new ObjectId(),
+    subProgram: subProgram._id,
     type: INTRA,
     maxTrainees: 8,
     trainees: [userList[1]._id],
@@ -69,7 +72,7 @@ const coursesList = [
   },
   { // 1
     _id: new ObjectId(),
-    subProgram: new ObjectId(),
+    subProgram: subProgram._id,
     type: INTER_B2B,
     trainees: [userList[1]._id, userList[2]._id],
     companies: [authCompany._id, otherCompany._id],
@@ -77,7 +80,7 @@ const coursesList = [
   },
   { // 2
     _id: new ObjectId(),
-    subProgram: new ObjectId(),
+    subProgram: subProgram._id,
     type: INTRA,
     maxTrainees: 8,
     trainees: [userList[1]._id],
@@ -87,7 +90,7 @@ const coursesList = [
   },
   { // 3 - archived
     _id: new ObjectId(),
-    subProgram: new ObjectId(),
+    subProgram: subProgram._id,
     type: INTER_B2B,
     archivedAt: new Date(),
     trainees: [userList[1]._id],
@@ -96,7 +99,7 @@ const coursesList = [
   },
   { // 4
     _id: new ObjectId(),
-    subProgram: new ObjectId(),
+    subProgram: subProgram._id,
     type: INTRA,
     maxTrainees: 8,
     trainees: [userList[2]._id],
@@ -200,6 +203,7 @@ const populateDB = async () => {
     User.create(userList),
     UserCompany.create(userCompaniesList),
     CourseHistory.create(courseHistoriesList),
+    SubProgram.create(subProgram),
   ]);
 };
 
