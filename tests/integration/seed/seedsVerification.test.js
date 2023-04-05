@@ -298,6 +298,12 @@ describe('SEEDS VERIFICATION', () => {
               .includes(get(c.salesRepresentative, 'role.vendor.name')));
           expect(haveAllSalesRepresentativesGoodRole).toBeTruthy();
         });
+
+        it('should pass if estimated start date is defined for blended courses only', () => {
+          const DoELearningCoursesHaveEstimatedStartDate = courseList
+            .some(c => c.format === STRICTLY_E_LEARNING && c.estimatedStartDate);
+          expect(DoELearningCoursesHaveEstimatedStartDate).toBeFalsy();
+        });
       });
 
       describe('Collection CourseHistory', () => {
