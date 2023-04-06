@@ -133,32 +133,36 @@ describe('list', () => {
 });
 
 describe('delete', () => {
-  let findOne;
-  let deleteOne;
+  let find;
+  let deleteMany;
   let deleteCourseFile;
   beforeEach(() => {
-    findOne = sinon.stub(TrainingContract, 'findOne');
-    deleteOne = sinon.stub(TrainingContract, 'deleteOne');
+    find = sinon.stub(TrainingContract, 'find');
+    deleteMany = sinon.stub(TrainingContract, 'deleteMany');
     deleteCourseFile = sinon.stub(GCloudStorageHelper, 'deleteCourseFile');
   });
   afterEach(() => {
-    findOne.restore();
-    deleteOne.restore();
+    find.restore();
+    deleteMany.restore();
     deleteCourseFile.restore();
   });
 
   it('should remove a training contract', async () => {
-    const trainingContract = { _id: new ObjectId(), file: { publicId: 'yo' } };
+    const trainingContracts = [
+      { _id: new ObjectId(), file: { publicId: 'yo' } },
+      { _id: new ObjectId(), file: { publicId: 'ya' } },
+    ];
 
-    findOne.returns(SinonMongoose.stubChainedQueries(trainingContract, ['lean']));
+    find.returns(SinonMongoose.stubChainedQueries(trainingContracts, ['lean']));
 
-    await trainingContractsHelper.delete(trainingContract._id);
+    await trainingContractsHelper.delete(trainingContracts.map(tc => tc._id));
 
-    sinon.assert.calledOnceWithExactly(deleteCourseFile, 'yo');
-    sinon.assert.calledOnceWithExactly(deleteOne, { _id: trainingContract._id });
+    sinon.assert.calledWithExactly(deleteCourseFile.getCall(0), 'yo');
+    sinon.assert.calledWithExactly(deleteCourseFile.getCall(1), 'ya');
+    sinon.assert.calledOnceWithExactly(deleteMany, { _id: { $in: trainingContracts.map(tc => tc._id) } });
     SinonMongoose.calledOnceWithExactly(
-      findOne,
-      [{ query: 'findOne', args: [{ _id: trainingContract._id }] }, { query: 'lean' }]
+      find,
+      [{ query: 'find', args: [{ _id: { $in: trainingContracts.map(tc => tc._id) } }] }, { query: 'lean' }]
     );
   });
 });

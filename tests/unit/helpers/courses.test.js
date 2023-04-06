@@ -2896,7 +2896,7 @@ describe('deleteCourse', () => {
   let deleteCourseSmsHistory;
   let deleteCourseHistory;
   let deleteCourseSlot;
-  let findOneTrainingContract;
+  let findTrainingContract;
   let deleteTrainingContract;
   beforeEach(() => {
     deleteCourse = sinon.stub(Course, 'deleteOne');
@@ -2904,7 +2904,7 @@ describe('deleteCourse', () => {
     deleteCourseSmsHistory = sinon.stub(CourseSmsHistory, 'deleteMany');
     deleteCourseHistory = sinon.stub(CourseHistory, 'deleteMany');
     deleteCourseSlot = sinon.stub(CourseSlot, 'deleteMany');
-    findOneTrainingContract = sinon.stub(TrainingContract, 'findOne');
+    findTrainingContract = sinon.stub(TrainingContract, 'find');
     deleteTrainingContract = sinon.stub(TrainingContractsHelper, 'delete');
   });
   afterEach(() => {
@@ -2913,15 +2913,15 @@ describe('deleteCourse', () => {
     deleteCourseSmsHistory.restore();
     deleteCourseHistory.restore();
     deleteCourseSlot.restore();
-    findOneTrainingContract.restore();
+    findTrainingContract.restore();
     deleteTrainingContract.restore();
   });
 
   it('should delete course and sms history', async () => {
     const courseId = new ObjectId();
-    const trainingContract = { _id: new ObjectId() };
+    const trainingContractList = [{ _id: new ObjectId() }, { _id: new ObjectId() }];
 
-    findOneTrainingContract.returns(SinonMongoose.stubChainedQueries(trainingContract._id, ['lean']));
+    findTrainingContract.returns(SinonMongoose.stubChainedQueries(trainingContractList, ['setOptions', 'lean']));
 
     await CourseHelper.deleteCourse(courseId);
 
@@ -2933,10 +2933,14 @@ describe('deleteCourse', () => {
     sinon.assert.calledOnceWithExactly(deleteCourseSmsHistory, { course: courseId });
     sinon.assert.calledOnceWithExactly(deleteCourseHistory, { course: courseId });
     sinon.assert.calledOnceWithExactly(deleteCourseSlot, { course: courseId });
-    sinon.assert.calledOnceWithExactly(deleteTrainingContract, trainingContract._id);
+    sinon.assert.calledOnceWithExactly(deleteTrainingContract, trainingContractList.map(tc => tc._id));
     SinonMongoose.calledOnceWithExactly(
-      findOneTrainingContract,
-      [{ query: 'findOne', args: [{ course: courseId }, { _id: 1 }] }, { query: 'lean' }]
+      findTrainingContract,
+      [
+        { query: 'find', args: [{ course: courseId }, { _id: 1 }] },
+        { query: 'setOptions', args: [{ isVendorUser: true }] },
+        { query: 'lean' },
+      ]
     );
   });
 });
@@ -4310,7 +4314,7 @@ describe('removeCourseCompany', () => {
       { course: course._id, company: companyId },
       credentials._id
     );
-    sinon.assert.calledOnceWithExactly(deleteTrainingContract, trainingContract._id);
+    sinon.assert.calledOnceWithExactly(deleteTrainingContract, [trainingContract._id]);
     SinonMongoose.calledOnceWithExactly(
       findOneTrainingContract,
       [{ query: 'findOne', args: [{ course: course._id, company: companyId }, { _id: 1 }] }, { query: 'lean' }]
