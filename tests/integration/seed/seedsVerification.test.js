@@ -134,7 +134,12 @@ describe('SEEDS VERIFICATION', () => {
         before(async () => {
           courseList = await Course
             .find()
-            .populate({ path: 'trainees', select: '_id', populate: { path: 'userCompanyList' } })
+            .populate({
+              path: 'trainees',
+              select: '_id',
+              populate: { path: 'userCompanyList' },
+              transform: doc => (doc == null ? 'user not found' : doc),
+            })
             .populate({
               path: 'companyRepresentative',
               select: '_id',
@@ -145,7 +150,7 @@ describe('SEEDS VERIFICATION', () => {
               select: '_id',
               populate: [{ path: 'role.vendor', select: 'name' }],
             })
-            .populate({ path: 'trainer', select: 'role.vendor' })
+            .populate({ path: 'trainer', select: '_id role.vendor' })
             .populate({ path: 'subProgram', select: '_id' })
             .populate({ path: 'slots', select: 'endDate' })
             .populate({ path: 'slotsToPlan' })
@@ -353,6 +358,21 @@ describe('SEEDS VERIFICATION', () => {
           const isExpectedBillsCountDefinedForBlendedCoursesOnly = courseList
             .every(c => c.format === BLENDED || !has(c, 'expectedBillsCount'));
           expect(isExpectedBillsCountDefinedForBlendedCoursesOnly).toBeTruthy();
+        });
+
+        it('should pass if every user exists', async () => {
+          const someUsersDontExist = courseList.some((c) => {
+            const userList = [
+              ...(has(c, 'companyRepresentative') ? [c.companyRepresentative] : []),
+              ...(has(c, 'salesRepresentative') ? [c.salesRepresentative] : []),
+              ...(has(c, 'trainer') ? [c.trainer] : []),
+              ...c.trainees,
+            ];
+
+            return userList.some(u => u === null || u === 'user not found');
+          });
+
+          expect(someUsersDontExist).toBeFalsy();
         });
       });
 
