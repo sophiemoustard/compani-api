@@ -335,6 +335,19 @@ describe('SEEDS VERIFICATION', () => {
             .some(c => c.archivedAt && c.slotsToPlan.length);
           expect(DoArchivedCoursesHaveSlotsToPlan).toBeFalsy();
         });
+
+        it('should pass if max trainees is defined only for intra courses', () => {
+          const isMaxTraineesDefinedForIntraCourseOnly = courseList
+            .every(c => c.type === INTRA || !has(c, 'maxTrainees'));
+          expect(isMaxTraineesDefinedForIntraCourseOnly).toBeTruthy();
+        });
+
+        it('should pass if number of trainees is lower than max trainees', () => {
+          const isNumberOfTraineesLowerThanMaxTrainees = courseList
+            .filter(c => has(c, 'maxTrainees'))
+            .every(c => c.trainees.length <= c.maxTrainees);
+          expect(isNumberOfTraineesLowerThanMaxTrainees).toBeTruthy();
+        });
       });
 
       describe('Collection CourseHistory', () => {

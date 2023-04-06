@@ -495,7 +495,6 @@ const coursesList = [
     trainees: [coach._id, helper._id, clientAdmin._id],
     companies: [authCompany._id],
     type: INTER_B2B,
-    maxTrainees: 8,
     salesRepresentative: vendorAdmin._id,
     archivedAt: '2021-01-01T00:00:00.000Z',
     estimatedStartDate: '2020-11-03T10:00:00.000Z',
