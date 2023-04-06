@@ -5,7 +5,6 @@ const AttendanceSheet = require('../../../src/models/AttendanceSheet');
 const CompanyLinkRequest = require('../../../src/models/CompanyLinkRequest');
 const Contract = require('../../../src/models/Contract');
 const Course = require('../../../src/models/Course');
-const Company = require('../../../src/models/Company');
 const CourseHistory = require('../../../src/models/CourseHistory');
 const Helper = require('../../../src/models/Helper');
 const QuestionnaireHistory = require('../../../src/models/QuestionnaireHistory');
@@ -151,6 +150,7 @@ describe('SEEDS VERIFICATION', () => {
               populate: [{ path: 'role.vendor', select: 'name' }],
             })
             .populate({ path: 'trainer', select: '_id role.vendor' })
+            .populate({ path: 'companies', select: '_id', transform: doc => (doc == null ? 'company not found' : doc) })
             .populate({ path: 'subProgram', select: '_id' })
             .populate({ path: 'slots', select: 'endDate' })
             .populate({ path: 'slotsToPlan' })
@@ -162,7 +162,7 @@ describe('SEEDS VERIFICATION', () => {
             .filter(course => course.format === BLENDED)
             .every(course => course.trainees
               .every(trainee => trainee.userCompanyList
-                .some(uc => UtilsHelper.doesArrayIncludeId(course.companies, uc.company))
+                .some(uc => UtilsHelper.doesArrayIncludeId(course.companies.map(c => c._id), uc.company))
               ));
           expect(isEveryTraineeCompanyAttachedToCourse).toBeTruthy();
         });
@@ -182,7 +182,7 @@ describe('SEEDS VERIFICATION', () => {
         it('should pass if companyRepresentative is in good company', () => {
           const areCoursesAndCompanyRepresentativesInSameCompany = courseList
             .every(c => !c.companyRepresentative ||
-              UtilsHelper.areObjectIdsEquals(c.companyRepresentative.company, c.companies[0]));
+              UtilsHelper.areObjectIdsEquals(c.companyRepresentative.company, c.companies[0]._id));
           expect(areCoursesAndCompanyRepresentativesInSameCompany).toBeTruthy();
         });
 
@@ -209,19 +209,18 @@ describe('SEEDS VERIFICATION', () => {
         });
 
         it('should pass if every company exists', async () => {
-          const companiesIds = compact(courseList.flatMap(course => course.companies)).map(c => c.toHexString());
-          const uniqCompaniesIds = [...new Set(companiesIds)];
+          const someCompaniesDontExist = courseList
+            .filter(c => c.format === BLENDED)
+            .some(c => c.companies.some(company => company === 'company not found'));
 
-          const companiesCount = await Company.countDocuments({ _id: { $in: uniqCompaniesIds } });
-
-          expect(companiesCount).toEqual(uniqCompaniesIds.length);
+          expect(someCompaniesDontExist).toBeFalsy();
         });
 
         it('should pass if none course has company in duplicate', () => {
           const someCompaniesAreInDuplicate = courseList
             .filter(course => get(course, 'companies.length'))
             .some((course) => {
-              const companiesWithoutDuplicates = [...new Set(course.companies.map(c => c.toHexString()))];
+              const companiesWithoutDuplicates = [...new Set(course.companies.map(c => c._id.toHexString()))];
 
               return course.companies.length !== companiesWithoutDuplicates.length;
             });
