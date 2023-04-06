@@ -377,7 +377,6 @@ const coursesList = [
   { // 8 eLearning course with access rules
     _id: new ObjectId(),
     subProgram: subProgramsList[2]._id,
-    contact: vendorAdmin._id,
     misc: 'inter_b2c with accessRules',
     type: INTER_B2C,
     format: STRICTLY_E_LEARNING,
@@ -390,9 +389,8 @@ const coursesList = [
     misc: 'inter_b2b with accessRules',
     type: INTER_B2C,
     format: STRICTLY_E_LEARNING,
-    trainees: [coach._id, traineeFromOtherCompany._id],
-    companies: [otherCompany._id, authCompany._id],
-    accessRules: [authCompany._id, new ObjectId()],
+    trainees: [coach._id],
+    accessRules: [authCompany._id],
   },
   { // 10 course with contact
     _id: new ObjectId(),
