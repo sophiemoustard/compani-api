@@ -337,9 +337,9 @@ describe('SEEDS VERIFICATION', () => {
         });
 
         it('should pass if max trainees is defined only for intra courses', () => {
-          const isMaxTraineesDefinedForIntraCourseOnly = courseList
+          const isMaxTraineesDefinedForIntraCoursesOnly = courseList
             .every(c => c.type === INTRA || !has(c, 'maxTrainees'));
-          expect(isMaxTraineesDefinedForIntraCourseOnly).toBeTruthy();
+          expect(isMaxTraineesDefinedForIntraCoursesOnly).toBeTruthy();
         });
 
         it('should pass if number of trainees is lower than max trainees', () => {
@@ -347,6 +347,12 @@ describe('SEEDS VERIFICATION', () => {
             .filter(c => has(c, 'maxTrainees'))
             .every(c => c.trainees.length <= c.maxTrainees);
           expect(isNumberOfTraineesLowerThanMaxTrainees).toBeTruthy();
+        });
+
+        it('should pass if expected bills count is defined only for blended courses', () => {
+          const isExpectedBillsCountDefinedForBlendedCoursesOnly = courseList
+            .every(c => c.format === BLENDED || !has(c, 'expectedBillsCount'));
+          expect(isExpectedBillsCountDefinedForBlendedCoursesOnly).toBeTruthy();
         });
       });
 
