@@ -49,10 +49,9 @@ exports.delete = async trainingContractId => exports.deleteMany([trainingContrac
 exports.deleteMany = async (trainingContractIdList) => {
   const trainingContracts = await TrainingContract.find({ _id: { $in: trainingContractIdList } }).lean();
 
-  const promises = [TrainingContract.deleteMany({ _id: { $in: trainingContractIdList } })];
-  trainingContracts.forEach(tc => promises.push(GCloudStorageHelper.deleteCourseFile(tc.file.publicId)));
+  await TrainingContract.deleteMany({ _id: { $in: trainingContractIdList } });
 
-  return Promise.all(promises);
+  return Promise.all([trainingContracts.map(tc => GCloudStorageHelper.deleteCourseFile(tc.file.publicId))]);
 };
 
 const computeLiveDuration = (slots, slotsToPlan, steps) => {

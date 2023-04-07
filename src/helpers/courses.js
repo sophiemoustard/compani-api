@@ -586,7 +586,12 @@ exports.updateCourse = async (courseId, payload, credentials) => {
 };
 
 exports.deleteCourse = async (courseId) => {
-  const promises = [
+  const trainingContractList = await TrainingContract
+    .find({ course: courseId }, { _id: 1 })
+    .setOptions({ isVendorUser: true })
+    .lean();
+
+  return Promise.all([
     Course.deleteOne({ _id: courseId }),
     CourseBill.deleteMany({
       course: courseId,
@@ -595,19 +600,11 @@ exports.deleteCourse = async (courseId) => {
     CourseSmsHistory.deleteMany({ course: courseId }),
     CourseHistory.deleteMany({ course: courseId }),
     CourseSlot.deleteMany({ course: courseId }),
-  ];
-
-  const trainingContractList = await TrainingContract
-    .find({ course: courseId }, { _id: 1 })
-    .setOptions({ isVendorUser: true })
-    .lean();
-
-  if (trainingContractList.length) {
-    const trainingContractIdList = trainingContractList.map(tc => tc._id);
-    promises.push(TrainingContractsHelper.deleteMany(trainingContractIdList));
-  }
-
-  return Promise.all(promises);
+    ...(trainingContractList.length
+      ? [TrainingContractsHelper.deleteMany(trainingContractList.map(tc => tc._id))]
+      : []
+    ),
+  ]);
 };
 
 exports.sendSMS = async (courseId, payload, credentials) => {
@@ -959,15 +956,13 @@ exports.addCourseCompany = async (courseId, payload, credentials) => {
 };
 
 exports.removeCourseCompany = async (courseId, companyId, credentials) => {
-  const promises = [
+  const trainingContract = await TrainingContract.findOne({ course: courseId, company: companyId }, { _id: 1 }).lean();
+
+  return Promise.all([
     Course.updateOne({ _id: courseId }, { $pull: { companies: companyId } }),
     CourseHistoriesHelper.createHistoryOnCompanyDeletion({ course: courseId, company: companyId }, credentials._id),
-  ];
-
-  const trainingContract = await TrainingContract.findOne({ course: courseId, company: companyId }, { _id: 1 }).lean();
-  if (trainingContract) promises.push(TrainingContractsHelper.delete(trainingContract._id));
-
-  return Promise.all(promises);
+    ...trainingContract ? [TrainingContractsHelper.delete(trainingContract._id)] : [],
+  ]);
 };
 
 exports.generateTrainingContract = async (courseId, payload) => {
