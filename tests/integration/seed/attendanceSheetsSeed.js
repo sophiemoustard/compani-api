@@ -5,7 +5,7 @@ const Course = require('../../../src/models/Course');
 const CourseHistory = require('../../../src/models/CourseHistory');
 const CourseSlot = require('../../../src/models/CourseSlot');
 const { authCompany, otherCompany, companyWithoutSubscription } = require('../../seed/authCompaniesSeed');
-const { WEBAPP, INTRA, INTER_B2B, TRAINEE_ADDITION } = require('../../../src/helpers/constants');
+const { WEBAPP, INTRA, INTER_B2B, TRAINEE_ADDITION, MOBILE } = require('../../../src/helpers/constants');
 const { deleteNonAuthenticationSeeds } = require('../helpers/authentication');
 const UserCompany = require('../../../src/models/UserCompany');
 const User = require('../../../src/models/User');
@@ -151,6 +151,7 @@ const attendanceSheetList = [
     file: { publicId: 'mon upload', link: 'www.test.com' },
     date: '2020-01-23T09:00:00.000Z',
     company: authCompany._id,
+    origin: WEBAPP,
   },
   {
     _id: new ObjectId(),
@@ -158,6 +159,7 @@ const attendanceSheetList = [
     file: { publicId: 'mon upload', link: 'www.test.com' },
     trainee: userList[1]._id,
     company: authCompany._id,
+    origin: WEBAPP,
   },
   {
     _id: new ObjectId(),
@@ -165,6 +167,7 @@ const attendanceSheetList = [
     file: { publicId: 'mon upload', link: 'www.test.com' },
     trainee: userList[1]._id,
     company: authCompany._id,
+    origin: MOBILE,
   },
   {
     _id: new ObjectId(),
@@ -172,6 +175,7 @@ const attendanceSheetList = [
     file: { publicId: 'fromOtherCompany', link: 'www.test.com' },
     date: '2020-01-25T09:00:00.000Z',
     company: authCompany._id,
+    origin: MOBILE,
   },
 ];
 

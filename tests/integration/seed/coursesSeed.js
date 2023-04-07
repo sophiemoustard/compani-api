@@ -1023,6 +1023,7 @@ const attendanceSheetList = [
     course: coursesList[12]._id,
     file: { publicId: 'publicId', link: 'https://link.com' },
     company: authCompany._id,
+    origin: WEBAPP,
   },
 ];
 
