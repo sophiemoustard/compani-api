@@ -196,6 +196,18 @@ describe('SEEDS VERIFICATION', () => {
           expect(isEveryTraineeCompanyInAccessRules).toBeTruthy();
         });
 
+        it('should pass if no course has access rule in duplicate', () => {
+          const someAccessRulesAreInDuplicate = courseList
+            .filter(c => c.accessRules.length)
+            .some((course) => {
+              const accessRulesWithoutDuplicates = [...new Set(course.accessRules.map(c => c.toHexString()))];
+
+              return course.accessRules.length !== accessRulesWithoutDuplicates.length;
+            });
+
+          expect(someAccessRulesAreInDuplicate).toBeFalsy();
+        });
+
         it('should pass if every subprogram exists', () => {
           const subProgramsExist = courseList.map(course => course.subProgram).every(subProgram => !!subProgram);
           expect(subProgramsExist).toBeTruthy();
@@ -257,6 +269,17 @@ describe('SEEDS VERIFICATION', () => {
             .filter(c => has(c, 'trainer'))
             .some(c => UtilsHelper.doesArrayIncludeId(c.trainees.map(t => t._id), c.trainer._id));
           expect(isTrainerIncludedInTrainees).toBeFalsy();
+        });
+
+        it('should pass if no course has trainee in duplicate', () => {
+          const someTraineesAreInDuplicate = courseList
+            .some((course) => {
+              const traineesWithoutDuplicates = [...new Set(course.trainees.map(c => c._id.toHexString()))];
+
+              return course.trainees.length !== traineesWithoutDuplicates.length;
+            });
+
+          expect(someTraineesAreInDuplicate).toBeFalsy();
         });
 
         it('should pass if trainer has good role', () => {
