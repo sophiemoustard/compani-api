@@ -151,6 +151,11 @@ describe('SEEDS VERIFICATION', () => {
             })
             .populate({ path: 'trainer', select: '_id role.vendor' })
             .populate({ path: 'companies', select: '_id', transform: doc => (doc == null ? 'company not found' : doc) })
+            .populate({
+              path: 'accessRules',
+              select: '_id',
+              transform: doc => (doc == null ? 'company not found' : doc),
+            })
             .populate({ path: 'subProgram', select: '_id' })
             .populate({ path: 'slots', select: 'endDate' })
             .populate({ path: 'slotsToPlan' })
@@ -191,7 +196,7 @@ describe('SEEDS VERIFICATION', () => {
             .filter(course => course.format === STRICTLY_E_LEARNING && get(course, 'accessRules.length'))
             .every(course => course.trainees
               .every(trainee => trainee.userCompanyList
-                .some(uc => UtilsHelper.doesArrayIncludeId(course.accessRules, uc.company))
+                .some(uc => UtilsHelper.doesArrayIncludeId(course.accessRules.map(c => c._id), uc.company))
               ));
           expect(isEveryTraineeCompanyInAccessRules).toBeTruthy();
         });
@@ -200,7 +205,7 @@ describe('SEEDS VERIFICATION', () => {
           const someAccessRulesAreInDuplicate = courseList
             .filter(c => c.accessRules.length)
             .some((course) => {
-              const accessRulesWithoutDuplicates = [...new Set(course.accessRules.map(c => c.toHexString()))];
+              const accessRulesWithoutDuplicates = [...new Set(course.accessRules.map(c => c._id.toHexString()))];
 
               return course.accessRules.length !== accessRulesWithoutDuplicates.length;
             });
@@ -305,6 +310,14 @@ describe('SEEDS VERIFICATION', () => {
         it('should pass if no access rules for blended courses', () => {
           const haveBlendedCoursesAccessRules = courseList.some(c => c.format === BLENDED && c.accessRules.length);
           expect(haveBlendedCoursesAccessRules).toBeFalsy();
+        });
+
+        it('should pass if every access rules company exists', async () => {
+          const someCompaniesDontExist = courseList
+            .filter(c => c.accessRules.length)
+            .some(c => c.accessRules.some(company => company === 'company not found'));
+
+          expect(someCompaniesDontExist).toBeFalsy();
         });
 
         it('should pass if only blended courses have supervisors', () => {
