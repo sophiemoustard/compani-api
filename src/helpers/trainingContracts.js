@@ -44,7 +44,9 @@ exports.list = async (course, credentials) => {
     .lean();
 };
 
-exports.delete = async (trainingContractIdList) => {
+exports.delete = async trainingContractId => exports.deleteMany([trainingContractId]);
+
+exports.deleteMany = async (trainingContractIdList) => {
   const trainingContracts = await TrainingContract.find({ _id: { $in: trainingContractIdList } }).lean();
 
   const promises = [TrainingContract.deleteMany({ _id: { $in: trainingContractIdList } })];

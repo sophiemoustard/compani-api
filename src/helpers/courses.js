@@ -604,7 +604,7 @@ exports.deleteCourse = async (courseId) => {
 
   if (trainingContractList.length) {
     const trainingContractIdList = trainingContractList.map(tc => tc._id);
-    promises.push(TrainingContractsHelper.delete(trainingContractIdList));
+    promises.push(TrainingContractsHelper.deleteMany(trainingContractIdList));
   }
 
   return Promise.all(promises);
@@ -965,7 +965,7 @@ exports.removeCourseCompany = async (courseId, companyId, credentials) => {
   ];
 
   const trainingContract = await TrainingContract.findOne({ course: courseId, company: companyId }, { _id: 1 }).lean();
-  if (trainingContract) promises.push(TrainingContractsHelper.delete([trainingContract._id]));
+  if (trainingContract) promises.push(TrainingContractsHelper.delete(trainingContract._id));
 
   return Promise.all(promises);
 };

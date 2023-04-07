@@ -33,7 +33,7 @@ const list = async (req) => {
 
 const remove = async (req) => {
   try {
-    await TrainingContractsHelper.delete([req.params._id]);
+    await TrainingContractsHelper.delete(req.params._id);
 
     return { message: translate[language].trainingContractDeleted };
   } catch (e) {

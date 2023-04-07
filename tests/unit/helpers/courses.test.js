@@ -2897,7 +2897,7 @@ describe('deleteCourse', () => {
   let deleteCourseHistory;
   let deleteCourseSlot;
   let findTrainingContract;
-  let deleteTrainingContract;
+  let deleteManyTrainingContract;
   beforeEach(() => {
     deleteCourse = sinon.stub(Course, 'deleteOne');
     deleteCourseBill = sinon.stub(CourseBill, 'deleteMany');
@@ -2905,7 +2905,7 @@ describe('deleteCourse', () => {
     deleteCourseHistory = sinon.stub(CourseHistory, 'deleteMany');
     deleteCourseSlot = sinon.stub(CourseSlot, 'deleteMany');
     findTrainingContract = sinon.stub(TrainingContract, 'find');
-    deleteTrainingContract = sinon.stub(TrainingContractsHelper, 'delete');
+    deleteManyTrainingContract = sinon.stub(TrainingContractsHelper, 'deleteMany');
   });
   afterEach(() => {
     deleteCourse.restore();
@@ -2914,7 +2914,7 @@ describe('deleteCourse', () => {
     deleteCourseHistory.restore();
     deleteCourseSlot.restore();
     findTrainingContract.restore();
-    deleteTrainingContract.restore();
+    deleteManyTrainingContract.restore();
   });
 
   it('should delete course and sms history', async () => {
@@ -2933,7 +2933,7 @@ describe('deleteCourse', () => {
     sinon.assert.calledOnceWithExactly(deleteCourseSmsHistory, { course: courseId });
     sinon.assert.calledOnceWithExactly(deleteCourseHistory, { course: courseId });
     sinon.assert.calledOnceWithExactly(deleteCourseSlot, { course: courseId });
-    sinon.assert.calledOnceWithExactly(deleteTrainingContract, trainingContractList.map(tc => tc._id));
+    sinon.assert.calledOnceWithExactly(deleteManyTrainingContract, trainingContractList.map(tc => tc._id));
     SinonMongoose.calledOnceWithExactly(
       findTrainingContract,
       [
@@ -4314,7 +4314,7 @@ describe('removeCourseCompany', () => {
       { course: course._id, company: companyId },
       credentials._id
     );
-    sinon.assert.calledOnceWithExactly(deleteTrainingContract, [trainingContract._id]);
+    sinon.assert.calledOnceWithExactly(deleteTrainingContract, trainingContract._id);
     SinonMongoose.calledOnceWithExactly(
       findOneTrainingContract,
       [{ query: 'findOne', args: [{ course: course._id, company: companyId }, { _id: 1 }] }, { query: 'lean' }]

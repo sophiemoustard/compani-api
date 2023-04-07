@@ -132,7 +132,7 @@ describe('list', () => {
   });
 });
 
-describe('delete', () => {
+describe('deleteMany', () => {
   let find;
   let deleteMany;
   let deleteCourseFile;
@@ -147,7 +147,7 @@ describe('delete', () => {
     deleteCourseFile.restore();
   });
 
-  it('should remove a training contract', async () => {
+  it('should remove training contracts', async () => {
     const trainingContracts = [
       { _id: new ObjectId(), file: { publicId: 'yo' } },
       { _id: new ObjectId(), file: { publicId: 'ya' } },
@@ -155,7 +155,7 @@ describe('delete', () => {
 
     find.returns(SinonMongoose.stubChainedQueries(trainingContracts, ['lean']));
 
-    await trainingContractsHelper.delete(trainingContracts.map(tc => tc._id));
+    await trainingContractsHelper.deleteMany(trainingContracts.map(tc => tc._id));
 
     sinon.assert.calledWithExactly(deleteCourseFile.getCall(0), 'yo');
     sinon.assert.calledWithExactly(deleteCourseFile.getCall(1), 'ya');
@@ -164,5 +164,23 @@ describe('delete', () => {
       find,
       [{ query: 'find', args: [{ _id: { $in: trainingContracts.map(tc => tc._id) } }] }, { query: 'lean' }]
     );
+  });
+});
+
+describe('delete', () => {
+  let deleteMany;
+  beforeEach(() => {
+    deleteMany = sinon.stub(trainingContractsHelper, 'deleteMany');
+  });
+  afterEach(() => {
+    deleteMany.restore();
+  });
+
+  it('should remove a training contract', async () => {
+    const trainingContractId = new ObjectId();
+
+    await trainingContractsHelper.delete(trainingContractId);
+
+    sinon.assert.calledOnceWithExactly(deleteMany, [trainingContractId]);
   });
 });
