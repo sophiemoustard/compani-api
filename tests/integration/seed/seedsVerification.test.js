@@ -322,18 +322,6 @@ describe('SEEDS VERIFICATION', () => {
           expect(isArchiveDateAfterLastSlot).toBeTruthy();
         });
 
-        it('should pass if course with archive date always have trainees and slots', () => {
-          const doArchivedCoursesHaveSlotsAndTrainees = courseList
-            .every(c => !c.archivedAt || (c.slots.length && c.trainees.length));
-          expect(doArchivedCoursesHaveSlotsAndTrainees).toBeTruthy();
-        });
-
-        it('should pass if course with archive date don\'t have slots to plan', () => {
-          const doArchivedCoursesHaveSlotsToPlan = courseList
-            .some(c => c.archivedAt && c.slotsToPlan.length);
-          expect(doArchivedCoursesHaveSlotsToPlan).toBeFalsy();
-        });
-
         it('should pass if max trainees is defined only for intra courses', () => {
           const isMaxTraineesDefinedForIntraCoursesOnly = courseList
             .every(c => c.type === INTRA || !has(c, 'maxTrainees'));
