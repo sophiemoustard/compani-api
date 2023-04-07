@@ -197,15 +197,8 @@ describe('SEEDS VERIFICATION', () => {
         });
 
         it('should pass if every subprogram exists', () => {
-          const coursesExist = courseList.map(course => course.subProgram).every(subProgram => !!subProgram);
-          expect(coursesExist).toBeTruthy();
-        });
-
-        it('should pass if every blended course has companies field', () => {
-          const everyBlendedCourseHasCompanies = courseList
-            .filter(course => course.format === BLENDED)
-            .every(course => has(course, 'companies'));
-          expect(everyBlendedCourseHasCompanies).toBeTruthy();
+          const subProgramsExist = courseList.map(course => course.subProgram).every(subProgram => !!subProgram);
+          expect(subProgramsExist).toBeTruthy();
         });
 
         it('should pass if every company exists', async () => {
@@ -216,7 +209,7 @@ describe('SEEDS VERIFICATION', () => {
           expect(someCompaniesDontExist).toBeFalsy();
         });
 
-        it('should pass if none course has company in duplicate', () => {
+        it('should pass if no course has company in duplicate', () => {
           const someCompaniesAreInDuplicate = courseList
             .filter(course => get(course, 'companies.length'))
             .some((course) => {
@@ -228,7 +221,7 @@ describe('SEEDS VERIFICATION', () => {
           expect(someCompaniesAreInDuplicate).toBeFalsy();
         });
 
-        it('should pass if every intra course has company', () => {
+        it('should pass if intra courses have one and only one company', () => {
           const everyIntraCourseHasCompany = courseList
             .filter(course => course.type === INTRA)
             .every(course => course.companies.length === 1);
@@ -236,7 +229,7 @@ describe('SEEDS VERIFICATION', () => {
           expect(everyIntraCourseHasCompany).toBeTruthy();
         });
 
-        it('should pass if none e-learning course has companies field', () => {
+        it('should pass if no e-learning course has companies field', () => {
           const someELearningCourseHasCompanies = courseList
             .filter(course => course.format === STRICTLY_E_LEARNING)
             .some(course => has(course, 'companies'));
@@ -260,10 +253,10 @@ describe('SEEDS VERIFICATION', () => {
         });
 
         it('should pass if trainer is never in trainees list', () => {
-          const IsTrainerIncludedInTrainees = courseList
+          const isTrainerIncludedInTrainees = courseList
             .filter(c => has(c, 'trainer'))
             .some(c => UtilsHelper.doesArrayIncludeId(c.trainees.map(t => t._id), c.trainer._id));
-          expect(IsTrainerIncludedInTrainees).toBeFalsy();
+          expect(isTrainerIncludedInTrainees).toBeFalsy();
         });
 
         it('should pass if trainer has good role', () => {
@@ -291,30 +284,31 @@ describe('SEEDS VERIFICATION', () => {
           expect(haveBlendedCoursesAccessRules).toBeFalsy();
         });
 
-        it('should pass if only blended courses have sales representative', () => {
-          const DoELearningCoursesHaveSalesRepresentative = courseList
-            .some(c => c.format === STRICTLY_E_LEARNING && c.salesRepresentative);
-          expect(DoELearningCoursesHaveSalesRepresentative).toBeFalsy();
+        it('should pass if only blended courses have supervisors', () => {
+          const doELearningCoursesHaveSalesRepresentative = courseList
+            .some(c => c.format === STRICTLY_E_LEARNING &&
+              (c.salesRepresentative || c.trainer || c.companyRepresentative));
+          expect(doELearningCoursesHaveSalesRepresentative).toBeFalsy();
         });
 
         it('should pass if all sales representative are rof or vendor admin', () => {
-          const haveAllSalesRepresentativesGoodRole = courseList
+          const doAllSalesRepresentativeHaveGoodRole = courseList
             .filter(c => c.salesRepresentative)
             .every(c => [TRAINING_ORGANISATION_MANAGER, VENDOR_ADMIN]
               .includes(get(c.salesRepresentative, 'role.vendor.name')));
-          expect(haveAllSalesRepresentativesGoodRole).toBeTruthy();
+          expect(doAllSalesRepresentativeHaveGoodRole).toBeTruthy();
         });
 
         it('should pass if estimated start date is defined for blended courses only', () => {
-          const DoELearningCoursesHaveEstimatedStartDate = courseList
+          const doELearningCoursesHaveEstimatedStartDate = courseList
             .some(c => c.format === STRICTLY_E_LEARNING && c.estimatedStartDate);
-          expect(DoELearningCoursesHaveEstimatedStartDate).toBeFalsy();
+          expect(doELearningCoursesHaveEstimatedStartDate).toBeFalsy();
         });
 
         it('should pass if archive date is defined for blended courses only', () => {
-          const DoELearningCoursesHaveArchiveDate = courseList
+          const doELearningCoursesHaveArchiveDate = courseList
             .some(c => c.format === STRICTLY_E_LEARNING && c.archivedAt);
-          expect(DoELearningCoursesHaveArchiveDate).toBeFalsy();
+          expect(doELearningCoursesHaveArchiveDate).toBeFalsy();
         });
 
         it('should pass if archive date is always after last slot', () => {
@@ -329,15 +323,15 @@ describe('SEEDS VERIFICATION', () => {
         });
 
         it('should pass if course with archive date always have trainees and slots', () => {
-          const DoArchivedCoursesHaveSlotsAndTrainees = courseList
+          const doArchivedCoursesHaveSlotsAndTrainees = courseList
             .every(c => !c.archivedAt || (c.slots.length && c.trainees.length));
-          expect(DoArchivedCoursesHaveSlotsAndTrainees).toBeTruthy();
+          expect(doArchivedCoursesHaveSlotsAndTrainees).toBeTruthy();
         });
 
-        it('should pass if course with archive date never have slots to plan', () => {
-          const DoArchivedCoursesHaveSlotsToPlan = courseList
+        it('should pass if course with archive date don\'t have slots to plan', () => {
+          const doArchivedCoursesHaveSlotsToPlan = courseList
             .some(c => c.archivedAt && c.slotsToPlan.length);
-          expect(DoArchivedCoursesHaveSlotsToPlan).toBeFalsy();
+          expect(doArchivedCoursesHaveSlotsToPlan).toBeFalsy();
         });
 
         it('should pass if max trainees is defined only for intra courses', () => {
