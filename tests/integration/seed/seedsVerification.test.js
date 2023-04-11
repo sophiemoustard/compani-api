@@ -137,7 +137,7 @@ describe('SEEDS VERIFICATION', () => {
               path: 'trainees',
               select: '_id',
               populate: { path: 'userCompanyList' },
-              transform: doc => (doc == null ? 'user not found' : doc),
+              transform: doc => (doc || null),
             })
             .populate({
               path: 'companyRepresentative',
@@ -150,11 +150,11 @@ describe('SEEDS VERIFICATION', () => {
               populate: [{ path: 'role.vendor', select: 'name' }],
             })
             .populate({ path: 'trainer', select: '_id role.vendor' })
-            .populate({ path: 'companies', select: '_id', transform: doc => (doc == null ? 'company not found' : doc) })
+            .populate({ path: 'companies', select: '_id', transform: doc => (doc || null) })
             .populate({
               path: 'accessRules',
               select: '_id',
-              transform: doc => (doc == null ? 'company not found' : doc),
+              transform: doc => (doc || null),
             })
             .populate({ path: 'subProgram', select: '_id' })
             .populate({ path: 'slots', select: 'endDate' })
@@ -167,7 +167,7 @@ describe('SEEDS VERIFICATION', () => {
             .filter(course => course.format === BLENDED)
             .every(course => course.trainees
               .every(trainee => get(trainee, 'userCompanyList', [])
-                .some(uc => uc && UtilsHelper.doesArrayIncludeId(course.companies.map(c => c._id), uc.company))
+                .some(uc => UtilsHelper.doesArrayIncludeId(course.companies.map(c => get(c, '_id')), uc.company))
               ));
           expect(isEveryTraineeCompanyAttachedToCourse).toBeTruthy();
         });
@@ -196,15 +196,14 @@ describe('SEEDS VERIFICATION', () => {
             .filter(course => course.format === STRICTLY_E_LEARNING && get(course, 'accessRules.length'))
             .every(course => course.trainees
               .every(trainee => get(trainee, 'userCompanyList', [])
-                .some(uc => UtilsHelper.doesArrayIncludeId(course.accessRules.map(c => c._id), uc.company))
+                .some(uc => UtilsHelper.doesArrayIncludeId(course.accessRules.map(c => get(c, '_id')), uc.company))
               ));
           expect(isEveryTraineeCompanyInAccessRules).toBeTruthy();
         });
 
-        it('should pass if every access rules company exists and is not in duplicate', async () => {
+        it('should pass if every access rules company exists and is not duplicate', async () => {
           const coursesWithAccessRules = courseList.filter(c => c.accessRules.length);
-          const someCompaniesDontExist = coursesWithAccessRules
-            .some(c => c.accessRules.some(company => company === 'company not found'));
+          const someCompaniesDontExist = coursesWithAccessRules.some(c => c.accessRules.some(company => !company));
 
           expect(someCompaniesDontExist).toBeFalsy();
 
@@ -223,10 +222,10 @@ describe('SEEDS VERIFICATION', () => {
           expect(subProgramsExist).toBeTruthy();
         });
 
-        it('should pass if every company exists and is not in duplicate', async () => {
+        it('should pass if every company exists and is not duplicate', async () => {
           const someCompaniesDontExist = courseList
             .filter(c => c.format === BLENDED)
-            .some(c => c.companies.some(company => company === 'company not found'));
+            .some(c => c.companies.some(company => !company));
 
           expect(someCompaniesDontExist).toBeFalsy();
 
@@ -274,19 +273,19 @@ describe('SEEDS VERIFICATION', () => {
 
         it('should pass if trainer is never in trainees list', () => {
           const isTrainerIncludedInTrainees = courseList
-            .filter(c => has(c, 'trainer'))
-            .some(c => UtilsHelper.doesArrayIncludeId(c.trainees.map(t => t._id), c.trainer._id));
+            .some(c => has(c, 'trainer') &&
+              UtilsHelper.doesArrayIncludeId(c.trainees.map(t => get(t, '_id')), c.trainer._id));
           expect(isTrainerIncludedInTrainees).toBeFalsy();
         });
 
-        it('should pass if every trainee exists and is not in duplicate', () => {
-          const someTraineesDontExist = courseList.some(c => c.trainees.some(trainee => trainee === 'user not found'));
+        it('should pass if every trainee exists and is not duplicate', () => {
+          const someTraineesDontExist = courseList.some(c => c.trainees.some(trainee => !trainee));
 
           expect(someTraineesDontExist).toBeFalsy();
 
           const someTraineesAreInDuplicate = courseList
             .some((course) => {
-              const traineesWithoutDuplicates = [...new Set(course.trainees.map(c => c._id.toHexString()))];
+              const traineesWithoutDuplicates = [...new Set(course.trainees.map(t => t._id.toHexString()))];
 
               return course.trainees.length !== traineesWithoutDuplicates.length;
             });
@@ -320,10 +319,10 @@ describe('SEEDS VERIFICATION', () => {
         });
 
         it('should pass if only blended courses have interlocutors', () => {
-          const doELearningCoursesHaveSalesRepresentative = courseList
+          const doELearningCoursesHaveInterlocutors = courseList
             .some(c => c.format === STRICTLY_E_LEARNING &&
               (c.salesRepresentative || c.trainer || c.companyRepresentative));
-          expect(doELearningCoursesHaveSalesRepresentative).toBeFalsy();
+          expect(doELearningCoursesHaveInterlocutors).toBeFalsy();
         });
 
         it('should pass if all sales representative are rof or vendor admin', () => {
@@ -365,8 +364,7 @@ describe('SEEDS VERIFICATION', () => {
 
         it('should pass if number of trainees is lower than max trainees', () => {
           const isNumberOfTraineesLowerThanMaxTrainees = courseList
-            .filter(c => has(c, 'maxTrainees'))
-            .every(c => c.trainees.length <= c.maxTrainees);
+            .every(c => !c.maxTrainees || c.trainees.length <= c.maxTrainees);
           expect(isNumberOfTraineesLowerThanMaxTrainees).toBeTruthy();
         });
 
