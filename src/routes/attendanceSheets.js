@@ -9,6 +9,7 @@ const {
   authorizeAttendanceSheetDeletion,
   authorizeAttendanceSheetsGet,
 } = require('./preHandlers/attendanceSheets');
+const { ORIGIN_OPTIONS, MOBILE } = require('../helpers/constants');
 
 exports.plugin = {
   name: 'routes-attendancesheets',
@@ -37,6 +38,7 @@ exports.plugin = {
             file: Joi.any().required(),
             trainee: Joi.objectId(),
             date: Joi.date(),
+            origin: Joi.string().valid(...ORIGIN_OPTIONS).default(MOBILE),
           }).xor('trainee', 'date'),
         },
         auth: { scope: ['attendances:edit'] },

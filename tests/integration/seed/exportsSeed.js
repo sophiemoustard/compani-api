@@ -1530,6 +1530,7 @@ const attendanceSheetList = [
     trainee: traineeList[0]._id,
     file: { link: 'link', publicId: '123' },
     company: authCompany._id,
+    origin: WEBAPP,
   },
 ];
 
