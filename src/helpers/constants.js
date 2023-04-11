@@ -5,6 +5,7 @@ module.exports = {
   TEST: 'test',
   // COLOR
   COPPER_50: '#F0FAF7',
+  COPPER_100: '#DAF2EE',
   COPPER_500: '#1D7C8F',
   COPPER_600: '#005774',
   COPPER_GREY_200: '#E2ECF0',
@@ -461,6 +462,7 @@ module.exports = {
   // ORIGIN
   MOBILE: 'mobile',
   WEBAPP: 'webapp',
+  get ORIGIN_OPTIONS() { return [this.WEBAPP, this.MOBILE]; },
   // Email
   TRAINEE: 'trainee',
   // Type

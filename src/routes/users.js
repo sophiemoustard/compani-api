@@ -21,9 +21,9 @@ const {
   addExpoToken,
   removeExpoToken,
 } = require('../controllers/userController');
-const { COURSE, DIRECTORY } = require('../helpers/constants');
+const { COURSE, DIRECTORY, ORIGIN_OPTIONS } = require('../helpers/constants');
+const { USER_ROLE_LIST } = require('../models/User');
 const { CIVILITY_OPTIONS } = require('../models/schemaDefinitions/identity');
-const { ORIGIN_OPTIONS, USER_ROLE_LIST } = require('../models/User');
 const {
   getUser,
   authorizeUserUpdate,

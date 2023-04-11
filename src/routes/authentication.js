@@ -12,8 +12,7 @@ const {
   checkPasswordToken,
   updatePassword,
 } = require('../controllers/authenticationController');
-const { WEBAPP, EMAIL, PHONE, MOBILE } = require('../helpers/constants');
-const { ORIGIN_OPTIONS } = require('../models/User');
+const { WEBAPP, EMAIL, PHONE, MOBILE, ORIGIN_OPTIONS } = require('../helpers/constants');
 const { getUser, authorizeUserUpdate } = require('./preHandlers/users');
 
 exports.plugin = {

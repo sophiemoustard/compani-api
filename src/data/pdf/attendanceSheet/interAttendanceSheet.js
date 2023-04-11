@@ -21,7 +21,7 @@ exports.getPdfContent = async (data) => {
         { text: `Nom de la formation : ${trainee.course.name}`, bold: true, marginBottom: 10 },
         { text: `Dates : du ${trainee.course.firstDate} au ${trainee.course.lastDate}` },
         { text: `Durée : ${trainee.course.duration}` },
-        { text: `Structure : ${trainee.company}` },
+        { text: `Structure : ${trainee.registrationCompany}` },
         { text: `Intervenant(e) : ${trainee.course.trainer}` },
       ],
       { image: decision, width: 64 },

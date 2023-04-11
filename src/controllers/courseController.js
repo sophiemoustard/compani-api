@@ -276,6 +276,18 @@ const removeCompany = async (req) => {
   }
 };
 
+const generateTrainingContract = async (req, h) => {
+  try {
+    const { pdf, fileName } = await CoursesHelper.generateTrainingContract(req.params._id, req.payload);
+    return h.response(pdf)
+      .header('content-disposition', `inline; filename=${fileName}.pdf`)
+      .type('application/pdf');
+  } catch (e) {
+    req.log('error', e);
+    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
+  }
+};
+
 module.exports = {
   list,
   create,
@@ -297,4 +309,5 @@ module.exports = {
   getQuestionnaires,
   addCompany,
   removeCompany,
+  generateTrainingContract,
 };

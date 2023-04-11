@@ -25,6 +25,7 @@ exports.plugin = {
             name: Joi.string(),
             address: addressValidation,
             siret: siretValidation,
+            activityDeclarationNumber: Joi.string(),
           }),
         },
         auth: { scope: ['config:vendor'] },

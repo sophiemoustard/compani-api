@@ -16,6 +16,7 @@ const Questionnaire = require('../models/Questionnaire');
 const CourseSmsHistory = require('../models/CourseSmsHistory');
 const Attendance = require('../models/Attendance');
 const SubProgram = require('../models/SubProgram');
+const TrainingContract = require('../models/TrainingContract');
 const CourseRepository = require('../repositories/CourseRepository');
 const UtilsHelper = require('./utils');
 const DatesUtilsHelper = require('./dates/utils');
@@ -23,6 +24,7 @@ const ZipHelper = require('./zip');
 const SmsHelper = require('./sms');
 const DocxHelper = require('./docx');
 const StepsHelper = require('./steps');
+const TrainingContractsHelper = require('./trainingContracts');
 const drive = require('../models/Google/Drive');
 const {
   INTRA,
@@ -52,10 +54,12 @@ const {
 } = require('./constants');
 const CourseHistoriesHelper = require('./courseHistories');
 const NotificationHelper = require('./notifications');
+const VendorCompaniesHelper = require('./vendorCompanies');
 const InterAttendanceSheet = require('../data/pdf/attendanceSheet/interAttendanceSheet');
 const IntraAttendanceSheet = require('../data/pdf/attendanceSheet/intraAttendanceSheet');
 const CourseConvocation = require('../data/pdf/courseConvocation');
 const CompletionCertificate = require('../data/pdf/completionCertificate');
+const TrainingContractPdf = require('../data/pdf/trainingContract');
 const CourseBill = require('../models/CourseBill');
 const CourseSlot = require('../models/CourseSlot');
 const CourseHistory = require('../models/CourseHistory');
@@ -339,32 +343,27 @@ const getCourseForOperations = async (courseId, credentials, origin) => {
     ])
     .lean();
 
-  let blendedCourseTrainees;
-  if (fetchedCourse.format === BLENDED) {
+  let courseTrainees = fetchedCourse.trainees;
+  const isBlended = fetchedCourse.format === BLENDED;
+  if (isBlended) {
     const traineesCompanyAtCourseRegistration = await CourseHistoriesHelper.getCompanyAtCourseRegistrationList(
       { key: COURSE, value: courseId }, { key: TRAINEE, value: fetchedCourse.trainees.map(t => t._id) }
     );
 
     const traineesCompany = mapValues(keyBy(traineesCompanyAtCourseRegistration, 'trainee'), 'company');
-    blendedCourseTrainees = fetchedCourse.trainees
-      .map(trainee => ({ ...trainee, company: traineesCompany[trainee._id] }));
+    courseTrainees = fetchedCourse.trainees
+      .map(trainee => ({ ...trainee, registrationCompany: traineesCompany[trainee._id] }));
   }
 
   // A coach/client_admin is not supposed to read infos on trainees from other companies
   // espacially for INTER_B2B courses.
-  if (get(credentials, 'role.vendor')) {
-    return {
-      ...fetchedCourse,
-      totalTheoreticalDuration: exports.getTotalTheoreticalDuration(fetchedCourse),
-      ...(blendedCourseTrainees && { trainees: blendedCourseTrainees }),
-    };
-  }
-
   return {
     ...fetchedCourse,
     totalTheoreticalDuration: exports.getTotalTheoreticalDuration(fetchedCourse),
-    trainees: (blendedCourseTrainees || fetchedCourse.trainees)
-      .filter(t => UtilsHelper.areObjectIdsEquals(get(t, 'company'), get(credentials, 'company._id'))),
+    trainees: get(credentials, 'role.vendor')
+      ? courseTrainees
+      : courseTrainees.filter(t => UtilsHelper
+        .areObjectIdsEquals(get(t, isBlended ? 'registrationCompany' : 'company'), get(credentials, 'company._id'))),
   };
 };
 
@@ -404,7 +403,6 @@ exports.formatStep = step => ({ ...step, activities: step.activities.map(a => ex
 
 exports.getCourseFollowUp = async (course, company) => {
   const courseWithTrainees = await Course.findOne({ _id: course }, { trainees: 1, format: 1 }).lean();
-  const isELearningWithCompany = courseWithTrainees.format === STRICTLY_E_LEARNING && !!company;
 
   const courseFollowUp = await Course.findOne({ _id: course }, { subProgram: 1 })
     .populate({
@@ -430,13 +428,13 @@ exports.getCourseFollowUp = async (course, company) => {
     .populate({
       path: 'trainees',
       select: 'identity.firstname identity.lastname firstMobileConnection',
-      ...(isELearningWithCompany && { populate: { path: 'company' } }),
+      populate: { path: 'company' },
     })
     .lean();
 
   let filteredTrainees = [];
   if (!company) filteredTrainees = courseFollowUp.trainees;
-  else if (isELearningWithCompany) {
+  else if (courseWithTrainees.format === STRICTLY_E_LEARNING) {
     filteredTrainees = courseFollowUp.trainees.filter(t => UtilsHelper.areObjectIdsEquals(t.company, company));
   } else {
     const traineesCompanyAtCourseRegistration = await CourseHistoriesHelper.getCompanyAtCourseRegistrationList(
@@ -587,16 +585,27 @@ exports.updateCourse = async (courseId, payload, credentials) => {
   return courseFromDb;
 };
 
-exports.deleteCourse = async courseId => Promise.all([
-  Course.deleteOne({ _id: courseId }),
-  CourseBill.deleteMany({
-    course: courseId,
-    $or: [{ billedAt: { $exists: false } }, { billedAt: { $not: { $type: 'date' } } }],
-  }),
-  CourseSmsHistory.deleteMany({ course: courseId }),
-  CourseHistory.deleteMany({ course: courseId }),
-  CourseSlot.deleteMany({ course: courseId }),
-]);
+exports.deleteCourse = async (courseId) => {
+  const trainingContractList = await TrainingContract
+    .find({ course: courseId }, { _id: 1 })
+    .setOptions({ isVendorUser: true })
+    .lean();
+
+  return Promise.all([
+    Course.deleteOne({ _id: courseId }),
+    CourseBill.deleteMany({
+      course: courseId,
+      $or: [{ billedAt: { $exists: false } }, { billedAt: { $not: { $type: 'date' } } }],
+    }),
+    CourseSmsHistory.deleteMany({ course: courseId }),
+    CourseHistory.deleteMany({ course: courseId }),
+    CourseSlot.deleteMany({ course: courseId }),
+    ...(trainingContractList.length
+      ? [TrainingContractsHelper.deleteMany(trainingContractList.map(tc => tc._id))]
+      : []
+    ),
+  ]);
+};
 
 exports.sendSMS = async (courseId, payload, credentials) => {
   const course = await Course.findById(courseId)
@@ -742,7 +751,7 @@ exports.formatInterCourseForPdf = async (course) => {
   return {
     trainees: course.trainees.map(trainee => ({
       traineeName: UtilsHelper.formatIdentity(trainee.identity, 'FL'),
-      company: companiesById[traineesCompany[trainee._id]],
+      registrationCompany: companiesById[traineesCompany[trainee._id]],
       course: { ...courseData },
     })),
   };
@@ -946,7 +955,40 @@ exports.addCourseCompany = async (courseId, payload, credentials) => {
   );
 };
 
-exports.removeCourseCompany = async (courseId, companyId, credentials) => Promise.all([
-  Course.updateOne({ _id: courseId }, { $pull: { companies: companyId } }),
-  CourseHistoriesHelper.createHistoryOnCompanyDeletion({ course: courseId, company: companyId }, credentials._id),
-]);
+exports.removeCourseCompany = async (courseId, companyId, credentials) => {
+  const trainingContract = await TrainingContract.findOne({ course: courseId, company: companyId }, { _id: 1 }).lean();
+
+  return Promise.all([
+    Course.updateOne({ _id: courseId }, { $pull: { companies: companyId } }),
+    CourseHistoriesHelper.createHistoryOnCompanyDeletion({ course: courseId, company: companyId }, credentials._id),
+    ...trainingContract ? [TrainingContractsHelper.delete(trainingContract._id)] : [],
+  ]);
+};
+
+exports.generateTrainingContract = async (courseId, payload) => {
+  const course = await Course
+    .findOne({ _id: courseId }, { maxTrainees: 1, misc: 1, type: 1, trainees: 1 })
+    .populate([
+      { path: 'companies', select: 'name address', match: { _id: payload.company } },
+      {
+        path: 'subProgram',
+        select: 'program steps',
+        populate: [
+          { path: 'program', select: 'name learningGoals' },
+          { path: 'steps', select: 'theoreticalDuration type' },
+        ],
+      },
+      { path: 'slots', select: 'startDate endDate address meetingLink' },
+      { path: 'slotsToPlan', select: '_id' },
+      { path: 'trainer', select: 'identity.firstname identity.lastname' },
+    ])
+    .lean();
+
+  const vendorCompany = await VendorCompaniesHelper.get();
+  const formattedCourse = await TrainingContractsHelper
+    .formatCourseForTrainingContract(course, vendorCompany, payload.price);
+  const pdf = await TrainingContractPdf.getPdf(formattedCourse);
+  const fileName = `convention_${formattedCourse.programName}_${formattedCourse.company.name}.pdf`;
+
+  return { fileName, pdf };
+};

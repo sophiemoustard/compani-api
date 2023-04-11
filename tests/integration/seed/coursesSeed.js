@@ -241,7 +241,13 @@ const activitiesHistory = [
 
 const stepList = [
   { _id: new ObjectId(), name: 'etape', type: 'on_site', activities: [] },
-  { _id: new ObjectId(), name: 'etape', type: 'e_learning', activities: activitiesList.map(a => a._id) },
+  {
+    _id: new ObjectId(),
+    name: 'etape',
+    type: 'e_learning',
+    activities: activitiesList.map(a => a._id),
+    theoreticalDuration: 20,
+  },
   { _id: new ObjectId(), name: 'etape', type: 'remote', activities: [] },
 ];
 
@@ -1017,6 +1023,7 @@ const attendanceSheetList = [
     course: coursesList[12]._id,
     file: { publicId: 'publicId', link: 'https://link.com' },
     company: authCompany._id,
+    origin: WEBAPP,
   },
 ];
 

@@ -9,6 +9,7 @@ const app = require('../../server');
 const { populateDB, coursesList, attendanceSheetList } = require('./seed/attendanceSheetsSeed');
 const { getToken } = require('./helpers/authentication');
 const { generateFormData } = require('./utils');
+const { WEBAPP, MOBILE } = require('../../src/helpers/constants');
 const AttendanceSheet = require('../../src/models/AttendanceSheet');
 
 describe('NODE ENV', () => {
@@ -30,7 +31,34 @@ describe('ATTENDANCE SHEETS ROUTES - POST /attendancesheets', () => {
       uploadCourseFile.restore();
     });
 
-    it('should upload attendance sheet to intra course', async () => {
+    it('should upload attendance sheet to intra course (webapp)', async () => {
+      const formData = {
+        course: coursesList[0]._id.toHexString(),
+        file: fs.createReadStream(path.join(__dirname, 'assets/test_esign.pdf')),
+        date: new Date('2020-01-23').toISOString(),
+        origin: WEBAPP,
+      };
+
+      const form = generateFormData(formData);
+      const attendanceSheetsLengthBefore = await AttendanceSheet
+        .countDocuments({ course: coursesList[0]._id, origin: WEBAPP });
+      uploadCourseFile.returns({ publicId: '1234567890', link: 'https://test.com/file.pdf' });
+
+      const response = await app.inject({
+        method: 'POST',
+        url: '/attendancesheets',
+        payload: await GetStream(form),
+        headers: { ...form.getHeaders(), Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(200);
+      const attendanceSheetsLengthAfter = await AttendanceSheet
+        .countDocuments({ course: coursesList[0]._id, origin: WEBAPP });
+      expect(attendanceSheetsLengthAfter).toBe(attendanceSheetsLengthBefore + 1);
+      sinon.assert.calledOnce(uploadCourseFile);
+    });
+
+    it('should upload attendance sheet with origin mobile if no info in payload', async () => {
       const formData = {
         course: coursesList[0]._id.toHexString(),
         file: fs.createReadStream(path.join(__dirname, 'assets/test_esign.pdf')),
@@ -38,7 +66,8 @@ describe('ATTENDANCE SHEETS ROUTES - POST /attendancesheets', () => {
       };
 
       const form = generateFormData(formData);
-      const attendanceSheetsLengthBefore = await AttendanceSheet.countDocuments({ course: coursesList[0]._id });
+      const attendanceSheetsLengthBefore = await AttendanceSheet
+        .countDocuments({ course: coursesList[0]._id, origin: MOBILE });
       uploadCourseFile.returns({ publicId: '1234567890', link: 'https://test.com/file.pdf' });
 
       const response = await app.inject({
@@ -49,20 +78,23 @@ describe('ATTENDANCE SHEETS ROUTES - POST /attendancesheets', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      const attendanceSheetsLengthAfter = await AttendanceSheet.countDocuments({ course: coursesList[0]._id });
+      const attendanceSheetsLengthAfter = await AttendanceSheet
+        .countDocuments({ course: coursesList[0]._id, origin: MOBILE });
       expect(attendanceSheetsLengthAfter).toBe(attendanceSheetsLengthBefore + 1);
       sinon.assert.calledOnce(uploadCourseFile);
     });
 
-    it('should upload attendance sheet to inter course', async () => {
+    it('should upload attendance sheet to inter course (mobile)', async () => {
       const formData = {
         course: coursesList[1]._id.toHexString(),
         file: fs.createReadStream(path.join(__dirname, 'assets/test_esign.pdf')),
         trainee: coursesList[1].trainees[0].toHexString(),
+        origin: MOBILE,
       };
 
       const form = generateFormData(formData);
-      const attendanceSheetsLengthBefore = await AttendanceSheet.countDocuments({ course: coursesList[1]._id });
+      const attendanceSheetsLengthBefore = await AttendanceSheet
+        .countDocuments({ course: coursesList[1]._id, origin: MOBILE });
       uploadCourseFile.returns({ publicId: '1234567890', link: 'https://test.com/file.pdf' });
 
       const response = await app.inject({
@@ -73,7 +105,8 @@ describe('ATTENDANCE SHEETS ROUTES - POST /attendancesheets', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      const attendanceSheetsLengthAfter = await AttendanceSheet.countDocuments({ course: coursesList[1]._id });
+      const attendanceSheetsLengthAfter = await AttendanceSheet
+        .countDocuments({ course: coursesList[1]._id, origin: MOBILE });
       expect(attendanceSheetsLengthAfter).toBe(attendanceSheetsLengthBefore + 1);
       sinon.assert.calledOnce(uploadCourseFile);
     });
@@ -120,6 +153,26 @@ describe('ATTENDANCE SHEETS ROUTES - POST /attendancesheets', () => {
       const formData = {
         course: coursesList[2]._id.toHexString(),
         file: fs.createReadStream(path.join(__dirname, 'assets/test_esign.pdf')),
+      };
+
+      const form = generateFormData(formData);
+
+      const response = await app.inject({
+        method: 'POST',
+        url: '/attendancesheets',
+        payload: await GetStream(form),
+        headers: { ...form.getHeaders(), Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
+
+    it('should return 400 if origin is neither webapp nor mobile', async () => {
+      const formData = {
+        course: coursesList[0]._id.toHexString(),
+        file: fs.createReadStream(path.join(__dirname, 'assets/test_esign.pdf')),
+        date: new Date('2020-01-23').toISOString(),
+        origin: 'poiuytr',
       };
 
       const form = generateFormData(formData);

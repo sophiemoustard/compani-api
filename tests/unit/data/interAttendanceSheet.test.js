@@ -48,8 +48,8 @@ describe('getPdfContent', () => {
     };
     const data = {
       trainees: [
-        { traineeName: 'Alain TÉRIEUR', company: 'Alenvi Home SAS', course },
-        { traineeName: 'Alex TÉRIEUR', company: 'APEF Rouen', course },
+        { traineeName: 'Alain TÉRIEUR', registrationCompany: 'Alenvi Home SAS', course },
+        { traineeName: 'Alex TÉRIEUR', registrationCompany: 'APEF Rouen', course },
       ],
     };
     const table = {
@@ -185,8 +185,8 @@ describe('getPdf', () => {
   it('should get pdf', async () => {
     const data = {
       trainees: [
-        { traineeName: 'Alain TÉRIEUR', company: 'Alenvi Home SAS' },
-        { traineeName: 'Alex TÉRIEUR', company: 'APEF Rouen' },
+        { traineeName: 'Alain TÉRIEUR', registrationCompany: 'Alenvi Home SAS' },
+        { traineeName: 'Alex TÉRIEUR', registrationCompany: 'APEF Rouen' },
       ],
     };
     const template = {

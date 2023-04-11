@@ -20,11 +20,10 @@ const {
   TRAINING_ORGANISATION_MANAGER,
   TRAINER,
   HELPER,
-  MOBILE,
-  WEBAPP,
   PUBLIC_TRANSPORT,
   PRIVATE_TRANSPORT,
   COMPANY_TRANSPORT,
+  ORIGIN_OPTIONS,
   NONE,
 } = require('../helpers/constants');
 const { formatQuery, queryMiddlewareList } = require('./preHooks/validate');
@@ -38,8 +37,6 @@ const roleSchemaDefinition = {
   ref: 'Role',
   autopopulate: { select: '-__v -createdAt -updatedAt', maxDepth: 3 },
 };
-
-const ORIGIN_OPTIONS = [WEBAPP, MOBILE];
 
 const USER_ROLE_LIST = [
   PLANNING_REFERENT,

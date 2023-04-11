@@ -19,6 +19,7 @@ const CourseSlot = require('../../../src/models/CourseSlot');
 const CourseSmsHistory = require('../../../src/models/CourseSmsHistory');
 const Drive = require('../../../src/models/Google/Drive');
 const Questionnaire = require('../../../src/models/Questionnaire');
+const TrainingContract = require('../../../src/models/TrainingContract');
 const CourseHelper = require('../../../src/helpers/courses');
 const SmsHelper = require('../../../src/helpers/sms');
 const UtilsHelper = require('../../../src/helpers/utils');
@@ -26,7 +27,9 @@ const PdfHelper = require('../../../src/helpers/pdf');
 const ZipHelper = require('../../../src/helpers/zip');
 const DocxHelper = require('../../../src/helpers/docx');
 const StepsHelper = require('../../../src/helpers/steps');
+const TrainingContractsHelper = require('../../../src/helpers/trainingContracts');
 const NotificationHelper = require('../../../src/helpers/notifications');
+const VendorCompaniesHelper = require('../../../src/helpers/vendorCompanies');
 const {
   COURSE_SMS,
   BLENDED,
@@ -56,6 +59,7 @@ const InterAttendanceSheet = require('../../../src/data/pdf/attendanceSheet/inte
 const IntraAttendanceSheet = require('../../../src/data/pdf/attendanceSheet/intraAttendanceSheet');
 const CourseConvocation = require('../../../src/data/pdf/courseConvocation');
 const CompletionCertificate = require('../../../src/data/pdf/completionCertificate');
+const TrainingContractPdf = require('../../../src/data/pdf/trainingContract');
 
 describe('createCourse', () => {
   let create;
@@ -1385,7 +1389,10 @@ describe('getCourse', () => {
       expect(result).toMatchObject({
         ...course,
         totalTheoreticalDuration: 'PT5400S',
-        trainees: [{ _id: traineeIds[0], company: authCompanyId }, { _id: traineeIds[1], company: otherCompanyId }],
+        trainees: [
+          { _id: traineeIds[0], registrationCompany: authCompanyId },
+          { _id: traineeIds[1], registrationCompany: otherCompanyId },
+        ],
       });
 
       SinonMongoose.calledOnceWithExactly(
@@ -1457,7 +1464,7 @@ describe('getCourse', () => {
 
       const courseWithFilteredTrainees = {
         type: INTER_B2B,
-        trainees: [{ _id: traineeIds[0], company: authCompanyId }],
+        trainees: [{ _id: traineeIds[0], registrationCompany: authCompanyId }],
         totalTheoreticalDuration: 'PT0S',
       };
 
@@ -1557,8 +1564,8 @@ describe('getCourse', () => {
         ...course,
         totalTheoreticalDuration: 'PT5400S',
         trainees: [
-          { _id: traineeIds[0], company: authCompanyId },
-          { _id: traineeIds[1], company: otherCompanyId },
+          { _id: traineeIds[0], registrationCompany: authCompanyId },
+          { _id: traineeIds[1], registrationCompany: otherCompanyId },
         ],
       });
 
@@ -2386,6 +2393,7 @@ describe('getCourseFollowUp', () => {
           args: [{
             path: 'trainees',
             select: 'identity.firstname identity.lastname firstMobileConnection',
+            populate: { path: 'company' },
           }],
         },
         { query: 'lean' },
@@ -2462,6 +2470,7 @@ describe('getCourseFollowUp', () => {
           args: [{
             path: 'trainees',
             select: 'identity.firstname identity.lastname firstMobileConnection',
+            populate: { path: 'company' },
           }],
         },
         { query: 'lean' },
@@ -2887,12 +2896,16 @@ describe('deleteCourse', () => {
   let deleteCourseSmsHistory;
   let deleteCourseHistory;
   let deleteCourseSlot;
+  let findTrainingContract;
+  let deleteManyTrainingContract;
   beforeEach(() => {
     deleteCourse = sinon.stub(Course, 'deleteOne');
     deleteCourseBill = sinon.stub(CourseBill, 'deleteMany');
     deleteCourseSmsHistory = sinon.stub(CourseSmsHistory, 'deleteMany');
     deleteCourseHistory = sinon.stub(CourseHistory, 'deleteMany');
     deleteCourseSlot = sinon.stub(CourseSlot, 'deleteMany');
+    findTrainingContract = sinon.stub(TrainingContract, 'find');
+    deleteManyTrainingContract = sinon.stub(TrainingContractsHelper, 'deleteMany');
   });
   afterEach(() => {
     deleteCourse.restore();
@@ -2900,10 +2913,16 @@ describe('deleteCourse', () => {
     deleteCourseSmsHistory.restore();
     deleteCourseHistory.restore();
     deleteCourseSlot.restore();
+    findTrainingContract.restore();
+    deleteManyTrainingContract.restore();
   });
 
   it('should delete course and sms history', async () => {
     const courseId = new ObjectId();
+    const trainingContractList = [{ _id: new ObjectId() }, { _id: new ObjectId() }];
+
+    findTrainingContract.returns(SinonMongoose.stubChainedQueries(trainingContractList, ['setOptions', 'lean']));
+
     await CourseHelper.deleteCourse(courseId);
 
     sinon.assert.calledOnceWithExactly(deleteCourse, { _id: courseId });
@@ -2914,6 +2933,15 @@ describe('deleteCourse', () => {
     sinon.assert.calledOnceWithExactly(deleteCourseSmsHistory, { course: courseId });
     sinon.assert.calledOnceWithExactly(deleteCourseHistory, { course: courseId });
     sinon.assert.calledOnceWithExactly(deleteCourseSlot, { course: courseId });
+    sinon.assert.calledOnceWithExactly(deleteManyTrainingContract, trainingContractList.map(tc => tc._id));
+    SinonMongoose.calledOnceWithExactly(
+      findTrainingContract,
+      [
+        { query: 'find', args: [{ course: courseId }, { _id: 1 }] },
+        { query: 'setOptions', args: [{ isVendorUser: true }] },
+        { query: 'lean' },
+      ]
+    );
   });
 });
 
@@ -3367,7 +3395,7 @@ describe('formatInterCourseForPdf', () => {
       trainees: [
         {
           traineeName: 'trainee 1',
-          company: 'alenvi',
+          registrationCompany: 'alenvi',
           course: {
             name: 'programme de formation - des infos en plus',
             slots: ['slot', 'slot', 'slot'],
@@ -3379,7 +3407,7 @@ describe('formatInterCourseForPdf', () => {
         },
         {
           traineeName: 'trainee 2',
-          company: 'alenvi',
+          registrationCompany: 'alenvi',
           course: {
             name: 'programme de formation - des infos en plus',
             slots: ['slot', 'slot', 'slot'],
@@ -4252,22 +4280,31 @@ describe('addCourseCompany', () => {
 
 describe('removeCourseCompany', () => {
   let courseUpdateOne;
+  let findOneTrainingContract;
   let createHistoryOnCompanyDeletion;
+  let deleteTrainingContract;
 
   beforeEach(() => {
     courseUpdateOne = sinon.stub(Course, 'updateOne');
+    findOneTrainingContract = sinon.stub(TrainingContract, 'findOne');
     createHistoryOnCompanyDeletion = sinon.stub(CourseHistoriesHelper, 'createHistoryOnCompanyDeletion');
+    deleteTrainingContract = sinon.stub(TrainingContractsHelper, 'delete');
   });
 
   afterEach(() => {
     courseUpdateOne.restore();
+    findOneTrainingContract.restore();
     createHistoryOnCompanyDeletion.restore();
+    deleteTrainingContract.restore();
   });
 
   it('should remove a course company', async () => {
     const companyId = new ObjectId();
     const course = { _id: new ObjectId(), misc: 'Test', companies: [companyId, new ObjectId()] };
     const credentials = { _id: new ObjectId() };
+    const trainingContract = { _id: new ObjectId() };
+
+    findOneTrainingContract.returns(SinonMongoose.stubChainedQueries(trainingContract._id, ['lean']));
 
     await CourseHelper.removeCourseCompany(course._id, companyId, credentials);
 
@@ -4276,6 +4313,234 @@ describe('removeCourseCompany', () => {
       createHistoryOnCompanyDeletion,
       { course: course._id, company: companyId },
       credentials._id
+    );
+    sinon.assert.calledOnceWithExactly(deleteTrainingContract, trainingContract._id);
+    SinonMongoose.calledOnceWithExactly(
+      findOneTrainingContract,
+      [{ query: 'findOne', args: [{ course: course._id, company: companyId }, { _id: 1 }] }, { query: 'lean' }]
+    );
+  });
+});
+
+describe('generateTrainingContract', () => {
+  let courseFindOne;
+  let vendorCompanyGet;
+  let trainingContractGetPdf;
+  let getCompanyAtCourseRegistrationList;
+
+  beforeEach(() => {
+    courseFindOne = sinon.stub(Course, 'findOne');
+    vendorCompanyGet = sinon.stub(VendorCompaniesHelper, 'get');
+    trainingContractGetPdf = sinon.stub(TrainingContractPdf, 'getPdf');
+    getCompanyAtCourseRegistrationList = sinon.stub(CourseHistoriesHelper, 'getCompanyAtCourseRegistrationList');
+  });
+
+  afterEach(() => {
+    courseFindOne.restore();
+    vendorCompanyGet.restore();
+    trainingContractGetPdf.restore();
+    getCompanyAtCourseRegistrationList.restore();
+  });
+
+  it('should download training contract for intra course with slots to plan & elearning and remote steps', async () => {
+    const companyId = new ObjectId();
+    const payload = { price: 12, company: companyId };
+    const course = {
+      _id: new ObjectId(),
+      misc: 'Test',
+      maxTrainees: 5,
+      type: INTRA,
+      trainees: [new ObjectId(), new ObjectId()],
+      companies: [{
+        _id: companyId,
+        name: 'Alenvi',
+        address: {
+          fullAddress: '12 rue de ponthieu 75008 Paris',
+          zipCode: '75008',
+          city: 'Paris',
+          street: '12 rue de Ponthieu',
+        },
+      }],
+      subProgram: {
+        program: { name: 'Programme', learningGoals: 'bien apprendre' },
+        steps: [
+          { theoreticalDuration: 'PT1200S', type: E_LEARNING },
+          { theoreticalDuration: 'PT1200S', type: REMOTE },
+          { theoreticalDuration: 'PT1200S', type: ON_SITE },
+        ],
+      },
+      slots: [
+        {
+          startDate: '2020-11-03T09:00:00.000Z',
+          endDate: '2020-11-03T11:00:00.000Z',
+          address: { fullAddress: '14 rue de ponthieu 75008 Paris' },
+        },
+      ],
+      slotsToPlan: [{ _id: new ObjectId() }],
+      trainer: { identity: { lastname: 'Bonbeur', firstname: 'Jean' } },
+    };
+
+    const vendorCompany = { name: 'Compani', address: { fullAddress: '140 rue de ponthieu 75008 Paris' } };
+
+    const formattedCourse = {
+      type: INTRA,
+      vendorCompany,
+      company: { name: 'Alenvi', address: '12 rue de ponthieu 75008 Paris' },
+      programName: 'Programme',
+      learningGoals: 'bien apprendre',
+      slotsCount: 2,
+      liveDuration: '0h40',
+      eLearningDuration: '0h20',
+      misc: 'Test',
+      learnersCount: 5,
+      dates: ['03/11/2020'],
+      addressList: ['14 rue de ponthieu 75008 Paris', 'Cette formation contient des créneaux en distanciel'],
+      trainer: 'Jean BONBEUR',
+      price: 12,
+    };
+
+    vendorCompanyGet.returns(vendorCompany);
+
+    courseFindOne.returns(SinonMongoose.stubChainedQueries(course));
+
+    await CourseHelper.generateTrainingContract(course._id, payload);
+
+    sinon.assert.calledOnceWithExactly(vendorCompanyGet);
+    sinon.assert.calledOnceWithExactly(trainingContractGetPdf, formattedCourse);
+    SinonMongoose.calledOnceWithExactly(
+      courseFindOne,
+      [
+        { query: 'findOne', args: [{ _id: course._id }, { maxTrainees: 1, misc: 1, type: 1, trainees: 1 }] },
+        {
+          query: 'populate',
+          args: [[
+            { path: 'companies', select: 'name address', match: { _id: companyId } },
+            {
+              path: 'subProgram',
+              select: 'program steps',
+              populate: [
+                { path: 'program', select: 'name learningGoals' },
+                { path: 'steps', select: 'theoreticalDuration type' },
+              ],
+            },
+            { path: 'slots', select: 'startDate endDate address meetingLink' },
+            { path: 'slotsToPlan', select: '_id' },
+            { path: 'trainer', select: 'identity.firstname identity.lastname' },
+          ]],
+        },
+        { query: 'lean' },
+      ]
+    );
+    sinon.assert.notCalled(getCompanyAtCourseRegistrationList);
+  });
+
+  it('should download training contract for inter course without slots to plan & only on_site steps', async () => {
+    const companyId = new ObjectId();
+    const payload = { price: 12, company: companyId };
+    const course = {
+      _id: new ObjectId(),
+      misc: 'Test',
+      type: INTER_B2B,
+      trainees: [new ObjectId(), new ObjectId()],
+      companies: [{
+        _id: companyId,
+        name: 'Alenvi',
+        address: {
+          fullAddress: '12 rue de ponthieu 75008 Paris',
+          zipCode: '75008',
+          city: 'Paris',
+          street: '12 rue de Ponthieu',
+        },
+      }],
+      subProgram: {
+        program: { name: 'Programme', learningGoals: 'bien apprendre' },
+        steps: [
+          { theoreticalDuration: 'PT1200S', type: ON_SITE },
+          { theoreticalDuration: 'PT1200S', type: ON_SITE },
+          { theoreticalDuration: 'PT1200S', type: ON_SITE },
+        ],
+      },
+      slots: [
+        {
+          startDate: '2020-11-05T09:00:00.000Z',
+          endDate: '2020-11-05T11:00:00.000Z',
+          address: { city: 'Paris', fullAddress: '14 rue de ponthieu 75008 Paris' },
+        },
+        {
+          startDate: '2020-11-03T09:00:00.000Z',
+          endDate: '2020-11-03T11:00:00.000Z',
+          address: { city: 'Paris', fullAddress: '34 rue de ponthieu 75008 Paris' },
+        },
+        {
+          startDate: '2020-11-04T09:00:00.000Z',
+          endDate: '2020-11-04T11:00:00.000Z',
+          address: { city: 'Paris', fullAddress: '24 rue de ponthieu 75008 Paris' },
+        },
+      ],
+      slotsToPlan: [],
+      trainer: { identity: { lastname: 'Bonbeur', firstname: 'Jean' } },
+    };
+
+    const vendorCompany = { name: 'Compani', address: { fullAddress: '140 rue de ponthieu 75008 Paris' } };
+
+    const formattedCourse = {
+      type: INTER_B2B,
+      vendorCompany,
+      company: { name: 'Alenvi', address: '12 rue de ponthieu 75008 Paris' },
+      programName: 'Programme',
+      learningGoals: 'bien apprendre',
+      slotsCount: 3,
+      liveDuration: '6h',
+      eLearningDuration: '',
+      misc: 'Test',
+      learnersCount: 1,
+      dates: ['03/11/2020', '04/11/2020', '05/11/2020'],
+      addressList: ['Paris'],
+      trainer: 'Jean BONBEUR',
+      price: 12,
+    };
+
+    vendorCompanyGet.returns(vendorCompany);
+
+    courseFindOne.returns(SinonMongoose.stubChainedQueries(course));
+
+    getCompanyAtCourseRegistrationList.returns([
+      { trainee: course.trainees[0], company: companyId },
+      { trainee: course.trainees[1], company: new ObjectId() },
+    ]);
+
+    await CourseHelper.generateTrainingContract(course._id, payload);
+
+    sinon.assert.calledOnceWithExactly(vendorCompanyGet);
+    sinon.assert.calledOnceWithExactly(trainingContractGetPdf, formattedCourse);
+    SinonMongoose.calledOnceWithExactly(
+      courseFindOne,
+      [
+        { query: 'findOne', args: [{ _id: course._id }, { maxTrainees: 1, misc: 1, type: 1, trainees: 1 }] },
+        {
+          query: 'populate',
+          args: [[
+            { path: 'companies', select: 'name address', match: { _id: companyId } },
+            {
+              path: 'subProgram',
+              select: 'program steps',
+              populate: [
+                { path: 'program', select: 'name learningGoals' },
+                { path: 'steps', select: 'theoreticalDuration type' },
+              ],
+            },
+            { path: 'slots', select: 'startDate endDate address meetingLink' },
+            { path: 'slotsToPlan', select: '_id' },
+            { path: 'trainer', select: 'identity.firstname identity.lastname' },
+          ]],
+        },
+        { query: 'lean' },
+      ]
+    );
+    sinon.assert.calledOnceWithExactly(
+      getCompanyAtCourseRegistrationList,
+      { key: COURSE, value: course._id },
+      { key: TRAINEE, value: course.trainees }
     );
   });
 });

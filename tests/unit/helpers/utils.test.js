@@ -491,6 +491,19 @@ describe('getTotalDuration', () => {
   });
 });
 
+describe('getISOTotalDuration', () => {
+  it('should return duration in seconds with ISO format', () => {
+    const slots = [
+      { startDate: '2020-03-20T09:00:00.000Z', endDate: '2020-03-20T11:00:00.000Z' },
+      { startDate: '2020-04-21T09:00:00.000Z', endDate: '2020-04-21T11:30:00.000Z' },
+    ];
+
+    const result = UtilsHelper.getISOTotalDuration(slots);
+
+    expect(result).toEqual('PT16200S');
+  });
+});
+
 describe('getTotalDurationForExport', () => {
   it('should return duration with minutes', () => {
     const slots = [
@@ -668,5 +681,19 @@ describe('sortStrings', () => {
     const result = UtilsHelper.sortStrings('abc', 'abc');
 
     expect(result).toBe(0);
+  });
+});
+
+describe('formatQuantity', () => {
+  it('should return plural label with default plural mark', () => {
+    const result = UtilsHelper.formatQuantity('formation', 4);
+
+    expect(result).toBe('4 formations');
+  });
+
+  it('should return plural label with other plural mark', () => {
+    const result = UtilsHelper.formatQuantity('créneau', 4, 'x');
+
+    expect(result).toBe('4 créneaux');
   });
 });

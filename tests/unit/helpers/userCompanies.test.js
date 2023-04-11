@@ -250,28 +250,96 @@ describe('userIsOrWillBeInCompany', () => {
 });
 
 describe('getCurrentAndFutureCompanies', () => {
-  it('should return active and future companies', async () => {
+  it('should return active and future companies (companiesIds are objectIds)', async () => {
     const user = new ObjectId();
-    const authCompany = new ObjectId();
-    const otherCompany = new ObjectId();
+    const currentAndFutureCompany = new ObjectId();
+    const futureCompany = new ObjectId();
+    const oldCompany = new ObjectId();
     const userCompanies = [
-      { user, company: new ObjectId(), startDate: '2021-10-25T23:59:59.999Z', endDate: '2022-10-25T23:59:59.999Z' },
-      { user, company: authCompany, startDate: '2022-10-26T00:00:00.000Z', endDate: CompaniDate().add('P1D').toISO() },
+      { user, company: oldCompany, startDate: '2021-10-25T23:59:59.999Z', endDate: '2022-10-25T23:59:59.999Z' },
       {
         user,
-        company: otherCompany,
+        company: currentAndFutureCompany,
+        startDate: '2022-10-26T00:00:00.000Z',
+        endDate: CompaniDate().add('P1D').toISO(),
+      },
+      {
+        user,
+        company: futureCompany,
         startDate: CompaniDate().add('P2D').toISO(),
         endDate: CompaniDate().add('P4D').toISO(),
       },
       {
         user,
-        company: authCompany,
+        company: currentAndFutureCompany,
         startDate: CompaniDate().add('P6D').toISO(),
         endDate: CompaniDate().add('P7D').toISO(),
       },
     ];
 
     const res = await UserCompaniesHelper.getCurrentAndFutureCompanies(userCompanies);
-    expect(res).toEqual([authCompany, otherCompany]);
+    expect(res).toEqual([currentAndFutureCompany, futureCompany]);
+  });
+
+  it('should return active and future companies (companiesIds are string)', async () => {
+    const user = new ObjectId();
+    const currentAndFutureCompany = (new ObjectId()).toHexString();
+    const futureCompany = (new ObjectId()).toHexString();
+    const oldCompany = (new ObjectId()).toHexString();
+    const userCompanies = [
+      { user, company: oldCompany, startDate: '2021-10-25T23:59:59.999Z', endDate: '2022-10-25T23:59:59.999Z' },
+      {
+        user,
+        company: currentAndFutureCompany,
+        startDate: '2022-10-26T00:00:00.000Z',
+        endDate: CompaniDate().add('P1D').toISO(),
+      },
+      {
+        user,
+        company: futureCompany,
+        startDate: CompaniDate().add('P2D').toISO(),
+        endDate: CompaniDate().add('P4D').toISO(),
+      },
+      {
+        user,
+        company: currentAndFutureCompany,
+        startDate: CompaniDate().add('P6D').toISO(),
+        endDate: CompaniDate().add('P7D').toISO(),
+      },
+    ];
+
+    const res = await UserCompaniesHelper.getCurrentAndFutureCompanies(userCompanies);
+    expect(res).toEqual([currentAndFutureCompany, futureCompany]);
+  });
+
+  it('should return active and future companies (companies are object)', async () => {
+    const user = new ObjectId();
+    const currentAndFutureCompany = { _id: (new ObjectId()).toHexString(), name: 'currentAndFutureCompany' };
+    const futureCompany = { _id: (new ObjectId()).toHexString(), name: 'futureCompany' };
+    const oldCompany = { _id: (new ObjectId()).toHexString(), name: 'oldCompany' };
+    const userCompanies = [
+      { user, company: oldCompany, startDate: '2021-10-25T23:59:59.999Z', endDate: '2022-10-25T23:59:59.999Z' },
+      {
+        user,
+        company: currentAndFutureCompany,
+        startDate: '2022-10-26T00:00:00.000Z',
+        endDate: CompaniDate().add('P1D').toISO(),
+      },
+      {
+        user,
+        company: futureCompany,
+        startDate: CompaniDate().add('P2D').toISO(),
+        endDate: CompaniDate().add('P4D').toISO(),
+      },
+      {
+        user,
+        company: currentAndFutureCompany,
+        startDate: CompaniDate().add('P6D').toISO(),
+        endDate: CompaniDate().add('P7D').toISO(),
+      },
+    ];
+
+    const res = await UserCompaniesHelper.getCurrentAndFutureCompanies(userCompanies);
+    expect(res).toEqual([currentAndFutureCompany, futureCompany]);
   });
 });

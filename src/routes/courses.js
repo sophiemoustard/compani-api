@@ -23,6 +23,7 @@ const {
   getQuestionnaires,
   addCompany,
   removeCompany,
+  generateTrainingContract,
 } = require('../controllers/courseController');
 const { MESSAGE_TYPE } = require('../models/CourseSmsHistory');
 const { COURSE_TYPES, COURSE_FORMATS } = require('../models/Course');
@@ -45,9 +46,9 @@ const {
   authorizeSmsSending,
   authorizeCourseCompanyAddition,
   authorizeCourseCompanyDeletion,
+  authorizeGenerateTrainingContract,
 } = require('./preHandlers/courses');
-const { INTRA, OPERATIONS, MOBILE, WEBAPP, PEDAGOGY } = require('../helpers/constants');
-const { ORIGIN_OPTIONS } = require('../models/User');
+const { INTRA, OPERATIONS, MOBILE, WEBAPP, PEDAGOGY, ORIGIN_OPTIONS } = require('../helpers/constants');
 const { dateToISOString } = require('./validations/utils');
 
 exports.plugin = {
@@ -61,7 +62,7 @@ exports.plugin = {
         validate: {
           query: Joi.object({
             action: Joi.string().required().valid(OPERATIONS, PEDAGOGY),
-            origin: Joi.string().required().valid(WEBAPP, MOBILE),
+            origin: Joi.string().required().valid(...ORIGIN_OPTIONS),
             trainer: Joi.objectId().when(
               'action',
               {
@@ -121,7 +122,7 @@ exports.plugin = {
             action: Joi.string().required().valid(OPERATIONS, PEDAGOGY),
             origin: Joi.string()
               .when('action', { is: OPERATIONS, then: Joi.required(), otherwise: Joi.forbidden() })
-              .valid(WEBAPP, MOBILE),
+              .valid(...ORIGIN_OPTIONS),
           }),
         },
         auth: { mode: 'required' },
@@ -363,6 +364,20 @@ exports.plugin = {
         pre: [{ method: authorizeCourseEdit }, { method: authorizeCourseCompanyDeletion }],
       },
       handler: removeCompany,
+    });
+
+    server.route({
+      method: 'POST',
+      path: '/{_id}/trainingcontracts',
+      options: {
+        auth: { scope: ['courses:create'] },
+        validate: {
+          params: Joi.object({ _id: Joi.objectId().required() }),
+          payload: Joi.object({ price: Joi.number().positive().required(), company: Joi.objectId().required() }),
+        },
+        pre: [{ method: authorizeGenerateTrainingContract }],
+      },
+      handler: generateTrainingContract,
     });
   },
 };

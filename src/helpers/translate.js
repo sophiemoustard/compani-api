@@ -278,6 +278,7 @@ module.exports = {
     /* Steps */
     stepUpdated: 'Step updated.',
     stepsFound: 'Steps found.',
+    stepsTheoreticalDurationsNotDefined: 'Some program steps theoretical durations are not defined.',
     /* Activities */
     activityFound: 'Activity found.',
     activityUpdated: 'Activity updated.',
@@ -406,6 +407,12 @@ module.exports = {
     /* VendorCompanies */
     userAlreadyLinkedToCompany: 'User already linked to company.',
     userAlreadyLinkedToCompanyUntil: 'User already linked to company until {DATE}.',
+    /* TrainingContracts */
+    trainingContractCreated: 'Training contract created',
+    trainingContractsFound: 'Training contracts found',
+    trainingContractsNotFound: 'Training contracts not found',
+    trainingContractDeleted: 'Training contract deleted',
+    trainingContractAlreadyExists: 'Training contract already exists for this course and company.',
   },
   'fr-FR': {
     /* Global errors */
@@ -685,6 +692,7 @@ module.exports = {
     /* Steps */
     stepsFound: 'Liste des étapes trouvée.',
     stepUpdated: 'Étape mise à jour.',
+    stepsTheoreticalDurationsNotDefined: 'Certaines durées théoriques des étapes du programme ne sont pas renseignées.',
     /* Activities */
     activityFound: 'Activité trouvée.',
     activityUpdated: 'Activité mise à jour.',
@@ -729,7 +737,7 @@ module.exports = {
     courseBillCreated: 'Facture de la formation créée.',
     courseBillUpdated: 'Facture de la formation mise à jour.',
     courseBillingItemAlreadyAdded: 'Article déjà ajouté à la facture.',
-    courseCompanyAddressMissing: 'Erreur lors de la facturation, l\'adresse de la structure cliente est manquante.',
+    courseCompanyAddressMissing: 'L\'adresse de la structure cliente est manquante.',
     /* Course billing items */
     courseBillingItemExists: 'Article de facturation existant.',
     courseBillingItemsFound: 'Articles de facturation trouvés.',
@@ -806,12 +814,19 @@ module.exports = {
     userCompanyUpdated: 'Informations sur la structure de l\'apprenant(e) mises à jour.',
     userDetachmentBeforeLastSubscription: 'Vous ne pouvez pas détacher cette personne avant le {DATE}.',
     userCompanyDetachmentBeforeAttachment: 'La date de détachement de l\'utilisateur ne peut être antérieure à son '
-    + 'rattachement.',
+      + 'rattachement.',
     /* VendorCompanies */
     vendorCompanyFound: 'Structure vendeuse trouvée.',
     vendorCompanyUpdated: 'Structure vendeuse mise à jour.',
     /* VendorCompanies */
     userAlreadyLinkedToCompany: 'Ce compte est déjà rattaché à une structure.',
     userAlreadyLinkedToCompanyUntil: 'Ce compte est déjà rattaché à une structure jusqu\'au {DATE}.',
+    /* TrainingContracts */
+    trainingContractCreated: 'Convention de formation créée',
+    trainingContractsFound: 'Conventions de formation trouvées',
+    trainingContractsNotFound: 'Conventions de formation non trouvées',
+    trainingContractDeleted: 'Convention de formation supprimée',
+    trainingContractAlreadyExists: 'Une convention associée à cette formation existe déjà pour cette '
+      + 'structure.',
   },
 };
