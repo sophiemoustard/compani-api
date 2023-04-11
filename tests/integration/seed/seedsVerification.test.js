@@ -319,7 +319,7 @@ describe('SEEDS VERIFICATION', () => {
           expect(haveBlendedCoursesAccessRules).toBeFalsy();
         });
 
-        it('should pass if only blended courses have supervisors', () => {
+        it('should pass if only blended courses have interlocutors', () => {
           const doELearningCoursesHaveSalesRepresentative = courseList
             .some(c => c.format === STRICTLY_E_LEARNING &&
               (c.salesRepresentative || c.trainer || c.companyRepresentative));
@@ -376,7 +376,7 @@ describe('SEEDS VERIFICATION', () => {
           expect(isExpectedBillsCountDefinedForBlendedCoursesOnly).toBeTruthy();
         });
 
-        it('should pass if every supervisor exists', async () => {
+        it('should pass if every interlocutor exists', async () => {
           const someUsersDontExist = courseList.some((c) => {
             const userList = [
               ...(has(c, 'companyRepresentative') ? [c.companyRepresentative] : []),
