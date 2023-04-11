@@ -166,8 +166,8 @@ describe('SEEDS VERIFICATION', () => {
           const isEveryTraineeCompanyAttachedToCourse = courseList
             .filter(course => course.format === BLENDED)
             .every(course => course.trainees
-              .every(trainee => trainee.userCompanyList
-                .some(uc => UtilsHelper.doesArrayIncludeId(course.companies.map(c => c._id), uc.company))
+              .every(trainee => get(trainee, 'userCompanyList', [])
+                .some(uc => uc && UtilsHelper.doesArrayIncludeId(course.companies.map(c => c._id), uc.company))
               ));
           expect(isEveryTraineeCompanyAttachedToCourse).toBeTruthy();
         });
@@ -195,15 +195,20 @@ describe('SEEDS VERIFICATION', () => {
           const isEveryTraineeCompanyInAccessRules = courseList
             .filter(course => course.format === STRICTLY_E_LEARNING && get(course, 'accessRules.length'))
             .every(course => course.trainees
-              .every(trainee => trainee.userCompanyList
+              .every(trainee => get(trainee, 'userCompanyList', [])
                 .some(uc => UtilsHelper.doesArrayIncludeId(course.accessRules.map(c => c._id), uc.company))
               ));
           expect(isEveryTraineeCompanyInAccessRules).toBeTruthy();
         });
 
-        it('should pass if no course has access rule in duplicate', () => {
-          const someAccessRulesAreInDuplicate = courseList
-            .filter(c => c.accessRules.length)
+        it('should pass if every access rules company exists and is not in duplicate', async () => {
+          const coursesWithAccessRules = courseList.filter(c => c.accessRules.length);
+          const someCompaniesDontExist = coursesWithAccessRules
+            .some(c => c.accessRules.some(company => company === 'company not found'));
+
+          expect(someCompaniesDontExist).toBeFalsy();
+
+          const someAccessRulesAreInDuplicate = coursesWithAccessRules
             .some((course) => {
               const accessRulesWithoutDuplicates = [...new Set(course.accessRules.map(c => c._id.toHexString()))];
 
@@ -218,15 +223,13 @@ describe('SEEDS VERIFICATION', () => {
           expect(subProgramsExist).toBeTruthy();
         });
 
-        it('should pass if every company exists', async () => {
+        it('should pass if every company exists and is not in duplicate', async () => {
           const someCompaniesDontExist = courseList
             .filter(c => c.format === BLENDED)
             .some(c => c.companies.some(company => company === 'company not found'));
 
           expect(someCompaniesDontExist).toBeFalsy();
-        });
 
-        it('should pass if no course has company in duplicate', () => {
           const someCompaniesAreInDuplicate = courseList
             .filter(course => get(course, 'companies.length'))
             .some((course) => {
@@ -276,7 +279,11 @@ describe('SEEDS VERIFICATION', () => {
           expect(isTrainerIncludedInTrainees).toBeFalsy();
         });
 
-        it('should pass if no course has trainee in duplicate', () => {
+        it('should pass if every trainee exists and is not in duplicate', () => {
+          const someTraineesDontExist = courseList.some(c => c.trainees.some(trainee => trainee === 'user not found'));
+
+          expect(someTraineesDontExist).toBeFalsy();
+
           const someTraineesAreInDuplicate = courseList
             .some((course) => {
               const traineesWithoutDuplicates = [...new Set(course.trainees.map(c => c._id.toHexString()))];
@@ -310,14 +317,6 @@ describe('SEEDS VERIFICATION', () => {
         it('should pass if no access rules for blended courses', () => {
           const haveBlendedCoursesAccessRules = courseList.some(c => c.format === BLENDED && c.accessRules.length);
           expect(haveBlendedCoursesAccessRules).toBeFalsy();
-        });
-
-        it('should pass if every access rules company exists', async () => {
-          const someCompaniesDontExist = courseList
-            .filter(c => c.accessRules.length)
-            .some(c => c.accessRules.some(company => company === 'company not found'));
-
-          expect(someCompaniesDontExist).toBeFalsy();
         });
 
         it('should pass if only blended courses have supervisors', () => {
@@ -377,13 +376,12 @@ describe('SEEDS VERIFICATION', () => {
           expect(isExpectedBillsCountDefinedForBlendedCoursesOnly).toBeTruthy();
         });
 
-        it('should pass if every user exists', async () => {
+        it('should pass if every supervisor exists', async () => {
           const someUsersDontExist = courseList.some((c) => {
             const userList = [
               ...(has(c, 'companyRepresentative') ? [c.companyRepresentative] : []),
               ...(has(c, 'salesRepresentative') ? [c.salesRepresentative] : []),
               ...(has(c, 'trainer') ? [c.trainer] : []),
-              ...c.trainees,
             ];
 
             return userList.some(u => u === null || u === 'user not found');
