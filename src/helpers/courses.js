@@ -16,6 +16,7 @@ const Questionnaire = require('../models/Questionnaire');
 const CourseSmsHistory = require('../models/CourseSmsHistory');
 const Attendance = require('../models/Attendance');
 const SubProgram = require('../models/SubProgram');
+const TrainingContract = require('../models/TrainingContract');
 const CourseRepository = require('../repositories/CourseRepository');
 const UtilsHelper = require('./utils');
 const DatesUtilsHelper = require('./dates/utils');
@@ -58,7 +59,7 @@ const InterAttendanceSheet = require('../data/pdf/attendanceSheet/interAttendanc
 const IntraAttendanceSheet = require('../data/pdf/attendanceSheet/intraAttendanceSheet');
 const CourseConvocation = require('../data/pdf/courseConvocation');
 const CompletionCertificate = require('../data/pdf/completionCertificate');
-const TrainingContract = require('../data/pdf/trainingContract');
+const TrainingContractPdf = require('../data/pdf/trainingContract');
 const CourseBill = require('../models/CourseBill');
 const CourseSlot = require('../models/CourseSlot');
 const CourseHistory = require('../models/CourseHistory');
@@ -584,16 +585,27 @@ exports.updateCourse = async (courseId, payload, credentials) => {
   return courseFromDb;
 };
 
-exports.deleteCourse = async courseId => Promise.all([
-  Course.deleteOne({ _id: courseId }),
-  CourseBill.deleteMany({
-    course: courseId,
-    $or: [{ billedAt: { $exists: false } }, { billedAt: { $not: { $type: 'date' } } }],
-  }),
-  CourseSmsHistory.deleteMany({ course: courseId }),
-  CourseHistory.deleteMany({ course: courseId }),
-  CourseSlot.deleteMany({ course: courseId }),
-]);
+exports.deleteCourse = async (courseId) => {
+  const trainingContractList = await TrainingContract
+    .find({ course: courseId }, { _id: 1 })
+    .setOptions({ isVendorUser: true })
+    .lean();
+
+  return Promise.all([
+    Course.deleteOne({ _id: courseId }),
+    CourseBill.deleteMany({
+      course: courseId,
+      $or: [{ billedAt: { $exists: false } }, { billedAt: { $not: { $type: 'date' } } }],
+    }),
+    CourseSmsHistory.deleteMany({ course: courseId }),
+    CourseHistory.deleteMany({ course: courseId }),
+    CourseSlot.deleteMany({ course: courseId }),
+    ...(trainingContractList.length
+      ? [TrainingContractsHelper.deleteMany(trainingContractList.map(tc => tc._id))]
+      : []
+    ),
+  ]);
+};
 
 exports.sendSMS = async (courseId, payload, credentials) => {
   const course = await Course.findById(courseId)
@@ -943,10 +955,15 @@ exports.addCourseCompany = async (courseId, payload, credentials) => {
   );
 };
 
-exports.removeCourseCompany = async (courseId, companyId, credentials) => Promise.all([
-  Course.updateOne({ _id: courseId }, { $pull: { companies: companyId } }),
-  CourseHistoriesHelper.createHistoryOnCompanyDeletion({ course: courseId, company: companyId }, credentials._id),
-]);
+exports.removeCourseCompany = async (courseId, companyId, credentials) => {
+  const trainingContract = await TrainingContract.findOne({ course: courseId, company: companyId }, { _id: 1 }).lean();
+
+  return Promise.all([
+    Course.updateOne({ _id: courseId }, { $pull: { companies: companyId } }),
+    CourseHistoriesHelper.createHistoryOnCompanyDeletion({ course: courseId, company: companyId }, credentials._id),
+    ...trainingContract ? [TrainingContractsHelper.delete(trainingContract._id)] : [],
+  ]);
+};
 
 exports.generateTrainingContract = async (courseId, payload) => {
   const course = await Course
@@ -970,7 +987,7 @@ exports.generateTrainingContract = async (courseId, payload) => {
   const vendorCompany = await VendorCompaniesHelper.get();
   const formattedCourse = await TrainingContractsHelper
     .formatCourseForTrainingContract(course, vendorCompany, payload.price);
-  const pdf = await TrainingContract.getPdf(formattedCourse);
+  const pdf = await TrainingContractPdf.getPdf(formattedCourse);
   const fileName = `convention_${formattedCourse.programName}_${formattedCourse.company.name}.pdf`;
 
   return { fileName, pdf };

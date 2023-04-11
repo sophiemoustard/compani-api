@@ -19,6 +19,7 @@ const CourseSlot = require('../../../src/models/CourseSlot');
 const CourseSmsHistory = require('../../../src/models/CourseSmsHistory');
 const Drive = require('../../../src/models/Google/Drive');
 const Questionnaire = require('../../../src/models/Questionnaire');
+const TrainingContract = require('../../../src/models/TrainingContract');
 const CourseHelper = require('../../../src/helpers/courses');
 const SmsHelper = require('../../../src/helpers/sms');
 const UtilsHelper = require('../../../src/helpers/utils');
@@ -26,6 +27,7 @@ const PdfHelper = require('../../../src/helpers/pdf');
 const ZipHelper = require('../../../src/helpers/zip');
 const DocxHelper = require('../../../src/helpers/docx');
 const StepsHelper = require('../../../src/helpers/steps');
+const TrainingContractsHelper = require('../../../src/helpers/trainingContracts');
 const NotificationHelper = require('../../../src/helpers/notifications');
 const VendorCompaniesHelper = require('../../../src/helpers/vendorCompanies');
 const {
@@ -57,7 +59,7 @@ const InterAttendanceSheet = require('../../../src/data/pdf/attendanceSheet/inte
 const IntraAttendanceSheet = require('../../../src/data/pdf/attendanceSheet/intraAttendanceSheet');
 const CourseConvocation = require('../../../src/data/pdf/courseConvocation');
 const CompletionCertificate = require('../../../src/data/pdf/completionCertificate');
-const TrainingContract = require('../../../src/data/pdf/trainingContract');
+const TrainingContractPdf = require('../../../src/data/pdf/trainingContract');
 
 describe('createCourse', () => {
   let create;
@@ -2894,12 +2896,16 @@ describe('deleteCourse', () => {
   let deleteCourseSmsHistory;
   let deleteCourseHistory;
   let deleteCourseSlot;
+  let findTrainingContract;
+  let deleteManyTrainingContract;
   beforeEach(() => {
     deleteCourse = sinon.stub(Course, 'deleteOne');
     deleteCourseBill = sinon.stub(CourseBill, 'deleteMany');
     deleteCourseSmsHistory = sinon.stub(CourseSmsHistory, 'deleteMany');
     deleteCourseHistory = sinon.stub(CourseHistory, 'deleteMany');
     deleteCourseSlot = sinon.stub(CourseSlot, 'deleteMany');
+    findTrainingContract = sinon.stub(TrainingContract, 'find');
+    deleteManyTrainingContract = sinon.stub(TrainingContractsHelper, 'deleteMany');
   });
   afterEach(() => {
     deleteCourse.restore();
@@ -2907,10 +2913,16 @@ describe('deleteCourse', () => {
     deleteCourseSmsHistory.restore();
     deleteCourseHistory.restore();
     deleteCourseSlot.restore();
+    findTrainingContract.restore();
+    deleteManyTrainingContract.restore();
   });
 
   it('should delete course and sms history', async () => {
     const courseId = new ObjectId();
+    const trainingContractList = [{ _id: new ObjectId() }, { _id: new ObjectId() }];
+
+    findTrainingContract.returns(SinonMongoose.stubChainedQueries(trainingContractList, ['setOptions', 'lean']));
+
     await CourseHelper.deleteCourse(courseId);
 
     sinon.assert.calledOnceWithExactly(deleteCourse, { _id: courseId });
@@ -2921,6 +2933,15 @@ describe('deleteCourse', () => {
     sinon.assert.calledOnceWithExactly(deleteCourseSmsHistory, { course: courseId });
     sinon.assert.calledOnceWithExactly(deleteCourseHistory, { course: courseId });
     sinon.assert.calledOnceWithExactly(deleteCourseSlot, { course: courseId });
+    sinon.assert.calledOnceWithExactly(deleteManyTrainingContract, trainingContractList.map(tc => tc._id));
+    SinonMongoose.calledOnceWithExactly(
+      findTrainingContract,
+      [
+        { query: 'find', args: [{ course: courseId }, { _id: 1 }] },
+        { query: 'setOptions', args: [{ isVendorUser: true }] },
+        { query: 'lean' },
+      ]
+    );
   });
 });
 
@@ -4259,22 +4280,31 @@ describe('addCourseCompany', () => {
 
 describe('removeCourseCompany', () => {
   let courseUpdateOne;
+  let findOneTrainingContract;
   let createHistoryOnCompanyDeletion;
+  let deleteTrainingContract;
 
   beforeEach(() => {
     courseUpdateOne = sinon.stub(Course, 'updateOne');
+    findOneTrainingContract = sinon.stub(TrainingContract, 'findOne');
     createHistoryOnCompanyDeletion = sinon.stub(CourseHistoriesHelper, 'createHistoryOnCompanyDeletion');
+    deleteTrainingContract = sinon.stub(TrainingContractsHelper, 'delete');
   });
 
   afterEach(() => {
     courseUpdateOne.restore();
+    findOneTrainingContract.restore();
     createHistoryOnCompanyDeletion.restore();
+    deleteTrainingContract.restore();
   });
 
   it('should remove a course company', async () => {
     const companyId = new ObjectId();
     const course = { _id: new ObjectId(), misc: 'Test', companies: [companyId, new ObjectId()] };
     const credentials = { _id: new ObjectId() };
+    const trainingContract = { _id: new ObjectId() };
+
+    findOneTrainingContract.returns(SinonMongoose.stubChainedQueries(trainingContract._id, ['lean']));
 
     await CourseHelper.removeCourseCompany(course._id, companyId, credentials);
 
@@ -4283,6 +4313,11 @@ describe('removeCourseCompany', () => {
       createHistoryOnCompanyDeletion,
       { course: course._id, company: companyId },
       credentials._id
+    );
+    sinon.assert.calledOnceWithExactly(deleteTrainingContract, trainingContract._id);
+    SinonMongoose.calledOnceWithExactly(
+      findOneTrainingContract,
+      [{ query: 'findOne', args: [{ course: course._id, company: companyId }, { _id: 1 }] }, { query: 'lean' }]
     );
   });
 });
@@ -4296,7 +4331,7 @@ describe('generateTrainingContract', () => {
   beforeEach(() => {
     courseFindOne = sinon.stub(Course, 'findOne');
     vendorCompanyGet = sinon.stub(VendorCompaniesHelper, 'get');
-    trainingContractGetPdf = sinon.stub(TrainingContract, 'getPdf');
+    trainingContractGetPdf = sinon.stub(TrainingContractPdf, 'getPdf');
     getCompanyAtCourseRegistrationList = sinon.stub(CourseHistoriesHelper, 'getCompanyAtCourseRegistrationList');
   });
 
