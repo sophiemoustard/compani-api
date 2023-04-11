@@ -28,6 +28,8 @@ const {
   INTER_B2C,
   TRAINING_ORGANISATION_MANAGER,
   VENDOR_ADMIN,
+  CLIENT,
+  VENDOR,
 } = require('../../../src/helpers/constants');
 const attendancesSeed = require('./attendancesSeed');
 const attendanceSheetsSeed = require('./attendanceSheetsSeed');
@@ -509,12 +511,33 @@ describe('SEEDS VERIFICATION', () => {
       describe('Collection User', () => {
         let userList;
         before(async () => {
-          userList = await User.find().populate({ path: 'company' }).lean();
+          userList = await User
+            .find()
+            .populate({ path: 'role.client', select: 'interface' })
+            .populate({ path: 'role.vendor', select: 'interface' })
+            .populate({ path: 'company' })
+            .lean();
         });
 
         it('should pass if every user with client role has a company', () => {
           const doUsersWithClientRoleHaveCompany = userList.filter(u => get(u, 'role.client')).every(u => u.company);
           expect(doUsersWithClientRoleHaveCompany).toBeTruthy();
+        });
+
+        it('should pass if every user\'s role exists', () => {
+          const isRoleNotFound = userList.filter(u => u.role).some(u =>
+            (has(u, 'role.client') && !get(u, 'role.client._id')) ||
+            (has(u, 'role.vendor') && !get(u, 'role.vendor._id'))
+          );
+          expect(isRoleNotFound).toBeFalsy();
+        });
+
+        it('should pass if every user\'s role is in good interface', () => {
+          const doUsersHaveRoleInWrongInterface = userList.filter(u => u.role).some(u =>
+            (u.role.client && u.role.client.interface !== CLIENT) ||
+            (u.role.vendor && u.role.vendor.interface !== VENDOR)
+          );
+          expect(doUsersHaveRoleInWrongInterface).toBeFalsy();
         });
       });
 
