@@ -15,7 +15,7 @@ const {
 } = require('./seed/programsSeed');
 const { getToken, getTokenByCredentials } = require('./helpers/authentication');
 const { generateFormData } = require('./utils');
-const { trainerOrganisationManager, noRoleNoCompany } = require('../seed/authUsersSeed');
+const { coach, noRoleNoCompany } = require('../seed/authUsersSeed');
 
 describe('NODE ENV', () => {
   it('should be \'test\'', () => {
@@ -783,10 +783,7 @@ describe('PROGRAMS ROUTES - POST /{_id}/testers', () => {
     });
 
     it('should add an existing user as tester to a program', async () => {
-      const payload = pick(
-        trainerOrganisationManager,
-        ['local.email', 'identity.firstname', 'identity.lastname', 'contact.phone']
-      );
+      const payload = pick(coach, ['local.email', 'identity.firstname', 'identity.lastname', 'contact.phone']);
 
       const response = await app.inject({
         method: 'POST',
@@ -801,10 +798,7 @@ describe('PROGRAMS ROUTES - POST /{_id}/testers', () => {
     });
 
     it('should return a 404 if program does not exist', async () => {
-      const payload = pick(
-        trainerOrganisationManager,
-        ['local.email', 'identity.firstname', 'identity.lastname', 'contact.phone']
-      );
+      const payload = pick(coach, ['local.email', 'identity.firstname', 'identity.lastname', 'contact.phone']);
 
       const response = await app.inject({
         method: 'POST',
@@ -870,7 +864,7 @@ describe('PROGRAMS ROUTES - POST /{_id}/testers', () => {
         method: 'POST',
         url: `/programs/${programsList[1]._id}/testers`,
         headers: { Cookie: `alenvi_token=${authToken}` },
-        payload: pick(trainerOrganisationManager, 'local.email'),
+        payload: pick(coach, 'local.email'),
       });
 
       expect(response.statusCode).toBe(409);
@@ -920,7 +914,7 @@ describe('PROGRAMS ROUTES - DELETE /{_id}/testers/{testerId}', () => {
 
       const response = await app.inject({
         method: 'DELETE',
-        url: `/programs/${programsList[1]._id}/testers/${trainerOrganisationManager._id}`,
+        url: `/programs/${programsList[1]._id}/testers/${coach._id}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -932,7 +926,7 @@ describe('PROGRAMS ROUTES - DELETE /{_id}/testers/{testerId}', () => {
     it('should return a 404 if program does not exist', async () => {
       const response = await app.inject({
         method: 'DELETE',
-        url: `/programs/${new ObjectId()}/testers/${trainerOrganisationManager._id}`,
+        url: `/programs/${new ObjectId()}/testers/${coach._id}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -942,7 +936,7 @@ describe('PROGRAMS ROUTES - DELETE /{_id}/testers/{testerId}', () => {
     it('should return a 409 if tester is not in program', async () => {
       const response = await app.inject({
         method: 'DELETE',
-        url: `/programs/${programsList[0]._id}/testers/${trainerOrganisationManager._id}`,
+        url: `/programs/${programsList[0]._id}/testers/${coach._id}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -963,7 +957,7 @@ describe('PROGRAMS ROUTES - DELETE /{_id}/testers/{testerId}', () => {
         authToken = await getToken(role.name);
         const response = await app.inject({
           method: 'DELETE',
-          url: `/programs/${programsList[1]._id}/testers/${trainerOrganisationManager._id}`,
+          url: `/programs/${programsList[1]._id}/testers/${coach._id}`,
           headers: { Cookie: `alenvi_token=${authToken}` },
         });
 

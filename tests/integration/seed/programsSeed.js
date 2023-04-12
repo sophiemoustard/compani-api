@@ -7,7 +7,7 @@ const Category = require('../../../src/models/Category');
 const ActivityHistory = require('../../../src/models/ActivityHistory');
 const Card = require('../../../src/models/Card');
 const Course = require('../../../src/models/Course');
-const { userList, vendorAdmin, trainerOrganisationManager } = require('../../seed/authUsersSeed');
+const { userList, vendorAdmin, coach } = require('../../seed/authUsersSeed');
 const { deleteNonAuthenticationSeeds } = require('../helpers/authentication');
 const { INTER_B2C } = require('../../../src/helpers/constants');
 
@@ -79,7 +79,7 @@ const programsList = [
     _id: new ObjectId(),
     name: 'training program',
     subPrograms: [subProgramsList[2]._id],
-    testers: [trainerOrganisationManager._id],
+    testers: [coach._id],
   },
   {
     _id: new ObjectId(),

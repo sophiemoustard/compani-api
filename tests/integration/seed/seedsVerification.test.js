@@ -485,7 +485,12 @@ describe('SEEDS VERIFICATION', () => {
             .find()
             .populate({ path: 'subPrograms', select: '_id', transform: doc => (doc || null) })
             .populate({ path: 'categories', select: '_id', transform: doc => (doc || null) })
-            .populate({ path: 'testers', select: '_id', transform: doc => (doc || null) })
+            .populate({
+              path: 'testers',
+              select: '_id',
+              transform: doc => (doc || null),
+              populate: { path: 'role.vendor', select: 'name' },
+            })
             .lean();
         });
 
@@ -517,6 +522,29 @@ describe('SEEDS VERIFICATION', () => {
             });
 
           expect(someCategoriesAreDuplicate).toBeFalsy();
+        });
+
+        it('should pass if every tester exists and is not duplicate', async () => {
+          const someTestersDontExist = programList.some(p => p.testers.some(tester => !tester));
+
+          expect(someTestersDontExist).toBeFalsy();
+
+          const someTestersAreDuplicate = programList
+            .some((program) => {
+              const testersWithoutDuplicates = [...new Set(program.testers.map(t => t._id.toHexString()))];
+
+              return program.testers.length !== testersWithoutDuplicates.length;
+            });
+
+          expect(someTestersAreDuplicate).toBeFalsy();
+        });
+
+        it('should pass if testers are not rof or vendor admin', async () => {
+          const someTestersAreRofOrVendorAdmin = programList
+            .some(p => p.testers
+              .some(tester => [TRAINING_ORGANISATION_MANAGER, VENDOR_ADMIN].includes(get(tester, 'role.vendor.name'))));
+
+          expect(someTestersAreRofOrVendorAdmin).toBeFalsy();
         });
       });
 
