@@ -496,12 +496,27 @@ describe('SEEDS VERIFICATION', () => {
 
           const someSubProgramsAreDuplicate = programList
             .some((program) => {
-              const subProgramsWithoutDuplicates = [...new Set(program.subPrograms.map(c => c._id.toHexString()))];
+              const subProgramsWithoutDuplicates = [...new Set(program.subPrograms.map(sp => sp._id.toHexString()))];
 
               return program.subPrograms.length !== subProgramsWithoutDuplicates.length;
             });
 
           expect(someSubProgramsAreDuplicate).toBeFalsy();
+        });
+
+        it('should pass if every category exists and is not duplicate', async () => {
+          const someCategoriesDontExist = programList.some(p => p.categories.some(category => !category));
+
+          expect(someCategoriesDontExist).toBeFalsy();
+
+          const someCategoriesAreDuplicate = programList
+            .some((program) => {
+              const categoriesWithoutDuplicates = [...new Set(program.categories.map(c => c._id.toHexString()))];
+
+              return program.categories.length !== categoriesWithoutDuplicates.length;
+            });
+
+          expect(someCategoriesAreDuplicate).toBeFalsy();
         });
       });
 
