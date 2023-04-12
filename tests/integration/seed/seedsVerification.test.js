@@ -7,6 +7,7 @@ const Contract = require('../../../src/models/Contract');
 const Course = require('../../../src/models/Course');
 const CourseHistory = require('../../../src/models/CourseHistory');
 const Helper = require('../../../src/models/Helper');
+const Program = require('../../../src/models/Program');
 const QuestionnaireHistory = require('../../../src/models/QuestionnaireHistory');
 const SectorHistory = require('../../../src/models/SectorHistory');
 const User = require('../../../src/models/User');
@@ -211,14 +212,14 @@ describe('SEEDS VERIFICATION', () => {
 
           expect(someCompaniesDontExist).toBeFalsy();
 
-          const someAccessRulesAreInDuplicate = coursesWithAccessRules
+          const someAccessRulesAreDuplicate = coursesWithAccessRules
             .some((course) => {
               const accessRulesWithoutDuplicates = [...new Set(course.accessRules.map(c => c._id.toHexString()))];
 
               return course.accessRules.length !== accessRulesWithoutDuplicates.length;
             });
 
-          expect(someAccessRulesAreInDuplicate).toBeFalsy();
+          expect(someAccessRulesAreDuplicate).toBeFalsy();
         });
 
         it('should pass if every subprogram exists', () => {
@@ -233,7 +234,7 @@ describe('SEEDS VERIFICATION', () => {
 
           expect(someCompaniesDontExist).toBeFalsy();
 
-          const someCompaniesAreInDuplicate = courseList
+          const someCompaniesAreDuplicate = courseList
             .filter(course => get(course, 'companies.length'))
             .some((course) => {
               const companiesWithoutDuplicates = [...new Set(course.companies.map(c => c._id.toHexString()))];
@@ -241,7 +242,7 @@ describe('SEEDS VERIFICATION', () => {
               return course.companies.length !== companiesWithoutDuplicates.length;
             });
 
-          expect(someCompaniesAreInDuplicate).toBeFalsy();
+          expect(someCompaniesAreDuplicate).toBeFalsy();
         });
 
         it('should pass if intra courses have one and only one company', () => {
@@ -294,14 +295,14 @@ describe('SEEDS VERIFICATION', () => {
 
           expect(someTraineesDontExist).toBeFalsy();
 
-          const someTraineesAreInDuplicate = courseList
+          const someTraineesAreDuplicate = courseList
             .some((course) => {
               const traineesWithoutDuplicates = [...new Set(course.trainees.map(t => t._id.toHexString()))];
 
               return course.trainees.length !== traineesWithoutDuplicates.length;
             });
 
-          expect(someTraineesAreInDuplicate).toBeFalsy();
+          expect(someTraineesAreDuplicate).toBeFalsy();
         });
 
         it('should pass if trainer has good role', () => {
@@ -474,6 +475,33 @@ describe('SEEDS VERIFICATION', () => {
               .some(uc => UtilsHelper.areObjectIdsEquals(uc.company, helper.company._id))
             );
           expect(areUserAndCompanyMatching).toBeTruthy();
+        });
+      });
+
+      describe('Collection Program', () => {
+        let programList;
+        before(async () => {
+          programList = await Program
+            .find()
+            .populate({ path: 'subPrograms', select: '_id', transform: doc => (doc || null) })
+            .populate({ path: 'categories', select: '_id', transform: doc => (doc || null) })
+            .populate({ path: 'testers', select: '_id', transform: doc => (doc || null) })
+            .lean();
+        });
+
+        it('should pass if every subprogram exists and is not duplicate', async () => {
+          const someSubProgramsDontExist = programList.some(p => p.subPrograms.some(subProgram => !subProgram));
+
+          expect(someSubProgramsDontExist).toBeFalsy();
+
+          const someSubProgramsAreDuplicate = programList
+            .some((program) => {
+              const subProgramsWithoutDuplicates = [...new Set(program.subPrograms.map(c => c._id.toHexString()))];
+
+              return program.subPrograms.length !== subProgramsWithoutDuplicates.length;
+            });
+
+          expect(someSubProgramsAreDuplicate).toBeFalsy();
         });
       });
 
