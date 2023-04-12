@@ -14,7 +14,7 @@ const { authCompany, companyWithoutSubscription } = require('../../seed/authComp
 const { deleteNonAuthenticationSeeds } = require('../helpers/authentication');
 const { WEBAPP, TRAINEE_ADDITION, INTRA, VIDEO, TRAINEE_DELETION } = require('../../../src/helpers/constants');
 const { auxiliaryRoleId, coachRoleId, trainingOrganisationManagerRoleId } = require('../../seed/authRolesSeed');
-const { vendorAdmin, trainerOrganisationManager, trainer, trainerAndCoach } = require('../../seed/authUsersSeed');
+const { vendorAdmin, trainerOrganisationManager, trainer } = require('../../seed/authUsersSeed');
 
 const DETACHMENT_ALLOWED_COMPANY_IDS =
   process.env.DETACHMENT_ALLOWED_COMPANY_IDS.split(';').map(id => new ObjectId(id));
@@ -249,7 +249,7 @@ const coursesList = [
     maxTrainees: 8,
     salesRepresentative: vendorAdmin._id,
     companyRepresentative: usersSeedList[1]._id,
-    contact: trainerAndCoach._id,
+    contact: trainer._id,
     expectedBillsCount: 2,
   },
 ];

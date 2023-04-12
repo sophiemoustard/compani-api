@@ -1,5 +1,5 @@
 const { expect } = require('expect');
-const { groupBy, get } = require('lodash');
+const { groupBy, get, has, compact } = require('lodash');
 const Attendance = require('../../../src/models/Attendance');
 const AttendanceSheet = require('../../../src/models/AttendanceSheet');
 const CompanyLinkRequest = require('../../../src/models/CompanyLinkRequest');
@@ -24,9 +24,14 @@ const {
   TRAINEE_DELETION,
   BLENDED,
   STRICTLY_E_LEARNING,
+  INTER_B2B,
+  INTER_B2C,
+  TRAINING_ORGANISATION_MANAGER,
+  VENDOR_ADMIN,
 } = require('../../../src/helpers/constants');
 const attendancesSeed = require('./attendancesSeed');
 const attendanceSheetsSeed = require('./attendanceSheetsSeed');
+const coursesSeed = require('./coursesSeed');
 const questionnaireHistoriesSeed = require('./questionnaireHistoriesSeed');
 const userCompaniesSeed = require('./userCompaniesSeed');
 const usersSeed = require('./usersSeed');
@@ -34,6 +39,7 @@ const usersSeed = require('./usersSeed');
 const seedList = [
   { label: 'ATTENDANCE', value: attendancesSeed },
   { label: 'ATTENDANCESHEET', value: attendanceSheetsSeed },
+  { label: 'COURSE', value: coursesSeed },
   { label: 'QUESTIONNAIREHISTORY', value: questionnaireHistoriesSeed },
   { label: 'USERCOMPANY', value: userCompaniesSeed },
   { label: 'USER', value: usersSeed },
@@ -127,12 +133,32 @@ describe('SEEDS VERIFICATION', () => {
         before(async () => {
           courseList = await Course
             .find()
-            .populate({ path: 'trainees', select: '_id', populate: { path: 'userCompanyList' } })
+            .populate({
+              path: 'trainees',
+              select: '_id',
+              populate: { path: 'userCompanyList' },
+              transform: doc => (doc || null),
+            })
             .populate({
               path: 'companyRepresentative',
               select: '_id',
               populate: [{ path: 'company' }, { path: 'role.client', select: 'name' }],
             })
+            .populate({
+              path: 'salesRepresentative',
+              select: '_id',
+              populate: [{ path: 'role.vendor', select: 'name' }],
+            })
+            .populate({ path: 'trainer', select: '_id role.vendor' })
+            .populate({ path: 'companies', select: '_id', transform: doc => (doc || null) })
+            .populate({
+              path: 'accessRules',
+              select: '_id',
+              transform: doc => (doc || null),
+            })
+            .populate({ path: 'subProgram', select: '_id' })
+            .populate({ path: 'slots', select: 'endDate' })
+            .populate({ path: 'slotsToPlan' })
             .lean();
         });
 
@@ -140,8 +166,8 @@ describe('SEEDS VERIFICATION', () => {
           const isEveryTraineeCompanyAttachedToCourse = courseList
             .filter(course => course.format === BLENDED)
             .every(course => course.trainees
-              .every(trainee => trainee.userCompanyList
-                .some(uc => UtilsHelper.doesArrayIncludeId(course.companies, uc.company))
+              .every(trainee => get(trainee, 'userCompanyList', [])
+                .some(uc => UtilsHelper.doesArrayIncludeId(course.companies.map(c => get(c, '_id')), uc.company))
               ));
           expect(isEveryTraineeCompanyAttachedToCourse).toBeTruthy();
         });
@@ -161,7 +187,7 @@ describe('SEEDS VERIFICATION', () => {
         it('should pass if companyRepresentative is in good company', () => {
           const areCoursesAndCompanyRepresentativesInSameCompany = courseList
             .every(c => !c.companyRepresentative ||
-              UtilsHelper.areObjectIdsEquals(c.companyRepresentative.company, c.companies[0]));
+              UtilsHelper.areObjectIdsEquals(c.companyRepresentative.company, c.companies[0]._id));
           expect(areCoursesAndCompanyRepresentativesInSameCompany).toBeTruthy();
         });
 
@@ -169,10 +195,197 @@ describe('SEEDS VERIFICATION', () => {
           const isEveryTraineeCompanyInAccessRules = courseList
             .filter(course => course.format === STRICTLY_E_LEARNING && get(course, 'accessRules.length'))
             .every(course => course.trainees
-              .every(trainee => trainee.userCompanyList
-                .some(uc => UtilsHelper.doesArrayIncludeId(course.accessRules, uc.company))
+              .every(trainee => get(trainee, 'userCompanyList', [])
+                .some(uc => UtilsHelper.doesArrayIncludeId(course.accessRules.map(c => get(c, '_id')), uc.company))
               ));
           expect(isEveryTraineeCompanyInAccessRules).toBeTruthy();
+        });
+
+        it('should pass if every access rules company exists and is not duplicate', async () => {
+          const coursesWithAccessRules = courseList.filter(c => c.accessRules.length);
+          const someCompaniesDontExist = coursesWithAccessRules.some(c => c.accessRules.some(company => !company));
+
+          expect(someCompaniesDontExist).toBeFalsy();
+
+          const someAccessRulesAreInDuplicate = coursesWithAccessRules
+            .some((course) => {
+              const accessRulesWithoutDuplicates = [...new Set(course.accessRules.map(c => c._id.toHexString()))];
+
+              return course.accessRules.length !== accessRulesWithoutDuplicates.length;
+            });
+
+          expect(someAccessRulesAreInDuplicate).toBeFalsy();
+        });
+
+        it('should pass if every subprogram exists', () => {
+          const subProgramsExist = courseList.map(course => course.subProgram).every(subProgram => !!subProgram);
+          expect(subProgramsExist).toBeTruthy();
+        });
+
+        it('should pass if every company exists and is not duplicate', async () => {
+          const someCompaniesDontExist = courseList
+            .filter(c => c.format === BLENDED)
+            .some(c => c.companies.some(company => !company));
+
+          expect(someCompaniesDontExist).toBeFalsy();
+
+          const someCompaniesAreInDuplicate = courseList
+            .filter(course => get(course, 'companies.length'))
+            .some((course) => {
+              const companiesWithoutDuplicates = [...new Set(course.companies.map(c => c._id.toHexString()))];
+
+              return course.companies.length !== companiesWithoutDuplicates.length;
+            });
+
+          expect(someCompaniesAreInDuplicate).toBeFalsy();
+        });
+
+        it('should pass if intra courses have one and only one company', () => {
+          const everyIntraCourseHasCompany = courseList
+            .filter(course => course.type === INTRA)
+            .every(course => course.companies.length === 1);
+
+          expect(everyIntraCourseHasCompany).toBeTruthy();
+        });
+
+        it('should pass if no e-learning course has companies field', () => {
+          const someELearningCourseHasCompanies = courseList
+            .filter(course => course.format === STRICTLY_E_LEARNING)
+            .some(course => has(course, 'companies'));
+          expect(someELearningCourseHasCompanies).toBeFalsy();
+        });
+
+        it('should pass if every blended course is intra ou inter_b2b', () => {
+          const everyBlendedCourseHasGoodType = courseList
+            .filter(course => course.format === BLENDED)
+            .every(course => [INTRA, INTER_B2B].includes(course.type));
+
+          expect(everyBlendedCourseHasGoodType).toBeTruthy();
+        });
+
+        it('should pass if every strictly e-learning course is inter_b2c', () => {
+          const everyELearningCourseHasGoodType = courseList
+            .filter(course => course.format === STRICTLY_E_LEARNING)
+            .every(course => course.type === INTER_B2C);
+
+          expect(everyELearningCourseHasGoodType).toBeTruthy();
+        });
+
+        it('should pass if trainer is never in trainees list', () => {
+          const isTrainerIncludedInTrainees = courseList
+            .some(c => has(c, 'trainer') &&
+              UtilsHelper.doesArrayIncludeId(c.trainees.map(t => get(t, '_id')), c.trainer._id));
+          expect(isTrainerIncludedInTrainees).toBeFalsy();
+        });
+
+        it('should pass if every trainee exists and is not duplicate', () => {
+          const someTraineesDontExist = courseList.some(c => c.trainees.some(trainee => !trainee));
+
+          expect(someTraineesDontExist).toBeFalsy();
+
+          const someTraineesAreInDuplicate = courseList
+            .some((course) => {
+              const traineesWithoutDuplicates = [...new Set(course.trainees.map(t => t._id.toHexString()))];
+
+              return course.trainees.length !== traineesWithoutDuplicates.length;
+            });
+
+          expect(someTraineesAreInDuplicate).toBeFalsy();
+        });
+
+        it('should pass if trainer has good role', () => {
+          const haveTrainersVendorRole = courseList.every(c => !has(c, 'trainer') || has(c.trainer, 'role.vendor'));
+          expect(haveTrainersVendorRole).toBeTruthy();
+        });
+
+        it('should pass if contact is trainer, company representative or sales representative', () => {
+          const isContactGoodUser = courseList
+            .filter(c => has(c, 'contact'))
+            .every((c) => {
+              const acceptedUsers = compact([
+                get(c, 'salesRepresentative._id'),
+                get(c, 'trainer._id'),
+                get(c, 'companyRepresentative._id'),
+              ]);
+
+              return UtilsHelper.doesArrayIncludeId(acceptedUsers, c.contact._id);
+            });
+          expect(isContactGoodUser).toBeTruthy();
+        });
+
+        it('should pass if no access rules for blended courses', () => {
+          const haveBlendedCoursesAccessRules = courseList.some(c => c.format === BLENDED && c.accessRules.length);
+          expect(haveBlendedCoursesAccessRules).toBeFalsy();
+        });
+
+        it('should pass if only blended courses have interlocutors', () => {
+          const doELearningCoursesHaveInterlocutors = courseList
+            .some(c => c.format === STRICTLY_E_LEARNING &&
+              (c.salesRepresentative || c.trainer || c.companyRepresentative));
+          expect(doELearningCoursesHaveInterlocutors).toBeFalsy();
+        });
+
+        it('should pass if all sales representative are rof or vendor admin', () => {
+          const doAllSalesRepresentativeHaveGoodRole = courseList
+            .filter(c => c.salesRepresentative)
+            .every(c => [TRAINING_ORGANISATION_MANAGER, VENDOR_ADMIN]
+              .includes(get(c.salesRepresentative, 'role.vendor.name')));
+          expect(doAllSalesRepresentativeHaveGoodRole).toBeTruthy();
+        });
+
+        it('should pass if estimated start date is defined for blended courses only', () => {
+          const doELearningCoursesHaveEstimatedStartDate = courseList
+            .some(c => c.format === STRICTLY_E_LEARNING && c.estimatedStartDate);
+          expect(doELearningCoursesHaveEstimatedStartDate).toBeFalsy();
+        });
+
+        it('should pass if archive date is defined for blended courses only', () => {
+          const doELearningCoursesHaveArchiveDate = courseList
+            .some(c => c.format === STRICTLY_E_LEARNING && c.archivedAt);
+          expect(doELearningCoursesHaveArchiveDate).toBeFalsy();
+        });
+
+        it('should pass if archive date is always after last slot', () => {
+          const isArchiveDateAfterLastSlot = courseList
+            .every((c) => {
+              if (!c.archivedAt || !c.slots.length) return true;
+              const lastSlot = c.slots[c.slots.length - 1];
+
+              return CompaniDate(c.archivedAt).isAfter(lastSlot.endDate);
+            });
+          expect(isArchiveDateAfterLastSlot).toBeTruthy();
+        });
+
+        it('should pass if max trainees is defined only for intra courses', () => {
+          const isMaxTraineesDefinedForIntraCoursesOnly = courseList
+            .every(c => c.type === INTRA || !has(c, 'maxTrainees'));
+          expect(isMaxTraineesDefinedForIntraCoursesOnly).toBeTruthy();
+        });
+
+        it('should pass if number of trainees is lower than max trainees', () => {
+          const isNumberOfTraineesLowerThanMaxTrainees = courseList
+            .every(c => !c.maxTrainees || c.trainees.length <= c.maxTrainees);
+          expect(isNumberOfTraineesLowerThanMaxTrainees).toBeTruthy();
+        });
+
+        it('should pass if expected bills count is defined only for blended courses', () => {
+          const isExpectedBillsCountDefinedForBlendedCoursesOnly = courseList
+            .every(c => c.format === BLENDED || !has(c, 'expectedBillsCount'));
+          expect(isExpectedBillsCountDefinedForBlendedCoursesOnly).toBeTruthy();
+        });
+
+        it('should pass if every interlocutor exists', async () => {
+          const someUsersDontExist = courseList.some((c) => {
+            const userList = [
+              ...(has(c, 'companyRepresentative') ? [c.companyRepresentative] : []),
+              ...(has(c, 'salesRepresentative') ? [c.salesRepresentative] : []),
+              ...(has(c, 'trainer') ? [c.trainer] : []),
+            ];
+
+            return userList.some(u => u === null || u === 'user not found');
+          });
+
+          expect(someUsersDontExist).toBeFalsy();
         });
       });
 

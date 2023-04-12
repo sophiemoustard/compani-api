@@ -420,12 +420,15 @@ const sectorHistories = [
 const activityList = [{ _id: new ObjectId(), name: 'great activity', type: VIDEO, cards: [] }];
 
 const stepList = [{ _id: new ObjectId(), name: 'etape', type: 'e_learning', activities: [activityList[0]._id] }];
-const subProgram = { _id: new ObjectId(), name: 'program', steps: stepList };
+const subProgramsList = [
+  { _id: new ObjectId(), name: 'subProgram 1' },
+  { _id: new ObjectId(), name: 'subProgram 2', steps: stepList },
+];
 
 const coursesList = [
   {
     _id: new ObjectId(),
-    subProgram: new ObjectId(),
+    subProgram: subProgramsList[0]._id,
     type: INTER_B2B,
     format: BLENDED,
     trainees: [helperFromOtherCompany._id, usersSeedList[0]._id],
@@ -434,7 +437,7 @@ const coursesList = [
   },
   {
     _id: new ObjectId(),
-    subProgram: new ObjectId(),
+    subProgram: subProgramsList[0]._id,
     type: INTRA,
     format: BLENDED,
     maxTrainees: 8,
@@ -444,7 +447,7 @@ const coursesList = [
   },
   {
     _id: new ObjectId(),
-    subProgram: subProgram._id,
+    subProgram: subProgramsList[1]._id,
     misc: 'elearning for all',
     type: INTER_B2C,
     format: STRICTLY_E_LEARNING,
@@ -477,7 +480,7 @@ const populateDB = async () => {
     Sector.create(userSectors),
     SectorHistory.create(sectorHistories),
     Step.create(stepList),
-    SubProgram.create(subProgram),
+    SubProgram.create(subProgramsList),
     User.create([...usersSeedList, ...usersFromDifferentCompanyList]),
     UserCompany.create(userCompanies),
     CompanyLinkRequest.create(companyLinkRequest),

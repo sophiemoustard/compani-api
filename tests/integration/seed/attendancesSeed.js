@@ -49,9 +49,9 @@ const programList = [
 ];
 
 const subProgramList = [
-  { _id: subProgramIdList[0], name: 'Subprogram 1', program: programList[0] },
-  { _id: subProgramIdList[1], name: 'Subprogram 2', program: programList[1] },
-  { _id: subProgramIdList[2], name: 'Subprogram 3', program: programList[2] },
+  { _id: subProgramIdList[0], name: 'Subprogram 1' },
+  { _id: subProgramIdList[1], name: 'Subprogram 2' },
+  { _id: subProgramIdList[2], name: 'Subprogram 3' },
 ];
 
 const traineeList = [
@@ -135,7 +135,7 @@ const coursesList = [
   },
   { // 1
     _id: new ObjectId(),
-    subProgram: new ObjectId(),
+    subProgram: subProgramList[0]._id,
     type: INTRA,
     maxTrainees: 8,
     trainees: [traineeList[0]._id],
@@ -164,7 +164,7 @@ const coursesList = [
   },
   { // 4 interb2b with only trainees from otherCompany
     _id: new ObjectId(),
-    subProgram: new ObjectId(),
+    subProgram: subProgramList[0]._id,
     type: INTER_B2B,
     trainees: [traineeList[4]._id],
     companies: [otherCompany._id],
@@ -173,7 +173,7 @@ const coursesList = [
   },
   { // 5 archived
     _id: new ObjectId(),
-    subProgram: new ObjectId(),
+    subProgram: subProgramList[0]._id,
     type: INTRA,
     maxTrainees: 8,
     trainees: [traineeList[0]._id, traineeList[8]._id],
