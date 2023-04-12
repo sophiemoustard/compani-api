@@ -10,6 +10,7 @@ const Helper = require('../../../src/models/Helper');
 const Program = require('../../../src/models/Program');
 const QuestionnaireHistory = require('../../../src/models/QuestionnaireHistory');
 const SectorHistory = require('../../../src/models/SectorHistory');
+const SubProgram = require('../../../src/models/SubProgram');
 const User = require('../../../src/models/User');
 const UserCompany = require('../../../src/models/UserCompany');
 const { ascendingSort } = require('../../../src/helpers/dates');
@@ -587,6 +588,31 @@ describe('SEEDS VERIFICATION', () => {
               )
             );
           expect(areAuxiliariesInCompanyAtSectorHistoryStartDate).toBeTruthy();
+        });
+      });
+
+      describe('Collection SubProgram', () => {
+        let subProgramList;
+        before(async () => {
+          subProgramList = await SubProgram
+            .find()
+            .populate({ path: 'steps', select: '_id', transform: doc => (doc || null) })
+            .lean();
+        });
+
+        it('should pass if every step exists and is not duplicate', async () => {
+          const someStepsDontExist = subProgramList.some(sp => sp.steps.some(step => !step));
+
+          expect(someStepsDontExist).toBeFalsy();
+
+          const someStepsAreDuplicate = subProgramList
+            .some((subProgram) => {
+              const stepsWithoutDuplicates = [...new Set(subProgram.steps.map(step => step._id.toHexString()))];
+
+              return subProgram.steps.length !== stepsWithoutDuplicates.length;
+            });
+
+          expect(someStepsAreDuplicate).toBeFalsy();
         });
       });
 
