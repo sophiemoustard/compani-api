@@ -94,12 +94,9 @@ const programsList = [
 const course = {
   _id: new ObjectId(),
   subProgram: subProgramsList[2]._id,
-  misc: 'first session',
   type: INTER_B2C,
-  trainer: new ObjectId(),
   format: 'strictly_e_learning',
   trainees: [userList[0]._id],
-  salesRepresentative: vendorAdmin._id,
 };
 
 const populateDB = async () => {
