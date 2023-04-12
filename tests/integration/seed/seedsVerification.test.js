@@ -37,6 +37,7 @@ const attendanceSheetsSeed = require('./attendanceSheetsSeed');
 const coursesSeed = require('./coursesSeed');
 const programsSeed = require('./programsSeed');
 const questionnaireHistoriesSeed = require('./questionnaireHistoriesSeed');
+const subProgramsSeed = require('./subProgramsSeed');
 const userCompaniesSeed = require('./userCompaniesSeed');
 const usersSeed = require('./usersSeed');
 
@@ -46,6 +47,7 @@ const seedList = [
   { label: 'COURSE', value: coursesSeed },
   { label: 'PROGRAM', value: programsSeed },
   { label: 'QUESTIONNAIREHISTORY', value: questionnaireHistoriesSeed },
+  { label: 'SUBPROGRAM', value: subProgramsSeed },
   { label: 'USERCOMPANY', value: userCompaniesSeed },
   { label: 'USER', value: usersSeed },
 ];

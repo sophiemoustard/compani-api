@@ -11,6 +11,7 @@ const User = require('../../../src/models/User');
 const { vendorAdmin } = require('../../seed/authUsersSeed');
 const { deleteNonAuthenticationSeeds } = require('../helpers/authentication');
 const { WEBAPP, INTRA } = require('../../../src/helpers/constants');
+const { authCompany } = require('../../seed/authCompaniesSeed');
 
 const tester = {
   _id: new ObjectId(),
@@ -109,19 +110,19 @@ const programsList = [
     _id: new ObjectId(),
     name: 'program 2',
     subPrograms: [subProgramsList[3]._id, subProgramsList[4]._id],
-    image: 'link',
+    image: { publicId: '234', link: 'link' },
     testers: [tester._id],
   },
 ];
 
 const coursesList = [{
   _id: new ObjectId(),
-  format: 'strictly_e_learning',
+  format: 'blended',
   subProgram: subProgramsList[7]._id,
   type: INTRA,
   maxTrainees: 8,
   trainees: [],
-  companies: [new ObjectId()],
+  companies: [authCompany._id],
   salesRepresentative: vendorAdmin._id,
 }];
 
