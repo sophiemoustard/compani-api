@@ -357,7 +357,6 @@ const coursesList = [
   { // 6 course without trainees and slots
     _id: new ObjectId(),
     subProgram: subProgramsList[2]._id,
-    misc: 'inter b2c session NOT concerning auth company',
     type: INTER_B2C,
     trainees: [],
     format: STRICTLY_E_LEARNING,
@@ -377,7 +376,6 @@ const coursesList = [
   { // 8 eLearning course with access rules
     _id: new ObjectId(),
     subProgram: subProgramsList[2]._id,
-    misc: 'inter_b2c with accessRules',
     type: INTER_B2C,
     format: STRICTLY_E_LEARNING,
     trainees: [traineeFromAuthFormerlyInOther._id],
@@ -386,7 +384,6 @@ const coursesList = [
   { // 9 course with access rules and trainee that can't have access to the course but has already suscribed
     _id: new ObjectId(),
     subProgram: subProgramsList[0]._id,
-    misc: 'inter_b2b with accessRules',
     type: INTER_B2C,
     format: STRICTLY_E_LEARNING,
     trainees: [coach._id],
@@ -406,7 +403,6 @@ const coursesList = [
   { // 11 course without authCompany in access rules (11ème position)
     _id: new ObjectId(),
     subProgram: subProgramsList[2]._id,
-    misc: 'inter_b2c',
     type: INTER_B2C,
     format: STRICTLY_E_LEARNING,
     trainees: [traineeFromOtherCompany._id, traineeFromAuthFormerlyInOther._id, noRole._id],

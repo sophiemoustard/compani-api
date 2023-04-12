@@ -448,7 +448,6 @@ const coursesList = [
   {
     _id: new ObjectId(),
     subProgram: subProgramsList[1]._id,
-    misc: 'elearning for all',
     type: INTER_B2C,
     format: STRICTLY_E_LEARNING,
     trainees: [usersSeedList[12]._id],

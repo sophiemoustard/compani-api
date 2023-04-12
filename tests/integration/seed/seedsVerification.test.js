@@ -259,6 +259,13 @@ describe('SEEDS VERIFICATION', () => {
           expect(someELearningCourseHasCompanies).toBeFalsy();
         });
 
+        it('should pass if no e-learning course has misc field', () => {
+          const someELearningCourseHasMisc = courseList
+            .filter(course => course.format === STRICTLY_E_LEARNING)
+            .some(course => has(course, 'misc'));
+          expect(someELearningCourseHasMisc).toBeFalsy();
+        });
+
         it('should pass if every blended course is intra ou inter_b2b', () => {
           const everyBlendedCourseHasGoodType = courseList
             .filter(course => course.format === BLENDED)
