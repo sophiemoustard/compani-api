@@ -10,7 +10,7 @@ const CourseSlot = require('../../../src/models/CourseSlot');
 const User = require('../../../src/models/User');
 const { vendorAdmin } = require('../../seed/authUsersSeed');
 const { deleteNonAuthenticationSeeds } = require('../helpers/authentication');
-const { WEBAPP, INTRA } = require('../../../src/helpers/constants');
+const { WEBAPP, INTRA, PUBLISHED, DRAFT } = require('../../../src/helpers/constants');
 const { authCompany } = require('../../seed/authCompaniesSeed');
 
 const tester = {
@@ -84,12 +84,12 @@ const stepsList = [
 const subProgramsList = [
   { _id: new ObjectId(), name: 'subProgram 0', steps: [stepsList[0]._id, stepsList[1]._id] },
   { _id: new ObjectId(), name: 'subProgram 1', steps: [stepsList[1]._id] },
-  { _id: new ObjectId(), name: 'subProgram 2', status: 'published', steps: [stepsList[0]._id] },
-  { _id: new ObjectId(), name: 'subProgram 3', status: 'draft', steps: [stepsList[2]._id] },
-  { _id: new ObjectId(), name: 'subProgram 4', status: 'published', steps: [stepsList[2]._id] },
-  { _id: new ObjectId(), name: 'subProgram 5', status: 'draft', steps: [stepsList[3]._id] },
-  { _id: new ObjectId(), name: 'subProgram 6', status: 'draft', steps: [stepsList[4]._id, stepsList[5]._id] },
-  { _id: new ObjectId(), name: 'subProgram 7', status: 'draft', steps: [stepsList[0]._id, stepsList[5]._id] },
+  { _id: new ObjectId(), name: 'subProgram 2', status: PUBLISHED, steps: [stepsList[0]._id] },
+  { _id: new ObjectId(), name: 'subProgram 3', status: DRAFT, steps: [stepsList[2]._id] },
+  { _id: new ObjectId(), name: 'subProgram 4', status: PUBLISHED, steps: [stepsList[2]._id] },
+  { _id: new ObjectId(), name: 'subProgram 5', status: DRAFT, steps: [stepsList[3]._id] },
+  { _id: new ObjectId(), name: 'subProgram 6', status: DRAFT, steps: [stepsList[4]._id, stepsList[5]._id] },
+  { _id: new ObjectId(), name: 'subProgram 7', status: DRAFT, steps: [stepsList[0]._id, stepsList[5]._id] },
   { // 8 on site without theoreticalDuration
     _id: new ObjectId(),
     name: 'subProgram 8',

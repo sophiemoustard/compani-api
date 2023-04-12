@@ -32,6 +32,7 @@ const {
   VENDOR_ADMIN,
   CLIENT,
   VENDOR,
+  DRAFT,
 } = require('../../../src/helpers/constants');
 const attendancesSeed = require('./attendancesSeed');
 const attendanceSheetsSeed = require('./attendanceSheetsSeed');
@@ -613,6 +614,12 @@ describe('SEEDS VERIFICATION', () => {
             });
 
           expect(someStepsAreDuplicate).toBeFalsy();
+        });
+
+        it('should pass if every published subProgram has at leat one step', async () => {
+          const doesEveryPublishedProgramHaveStep = subProgramList.every(sp => sp.status === DRAFT || sp.steps.length);
+
+          expect(doesEveryPublishedProgramHaveStep).toBeTruthy();
         });
       });
 
