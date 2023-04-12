@@ -49,7 +49,7 @@ const stepsList = [
 
 const subProgramsList = [
   { _id: new ObjectId(), name: 'sous-programme 1', steps: [stepsList[2]._id] },
-  { _id: new ObjectId(), name: 'sous-programme 2', steps: [stepsList[3]._id] },
+  { _id: new ObjectId(), name: 'sous-programme 2', steps: [stepsList[0]._id] },
   { _id: new ObjectId(), name: 'sous-programme 3', steps: [stepsList[1]._id] },
   {
     _id: new ObjectId(),
@@ -85,15 +85,14 @@ const programsList = [
     _id: new ObjectId(),
     name: 'Je suis un programme eLearning',
     description: 'Vous apprendrez plein de choses',
-    subPrograms: [subProgramsList[2]._id],
+    subPrograms: [subProgramsList[1]._id],
   },
-  { _id: new ObjectId(), name: 'non valid program', subPrograms: [subProgramsList[1]._id] },
   { _id: new ObjectId(), name: 'programme a vérifier', subPrograms: [subProgramsList[3]._id] },
 ];
 
 const course = {
   _id: new ObjectId(),
-  subProgram: subProgramsList[2]._id,
+  subProgram: subProgramsList[1]._id,
   type: INTER_B2C,
   format: 'strictly_e_learning',
   trainees: [userList[0]._id],

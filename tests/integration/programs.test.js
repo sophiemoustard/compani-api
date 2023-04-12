@@ -154,7 +154,7 @@ describe('PROGRAMS ROUTES - GET /programs/e-learning', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      expect(response.result.data.programs.length).toEqual(2);
+      expect(response.result.data.programs.length).toEqual(1);
     });
 
     it('should get a specific e-learning program', async () => {
@@ -183,12 +183,12 @@ describe('PROGRAMS ROUTES - GET /programs/{_id}', () => {
     it('should get program not strictly e-learning', async () => {
       const response = await app.inject({
         method: 'GET',
-        url: `/programs/${programsList[4]._id}`,
+        url: `/programs/${programsList[3]._id}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(response.statusCode).toBe(200);
-      expect(response.result.data.program._id).toEqual(programsList[4]._id);
+      expect(response.result.data.program._id).toEqual(programsList[3]._id);
       expect(response.result.data.program.subPrograms[0].areStepsValid).toBeFalsy();
       expect(response.result.data.program.subPrograms[0].isStrictlyELearning).toBeFalsy();
       expect(response.result.data.program.subPrograms[0].steps).toEqual(expect.arrayContaining([
@@ -206,7 +206,7 @@ describe('PROGRAMS ROUTES - GET /programs/{_id}', () => {
             expect.objectContaining({
               _id: subProgramsList[3]._id,
               name: 'sous-programme 4',
-              program: { _id: programsList[4]._id, name: 'programme a vérifier' },
+              program: { _id: programsList[3]._id, name: 'programme a vérifier' },
             }),
           ]),
         }),

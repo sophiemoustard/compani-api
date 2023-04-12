@@ -550,6 +550,14 @@ describe('SEEDS VERIFICATION', () => {
 
           expect(someTestersAreRofOrVendorAdmin).toBeFalsy();
         });
+
+        it('should pass if no subprogram is in several programs', async () => {
+          const subProgramsList = programList
+            .flatMap(program => program.subPrograms.map(sp => sp._id.toHexString()));
+          const subProgramsWithoutDuplicates = [...new Set(subProgramsList)];
+
+          expect(subProgramsWithoutDuplicates.length).toEqual(subProgramsList.length);
+        });
       });
 
       describe('Collection QuestionnaireHistory', () => {
