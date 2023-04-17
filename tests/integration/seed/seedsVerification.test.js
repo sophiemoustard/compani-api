@@ -210,20 +210,20 @@ describe('SEEDS VERIFICATION', () => {
           expect(isEveryTraineeCompanyInAccessRules).toBeTruthy();
         });
 
-        it('should pass if every access rules company exists and is not duplicate', async () => {
+        it('should pass if every access rules company exists and is not duplicated', async () => {
           const coursesWithAccessRules = courseList.filter(c => c.accessRules.length);
           const someCompaniesDontExist = coursesWithAccessRules.some(c => c.accessRules.some(company => !company));
 
           expect(someCompaniesDontExist).toBeFalsy();
 
-          const someAccessRulesAreDuplicate = coursesWithAccessRules
+          const someAccessRulesAreDuplicated = coursesWithAccessRules
             .some((course) => {
               const accessRulesWithoutDuplicates = [...new Set(course.accessRules.map(c => c._id.toHexString()))];
 
               return course.accessRules.length !== accessRulesWithoutDuplicates.length;
             });
 
-          expect(someAccessRulesAreDuplicate).toBeFalsy();
+          expect(someAccessRulesAreDuplicated).toBeFalsy();
         });
 
         it('should pass if every subprogram exists', () => {
@@ -231,14 +231,14 @@ describe('SEEDS VERIFICATION', () => {
           expect(subProgramsExist).toBeTruthy();
         });
 
-        it('should pass if every company exists and is not duplicate', async () => {
+        it('should pass if every company exists and is not duplicated', async () => {
           const someCompaniesDontExist = courseList
             .filter(c => c.format === BLENDED)
             .some(c => c.companies.some(company => !company));
 
           expect(someCompaniesDontExist).toBeFalsy();
 
-          const someCompaniesAreDuplicate = courseList
+          const someCompaniesAreDuplicated = courseList
             .filter(course => get(course, 'companies.length'))
             .some((course) => {
               const companiesWithoutDuplicates = [...new Set(course.companies.map(c => c._id.toHexString()))];
@@ -246,7 +246,7 @@ describe('SEEDS VERIFICATION', () => {
               return course.companies.length !== companiesWithoutDuplicates.length;
             });
 
-          expect(someCompaniesAreDuplicate).toBeFalsy();
+          expect(someCompaniesAreDuplicated).toBeFalsy();
         });
 
         it('should pass if intra courses have one and only one company', () => {
@@ -294,19 +294,19 @@ describe('SEEDS VERIFICATION', () => {
           expect(isTrainerIncludedInTrainees).toBeFalsy();
         });
 
-        it('should pass if every trainee exists and is not duplicate', () => {
+        it('should pass if every trainee exists and is not duplicated', () => {
           const someTraineesDontExist = courseList.some(c => c.trainees.some(trainee => !trainee));
 
           expect(someTraineesDontExist).toBeFalsy();
 
-          const someTraineesAreDuplicate = courseList
+          const someTraineesAreDuplicated = courseList
             .some((course) => {
               const traineesWithoutDuplicates = [...new Set(course.trainees.map(t => t._id.toHexString()))];
 
               return course.trainees.length !== traineesWithoutDuplicates.length;
             });
 
-          expect(someTraineesAreDuplicate).toBeFalsy();
+          expect(someTraineesAreDuplicated).toBeFalsy();
         });
 
         it('should pass if trainer has good role', () => {
@@ -498,49 +498,49 @@ describe('SEEDS VERIFICATION', () => {
             .lean();
         });
 
-        it('should pass if every subprogram exists and is not duplicate', async () => {
+        it('should pass if every subprogram exists and is not duplicated', async () => {
           const someSubProgramsDontExist = programList.some(p => p.subPrograms.some(subProgram => !subProgram));
 
           expect(someSubProgramsDontExist).toBeFalsy();
 
-          const someSubProgramsAreDuplicate = programList
+          const someSubProgramsAreDuplicated = programList
             .some((program) => {
               const subProgramsWithoutDuplicates = [...new Set(program.subPrograms.map(sp => sp._id.toHexString()))];
 
               return program.subPrograms.length !== subProgramsWithoutDuplicates.length;
             });
 
-          expect(someSubProgramsAreDuplicate).toBeFalsy();
+          expect(someSubProgramsAreDuplicated).toBeFalsy();
         });
 
-        it('should pass if every category exists and is not duplicate', async () => {
+        it('should pass if every category exists and is not duplicated', async () => {
           const someCategoriesDontExist = programList.some(p => p.categories.some(category => !category));
 
           expect(someCategoriesDontExist).toBeFalsy();
 
-          const someCategoriesAreDuplicate = programList
+          const someCategoriesAreDuplicated = programList
             .some((program) => {
               const categoriesWithoutDuplicates = [...new Set(program.categories.map(c => c._id.toHexString()))];
 
               return program.categories.length !== categoriesWithoutDuplicates.length;
             });
 
-          expect(someCategoriesAreDuplicate).toBeFalsy();
+          expect(someCategoriesAreDuplicated).toBeFalsy();
         });
 
-        it('should pass if every tester exists and is not duplicate', async () => {
+        it('should pass if every tester exists and is not duplicated', async () => {
           const someTestersDontExist = programList.some(p => p.testers.some(tester => !tester));
 
           expect(someTestersDontExist).toBeFalsy();
 
-          const someTestersAreDuplicate = programList
+          const someTestersAreDuplicated = programList
             .some((program) => {
               const testersWithoutDuplicates = [...new Set(program.testers.map(t => t._id.toHexString()))];
 
               return program.testers.length !== testersWithoutDuplicates.length;
             });
 
-          expect(someTestersAreDuplicate).toBeFalsy();
+          expect(someTestersAreDuplicated).toBeFalsy();
         });
 
         it('should pass if testers are not rof or vendor admin', async () => {
@@ -609,22 +609,22 @@ describe('SEEDS VERIFICATION', () => {
             .lean();
         });
 
-        it('should pass if every step exists and is not duplicate', async () => {
+        it('should pass if every step exists and is not duplicated', async () => {
           const someStepsDontExist = subProgramList.some(sp => sp.steps.some(step => !step));
 
           expect(someStepsDontExist).toBeFalsy();
 
-          const someStepsAreDuplicate = subProgramList
+          const someStepsAreDuplicated = subProgramList
             .some((subProgram) => {
               const stepsWithoutDuplicates = [...new Set(subProgram.steps.map(step => step._id.toHexString()))];
 
               return subProgram.steps.length !== stepsWithoutDuplicates.length;
             });
 
-          expect(someStepsAreDuplicate).toBeFalsy();
+          expect(someStepsAreDuplicated).toBeFalsy();
         });
 
-        it('should pass if every published subProgram has at leat one step', async () => {
+        it('should pass if every published subProgram has at least one step', async () => {
           const doesEveryPublishedProgramHaveStep = subProgramList.every(sp => sp.status === DRAFT || sp.steps.length);
 
           expect(doesEveryPublishedProgramHaveStep).toBeTruthy();
