@@ -498,19 +498,16 @@ describe('SEEDS VERIFICATION', () => {
             .lean();
         });
 
-        it('should pass if every subprogram exists and is not duplicated', async () => {
+        it('should pass if every subprogram exists and is not duplicated in same or different program', async () => {
           const someSubProgramsDontExist = programList.some(p => p.subPrograms.some(subProgram => !subProgram));
 
           expect(someSubProgramsDontExist).toBeFalsy();
 
-          const someSubProgramsAreDuplicated = programList
-            .some((program) => {
-              const subProgramsWithoutDuplicates = [...new Set(program.subPrograms.map(sp => sp._id.toHexString()))];
+          const subProgramsList = programList
+            .flatMap(program => program.subPrograms.map(sp => sp._id.toHexString()));
+          const subProgramsWithoutDuplicates = [...new Set(subProgramsList)];
 
-              return program.subPrograms.length !== subProgramsWithoutDuplicates.length;
-            });
-
-          expect(someSubProgramsAreDuplicated).toBeFalsy();
+          expect(subProgramsWithoutDuplicates.length).toEqual(subProgramsList.length);
         });
 
         it('should pass if every category exists and is not duplicated', async () => {
@@ -549,14 +546,6 @@ describe('SEEDS VERIFICATION', () => {
               .some(tester => [TRAINING_ORGANISATION_MANAGER, VENDOR_ADMIN].includes(get(tester, 'role.vendor.name'))));
 
           expect(someTestersAreRofOrVendorAdmin).toBeFalsy();
-        });
-
-        it('should pass if no subprogram is in several programs', async () => {
-          const subProgramsList = programList
-            .flatMap(program => program.subPrograms.map(sp => sp._id.toHexString()));
-          const subProgramsWithoutDuplicates = [...new Set(subProgramsList)];
-
-          expect(subProgramsWithoutDuplicates.length).toEqual(subProgramsList.length);
         });
       });
 
