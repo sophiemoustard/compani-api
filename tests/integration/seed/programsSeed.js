@@ -7,7 +7,7 @@ const Category = require('../../../src/models/Category');
 const ActivityHistory = require('../../../src/models/ActivityHistory');
 const Card = require('../../../src/models/Card');
 const Course = require('../../../src/models/Course');
-const { userList, vendorAdmin, trainerOrganisationManager } = require('../../seed/authUsersSeed');
+const { userList, vendorAdmin, coach } = require('../../seed/authUsersSeed');
 const { deleteNonAuthenticationSeeds } = require('../helpers/authentication');
 const { INTER_B2C } = require('../../../src/helpers/constants');
 
@@ -49,7 +49,7 @@ const stepsList = [
 
 const subProgramsList = [
   { _id: new ObjectId(), name: 'sous-programme 1', steps: [stepsList[2]._id] },
-  { _id: new ObjectId(), name: 'sous-programme 2', steps: [stepsList[3]._id] },
+  { _id: new ObjectId(), name: 'sous-programme 2', steps: [stepsList[0]._id] },
   { _id: new ObjectId(), name: 'sous-programme 3', steps: [stepsList[1]._id] },
   {
     _id: new ObjectId(),
@@ -79,27 +79,23 @@ const programsList = [
     _id: new ObjectId(),
     name: 'training program',
     subPrograms: [subProgramsList[2]._id],
-    testers: [trainerOrganisationManager._id],
+    testers: [coach._id],
   },
   {
     _id: new ObjectId(),
     name: 'Je suis un programme eLearning',
     description: 'Vous apprendrez plein de choses',
-    subPrograms: [subProgramsList[2]._id],
+    subPrograms: [subProgramsList[1]._id],
   },
-  { _id: new ObjectId(), name: 'non valid program', subPrograms: [subProgramsList[1]._id] },
   { _id: new ObjectId(), name: 'programme a vérifier', subPrograms: [subProgramsList[3]._id] },
 ];
 
 const course = {
   _id: new ObjectId(),
-  subProgram: subProgramsList[2]._id,
-  misc: 'first session',
+  subProgram: subProgramsList[1]._id,
   type: INTER_B2C,
-  trainer: new ObjectId(),
   format: 'strictly_e_learning',
   trainees: [userList[0]._id],
-  salesRepresentative: vendorAdmin._id,
 };
 
 const populateDB = async () => {
