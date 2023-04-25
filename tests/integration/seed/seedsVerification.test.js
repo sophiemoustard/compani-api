@@ -1,5 +1,6 @@
 const { expect } = require('expect');
 const { groupBy, get, has, compact } = require('lodash');
+const Activity = require('../../../src/models/Activity');
 const Attendance = require('../../../src/models/Attendance');
 const AttendanceSheet = require('../../../src/models/AttendanceSheet');
 const CompanyLinkRequest = require('../../../src/models/CompanyLinkRequest');
@@ -10,11 +11,13 @@ const Helper = require('../../../src/models/Helper');
 const Program = require('../../../src/models/Program');
 const QuestionnaireHistory = require('../../../src/models/QuestionnaireHistory');
 const SectorHistory = require('../../../src/models/SectorHistory');
+const Step = require('../../../src/models/Step');
 const SubProgram = require('../../../src/models/SubProgram');
 const User = require('../../../src/models/User');
 const UserCompany = require('../../../src/models/UserCompany');
 const { ascendingSort } = require('../../../src/helpers/dates');
 const { CompaniDate } = require('../../../src/helpers/dates/companiDates');
+const { CompaniDuration } = require('../../../src/helpers/dates/companiDurations');
 const { descendingSortBy, ascendingSortBy } = require('../../../src/helpers/dates/utils');
 const UtilsHelper = require('../../../src/helpers/utils');
 const UserCompaniesHelper = require('../../../src/helpers/userCompanies');
@@ -33,22 +36,28 @@ const {
   CLIENT,
   VENDOR,
   DRAFT,
+  E_LEARNING,
+  PUBLISHED,
 } = require('../../../src/helpers/constants');
 const attendancesSeed = require('./attendancesSeed');
+const activitiesSeed = require('./activitiesSeed');
 const attendanceSheetsSeed = require('./attendanceSheetsSeed');
 const coursesSeed = require('./coursesSeed');
 const programsSeed = require('./programsSeed');
 const questionnaireHistoriesSeed = require('./questionnaireHistoriesSeed');
+const stepsSeed = require('./stepsSeed');
 const subProgramsSeed = require('./subProgramsSeed');
 const userCompaniesSeed = require('./userCompaniesSeed');
 const usersSeed = require('./usersSeed');
 
 const seedList = [
+  { label: 'ACTIVITY', value: activitiesSeed },
   { label: 'ATTENDANCE', value: attendancesSeed },
   { label: 'ATTENDANCESHEET', value: attendanceSheetsSeed },
   { label: 'COURSE', value: coursesSeed },
   { label: 'PROGRAM', value: programsSeed },
   { label: 'QUESTIONNAIREHISTORY', value: questionnaireHistoriesSeed },
+  { label: 'STEP', value: stepsSeed },
   { label: 'SUBPROGRAM', value: subProgramsSeed },
   { label: 'USERCOMPANY', value: userCompaniesSeed },
   { label: 'USER', value: usersSeed },
@@ -58,6 +67,38 @@ describe('SEEDS VERIFICATION', () => {
   seedList.forEach(({ label, value: seeds }) => {
     describe(`${label} SEEDS FILE`, () => {
       before(seeds.populateDB);
+
+      describe('Collection Activity', () => {
+        let activityList;
+        before(async () => {
+          activityList = await Activity
+            .find()
+            .populate({ path: 'cards', select: '_id', transform: doc => (doc || null) })
+            .lean();
+        });
+
+        it('should pass if every card exists and is not duplicated', async () => {
+          const someCardsDontExist = activityList.some(activity => activity.cards.some(card => !card));
+
+          expect(someCardsDontExist).toBeFalsy();
+
+          const someCardsAreDuplicated = activityList
+            .some((activity) => {
+              const cardsWithoutDuplicates = [...new Set(activity.cards.map(card => card._id.toHexString()))];
+
+              return activity.cards.length !== cardsWithoutDuplicates.length;
+            });
+
+          expect(someCardsAreDuplicated).toBeFalsy();
+        });
+
+        it('should pass if published activities have at least one card', async () => {
+          const everyPublishedActivityHasPublishedCards = activityList
+            .every(activity => activity.status === DRAFT || activity.cards.length);
+
+          expect(everyPublishedActivityHasPublishedCards).toBeTruthy();
+        });
+      });
 
       describe('Collection Attendance', () => {
         let attendanceList;
@@ -586,6 +627,72 @@ describe('SEEDS VERIFICATION', () => {
               )
             );
           expect(areAuxiliariesInCompanyAtSectorHistoryStartDate).toBeTruthy();
+        });
+      });
+
+      describe('Collection Step', () => {
+        let stepList;
+        before(async () => {
+          stepList = await Step
+            .find()
+            .populate({ path: 'activities', select: '_id status', transform: doc => (doc || null) })
+            .lean();
+        });
+
+        it('should pass if every activity exists and is not duplicated', async () => {
+          const someActivitiesDontExist = stepList.some(step => step.activities.some(activity => !activity));
+
+          expect(someActivitiesDontExist).toBeFalsy();
+
+          const someActivitiesAreDuplicated = stepList
+            .some((step) => {
+              const activitiesWithoutDuplicates = [...new Set(step.activities.map(a => a._id.toHexString()))];
+
+              return step.activities.length !== activitiesWithoutDuplicates.length;
+            });
+
+          expect(someActivitiesAreDuplicated).toBeFalsy();
+        });
+
+        it('should pass if no live step has actvities', async () => {
+          const someLiveStepHaveActivities = stepList.some(step => step.type !== E_LEARNING && step.activities.length);
+
+          expect(someLiveStepHaveActivities).toBeFalsy();
+        });
+
+        it('should pass if published steps have theoretical duration', async () => {
+          const everyPublishedStepHasTheoreticalDuration = stepList
+            .every(step => step.status === DRAFT || step.theoreticalDuration);
+
+          expect(everyPublishedStepHasTheoreticalDuration).toBeTruthy();
+        });
+
+        it('should pass if published elearning steps have at least one activity', async () => {
+          const everyElearningPublishedStepHasActivities = stepList
+            .filter(step => step.type === E_LEARNING && step.status === PUBLISHED)
+            .every(step => step.activities.length);
+
+          expect(everyElearningPublishedStepHasActivities).toBeTruthy();
+        });
+
+        it('should pass if every activity in published steps is published', async () => {
+          const everyPublishedStepHasPublishedActivities = stepList
+            .filter(step => step.type === E_LEARNING && step.status === PUBLISHED)
+            .every(step => step.activities.every(activity => activity.status === PUBLISHED));
+
+          expect(everyPublishedStepHasPublishedActivities).toBeTruthy();
+        });
+
+        it('should pass if theoretical duration is a positive integer', async () => {
+          const theoreticalDurationIsPositiveInteger = stepList
+            .every((step) => {
+              if (!has(step, 'theoreticalDuration')) return true;
+
+              const durationInMinutes = CompaniDuration(step.theoreticalDuration).asMinutes();
+              return (Number.isInteger(durationInMinutes) && durationInMinutes > 0);
+            });
+
+          expect(theoreticalDurationIsPositiveInteger).toBeTruthy();
         });
       });
 
