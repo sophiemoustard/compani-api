@@ -44,30 +44,30 @@ const activitiesList = [
 ];
 
 const stepsList = [
-  { _id: new ObjectId(), name: 'step 0', type: 'on_site', theoreticalDuration: 1 },
+  { _id: new ObjectId(), name: 'step 0', type: 'on_site', theoreticalDuration: 9000 },
   {
     _id: new ObjectId(),
     name: 'step 1',
     type: 'e_learning',
     activities: [activitiesList[0]._id],
-    theoreticalDuration: 1,
+    theoreticalDuration: 9000,
   },
   {
     _id: new ObjectId(),
     name: 'step 2',
     type: 'e_learning',
     activities: [activitiesList[0]._id],
-    theoreticalDuration: 1,
+    theoreticalDuration: 9000,
   },
-  { _id: new ObjectId(), name: 'step 3', type: 'e_learning', theoreticalDuration: 1 },
+  { _id: new ObjectId(), name: 'step 3', type: 'e_learning', theoreticalDuration: 9000 },
   {
     _id: new ObjectId(),
     name: 'step 4',
     type: 'e_learning',
     activities: [activitiesList[1]._id],
-    theoreticalDuration: 1,
+    theoreticalDuration: 9000,
   },
-  { _id: new ObjectId(), name: 'step 5 - linked to courseSlot', type: 'on_site', theoreticalDuration: 0.5 },
+  { _id: new ObjectId(), name: 'step 5 - linked to courseSlot', type: 'on_site', theoreticalDuration: 9000 },
   { // 6 - on site without theoreticalDuration
     _id: new ObjectId(),
     name: 'step 6',

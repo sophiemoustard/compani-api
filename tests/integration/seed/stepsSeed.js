@@ -33,6 +33,7 @@ const stepsList = [
     name: 'etape 4',
     status: 'published',
     activities: [activitiesList[3]._id],
+    theoreticalDuration: 9000,
   },
   { _id: new ObjectId(), type: 'on_site', name: 'etape 5 - sans sous-prog', activities: [] },
 ];

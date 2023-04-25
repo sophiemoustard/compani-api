@@ -252,7 +252,7 @@ const stepList = [
     name: 'etape',
     type: 'e_learning',
     activities: activitiesList.map(a => a._id),
-    theoreticalDuration: 20,
+    theoreticalDuration: 60,
   },
   { _id: new ObjectId(), name: 'etape', type: 'remote', activities: [] },
 ];
