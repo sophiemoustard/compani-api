@@ -25,8 +25,8 @@ const cardsList = [
     media: { link: 'lien', publicId: 'id' },
   },
   { _id: new ObjectId(), template: FLASHCARD, backText: 'ceci est un backText', text: 'ceci est un text' },
-  { _id: new ObjectId(), template: TITLE_TEXT },
-  { _id: new ObjectId(), template: TRANSITION },
+  { _id: new ObjectId(), template: TITLE_TEXT, title: 'title', text: 'text' },
+  { _id: new ObjectId(), template: TRANSITION, title: 'title' },
   { _id: new ObjectId(), template: FILL_THE_GAPS },
   { _id: new ObjectId(), template: ORDER_THE_SEQUENCE },
 ];

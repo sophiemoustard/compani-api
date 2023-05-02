@@ -639,11 +639,12 @@ describe('getKeysOf2DepthObject', () => {
       starter: 3,
       dish: 2,
       dessert: 6,
+      drink: [1, 3, 1, 2],
     };
 
     const result = UtilsHelper.getKeysOf2DepthObject(nestedObject);
 
-    expect(result).toEqual(['starter', 'dish', 'dessert']);
+    expect(result).toEqual(['starter', 'dish', 'dessert', 'drink']);
   });
 
   it('should return keys of 2 depth object', () => {

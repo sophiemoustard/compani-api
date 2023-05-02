@@ -3,6 +3,7 @@ const { groupBy, get, has, compact } = require('lodash');
 const Activity = require('../../../src/models/Activity');
 const Attendance = require('../../../src/models/Attendance');
 const AttendanceSheet = require('../../../src/models/AttendanceSheet');
+const Card = require('../../../src/models/Card');
 const CompanyLinkRequest = require('../../../src/models/CompanyLinkRequest');
 const Contract = require('../../../src/models/Contract');
 const Course = require('../../../src/models/Course');
@@ -38,6 +39,18 @@ const {
   DRAFT,
   E_LEARNING,
   PUBLISHED,
+  FILL_THE_GAPS,
+  SINGLE_CHOICE_QUESTION,
+  QUESTION_ANSWER,
+  ORDER_THE_SEQUENCE,
+  MULTIPLE_CHOICE_QUESTION,
+  SURVEY,
+  TEXT_MEDIA,
+  TITLE_TEXT_MEDIA,
+  TITLE_TEXT,
+  OPEN_QUESTION,
+  TRANSITION,
+  FLASHCARD,
 } = require('../../../src/helpers/constants');
 const attendancesSeed = require('./attendancesSeed');
 const activitiesSeed = require('./activitiesSeed');
@@ -75,11 +88,11 @@ describe('SEEDS VERIFICATION', () => {
         before(async () => {
           activityList = await Activity
             .find()
-            .populate({ path: 'cards', select: '_id', transform: doc => (doc || null) })
-            .lean();
+            .populate({ path: 'cards', select: '-__v -createdAt -updatedAt', transform: doc => (doc || null) })
+            .lean({ virtuals: true });
         });
 
-        it('should pass if every card exists and is not duplicated', async () => {
+        it('should pass if every card exists and is not duplicated', () => {
           const someCardsDontExist = activityList.some(activity => activity.cards.some(card => !card));
 
           expect(someCardsDontExist).toBeFalsy();
@@ -94,11 +107,18 @@ describe('SEEDS VERIFICATION', () => {
           expect(someCardsAreDuplicated).toBeFalsy();
         });
 
-        it('should pass if published activities have at least one card', async () => {
-          const everyPublishedActivityHasPublishedCards = activityList
+        it('should pass if published activities have at least one card', () => {
+          const everyPublishedActivityHasCards = activityList
             .every(activity => activity.status === DRAFT || activity.cards.length);
 
-          expect(everyPublishedActivityHasPublishedCards).toBeTruthy();
+          expect(everyPublishedActivityHasCards).toBeTruthy();
+        });
+
+        it('should pass if published activities have all their valid cards', () => {
+          const everyPublishedActivityHasValidCards = activityList
+            .every(activity => activity.status === DRAFT || activity.areCardsValid);
+
+          expect(everyPublishedActivityHasValidCards).toBeTruthy();
         });
       });
 
@@ -138,6 +158,107 @@ describe('SEEDS VERIFICATION', () => {
               .some(uc => UtilsHelper.areObjectIdsEquals(uc.company, attendanceSheet.company))
             );
           expect(areTraineesInCompany).toBeTruthy();
+        });
+      });
+
+      describe('Collection Card', () => {
+        let cardList;
+        before(async () => {
+          cardList = await Card.find().lean();
+        });
+
+        const templateList = [
+          {
+            name: FILL_THE_GAPS,
+            allowedKeys: ['gappedText', 'explanation', 'falsyGapAnswers', 'canSwitchAnswers'],
+          },
+          {
+            name: SINGLE_CHOICE_QUESTION,
+            allowedKeys: ['question', 'qcuGoodAnswer', 'qcAnswers', 'explanation'],
+          },
+          {
+            name: QUESTION_ANSWER,
+            allowedKeys: ['question', 'isQuestionAnswerMultipleChoiced', 'qcAnswers', 'isMandatory'],
+          },
+          {
+            name: ORDER_THE_SEQUENCE,
+            allowedKeys: ['question', 'orderedAnswers', 'explanation'],
+          },
+          {
+            name: MULTIPLE_CHOICE_QUESTION,
+            allowedKeys: ['question', 'qcAnswers', 'explanation'],
+          },
+          {
+            name: SURVEY,
+            allowedKeys: ['question', 'label.right', 'label.left', 'isMandatory'],
+          },
+          {
+            name: TEXT_MEDIA,
+            allowedKeys: ['text', 'media.link', 'media.publicId', 'media.type'],
+          },
+          {
+            name: TITLE_TEXT_MEDIA,
+            allowedKeys: ['text', 'title', 'media.link', 'media.publicId', 'media.type'],
+          },
+          {
+            name: TITLE_TEXT,
+            allowedKeys: ['text', 'title'],
+          },
+          {
+            name: OPEN_QUESTION,
+            allowedKeys: ['question', 'isMandatory'],
+          },
+          {
+            name: TRANSITION,
+            allowedKeys: ['title'],
+          },
+          {
+            name: FLASHCARD,
+            allowedKeys: ['text', 'backText'],
+          },
+        ];
+        templateList.forEach((template) => {
+          it(`should pass if every field in '${template.name}' card is allowed`, () => {
+            const someKeysAreNotAllowed = cardList
+              .filter(card => card.template === template.name)
+              .some((card) => {
+                const cardKeys = UtilsHelper.getKeysOf2DepthObject(card)
+                  .filter(key => !['_id', '__v', 'createdAt', 'updatedAt', 'template'].includes(key));
+
+                return cardKeys.some(key => !template.allowedKeys.includes(key));
+              });
+
+            expect(someKeysAreNotAllowed).toBeFalsy();
+          });
+        });
+
+        const arrayKeys = [
+          { label: 'falsyGapAnswers', subKey: 'text' },
+          { label: 'qcAnswers', subKey: 'text' },
+          { label: 'orderedAnswers', subKey: 'text' },
+        ];
+        arrayKeys.forEach((key) => {
+          it(`should pass if in '${key.label}' objects we have '${key.subKey}'`, () => {
+            const someSubKeysAreMissing = cardList
+              .some(card => has(card, key.label) && card[key.label].some(object => !has(object, key.subKey)));
+
+            expect(someSubKeysAreMissing).toBeFalsy();
+          });
+        });
+
+        it('should pass if only \'multiple choice question\' card has correct key in \'qcAnswers\' field', () => {
+          const someSubKeysAreWrong = cardList
+            .some(card => card.template !== MULTIPLE_CHOICE_QUESTION && has(card, 'qcAnswers') &&
+              card.qcAnswers.some(object => has(object, 'correct')));
+
+          expect(someSubKeysAreWrong).toBeFalsy();
+        });
+
+        it('should pass if every card with \'label\' field contains \'right\' and \'left\' keys', () => {
+          const someSubKeysAreMissing = cardList
+            .some(card => has(card, 'label') && !(has(card, 'label.left') && has(card, 'label.right')));
+
+          expect(someSubKeysAreMissing).toBeFalsy();
         });
       });
 
