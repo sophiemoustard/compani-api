@@ -42,6 +42,7 @@ const {
 const attendancesSeed = require('./attendancesSeed');
 const activitiesSeed = require('./activitiesSeed');
 const attendanceSheetsSeed = require('./attendanceSheetsSeed');
+const cardsSeed = require('./cardsSeed');
 const coursesSeed = require('./coursesSeed');
 const programsSeed = require('./programsSeed');
 const questionnaireHistoriesSeed = require('./questionnaireHistoriesSeed');
@@ -54,6 +55,7 @@ const seedList = [
   { label: 'ACTIVITY', value: activitiesSeed },
   { label: 'ATTENDANCE', value: attendancesSeed },
   { label: 'ATTENDANCESHEET', value: attendanceSheetsSeed },
+  { label: 'CARD', value: cardsSeed },
   { label: 'COURSE', value: coursesSeed },
   { label: 'PROGRAM', value: programsSeed },
   { label: 'QUESTIONNAIREHISTORY', value: questionnaireHistoriesSeed },
