@@ -374,7 +374,7 @@ describe('SEEDS VERIFICATION', () => {
           expect(isEveryTraineeCompanyInAccessRules).toBeTruthy();
         });
 
-        it('should pass if every access rules company exists and is not duplicated', async () => {
+        it('should pass if every access rules company exists and is not duplicated', () => {
           const coursesWithAccessRules = courseList.filter(c => c.accessRules.length);
           const someCompaniesDontExist = coursesWithAccessRules.some(c => c.accessRules.some(company => !company));
 
@@ -395,7 +395,7 @@ describe('SEEDS VERIFICATION', () => {
           expect(subProgramsExist).toBeTruthy();
         });
 
-        it('should pass if every company exists and is not duplicated', async () => {
+        it('should pass if every company exists and is not duplicated', () => {
           const someCompaniesDontExist = courseList
             .filter(c => c.format === BLENDED)
             .some(c => c.companies.some(company => !company));
@@ -554,7 +554,7 @@ describe('SEEDS VERIFICATION', () => {
           expect(isExpectedBillsCountDefinedForBlendedCoursesOnly).toBeTruthy();
         });
 
-        it('should pass if every interlocutor exists', async () => {
+        it('should pass if every interlocutor exists', () => {
           const someUsersDontExist = courseList.some((c) => {
             const userList = [
               ...(has(c, 'companyRepresentative') ? [c.companyRepresentative] : []),
@@ -662,7 +662,7 @@ describe('SEEDS VERIFICATION', () => {
             .lean();
         });
 
-        it('should pass if every subprogram exists and is not duplicated in same or different program', async () => {
+        it('should pass if every subprogram exists and is not duplicated in same or different program', () => {
           const someSubProgramsDontExist = programList.some(p => p.subPrograms.some(subProgram => !subProgram));
 
           expect(someSubProgramsDontExist).toBeFalsy();
@@ -674,7 +674,7 @@ describe('SEEDS VERIFICATION', () => {
           expect(subProgramsWithoutDuplicates.length).toEqual(subProgramsList.length);
         });
 
-        it('should pass if every category exists and is not duplicated', async () => {
+        it('should pass if every category exists and is not duplicated', () => {
           const someCategoriesDontExist = programList.some(p => p.categories.some(category => !category));
 
           expect(someCategoriesDontExist).toBeFalsy();
@@ -689,7 +689,7 @@ describe('SEEDS VERIFICATION', () => {
           expect(someCategoriesAreDuplicated).toBeFalsy();
         });
 
-        it('should pass if every tester exists and is not duplicated', async () => {
+        it('should pass if every tester exists and is not duplicated', () => {
           const someTestersDontExist = programList.some(p => p.testers.some(tester => !tester));
 
           expect(someTestersDontExist).toBeFalsy();
@@ -704,7 +704,7 @@ describe('SEEDS VERIFICATION', () => {
           expect(someTestersAreDuplicated).toBeFalsy();
         });
 
-        it('should pass if testers are not rof or vendor admin', async () => {
+        it('should pass if testers are not rof or vendor admin', () => {
           const someTestersAreRofOrVendorAdmin = programList
             .some(p => p.testers
               .some(tester => [TRAINING_ORGANISATION_MANAGER, VENDOR_ADMIN].includes(get(tester, 'role.vendor.name'))));
@@ -762,7 +762,7 @@ describe('SEEDS VERIFICATION', () => {
             .lean();
         });
 
-        it('should pass if every activity exists and is not duplicated', async () => {
+        it('should pass if every activity exists and is not duplicated', () => {
           const someActivitiesDontExist = stepList.some(step => step.activities.some(activity => !activity));
 
           expect(someActivitiesDontExist).toBeFalsy();
@@ -777,20 +777,20 @@ describe('SEEDS VERIFICATION', () => {
           expect(someActivitiesAreDuplicated).toBeFalsy();
         });
 
-        it('should pass if no live step has actvities', async () => {
+        it('should pass if no live step has actvities', () => {
           const someLiveStepHaveActivities = stepList.some(step => step.type !== E_LEARNING && step.activities.length);
 
           expect(someLiveStepHaveActivities).toBeFalsy();
         });
 
-        it('should pass if published steps have theoretical duration', async () => {
+        it('should pass if published steps have theoretical duration', () => {
           const everyPublishedStepHasTheoreticalDuration = stepList
             .every(step => step.status === DRAFT || step.theoreticalDuration);
 
           expect(everyPublishedStepHasTheoreticalDuration).toBeTruthy();
         });
 
-        it('should pass if published elearning steps have at least one activity', async () => {
+        it('should pass if published elearning steps have at least one activity', () => {
           const everyElearningPublishedStepHasActivities = stepList
             .filter(step => step.type === E_LEARNING && step.status === PUBLISHED)
             .every(step => step.activities.length);
@@ -798,7 +798,7 @@ describe('SEEDS VERIFICATION', () => {
           expect(everyElearningPublishedStepHasActivities).toBeTruthy();
         });
 
-        it('should pass if every activity in published steps is published', async () => {
+        it('should pass if every activity in published steps is published', () => {
           const everyPublishedStepHasPublishedActivities = stepList
             .filter(step => step.type === E_LEARNING && step.status === PUBLISHED)
             .every(step => step.activities.every(activity => activity.status === PUBLISHED));
@@ -806,7 +806,7 @@ describe('SEEDS VERIFICATION', () => {
           expect(everyPublishedStepHasPublishedActivities).toBeTruthy();
         });
 
-        it('should pass if theoretical duration is a positive integer', async () => {
+        it('should pass if theoretical duration is a positive integer', () => {
           const theoreticalDurationIsPositiveInteger = stepList
             .every((step) => {
               if (!has(step, 'theoreticalDuration')) return true;
@@ -828,7 +828,7 @@ describe('SEEDS VERIFICATION', () => {
             .lean();
         });
 
-        it('should pass if every step exists and is not duplicated', async () => {
+        it('should pass if every step exists and is not duplicated', () => {
           const someStepsDontExist = subProgramList.some(sp => sp.steps.some(step => !step));
 
           expect(someStepsDontExist).toBeFalsy();
@@ -843,7 +843,7 @@ describe('SEEDS VERIFICATION', () => {
           expect(someStepsAreDuplicated).toBeFalsy();
         });
 
-        it('should pass if every published subProgram has at least one step', async () => {
+        it('should pass if every published subProgram has at least one step', () => {
           const doesEveryPublishedProgramHaveStep = subProgramList.every(sp => sp.status === DRAFT || sp.steps.length);
 
           expect(doesEveryPublishedProgramHaveStep).toBeTruthy();
