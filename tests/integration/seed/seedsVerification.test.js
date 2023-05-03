@@ -114,7 +114,7 @@ describe('SEEDS VERIFICATION', () => {
           expect(everyPublishedActivityHasCards).toBeTruthy();
         });
 
-        it('should pass if published activities have all their valid cards', () => {
+        it('should pass if published activities have all their cards valid', () => {
           const everyPublishedActivityHasValidCards = activityList
             .every(activity => activity.status === DRAFT || activity.areCardsValid);
 
@@ -164,7 +164,7 @@ describe('SEEDS VERIFICATION', () => {
       describe('Collection Card', () => {
         let cardList;
         before(async () => {
-          cardList = await Card.find().lean();
+          cardList = await Card.find({}, { __v: 0, createdAt: 0, updatedAt: 0 }).lean();
         });
 
         const templateList = [
@@ -217,30 +217,25 @@ describe('SEEDS VERIFICATION', () => {
             allowedKeys: ['text', 'backText'],
           },
         ];
+
         templateList.forEach((template) => {
           it(`should pass if every field in '${template.name}' card is allowed`, () => {
             const someKeysAreNotAllowed = cardList
               .filter(card => card.template === template.name)
-              .some((card) => {
-                const cardKeys = UtilsHelper.getKeysOf2DepthObject(card)
-                  .filter(key => !['_id', '__v', 'createdAt', 'updatedAt', 'template'].includes(key));
-
-                return cardKeys.some(key => !template.allowedKeys.includes(key));
-              });
+              .some(card => UtilsHelper.getKeysOf2DepthObject(card)
+                .filter(key => !['_id', 'template'].includes(key))
+                .some(key => !template.allowedKeys.includes(key)));
 
             expect(someKeysAreNotAllowed).toBeFalsy();
           });
         });
 
-        const arrayKeys = [
-          { label: 'falsyGapAnswers', subKey: 'text' },
-          { label: 'qcAnswers', subKey: 'text' },
-          { label: 'orderedAnswers', subKey: 'text' },
-        ];
-        arrayKeys.forEach((key) => {
-          it(`should pass if in '${key.label}' objects we have '${key.subKey}'`, () => {
+        const keysWithTextSubKey = ['falsyGapAnswers', 'qcAnswers', 'orderedAnswers'];
+
+        keysWithTextSubKey.forEach((key) => {
+          it(`should pass if in '${key}' objects we have 'text'`, () => {
             const someSubKeysAreMissing = cardList
-              .some(card => has(card, key.label) && card[key.label].some(object => !has(object, key.subKey)));
+              .some(card => has(card, key) && card[key].some(object => !has(object, 'text')));
 
             expect(someSubKeysAreMissing).toBeFalsy();
           });

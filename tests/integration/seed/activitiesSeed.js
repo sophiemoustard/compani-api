@@ -22,7 +22,7 @@ const cardsList = [
     template: TITLE_TEXT_MEDIA,
     title: 'ceci est un titre',
     text: 'text',
-    media: { link: 'lien', publicId: 'id' },
+    media: { type: 'video', link: 'lien', publicId: 'id' },
   },
   { _id: new ObjectId(), template: FLASHCARD, backText: 'ceci est un backText', text: 'ceci est un text' },
   { _id: new ObjectId(), template: TITLE_TEXT, title: 'title', text: 'text' },

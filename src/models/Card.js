@@ -45,7 +45,7 @@ const CardSchema = mongoose.Schema({
   media: {
     publicId: { type: String, required() { return !!this.media.link; } },
     link: { type: String, trim: true, required() { return !!this.media.publicId; } },
-    type: { type: String, enum: MEDIA_TYPES },
+    type: { type: String, enum: MEDIA_TYPES, required() { return !!this.media.publicId || this.media.link; } },
   },
   gappedText: { type: String },
   question: { type: String },
