@@ -351,7 +351,7 @@ describe('deleteImage', () => {
     sinon.assert.calledOnceWithExactly(
       updateOne,
       { _id: programId },
-      { $unset: { 'image.publicId': '', 'image.link': '' } }
+      { $unset: { image: '' } }
     );
     sinon.assert.calledOnceWithExactly(deleteMedia, 'publicId');
   });
