@@ -48,7 +48,7 @@ const {
   authorizeCourseCompanyDeletion,
   authorizeGenerateTrainingContract,
 } = require('./preHandlers/courses');
-const { INTRA, OPERATIONS, MOBILE, WEBAPP, PEDAGOGY, ORIGIN_OPTIONS } = require('../helpers/constants');
+const { INTRA, OPERATIONS, MOBILE, WEBAPP, PEDAGOGY, ORIGIN_OPTIONS, BLENDED } = require('../helpers/constants');
 const { dateToISOString } = require('./validations/utils');
 
 exports.plugin = {
@@ -79,6 +79,20 @@ exports.plugin = {
               }),
             company: Joi.objectId().when('origin', { is: MOBILE, then: Joi.forbidden() }),
             format: Joi.string().valid(...COURSE_FORMATS),
+            isArchived: Joi.boolean().when(
+              'action',
+              {
+                is: OPERATIONS,
+                then: Joi.when(
+                  'origin',
+                  {
+                    is: WEBAPP,
+                    then: Joi.when('format', { is: BLENDED, then: Joi.required(), otherwise: Joi.forbidden() }),
+                    otherwise: Joi.forbidden(),
+                  }),
+                otherwise: Joi.forbidden(),
+              }
+            ),
           }),
         },
         pre: [{ method: authorizeGetList }],

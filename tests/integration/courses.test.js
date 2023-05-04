@@ -397,15 +397,26 @@ describe('COURSES ROUTES - GET /courses', () => {
       expect(archivedCourse.estimatedStartDate).toEqual(CompaniDate('2020-11-03T10:00:00.000Z').toDate());
     });
 
-    it('should get blended courses (ops webapp)', async () => {
+    it('should get blended unarchived courses (ops webapp)', async () => {
       const response = await app.inject({
         method: 'GET',
-        url: '/courses?action=operations&origin=webapp&format=blended',
+        url: '/courses?action=operations&origin=webapp&format=blended&isArchived=false',
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(response.statusCode).toBe(200);
-      expect(response.result.data.courses.length).toEqual(16);
+      expect(response.result.data.courses.length).toEqual(14);
+    });
+
+    it('should get blended archived courses (ops webapp)', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: '/courses?action=operations&origin=webapp&format=blended&isArchived=true',
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(200);
+      expect(response.result.data.courses.length).toEqual(2);
     });
 
     it('should get strictly e-learning courses (ops webapp)', async () => {
@@ -444,6 +455,16 @@ describe('COURSES ROUTES - GET /courses', () => {
       const response = await app.inject({
         method: 'GET',
         url: '/courses?action=operations',
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
+
+    it('should return 400 if query \'isArchived\' for non blended courses from webapp for operations', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: '/courses?action=operations&origin=webapp&isArchived=false',
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
