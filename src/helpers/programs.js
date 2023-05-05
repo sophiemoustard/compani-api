@@ -83,7 +83,7 @@ exports.uploadImage = async (programId, payload) => {
 exports.deleteImage = async (programId, publicId) => {
   if (!publicId) return;
 
-  await Program.updateOne({ _id: programId }, { $unset: { 'image.publicId': '', 'image.link': '' } });
+  await Program.updateOne({ _id: programId }, { $unset: { image: '' } });
   await GCloudStorageHelper.deleteProgramMedia(publicId);
 };
 
