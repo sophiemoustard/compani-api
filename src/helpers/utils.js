@@ -247,7 +247,7 @@ exports.getDurationForExport = (startDate, endDate) =>
   exports.formatFloatForExport(CompaniDuration(CompaniDate(endDate).diff(startDate, 'minutes')).asHours());
 
 exports.getKeysOf2DepthObject = object => Object.entries(object).reduce((acc, [key, value]) => {
-  if (typeof value === 'object' && Object.keys(value).length) {
+  if (typeof value === 'object' && Object.keys(value).length && !Array.isArray(value)) {
     return [...acc, ...Object.keys(value).map(k => `${key}.${k}`)];
   }
 

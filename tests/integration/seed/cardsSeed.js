@@ -23,7 +23,7 @@ const cardsList = [
   { _id: new ObjectId(), template: TITLE_TEXT_MEDIA, media: { type: 'video', link: 'link', publicId: 'publicId' } },
   { _id: new ObjectId(), template: TITLE_TEXT },
   { _id: new ObjectId(), template: TEXT_MEDIA },
-  { _id: new ObjectId(), template: FLASHCARD },
+  { _id: new ObjectId(), template: FLASHCARD, text: 'text', backText: 'back text' },
   {
     _id: new ObjectId(),
     template: FILL_THE_GAPS,
@@ -38,6 +38,7 @@ const cardsList = [
       { _id: new ObjectId(), correct: true, text: 'erne' },
       { _id: new ObjectId(), correct: true, text: 'j\'ai pas d\'autres jeux de mots' },
     ],
+    question: 'what is the question ?',
   },
   {
     _id: new ObjectId(),
@@ -47,6 +48,7 @@ const cardsList = [
       { _id: new ObjectId(), text: 'ile' },
       { _id: new ObjectId(), text: 'o' },
     ],
+    question: 'what is the question ?',
   },
   {
     _id: new ObjectId(),
@@ -77,6 +79,7 @@ const cardsList = [
   {
     _id: new ObjectId(),
     template: QUESTION_ANSWER,
+    question: 'what is the question ?',
     qcAnswers: [{ text: 'hallo', _id: new ObjectId() }, { text: 'shalom', _id: new ObjectId() }],
   },
   { _id: new ObjectId(), template: SINGLE_CHOICE_QUESTION, qcAnswers: [{ _id: new ObjectId(), text: 'uel' }] },

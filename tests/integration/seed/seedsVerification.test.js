@@ -3,6 +3,7 @@ const { groupBy, get, has, compact } = require('lodash');
 const Activity = require('../../../src/models/Activity');
 const Attendance = require('../../../src/models/Attendance');
 const AttendanceSheet = require('../../../src/models/AttendanceSheet');
+const Card = require('../../../src/models/Card');
 const CompanyLinkRequest = require('../../../src/models/CompanyLinkRequest');
 const Contract = require('../../../src/models/Contract');
 const Course = require('../../../src/models/Course');
@@ -38,10 +39,23 @@ const {
   DRAFT,
   E_LEARNING,
   PUBLISHED,
+  FILL_THE_GAPS,
+  SINGLE_CHOICE_QUESTION,
+  QUESTION_ANSWER,
+  ORDER_THE_SEQUENCE,
+  MULTIPLE_CHOICE_QUESTION,
+  SURVEY,
+  TEXT_MEDIA,
+  TITLE_TEXT_MEDIA,
+  TITLE_TEXT,
+  OPEN_QUESTION,
+  TRANSITION,
+  FLASHCARD,
 } = require('../../../src/helpers/constants');
 const attendancesSeed = require('./attendancesSeed');
 const activitiesSeed = require('./activitiesSeed');
 const attendanceSheetsSeed = require('./attendanceSheetsSeed');
+const cardsSeed = require('./cardsSeed');
 const coursesSeed = require('./coursesSeed');
 const programsSeed = require('./programsSeed');
 const questionnaireHistoriesSeed = require('./questionnaireHistoriesSeed');
@@ -54,6 +68,7 @@ const seedList = [
   { label: 'ACTIVITY', value: activitiesSeed },
   { label: 'ATTENDANCE', value: attendancesSeed },
   { label: 'ATTENDANCESHEET', value: attendanceSheetsSeed },
+  { label: 'CARD', value: cardsSeed },
   { label: 'COURSE', value: coursesSeed },
   { label: 'PROGRAM', value: programsSeed },
   { label: 'QUESTIONNAIREHISTORY', value: questionnaireHistoriesSeed },
@@ -73,11 +88,11 @@ describe('SEEDS VERIFICATION', () => {
         before(async () => {
           activityList = await Activity
             .find()
-            .populate({ path: 'cards', select: '_id', transform: doc => (doc || null) })
-            .lean();
+            .populate({ path: 'cards', select: '-__v -createdAt -updatedAt', transform: doc => (doc || null) })
+            .lean({ virtuals: true });
         });
 
-        it('should pass if every card exists and is not duplicated', async () => {
+        it('should pass if every card exists and is not duplicated', () => {
           const someCardsDontExist = activityList.some(activity => activity.cards.some(card => !card));
 
           expect(someCardsDontExist).toBeFalsy();
@@ -92,11 +107,18 @@ describe('SEEDS VERIFICATION', () => {
           expect(someCardsAreDuplicated).toBeFalsy();
         });
 
-        it('should pass if published activities have at least one card', async () => {
-          const everyPublishedActivityHasPublishedCards = activityList
+        it('should pass if published activities have at least one card', () => {
+          const everyPublishedActivityHasCards = activityList
             .every(activity => activity.status === DRAFT || activity.cards.length);
 
-          expect(everyPublishedActivityHasPublishedCards).toBeTruthy();
+          expect(everyPublishedActivityHasCards).toBeTruthy();
+        });
+
+        it('should pass if published activities have all their cards valid', () => {
+          const everyPublishedActivityHasValidCards = activityList
+            .every(activity => activity.status === DRAFT || activity.areCardsValid);
+
+          expect(everyPublishedActivityHasValidCards).toBeTruthy();
         });
       });
 
@@ -136,6 +158,102 @@ describe('SEEDS VERIFICATION', () => {
               .some(uc => UtilsHelper.areObjectIdsEquals(uc.company, attendanceSheet.company))
             );
           expect(areTraineesInCompany).toBeTruthy();
+        });
+      });
+
+      describe('Collection Card', () => {
+        let cardList;
+        before(async () => {
+          cardList = await Card.find({}, { __v: 0, createdAt: 0, updatedAt: 0 }).lean();
+        });
+
+        const templateList = [
+          {
+            name: FILL_THE_GAPS,
+            allowedKeys: ['gappedText', 'explanation', 'falsyGapAnswers', 'canSwitchAnswers'],
+          },
+          {
+            name: SINGLE_CHOICE_QUESTION,
+            allowedKeys: ['question', 'qcuGoodAnswer', 'qcAnswers', 'explanation'],
+          },
+          {
+            name: QUESTION_ANSWER,
+            allowedKeys: ['question', 'isQuestionAnswerMultipleChoiced', 'qcAnswers', 'isMandatory'],
+          },
+          {
+            name: ORDER_THE_SEQUENCE,
+            allowedKeys: ['question', 'orderedAnswers', 'explanation'],
+          },
+          {
+            name: MULTIPLE_CHOICE_QUESTION,
+            allowedKeys: ['question', 'qcAnswers', 'explanation'],
+          },
+          {
+            name: SURVEY,
+            allowedKeys: ['question', 'label.right', 'label.left', 'isMandatory'],
+          },
+          {
+            name: TEXT_MEDIA,
+            allowedKeys: ['text', 'media.link', 'media.publicId', 'media.type'],
+          },
+          {
+            name: TITLE_TEXT_MEDIA,
+            allowedKeys: ['text', 'title', 'media.link', 'media.publicId', 'media.type'],
+          },
+          {
+            name: TITLE_TEXT,
+            allowedKeys: ['text', 'title'],
+          },
+          {
+            name: OPEN_QUESTION,
+            allowedKeys: ['question', 'isMandatory'],
+          },
+          {
+            name: TRANSITION,
+            allowedKeys: ['title'],
+          },
+          {
+            name: FLASHCARD,
+            allowedKeys: ['text', 'backText'],
+          },
+        ];
+
+        templateList.forEach((template) => {
+          it(`should pass if every field in '${template.name}' card is allowed`, () => {
+            const someKeysAreNotAllowed = cardList
+              .filter(card => card.template === template.name)
+              .some(card => UtilsHelper.getKeysOf2DepthObject(card)
+                .filter(key => !['_id', 'template'].includes(key))
+                .some(key => !template.allowedKeys.includes(key)));
+
+            expect(someKeysAreNotAllowed).toBeFalsy();
+          });
+        });
+
+        const keysWithTextSubKey = ['falsyGapAnswers', 'qcAnswers', 'orderedAnswers'];
+
+        keysWithTextSubKey.forEach((key) => {
+          it(`should pass if in '${key}' objects we have 'text'`, () => {
+            const someSubKeysAreMissing = cardList
+              .some(card => has(card, key) && card[key].some(object => !has(object, 'text')));
+
+            expect(someSubKeysAreMissing).toBeFalsy();
+          });
+        });
+
+        it('should pass if only \'multiple choice question\' card has correct key in \'qcAnswers\' field', () => {
+          const someSubKeysAreWrong = cardList
+            .some(card => card.template !== MULTIPLE_CHOICE_QUESTION && has(card, 'qcAnswers') &&
+              card.qcAnswers.some(object => has(object, 'correct')));
+
+          expect(someSubKeysAreWrong).toBeFalsy();
+        });
+
+        it('should pass if every card with \'label\' field contains \'right\' and \'left\' keys', () => {
+          const someSubKeysAreMissing = cardList
+            .some(card => has(card, 'label') && !(has(card, 'label.left') && has(card, 'label.right')));
+
+          expect(someSubKeysAreMissing).toBeFalsy();
         });
       });
 
@@ -251,7 +369,7 @@ describe('SEEDS VERIFICATION', () => {
           expect(isEveryTraineeCompanyInAccessRules).toBeTruthy();
         });
 
-        it('should pass if every access rules company exists and is not duplicated', async () => {
+        it('should pass if every access rules company exists and is not duplicated', () => {
           const coursesWithAccessRules = courseList.filter(c => c.accessRules.length);
           const someCompaniesDontExist = coursesWithAccessRules.some(c => c.accessRules.some(company => !company));
 
@@ -272,7 +390,7 @@ describe('SEEDS VERIFICATION', () => {
           expect(subProgramsExist).toBeTruthy();
         });
 
-        it('should pass if every company exists and is not duplicated', async () => {
+        it('should pass if every company exists and is not duplicated', () => {
           const someCompaniesDontExist = courseList
             .filter(c => c.format === BLENDED)
             .some(c => c.companies.some(company => !company));
@@ -431,7 +549,7 @@ describe('SEEDS VERIFICATION', () => {
           expect(isExpectedBillsCountDefinedForBlendedCoursesOnly).toBeTruthy();
         });
 
-        it('should pass if every interlocutor exists', async () => {
+        it('should pass if every interlocutor exists', () => {
           const someUsersDontExist = courseList.some((c) => {
             const userList = [
               ...(has(c, 'companyRepresentative') ? [c.companyRepresentative] : []),
@@ -539,7 +657,7 @@ describe('SEEDS VERIFICATION', () => {
             .lean();
         });
 
-        it('should pass if every subprogram exists and is not duplicated in same or different program', async () => {
+        it('should pass if every subprogram exists and is not duplicated in same or different program', () => {
           const someSubProgramsDontExist = programList.some(p => p.subPrograms.some(subProgram => !subProgram));
 
           expect(someSubProgramsDontExist).toBeFalsy();
@@ -551,7 +669,7 @@ describe('SEEDS VERIFICATION', () => {
           expect(subProgramsWithoutDuplicates.length).toEqual(subProgramsList.length);
         });
 
-        it('should pass if every category exists and is not duplicated', async () => {
+        it('should pass if every category exists and is not duplicated', () => {
           const someCategoriesDontExist = programList.some(p => p.categories.some(category => !category));
 
           expect(someCategoriesDontExist).toBeFalsy();
@@ -566,7 +684,7 @@ describe('SEEDS VERIFICATION', () => {
           expect(someCategoriesAreDuplicated).toBeFalsy();
         });
 
-        it('should pass if every tester exists and is not duplicated', async () => {
+        it('should pass if every tester exists and is not duplicated', () => {
           const someTestersDontExist = programList.some(p => p.testers.some(tester => !tester));
 
           expect(someTestersDontExist).toBeFalsy();
@@ -581,7 +699,7 @@ describe('SEEDS VERIFICATION', () => {
           expect(someTestersAreDuplicated).toBeFalsy();
         });
 
-        it('should pass if testers are not rof or vendor admin', async () => {
+        it('should pass if testers are not rof or vendor admin', () => {
           const someTestersAreRofOrVendorAdmin = programList
             .some(p => p.testers
               .some(tester => [TRAINING_ORGANISATION_MANAGER, VENDOR_ADMIN].includes(get(tester, 'role.vendor.name'))));
@@ -639,7 +757,7 @@ describe('SEEDS VERIFICATION', () => {
             .lean();
         });
 
-        it('should pass if every activity exists and is not duplicated', async () => {
+        it('should pass if every activity exists and is not duplicated', () => {
           const someActivitiesDontExist = stepList.some(step => step.activities.some(activity => !activity));
 
           expect(someActivitiesDontExist).toBeFalsy();
@@ -654,20 +772,20 @@ describe('SEEDS VERIFICATION', () => {
           expect(someActivitiesAreDuplicated).toBeFalsy();
         });
 
-        it('should pass if no live step has actvities', async () => {
+        it('should pass if no live step has actvities', () => {
           const someLiveStepHaveActivities = stepList.some(step => step.type !== E_LEARNING && step.activities.length);
 
           expect(someLiveStepHaveActivities).toBeFalsy();
         });
 
-        it('should pass if published steps have theoretical duration', async () => {
+        it('should pass if published steps have theoretical duration', () => {
           const everyPublishedStepHasTheoreticalDuration = stepList
             .every(step => step.status === DRAFT || step.theoreticalDuration);
 
           expect(everyPublishedStepHasTheoreticalDuration).toBeTruthy();
         });
 
-        it('should pass if published elearning steps have at least one activity', async () => {
+        it('should pass if published elearning steps have at least one activity', () => {
           const everyElearningPublishedStepHasActivities = stepList
             .filter(step => step.type === E_LEARNING && step.status === PUBLISHED)
             .every(step => step.activities.length);
@@ -675,7 +793,7 @@ describe('SEEDS VERIFICATION', () => {
           expect(everyElearningPublishedStepHasActivities).toBeTruthy();
         });
 
-        it('should pass if every activity in published steps is published', async () => {
+        it('should pass if every activity in published steps is published', () => {
           const everyPublishedStepHasPublishedActivities = stepList
             .filter(step => step.type === E_LEARNING && step.status === PUBLISHED)
             .every(step => step.activities.every(activity => activity.status === PUBLISHED));
@@ -683,7 +801,7 @@ describe('SEEDS VERIFICATION', () => {
           expect(everyPublishedStepHasPublishedActivities).toBeTruthy();
         });
 
-        it('should pass if theoretical duration is a positive integer', async () => {
+        it('should pass if theoretical duration is a positive integer', () => {
           const theoreticalDurationIsPositiveInteger = stepList
             .every((step) => {
               if (!has(step, 'theoreticalDuration')) return true;
@@ -705,7 +823,7 @@ describe('SEEDS VERIFICATION', () => {
             .lean();
         });
 
-        it('should pass if every step exists and is not duplicated', async () => {
+        it('should pass if every step exists and is not duplicated', () => {
           const someStepsDontExist = subProgramList.some(sp => sp.steps.some(step => !step));
 
           expect(someStepsDontExist).toBeFalsy();
@@ -720,7 +838,7 @@ describe('SEEDS VERIFICATION', () => {
           expect(someStepsAreDuplicated).toBeFalsy();
         });
 
-        it('should pass if every published subProgram has at least one step', async () => {
+        it('should pass if every published subProgram has at least one step', () => {
           const doesEveryPublishedProgramHaveStep = subProgramList.every(sp => sp.status === DRAFT || sp.steps.length);
 
           expect(doesEveryPublishedProgramHaveStep).toBeTruthy();
