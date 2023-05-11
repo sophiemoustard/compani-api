@@ -461,7 +461,7 @@ describe('COURSES ROUTES - GET /courses', () => {
       expect(response.statusCode).toBe(400);
     });
 
-    it('should return 400 if query \'isArchived\' for non blended courses from webapp for operations', async () => {
+    it('should return 400 if query \'isArchived\' for non blended courses', async () => {
       const response = await app.inject({
         method: 'GET',
         url: '/courses?action=operations&origin=webapp&isArchived=false',
