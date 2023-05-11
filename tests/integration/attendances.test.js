@@ -658,7 +658,7 @@ describe('ATTENDANCES ROUTES - DELETE /attendances', () => {
     it('should return 403 if course is archived', async () => {
       const response = await app.inject({
         method: 'DELETE',
-        url: `/attendances?courseSlot=${slotsList[5]._id}&trainee=${traineeList[7]._id}`,
+        url: `/attendances?courseSlot=${slotsList[5]._id}&trainee=${traineeList[0]._id}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 

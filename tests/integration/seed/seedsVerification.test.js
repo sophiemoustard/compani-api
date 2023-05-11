@@ -128,16 +128,43 @@ describe('SEEDS VERIFICATION', () => {
           attendanceList = await Attendance
             .find()
             .populate({ path: 'trainee', select: 'id', populate: { path: 'userCompanyList' } })
+            .populate({ path: 'courseSlot', select: '_id course', populate: { path: 'course', select: 'companies' } })
+            .populate({ path: 'company', select: '_id' })
             .setOptions({ allCompanies: true })
             .lean();
+        });
+
+        it('should pass if every trainee exists', () => {
+          const someTraineesDontExist = attendanceList.some(a => !a.trainee);
+
+          expect(someTraineesDontExist).toBeFalsy();
         });
 
         it('should pass if all attendance\'s trainee are in attendance\'s company', () => {
           const areTraineesInCompany = attendanceList
             .every(attendance => attendance.trainee.userCompanyList
-              .some(uc => UtilsHelper.areObjectIdsEquals(uc.company, attendance.company))
+              .some(uc => UtilsHelper.areObjectIdsEquals(uc.company, attendance.company._id))
             );
           expect(areTraineesInCompany).toBeTruthy();
+        });
+
+        it('should pass if every slot exists', () => {
+          const someSlotsDontExist = attendanceList.some(a => !a.courseSlot);
+
+          expect(someSlotsDontExist).toBeFalsy();
+        });
+
+        it('should pass if every company exists', () => {
+          const someCompaniesDontExist = attendanceList.some(a => !a.company);
+
+          expect(someCompaniesDontExist).toBeFalsy();
+        });
+
+        it('should pass if every company is rattached to course', () => {
+          const someCompaniesAreNotInCourse = attendanceList
+            .some(a => !UtilsHelper.doesArrayIncludeId(a.courseSlot.course.companies, a.company._id));
+
+          expect(someCompaniesAreNotInCourse).toBeFalsy();
         });
       });
 
