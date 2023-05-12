@@ -155,9 +155,12 @@ const listForOperations = async (query, origin) => {
   if (query.company && query.format === STRICTLY_E_LEARNING) {
     return listStrictlyElearningForCompany(query, origin);
   }
-  if (query.company) return listBlendedForCompany(query, origin);
+  const formattedQuery = has(query, 'isArchived')
+    ? { ...omit(query, 'isArchived'), archivedAt: { $exists: !!query.isArchived } }
+    : query;
+  if (query.company) return listBlendedForCompany(formattedQuery, origin);
 
-  const courses = await CourseRepository.findCourseAndPopulate(query, origin);
+  const courses = await CourseRepository.findCourseAndPopulate(formattedQuery, origin);
 
   if (query.format === STRICTLY_E_LEARNING) {
     return courses

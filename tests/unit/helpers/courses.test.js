@@ -242,13 +242,19 @@ describe('list', () => {
 
       findCourseAndPopulate.returns(coursesList);
 
-      const query = { trainer: '1234567890abcdef12345678', format: 'blended', action: 'operations', origin: 'webapp' };
+      const query = {
+        trainer: '1234567890abcdef12345678',
+        format: 'blended',
+        action: 'operations',
+        origin: 'webapp',
+        isArchived: false,
+      };
       const result = await CourseHelper.list(query, credentials);
 
       expect(result).toMatchObject(coursesList);
       sinon.assert.calledOnceWithExactly(
         findCourseAndPopulate,
-        { trainer: '1234567890abcdef12345678', format: 'blended' },
+        { trainer: '1234567890abcdef12345678', format: 'blended', archivedAt: { $exists: false } },
         'webapp'
       );
       sinon.assert.notCalled(getTotalTheoreticalDurationSpy);
