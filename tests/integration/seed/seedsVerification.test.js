@@ -178,10 +178,7 @@ describe('SEEDS VERIFICATION', () => {
             .populate({
               path: 'course',
               select: '_id type companies',
-              populate: {
-                path: 'slots',
-                select: 'startDate',
-              },
+              populate: { path: 'slots', select: 'startDate' },
             })
             .populate({ path: 'company', select: '_id' })
             .setOptions({ allCompanies: true })
@@ -206,6 +203,17 @@ describe('SEEDS VERIFICATION', () => {
           expect(someInterAttendanceSheetHasDate).toBeFalsy();
         });
 
+        it('should pass if only inter courses have trainee in attendance sheet', () => {
+          const someTraineesDontExist = attendanceSheetList.some(a => a.course.type === INTER_B2B && !a.trainee);
+
+          expect(someTraineesDontExist).toBeFalsy();
+
+          const someIntraAttendanceSheetHasTrainee = attendanceSheetList
+            .some(a => a.course.type === INTRA && a.trainee);
+
+          expect(someIntraAttendanceSheetHasTrainee).toBeFalsy();
+        });
+
         it('should pass if attendance sheet dates are course slots dates', () => {
           const everySheetDateIsSlotDate = attendanceSheetList
             .filter(a => a.course.type === INTRA)
@@ -218,12 +226,6 @@ describe('SEEDS VERIFICATION', () => {
           expect(everySheetDateIsSlotDate).toBeTruthy();
         });
 
-        it('should pass if every trainee exists', () => {
-          const someTraineesDontExist = attendanceSheetList.some(a => a.course.type === INTER_B2B && !a.trainee);
-
-          expect(someTraineesDontExist).toBeFalsy();
-        });
-
         it('should pass if all attendance sheet\'s trainee are in attendance sheet\'s company', () => {
           const areTraineesInCompany = attendanceSheetList
             .filter(attendanceSheet => attendanceSheet.trainee)
@@ -233,20 +235,13 @@ describe('SEEDS VERIFICATION', () => {
           expect(areTraineesInCompany).toBeTruthy();
         });
 
-        it('should pass if only inter courses have trainee in attendance sheet', () => {
-          const someIntraAttendanceSheetHasTrainee = attendanceSheetList
-            .some(a => a.course.type === INTRA && a.trainee);
-
-          expect(someIntraAttendanceSheetHasTrainee).toBeFalsy();
-        });
-
         it('should pass if every company exists', () => {
           const someCompaniesDontExist = attendanceSheetList.some(a => !a.company);
 
           expect(someCompaniesDontExist).toBeFalsy();
         });
 
-        it('should pass if every company is rattached to course #tag', () => {
+        it('should pass if every company is rattached to course', () => {
           const someCompaniesAreNotInCourse = attendanceSheetList
             .some(a => !UtilsHelper.doesArrayIncludeId(a.course.companies, a.company._id));
 

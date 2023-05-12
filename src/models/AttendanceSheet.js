@@ -5,8 +5,8 @@ const { ORIGIN_OPTIONS } = require('../helpers/constants');
 const AttendanceSheetSchema = mongoose.Schema({
   course: { type: mongoose.Schema.Types.ObjectId, ref: 'Course', required: true },
   file: {
-    publicId: { type: String, required() { return !!this.file.link; } },
-    link: { type: String, trim: true, required() { return !!this.file.publicId; } },
+    publicId: { type: String, required: true },
+    link: { type: String, trim: true, required: true },
   },
   date: { type: Date },
   trainee: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
