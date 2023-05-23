@@ -2,8 +2,9 @@ const { ObjectId } = require('mongodb');
 const { v4: uuidv4 } = require('uuid');
 const Course = require('../../../src/models/Course');
 const CourseHistory = require('../../../src/models/CourseHistory');
+const SubProgram = require('../../../src/models/SubProgram');
 const User = require('../../../src/models/User');
-const { authCompany } = require('../../seed/authCompaniesSeed');
+const { authCompany, otherCompany } = require('../../seed/authCompaniesSeed');
 const { SLOT_CREATION, WEBAPP, INTRA, INTER_B2B } = require('../../../src/helpers/constants');
 const { deleteNonAuthenticationSeeds } = require('../helpers/authentication');
 const { vendorAdminRoleId, trainerRoleId } = require('../../seed/authRolesSeed');
@@ -46,9 +47,9 @@ const coursesList = [{
   misc: 'first session',
   type: INTRA,
   maxTrainees: 8,
-  trainer: new ObjectId(),
+  trainer: userList[0]._id,
   trainees: [],
-  companies: [new ObjectId()],
+  companies: [otherCompany._id],
   salesRepresentative: userList[1]._id,
 },
 {
@@ -133,7 +134,12 @@ const courseHistoriesList = [{
 const populateDB = async () => {
   await deleteNonAuthenticationSeeds();
 
-  await Promise.all([Course.create(coursesList), CourseHistory.create(courseHistoriesList), User.create(userList)]);
+  await Promise.all([
+    Course.create(coursesList),
+    CourseHistory.create(courseHistoriesList),
+    SubProgram.create(subProgramsList),
+    User.create(userList),
+  ]);
 };
 
 module.exports = {
