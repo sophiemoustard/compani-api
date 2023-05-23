@@ -70,7 +70,15 @@ describe('HOLDINGS ROUTES - POST /holdings', () => {
       const response = await app.inject({
         method: 'POST',
         url: '/holdings',
-        payload: {},
+        payload: {
+          address: {
+            fullAddress: '24 avenue Daumesnil 75012 Paris',
+            street: '24 avenue Daumesnil',
+            zipCode: '75012',
+            city: 'Paris',
+            location: { type: 'Point', coordinates: [2.377133, 48.801389] },
+          },
+        },
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
