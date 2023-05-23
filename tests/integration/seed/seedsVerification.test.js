@@ -25,7 +25,6 @@ const UserCompaniesHelper = require('../../../src/helpers/userCompanies');
 const {
   INTRA,
   COACH,
-  ADMIN_CLIENT,
   TRAINEE_ADDITION,
   TRAINEE_DELETION,
   BLENDED,
@@ -52,6 +51,14 @@ const {
   TRANSITION,
   FLASHCARD,
   DD_MM_YYYY,
+  TRAINER,
+  SLOT_CREATION,
+  SLOT_DELETION,
+  ESTIMATED_START_DATE_EDITION,
+  COMPANY_ADDITION,
+  COMPANY_DELETION,
+  SLOT_EDITION,
+  CLIENT_ADMIN,
 } = require('../../../src/helpers/constants');
 const attendancesSeed = require('./attendancesSeed');
 const activitiesSeed = require('./activitiesSeed');
@@ -438,7 +445,7 @@ describe('SEEDS VERIFICATION', () => {
 
         it('should pass if companyRepresentative has good role', () => {
           const areCompanyRepresentativesCoachOrAdmin = courseList.every(c => !c.companyRepresentative ||
-            [COACH, ADMIN_CLIENT].includes(get(c.companyRepresentative, 'role.client.name')));
+            [COACH, CLIENT_ADMIN].includes(get(c.companyRepresentative, 'role.client.name')));
           expect(areCompanyRepresentativesCoachOrAdmin).toBeTruthy();
         });
 
@@ -658,16 +665,79 @@ describe('SEEDS VERIFICATION', () => {
         let courseHistoryList;
         before(async () => {
           courseHistoryList = await CourseHistory
-            .find(
-              { action: { $in: [TRAINEE_ADDITION, TRAINEE_DELETION] } },
-              { action: 1, createdAt: 1, trainee: 1, course: 1, company: 1 }
+            .find({}, { action: 1, createdAt: 1, trainee: 1, course: 1, company: 1 }
             )
             .populate({ path: 'trainee', select: '_id', populate: { path: 'userCompanyList' } })
+            .populate({
+              path: 'createdBy',
+              select: '_id role',
+              transform: doc => (doc || null),
+              populate: [
+                { path: 'role.vendor', select: 'name' },
+                { path: 'role.client', select: 'name' },
+                { path: 'userCompanyList' },
+              ],
+            })
+            .populate({ path: 'course', select: 'trainer companies' })
             .lean();
         });
 
+        it('should pass if user who created history exists', () => {
+          const everyHistoryCreatorExists = courseHistoryList.every(ch => !!ch.createdBy);
+          expect(everyHistoryCreatorExists).toBeTruthy();
+        });
+
+        it('should pass if user who created history has good role', () => {
+          const everyHistoryCreatorHasGoodRole = courseHistoryList.every((ch) => {
+            const rofOrVendorAdminActions = [
+              SLOT_CREATION,
+              SLOT_DELETION,
+              ESTIMATED_START_DATE_EDITION,
+              COMPANY_ADDITION,
+              COMPANY_DELETION,
+            ];
+            const otherActions = [
+              SLOT_EDITION,
+              TRAINEE_ADDITION,
+              TRAINEE_DELETION,
+            ];
+
+            const hasRofOrVendorAdminRole = [TRAINING_ORGANISATION_MANAGER, VENDOR_ADMIN]
+              .includes(get(ch.createdBy, 'role.vendor.name'));
+            const hasCourseEditionRole = [TRAINING_ORGANISATION_MANAGER, VENDOR_ADMIN, TRAINER]
+              .includes(get(ch.createdBy, 'role.vendor.name')) ||
+              [COACH, CLIENT_ADMIN].includes(get(ch.createdBy, 'role.client.name'));
+
+            if (rofOrVendorAdminActions.includes(ch.action) && !hasRofOrVendorAdminRole) return false;
+            if (otherActions.includes(ch.action) && !hasCourseEditionRole) return false;
+
+            return true;
+          });
+          expect(everyHistoryCreatorHasGoodRole).toBeTruthy();
+        });
+
+        it('should pass if user who created history is allowed to access course', () => {
+          const everyHistoryCreatorIsAllowedToAccessCourse = courseHistoryList.every((ch) => {
+            const hasRofOrVendorAdminRole = [TRAINING_ORGANISATION_MANAGER, VENDOR_ADMIN]
+              .includes(get(ch.createdBy, 'role.vendor.name'));
+
+            const isCourseTrainer = [TRAINER].includes(get(ch.createdBy, 'role.vendor.name')) &&
+              UtilsHelper.areObjectIdsEquals(ch.createdBy._id, ch.course.trainer);
+
+            const isFromCompanyLinkedToCourse = [COACH, CLIENT_ADMIN].includes(get(ch.createdBy, 'role.client.name')) &&
+              ch.createdBy.userCompanyList.some(uc => UtilsHelper.doesArrayIncludeId(ch.course.companies, uc.company));
+
+            if (hasRofOrVendorAdminRole || isCourseTrainer || isFromCompanyLinkedToCourse) return true;
+
+            return false;
+          });
+          expect(everyHistoryCreatorIsAllowedToAccessCourse).toBeTruthy();
+        });
+
         it('should pass if all trainees are in course company at registration', () => {
-          const courseHistoriesGroupedByCourse = groupBy(courseHistoryList, 'course');
+          const traineeHistoryList = courseHistoryList
+            .filter(ch => [TRAINEE_ADDITION, TRAINEE_DELETION].includes(ch.action));
+          const courseHistoriesGroupedByCourse = groupBy(traineeHistoryList, 'course._id');
 
           for (const courseHistories of Object.values(courseHistoriesGroupedByCourse)) {
             const courseHistoriesGroupedByTrainee = groupBy(courseHistories, 'trainee._id');

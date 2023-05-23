@@ -5,6 +5,7 @@ const CourseHistory = require('../../../src/models/CourseHistory');
 const SubProgram = require('../../../src/models/SubProgram');
 const User = require('../../../src/models/User');
 const { authCompany, otherCompany } = require('../../seed/authCompaniesSeed');
+const { trainerOrganisationManager } = require('../../seed/authUsersSeed');
 const { SLOT_CREATION, WEBAPP, INTRA, INTER_B2B } = require('../../../src/helpers/constants');
 const { deleteNonAuthenticationSeeds } = require('../helpers/authentication');
 const { vendorAdminRoleId, trainerRoleId } = require('../../seed/authRolesSeed');
@@ -65,7 +66,7 @@ const coursesList = [{
 }];
 
 const courseHistoriesList = [{
-  createdBy: new ObjectId(),
+  createdBy: trainerOrganisationManager._id,
   action: SLOT_CREATION,
   course: coursesList[0]._id,
   slot: {
@@ -81,7 +82,7 @@ const courseHistoriesList = [{
   },
 },
 {
-  createdBy: new ObjectId(),
+  createdBy: trainerOrganisationManager._id,
   action: SLOT_CREATION,
   course: coursesList[1]._id,
   slot: {
@@ -97,7 +98,7 @@ const courseHistoriesList = [{
   },
 },
 {
-  createdBy: new ObjectId(),
+  createdBy: trainerOrganisationManager._id,
   action: SLOT_CREATION,
   course: coursesList[2]._id,
   slot: {
@@ -114,7 +115,7 @@ const courseHistoriesList = [{
   createdAt: '2020-06-26T05:00:00',
 },
 {
-  createdBy: new ObjectId(),
+  createdBy: trainerOrganisationManager._id,
   action: SLOT_CREATION,
   course: coursesList[2]._id,
   slot: {
