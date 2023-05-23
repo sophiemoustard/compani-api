@@ -8,8 +8,8 @@ const ProgramSchema = mongoose.Schema({
   subPrograms: [{ type: mongoose.Schema.Types.ObjectId, ref: 'SubProgram' }],
   categories: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Category' }],
   image: {
-    publicId: { type: String },
-    link: { type: String, trim: true },
+    publicId: { type: String, required() { return !!this.image.link; } },
+    link: { type: String, trim: true, required() { return !!this.image.publicId; } },
   },
   testers: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
 }, { timestamps: true });

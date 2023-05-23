@@ -79,6 +79,7 @@ exports.plugin = {
               }),
             company: Joi.objectId().when('origin', { is: MOBILE, then: Joi.forbidden() }),
             format: Joi.string().valid(...COURSE_FORMATS),
+            isArchived: Joi.boolean(),
           }),
         },
         pre: [{ method: authorizeGetList }],

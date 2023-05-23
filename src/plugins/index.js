@@ -1,5 +1,4 @@
 const good = require('./good');
-const hapiSentry = require('./hapiSentry');
 const hapiAuthJwt2 = require('./hapiAuthJwt2');
 const cron = require('./cron');
 const billDispatch = require('../jobs/billDispatch');
@@ -67,7 +66,13 @@ const plugins = [
 if (['production', 'staging'].includes(process.env.NODE_ENV)) {
   plugins.push({
     plugin: require('hapi-sentry'),
-    options: hapiSentry.options,
+    options: {
+      client: {
+        dsn: process.env.SENTRY_DSN,
+        environment: process.env.NODE_ENV,
+      },
+      trackUser: false,
+    },
   });
 }
 

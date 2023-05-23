@@ -10,7 +10,8 @@ const CourseSlot = require('../../../src/models/CourseSlot');
 const User = require('../../../src/models/User');
 const { vendorAdmin } = require('../../seed/authUsersSeed');
 const { deleteNonAuthenticationSeeds } = require('../helpers/authentication');
-const { WEBAPP, INTRA } = require('../../../src/helpers/constants');
+const { WEBAPP, INTRA, PUBLISHED, DRAFT } = require('../../../src/helpers/constants');
+const { authCompany } = require('../../seed/authCompaniesSeed');
 
 const tester = {
   _id: new ObjectId(),
@@ -43,30 +44,30 @@ const activitiesList = [
 ];
 
 const stepsList = [
-  { _id: new ObjectId(), name: 'step 0', type: 'on_site', theoreticalDuration: 1 },
+  { _id: new ObjectId(), name: 'step 0', type: 'on_site', theoreticalDuration: 9000 },
   {
     _id: new ObjectId(),
     name: 'step 1',
     type: 'e_learning',
     activities: [activitiesList[0]._id],
-    theoreticalDuration: 1,
+    theoreticalDuration: 9000,
   },
   {
     _id: new ObjectId(),
     name: 'step 2',
     type: 'e_learning',
     activities: [activitiesList[0]._id],
-    theoreticalDuration: 1,
+    theoreticalDuration: 9000,
   },
-  { _id: new ObjectId(), name: 'step 3', type: 'e_learning', theoreticalDuration: 1 },
+  { _id: new ObjectId(), name: 'step 3', type: 'e_learning', theoreticalDuration: 9000 },
   {
     _id: new ObjectId(),
     name: 'step 4',
     type: 'e_learning',
     activities: [activitiesList[1]._id],
-    theoreticalDuration: 1,
+    theoreticalDuration: 9000,
   },
-  { _id: new ObjectId(), name: 'step 5 - linked to courseSlot', type: 'on_site', theoreticalDuration: 0.5 },
+  { _id: new ObjectId(), name: 'step 5 - linked to courseSlot', type: 'on_site', theoreticalDuration: 9000 },
   { // 6 - on site without theoreticalDuration
     _id: new ObjectId(),
     name: 'step 6',
@@ -83,12 +84,12 @@ const stepsList = [
 const subProgramsList = [
   { _id: new ObjectId(), name: 'subProgram 0', steps: [stepsList[0]._id, stepsList[1]._id] },
   { _id: new ObjectId(), name: 'subProgram 1', steps: [stepsList[1]._id] },
-  { _id: new ObjectId(), name: 'subProgram 2', status: 'published', steps: [stepsList[0]._id] },
-  { _id: new ObjectId(), name: 'subProgram 3', status: 'draft', steps: [stepsList[2]._id] },
-  { _id: new ObjectId(), name: 'subProgram 4', status: 'published', steps: [stepsList[2]._id] },
-  { _id: new ObjectId(), name: 'subProgram 5', status: 'draft', steps: [stepsList[3]._id] },
-  { _id: new ObjectId(), name: 'subProgram 6', status: 'draft', steps: [stepsList[4]._id, stepsList[5]._id] },
-  { _id: new ObjectId(), name: 'subProgram 7', status: 'draft', steps: [stepsList[0]._id, stepsList[5]._id] },
+  { _id: new ObjectId(), name: 'subProgram 2', status: PUBLISHED, steps: [stepsList[0]._id] },
+  { _id: new ObjectId(), name: 'subProgram 3', status: DRAFT, steps: [stepsList[2]._id] },
+  { _id: new ObjectId(), name: 'subProgram 4', status: PUBLISHED, steps: [stepsList[2]._id] },
+  { _id: new ObjectId(), name: 'subProgram 5', status: DRAFT, steps: [stepsList[3]._id] },
+  { _id: new ObjectId(), name: 'subProgram 6', status: DRAFT, steps: [stepsList[4]._id, stepsList[5]._id] },
+  { _id: new ObjectId(), name: 'subProgram 7', status: DRAFT, steps: [stepsList[0]._id, stepsList[5]._id] },
   { // 8 on site without theoreticalDuration
     _id: new ObjectId(),
     name: 'subProgram 8',
@@ -109,19 +110,19 @@ const programsList = [
     _id: new ObjectId(),
     name: 'program 2',
     subPrograms: [subProgramsList[3]._id, subProgramsList[4]._id],
-    image: 'link',
+    image: { publicId: '234', link: 'link' },
     testers: [tester._id],
   },
 ];
 
 const coursesList = [{
   _id: new ObjectId(),
-  format: 'strictly_e_learning',
+  format: 'blended',
   subProgram: subProgramsList[7]._id,
   type: INTRA,
   maxTrainees: 8,
   trainees: [],
-  companies: [new ObjectId()],
+  companies: [authCompany._id],
   salesRepresentative: vendorAdmin._id,
 }];
 

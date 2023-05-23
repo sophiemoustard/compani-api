@@ -397,15 +397,26 @@ describe('COURSES ROUTES - GET /courses', () => {
       expect(archivedCourse.estimatedStartDate).toEqual(CompaniDate('2020-11-03T10:00:00.000Z').toDate());
     });
 
-    it('should get blended courses (ops webapp)', async () => {
+    it('should get blended unarchived courses (ops webapp)', async () => {
       const response = await app.inject({
         method: 'GET',
-        url: '/courses?action=operations&origin=webapp&format=blended',
+        url: '/courses?action=operations&origin=webapp&format=blended&isArchived=false',
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(response.statusCode).toBe(200);
-      expect(response.result.data.courses.length).toEqual(17);
+      expect(response.result.data.courses.length).toEqual(14);
+    });
+
+    it('should get blended archived courses (ops webapp)', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: '/courses?action=operations&origin=webapp&format=blended&isArchived=true',
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(200);
+      expect(response.result.data.courses.length).toEqual(2);
     });
 
     it('should get strictly e-learning courses (ops webapp)', async () => {
@@ -416,7 +427,7 @@ describe('COURSES ROUTES - GET /courses', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      expect(response.result.data.courses.length).toEqual(3);
+      expect(response.result.data.courses.length).toEqual(4);
     });
 
     it('should get all trainee courses (pedagogy webapp)', async () => {
@@ -444,6 +455,16 @@ describe('COURSES ROUTES - GET /courses', () => {
       const response = await app.inject({
         method: 'GET',
         url: '/courses?action=operations',
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
+
+    it('should return 400 if query \'isArchived\' for non blended courses', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: '/courses?action=operations&origin=webapp&isArchived=false',
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -501,7 +522,7 @@ describe('COURSES ROUTES - GET /courses', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      expect(response.result.data.courses.length).toEqual(11);
+      expect(response.result.data.courses.length).toEqual(10);
     });
 
     it('should get trainer\'s course (ops mobile)', async () => {
@@ -513,7 +534,7 @@ describe('COURSES ROUTES - GET /courses', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      expect(response.result.data.courses.length).toEqual(11);
+      expect(response.result.data.courses.length).toEqual(10);
 
       const course =
          response.result.data.courses.find(c => UtilsHelper.areObjectIdsEquals(coursesList[2]._id, c._id));
@@ -569,7 +590,7 @@ describe('COURSES ROUTES - GET /courses', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      expect(response.result.data.courses.length).toEqual(11);
+      expect(response.result.data.courses.length).toEqual(10);
     });
 
     it('should return 200 if coach and same company (pedagogy webapp)', async () => {
@@ -2971,21 +2992,34 @@ describe('COURSES ROUTES - GET /{_id}/completion-certificates', () => {
       authToken = await getToken('coach');
       const response = await app.inject({
         method: 'GET',
-        url: `/courses/${coursesList[9]._id}/completion-certificates`,
+        url: `/courses/${coursesList[7]._id}/completion-certificates`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(response.statusCode).toBe(200);
-      sinon.assert.calledOnceWithExactly(
-        createDocxStub,
+      sinon.assert.calledWithExactly(
+        createDocxStub.getCall(0),
         `${os.tmpdir()}/certificate_template.docx`,
         {
           duration: '2h',
           learningGoals: 'on est là',
           programName: 'PROGRAM',
-          startDate: '09/03/2020',
-          endDate: '09/03/2020',
-          trainee: { identity: 'Coach CALIF', attendanceDuration: '0h' },
+          startDate: '07/03/2020',
+          endDate: '07/03/2020',
+          trainee: { identity: 'Auxiliary OLAIT', attendanceDuration: '0h' },
+          date: '24/01/2019',
+        }
+      );
+      sinon.assert.calledWithExactly(
+        createDocxStub.getCall(1),
+        `${os.tmpdir()}/certificate_template.docx`,
+        {
+          duration: '2h',
+          learningGoals: 'on est là',
+          programName: 'PROGRAM',
+          startDate: '07/03/2020',
+          endDate: '07/03/2020',
+          trainee: { identity: 'Michel DRUCKER', attendanceDuration: '0h' },
           date: '24/01/2019',
         }
       );
@@ -3179,7 +3213,7 @@ describe('COURSES ROUTES - GET /:_id/convocations', () => {
     it('should return 200', async () => {
       const response = await app.inject({
         method: 'GET',
-        url: `/courses/${coursesList[9]._id}/convocations`,
+        url: `/courses/${coursesList[5]._id}/convocations`,
       });
 
       expect(response.statusCode).toBe(200);

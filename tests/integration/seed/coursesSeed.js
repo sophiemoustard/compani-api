@@ -150,14 +150,14 @@ const userCompanies = [
     _id: new ObjectId(),
     user: traineeFromOtherCompany._id,
     company: thirdCompany._id,
-    startDate: '2022-01-01T23:00:00.000Z',
-    endDate: '2022-11-30T23:00:00.000Z',
+    startDate: '2020-01-01T23:00:00.000Z',
+    endDate: '2020-11-30T23:00:00.000Z',
   },
   { // 1
     _id: new ObjectId(),
     user: traineeFromOtherCompany._id,
     company: otherCompany._id,
-    startDate: '2020-01-01T10:00:00.000Z',
+    startDate: '2021-01-01T10:00:00.000Z',
   },
   { // 2
     _id: new ObjectId(),
@@ -197,18 +197,24 @@ const userCompanies = [
     company: authCompany._id,
     startDate: CompaniDate().add('P5M').toISO(),
   },
-  { // 5
+  { // 8
     _id: new ObjectId(),
     user: traineeFromAuthFormerlyInOther._id,
     company: otherCompany._id,
     startDate: '2020-01-01T10:00:00.000Z',
     endDate: '2020-12-31T10:00:00.000Z',
   },
-  { // 6
+  { // 9
     _id: new ObjectId(),
     user: traineeFromAuthFormerlyInOther._id,
     company: authCompany._id,
     startDate: '2021-01-01T10:00:00.000Z',
+  },
+  { // 10 formerly in auth company now in other
+    _id: new ObjectId(),
+    user: traineeFormerlyInAuthCompany._id,
+    company: otherCompany._id,
+    startDate: '2022-01-01T10:00:00.000Z',
   },
 ];
 
@@ -246,7 +252,7 @@ const stepList = [
     name: 'etape',
     type: 'e_learning',
     activities: activitiesList.map(a => a._id),
-    theoreticalDuration: 20,
+    theoreticalDuration: 60,
   },
   { _id: new ObjectId(), name: 'etape', type: 'remote', activities: [] },
 ];
@@ -289,7 +295,7 @@ const coursesList = [
     subProgram: subProgramsList[0]._id,
     contact: vendorAdmin._id,
     misc: 'team formation',
-    trainer: new ObjectId(),
+    trainer: trainerAndCoach._id,
     trainees: [traineeFromOtherCompany._id, traineeFromAuthFormerlyInOther._id],
     companies: [otherCompany._id],
     type: INTRA,
@@ -351,11 +357,9 @@ const coursesList = [
   { // 6 course without trainees and slots
     _id: new ObjectId(),
     subProgram: subProgramsList[2]._id,
-    misc: 'inter b2c session NOT concerning auth company',
     type: INTER_B2C,
     trainees: [],
     format: STRICTLY_E_LEARNING,
-    salesRepresentative: vendorAdmin._id,
   },
   { // 7 course with slots to plan
     _id: new ObjectId(),
@@ -372,30 +376,23 @@ const coursesList = [
   { // 8 eLearning course with access rules
     _id: new ObjectId(),
     subProgram: subProgramsList[2]._id,
-    contact: vendorAdmin._id,
-    misc: 'inter_b2c with accessRules',
     type: INTER_B2C,
     format: STRICTLY_E_LEARNING,
     trainees: [traineeFromAuthFormerlyInOther._id],
     accessRules: [authCompany._id],
-    salesRepresentative: vendorAdmin._id,
   },
   { // 9 course with access rules and trainee that can't have access to the course but has already suscribed
     _id: new ObjectId(),
     subProgram: subProgramsList[0]._id,
-    trainer: trainer._id,
-    misc: 'inter_b2b with accessRules',
-    type: INTER_B2B,
-    format: BLENDED,
-    trainees: [coach._id, traineeFromOtherCompany._id],
-    companies: [otherCompany._id, authCompany._id],
-    accessRules: [authCompany._id, new ObjectId()],
-    salesRepresentative: vendorAdmin._id,
+    type: INTER_B2C,
+    format: STRICTLY_E_LEARNING,
+    trainees: [coach._id],
+    accessRules: [authCompany._id],
   },
   { // 10 course with contact
     _id: new ObjectId(),
     subProgram: subProgramsList[0]._id,
-    trainer: coach._id,
+    trainer: trainerAndCoach._id,
     misc: 'inter_b2b',
     type: INTER_B2B,
     trainees: [traineeFromOtherCompany._id],
@@ -406,12 +403,10 @@ const coursesList = [
   { // 11 course without authCompany in access rules (11ème position)
     _id: new ObjectId(),
     subProgram: subProgramsList[2]._id,
-    misc: 'inter_b2c',
     type: INTER_B2C,
     format: STRICTLY_E_LEARNING,
     trainees: [traineeFromOtherCompany._id, traineeFromAuthFormerlyInOther._id, noRole._id],
     accessRules: [otherCompany._id, thirdCompany._id],
-    salesRepresentative: vendorAdmin._id,
   },
   { // 12 course with no on-site slot
     _id: new ObjectId(),
@@ -496,7 +491,6 @@ const coursesList = [
     trainees: [coach._id, helper._id, clientAdmin._id],
     companies: [authCompany._id],
     type: INTER_B2B,
-    maxTrainees: 8,
     salesRepresentative: vendorAdmin._id,
     archivedAt: '2021-01-01T00:00:00.000Z',
     estimatedStartDate: '2020-11-03T10:00:00.000Z',
@@ -649,6 +643,7 @@ const courseHistories = [
     trainee: coach._id,
     company: authCompany._id,
     createdBy: trainerOrganisationManager._id,
+    createdAt: '2023-01-03T14:00:00.000Z',
   },
   {
     action: TRAINEE_ADDITION,
@@ -656,6 +651,7 @@ const courseHistories = [
     trainee: helper._id,
     company: authCompany._id,
     createdBy: trainerOrganisationManager._id,
+    createdAt: '2023-01-03T14:00:00.000Z',
   },
   {
     action: TRAINEE_ADDITION,
@@ -663,6 +659,7 @@ const courseHistories = [
     trainee: clientAdmin._id,
     company: authCompany._id,
     createdBy: trainerOrganisationManager._id,
+    createdAt: '2023-01-03T14:00:00.000Z',
   },
   {
     action: TRAINEE_ADDITION,
@@ -670,6 +667,7 @@ const courseHistories = [
     trainee: vendorAdmin._id,
     company: authCompany._id,
     createdBy: trainerOrganisationManager._id,
+    createdAt: '2023-01-03T14:00:00.000Z',
   },
   {
     action: TRAINEE_ADDITION,
@@ -677,6 +675,7 @@ const courseHistories = [
     trainee: traineeFromOtherCompany._id,
     company: otherCompany._id,
     createdBy: trainerOrganisationManager._id,
+    createdAt: '2023-01-03T14:00:00.000Z',
   },
   {
     action: TRAINEE_ADDITION,
@@ -684,6 +683,7 @@ const courseHistories = [
     trainee: traineeFromAuthFormerlyInOther._id,
     company: otherCompany._id,
     createdBy: trainerOrganisationManager._id,
+    createdAt: '2020-01-03T14:00:00.000Z',
   },
   {
     action: TRAINEE_ADDITION,
@@ -691,6 +691,7 @@ const courseHistories = [
     trainee: coach._id,
     company: authCompany._id,
     createdBy: trainerOrganisationManager._id,
+    createdAt: '2023-01-03T14:00:00.000Z',
   },
   {
     action: TRAINEE_ADDITION,
@@ -698,6 +699,7 @@ const courseHistories = [
     trainee: helper._id,
     company: authCompany._id,
     createdBy: trainerOrganisationManager._id,
+    createdAt: '2023-01-03T14:00:00.000Z',
   },
   {
     action: TRAINEE_ADDITION,
@@ -705,6 +707,7 @@ const courseHistories = [
     trainee: trainerOrganisationManager._id,
     company: authCompany._id,
     createdBy: trainerOrganisationManager._id,
+    createdAt: '2023-01-03T14:00:00.000Z',
   },
   {
     action: TRAINEE_ADDITION,
@@ -712,6 +715,7 @@ const courseHistories = [
     trainee: clientAdmin._id,
     company: authCompany._id,
     createdBy: trainerOrganisationManager._id,
+    createdAt: '2023-01-03T14:00:00.000Z',
   },
   {
     action: TRAINEE_ADDITION,
@@ -719,6 +723,7 @@ const courseHistories = [
     trainee: auxiliary._id,
     company: authCompany._id,
     createdBy: trainerOrganisationManager._id,
+    createdAt: '2023-01-03T14:00:00.000Z',
   },
   {
     action: TRAINEE_ADDITION,
@@ -726,6 +731,7 @@ const courseHistories = [
     trainee: traineeFromAuthCompanyWithFormationExpoToken._id,
     company: authCompany._id,
     createdBy: trainerOrganisationManager._id,
+    createdAt: '2023-01-03T14:00:00.000Z',
   },
   {
     action: TRAINEE_ADDITION,
@@ -733,6 +739,7 @@ const courseHistories = [
     trainee: traineeFromOtherCompany._id,
     company: otherCompany._id,
     createdBy: trainerOrganisationManager._id,
+    createdAt: '2023-01-03T14:00:00.000Z',
   },
   {
     action: TRAINEE_ADDITION,
@@ -740,6 +747,7 @@ const courseHistories = [
     trainee: traineeFromOtherCompany._id,
     company: otherCompany._id,
     createdBy: trainerOrganisationManager._id,
+    createdAt: '2023-01-03T14:00:00.000Z',
   },
   {
     action: TRAINEE_ADDITION,
@@ -747,6 +755,8 @@ const courseHistories = [
     trainee: coach._id,
     company: authCompany._id,
     createdBy: trainerOrganisationManager._id,
+    createdAt: '2023-01-03T14:00:00.000Z',
+
   },
   {
     action: TRAINEE_ADDITION,
@@ -754,6 +764,7 @@ const courseHistories = [
     trainee: noRole._id,
     company: thirdCompany._id,
     createdBy: trainerOrganisationManager._id,
+    createdAt: '2022-01-03T14:00:00.000Z',
   },
   {
     action: TRAINEE_ADDITION,
@@ -761,6 +772,7 @@ const courseHistories = [
     trainee: traineeFromAuthFormerlyInOther._id,
     company: authCompany._id,
     createdBy: trainerOrganisationManager._id,
+    createdAt: '2023-01-03T14:00:00.000Z',
   },
   {
     action: TRAINEE_ADDITION,
@@ -768,6 +780,7 @@ const courseHistories = [
     trainee: auxiliary._id,
     company: authCompany._id,
     createdBy: trainerOrganisationManager._id,
+    createdAt: '2023-01-03T14:00:00.000Z',
   },
   {
     action: TRAINEE_ADDITION,
@@ -775,6 +788,8 @@ const courseHistories = [
     trainee: coach._id,
     company: authCompany._id,
     createdBy: trainerOrganisationManager._id,
+    createdAt: '2023-01-03T14:00:00.000Z',
+
   },
   {
     action: TRAINEE_ADDITION,
@@ -782,6 +797,7 @@ const courseHistories = [
     trainee: traineeFromOtherCompany._id,
     company: otherCompany._id,
     createdBy: trainerOrganisationManager._id,
+    createdAt: '2023-01-03T14:00:00.000Z',
   },
   {
     action: TRAINEE_ADDITION,
@@ -789,6 +805,7 @@ const courseHistories = [
     trainee: traineeFromOtherCompany._id,
     company: otherCompany._id,
     createdBy: trainerOrganisationManager._id,
+    createdAt: '2023-01-03T14:00:00.000Z',
   },
   {
     action: TRAINEE_ADDITION,
@@ -796,6 +813,7 @@ const courseHistories = [
     trainee: coach._id,
     company: authCompany._id,
     createdBy: trainerOrganisationManager._id,
+    createdAt: '2023-01-03T14:00:00.000Z',
   },
   {
     action: TRAINEE_ADDITION,
@@ -803,6 +821,7 @@ const courseHistories = [
     trainee: coach._id,
     company: authCompany._id,
     createdBy: trainerOrganisationManager._id,
+    createdAt: '2023-01-03T14:00:00.000Z',
   },
   {
     action: TRAINEE_ADDITION,
@@ -810,6 +829,7 @@ const courseHistories = [
     trainee: helper._id,
     company: authCompany._id,
     createdBy: trainerOrganisationManager._id,
+    createdAt: '2023-01-03T14:00:00.000Z',
   },
   {
     action: TRAINEE_ADDITION,
@@ -817,6 +837,7 @@ const courseHistories = [
     trainee: clientAdmin._id,
     company: authCompany._id,
     createdBy: trainerOrganisationManager._id,
+    createdAt: '2023-01-03T14:00:00.000Z',
   },
   {
     action: TRAINEE_ADDITION,
@@ -824,6 +845,7 @@ const courseHistories = [
     trainee: coach._id,
     company: authCompany._id,
     createdBy: trainerOrganisationManager._id,
+    createdAt: '2023-01-03T14:00:00.000Z',
   },
   {
     action: TRAINEE_ADDITION,
@@ -831,6 +853,7 @@ const courseHistories = [
     trainee: helper._id,
     company: authCompany._id,
     createdBy: trainerOrganisationManager._id,
+    createdAt: '2023-01-03T14:00:00.000Z',
   },
   {
     action: TRAINEE_ADDITION,
@@ -838,6 +861,7 @@ const courseHistories = [
     trainee: trainerOrganisationManager._id,
     company: authCompany._id,
     createdBy: trainerOrganisationManager._id,
+    createdAt: '2023-01-03T14:00:00.000Z',
   },
   {
     action: TRAINEE_ADDITION,
@@ -845,6 +869,7 @@ const courseHistories = [
     trainee: clientAdmin._id,
     company: authCompany._id,
     createdBy: trainerOrganisationManager._id,
+    createdAt: '2023-01-03T14:00:00.000Z',
   },
   {
     action: TRAINEE_ADDITION,
@@ -852,6 +877,7 @@ const courseHistories = [
     trainee: auxiliary._id,
     company: authCompany._id,
     createdBy: trainerOrganisationManager._id,
+    createdAt: '2023-01-03T14:00:00.000Z',
   },
   {
     action: TRAINEE_ADDITION,
@@ -859,6 +885,7 @@ const courseHistories = [
     trainee: traineeFromAuthCompanyWithFormationExpoToken._id,
     company: authCompany._id,
     createdBy: trainerOrganisationManager._id,
+    createdAt: '2023-01-03T14:00:00.000Z',
   },
   {
     action: TRAINEE_ADDITION,
@@ -866,6 +893,7 @@ const courseHistories = [
     trainee: coach._id,
     company: authCompany._id,
     createdBy: trainerOrganisationManager._id,
+    createdAt: '2023-01-03T14:00:00.000Z',
   },
   {
     action: TRAINEE_ADDITION,
@@ -873,6 +901,7 @@ const courseHistories = [
     trainee: helper._id,
     company: authCompany._id,
     createdBy: trainerOrganisationManager._id,
+    createdAt: '2023-01-03T14:00:00.000Z',
   },
   {
     action: TRAINEE_ADDITION,
@@ -880,6 +909,7 @@ const courseHistories = [
     trainee: clientAdmin._id,
     company: authCompany._id,
     createdBy: trainerOrganisationManager._id,
+    createdAt: '2023-01-03T14:00:00.000Z',
   },
   {
     action: TRAINEE_ADDITION,
@@ -887,6 +917,7 @@ const courseHistories = [
     trainee: traineeFromAuthFormerlyInOther._id,
     company: otherCompany._id,
     createdBy: trainerOrganisationManager._id,
+    createdAt: '2020-01-03T14:00:00.000Z',
   },
 ];
 
@@ -983,24 +1014,17 @@ const slots = [
   },
   { // 13
     _id: new ObjectId(),
-    startDate: '2020-03-09T08:00:00.000Z',
-    endDate: '2020-03-09T10:00:00.000Z',
-    course: coursesList[9]._id,
-    step: stepList[0]._id,
-  },
-  { // 14
-    _id: new ObjectId(),
     startDate: '2020-03-10T08:00:00.000Z',
     endDate: '2020-03-10T10:00:00.000Z',
     course: coursesList[13]._id,
     step: stepList[0]._id,
   },
-  { // 15
+  { // 14
     _id: new ObjectId(),
     course: coursesList[16]._id,
     step: stepList[0]._id,
   },
-  { // 16
+  { // 15
     _id: new ObjectId(),
     startDate: '2020-03-07T08:00:00.000Z',
     endDate: '2020-03-07T10:00:00.000Z',
@@ -1012,7 +1036,7 @@ const slots = [
 const attendanceList = [{
   _id: new ObjectId(),
   trainee: traineeFromThirdCompany._id,
-  courseSlot: slots[16]._id,
+  courseSlot: slots[15]._id,
   company: thirdCompany._id,
 }];
 

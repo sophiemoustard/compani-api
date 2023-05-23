@@ -224,7 +224,9 @@ const authorizeGetListForPedagogy = async (credentials, query) => {
 
 exports.authorizeGetList = async (req) => {
   const { credentials } = req.auth;
-  const { action } = req.query;
+  const { action, format } = req.query;
+
+  if (has(req.query, 'isArchived') && format !== BLENDED) throw Boom.badRequest();
 
   if (action === OPERATIONS) return authorizeGetListForOperations(credentials, req.query);
 
