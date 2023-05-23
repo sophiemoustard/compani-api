@@ -243,7 +243,7 @@ const coursesList = [
     subProgram: subProgramsList[0]._id,
     misc: 'first session',
     trainer: trainer._id,
-    trainees: [usersSeedList[0]._id, usersSeedList[4]._id],
+    trainees: [usersSeedList[8]._id],
     companies: [company._id],
     type: INTRA,
     maxTrainees: 8,

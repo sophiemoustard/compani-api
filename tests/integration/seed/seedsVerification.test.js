@@ -678,7 +678,7 @@ describe('SEEDS VERIFICATION', () => {
                 { path: 'userCompanyList' },
               ],
             })
-            .populate({ path: 'course', select: 'trainer companies' })
+            .populate({ path: 'course', select: 'trainer companies trainees' })
             .lean();
         });
 
@@ -691,12 +691,12 @@ describe('SEEDS VERIFICATION', () => {
           const everyHistoryCreatorHasGoodRole = courseHistoryList.every((ch) => {
             const rofOrVendorAdminActions = [
               SLOT_CREATION,
-              SLOT_DELETION,
               ESTIMATED_START_DATE_EDITION,
               COMPANY_ADDITION,
               COMPANY_DELETION,
             ];
             const otherActions = [
+              SLOT_DELETION,
               SLOT_EDITION,
               TRAINEE_ADDITION,
               TRAINEE_DELETION,
@@ -732,6 +732,32 @@ describe('SEEDS VERIFICATION', () => {
             return false;
           });
           expect(everyHistoryCreatorIsAllowedToAccessCourse).toBeTruthy();
+        });
+
+        it('should pass if trainee is in course for trainee_addition action', () => {
+          const isEveryTraineeInCourse = courseHistoryList
+            .filter(ch => [TRAINEE_ADDITION].includes(ch.action))
+            .every((ch) => {
+              if (UtilsHelper.doesArrayIncludeId(ch.course.trainees, ch.trainee._id)) return true;
+
+              const traineeDeletions = courseHistoryList
+                .filter(
+                  history => history.action === TRAINEE_DELETION &&
+                  UtilsHelper.areObjectIdsEquals(history.trainee._id, ch.trainee._id) &&
+                  UtilsHelper.areObjectIdsEquals(history.course._id, ch.course._id)
+                );
+
+              const traineeAdditions = courseHistoryList
+                .filter(
+                  history => history.action === TRAINEE_ADDITION &&
+                  UtilsHelper.areObjectIdsEquals(history.trainee._id, ch.trainee._id) &&
+                  UtilsHelper.areObjectIdsEquals(history.course._id, ch.course._id)
+                );
+
+              return traineeDeletions.length === traineeAdditions.length;
+            });
+
+          expect(isEveryTraineeInCourse).toBeTruthy();
         });
 
         it('should pass if all trainees are in course company at registration', () => {

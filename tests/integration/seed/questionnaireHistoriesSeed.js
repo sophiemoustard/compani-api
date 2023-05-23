@@ -74,7 +74,7 @@ const courseHistoriesList = [
   },
   {
     action: TRAINEE_ADDITION,
-    course: coursesList[0]._id,
+    course: coursesList[1]._id,
     trainee: questionnaireHistoriesUsersList[1],
     company: authCompany._id,
     createdBy: trainerOrganisationManager._id,
