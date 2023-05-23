@@ -18,7 +18,7 @@ const {
   QR_CODE_TIME_STAMPING,
 } = require('../../../src/helpers/constants');
 const { authCompany, otherCompany, companyWithoutSubscription } = require('../../seed/authCompaniesSeed');
-const { deleteNonAuthenticationSeeds } = require('../helpers/authentication');
+const { deleteNonAuthenticationSeeds } = require('../helpers/db');
 const { coachRoleId, clientAdminRoleId } = require('../../seed/authRolesSeed');
 
 const users = [

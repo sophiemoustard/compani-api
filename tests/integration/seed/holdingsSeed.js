@@ -1,7 +1,7 @@
 const { ObjectId } = require('mongodb');
 const CompanyHolding = require('../../../src/models/CompanyHolding');
 const Holding = require('../../../src/models/Holding');
-const { deleteNonAuthenticationSeeds } = require('../helpers/authentication');
+const { deleteNonAuthenticationSeeds } = require('../helpers/db');
 const { otherCompany } = require('../../seed/authCompaniesSeed');
 
 const holdings = [

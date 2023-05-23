@@ -18,7 +18,7 @@ const {
 const UserCompany = require('../../../src/models/UserCompany');
 const { authCompany, companyWithoutSubscription } = require('../../seed/authCompaniesSeed');
 const { auxiliaryRoleId } = require('../../seed/authRolesSeed');
-const { deleteNonAuthenticationSeeds } = require('../helpers/authentication');
+const { deleteNonAuthenticationSeeds } = require('../helpers/db');
 const { CompaniDate } = require('../../../src/helpers/dates/companiDates');
 
 const auxiliariesIdList = [new ObjectId(), new ObjectId()];

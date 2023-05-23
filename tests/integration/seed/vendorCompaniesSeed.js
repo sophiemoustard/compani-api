@@ -1,5 +1,5 @@
 const VendorCompany = require('../../../src/models/VendorCompany');
-const { deleteNonAuthenticationSeeds } = require('../helpers/authentication');
+const { deleteNonAuthenticationSeeds } = require('../helpers/db');
 
 const vendorCompany = {
   name: 'Test Company',

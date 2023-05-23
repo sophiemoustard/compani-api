@@ -8,7 +8,7 @@ const ActivityHistory = require('../../../src/models/ActivityHistory');
 const Card = require('../../../src/models/Card');
 const Course = require('../../../src/models/Course');
 const { userList, vendorAdmin, coach } = require('../../seed/authUsersSeed');
-const { deleteNonAuthenticationSeeds } = require('../helpers/authentication');
+const { deleteNonAuthenticationSeeds } = require('../helpers/db');
 const { INTER_B2C } = require('../../../src/helpers/constants');
 
 const cards = [

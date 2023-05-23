@@ -9,7 +9,7 @@ const ActivityHistory = require('../../../src/models/ActivityHistory');
 const User = require('../../../src/models/User');
 const UserCompany = require('../../../src/models/UserCompany');
 const { STRICTLY_E_LEARNING, WEBAPP, INTRA } = require('../../../src/helpers/constants');
-const { deleteNonAuthenticationSeeds } = require('../helpers/authentication');
+const { deleteNonAuthenticationSeeds } = require('../helpers/db');
 const { vendorAdminRoleId } = require('../../seed/authRolesSeed');
 const { authCompany, companyWithoutSubscription } = require('../../seed/authCompaniesSeed');
 

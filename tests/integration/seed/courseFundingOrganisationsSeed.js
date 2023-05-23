@@ -1,7 +1,7 @@
 const { ObjectId } = require('mongodb');
 const CourseBill = require('../../../src/models/CourseBill');
 const CourseFundingOrganisation = require('../../../src/models/CourseFundingOrganisation');
-const { deleteNonAuthenticationSeeds } = require('../helpers/authentication');
+const { deleteNonAuthenticationSeeds } = require('../helpers/db');
 
 const courseFundingOrganisationsList = [
   { _id: new ObjectId(), name: 'APA Paris', address: '1 avenue Denfert Rochereau 75014 Paris' },

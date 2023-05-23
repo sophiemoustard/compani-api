@@ -1,7 +1,7 @@
 const { ObjectId } = require('mongodb');
 const Category = require('../../../src/models/Category');
 const Program = require('../../../src/models/Program');
-const { deleteNonAuthenticationSeeds } = require('../helpers/authentication');
+const { deleteNonAuthenticationSeeds } = require('../helpers/db');
 
 const categoriesList = [
   { _id: new ObjectId(), name: 'ma première catégorie' },

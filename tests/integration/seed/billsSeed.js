@@ -23,7 +23,7 @@ const Contract = require('../../../src/models/Contract');
 const FundingHistory = require('../../../src/models/FundingHistory');
 const Helper = require('../../../src/models/Helper');
 const UserCompany = require('../../../src/models/UserCompany');
-const { deleteNonAuthenticationSeeds } = require('../helpers/authentication');
+const { deleteNonAuthenticationSeeds } = require('../helpers/db');
 const { authCompany, otherCompany, companyWithoutSubscription } = require('../../seed/authCompaniesSeed');
 const { helperRoleId, auxiliaryRoleId } = require('../../seed/authRolesSeed');
 

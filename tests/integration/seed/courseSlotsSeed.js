@@ -11,7 +11,7 @@ const Attendance = require('../../../src/models/Attendance');
 const { authCompany, otherCompany, companyWithoutSubscription } = require('../../seed/authCompaniesSeed');
 const { vendorAdmin } = require('../../seed/authUsersSeed');
 const { WEBAPP, INTRA } = require('../../../src/helpers/constants');
-const { deleteNonAuthenticationSeeds } = require('../helpers/authentication');
+const { deleteNonAuthenticationSeeds } = require('../helpers/db');
 const { trainerRoleId } = require('../../seed/authRolesSeed');
 
 const trainer = {

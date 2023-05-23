@@ -7,7 +7,7 @@ const User = require('../../../src/models/User');
 const { authCompany, otherCompany } = require('../../seed/authCompaniesSeed');
 const { trainerOrganisationManager } = require('../../seed/authUsersSeed');
 const { SLOT_CREATION, WEBAPP, INTRA, INTER_B2B } = require('../../../src/helpers/constants');
-const { deleteNonAuthenticationSeeds } = require('../helpers/authentication');
+const { deleteNonAuthenticationSeeds } = require('../helpers/db');
 const { vendorAdminRoleId, trainerRoleId } = require('../../seed/authRolesSeed');
 
 const userList = [

@@ -1,7 +1,7 @@
 const { ObjectId } = require('mongodb');
 const Surcharge = require('../../../src/models/Surcharge');
 const { authCompany, otherCompany } = require('../../seed/authCompaniesSeed');
-const { deleteNonAuthenticationSeeds } = require('../helpers/authentication');
+const { deleteNonAuthenticationSeeds } = require('../helpers/db');
 
 const surchargesList = [
   {

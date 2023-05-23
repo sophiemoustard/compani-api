@@ -16,7 +16,7 @@ const {
   OPEN_QUESTION,
   QUESTION_ANSWER,
 } = require('../../../src/helpers/constants');
-const { deleteNonAuthenticationSeeds } = require('../helpers/authentication');
+const { deleteNonAuthenticationSeeds } = require('../helpers/db');
 
 const cardsList = [
   { _id: new ObjectId(), template: TRANSITION, title: 'Lala' },
