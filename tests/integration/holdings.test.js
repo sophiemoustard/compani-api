@@ -115,3 +115,22 @@ describe('HOLDINGS ROUTES - POST /holdings', () => {
     });
   });
 });
+
+describe('HOLDINGS ROUTES - GET /holdings', () => {
+  let authToken;
+  describe('TRAINING_ORGANISATION_MANAGER', () => {
+    beforeEach(populateDB);
+
+    it('should list holdings', async () => {
+      authToken = await getToken('training_organisation_manager');
+      const response = await app.inject({
+        method: 'GET',
+        url: '/holdings',
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(200);
+      expect(response.result.data.holdings.length).toEqual(1);
+    });
+  });
+});

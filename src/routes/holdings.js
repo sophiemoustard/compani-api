@@ -3,7 +3,7 @@
 const Joi = require('joi');
 const { addressValidation } = require('./validations/utils');
 const { authorizeHoldingCreation } = require('./preHandlers/holdings');
-const { create } = require('../controllers/holdingController');
+const { create, list } = require('../controllers/holdingController');
 
 exports.plugin = {
   name: 'routes-holdings',
@@ -22,6 +22,15 @@ exports.plugin = {
         pre: [{ method: authorizeHoldingCreation }],
       },
       handler: create,
+    });
+
+    server.route({
+      method: 'GET',
+      path: '/',
+      options: {
+        auth: { scope: ['holdings:read'] },
+      },
+      handler: list,
     });
   },
 };

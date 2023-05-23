@@ -3,13 +3,25 @@ const translate = require('../helpers/translate');
 const HoldingHelper = require('../helpers/holdings');
 
 const { language } = translate;
+
 const create = async (req) => {
   try {
-    const newHolding = await HoldingHelper.create(req.payload);
+    await HoldingHelper.create(req.payload);
+
+    return { message: translate[language].holdingCreated };
+  } catch (e) {
+    req.log('error', e);
+    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
+  }
+};
+
+const list = async (req) => {
+  try {
+    const holdings = await HoldingHelper.list();
 
     return {
-      message: translate[language].holdingCreated,
-      data: { holding: newHolding },
+      message: translate[language].holdingsFound,
+      data: { holdings },
     };
   } catch (e) {
     req.log('error', e);
@@ -17,4 +29,4 @@ const create = async (req) => {
   }
 };
 
-module.exports = { create };
+module.exports = { create, list };
