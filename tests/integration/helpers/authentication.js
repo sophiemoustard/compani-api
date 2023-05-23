@@ -44,6 +44,7 @@ const Event = require('../../../src/models/Event');
 const FinalPay = require('../../../src/models/FinalPay');
 const FundingHistory = require('../../../src/models/FundingHistory');
 const Helper = require('../../../src/models/Helper');
+const Holding = require('../../../src/models/Holding');
 const IdentityVerification = require('../../../src/models/IdentityVerification');
 const InternalHour = require('../../../src/models/InternalHour');
 const PartnerOrganization = require('../../../src/models/PartnerOrganization');
@@ -157,6 +158,7 @@ const deleteNonAuthenticationSeeds = async () => {
     FinalPay.deleteMany(),
     FundingHistory.deleteMany(),
     Helper.deleteMany({ _id: { $nin: [helperCustomer._id] } }),
+    Holding.deleteMany(),
     IdentityVerification.deleteMany(),
     InternalHour.deleteMany(),
     PartnerOrganization.deleteMany(),
