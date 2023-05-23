@@ -760,6 +760,11 @@ describe('SEEDS VERIFICATION', () => {
           expect(isEveryTraineeInCourse).toBeTruthy();
         });
 
+        it('should pass if course exists', () => {
+          const everyCourseExists = courseHistoryList.every(ch => !!ch.course);
+          expect(everyCourseExists).toBeTruthy();
+        });
+
         it('should pass if all trainees are in course company at registration', () => {
           const traineeHistoryList = courseHistoryList
             .filter(ch => [TRAINEE_ADDITION, TRAINEE_DELETION].includes(ch.action));
