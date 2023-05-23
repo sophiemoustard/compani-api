@@ -14,7 +14,7 @@ describe('create', () => {
     create.restore();
   });
 
-  it('should create a holding', async () => {
+  it('should create a holding with address', async () => {
     const payload = {
       name: 'Test SAS',
       address: {
@@ -29,6 +29,17 @@ describe('create', () => {
     await HoldingHelper.create(payload);
 
     sinon.assert.calledOnceWithExactly(create, payload);
+  });
+
+  it('should create a holding without address', async () => {
+    const payload = {
+      name: 'Test SAS',
+      address: {},
+    };
+
+    await HoldingHelper.create(payload);
+
+    sinon.assert.calledOnceWithExactly(create, { name: 'Test SAS' });
   });
 });
 

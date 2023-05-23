@@ -16,7 +16,7 @@ exports.plugin = {
         validate: {
           payload: Joi.object({
             name: Joi.string().required(),
-            address: addressValidation,
+            address: Joi.alternatives().try(addressValidation, {}),
           }),
         },
         pre: [{ method: authorizeHoldingCreation }],
