@@ -1,7 +1,9 @@
 const { ObjectId } = require('mongodb');
 const { v4: uuidv4 } = require('uuid');
 const Company = require('../../../src/models/Company');
+const CompanyHolding = require('../../../src/models/CompanyHolding');
 const Event = require('../../../src/models/Event');
+const Holding = require('../../../src/models/Holding');
 const User = require('../../../src/models/User');
 const UserCompany = require('../../../src/models/UserCompany');
 const { authCompany, companyWithoutSubscription } = require('../../seed/authCompaniesSeed');
@@ -26,6 +28,10 @@ const company = {
   auxiliariesFolderId: 'kjhgf',
   prefixNumber: 104,
 };
+
+const holding = { _id: new ObjectId(), name: 'Test', address: '37 rue de ponthieu 75008 Paris' };
+
+const companyHolding = { _id: new ObjectId(), company: company._id, holding: holding._id };
 
 const event = {
   startDate: '2019-12-11',
@@ -69,6 +75,8 @@ const populateDB = async () => {
 
   await Promise.all([
     Company.create(company),
+    CompanyHolding.create(companyHolding),
+    Holding.create(holding),
     Event.create(event),
     User.create(companyClientAdmin),
     UserCompany.create(userCompanies),

@@ -1,6 +1,7 @@
 const flat = require('flat');
 const get = require('lodash/get');
 const Company = require('../models/Company');
+const CompanyHolding = require('../models/CompanyHolding');
 const Event = require('../models/Event');
 const GDriveStorageHelper = require('./gDriveStorage');
 const drive = require('../models/Google/Drive');
@@ -25,7 +26,18 @@ exports.createCompany = async (companyPayload) => {
   });
 };
 
-exports.list = async () => Company.find({}, { _id: 1, name: 1 }).lean();
+exports.list = async (hasHolding = false) => {
+  const linkedCompanyList = [];
+  if (hasHolding) {
+    const companyHoldings = await CompanyHolding
+      .find({}, { _id: 1, company: 1 })
+      .setOptions({ allCompanies: true })
+      .lean();
+    linkedCompanyList.push(companyHoldings.map(ch => ch.company));
+  }
+
+  return Company.find({ _id: { $nin: linkedCompanyList.flat() } }, { _id: 1, name: 1 }).lean();
+};
 
 exports.uploadFile = async (payload, params) => {
   const { fileName, type, file } = payload;

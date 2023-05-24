@@ -128,6 +128,9 @@ exports.plugin = {
       path: '/',
       handler: list,
       options: {
+        validate: {
+          query: Joi.object({ hasHolding: Joi.boolean() }),
+        },
         auth: { mode: 'required' },
       },
     });

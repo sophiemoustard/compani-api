@@ -429,9 +429,11 @@ describe('COMPANIES ROUTES - GET /companies', () => {
   let authToken;
   describe('LOGGED USER', () => {
     beforeEach(populateDB);
-
-    it('should list companies', async () => {
+    beforeEach(async () => {
       authToken = await getTokenByCredentials(noRoleNoCompany.local);
+    });
+
+    it('should list all companies', async () => {
       const response = await app.inject({
         method: 'GET',
         url: '/companies',
@@ -440,6 +442,17 @@ describe('COMPANIES ROUTES - GET /companies', () => {
 
       expect(response.statusCode).toBe(200);
       expect(response.result.data.companies.length).toEqual(4);
+    });
+
+    it('should list companies not in holdings', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: '/companies?hasHolding=true',
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(200);
+      expect(response.result.data.companies.length).toEqual(3);
     });
   });
 });
