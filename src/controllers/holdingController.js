@@ -40,4 +40,18 @@ const update = async (req) => {
   }
 };
 
-module.exports = { create, list, update };
+const getById = async (req) => {
+  try {
+    const holding = await HoldingHelper.getById(req.params._id, req.auth.credentials);
+
+    return {
+      message: translate[language].holdingFound,
+      data: { holding },
+    };
+  } catch (e) {
+    req.log('error', e);
+    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
+  }
+};
+
+module.exports = { create, list, update, getById };

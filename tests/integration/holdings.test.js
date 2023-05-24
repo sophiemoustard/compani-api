@@ -224,3 +224,62 @@ describe('HOLDINGS ROUTES - PUT /holdings/{_id}', () => {
     });
   });
 });
+
+describe('HOLDINGS ROUTES - GET /holdings/{_id}', () => {
+  let authToken;
+
+  describe('TRAINING_ORGANISATION_MANAGER', () => {
+    beforeEach(populateDB);
+    beforeEach(async () => {
+      authToken = await getToken('training_organisation_manager');
+    });
+
+    it('should get a holding', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/holdings/${holdings[1]._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(200);
+      expect(response.result.data.holding).toMatchObject({
+        _id: holdings[1]._id,
+        name: 'Croix Rouge',
+        companyHoldingList: [expect.objectContaining({ company: { _id: otherCompany._id, name: 'Un autre SAS' } })],
+      });
+    });
+
+    it('should return a 404 error if holding doesn\'t exist', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/holdings/${new ObjectId()}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(404);
+    });
+  });
+
+  describe('Other roles', () => {
+    beforeEach(populateDB);
+
+    const roles = [
+      { name: 'helper', expectedCode: 403 },
+      { name: 'planning_referent', expectedCode: 403 },
+      { name: 'client_admin', expectedCode: 403 },
+      { name: 'trainer', expectedCode: 403 },
+    ];
+    roles.forEach((role) => {
+      it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+        authToken = await getToken(role.name);
+        const response = await app.inject({
+          method: 'GET',
+          url: `/holdings/${holdings[0]._id}`,
+          headers: { Cookie: `alenvi_token=${authToken}` },
+        });
+
+        expect(response.statusCode).toBe(role.expectedCode);
+      });
+    });
+  });
+});

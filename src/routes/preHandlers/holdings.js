@@ -28,3 +28,10 @@ exports.authorizeHoldingUpdate = async (req) => {
 
   return null;
 };
+
+exports.authorizeHoldingGet = async (req) => {
+  const holding = await Holding.countDocuments({ _id: req.params._id });
+  if (!holding) throw Boom.notFound();
+
+  return null;
+};
