@@ -1,7 +1,6 @@
 'use-strict';
 
 const Joi = require('joi');
-const { addressValidation } = require('./validations/utils');
 const { authorizeHoldingCreation } = require('./preHandlers/holdings');
 const { create, list } = require('../controllers/holdingController');
 
@@ -16,7 +15,7 @@ exports.plugin = {
         validate: {
           payload: Joi.object({
             name: Joi.string().required(),
-            address: Joi.alternatives().try(addressValidation, {}),
+            address: Joi.string(),
           }),
         },
         pre: [{ method: authorizeHoldingCreation }],

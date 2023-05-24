@@ -13,16 +13,7 @@ describe('NODE ENV', () => {
 describe('HOLDINGS ROUTES - POST /holdings', () => {
   let authToken;
   describe('TRAINING_ORGANISATION_MANAGER', () => {
-    const payload = {
-      name: 'Holding SARL',
-      address: {
-        fullAddress: '24 avenue Daumesnil 75012 Paris',
-        street: '24 avenue Daumesnil',
-        zipCode: '75012',
-        city: 'Paris',
-        location: { type: 'Point', coordinates: [2.377133, 48.801389] },
-      },
-    };
+    const payload = { name: 'Holding SARL', address: '24 avenue Daumesnil 75012 Paris' };
 
     beforeEach(populateDB);
     beforeEach(async () => {
@@ -30,7 +21,7 @@ describe('HOLDINGS ROUTES - POST /holdings', () => {
     });
 
     it('should create a new holding', async () => {
-      const holdingsBefore = await Holding.find().lean();
+      const holdingsBefore = await Holding.countDocuments();
 
       const response = await app.inject({
         method: 'POST',
@@ -41,7 +32,7 @@ describe('HOLDINGS ROUTES - POST /holdings', () => {
 
       expect(response.statusCode).toBe(200);
       const holdingsCount = await Holding.countDocuments();
-      expect(holdingsCount).toEqual(holdingsBefore.length + 1);
+      expect(holdingsCount).toEqual(holdingsBefore + 1);
     });
 
     it('should return 409 if other holding has exact same name', async () => {
@@ -70,26 +61,7 @@ describe('HOLDINGS ROUTES - POST /holdings', () => {
       const response = await app.inject({
         method: 'POST',
         url: '/holdings',
-        payload: {
-          address: {
-            fullAddress: '24 avenue Daumesnil 75012 Paris',
-            street: '24 avenue Daumesnil',
-            zipCode: '75012',
-            city: 'Paris',
-            location: { type: 'Point', coordinates: [2.377133, 48.801389] },
-          },
-        },
-        headers: { Cookie: `alenvi_token=${authToken}` },
-      });
-
-      expect(response.statusCode).toBe(400);
-    });
-
-    it('should return a 400 error if address has wrong format', async () => {
-      const response = await app.inject({
-        method: 'POST',
-        url: '/holdings',
-        payload: { name: 'Holding SAS', address: { street: '38 rue de ponthieu' } },
+        payload: { address: '24 avenue Daumesnil 75012 Paris' },
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -139,6 +111,29 @@ describe('HOLDINGS ROUTES - GET /holdings', () => {
 
       expect(response.statusCode).toBe(200);
       expect(response.result.data.holdings.length).toEqual(1);
+    });
+  });
+
+  describe('Other roles', () => {
+    beforeEach(populateDB);
+
+    const roles = [
+      { name: 'helper', expectedCode: 403 },
+      { name: 'planning_referent', expectedCode: 403 },
+      { name: 'client_admin', expectedCode: 403 },
+      { name: 'trainer', expectedCode: 403 },
+    ];
+    roles.forEach((role) => {
+      it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+        authToken = await getToken(role.name);
+        const response = await app.inject({
+          method: 'GET',
+          url: '/holdings',
+          headers: { Cookie: `alenvi_token=${authToken}` },
+        });
+
+        expect(response.statusCode).toBe(role.expectedCode);
+      });
     });
   });
 });
