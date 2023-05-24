@@ -1,6 +1,7 @@
 const sinon = require('sinon');
 const { expect } = require('expect');
 const { ObjectId } = require('mongodb');
+const CompanyHolding = require('../../../src/models/CompanyHolding');
 const Holding = require('../../../src/models/Holding');
 const HoldingHelper = require('../../../src/helpers/holdings');
 const SinonMongoose = require('../sinonMongoose');
@@ -43,5 +44,24 @@ describe('list', () => {
       find,
       [{ query: 'find', args: [{}, { _id: 1, name: 1 }] }, { query: 'lean', args: [] }]
     );
+  });
+});
+
+describe('update', () => {
+  let create;
+  beforeEach(() => {
+    create = sinon.stub(CompanyHolding, 'create');
+  });
+  afterEach(() => {
+    create.restore();
+  });
+
+  it('should link a company to a holding', async () => {
+    const holdingId = new ObjectId();
+    const payload = { company: new ObjectId() };
+
+    await HoldingHelper.update(holdingId, payload);
+
+    sinon.assert.calledOnceWithExactly(create, { holding: holdingId, company: payload.company });
   });
 });

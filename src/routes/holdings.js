@@ -1,8 +1,8 @@
 'use-strict';
 
 const Joi = require('joi');
-const { authorizeHoldingCreation } = require('./preHandlers/holdings');
-const { create, list } = require('../controllers/holdingController');
+const { authorizeHoldingCreation, authorizeHoldingUpdate } = require('./preHandlers/holdings');
+const { create, list, update } = require('../controllers/holdingController');
 
 exports.plugin = {
   name: 'routes-holdings',
@@ -30,6 +30,22 @@ exports.plugin = {
         auth: { scope: ['holdings:read'] },
       },
       handler: list,
+    });
+
+    server.route({
+      method: 'PUT',
+      path: '/{_id}',
+      options: {
+        auth: { scope: ['holdings:edit'] },
+        validate: {
+          params: Joi.object({ _id: Joi.objectId().required() }),
+          payload: Joi.object().keys({
+            company: Joi.objectId(),
+          }).required(),
+        },
+        pre: [{ method: authorizeHoldingUpdate }],
+      },
+      handler: update,
     });
   },
 };
