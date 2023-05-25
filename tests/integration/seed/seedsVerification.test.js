@@ -726,10 +726,11 @@ describe('SEEDS VERIFICATION', () => {
             const hasRofOrVendorAdminRole = [TRAINING_ORGANISATION_MANAGER, VENDOR_ADMIN]
               .includes(get(ch.createdBy, 'role.vendor.name'));
 
-            const isCourseTrainer = [TRAINER].includes(get(ch.createdBy, 'role.vendor.name')) &&
+            const isCourseTrainer = get(ch.createdBy, 'role.vendor.name') === TRAINER &&
               UtilsHelper.areObjectIdsEquals(ch.createdBy._id, ch.course.trainer);
 
             const isFromCompanyLinkedToCourse = [COACH, CLIENT_ADMIN].includes(get(ch.createdBy, 'role.client.name')) &&
+              ch.course.type === INTRA &&
               ch.createdBy.userCompanyList.some(uc => UtilsHelper.doesArrayIncludeId(ch.course.companies, uc.company));
 
             if (hasRofOrVendorAdminRole || isCourseTrainer || isFromCompanyLinkedToCourse) return true;
@@ -741,7 +742,7 @@ describe('SEEDS VERIFICATION', () => {
 
         it('should pass if trainee is in course for trainee_addition action', () => {
           const isEveryTraineeInCourse = courseHistoryList
-            .filter(ch => [TRAINEE_ADDITION].includes(ch.action))
+            .filter(ch => ch.action === TRAINEE_ADDITION)
             .every((ch) => {
               if (UtilsHelper.doesArrayIncludeId(ch.course.trainees, ch.trainee._id)) return true;
 
