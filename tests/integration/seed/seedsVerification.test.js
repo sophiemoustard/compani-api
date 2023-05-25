@@ -25,7 +25,6 @@ const UserCompaniesHelper = require('../../../src/helpers/userCompanies');
 const {
   INTRA,
   COACH,
-  ADMIN_CLIENT,
   TRAINEE_ADDITION,
   TRAINEE_DELETION,
   BLENDED,
@@ -52,12 +51,21 @@ const {
   TRANSITION,
   FLASHCARD,
   DD_MM_YYYY,
+  TRAINER,
+  SLOT_CREATION,
+  SLOT_DELETION,
+  ESTIMATED_START_DATE_EDITION,
+  COMPANY_ADDITION,
+  COMPANY_DELETION,
+  SLOT_EDITION,
+  CLIENT_ADMIN,
 } = require('../../../src/helpers/constants');
 const attendancesSeed = require('./attendancesSeed');
 const activitiesSeed = require('./activitiesSeed');
 const attendanceSheetsSeed = require('./attendanceSheetsSeed');
 const cardsSeed = require('./cardsSeed');
 const coursesSeed = require('./coursesSeed');
+const courseHistoriesSeed = require('./courseHistoriesSeed');
 const programsSeed = require('./programsSeed');
 const questionnaireHistoriesSeed = require('./questionnaireHistoriesSeed');
 const stepsSeed = require('./stepsSeed');
@@ -71,6 +79,7 @@ const seedList = [
   { label: 'ATTENDANCESHEET', value: attendanceSheetsSeed },
   { label: 'CARD', value: cardsSeed },
   { label: 'COURSE', value: coursesSeed },
+  { label: 'COURSEHISTORY', value: courseHistoriesSeed },
   { label: 'PROGRAM', value: programsSeed },
   { label: 'QUESTIONNAIREHISTORY', value: questionnaireHistoriesSeed },
   { label: 'STEP', value: stepsSeed },
@@ -436,7 +445,7 @@ describe('SEEDS VERIFICATION', () => {
 
         it('should pass if companyRepresentative has good role', () => {
           const areCompanyRepresentativesCoachOrAdmin = courseList.every(c => !c.companyRepresentative ||
-            [COACH, ADMIN_CLIENT].includes(get(c.companyRepresentative, 'role.client.name')));
+            [COACH, CLIENT_ADMIN].includes(get(c.companyRepresentative, 'role.client.name')));
           expect(areCompanyRepresentativesCoachOrAdmin).toBeTruthy();
         });
 
@@ -656,16 +665,159 @@ describe('SEEDS VERIFICATION', () => {
         let courseHistoryList;
         before(async () => {
           courseHistoryList = await CourseHistory
-            .find(
-              { action: { $in: [TRAINEE_ADDITION, TRAINEE_DELETION] } },
-              { action: 1, createdAt: 1, trainee: 1, course: 1, company: 1 }
-            )
-            .populate({ path: 'trainee', select: '_id', populate: { path: 'userCompanyList' } })
+            .find({})
+            .populate({
+              path: 'trainee',
+              select: '_id',
+              transform: doc => (doc || null),
+              populate: { path: 'userCompanyList' },
+            })
+            .populate({ path: 'company', select: '_id', transform: doc => (doc || null) })
+            .populate({
+              path: 'createdBy',
+              select: '_id role',
+              transform: doc => (doc || null),
+              populate: [
+                { path: 'role.vendor', select: 'name' },
+                { path: 'role.client', select: 'name' },
+                { path: 'userCompanyList' },
+              ],
+            })
+            .populate({ path: 'course', select: 'trainer companies trainees' })
             .lean();
         });
 
+        it('should pass if user who created history exists', () => {
+          const everyHistoryCreatorExists = courseHistoryList.every(ch => !!ch.createdBy);
+          expect(everyHistoryCreatorExists).toBeTruthy();
+        });
+
+        it('should pass if user who created history has good role', () => {
+          const everyHistoryCreatorHasGoodRole = courseHistoryList.every((ch) => {
+            const rofOrVendorAdminActions = [
+              SLOT_CREATION,
+              ESTIMATED_START_DATE_EDITION,
+              COMPANY_ADDITION,
+              COMPANY_DELETION,
+            ];
+            const otherActions = [
+              SLOT_DELETION,
+              SLOT_EDITION,
+              TRAINEE_ADDITION,
+              TRAINEE_DELETION,
+            ];
+
+            const hasRofOrVendorAdminRole = [TRAINING_ORGANISATION_MANAGER, VENDOR_ADMIN]
+              .includes(get(ch.createdBy, 'role.vendor.name'));
+            const hasCourseEditionRole = [TRAINING_ORGANISATION_MANAGER, VENDOR_ADMIN, TRAINER]
+              .includes(get(ch.createdBy, 'role.vendor.name')) ||
+              [COACH, CLIENT_ADMIN].includes(get(ch.createdBy, 'role.client.name'));
+
+            if (rofOrVendorAdminActions.includes(ch.action) && !hasRofOrVendorAdminRole) return false;
+            if (otherActions.includes(ch.action) && !hasCourseEditionRole) return false;
+
+            return true;
+          });
+          expect(everyHistoryCreatorHasGoodRole).toBeTruthy();
+        });
+
+        it('should pass if user who created history is allowed to access course', () => {
+          const everyHistoryCreatorIsAllowedToAccessCourse = courseHistoryList.every((ch) => {
+            const hasRofOrVendorAdminRole = [TRAINING_ORGANISATION_MANAGER, VENDOR_ADMIN]
+              .includes(get(ch.createdBy, 'role.vendor.name'));
+
+            const isCourseTrainer = get(ch.createdBy, 'role.vendor.name') === TRAINER &&
+              UtilsHelper.areObjectIdsEquals(ch.createdBy._id, ch.course.trainer);
+
+            const isFromCompanyLinkedToCourse = [COACH, CLIENT_ADMIN].includes(get(ch.createdBy, 'role.client.name')) &&
+              ch.course.type === INTRA &&
+              ch.createdBy.userCompanyList.some(uc => UtilsHelper.doesArrayIncludeId(ch.course.companies, uc.company));
+
+            if (hasRofOrVendorAdminRole || isCourseTrainer || isFromCompanyLinkedToCourse) return true;
+
+            return false;
+          });
+          expect(everyHistoryCreatorIsAllowedToAccessCourse).toBeTruthy();
+        });
+
+        it('should pass if trainee is in course for trainee_addition action', () => {
+          const isEveryTraineeInCourse = courseHistoryList
+            .filter(ch => ch.action === TRAINEE_ADDITION)
+            .every((ch) => {
+              if (UtilsHelper.doesArrayIncludeId(ch.course.trainees, ch.trainee._id)) return true;
+
+              const traineeDeletions = courseHistoryList
+                .filter(
+                  history => history.action === TRAINEE_DELETION &&
+                  UtilsHelper.areObjectIdsEquals(history.trainee._id, ch.trainee._id) &&
+                  UtilsHelper.areObjectIdsEquals(history.course._id, ch.course._id)
+                );
+
+              const traineeAdditions = courseHistoryList
+                .filter(
+                  history => history.action === TRAINEE_ADDITION &&
+                  UtilsHelper.areObjectIdsEquals(history.trainee._id, ch.trainee._id) &&
+                  UtilsHelper.areObjectIdsEquals(history.course._id, ch.course._id)
+                );
+
+              return traineeDeletions.length === traineeAdditions.length;
+            });
+
+          expect(isEveryTraineeInCourse).toBeTruthy();
+        });
+
+        it('should pass if course exists', () => {
+          const everyCourseExists = courseHistoryList.every(ch => !!ch.course);
+          expect(everyCourseExists).toBeTruthy();
+        });
+
+        it('should pass if none history has address and meeting link fields', () => {
+          const someHistoryHaveAddressAndMeetingLink = courseHistoryList
+            .filter(ch => has(ch, 'slot'))
+            .some(ch => ch.slot.address && ch.slot.meetingLink);
+
+          expect(someHistoryHaveAddressAndMeetingLink).toBeFalsy();
+        });
+
+        it('should pass if startDate is before endDate', () => {
+          const everyStartDateIsBeforeEndDate = courseHistoryList
+            .every(ch => !has(ch, 'slot') || CompaniDate(ch.slot.startDate).isBefore(ch.slot.endDate));
+
+          expect(everyStartDateIsBeforeEndDate).toBeTruthy();
+        });
+
+        it('should pass if histories with slot have good action', () => {
+          const everyHistoryWithSlotHasGoodAction = courseHistoryList
+            .every(ch => !has(ch, 'slot') || [SLOT_CREATION, SLOT_DELETION, SLOT_EDITION].includes(ch.action));
+
+          expect(everyHistoryWithSlotHasGoodAction).toBeTruthy();
+        });
+
+        it('should pass if startHour is before endHour', () => {
+          const everyStartDateIsBeforeEndDate = courseHistoryList
+            .every(ch => !has(ch, 'update') || CompaniDate(ch.update.startHour.to).isBefore(ch.update.endHour.to));
+
+          expect(everyStartDateIsBeforeEndDate).toBeTruthy();
+        });
+
+        it('should pass if estimatedStartDate is the only field in update and has good action', () => {
+          const everyStartDateIsBeforeEndDate = courseHistoryList
+            .every(ch => !has(ch, 'update.estimatedStartDate') ||
+              (Object.keys(ch.update).length === 1 && ch.action === ESTIMATED_START_DATE_EDITION));
+
+          expect(everyStartDateIsBeforeEndDate).toBeTruthy();
+        });
+
+        it('should pass if trainee exists', () => {
+          const everyTraineeExists = courseHistoryList
+            .every(ch => ![TRAINEE_ADDITION, TRAINEE_DELETION].includes(ch.action) || !!ch.trainee);
+          expect(everyTraineeExists).toBeTruthy();
+        });
+
         it('should pass if all trainees are in course company at registration', () => {
-          const courseHistoriesGroupedByCourse = groupBy(courseHistoryList, 'course');
+          const traineeHistoryList = courseHistoryList
+            .filter(ch => [TRAINEE_ADDITION, TRAINEE_DELETION].includes(ch.action));
+          const courseHistoriesGroupedByCourse = groupBy(traineeHistoryList, 'course._id');
 
           for (const courseHistories of Object.values(courseHistoriesGroupedByCourse)) {
             const courseHistoriesGroupedByTrainee = groupBy(courseHistories, 'trainee._id');
@@ -676,7 +828,7 @@ describe('SEEDS VERIFICATION', () => {
                 .every((ch, i) => {
                   if (i % 2 === 0) {
                     return ch.action === TRAINEE_ADDITION && ch.trainee.userCompanyList
-                      .some(uc => UtilsHelper.areObjectIdsEquals(uc.company, ch.company));
+                      .some(uc => UtilsHelper.areObjectIdsEquals(uc.company, ch.company._id));
                   }
 
                   return ch.action === TRAINEE_DELETION;
@@ -688,7 +840,7 @@ describe('SEEDS VERIFICATION', () => {
               let isTraineeStillInCompanyAtRegistration = true;
               if (isLastHistoryAddition) {
                 isTraineeStillInCompanyAtRegistration = lastHistory.trainee.userCompanyList.some(uc =>
-                  UtilsHelper.areObjectIdsEquals(uc.company, lastHistory.company) &&
+                  UtilsHelper.areObjectIdsEquals(uc.company, lastHistory.company._id) &&
                     (!uc.endDate || CompaniDate(lastHistory.createdAt).isBefore(uc.endDate))
                 );
               }
@@ -696,6 +848,40 @@ describe('SEEDS VERIFICATION', () => {
               expect(!isLastHistoryAddition || isTraineeStillInCompanyAtRegistration).toBeTruthy();
             }
           }
+        });
+
+        it('should pass if company exists', () => {
+          const everyCompanyExists = courseHistoryList
+            .every(ch => ![COMPANY_ADDITION, COMPANY_DELETION, TRAINEE_ADDITION].includes(ch.action) || !!ch.company);
+          expect(everyCompanyExists).toBeTruthy();
+        });
+
+        it('should pass if company is in course', () => {
+          const everyCompanyExists = courseHistoryList
+            .every((ch) => {
+              if (![COMPANY_ADDITION, TRAINEE_ADDITION].includes(ch.action)) return true;
+
+              const isCompanyInCourse = UtilsHelper.doesArrayIncludeId(ch.course.companies, ch.company._id);
+
+              const companyDeletions = courseHistoryList
+                .filter(
+                  history => history.action === COMPANY_DELETION &&
+                  UtilsHelper.areObjectIdsEquals(history.company._id, ch.company._id) &&
+                  UtilsHelper.areObjectIdsEquals(history.course._id, ch.course._id)
+                );
+
+              const companyAdditions = courseHistoryList
+                .filter(
+                  history => history.action === COMPANY_ADDITION &&
+                  UtilsHelper.areObjectIdsEquals(history.company._id, ch.company._id) &&
+                  UtilsHelper.areObjectIdsEquals(history.course._id, ch.course._id)
+                );
+
+              const hasCompanyBeenRemoved = companyDeletions.length === companyAdditions.length;
+
+              return isCompanyInCourse || hasCompanyBeenRemoved;
+            });
+          expect(everyCompanyExists).toBeTruthy();
         });
       });
 
