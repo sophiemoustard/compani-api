@@ -39,9 +39,7 @@ exports.plugin = {
         auth: { scope: ['holdings:edit'] },
         validate: {
           params: Joi.object({ _id: Joi.objectId().required() }),
-          payload: Joi.object().keys({
-            company: Joi.objectId(),
-          }).required(),
+          payload: Joi.object().keys({ company: Joi.objectId() }).required(),
         },
         pre: [{ method: authorizeHoldingUpdate }],
       },

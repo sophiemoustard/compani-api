@@ -129,7 +129,7 @@ exports.plugin = {
       handler: list,
       options: {
         validate: {
-          query: Joi.object({ hasHolding: Joi.boolean() }),
+          query: Joi.object({ noHolding: Joi.boolean() }),
         },
         auth: { mode: 'required' },
       },

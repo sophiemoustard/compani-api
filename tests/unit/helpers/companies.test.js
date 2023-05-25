@@ -82,12 +82,12 @@ describe('list', () => {
     const companyList = [{ _id: new ObjectId(), name: 'Alenvi' }];
     find.returns(SinonMongoose.stubChainedQueries(companyList, ['lean']));
 
-    const result = await CompanyHelper.list();
+    const result = await CompanyHelper.list({});
 
     expect(result).toEqual(companyList);
     SinonMongoose.calledOnceWithExactly(
       find,
-      [{ query: 'find', args: [{ _id: { $nin: [] } }, { _id: 1, name: 1 }] }, { query: 'lean', args: [] }]
+      [{ query: 'find', args: [{ _id: { $nin: [] } }, { name: 1 }] }, { query: 'lean', args: [] }]
     );
     sinon.assert.notCalled(companyHoldingFind);
   });
@@ -98,13 +98,13 @@ describe('list', () => {
     find.returns(SinonMongoose.stubChainedQueries(companyList, ['lean']));
     companyHoldingFind.returns(SinonMongoose.stubChainedQueries(companyHoldingsList, ['setOptions', 'lean']));
 
-    const result = await CompanyHelper.list(true);
+    const result = await CompanyHelper.list({ noHolding: true });
 
     expect(result).toEqual(companyList);
     SinonMongoose.calledOnceWithExactly(
       companyHoldingFind,
       [
-        { query: 'find', args: [{}, { _id: 1, company: 1 }] },
+        { query: 'find', args: [{}, { company: 1 }] },
         { query: 'setOptions', args: [{ allCompanies: true }] },
         { query: 'lean', args: [] },
       ]
@@ -112,7 +112,7 @@ describe('list', () => {
     SinonMongoose.calledOnceWithExactly(
       find,
       [
-        { query: 'find', args: [{ _id: { $nin: [companyHoldingsList[0].company] } }, { _id: 1, name: 1 }] },
+        { query: 'find', args: [{ _id: { $nin: [companyHoldingsList[0].company] } }, { name: 1 }] },
         { query: 'lean', args: [] },
       ]
     );

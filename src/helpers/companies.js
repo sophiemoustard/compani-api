@@ -26,17 +26,14 @@ exports.createCompany = async (companyPayload) => {
   });
 };
 
-exports.list = async (hasHolding = false) => {
+exports.list = async (query) => {
   const linkedCompanyList = [];
-  if (hasHolding) {
-    const companyHoldings = await CompanyHolding
-      .find({}, { _id: 1, company: 1 })
-      .setOptions({ allCompanies: true })
-      .lean();
+  if (query.noHolding) {
+    const companyHoldings = await CompanyHolding.find({}, { company: 1 }).setOptions({ allCompanies: true }).lean();
     linkedCompanyList.push(companyHoldings.map(ch => ch.company));
   }
 
-  return Company.find({ _id: { $nin: linkedCompanyList.flat() } }, { _id: 1, name: 1 }).lean();
+  return Company.find({ _id: { $nin: linkedCompanyList.flat() } }, { name: 1 }).lean();
 };
 
 exports.uploadFile = async (payload, params) => {

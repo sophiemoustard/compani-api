@@ -447,7 +447,7 @@ describe('COMPANIES ROUTES - GET /companies', () => {
     it('should list companies not in holdings', async () => {
       const response = await app.inject({
         method: 'GET',
-        url: '/companies?hasHolding=true',
+        url: '/companies?noHolding=true',
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
