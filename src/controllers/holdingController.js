@@ -42,10 +42,10 @@ const update = async (req) => {
 
 const getById = async (req) => {
   try {
-    const holding = await HoldingHelper.getById(req.params._id, req.auth.credentials);
+    const holding = await HoldingHelper.getById(req.params._id);
 
     return {
-      message: translate[language].holdingFound,
+      message: translate[language].holdingsFound,
       data: { holding },
     };
   } catch (e) {
