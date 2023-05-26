@@ -6,7 +6,7 @@ const HoldingSchema = mongoose.Schema({
   address: { type: String },
 }, { timestamps: true });
 
-HoldingSchema.virtual('companyHoldingList', { ref: 'CompanyHolding', localField: '_id', foreignField: 'holding' });
+HoldingSchema.virtual('companyHoldings', { ref: 'CompanyHolding', localField: '_id', foreignField: 'holding' });
 
 queryMiddlewareList.map(middleware => HoldingSchema.pre(middleware, formatQuery));
 

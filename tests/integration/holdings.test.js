@@ -152,7 +152,7 @@ describe('HOLDINGS ROUTES - PUT /holdings/{_id}', () => {
     });
 
     it('should link a company to a holding', async () => {
-      const companyHoldingsBefore = await CompanyHolding.countDocuments();
+      const companyHoldingsBefore = await CompanyHolding.countDocuments({ holding: holdings[0]._id });
 
       const response = await app.inject({
         method: 'PUT',
@@ -162,7 +162,7 @@ describe('HOLDINGS ROUTES - PUT /holdings/{_id}', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      const companyHoldingsCount = await CompanyHolding.countDocuments();
+      const companyHoldingsCount = await CompanyHolding.countDocuments({ holding: holdings[0]._id });
       expect(companyHoldingsCount).toEqual(companyHoldingsBefore + 1);
     });
 
@@ -245,7 +245,7 @@ describe('HOLDINGS ROUTES - GET /holdings/{_id}', () => {
       expect(response.result.data.holding).toMatchObject({
         _id: holdings[1]._id,
         name: 'Croix Rouge',
-        companyHoldingList: [expect.objectContaining({ company: { _id: otherCompany._id, name: 'Un autre SAS' } })],
+        companyHoldings: [expect.objectContaining({ company: { _id: otherCompany._id, name: 'Un autre SAS' } })],
       });
     });
 

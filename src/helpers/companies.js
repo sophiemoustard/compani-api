@@ -27,10 +27,10 @@ exports.createCompany = async (companyPayload) => {
 };
 
 exports.list = async (query) => {
-  const linkedCompanyList = [];
+  let linkedCompanyList = [];
   if (query.noHolding) {
     const companyHoldings = await CompanyHolding.find({}, { company: 1 }).lean();
-    linkedCompanyList.push(companyHoldings.map(ch => ch.company));
+    linkedCompanyList = (companyHoldings.map(ch => ch.company));
   }
 
   return Company.find({ _id: { $nin: linkedCompanyList.flat() } }, { name: 1 }).lean();
