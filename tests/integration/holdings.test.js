@@ -1,8 +1,11 @@
 const { expect } = require('expect');
+const { ObjectId } = require('mongodb');
 const app = require('../../server');
+const CompanyHolding = require('../../src/models/CompanyHolding');
 const Holding = require('../../src/models/Holding');
-const { populateDB } = require('./seed/holdingsSeed');
+const { populateDB, holdings } = require('./seed/holdingsSeed');
 const { getToken } = require('./helpers/authentication');
+const { authCompany, otherCompany } = require('../seed/authCompaniesSeed');
 
 describe('NODE ENV', () => {
   it('should be \'test\'', () => {
@@ -110,7 +113,7 @@ describe('HOLDINGS ROUTES - GET /holdings', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      expect(response.result.data.holdings.length).toEqual(1);
+      expect(response.result.data.holdings.length).toEqual(2);
     });
   });
 
@@ -129,6 +132,149 @@ describe('HOLDINGS ROUTES - GET /holdings', () => {
         const response = await app.inject({
           method: 'GET',
           url: '/holdings',
+          headers: { Cookie: `alenvi_token=${authToken}` },
+        });
+
+        expect(response.statusCode).toBe(role.expectedCode);
+      });
+    });
+  });
+});
+
+describe('HOLDINGS ROUTES - PUT /holdings/{_id}', () => {
+  let authToken;
+  const payload = { company: authCompany._id };
+
+  describe('TRAINING_ORGANISATION_MANAGER', () => {
+    beforeEach(populateDB);
+    beforeEach(async () => {
+      authToken = await getToken('training_organisation_manager');
+    });
+
+    it('should link a company to a holding', async () => {
+      const companyHoldingsBefore = await CompanyHolding.countDocuments({ holding: holdings[0]._id });
+
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/holdings/${holdings[0]._id}`,
+        payload,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(200);
+      const companyHoldingsCount = await CompanyHolding.countDocuments({ holding: holdings[0]._id });
+      expect(companyHoldingsCount).toEqual(companyHoldingsBefore + 1);
+    });
+
+    it('should return 403 if company is linked to other holding', async () => {
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/holdings/${holdings[0]._id}`,
+        payload: { company: otherCompany._id },
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
+
+    it('should return a 404 error if holding doesn\'t exist', async () => {
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/holdings/${new ObjectId()}`,
+        payload,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(404);
+    });
+
+    it('should return a 404 error if company doesn\'t exist', async () => {
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/holdings/${holdings[0]._id}`,
+        payload: { company: new ObjectId() },
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(404);
+    });
+  });
+
+  describe('Other roles', () => {
+    beforeEach(populateDB);
+
+    const roles = [
+      { name: 'helper', expectedCode: 403 },
+      { name: 'planning_referent', expectedCode: 403 },
+      { name: 'client_admin', expectedCode: 403 },
+      { name: 'trainer', expectedCode: 403 },
+    ];
+    roles.forEach((role) => {
+      it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+        authToken = await getToken(role.name);
+        const response = await app.inject({
+          method: 'PUT',
+          url: `/holdings/${holdings[0]._id}`,
+          payload,
+          headers: { Cookie: `alenvi_token=${authToken}` },
+        });
+
+        expect(response.statusCode).toBe(role.expectedCode);
+      });
+    });
+  });
+});
+
+describe('HOLDINGS ROUTES - GET /holdings/{_id}', () => {
+  let authToken;
+
+  describe('TRAINING_ORGANISATION_MANAGER', () => {
+    beforeEach(populateDB);
+    beforeEach(async () => {
+      authToken = await getToken('training_organisation_manager');
+    });
+
+    it('should get a holding', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/holdings/${holdings[1]._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(200);
+      expect(response.result.data.holding).toMatchObject({
+        _id: holdings[1]._id,
+        name: 'Croix Rouge',
+        companyHoldings: [expect.objectContaining({ company: { _id: otherCompany._id, name: 'Un autre SAS' } })],
+      });
+    });
+
+    it('should return a 404 error if holding doesn\'t exist', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/holdings/${new ObjectId()}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(404);
+    });
+  });
+
+  describe('Other roles', () => {
+    beforeEach(populateDB);
+
+    const roles = [
+      { name: 'helper', expectedCode: 403 },
+      { name: 'planning_referent', expectedCode: 403 },
+      { name: 'client_admin', expectedCode: 403 },
+      { name: 'trainer', expectedCode: 403 },
+    ];
+    roles.forEach((role) => {
+      it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+        authToken = await getToken(role.name);
+        const response = await app.inject({
+          method: 'GET',
+          url: `/holdings/${holdings[0]._id}`,
           headers: { Cookie: `alenvi_token=${authToken}` },
         });
 

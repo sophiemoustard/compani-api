@@ -15,6 +15,7 @@ const BillSlip = require('../../../src/models/BillSlip');
 const Card = require('../../../src/models/Card');
 const Category = require('../../../src/models/Category');
 const Company = require('../../../src/models/Company');
+const CompanyHolding = require('../../../src/models/CompanyHolding');
 const CompanyLinkRequest = require('../../../src/models/CompanyLinkRequest');
 const ContractNumber = require('../../../src/models/ContractNumber');
 const Contract = require('../../../src/models/Contract');
@@ -129,6 +130,7 @@ const deleteNonAuthenticationSeeds = async () => {
     Card.deleteMany(),
     Category.deleteMany(),
     Company.deleteMany({ _id: { $nin: [authCompany._id, otherCompany._id, companyWithoutSubscription._id] } }),
+    CompanyHolding.deleteMany(),
     CompanyLinkRequest.deleteMany(),
     ContractNumber.deleteMany(),
     Contract.deleteMany(),

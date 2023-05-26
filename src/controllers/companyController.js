@@ -46,7 +46,7 @@ const create = async (req) => {
 
 const list = async (req) => {
   try {
-    const companies = await CompanyHelper.list();
+    const companies = await CompanyHelper.list(req.query);
 
     return {
       message: translate[language].companiesFound,

@@ -1,6 +1,7 @@
 const sinon = require('sinon');
 const { expect } = require('expect');
 const { ObjectId } = require('mongodb');
+const CompanyHolding = require('../../../src/models/CompanyHolding');
 const Holding = require('../../../src/models/Holding');
 const HoldingHelper = require('../../../src/helpers/holdings');
 const SinonMongoose = require('../sinonMongoose');
@@ -42,6 +43,52 @@ describe('list', () => {
     SinonMongoose.calledOnceWithExactly(
       find,
       [{ query: 'find', args: [{}, { _id: 1, name: 1 }] }, { query: 'lean', args: [] }]
+    );
+  });
+});
+
+describe('update', () => {
+  let create;
+  beforeEach(() => {
+    create = sinon.stub(CompanyHolding, 'create');
+  });
+  afterEach(() => {
+    create.restore();
+  });
+
+  it('should link a company to a holding', async () => {
+    const holdingId = new ObjectId();
+    const payload = { company: new ObjectId() };
+
+    await HoldingHelper.update(holdingId, payload);
+
+    sinon.assert.calledOnceWithExactly(create, { holding: holdingId, company: payload.company });
+  });
+});
+
+describe('getById', () => {
+  let findOne;
+  beforeEach(() => {
+    findOne = sinon.stub(Holding, 'findOne');
+  });
+  afterEach(() => {
+    findOne.restore();
+  });
+
+  it('should return holding', async () => {
+    const holdingId = new ObjectId();
+    const holding = { _id: holdingId, name: 'Holding' };
+    findOne.returns(SinonMongoose.stubChainedQueries(holding));
+
+    const result = await HoldingHelper.getById(holdingId);
+
+    expect(result).toEqual(holding);
+    SinonMongoose.calledOnceWithExactly(
+      findOne,
+      [
+        { query: 'findOne', args: [{ _id: holdingId }, { _id: 1, name: 1 }] },
+        { query: 'populate', args: [{ path: 'companyHoldings', populate: { path: 'company', select: 'name' } }] },
+        { query: 'lean', args: [] }]
     );
   });
 });

@@ -29,4 +29,29 @@ const list = async (req) => {
   }
 };
 
-module.exports = { create, list };
+const update = async (req) => {
+  try {
+    await HoldingHelper.update(req.params._id, req.payload);
+
+    return { message: translate[language].holdingUpdated };
+  } catch (e) {
+    req.log('error', e);
+    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
+  }
+};
+
+const getById = async (req) => {
+  try {
+    const holding = await HoldingHelper.getById(req.params._id);
+
+    return {
+      message: translate[language].holdingsFound,
+      data: { holding },
+    };
+  } catch (e) {
+    req.log('error', e);
+    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
+  }
+};
+
+module.exports = { create, list, update, getById };
