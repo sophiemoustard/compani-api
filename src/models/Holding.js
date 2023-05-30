@@ -8,6 +8,8 @@ const HoldingSchema = mongoose.Schema({
 
 HoldingSchema.virtual('companyHoldings', { ref: 'CompanyHolding', localField: '_id', foreignField: 'holding' });
 
+HoldingSchema.virtual('userHoldings', { ref: 'UserHolding', localField: '_id', foreignField: 'holding' });
+
 queryMiddlewareList.map(middleware => HoldingSchema.pre(middleware, formatQuery));
 
 module.exports = mongoose.model('Holding', HoldingSchema);

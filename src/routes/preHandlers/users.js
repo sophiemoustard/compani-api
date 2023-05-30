@@ -1,10 +1,14 @@
 const Boom = require('@hapi/boom');
 const get = require('lodash/get');
 const flat = require('flat');
+const Company = require('../../models/Company');
+const CompanyHolding = require('../../models/CompanyHolding');
+const Holding = require('../../models/Holding');
 const User = require('../../models/User');
 const Role = require('../../models/Role');
 const Customer = require('../../models/Customer');
 const Establishment = require('../../models/Establishment');
+const UserHolding = require('../../models/UserHolding');
 const translate = require('../../helpers/translate');
 const UtilsHelper = require('../../helpers/utils');
 const UserCompaniesHelper = require('../../helpers/userCompanies');
@@ -63,19 +67,29 @@ const trainerUpdatesForbiddenKeys = (req, user) => {
 
 exports.authorizeUserUpdate = async (req) => {
   const { credentials } = req.auth;
-  const userFromDB = await User.findOne({ _id: req.params._id }).populate({ path: 'userCompanyList' }).lean();
+  const userFromDB = await User
+    .findOne({ _id: req.params._id })
+    .populate({ path: 'company' })
+    .populate({ path: 'userCompanyList' })
+    .lean();
   if (!userFromDB) throw Boom.notFound(translate[language].userNotFound);
 
-  const isLoggedUserVendor = !!get(credentials, 'role.vendor');
+  const loggedUserVendor = get(credentials, 'role.vendor.name');
   const loggedUserClientRole = get(credentials, 'role.client.name');
   const loggedUserCompany = get(credentials, 'company._id') || '';
+
+  if (get(req, 'payload.company')) {
+    const company = await Company.countDocuments({ _id: req.payload.company });
+    if (!company) throw Boom.notFound();
+  }
+
   const isOrWillBeInCompany = UserCompaniesHelper
     .userIsOrWillBeInCompany(userFromDB.userCompanyList, loggedUserCompany);
   const userCompany = isOrWillBeInCompany ? loggedUserCompany : get(req, 'payload.company');
   const updatingOwnInfos = UtilsHelper.areObjectIdsEquals(credentials._id, userFromDB._id);
   if (trainerUpdatesForbiddenKeys(req, userFromDB)) throw Boom.forbidden();
 
-  if (!isLoggedUserVendor && !updatingOwnInfos) {
+  if (!loggedUserVendor && !updatingOwnInfos) {
     const sameCompany = isOrWillBeInCompany ||
       UtilsHelper.areObjectIdsEquals(get(req.payload, 'company'), loggedUserCompany);
     if (!sameCompany) throw Boom.notFound();
@@ -84,7 +98,19 @@ exports.authorizeUserUpdate = async (req) => {
   if (get(req, 'payload.establishment')) await checkEstablishment(userCompany, req.payload);
   if (get(req, 'payload.role')) await checkRole(userFromDB, req.payload);
   if (get(req, 'payload.customer')) await checkCustomer(userCompany, req.payload);
-  if (!isLoggedUserVendor && (!loggedUserClientRole || loggedUserClientRole === AUXILIARY_WITHOUT_COMPANY)) {
+  if (get(req, 'payload.holding')) {
+    if (![TRAINING_ORGANISATION_MANAGER, VENDOR_ADMIN].includes(loggedUserVendor)) throw Boom.forbidden();
+    const holding = await Holding.countDocuments({ _id: req.payload.holding });
+    if (!holding) throw Boom.notFound();
+
+    const companyHolding = await CompanyHolding
+      .countDocuments({ holding: req.payload.holding, company: userFromDB.company });
+    if (!companyHolding) throw Boom.forbidden();
+
+    const userHolding = await UserHolding.countDocuments({ user: userFromDB._id });
+    if (userHolding) throw Boom.conflict();
+  }
+  if (!loggedUserVendor && (!loggedUserClientRole || loggedUserClientRole === AUXILIARY_WITHOUT_COMPANY)) {
     checkUpdateAndCreateRestrictions(req.payload);
   }
 
@@ -222,9 +248,19 @@ exports.authorizeUsersGet = async (req) => {
   const vendorRole = get(req, 'auth.credentials.role.vendor.name');
   const clientRole = get(req, 'auth.credentials.role.client.name');
 
+  if (queryCompanyId) {
+    const company = await Company.countDocuments({ _id: queryCompanyId });
+    if (!company) throw Boom.notFound();
+  }
+
   if (!vendorRole && !queryCompanyId) throw Boom.forbidden();
   if (!vendorRole && !UtilsHelper.areObjectIdsEquals(queryCompanyId, userCompanyId)) throw Boom.forbidden();
   if (!clientRole && ![TRAINING_ORGANISATION_MANAGER, VENDOR_ADMIN].includes(vendorRole)) throw Boom.forbidden();
+  if (query.holding) {
+    if (![TRAINING_ORGANISATION_MANAGER, VENDOR_ADMIN].includes(vendorRole)) throw Boom.forbidden();
+    const holding = await Holding.countDocuments({ _id: query.holding });
+    if (!holding) throw Boom.notFound();
+  }
 
   return null;
 };

@@ -88,6 +88,7 @@ describe('getById', () => {
       [
         { query: 'findOne', args: [{ _id: holdingId }, { _id: 1, name: 1 }] },
         { query: 'populate', args: [{ path: 'companyHoldings', populate: { path: 'company', select: 'name' } }] },
+        { query: 'populate', args: [{ path: 'userHoldings', populate: { path: 'user', select: 'identity' } }] },
         { query: 'lean', args: [] }]
     );
   });

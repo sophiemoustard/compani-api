@@ -1,5 +1,7 @@
 const { v4: uuidv4 } = require('uuid');
 const { ObjectId } = require('mongodb');
+const CompanyHolding = require('../../../src/models/CompanyHolding');
+const Holding = require('../../../src/models/Holding');
 const User = require('../../../src/models/User');
 const Step = require('../../../src/models/Step');
 const SubProgram = require('../../../src/models/SubProgram');
@@ -8,6 +10,7 @@ const Customer = require('../../../src/models/Customer');
 const Sector = require('../../../src/models/Sector');
 const SectorHistory = require('../../../src/models/SectorHistory');
 const UserCompany = require('../../../src/models/UserCompany');
+const UserHolding = require('../../../src/models/UserHolding');
 const IdentityVerification = require('../../../src/models/IdentityVerification');
 const Contract = require('../../../src/models/Contract');
 const Establishment = require('../../../src/models/Establishment');
@@ -37,6 +40,7 @@ const {
   clientAdminRoleId,
   vendorAdminRoleId,
   trainerRoleId,
+  holdingAdminRoleId,
 } = require('../../seed/authRolesSeed');
 const { CompaniDate } = require('../../../src/helpers/dates/companiDates');
 
@@ -105,7 +109,7 @@ const coachFromOtherCompany = {
   _id: new ObjectId(),
   identity: { firstname: 'Arnaud', lastname: 'toto' },
   local: { email: 'othercompanycoach@alenvi.io' },
-  role: { client: coachRoleId },
+  role: { client: coachRoleId, holding: holdingAdminRoleId },
   refreshToken: uuidv4(),
   origin: WEBAPP,
 };
@@ -363,6 +367,12 @@ const userCompanies = [
   },
 ];
 
+const holding = { _id: new ObjectId(), name: 'Holding' };
+
+const companyHolding = { _id: ObjectId(), holding: holding._id, company: authCompany._id };
+
+const userHolding = { _id: new ObjectId(), holding: holding._id, user: usersSeedList[0]._id };
+
 const userSectors = [
   { _id: new ObjectId(), name: 'Terre', company: authCompany._id },
   { _id: new ObjectId(), name: 'Lune', company: authCompany._id },
@@ -470,11 +480,13 @@ const populateDB = async () => {
   await Promise.all([
     Activity.create(activityList),
     ActivityHistory.create(activityHistoryList),
+    CompanyHolding.create(companyHolding),
     Contract.create(contracts),
     Course.create(coursesList),
     Customer.create(customer, customerFromOtherCompany),
     Establishment.create(establishmentList),
     Helper.create(helpers),
+    Holding.create(holding),
     IdentityVerification.create(identityVerifications),
     Sector.create(userSectors),
     SectorHistory.create(sectorHistories),
@@ -482,6 +494,7 @@ const populateDB = async () => {
     SubProgram.create(subProgramsList),
     User.create([...usersSeedList, ...usersFromDifferentCompanyList]),
     UserCompany.create(userCompanies),
+    UserHolding.create(userHolding),
     CompanyLinkRequest.create(companyLinkRequest),
   ]);
 };
@@ -502,4 +515,5 @@ module.exports = {
   coachFromOtherCompany,
   auxiliaryFromOtherCompany,
   activityList,
+  holding,
 };

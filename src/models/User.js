@@ -77,6 +77,7 @@ const UserSchema = mongoose.Schema({
   role: {
     client: roleSchemaDefinition,
     vendor: roleSchemaDefinition,
+    holding: roleSchemaDefinition,
   },
   youtube: {
     link: { type: String, trim: true },
