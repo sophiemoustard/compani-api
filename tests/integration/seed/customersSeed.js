@@ -28,7 +28,7 @@ const {
   HOSPITALIZATION,
 } = require('../../../src/helpers/constants');
 const { authCompany, otherCompany, companyWithoutSubscription } = require('../../seed/authCompaniesSeed');
-const { deleteNonAuthenticationSeeds } = require('../helpers/authentication');
+const { deleteNonAuthenticationSeeds } = require('../helpers/db');
 const { auxiliaryRoleId, helperRoleId, clientAdminRoleId } = require('../../seed/authRolesSeed');
 const CustomerPartner = require('../../../src/models/CustomerPartner');
 const Partner = require('../../../src/models/Partner');

@@ -8,7 +8,7 @@ const SubProgram = require('../../../src/models/SubProgram');
 const VendorCompany = require('../../../src/models/VendorCompany');
 const Program = require('../../../src/models/Program');
 const { authCompany, otherCompany } = require('../../seed/authCompaniesSeed');
-const { deleteNonAuthenticationSeeds } = require('../helpers/authentication');
+const { deleteNonAuthenticationSeeds } = require('../helpers/db');
 
 const subProgramList = [{ _id: new ObjectId(), name: 'subProgram 1', steps: [new ObjectId()] }];
 

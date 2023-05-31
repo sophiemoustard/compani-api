@@ -11,7 +11,7 @@ const UserCompany = require('../../../src/models/UserCompany');
 const Surcharge = require('../../../src/models/Surcharge');
 const DistanceMatrix = require('../../../src/models/DistanceMatrix');
 const { authCompany, otherCompany, companyWithoutSubscription } = require('../../seed/authCompaniesSeed');
-const { deleteNonAuthenticationSeeds } = require('../helpers/authentication');
+const { deleteNonAuthenticationSeeds } = require('../helpers/db');
 const { WEBAPP } = require('../../../src/helpers/constants');
 const { auxiliaryRoleId, coachRoleId } = require('../../seed/authRolesSeed');
 

@@ -11,7 +11,7 @@ const { authCompany, otherCompany, companyWithoutSubscription } = require('../..
 const { rolesList } = require('../../seed/authRolesSeed');
 const { userList, userCompaniesList } = require('../../seed/authUsersSeed');
 const { authCustomer, helperCustomer } = require('../../seed/authCustomers');
-const { deleteNonAuthenticationSeeds } = require('./authentication');
+const { deleteNonAuthenticationSeeds } = require('./db');
 
 before(async () => {
   await deleteNonAuthenticationSeeds();

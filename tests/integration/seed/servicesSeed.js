@@ -4,7 +4,7 @@ const Customer = require('../../../src/models/Customer');
 const BillingItem = require('../../../src/models/BillingItem');
 const { HOURLY, FIXED } = require('../../../src/helpers/constants');
 const { authCompany, otherCompany } = require('../../seed/authCompaniesSeed');
-const { deleteNonAuthenticationSeeds } = require('../helpers/authentication');
+const { deleteNonAuthenticationSeeds } = require('../helpers/db');
 
 const servicesList = [
   {

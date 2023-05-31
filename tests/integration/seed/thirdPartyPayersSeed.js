@@ -2,7 +2,7 @@ const { ObjectId } = require('mongodb');
 const { BILLING_DIRECT } = require('../../../src/helpers/constants');
 const ThirdPartyPayer = require('../../../src/models/ThirdPartyPayer');
 const { authCompany, otherCompany } = require('../../seed/authCompaniesSeed');
-const { deleteNonAuthenticationSeeds } = require('../helpers/authentication');
+const { deleteNonAuthenticationSeeds } = require('../helpers/db');
 
 const thirdPartyPayersList = [
   {

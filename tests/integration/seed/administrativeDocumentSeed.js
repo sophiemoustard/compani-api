@@ -1,7 +1,7 @@
 const { ObjectId } = require('mongodb');
 const AdministrativeDocument = require('../../../src/models/AdministrativeDocument');
 const { authCompany, otherCompany } = require('../../seed/authCompaniesSeed');
-const { deleteNonAuthenticationSeeds } = require('../helpers/authentication');
+const { deleteNonAuthenticationSeeds } = require('../helpers/db');
 
 const administrativeDocumentsList = [
   {

@@ -8,7 +8,7 @@ const User = require('../../../src/models/User');
 const { authCompany, otherCompany, companyWithoutSubscription } = require('../../seed/authCompaniesSeed');
 const { helperRoleId } = require('../../seed/authRolesSeed');
 const { WEBAPP } = require('../../../src/helpers/constants');
-const { deleteNonAuthenticationSeeds } = require('../helpers/authentication');
+const { deleteNonAuthenticationSeeds } = require('../helpers/db');
 
 const customersList = [
   {

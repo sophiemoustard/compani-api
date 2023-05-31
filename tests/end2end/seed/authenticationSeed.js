@@ -5,13 +5,14 @@ const UserCompany = require('../../../src/models/UserCompany');
 const { authCompany } = require('../../seed/authCompaniesSeed');
 const { rolesList } = require('../../seed/authRolesSeed');
 const { userList, userCompaniesList } = require('../../seed/authUsersSeed');
-const { deleteNonAuthenticationSeeds } = require('../../integration/helpers/authentication');
+const { deleteNonAuthenticationSeeds } = require('../../integration/helpers/db');
 
 const populateAuthentication = async () => {
   await Company.deleteMany();
   await Role.deleteMany();
   await User.deleteMany();
   await UserCompany.deleteMany();
+
   await deleteNonAuthenticationSeeds();
 
   await new Company(authCompany).save();

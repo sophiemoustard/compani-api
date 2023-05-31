@@ -1,5 +1,5 @@
 const { ObjectId } = require('mongodb');
-const { deleteNonAuthenticationSeeds } = require('../helpers/authentication');
+const { deleteNonAuthenticationSeeds } = require('../helpers/db');
 const BillingItem = require('../../../src/models/BillingItem');
 const Service = require('../../../src/models/Service');
 const Bill = require('../../../src/models/Bill');
