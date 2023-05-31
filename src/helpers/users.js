@@ -360,7 +360,7 @@ exports.createUser = async (userPayload, credentials) => {
 };
 
 const formatUpdatePayload = async (updatedUser) => {
-  const payload = omit(updatedUser, ['role', 'customer', 'sector', 'company']);
+  const payload = omit(updatedUser, ['role', 'customer', 'sector', 'company', 'holding']);
 
   if (updatedUser.role) {
     const role = await Role.findById(updatedUser.role, { name: 1, interface: 1 }).lean();
@@ -369,13 +369,19 @@ const formatUpdatePayload = async (updatedUser) => {
     payload.role = { [role.interface]: role._id.toHexString() };
   }
 
+  if (updatedUser.holding) {
+    const role = await Role.findOne({ name: HOLDING_ADMIN }).lean();
+
+    payload.role = { holding: role._id };
+  }
+
   return payload;
 };
 
 exports.updateUser = async (userId, userPayload, credentials) => {
   const companyId = get(credentials, 'company._id');
 
-  let payload = await formatUpdatePayload(userPayload);
+  const payload = await formatUpdatePayload(userPayload);
   if (userPayload.customer) await HelpersHelper.create(userId, userPayload.customer, companyId);
   if (userPayload.company) {
     await UserCompaniesHelper.create({
@@ -389,13 +395,7 @@ exports.updateUser = async (userId, userPayload, credentials) => {
     await SectorHistoriesHelper.updateHistoryOnSectorUpdate(userId, userPayload.sector, companyId);
   }
 
-  if (userPayload.holding) {
-    await UserHolding.create({ user: userId, holding: userPayload.holding });
-
-    const role = await Role.findOne({ name: HOLDING_ADMIN }).lean();
-
-    payload = { 'role.holding': role._id };
-  }
+  if (userPayload.holding) await UserHolding.create({ user: userId, holding: userPayload.holding });
 
   await User.updateOne({ _id: userId }, { $set: flat(payload) });
 };

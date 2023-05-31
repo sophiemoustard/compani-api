@@ -68,6 +68,7 @@ const TaxCertificate = require('../../../src/models/TaxCertificate');
 const ThirdPartyPayer = require('../../../src/models/ThirdPartyPayer');
 const TrainingContract = require('../../../src/models/TrainingContract');
 const UserCompany = require('../../../src/models/UserCompany');
+const UserHolding = require('../../../src/models/UserHolding');
 const User = require('../../../src/models/User');
 const VendorCompany = require('../../../src/models/VendorCompany');
 const { rolesList } = require('../../seed/authRolesSeed');
@@ -148,6 +149,7 @@ const deleteNonAuthenticationSeeds = async () => {
     ThirdPartyPayer.deleteMany(),
     TrainingContract.deleteMany(),
     UserCompany.deleteMany({ user: { $nin: userList.map(user => user._id) } }),
+    UserHolding.deleteMany(),
     User.deleteMany({ _id: { $nin: userList.map(user => user._id) } }),
     VendorCompany.deleteMany(),
   ]);

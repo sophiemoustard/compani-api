@@ -74,7 +74,7 @@ exports.authorizeUserUpdate = async (req) => {
     .lean();
   if (!userFromDB) throw Boom.notFound(translate[language].userNotFound);
 
-  const loggedUserVendor = get(credentials, 'role.vendor.name');
+  const loggedUserVendorRole = get(credentials, 'role.vendor.name');
   const loggedUserClientRole = get(credentials, 'role.client.name');
   const loggedUserCompany = get(credentials, 'company._id') || '';
 
@@ -89,7 +89,7 @@ exports.authorizeUserUpdate = async (req) => {
   const updatingOwnInfos = UtilsHelper.areObjectIdsEquals(credentials._id, userFromDB._id);
   if (trainerUpdatesForbiddenKeys(req, userFromDB)) throw Boom.forbidden();
 
-  if (!loggedUserVendor && !updatingOwnInfos) {
+  if (!loggedUserVendorRole && !updatingOwnInfos) {
     const sameCompany = isOrWillBeInCompany ||
       UtilsHelper.areObjectIdsEquals(get(req.payload, 'company'), loggedUserCompany);
     if (!sameCompany) throw Boom.notFound();
@@ -99,7 +99,7 @@ exports.authorizeUserUpdate = async (req) => {
   if (get(req, 'payload.role')) await checkRole(userFromDB, req.payload);
   if (get(req, 'payload.customer')) await checkCustomer(userCompany, req.payload);
   if (get(req, 'payload.holding')) {
-    if (![TRAINING_ORGANISATION_MANAGER, VENDOR_ADMIN].includes(loggedUserVendor)) throw Boom.forbidden();
+    if (![TRAINING_ORGANISATION_MANAGER, VENDOR_ADMIN].includes(loggedUserVendorRole)) throw Boom.forbidden();
     const holding = await Holding.countDocuments({ _id: req.payload.holding });
     if (!holding) throw Boom.notFound();
 
@@ -110,7 +110,7 @@ exports.authorizeUserUpdate = async (req) => {
     const userHolding = await UserHolding.countDocuments({ user: userFromDB._id });
     if (userHolding) throw Boom.conflict(translate[language].userAlreadyLinkedToHolding);
   }
-  if (!loggedUserVendor && (!loggedUserClientRole || loggedUserClientRole === AUXILIARY_WITHOUT_COMPANY)) {
+  if (!loggedUserVendorRole && (!loggedUserClientRole || loggedUserClientRole === AUXILIARY_WITHOUT_COMPANY)) {
     checkUpdateAndCreateRestrictions(req.payload);
   }
 
