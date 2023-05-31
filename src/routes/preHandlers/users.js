@@ -105,10 +105,10 @@ exports.authorizeUserUpdate = async (req) => {
 
     const companyHolding = await CompanyHolding
       .countDocuments({ holding: req.payload.holding, company: userFromDB.company });
-    if (!companyHolding) throw Boom.forbidden();
+    if (!companyHolding) throw Boom.forbidden(translate[language].userCompanyNotLinkedToHolding);
 
     const userHolding = await UserHolding.countDocuments({ user: userFromDB._id });
-    if (userHolding) throw Boom.conflict();
+    if (userHolding) throw Boom.conflict(translate[language].userAlreadyLinkedToHolding);
   }
   if (!loggedUserVendor && (!loggedUserClientRole || loggedUserClientRole === AUXILIARY_WITHOUT_COMPANY)) {
     checkUpdateAndCreateRestrictions(req.payload);
