@@ -784,9 +784,22 @@ describe('SEEDS VERIFICATION', () => {
             .lean();
         });
 
-        it('should pass every course exists', () => {
+        it('should pass if every course exists', () => {
           const everyCourseIsBlended = courseSlotList.every(cs => cs.course && cs.course.format === BLENDED);
           expect(everyCourseIsBlended).toBeTruthy();
+        });
+
+        it('should pass if every startDate is before endDate', () => {
+          const everyStartDateIsBeforeEndDate = courseSlotList
+            .every(cs => !has(cs, 'startDate') || CompaniDate(cs.startDate).isBefore(cs.endDate));
+          expect(everyStartDateIsBeforeEndDate).toBeTruthy();
+        });
+
+        it('should pass if every endDate is same day as startDate', () => {
+          const areDatesTheSameDay = courseSlotList
+            .every(cs => !has(cs, 'startDate') ||
+              CompaniDate(cs.startDate).startOf('day').isSame(CompaniDate(cs.endDate).startOf('day')));
+          expect(areDatesTheSameDay).toBeTruthy();
         });
       });
 
