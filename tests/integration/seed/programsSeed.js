@@ -95,7 +95,7 @@ const course = {
   subProgram: subProgramsList[1]._id,
   type: INTER_B2C,
   format: 'strictly_e_learning',
-  trainees: [userList[0]._id],
+  trainees: [userList[0]._id, vendorAdmin._id],
 };
 
 const populateDB = async () => {

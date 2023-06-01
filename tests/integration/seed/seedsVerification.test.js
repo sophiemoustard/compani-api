@@ -1,6 +1,7 @@
 const { expect } = require('expect');
 const { groupBy, get, has, compact } = require('lodash');
 const Activity = require('../../../src/models/Activity');
+const ActivityHistory = require('../../../src/models/ActivityHistory');
 const Attendance = require('../../../src/models/Attendance');
 const AttendanceSheet = require('../../../src/models/AttendanceSheet');
 const Card = require('../../../src/models/Card');
@@ -131,6 +132,39 @@ describe('SEEDS VERIFICATION', () => {
             .every(activity => activity.status === DRAFT || activity.areCardsValid);
 
           expect(everyPublishedActivityHasValidCards).toBeTruthy();
+        });
+      });
+
+      describe('Collection Activity History', () => {
+        let activityHistoryList;
+        before(async () => {
+          activityHistoryList = await ActivityHistory
+            .find()
+            .populate({ path: 'user', select: '_id', transform: doc => (doc || null) })
+            .lean({ virtuals: true });
+        });
+
+        it('should pass if every user exists', () => {
+          const someUsersDontExist = activityHistoryList.some(a => !a.user);
+
+          expect(someUsersDontExist).toBeFalsy();
+        });
+
+        it('should pass if user is registered to a course with the activity', async () => {
+          const stepList = await Step.find({ activities: { $in: activityHistoryList.map(ah => ah.activity) } }).lean();
+          const subProgramList = await SubProgram.find({ step: { $in: stepList.map(s => s._id) } }).lean();
+          const courseList = await Course.find({ subProgram: { $in: subProgramList.map(sp => sp._id) } }).lean();
+
+          const everyUserIsRegisteredToCourse = activityHistoryList.every((ah) => {
+            const steps = stepList.filter(s => UtilsHelper.doesArrayIncludeId(s.activities, ah.activity));
+            const subPrograms = subProgramList
+              .filter(sp => steps.some(s => UtilsHelper.doesArrayIncludeId(sp.steps, s._id)));
+
+            return courseList
+              .some(c => UtilsHelper.doesArrayIncludeId(subPrograms.map(sp => sp._id), c.subProgram) &&
+                UtilsHelper.doesArrayIncludeId(c.trainees, ah.user._id));
+          });
+          expect(everyUserIsRegisteredToCourse).toBeTruthy();
         });
       });
 

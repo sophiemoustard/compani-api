@@ -2598,7 +2598,7 @@ describe('COURSES ROUTES - POST /courses/{_id}/register-e-learning', () => {
       expect(response.statusCode).toBe(403);
     });
 
-    it('should return 403 if trainee already suscribed to course', async () => {
+    it('should return 403 if trainee already subscribed to course', async () => {
       authToken = await getTokenByCredentials(traineeFromOtherCompany.local);
 
       const response = await app.inject({

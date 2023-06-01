@@ -22,11 +22,9 @@ const { authCompany, otherCompany, companyWithoutSubscription: thirdCompany } = 
 const { deleteNonAuthenticationSeeds } = require('../helpers/db');
 const {
   vendorAdmin,
-  noRoleNoCompany,
   noRole,
   auxiliary,
   helper,
-  auxiliaryWithoutCompany,
   clientAdmin,
   trainerOrganisationManager,
   coach,
@@ -233,10 +231,7 @@ const activitiesHistory = [
   { _id: new ObjectId(), user: clientAdmin._id, activity: activitiesList[0]._id },
   { _id: new ObjectId(), user: helper._id, activity: activitiesList[0]._id },
   { _id: new ObjectId(), user: auxiliary._id, activity: activitiesList[0]._id },
-  { _id: new ObjectId(), user: auxiliaryWithoutCompany._id, activity: activitiesList[0]._id },
   { _id: new ObjectId(), user: trainerOrganisationManager._id, activity: activitiesList[0]._id },
-  { _id: new ObjectId(), user: trainer._id, activity: activitiesList[0]._id },
-  { _id: new ObjectId(), user: noRoleNoCompany._id, activity: activitiesList[0]._id },
   {
     _id: new ObjectId(),
     user: coach._id,
