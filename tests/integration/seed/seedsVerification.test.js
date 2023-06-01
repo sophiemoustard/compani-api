@@ -68,6 +68,7 @@ const attendanceSheetsSeed = require('./attendanceSheetsSeed');
 const cardsSeed = require('./cardsSeed');
 const coursesSeed = require('./coursesSeed');
 const courseHistoriesSeed = require('./courseHistoriesSeed');
+const courseSlotsSeed = require('./courseSlotsSeed');
 const programsSeed = require('./programsSeed');
 const questionnaireHistoriesSeed = require('./questionnaireHistoriesSeed');
 const stepsSeed = require('./stepsSeed');
@@ -83,6 +84,7 @@ const seedList = [
   { label: 'CARD', value: cardsSeed },
   { label: 'COURSE', value: coursesSeed },
   { label: 'COURSEHISTORY', value: courseHistoriesSeed },
+  { label: 'COURSESLOT', value: courseSlotsSeed },
   { label: 'PROGRAM', value: programsSeed },
   { label: 'QUESTIONNAIREHISTORY', value: questionnaireHistoriesSeed },
   { label: 'STEP', value: stepsSeed },
