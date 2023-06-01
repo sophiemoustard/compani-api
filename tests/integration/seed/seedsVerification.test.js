@@ -61,6 +61,8 @@ const {
   COMPANY_DELETION,
   SLOT_EDITION,
   CLIENT_ADMIN,
+  ON_SITE,
+  REMOTE,
 } = require('../../../src/helpers/constants');
 const attendancesSeed = require('./attendancesSeed');
 const activitiesSeed = require('./activitiesSeed');
@@ -781,6 +783,7 @@ describe('SEEDS VERIFICATION', () => {
           courseSlotList = await CourseSlot
             .find()
             .populate({ path: 'course', select: 'format', transform: doc => (doc || null) })
+            .populate({ path: 'step', select: 'type', transform: doc => (doc || null) })
             .lean();
         });
 
@@ -800,6 +803,18 @@ describe('SEEDS VERIFICATION', () => {
             .every(cs => !has(cs, 'startDate') ||
               CompaniDate(cs.startDate).startOf('day').isSame(CompaniDate(cs.endDate).startOf('day')));
           expect(areDatesTheSameDay).toBeTruthy();
+        });
+
+        it('should pass if addresses are on site slots only', () => {
+          const areAddressesOnSiteSlotsOnly = courseSlotList
+            .every(cs => !has(cs, 'address') || cs.step.type === ON_SITE);
+          expect(areAddressesOnSiteSlotsOnly).toBeTruthy();
+        });
+
+        it('should pass if links are on remote slots only', () => {
+          const areLinksOnRemoteSlotsOnly = courseSlotList
+            .every(cs => !has(cs, 'meetingLink') || cs.step.type === REMOTE);
+          expect(areLinksOnRemoteSlotsOnly).toBeTruthy();
         });
       });
 
