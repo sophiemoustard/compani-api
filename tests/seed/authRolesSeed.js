@@ -11,6 +11,8 @@ const {
   AUXILIARY,
   PLANNING_REFERENT,
   COACH,
+  HOLDING_ADMIN,
+  HOLDING,
 } = require('../../src/helpers/constants');
 
 const rolesList = [
@@ -23,6 +25,7 @@ const rolesList = [
   { _id: new ObjectId(), name: HELPER, interface: CLIENT },
   { _id: new ObjectId(), name: TRAINING_ORGANISATION_MANAGER, interface: VENDOR },
   { _id: new ObjectId(), name: TRAINER, interface: VENDOR },
+  { _id: new ObjectId(), name: HOLDING_ADMIN, interface: HOLDING },
 ];
 
 const trainerRoleId = rolesList.find(r => r.name === TRAINER)._id;
@@ -34,6 +37,7 @@ const coachRoleId = rolesList.find(r => r.name === COACH)._id;
 const auxiliaryWithoutCompanyRoleId = rolesList.find(r => r.name === AUXILIARY_WITHOUT_COMPANY)._id;
 const clientAdminRoleId = rolesList.find(r => r.name === CLIENT_ADMIN)._id;
 const trainingOrganisationManagerRoleId = rolesList.find(r => r.name === TRAINING_ORGANISATION_MANAGER)._id;
+const holdingAdminRoleId = rolesList.find(r => r.name === HOLDING_ADMIN)._id;
 
 module.exports = {
   rolesList,
@@ -46,4 +50,5 @@ module.exports = {
   auxiliaryWithoutCompanyRoleId,
   clientAdminRoleId,
   trainingOrganisationManagerRoleId,
+  holdingAdminRoleId,
 };

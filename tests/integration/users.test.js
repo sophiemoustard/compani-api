@@ -14,6 +14,7 @@ const Role = require('../../src/models/Role');
 const UserCompany = require('../../src/models/UserCompany');
 const Helper = require('../../src/models/Helper');
 const SectorHistory = require('../../src/models/SectorHistory');
+const UserHolding = require('../../src/models/UserHolding');
 const {
   HELPER,
   COACH,
@@ -36,6 +37,8 @@ const {
   establishmentList,
   auxiliaryFromOtherCompany,
   traineeWhoLeftCompanyWithoutSubscription,
+  holding,
+  coachFromOtherCompany,
 } = require('./seed/usersSeed');
 const { getToken, getTokenByCredentials } = require('./helpers/authentication');
 const { otherCompany, authCompany, companyWithoutSubscription } = require('../seed/authCompaniesSeed');
@@ -504,10 +507,30 @@ describe('USERS ROUTES - GET /users', () => {
       expect(res.statusCode).toBe(400);
     });
 
+    it('should return a 404 if company does not exist', async () => {
+      const res = await app.inject({
+        method: 'GET',
+        url: `/users?company=${new ObjectId()}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(res.statusCode).toBe(404);
+    });
+
     it('should return a 403 if company is not the same and does not have a vendor role', async () => {
       const res = await app.inject({
         method: 'GET',
         url: `/users?company=${otherCompany._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(res.statusCode).toBe(403);
+    });
+
+    it('should return 403 if try to get holding users', async () => {
+      const res = await app.inject({
+        method: 'GET',
+        url: `/users?holding=${holding._id}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -541,6 +564,37 @@ describe('USERS ROUTES - GET /users', () => {
 
       expect(res.statusCode).toBe(200);
       expect(res.result.data.users.length).toBe(usersFromOtherCompany.length);
+    });
+
+    it('should get users from a holding', async () => {
+      const res = await app.inject({
+        method: 'GET',
+        url: `/users?holding=${holding._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(res.statusCode).toBe(200);
+      expect(res.result.data.users.length).toBe(22);
+    });
+
+    it('should return 404 if holding does not exist', async () => {
+      const res = await app.inject({
+        method: 'GET',
+        url: `/users?holding=${new ObjectId()}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(res.statusCode).toBe(404);
+    });
+
+    it('should return 400 if holding and company in query', async () => {
+      const res = await app.inject({
+        method: 'GET',
+        url: `/users?holding=${holding._id}&company=${authCompany._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(res.statusCode).toBe(400);
     });
   });
 
@@ -1409,6 +1463,17 @@ describe('USERS ROUTES - PUT /users/:id', () => {
 
       expect(response.statusCode).toBe(400);
     });
+
+    it('should return 403 if try to update holding', async () => {
+      const res = await app.inject({
+        method: 'PUT',
+        url: `/users/${coach._id.toHexString()}`,
+        payload: { holding: holding._id },
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(res.statusCode).toBe(403);
+    });
   });
 
   describe('TRAINING_ORGANISATION_MANAGER', () => {
@@ -1517,6 +1582,52 @@ describe('USERS ROUTES - PUT /users/:id', () => {
       });
       expect(res.statusCode).toBe(409);
       expect(res.result.message).toBe('Ce compte est déjà rattaché à une structure jusqu\'au 31/12/2022.');
+    });
+
+    it('should update user with holding', async () => {
+      const res = await app.inject({
+        method: 'PUT',
+        url: `/users/${coach._id.toHexString()}`,
+        payload: { holding: holding._id },
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(res.statusCode).toBe(200);
+      const userHolding = await UserHolding.countDocuments({ user: coach._id, holding: holding._id });
+      expect(userHolding).toBeTruthy();
+    });
+
+    it('should return 404 if holding does not exist', async () => {
+      const res = await app.inject({
+        method: 'PUT',
+        url: `/users/${coach._id.toHexString()}`,
+        payload: { holding: new ObjectId() },
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(res.statusCode).toBe(404);
+    });
+
+    it('should return 403 if company is not in holding', async () => {
+      const res = await app.inject({
+        method: 'PUT',
+        url: `/users/${coachFromOtherCompany._id.toHexString()}`,
+        payload: { holding: holding._id },
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(res.statusCode).toBe(403);
+    });
+
+    it('should return 409 if user is already in holding', async () => {
+      const res = await app.inject({
+        method: 'PUT',
+        url: `/users/${usersSeedList[0]._id.toHexString()}`,
+        payload: { holding: holding._id },
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(res.statusCode).toBe(409);
     });
   });
 

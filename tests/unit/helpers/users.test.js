@@ -20,9 +20,11 @@ const User = require('../../../src/models/User');
 const Contract = require('../../../src/models/Contract');
 const Course = require('../../../src/models/Course');
 const CourseHistory = require('../../../src/models/CourseHistory');
+const CompanyHolding = require('../../../src/models/CompanyHolding');
 const CompanyLinkRequest = require('../../../src/models/CompanyLinkRequest');
 const Role = require('../../../src/models/Role');
 const UserCompany = require('../../../src/models/UserCompany');
+const UserHolding = require('../../../src/models/UserHolding');
 const {
   HELPER,
   AUXILIARY_WITHOUT_COMPANY,
@@ -31,6 +33,7 @@ const {
   STRICTLY_E_LEARNING,
   DIRECTORY,
   COURSE,
+  HOLDING_ADMIN,
 } = require('../../../src/helpers/constants');
 const ActivityHistory = require('../../../src/models/ActivityHistory');
 const { CompaniDate } = require('../../../src/helpers/dates/companiDates');
@@ -40,17 +43,20 @@ const { language } = translate;
 describe('formatQueryForUsersList', () => {
   let find;
   let findUserCompany;
+  let findCompanyHolding;
   const credentials = { company: { _id: new ObjectId() }, _id: new ObjectId() };
   const companyId = credentials.company._id;
 
   beforeEach(() => {
     find = sinon.stub(Role, 'find');
     findUserCompany = sinon.stub(UserCompany, 'find');
+    findCompanyHolding = sinon.stub(CompanyHolding, 'find');
   });
 
   afterEach(() => {
     find.restore();
     findUserCompany.restore();
+    findCompanyHolding.restore();
   });
 
   it('should returns params without role if no role in query', async () => {
@@ -63,6 +69,7 @@ describe('formatQueryForUsersList', () => {
 
     expect(result).toEqual(omit(query, 'company'));
     sinon.assert.notCalled(find);
+    sinon.assert.notCalled(findCompanyHolding);
     SinonMongoose.calledOnceWithExactly(
       findUserCompany,
       [{ query: 'find', args: [{ company: companyId }, { user: 1 }] }, { query: 'lean' }]
@@ -95,6 +102,7 @@ describe('formatQueryForUsersList', () => {
       findUserCompany,
       [{ query: 'find', args: [{ company: companyId }, { user: 1 }] }, { query: 'lean' }]
     );
+    sinon.assert.notCalled(findCompanyHolding);
   });
 
   it('should return 404 if role does not exist', async () => {
@@ -111,7 +119,30 @@ describe('formatQueryForUsersList', () => {
         find,
         [{ query: 'find', args: [{ name: { $in: query.role } }, { _id: 1, interface: 1 }] }, { query: 'lean' }]
       );
+      sinon.assert.notCalled(findCompanyHolding);
     }
+  });
+
+  it('should return params with holding', async () => {
+    const users = [{ _id: new ObjectId(), user: new ObjectId() }];
+    const query = { holding: new ObjectId() };
+    const companyHoldings = [{ _id: new ObjectId(), company: companyId }];
+
+    findCompanyHolding.returns(SinonMongoose.stubChainedQueries(companyHoldings, ['lean']));
+    findUserCompany.returns(SinonMongoose.stubChainedQueries(users, ['lean']));
+
+    const result = await UsersHelper.formatQueryForUsersList(query);
+    expect(result).toEqual({ _id: { $in: users.map(u => u.user) } });
+
+    SinonMongoose.calledOnceWithExactly(
+      findCompanyHolding,
+      [{ query: 'find', args: [{ holding: query.holding }, { company: 1 }] }, { query: 'lean' }]
+    );
+    SinonMongoose.calledOnceWithExactly(
+      findUserCompany,
+      [{ query: 'find', args: [{ company: { $in: [companyId] } }, { user: 1 }] }, { query: 'lean' }]
+    );
+    sinon.assert.notCalled(find);
   });
 });
 
@@ -1604,25 +1635,31 @@ describe('removeHelper', () => {
 describe('updateUser', () => {
   let userUpdateOne;
   let roleFindById;
+  let roleFindOne;
   let updateHistoryOnSectorUpdateStub;
   let createHelper;
   let userCompanyCreate;
+  let userHoldingCreate;
   const credentials = { company: { _id: new ObjectId() } };
   const userId = new ObjectId();
 
   beforeEach(() => {
     userUpdateOne = sinon.stub(User, 'updateOne');
     roleFindById = sinon.stub(Role, 'findById');
+    roleFindOne = sinon.stub(Role, 'findOne');
     updateHistoryOnSectorUpdateStub = sinon.stub(SectorHistoriesHelper, 'updateHistoryOnSectorUpdate');
     createHelper = sinon.stub(HelpersHelper, 'create');
     userCompanyCreate = sinon.stub(UserCompaniesHelper, 'create');
+    userHoldingCreate = sinon.stub(UserHolding, 'create');
   });
   afterEach(() => {
     userUpdateOne.restore();
     roleFindById.restore();
+    roleFindOne.restore();
     updateHistoryOnSectorUpdateStub.restore();
     createHelper.restore();
     userCompanyCreate.restore();
+    userHoldingCreate.restore();
   });
 
   it('should update a user', async () => {
@@ -1634,6 +1671,8 @@ describe('updateUser', () => {
     sinon.assert.notCalled(roleFindById);
     sinon.assert.notCalled(updateHistoryOnSectorUpdateStub);
     sinon.assert.notCalled(userCompanyCreate);
+    sinon.assert.notCalled(userHoldingCreate);
+    sinon.assert.notCalled(roleFindOne);
   });
 
   it('should update a user without company', async () => {
@@ -1646,6 +1685,8 @@ describe('updateUser', () => {
     sinon.assert.notCalled(createHelper);
     sinon.assert.notCalled(updateHistoryOnSectorUpdateStub);
     sinon.assert.notCalled(userCompanyCreate);
+    sinon.assert.notCalled(userHoldingCreate);
+    sinon.assert.notCalled(roleFindOne);
   });
 
   it('should update a user and create helper', async () => {
@@ -1667,6 +1708,8 @@ describe('updateUser', () => {
       [{ query: 'findById', args: [payload.role, { name: 1, interface: 1 }] }, { query: 'lean' }]
     );
     sinon.assert.notCalled(userCompanyCreate);
+    sinon.assert.notCalled(userHoldingCreate);
+    sinon.assert.notCalled(roleFindOne);
   });
 
   it('should update a user and create sector history', async () => {
@@ -1684,6 +1727,8 @@ describe('updateUser', () => {
     );
     sinon.assert.notCalled(roleFindById);
     sinon.assert.notCalled(userCompanyCreate);
+    sinon.assert.notCalled(userHoldingCreate);
+    sinon.assert.notCalled(roleFindOne);
   });
 
   it('should update a user role', async () => {
@@ -1705,6 +1750,8 @@ describe('updateUser', () => {
     );
     sinon.assert.notCalled(updateHistoryOnSectorUpdateStub);
     sinon.assert.notCalled(userCompanyCreate);
+    sinon.assert.notCalled(userHoldingCreate);
+    sinon.assert.notCalled(roleFindOne);
   });
 
   it('should update a user company WITH startDate', async () => {
@@ -1720,6 +1767,8 @@ describe('updateUser', () => {
     sinon.assert.notCalled(createHelper);
     sinon.assert.notCalled(roleFindById);
     sinon.assert.notCalled(updateHistoryOnSectorUpdateStub);
+    sinon.assert.notCalled(userHoldingCreate);
+    sinon.assert.notCalled(roleFindOne);
   });
 
   it('should update a user company WITHOUT startDate', async () => {
@@ -1732,6 +1781,8 @@ describe('updateUser', () => {
     sinon.assert.notCalled(createHelper);
     sinon.assert.notCalled(roleFindById);
     sinon.assert.notCalled(updateHistoryOnSectorUpdateStub);
+    sinon.assert.notCalled(userHoldingCreate);
+    sinon.assert.notCalled(roleFindOne);
   });
 
   it('should return a 400 error if role does not exists', async () => {
@@ -1752,7 +1803,31 @@ describe('updateUser', () => {
       sinon.assert.notCalled(userUpdateOne);
       sinon.assert.notCalled(updateHistoryOnSectorUpdateStub);
       sinon.assert.notCalled(userCompanyCreate);
+      sinon.assert.notCalled(userHoldingCreate);
+      sinon.assert.notCalled(roleFindOne);
     }
+  });
+
+  it('should update a user holding', async () => {
+    const payload = { holding: new ObjectId() };
+    const holdingRole = { _id: new ObjectId() };
+
+    roleFindOne.returns(SinonMongoose.stubChainedQueries(holdingRole, ['lean']));
+
+    await UsersHelper.updateUser(userId, payload, credentials);
+
+    sinon.assert.calledOnceWithExactly(
+      userHoldingCreate,
+      { user: userId, holding: payload.holding }
+    );
+    SinonMongoose.calledOnceWithExactly(
+      roleFindOne,
+      [{ query: 'findOne', args: [{ name: HOLDING_ADMIN }] }, { query: 'lean' }]
+    );
+    sinon.assert.calledOnceWithExactly(userUpdateOne, { _id: userId }, { $set: { 'role.holding': holdingRole._id } });
+    sinon.assert.notCalled(createHelper);
+    sinon.assert.notCalled(roleFindById);
+    sinon.assert.notCalled(updateHistoryOnSectorUpdateStub);
   });
 });
 

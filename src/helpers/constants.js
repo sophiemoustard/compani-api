@@ -254,6 +254,7 @@ module.exports = {
   // INTERFACES
   CLIENT: 'client',
   VENDOR: 'vendor',
+  HOLDING: 'holding',
   // ROLE CLIENT
   AUXILIARY: 'auxiliary',
   HELPER: 'helper',
@@ -267,6 +268,8 @@ module.exports = {
   VENDOR_ADMIN: 'vendor_admin',
   TRAINING_ORGANISATION_MANAGER: 'training_organisation_manager',
   TRAINER: 'trainer',
+  // ROLE HOLDING
+  HOLDING_ADMIN: 'holding_admin',
   // APP NAMES
   FORMATION: 'formation',
   // SUBSCRIPTIONS
