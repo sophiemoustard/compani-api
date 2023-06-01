@@ -141,7 +141,13 @@ describe('SEEDS VERIFICATION', () => {
           activityHistoryList = await ActivityHistory
             .find()
             .populate({ path: 'user', select: '_id', transform: doc => (doc || null) })
-            .populate({ path: 'activity', select: '_id', transform: doc => (doc || null) })
+            .populate({
+              path: 'activity',
+              select: '_id cards',
+              populate: { path: 'cards' },
+              transform: doc => (doc || null),
+            })
+            .populate({ path: 'questionnaireAnswersList.card', select: 'template', transform: doc => (doc || null) })
             .lean({ virtuals: true });
         });
 
@@ -174,6 +180,47 @@ describe('SEEDS VERIFICATION', () => {
           const someActivitiesDontExist = activityHistoryList.some(ah => !ah.activity);
 
           expect(someActivitiesDontExist).toBeFalsy();
+        });
+
+        it('should pass if every card exists and is in activity', () => {
+          const someCardsDontExist = activityHistoryList
+            .some(ah => ah.questionnaireAnswersList.some(qal => !qal.card));
+
+          expect(someCardsDontExist).toBeFalsy();
+
+          const someCardsAreNotInActivities = activityHistoryList
+            .some(ah => ah.questionnaireAnswersList
+              .some(qal => !UtilsHelper.doesArrayIncludeId(ah.activity.cards.map(c => c._id), qal.card._id)));
+
+          expect(someCardsAreNotInActivities).toBeFalsy();
+        });
+
+        it('should pass if every card is a questionnaire card', () => {
+          const everyCardHasGoodTemplate = activityHistoryList
+            .every(ah => ah.questionnaireAnswersList
+              .every(qal => [SURVEY, OPEN_QUESTION, QUESTION_ANSWER].includes(qal.card.template)));
+
+          expect(everyCardHasGoodTemplate).toBeTruthy();
+        });
+
+        it('should pass if every mandatory card has answer', () => {
+          const everyMandatoryCardHasAnswer = activityHistoryList
+            .every(ah => ah.activity.cards.every((c) => {
+              if (!c.isMandatory) return true;
+
+              return ah.questionnaireAnswersList.some(qal => UtilsHelper.areObjectIdsEquals(c._id, qal.card._id));
+            }));
+
+          expect(everyMandatoryCardHasAnswer).toBeTruthy();
+        });
+
+        it('should pass if there is the good answers number', () => {
+          const everyHistoryHasGoodAnswersNumber = activityHistoryList
+            .every(ah => !ah.questionnaireAnswersList.length ||
+              ah.questionnaireAnswersList
+                .every(qal => qal.answerList.length === 1 || qal.card.template === QUESTION_ANSWER));
+
+          expect(everyHistoryHasGoodAnswersNumber).toBeTruthy();
         });
       });
 

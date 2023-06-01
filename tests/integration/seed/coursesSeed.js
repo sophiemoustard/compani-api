@@ -236,7 +236,7 @@ const activitiesHistory = [
     _id: new ObjectId(),
     user: coach._id,
     activity: activitiesList[1]._id,
-    questionnaireAnswersList: [{ card: cardsList[0]._id, answerList: ['3'] }],
+    questionnaireAnswersList: [{ card: cardsList[1]._id, answerList: ['3'] }],
   },
 ];
 
