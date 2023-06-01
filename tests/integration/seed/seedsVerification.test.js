@@ -8,6 +8,7 @@ const Card = require('../../../src/models/Card');
 const CompanyLinkRequest = require('../../../src/models/CompanyLinkRequest');
 const Contract = require('../../../src/models/Contract');
 const Course = require('../../../src/models/Course');
+const CourseSlot = require('../../../src/models/CourseSlot');
 const CourseHistory = require('../../../src/models/CourseHistory');
 const Helper = require('../../../src/models/Helper');
 const Program = require('../../../src/models/Program');
@@ -771,6 +772,21 @@ describe('SEEDS VERIFICATION', () => {
           });
 
           expect(someUsersDontExist).toBeFalsy();
+        });
+      });
+
+      describe('Collection CourseSlot', () => {
+        let courseSlotList;
+        before(async () => {
+          courseSlotList = await CourseSlot
+            .find()
+            .populate({ path: 'course', select: 'format', transform: doc => (doc || null) })
+            .lean();
+        });
+
+        it('should pass every course exists', () => {
+          const everyCourseIsBlended = courseSlotList.every(cs => cs.course && cs.course.format === BLENDED);
+          expect(everyCourseIsBlended).toBeTruthy();
         });
       });
 
