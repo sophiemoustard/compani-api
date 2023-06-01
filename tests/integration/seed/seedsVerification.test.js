@@ -782,7 +782,12 @@ describe('SEEDS VERIFICATION', () => {
         before(async () => {
           courseSlotList = await CourseSlot
             .find()
-            .populate({ path: 'course', select: 'format', transform: doc => (doc || null) })
+            .populate({
+              path: 'course',
+              select: 'format subProgram',
+              populate: { path: 'subProgram', select: 'steps' },
+              transform: doc => (doc || null),
+            })
             .populate({ path: 'step', select: 'type', transform: doc => (doc || null) })
             .lean();
         });
@@ -815,6 +820,12 @@ describe('SEEDS VERIFICATION', () => {
           const areLinksOnRemoteSlotsOnly = courseSlotList
             .every(cs => !has(cs, 'meetingLink') || cs.step.type === REMOTE);
           expect(areLinksOnRemoteSlotsOnly).toBeTruthy();
+        });
+
+        it('should pass if step exists and is in course', () => {
+          const everyStepIsInCourse = courseSlotList
+            .every(cs => cs.step && UtilsHelper.doesArrayIncludeId(cs.course.subProgram.steps, cs.step._id));
+          expect(everyStepIsInCourse).toBeTruthy();
         });
       });
 
