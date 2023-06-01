@@ -86,6 +86,7 @@ const activityHistories = [
     user: userList[1]._id,
     activity: activitiesList[0]._id,
     date: new Date('2020-12-15T23:00:00'),
+    score: 1,
   },
 ];
 

@@ -222,6 +222,25 @@ describe('SEEDS VERIFICATION', () => {
 
           expect(everyHistoryHasGoodAnswersNumber).toBeTruthy();
         });
+
+        it('should pass if score is greater or equal to quizz cards count in activity', () => {
+          const isScoreGreaterOrEqualToQuizzCardsCount = activityHistoryList
+            .every((ah) => {
+              const quizzCardsTemplates = [
+                FILL_THE_GAPS,
+                MULTIPLE_CHOICE_QUESTION,
+                SINGLE_CHOICE_QUESTION,
+                ORDER_THE_SEQUENCE,
+              ];
+              const quizzCardsCount = ah.activity.cards.filter(c => quizzCardsTemplates.includes(c.template)).length;
+
+              if (!quizzCardsCount && !has(ah, 'score')) return true;
+              if (ah.score <= quizzCardsCount) return true;
+              return false;
+            });
+
+          expect(isScoreGreaterOrEqualToQuizzCardsCount).toBeTruthy();
+        });
       });
 
       describe('Collection Attendance', () => {
