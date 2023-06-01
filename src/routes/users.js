@@ -115,8 +115,8 @@ exports.plugin = {
           query: Joi.object({
             role: [Joi.array().items(Joi.string().valid(...USER_ROLE_LIST)), Joi.string().valid(...USER_ROLE_LIST)],
             company: Joi.objectId(),
-            holding: Joi.objectId().when('company', { is: Joi.exist(), then: Joi.forbidden() }),
-          }),
+            holding: Joi.objectId(),
+          }).oxor('company', 'holding'),
         },
         pre: [{ method: authorizeUsersGet }],
       },

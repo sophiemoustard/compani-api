@@ -245,7 +245,7 @@ describe('HOLDINGS ROUTES - GET /holdings/{_id}', () => {
       expect(response.result.data.holding).toMatchObject({
         _id: holdings[1]._id,
         name: 'Croix Rouge',
-        companyHoldings: [expect.objectContaining({ company: { _id: otherCompany._id, name: 'Un autre SAS' } })],
+        companies: [expect.objectContaining({ _id: otherCompany._id, name: 'Un autre SAS' })],
       });
     });
 
