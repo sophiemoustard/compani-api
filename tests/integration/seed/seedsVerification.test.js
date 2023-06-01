@@ -62,6 +62,7 @@ const {
 } = require('../../../src/helpers/constants');
 const attendancesSeed = require('./attendancesSeed');
 const activitiesSeed = require('./activitiesSeed');
+const activityHistoriesSeed = require('./activityHistoriesSeed');
 const attendanceSheetsSeed = require('./attendanceSheetsSeed');
 const cardsSeed = require('./cardsSeed');
 const coursesSeed = require('./coursesSeed');
@@ -75,6 +76,7 @@ const usersSeed = require('./usersSeed');
 
 const seedList = [
   { label: 'ACTIVITY', value: activitiesSeed },
+  { label: 'ACTIVITYHISTORY', value: activityHistoriesSeed },
   { label: 'ATTENDANCE', value: attendancesSeed },
   { label: 'ATTENDANCESHEET', value: attendanceSheetsSeed },
   { label: 'CARD', value: cardsSeed },
