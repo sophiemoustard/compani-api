@@ -141,22 +141,25 @@ describe('SEEDS VERIFICATION', () => {
           activityHistoryList = await ActivityHistory
             .find()
             .populate({ path: 'user', select: '_id', transform: doc => (doc || null) })
+            .populate({ path: 'activity', select: '_id', transform: doc => (doc || null) })
             .lean({ virtuals: true });
         });
 
         it('should pass if every user exists', () => {
-          const someUsersDontExist = activityHistoryList.some(a => !a.user);
+          const someUsersDontExist = activityHistoryList.some(ah => !ah.user);
 
           expect(someUsersDontExist).toBeFalsy();
         });
 
         it('should pass if user is registered to a course with the activity', async () => {
-          const stepList = await Step.find({ activities: { $in: activityHistoryList.map(ah => ah.activity) } }).lean();
+          const stepList = await Step
+            .find({ activities: { $in: activityHistoryList.map(ah => ah.activity._id) } })
+            .lean();
           const subProgramList = await SubProgram.find({ step: { $in: stepList.map(s => s._id) } }).lean();
           const courseList = await Course.find({ subProgram: { $in: subProgramList.map(sp => sp._id) } }).lean();
 
           const everyUserIsRegisteredToCourse = activityHistoryList.every((ah) => {
-            const steps = stepList.filter(s => UtilsHelper.doesArrayIncludeId(s.activities, ah.activity));
+            const steps = stepList.filter(s => UtilsHelper.doesArrayIncludeId(s.activities, ah.activity._id));
             const subPrograms = subProgramList
               .filter(sp => steps.some(s => UtilsHelper.doesArrayIncludeId(sp.steps, s._id)));
 
@@ -165,6 +168,12 @@ describe('SEEDS VERIFICATION', () => {
                 UtilsHelper.doesArrayIncludeId(c.trainees, ah.user._id));
           });
           expect(everyUserIsRegisteredToCourse).toBeTruthy();
+        });
+
+        it('should pass if every activity exists', () => {
+          const someActivitiesDontExist = activityHistoryList.some(ah => !ah.activity);
+
+          expect(someActivitiesDontExist).toBeFalsy();
         });
       });
 
