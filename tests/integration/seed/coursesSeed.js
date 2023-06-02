@@ -22,11 +22,9 @@ const { authCompany, otherCompany, companyWithoutSubscription: thirdCompany } = 
 const { deleteNonAuthenticationSeeds } = require('../helpers/db');
 const {
   vendorAdmin,
-  noRoleNoCompany,
   noRole,
   auxiliary,
   helper,
-  auxiliaryWithoutCompany,
   clientAdmin,
   trainerOrganisationManager,
   coach,
@@ -233,15 +231,12 @@ const activitiesHistory = [
   { _id: new ObjectId(), user: clientAdmin._id, activity: activitiesList[0]._id },
   { _id: new ObjectId(), user: helper._id, activity: activitiesList[0]._id },
   { _id: new ObjectId(), user: auxiliary._id, activity: activitiesList[0]._id },
-  { _id: new ObjectId(), user: auxiliaryWithoutCompany._id, activity: activitiesList[0]._id },
   { _id: new ObjectId(), user: trainerOrganisationManager._id, activity: activitiesList[0]._id },
-  { _id: new ObjectId(), user: trainer._id, activity: activitiesList[0]._id },
-  { _id: new ObjectId(), user: noRoleNoCompany._id, activity: activitiesList[0]._id },
   {
     _id: new ObjectId(),
     user: coach._id,
     activity: activitiesList[1]._id,
-    questionnaireAnswersList: [{ card: cardsList[0]._id, answerList: ['3'] }],
+    questionnaireAnswersList: [{ card: cardsList[1]._id, answerList: ['3'] }],
   },
 ];
 
@@ -980,13 +975,6 @@ const slots = [
     course: coursesList[7]._id,
     step: stepList[0]._id,
   },
-  { // 12
-    _id: new ObjectId(),
-    startDate: '2020-03-08T08:00:00.000Z',
-    endDate: '2020-03-08T10:00:00.000Z',
-    course: coursesList[8]._id,
-    step: stepList[0]._id,
-  },
   { // 13
     _id: new ObjectId(),
     startDate: '2020-03-10T08:00:00.000Z',
@@ -1011,7 +999,7 @@ const slots = [
 const attendanceList = [{
   _id: new ObjectId(),
   trainee: traineeFromThirdCompany._id,
-  courseSlot: slots[15]._id,
+  courseSlot: slots[14]._id,
   company: thirdCompany._id,
 }];
 

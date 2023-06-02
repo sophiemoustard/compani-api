@@ -1454,10 +1454,7 @@ describe('COURSES ROUTES - PUT /courses/{_id}', () => {
         .lean();
 
       expect(course.trainees.length).toBeTruthy();
-      expect(course.slots.length).toBeTruthy();
-      expect(course.slotsToPlan.length).toBe(0);
       expect(course.format).toBe('strictly_e_learning');
-      expect(course.slots.every(slot => CompaniDate(slot.endDate).isBefore(payload.archivedAt))).toBeTruthy();
     });
 
     it('should return 403 if trying to archive a course in progress', async () => {
@@ -2598,7 +2595,7 @@ describe('COURSES ROUTES - POST /courses/{_id}/register-e-learning', () => {
       expect(response.statusCode).toBe(403);
     });
 
-    it('should return 403 if trainee already suscribed to course', async () => {
+    it('should return 403 if trainee already subscribed to course', async () => {
       authToken = await getTokenByCredentials(traineeFromOtherCompany.local);
 
       const response = await app.inject({

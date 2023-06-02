@@ -1,12 +1,14 @@
 const { expect } = require('expect');
 const { groupBy, get, has, compact } = require('lodash');
 const Activity = require('../../../src/models/Activity');
+const ActivityHistory = require('../../../src/models/ActivityHistory');
 const Attendance = require('../../../src/models/Attendance');
 const AttendanceSheet = require('../../../src/models/AttendanceSheet');
 const Card = require('../../../src/models/Card');
 const CompanyLinkRequest = require('../../../src/models/CompanyLinkRequest');
 const Contract = require('../../../src/models/Contract');
 const Course = require('../../../src/models/Course');
+const CourseSlot = require('../../../src/models/CourseSlot');
 const CourseHistory = require('../../../src/models/CourseHistory');
 const Helper = require('../../../src/models/Helper');
 const Program = require('../../../src/models/Program');
@@ -59,13 +61,18 @@ const {
   COMPANY_DELETION,
   SLOT_EDITION,
   CLIENT_ADMIN,
+  ON_SITE,
+  REMOTE,
+  DAY,
 } = require('../../../src/helpers/constants');
 const attendancesSeed = require('./attendancesSeed');
 const activitiesSeed = require('./activitiesSeed');
+const activityHistoriesSeed = require('./activityHistoriesSeed');
 const attendanceSheetsSeed = require('./attendanceSheetsSeed');
 const cardsSeed = require('./cardsSeed');
 const coursesSeed = require('./coursesSeed');
 const courseHistoriesSeed = require('./courseHistoriesSeed');
+const courseSlotsSeed = require('./courseSlotsSeed');
 const programsSeed = require('./programsSeed');
 const questionnaireHistoriesSeed = require('./questionnaireHistoriesSeed');
 const stepsSeed = require('./stepsSeed');
@@ -75,11 +82,13 @@ const usersSeed = require('./usersSeed');
 
 const seedList = [
   { label: 'ACTIVITY', value: activitiesSeed },
+  { label: 'ACTIVITYHISTORY', value: activityHistoriesSeed },
   { label: 'ATTENDANCE', value: attendancesSeed },
   { label: 'ATTENDANCESHEET', value: attendanceSheetsSeed },
   { label: 'CARD', value: cardsSeed },
   { label: 'COURSE', value: coursesSeed },
   { label: 'COURSEHISTORY', value: courseHistoriesSeed },
+  { label: 'COURSESLOT', value: courseSlotsSeed },
   { label: 'PROGRAM', value: programsSeed },
   { label: 'QUESTIONNAIREHISTORY', value: questionnaireHistoriesSeed },
   { label: 'STEP', value: stepsSeed },
@@ -87,6 +96,8 @@ const seedList = [
   { label: 'USERCOMPANY', value: userCompaniesSeed },
   { label: 'USER', value: usersSeed },
 ];
+
+const transform = doc => (doc || null);
 
 describe('SEEDS VERIFICATION', () => {
   seedList.forEach(({ label, value: seeds }) => {
@@ -98,7 +109,7 @@ describe('SEEDS VERIFICATION', () => {
         before(async () => {
           activityList = await Activity
             .find()
-            .populate({ path: 'cards', select: '-__v -createdAt -updatedAt', transform: doc => (doc || null) })
+            .populate({ path: 'cards', select: '-__v -createdAt -updatedAt', transform })
             .lean({ virtuals: true });
         });
 
@@ -129,6 +140,116 @@ describe('SEEDS VERIFICATION', () => {
             .every(activity => activity.status === DRAFT || activity.areCardsValid);
 
           expect(everyPublishedActivityHasValidCards).toBeTruthy();
+        });
+      });
+
+      describe('Collection Activity History', () => {
+        let activityHistoryList;
+        before(async () => {
+          activityHistoryList = await ActivityHistory
+            .find()
+            .populate({ path: 'user', select: '_id', transform })
+            .populate({ path: 'activity', select: '_id cards', populate: { path: 'cards' }, transform })
+            .populate({ path: 'questionnaireAnswersList.card', select: 'template', transform })
+            .lean({ virtuals: true });
+        });
+
+        it('should pass if every user exists', () => {
+          const someUsersDontExist = activityHistoryList.some(ah => !ah.user);
+
+          expect(someUsersDontExist).toBeFalsy();
+        });
+
+        it('should pass if user is registered to a course with the activity', async () => {
+          const stepList = await Step
+            .find({ activities: { $in: activityHistoryList.map(ah => ah.activity._id) } })
+            .lean();
+          const subProgramList = await SubProgram.find({ step: { $in: stepList.map(s => s._id) } }).lean();
+          const courseList = await Course.find({ subProgram: { $in: subProgramList.map(sp => sp._id) } }).lean();
+
+          const groupedStepsByActivity = groupBy(
+            stepList.flatMap(s => s.activities.map(a => ({ ...s, activities: a }))),
+            'activities'
+          );
+          const groupedSubProgramsByStep = groupBy(
+            subProgramList.flatMap(sp => sp.steps.map(s => ({ ...sp, steps: s }))),
+            'steps'
+          );
+          const groupedCoursesBySubProgram = groupBy(courseList, 'subProgram');
+          const everyUserIsRegisteredToCourse = activityHistoryList
+            .every(ah => groupedStepsByActivity[ah.activity._id]
+              .some(step => groupedSubProgramsByStep[step._id]
+                .some(subProgram => groupedCoursesBySubProgram[subProgram._id]
+                  .some(course => UtilsHelper.doesArrayIncludeId(course.trainees, ah.user._id))
+                )
+              )
+            );
+          expect(everyUserIsRegisteredToCourse).toBeTruthy();
+        });
+
+        it('should pass if every activity exists', () => {
+          const someActivitiesDontExist = activityHistoryList.some(ah => !ah.activity);
+
+          expect(someActivitiesDontExist).toBeFalsy();
+        });
+
+        it('should pass if every card exists and is in activity', () => {
+          const someCardsDontExist = activityHistoryList
+            .some(ah => ah.questionnaireAnswersList.some(qal => !qal.card));
+
+          expect(someCardsDontExist).toBeFalsy();
+
+          const someCardsAreNotInActivities = activityHistoryList
+            .some((ah) => {
+              const cardIds = ah.activity.cards.map(c => c._id);
+
+              return ah.questionnaireAnswersList.some(qal => !UtilsHelper.doesArrayIncludeId(cardIds, qal.card._id));
+            });
+
+          expect(someCardsAreNotInActivities).toBeFalsy();
+        });
+
+        it('should pass if every card is a questionnaire card', () => {
+          const everyCardHasGoodTemplate = activityHistoryList
+            .every(ah => ah.questionnaireAnswersList
+              .every(qal => [SURVEY, OPEN_QUESTION, QUESTION_ANSWER].includes(qal.card.template)));
+
+          expect(everyCardHasGoodTemplate).toBeTruthy();
+        });
+
+        it('should pass if every mandatory card has answer', () => {
+          const everyMandatoryCardHasAnswer = activityHistoryList
+            .every(ah => ah.activity.cards.every(c => !c.isMandatory ||
+              ah.questionnaireAnswersList.some(qal => UtilsHelper.areObjectIdsEquals(c._id, qal.card._id)))
+            );
+
+          expect(everyMandatoryCardHasAnswer).toBeTruthy();
+        });
+
+        it('should pass if there is the good answers number', () => {
+          const everyHistoryHasGoodAnswersNumber = activityHistoryList
+            .every(ah => !ah.questionnaireAnswersList.length ||
+              ah.questionnaireAnswersList
+                .every(qal => qal.answerList.length === 1 || qal.card.template === QUESTION_ANSWER));
+
+          expect(everyHistoryHasGoodAnswersNumber).toBeTruthy();
+        });
+
+        it('should pass if score is lower or equal to quizz cards count in activity', () => {
+          const isScoreLowerOrEqualToQuizzCardsCount = activityHistoryList
+            .every((ah) => {
+              const quizzCardsTemplates = [
+                FILL_THE_GAPS,
+                MULTIPLE_CHOICE_QUESTION,
+                SINGLE_CHOICE_QUESTION,
+                ORDER_THE_SEQUENCE,
+              ];
+              const quizzCardsCount = ah.activity.cards.filter(c => quizzCardsTemplates.includes(c.template)).length;
+
+              return (!quizzCardsCount && !has(ah, 'score')) || (ah.score <= quizzCardsCount);
+            });
+
+          expect(isScoreLowerOrEqualToQuizzCardsCount).toBeTruthy();
         });
       });
 
@@ -402,7 +523,7 @@ describe('SEEDS VERIFICATION', () => {
               path: 'trainees',
               select: '_id',
               populate: { path: 'userCompanyList' },
-              transform: doc => (doc || null),
+              transform,
             })
             .populate({
               path: 'companyRepresentative',
@@ -415,12 +536,8 @@ describe('SEEDS VERIFICATION', () => {
               populate: [{ path: 'role.vendor', select: 'name' }],
             })
             .populate({ path: 'trainer', select: '_id role.vendor' })
-            .populate({ path: 'companies', select: '_id', transform: doc => (doc || null) })
-            .populate({
-              path: 'accessRules',
-              select: '_id',
-              transform: doc => (doc || null),
-            })
+            .populate({ path: 'companies', select: '_id', transform })
+            .populate({ path: 'accessRules', select: '_id', transform })
             .populate({ path: 'subProgram', select: '_id' })
             .populate({ path: 'slots', select: 'endDate' })
             .populate({ path: 'slotsToPlan' })
@@ -661,22 +778,65 @@ describe('SEEDS VERIFICATION', () => {
         });
       });
 
+      describe('Collection CourseSlot', () => {
+        let courseSlotList;
+        before(async () => {
+          courseSlotList = await CourseSlot
+            .find()
+            .populate({
+              path: 'course',
+              select: 'format subProgram',
+              populate: { path: 'subProgram', select: 'steps' },
+              transform,
+            })
+            .populate({ path: 'step', select: 'type', transform })
+            .lean();
+        });
+
+        it('should pass if every course exists and is blended', () => {
+          const everyCourseIsBlended = courseSlotList.every(cs => cs.course && cs.course.format === BLENDED);
+          expect(everyCourseIsBlended).toBeTruthy();
+        });
+
+        it('should pass if every startDate is before endDate and same day', () => {
+          const everyStartDateIsBeforeEndDateInTheDay = courseSlotList
+            .every(cs => !has(cs, 'startDate') ||
+              (CompaniDate(cs.startDate).isBefore(cs.endDate) &&
+                CompaniDate(cs.startDate).isSame(CompaniDate(cs.endDate), DAY))
+            );
+          expect(everyStartDateIsBeforeEndDateInTheDay).toBeTruthy();
+        });
+
+        it('should pass if addresses are on site slots only', () => {
+          const areAddressesOnSiteSlotsOnly = courseSlotList
+            .every(cs => !has(cs, 'address') || cs.step.type === ON_SITE);
+          expect(areAddressesOnSiteSlotsOnly).toBeTruthy();
+        });
+
+        it('should pass if links are on remote slots only', () => {
+          const areLinksOnRemoteSlotsOnly = courseSlotList
+            .every(cs => !has(cs, 'meetingLink') || cs.step.type === REMOTE);
+          expect(areLinksOnRemoteSlotsOnly).toBeTruthy();
+        });
+
+        it('should pass if step exists and is in course', () => {
+          const everyStepIsInCourse = courseSlotList
+            .every(cs => cs.step && UtilsHelper.doesArrayIncludeId(cs.course.subProgram.steps, cs.step._id));
+          expect(everyStepIsInCourse).toBeTruthy();
+        });
+      });
+
       describe('Collection CourseHistory', () => {
         let courseHistoryList;
         before(async () => {
           courseHistoryList = await CourseHistory
             .find({})
-            .populate({
-              path: 'trainee',
-              select: '_id',
-              transform: doc => (doc || null),
-              populate: { path: 'userCompanyList' },
-            })
-            .populate({ path: 'company', select: '_id', transform: doc => (doc || null) })
+            .populate({ path: 'trainee', select: '_id', transform, populate: { path: 'userCompanyList' } })
+            .populate({ path: 'company', select: '_id', transform })
             .populate({
               path: 'createdBy',
               select: '_id role',
-              transform: doc => (doc || null),
+              transform,
               populate: [
                 { path: 'role.vendor', select: 'name' },
                 { path: 'role.client', select: 'name' },
@@ -920,12 +1080,12 @@ describe('SEEDS VERIFICATION', () => {
         before(async () => {
           programList = await Program
             .find()
-            .populate({ path: 'subPrograms', select: '_id', transform: doc => (doc || null) })
-            .populate({ path: 'categories', select: '_id', transform: doc => (doc || null) })
+            .populate({ path: 'subPrograms', select: '_id', transform })
+            .populate({ path: 'categories', select: '_id', transform })
             .populate({
               path: 'testers',
               select: '_id',
-              transform: doc => (doc || null),
+              transform,
               populate: { path: 'role.vendor', select: 'name' },
             })
             .lean();
@@ -1027,7 +1187,7 @@ describe('SEEDS VERIFICATION', () => {
         before(async () => {
           stepList = await Step
             .find()
-            .populate({ path: 'activities', select: '_id status', transform: doc => (doc || null) })
+            .populate({ path: 'activities', select: '_id status', transform })
             .lean();
         });
 
@@ -1093,7 +1253,7 @@ describe('SEEDS VERIFICATION', () => {
         before(async () => {
           subProgramList = await SubProgram
             .find()
-            .populate({ path: 'steps', select: '_id', transform: doc => (doc || null) })
+            .populate({ path: 'steps', select: '_id', transform })
             .lean();
         });
 

@@ -4,6 +4,7 @@ const AttendanceSheet = require('../../../src/models/AttendanceSheet');
 const Course = require('../../../src/models/Course');
 const CourseHistory = require('../../../src/models/CourseHistory');
 const CourseSlot = require('../../../src/models/CourseSlot');
+const Step = require('../../../src/models/Step');
 const SubProgram = require('../../../src/models/SubProgram');
 const { authCompany, otherCompany, companyWithoutSubscription } = require('../../seed/authCompaniesSeed');
 const { WEBAPP, INTRA, INTER_B2B, TRAINEE_ADDITION, MOBILE } = require('../../../src/helpers/constants');
@@ -59,7 +60,9 @@ const userCompaniesList = [
   { _id: new ObjectId(), user: userList[3]._id, company: otherCompany._id },
 ];
 
-const subProgram = { _id: new ObjectId(), name: 'Subprogram 1' };
+const steps = [{ _id: new ObjectId(), type: 'on_site', name: 'étape' }];
+
+const subProgram = { _id: new ObjectId(), name: 'Subprogram 1', steps: [steps[0]._id] };
 
 const coursesList = [
   { // 0
@@ -188,13 +191,13 @@ const slotsList = [
     startDate: '2020-01-23T09:00:00.000Z',
     endDate: '2020-01-23T11:00:00.000Z',
     course: coursesList[0],
-    step: new ObjectId(),
+    step: steps[0]._id,
   },
   {
     startDate: '2020-01-25T09:00:00.000Z',
     endDate: '2020-01-25T11:00:00.000Z',
     course: coursesList[2],
-    step: new ObjectId(),
+    step: steps[0]._id,
   },
 ];
 
@@ -208,6 +211,7 @@ const populateDB = async () => {
     User.create(userList),
     UserCompany.create(userCompaniesList),
     CourseHistory.create(courseHistoriesList),
+    Step.create(steps),
     SubProgram.create(subProgram),
   ]);
 };
