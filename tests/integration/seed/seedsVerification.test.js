@@ -160,7 +160,7 @@ describe('SEEDS VERIFICATION', () => {
           expect(someUsersDontExist).toBeFalsy();
         });
 
-        it('should pass if user is registered to a course with the activity', async () => {
+        it('should pass if user is registered to a course with the activity #tag', async () => {
           const stepList = await Step
             .find({ activities: { $in: activityHistoryList.map(ah => ah.activity._id) } })
             .lean();
@@ -168,13 +168,22 @@ describe('SEEDS VERIFICATION', () => {
           const courseList = await Course.find({ subProgram: { $in: subProgramList.map(sp => sp._id) } }).lean();
 
           const everyUserIsRegisteredToCourse = activityHistoryList.every((ah) => {
-            const steps = stepList.filter(s => UtilsHelper.doesArrayIncludeId(s.activities, ah.activity._id));
-            const subPrograms = subProgramList
-              .filter(sp => steps.some(s => UtilsHelper.doesArrayIncludeId(sp.steps, s._id)));
+            const groupedStepsByActivity = groupBy(
+              stepList.flatMap(s => s.activities.map(a => ({ ...s, activities: a }))),
+              'activities'
+            );
 
-            return courseList
-              .some(c => UtilsHelper.doesArrayIncludeId(subPrograms.map(sp => sp._id), c.subProgram) &&
-                UtilsHelper.doesArrayIncludeId(c.trainees, ah.user._id));
+            const groupedSubProgramsByStep = groupBy(
+              subProgramList.flatMap(sp => sp.steps.map(s => ({ ...sp, steps: s }))),
+              'steps'
+            );
+
+            const groupedCoursesBySubProgram = groupBy(courseList, 'subProgram');
+
+            return groupedStepsByActivity[ah.activity._id]
+              .some(step => groupedSubProgramsByStep[step._id]
+                .some(subProgram => groupedCoursesBySubProgram[subProgram._id]
+                  .some(course => UtilsHelper.doesArrayIncludeId(course.trainees, ah.user._id))));
           });
           expect(everyUserIsRegisteredToCourse).toBeTruthy();
         });
