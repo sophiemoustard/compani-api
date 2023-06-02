@@ -2,14 +2,14 @@ const get = require('lodash/get');
 const pick = require('lodash/pick');
 const User = require('../models/User');
 const { rights } = require('../data/rights');
-const { CLIENT_ADMIN, VENDOR } = require('./constants');
+const { CLIENT_ADMIN, CLIENT } = require('./constants');
 
 const formatRights = (roles, company) => {
   let formattedRights = [];
   for (const role of roles) {
     let interfaceRights = rights;
 
-    if (role.interface !== VENDOR) {
+    if (role.interface === CLIENT) {
       const companySubscriptions = Object.keys(company.subscriptions).filter(key => company.subscriptions[key]);
       interfaceRights = interfaceRights.filter(r => !r.subscription || companySubscriptions.includes(r.subscription));
     }
@@ -28,6 +28,7 @@ const validate = async (decoded) => {
 
     const user = await User.findById(decoded._id, '_id identity role local')
       .populate({ path: 'company', populate: { path: 'company' } })
+      .populate({ path: 'holding', populate: { path: 'holding', populate: { path: 'companies' } } })
       .populate({ path: 'sector', options: { requestingOwnInfos: true } })
       .populate({ path: 'customers', options: { requestingOwnInfos: true } })
       .lean({ autopopulate: true });
@@ -47,14 +48,14 @@ const validate = async (decoded) => {
     ];
 
     if (get(user, 'role.client.name') === CLIENT_ADMIN) scope.push(`company-${user.company._id}`);
-
     const credentials = {
       email: get(user, 'local.email', null),
       _id: decoded._id,
       identity: user.identity || null,
       company: user.company || null,
+      holding: user.holding ? { _id: user.holding._id, companies: user.holding.companies } : null,
       sector: user.sector ? user.sector.toHexString() : null,
-      role: pick(user.role, ['client.name', 'vendor.name']),
+      role: pick(user.role, ['client.name', 'vendor.name', 'holding.name']),
       scope,
     };
 

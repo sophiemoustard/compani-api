@@ -781,6 +781,14 @@ describe('getUser', () => {
         {
           query: 'populate',
           args: [{
+            path: 'holding',
+            populate: { path: 'holding', populate: { path: 'companies' } },
+            select: '-__v -createdAt -updatedAt',
+          }],
+        },
+        {
+          query: 'populate',
+          args: [{
             path: 'sector',
             select: '_id sector',
             match: { company: credentials.company._id },
@@ -832,6 +840,14 @@ describe('getUser', () => {
           query: 'populate',
           args: [{ path: 'company', populate: { path: 'company' }, select: '-__v -createdAt -updatedAt' }],
         },
+        {
+          query: 'populate',
+          args: [{
+            path: 'holding',
+            populate: { path: 'holding', populate: { path: 'companies' } },
+            select: '-__v -createdAt -updatedAt',
+          }],
+        },
         { query: 'populate', args: [{ path: 'contracts', select: '-__v -createdAt -updatedAt' }] },
         {
           query: 'populate',
@@ -879,6 +895,14 @@ describe('getUser', () => {
         {
           query: 'populate',
           args: [{ path: 'company', populate: { path: 'company' }, select: '-__v -createdAt -updatedAt' }],
+        },
+        {
+          query: 'populate',
+          args: [{
+            path: 'holding',
+            populate: { path: 'holding', populate: { path: 'companies' } },
+            select: '-__v -createdAt -updatedAt',
+          }],
         },
         { query: 'populate', args: [{ path: 'contracts', select: '-__v -createdAt -updatedAt' }] },
         {
@@ -932,6 +956,14 @@ describe('getUser', () => {
           {
             query: 'populate',
             args: [{ path: 'company', populate: { path: 'company' }, select: '-__v -createdAt -updatedAt' }],
+          },
+          {
+            query: 'populate',
+            args: [{
+              path: 'holding',
+              populate: { path: 'holding', populate: { path: 'companies' } },
+              select: '-__v -createdAt -updatedAt',
+            }],
           },
           { query: 'populate', args: [{ path: 'contracts', select: '-__v -createdAt -updatedAt' }] },
           {

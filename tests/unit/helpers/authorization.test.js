@@ -38,6 +38,7 @@ describe('validate', () => {
         role: {},
         sector: null,
         company: null,
+        holding: null,
       },
     });
     SinonMongoose.calledOnceWithExactly(
@@ -45,6 +46,10 @@ describe('validate', () => {
       [
         { query: 'findById', args: [userId, '_id identity role local'] },
         { query: 'populate', args: [{ path: 'company', populate: { path: 'company' } }] },
+        {
+          query: 'populate',
+          args: [{ path: 'holding', populate: { path: 'holding', populate: { path: 'companies' } } }],
+        },
         { query: 'populate', args: [{ path: 'sector', options: { requestingOwnInfos: true } }] },
         { query: 'populate', args: [{ path: 'customers', options: { requestingOwnInfos: true } }] },
         { query: 'lean', args: [{ autopopulate: true }] },
@@ -52,7 +57,8 @@ describe('validate', () => {
     );
   });
 
-  it('should authenticate user with company without erp subscription', async () => {
+  it('should authenticate user with company without erp subscription and with holding role', async () => {
+    const holding = { _id: new ObjectId(), companies: [new ObjectId(), new ObjectId()] };
     const userId = new ObjectId();
     const sectorId = new ObjectId();
     const user = {
@@ -61,8 +67,10 @@ describe('validate', () => {
       role: {
         client: { name: 'client_admin', interface: 'client' },
         vendor: { name: 'vendor_admin', interface: 'vendor' },
+        holding: { name: 'holding_admin', interface: 'holding' },
       },
       company: { _id: 'company', subscriptions: { erp: false } },
+      holding,
       local: { email: 'email@email.com' },
       sector: sectorId,
     };
@@ -78,12 +86,14 @@ describe('validate', () => {
         identity: { lastname: 'lastname' },
         email: 'email@email.com',
         company: { _id: 'company', subscriptions: { erp: false } },
+        holding,
         sector: sectorId.toHexString(),
         scope: [
           `user:read-${userId}`,
           `user:edit-${userId}`,
           'client_admin',
           'vendor_admin',
+          'holding_admin',
           'attendances:read',
           'companylinkrequests:edit',
           'coursebills:read',
@@ -113,7 +123,11 @@ describe('validate', () => {
           'scripts:run',
           `company-${user.company._id}`,
         ],
-        role: { client: { name: 'client_admin' }, vendor: { name: 'vendor_admin' } },
+        role: {
+          client: { name: 'client_admin' },
+          vendor: { name: 'vendor_admin' },
+          holding: { name: 'holding_admin' },
+        },
       },
     });
     SinonMongoose.calledOnceWithExactly(
@@ -121,6 +135,10 @@ describe('validate', () => {
       [
         { query: 'findById', args: [userId, '_id identity role local'] },
         { query: 'populate', args: [{ path: 'company', populate: { path: 'company' } }] },
+        {
+          query: 'populate',
+          args: [{ path: 'holding', populate: { path: 'holding', populate: { path: 'companies' } } }],
+        },
         { query: 'populate', args: [{ path: 'sector', options: { requestingOwnInfos: true } }] },
         { query: 'populate', args: [{ path: 'customers', options: { requestingOwnInfos: true } }] },
         { query: 'lean', args: [{ autopopulate: true }] },
@@ -198,6 +216,7 @@ describe('validate', () => {
           `company-${user.company._id}`,
         ],
         role: { client: { name: 'client_admin' } },
+        holding: null,
       },
     });
     SinonMongoose.calledOnceWithExactly(
@@ -205,6 +224,10 @@ describe('validate', () => {
       [
         { query: 'findById', args: [userId, '_id identity role local'] },
         { query: 'populate', args: [{ path: 'company', populate: { path: 'company' } }] },
+        {
+          query: 'populate',
+          args: [{ path: 'holding', populate: { path: 'holding', populate: { path: 'companies' } } }],
+        },
         { query: 'populate', args: [{ path: 'sector', options: { requestingOwnInfos: true } }] },
         { query: 'populate', args: [{ path: 'customers', options: { requestingOwnInfos: true } }] },
         { query: 'lean', args: [{ autopopulate: true }] },
@@ -240,6 +263,7 @@ describe('validate', () => {
         sector: sectorId.toHexString(),
         scope: [`user:read-${userId}`, `user:edit-${userId}`, 'helper', `customer-${customerId.toHexString()}`],
         role: { client: { name: 'helper' } },
+        holding: null,
       },
     });
     SinonMongoose.calledOnceWithExactly(
@@ -247,6 +271,10 @@ describe('validate', () => {
       [
         { query: 'findById', args: [userId, '_id identity role local'] },
         { query: 'populate', args: [{ path: 'company', populate: { path: 'company' } }] },
+        {
+          query: 'populate',
+          args: [{ path: 'holding', populate: { path: 'holding', populate: { path: 'companies' } } }],
+        },
         { query: 'populate', args: [{ path: 'sector', options: { requestingOwnInfos: true } }] },
         { query: 'populate', args: [{ path: 'customers', options: { requestingOwnInfos: true } }] },
         { query: 'lean', args: [{ autopopulate: true }] },
@@ -264,6 +292,7 @@ describe('validate', () => {
       company: { _id: 'company', subscriptions: { erp: true } },
       local: { email: 'email@email.com' },
       sector: sectorId,
+      holding: null,
     };
 
     findById.returns(SinonMongoose.stubChainedQueries(user, ['populate', 'lean']));
@@ -280,6 +309,7 @@ describe('validate', () => {
         sector: sectorId.toHexString(),
         scope: [`user:read-${userId}`, `user:edit-${userId}`, 'auxiliary_without_company'],
         role: { client: { name: AUXILIARY_WITHOUT_COMPANY } },
+        holding: null,
       },
     });
     SinonMongoose.calledOnceWithExactly(
@@ -287,6 +317,10 @@ describe('validate', () => {
       [
         { query: 'findById', args: [userId, '_id identity role local'] },
         { query: 'populate', args: [{ path: 'company', populate: { path: 'company' } }] },
+        {
+          query: 'populate',
+          args: [{ path: 'holding', populate: { path: 'holding', populate: { path: 'companies' } } }],
+        },
         { query: 'populate', args: [{ path: 'sector', options: { requestingOwnInfos: true } }] },
         { query: 'populate', args: [{ path: 'customers', options: { requestingOwnInfos: true } }] },
         { query: 'lean', args: [{ autopopulate: true }] },
@@ -360,6 +394,7 @@ describe('validate', () => {
           'questionnaires:read',
         ],
         role: { client: { name: 'coach' }, vendor: { name: 'trainer' } },
+        holding: null,
       },
     });
     SinonMongoose.calledOnceWithExactly(
@@ -367,6 +402,10 @@ describe('validate', () => {
       [
         { query: 'findById', args: [userId, '_id identity role local'] },
         { query: 'populate', args: [{ path: 'company', populate: { path: 'company' } }] },
+        {
+          query: 'populate',
+          args: [{ path: 'holding', populate: { path: 'holding', populate: { path: 'companies' } } }],
+        },
         { query: 'populate', args: [{ path: 'sector', options: { requestingOwnInfos: true } }] },
         { query: 'populate', args: [{ path: 'customers', options: { requestingOwnInfos: true } }] },
         { query: 'lean', args: [{ autopopulate: true }] },
