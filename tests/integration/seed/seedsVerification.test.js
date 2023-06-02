@@ -96,6 +96,8 @@ const seedList = [
   { label: 'USER', value: usersSeed },
 ];
 
+const transform = doc => (doc || null);
+
 describe('SEEDS VERIFICATION', () => {
   seedList.forEach(({ label, value: seeds }) => {
     describe(`${label} SEEDS FILE`, () => {
@@ -106,7 +108,7 @@ describe('SEEDS VERIFICATION', () => {
         before(async () => {
           activityList = await Activity
             .find()
-            .populate({ path: 'cards', select: '-__v -createdAt -updatedAt', transform: doc => (doc || null) })
+            .populate({ path: 'cards', select: '-__v -createdAt -updatedAt', transform })
             .lean({ virtuals: true });
         });
 
@@ -145,14 +147,9 @@ describe('SEEDS VERIFICATION', () => {
         before(async () => {
           activityHistoryList = await ActivityHistory
             .find()
-            .populate({ path: 'user', select: '_id', transform: doc => (doc || null) })
-            .populate({
-              path: 'activity',
-              select: '_id cards',
-              populate: { path: 'cards' },
-              transform: doc => (doc || null),
-            })
-            .populate({ path: 'questionnaireAnswersList.card', select: 'template', transform: doc => (doc || null) })
+            .populate({ path: 'user', select: '_id', transform })
+            .populate({ path: 'activity', select: '_id cards', populate: { path: 'cards' }, transform })
+            .populate({ path: 'questionnaireAnswersList.card', select: 'template', transform })
             .lean({ virtuals: true });
         });
 
@@ -518,7 +515,7 @@ describe('SEEDS VERIFICATION', () => {
               path: 'trainees',
               select: '_id',
               populate: { path: 'userCompanyList' },
-              transform: doc => (doc || null),
+              transform,
             })
             .populate({
               path: 'companyRepresentative',
@@ -531,12 +528,8 @@ describe('SEEDS VERIFICATION', () => {
               populate: [{ path: 'role.vendor', select: 'name' }],
             })
             .populate({ path: 'trainer', select: '_id role.vendor' })
-            .populate({ path: 'companies', select: '_id', transform: doc => (doc || null) })
-            .populate({
-              path: 'accessRules',
-              select: '_id',
-              transform: doc => (doc || null),
-            })
+            .populate({ path: 'companies', select: '_id', transform })
+            .populate({ path: 'accessRules', select: '_id', transform })
             .populate({ path: 'subProgram', select: '_id' })
             .populate({ path: 'slots', select: 'endDate' })
             .populate({ path: 'slotsToPlan' })
@@ -786,9 +779,9 @@ describe('SEEDS VERIFICATION', () => {
               path: 'course',
               select: 'format subProgram',
               populate: { path: 'subProgram', select: 'steps' },
-              transform: doc => (doc || null),
+              transform,
             })
-            .populate({ path: 'step', select: 'type', transform: doc => (doc || null) })
+            .populate({ path: 'step', select: 'type', transform })
             .lean();
         });
 
@@ -834,17 +827,12 @@ describe('SEEDS VERIFICATION', () => {
         before(async () => {
           courseHistoryList = await CourseHistory
             .find({})
-            .populate({
-              path: 'trainee',
-              select: '_id',
-              transform: doc => (doc || null),
-              populate: { path: 'userCompanyList' },
-            })
-            .populate({ path: 'company', select: '_id', transform: doc => (doc || null) })
+            .populate({ path: 'trainee', select: '_id', transform, populate: { path: 'userCompanyList' } })
+            .populate({ path: 'company', select: '_id', transform })
             .populate({
               path: 'createdBy',
               select: '_id role',
-              transform: doc => (doc || null),
+              transform,
               populate: [
                 { path: 'role.vendor', select: 'name' },
                 { path: 'role.client', select: 'name' },
@@ -1088,12 +1076,12 @@ describe('SEEDS VERIFICATION', () => {
         before(async () => {
           programList = await Program
             .find()
-            .populate({ path: 'subPrograms', select: '_id', transform: doc => (doc || null) })
-            .populate({ path: 'categories', select: '_id', transform: doc => (doc || null) })
+            .populate({ path: 'subPrograms', select: '_id', transform })
+            .populate({ path: 'categories', select: '_id', transform })
             .populate({
               path: 'testers',
               select: '_id',
-              transform: doc => (doc || null),
+              transform,
               populate: { path: 'role.vendor', select: 'name' },
             })
             .lean();
@@ -1195,7 +1183,7 @@ describe('SEEDS VERIFICATION', () => {
         before(async () => {
           stepList = await Step
             .find()
-            .populate({ path: 'activities', select: '_id status', transform: doc => (doc || null) })
+            .populate({ path: 'activities', select: '_id status', transform })
             .lean();
         });
 
@@ -1261,7 +1249,7 @@ describe('SEEDS VERIFICATION', () => {
         before(async () => {
           subProgramList = await SubProgram
             .find()
-            .populate({ path: 'steps', select: '_id', transform: doc => (doc || null) })
+            .populate({ path: 'steps', select: '_id', transform })
             .lean();
         });
 
