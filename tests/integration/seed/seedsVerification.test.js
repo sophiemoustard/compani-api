@@ -63,6 +63,7 @@ const {
   CLIENT_ADMIN,
   ON_SITE,
   REMOTE,
+  DAY,
 } = require('../../../src/helpers/constants');
 const attendancesSeed = require('./attendancesSeed');
 const activitiesSeed = require('./activitiesSeed');
@@ -191,8 +192,11 @@ describe('SEEDS VERIFICATION', () => {
           expect(someCardsDontExist).toBeFalsy();
 
           const someCardsAreNotInActivities = activityHistoryList
-            .some(ah => ah.questionnaireAnswersList
-              .some(qal => !UtilsHelper.doesArrayIncludeId(ah.activity.cards.map(c => c._id), qal.card._id)));
+            .some((ah) => {
+              const cardIds = ah.activity.cards.map(c => c._id);
+
+              return ah.questionnaireAnswersList.some(qal => !UtilsHelper.doesArrayIncludeId(cardIds, qal.card._id));
+            });
 
           expect(someCardsAreNotInActivities).toBeFalsy();
         });
@@ -207,11 +211,9 @@ describe('SEEDS VERIFICATION', () => {
 
         it('should pass if every mandatory card has answer', () => {
           const everyMandatoryCardHasAnswer = activityHistoryList
-            .every(ah => ah.activity.cards.every((c) => {
-              if (!c.isMandatory) return true;
-
-              return ah.questionnaireAnswersList.some(qal => UtilsHelper.areObjectIdsEquals(c._id, qal.card._id));
-            }));
+            .every(ah => ah.activity.cards.every(c => !c.isMandatory ||
+              ah.questionnaireAnswersList.some(qal => UtilsHelper.areObjectIdsEquals(c._id, qal.card._id)))
+            );
 
           expect(everyMandatoryCardHasAnswer).toBeTruthy();
         });
@@ -225,8 +227,8 @@ describe('SEEDS VERIFICATION', () => {
           expect(everyHistoryHasGoodAnswersNumber).toBeTruthy();
         });
 
-        it('should pass if score is greater or equal to quizz cards count in activity', () => {
-          const isScoreGreaterOrEqualToQuizzCardsCount = activityHistoryList
+        it('should pass if score is lower or equal to quizz cards count in activity', () => {
+          const isScoreLowerOrEqualToQuizzCardsCount = activityHistoryList
             .every((ah) => {
               const quizzCardsTemplates = [
                 FILL_THE_GAPS,
@@ -236,12 +238,10 @@ describe('SEEDS VERIFICATION', () => {
               ];
               const quizzCardsCount = ah.activity.cards.filter(c => quizzCardsTemplates.includes(c.template)).length;
 
-              if (!quizzCardsCount && !has(ah, 'score')) return true;
-              if (ah.score <= quizzCardsCount) return true;
-              return false;
+              return (!quizzCardsCount && !has(ah, 'score')) || (ah.score <= quizzCardsCount);
             });
 
-          expect(isScoreGreaterOrEqualToQuizzCardsCount).toBeTruthy();
+          expect(isScoreLowerOrEqualToQuizzCardsCount).toBeTruthy();
         });
       });
 
@@ -785,22 +785,18 @@ describe('SEEDS VERIFICATION', () => {
             .lean();
         });
 
-        it('should pass if every course exists', () => {
+        it('should pass if every course exists and is blended', () => {
           const everyCourseIsBlended = courseSlotList.every(cs => cs.course && cs.course.format === BLENDED);
           expect(everyCourseIsBlended).toBeTruthy();
         });
 
-        it('should pass if every startDate is before endDate', () => {
-          const everyStartDateIsBeforeEndDate = courseSlotList
-            .every(cs => !has(cs, 'startDate') || CompaniDate(cs.startDate).isBefore(cs.endDate));
-          expect(everyStartDateIsBeforeEndDate).toBeTruthy();
-        });
-
-        it('should pass if every endDate is same day as startDate', () => {
-          const areDatesTheSameDay = courseSlotList
+        it('should pass if every startDate is before endDate and same day', () => {
+          const everyStartDateIsBeforeEndDateInTheDay = courseSlotList
             .every(cs => !has(cs, 'startDate') ||
-              CompaniDate(cs.startDate).startOf('day').isSame(CompaniDate(cs.endDate).startOf('day')));
-          expect(areDatesTheSameDay).toBeTruthy();
+              (CompaniDate(cs.startDate).isBefore(cs.endDate) &&
+                CompaniDate(cs.startDate).isSame(CompaniDate(cs.endDate), DAY))
+            );
+          expect(everyStartDateIsBeforeEndDateInTheDay).toBeTruthy();
         });
 
         it('should pass if addresses are on site slots only', () => {
