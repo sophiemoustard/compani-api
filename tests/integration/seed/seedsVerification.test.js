@@ -160,31 +160,30 @@ describe('SEEDS VERIFICATION', () => {
           expect(someUsersDontExist).toBeFalsy();
         });
 
-        it('should pass if user is registered to a course with the activity #tag', async () => {
+        it('should pass if user is registered to a course with the activity', async () => {
           const stepList = await Step
             .find({ activities: { $in: activityHistoryList.map(ah => ah.activity._id) } })
             .lean();
           const subProgramList = await SubProgram.find({ step: { $in: stepList.map(s => s._id) } }).lean();
           const courseList = await Course.find({ subProgram: { $in: subProgramList.map(sp => sp._id) } }).lean();
 
-          const everyUserIsRegisteredToCourse = activityHistoryList.every((ah) => {
-            const groupedStepsByActivity = groupBy(
-              stepList.flatMap(s => s.activities.map(a => ({ ...s, activities: a }))),
-              'activities'
-            );
-
-            const groupedSubProgramsByStep = groupBy(
-              subProgramList.flatMap(sp => sp.steps.map(s => ({ ...sp, steps: s }))),
-              'steps'
-            );
-
-            const groupedCoursesBySubProgram = groupBy(courseList, 'subProgram');
-
-            return groupedStepsByActivity[ah.activity._id]
+          const groupedStepsByActivity = groupBy(
+            stepList.flatMap(s => s.activities.map(a => ({ ...s, activities: a }))),
+            'activities'
+          );
+          const groupedSubProgramsByStep = groupBy(
+            subProgramList.flatMap(sp => sp.steps.map(s => ({ ...sp, steps: s }))),
+            'steps'
+          );
+          const groupedCoursesBySubProgram = groupBy(courseList, 'subProgram');
+          const everyUserIsRegisteredToCourse = activityHistoryList
+            .every(ah => groupedStepsByActivity[ah.activity._id]
               .some(step => groupedSubProgramsByStep[step._id]
                 .some(subProgram => groupedCoursesBySubProgram[subProgram._id]
-                  .some(course => UtilsHelper.doesArrayIncludeId(course.trainees, ah.user._id))));
-          });
+                  .some(course => UtilsHelper.doesArrayIncludeId(course.trainees, ah.user._id))
+                )
+              )
+            );
           expect(everyUserIsRegisteredToCourse).toBeTruthy();
         });
 
