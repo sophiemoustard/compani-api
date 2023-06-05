@@ -199,7 +199,13 @@ exports.authorizeCourseEdit = async (req) => {
 const authorizeGetListForOperations = (credentials, query) => {
   const courseTrainerId = query.trainer;
 
-  this.checkAuthorization(credentials, courseTrainerId, [query.company]);
+  if (query.holding) {
+    if (!get(credentials, 'holding._id') || !UtilsHelper.areObjectIdsEquals(credentials.holding._id, query.holding)) {
+      throw Boom.forbidden();
+    }
+  } else {
+    this.checkAuthorization(credentials, courseTrainerId, [query.company]);
+  }
 
   return null;
 };

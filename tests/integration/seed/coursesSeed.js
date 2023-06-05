@@ -15,6 +15,9 @@ const Card = require('../../../src/models/Card');
 const Questionnaire = require('../../../src/models/Questionnaire');
 const QuestionnaireHistory = require('../../../src/models/QuestionnaireHistory');
 const CourseBill = require('../../../src/models/CourseBill');
+const UserHolding = require('../../../src/models/UserHolding');
+const CompanyHolding = require('../../../src/models/CompanyHolding');
+const Holding = require('../../../src/models/Holding');
 const CourseCreditNote = require('../../../src/models/CourseCreditNote');
 const Attendance = require('../../../src/models/Attendance');
 const AttendanceSheet = require('../../../src/models/AttendanceSheet');
@@ -43,7 +46,7 @@ const {
   BLENDED,
   TRAINEE_ADDITION,
 } = require('../../../src/helpers/constants');
-const { auxiliaryRoleId, trainerRoleId, coachRoleId } = require('../../seed/authRolesSeed');
+const { auxiliaryRoleId, trainerRoleId, coachRoleId, holdingAdminRoleId } = require('../../seed/authRolesSeed');
 const { CompaniDate } = require('../../../src/helpers/dates/companiDates');
 
 const traineeFromAuthFormerlyInOther = {
@@ -125,7 +128,7 @@ const coachFromOtherCompany = {
   _id: new ObjectId(),
   identity: { firstname: 'Zoe', lastname: 'Zebu' },
   local: { email: 'coachOtherCompany@alenvi.io', password: '123456!eR' },
-  role: { client: coachRoleId },
+  role: { client: coachRoleId, holding: holdingAdminRoleId },
   contact: { phone: '0734856751' },
   refreshToken: uuidv4(),
   origin: WEBAPP,
@@ -214,6 +217,17 @@ const userCompanies = [
     company: otherCompany._id,
     startDate: '2022-01-01T10:00:00.000Z',
   },
+];
+
+const holdingList = [{ _id: ObjectId(), name: 'Holding 1' }, { _id: ObjectId(), name: 'Holding 2' }];
+const companyHoldingList = [
+  { _id: ObjectId(), holding: holdingList[0]._id, company: thirdCompany._id },
+  { _id: ObjectId(), holding: holdingList[0]._id, company: otherCompany._id },
+  { _id: ObjectId(), holding: holdingList[1]._id, company: authCompany._id },
+];
+const userHoldingList = [
+  { _id: ObjectId(), holding: holdingList[0]._id, user: coachFromOtherCompany._id },
+  { _id: ObjectId(), holding: holdingList[1]._id, user: coachFromOtherCompany._id },
 ];
 
 const cardsList = [
@@ -1023,12 +1037,14 @@ const populateDB = async () => {
     Attendance.create(attendanceList),
     AttendanceSheet.create(attendanceSheetList),
     Card.create(cardsList),
+    CompanyHolding.create(companyHoldingList),
     Course.create(coursesList),
     CourseBill.create(courseBillsList),
     CourseCreditNote.create(courseCreditNoteList),
     CourseSlot.create(slots),
     CourseSmsHistory.create(courseSmsHistory),
     CourseHistory.create(courseHistories),
+    Holding.create(holdingList),
     Program.create(programsList),
     Questionnaire.create(questionnaire),
     QuestionnaireHistory.create(questionnaireHistory),
@@ -1036,6 +1052,7 @@ const populateDB = async () => {
     SubProgram.create(subProgramsList),
     User.create(userList),
     UserCompany.create(userCompanies),
+    UserHolding.create(userHoldingList),
   ]);
 };
 
@@ -1054,4 +1071,5 @@ module.exports = {
   traineeFormerlyInAuthCompany,
   traineeComingUpInAuthCompany,
   traineeFromAuthFormerlyInOther,
+  holdingList,
 };

@@ -151,13 +151,25 @@ const listBlendedForCompany = async (query, origin) => {
   ];
 };
 
-const listForOperations = async (query, origin) => {
+const formatQuery = (query, credentials) => {
+  let formattedQuery = query;
+
+  if (has(query, 'isArchived')) {
+    formattedQuery = { ...omit(query, 'isArchived'), archivedAt: { $exists: !!query.isArchived } };
+  }
+
+  if (has(query, 'holding')) {
+    formattedQuery = { ...omit(formattedQuery, 'holding'), companies: { $in: credentials.holding.companies } };
+  }
+
+  return formattedQuery;
+};
+
+const listForOperations = async (query, origin, credentials) => {
   if (query.company && query.format === STRICTLY_E_LEARNING) {
     return listStrictlyElearningForCompany(query, origin);
   }
-  const formattedQuery = has(query, 'isArchived')
-    ? { ...omit(query, 'isArchived'), archivedAt: { $exists: !!query.isArchived } }
-    : query;
+  const formattedQuery = formatQuery(query, credentials);
   if (query.company) return listBlendedForCompany(formattedQuery, origin);
 
   const courses = await CourseRepository.findCourseAndPopulate(formattedQuery, origin);
@@ -242,7 +254,7 @@ const listForPedagogy = async (query, credentials) => {
 exports.list = async (query, credentials) => {
   const filteredQuery = omit(query, ['origin', 'action']);
   return query.action === OPERATIONS
-    ? listForOperations(filteredQuery, query.origin)
+    ? listForOperations(filteredQuery, query.origin, credentials)
     : listForPedagogy(filteredQuery, credentials);
 };
 
