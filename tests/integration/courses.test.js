@@ -847,6 +847,33 @@ describe('COURSES ROUTES - GET /courses/{_id}', () => {
     });
   });
 
+  describe('HOLDING_ADMIN', () => {
+    beforeEach(async () => {
+      authToken = await getTokenByCredentials(holdingAdminFromOtherCompany.local);
+    });
+
+    it('should get course from other company but same holding', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/courses/${coursesList[5]._id}?action=operations&origin=webapp`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(200);
+      expect(response.result.data.course._id.toHexString()).toBe(coursesList[5]._id.toHexString());
+    });
+
+    it('should return 403 if course from company not in holding', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/courses/${coursesList[0]._id}?action=operations&origin=webapp`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
+  });
+
   describe('TRAINER', () => {
     beforeEach(async () => {
       authToken = await getToken('trainer');
