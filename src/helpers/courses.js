@@ -5,6 +5,7 @@ const omit = require('lodash/omit');
 const groupBy = require('lodash/groupBy');
 const keyBy = require('lodash/keyBy');
 const mapValues = require('lodash/mapValues');
+const set = require('lodash/set');
 const fs = require('fs');
 const os = require('os');
 const Boom = require('@hapi/boom');
@@ -152,15 +153,11 @@ const listBlendedForCompany = async (query, origin) => {
 };
 
 const formatQuery = (query, credentials) => {
-  let formattedQuery = query;
+  const formattedQuery = omit(query, ['isArchived', 'holding']);
 
-  if (has(query, 'isArchived')) {
-    formattedQuery = { ...omit(query, 'isArchived'), archivedAt: { $exists: !!query.isArchived } };
-  }
+  if (has(query, 'isArchived')) set(formattedQuery, 'archivedAt', { $exists: !!query.isArchived });
 
-  if (has(query, 'holding')) {
-    formattedQuery = { ...omit(formattedQuery, 'holding'), companies: { $in: credentials.holding.companies } };
-  }
+  if (has(query, 'holding')) set(formattedQuery, 'companies', { $in: credentials.holding.companies });
 
   return formattedQuery;
 };
