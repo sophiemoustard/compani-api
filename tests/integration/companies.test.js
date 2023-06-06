@@ -452,7 +452,7 @@ describe('COMPANIES ROUTES - GET /companies', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      expect(response.result.data.companies.length).toEqual(3);
+      expect(response.result.data.companies.length).toEqual(1);
     });
   });
 });

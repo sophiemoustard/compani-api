@@ -37,10 +37,15 @@ const {
   traineeFormerlyInAuthCompany,
   traineeComingUpInAuthCompany,
   traineeFromAuthFormerlyInOther,
-  holdingList,
 } = require('./seed/coursesSeed');
 const { getToken, getTokenByCredentials } = require('./helpers/authentication');
-const { otherCompany, authCompany, companyWithoutSubscription: thirdCompany } = require('../seed/authCompaniesSeed');
+const {
+  otherCompany,
+  authCompany,
+  companyWithoutSubscription: thirdCompany,
+  authHolding,
+  otherHolding,
+} = require('../seed/authCompaniesSeed');
 const {
   noRoleNoCompany,
   coach,
@@ -49,6 +54,8 @@ const {
   vendorAdmin,
   trainerAndCoach,
   noRole,
+  holdingAdminFromAuthCompany,
+  holdingAdminFromOtherCompany,
 } = require('../seed/authUsersSeed');
 const SmsHelper = require('../../src/helpers/sms');
 const DocxHelper = require('../../src/helpers/docx');
@@ -595,10 +602,10 @@ describe('COURSES ROUTES - GET /courses', () => {
     });
 
     it('should get courses for a specific holding (ops webapp)', async () => {
-      authToken = await getTokenByCredentials(coachFromOtherCompany.local);
+      authToken = await getTokenByCredentials(holdingAdminFromOtherCompany.local);
       const response = await app.inject({
         method: 'GET',
-        url: `/courses?action=operations&origin=webapp&holding=${holdingList[0]._id}`,
+        url: `/courses?action=operations&origin=webapp&holding=${otherHolding._id}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -652,10 +659,10 @@ describe('COURSES ROUTES - GET /courses', () => {
     });
 
     it('should return 400 if company and holding in query', async () => {
-      authToken = await getTokenByCredentials(coachFromOtherCompany.local);
+      authToken = await getTokenByCredentials(holdingAdminFromOtherCompany.local);
       const response = await app.inject({
         method: 'GET',
-        url: `/courses?action=operations&origin=webapp&holding=${holdingList[0]._id}&company=${otherCompany._id}`,
+        url: `/courses?action=operations&origin=webapp&holding=${otherHolding._id}&company=${otherCompany._id}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -666,7 +673,7 @@ describe('COURSES ROUTES - GET /courses', () => {
       authToken = await getToken('client_admin');
       const response = await app.inject({
         method: 'GET',
-        url: `/courses?action=operations&origin=webapp&holding=${holdingList[0]._id}`,
+        url: `/courses?action=operations&origin=webapp&holding=${authHolding._id}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -674,10 +681,10 @@ describe('COURSES ROUTES - GET /courses', () => {
     });
 
     it('should return 403 if not linked to good holding', async () => {
-      authToken = await getToken('coach');
+      authToken = await getTokenByCredentials(holdingAdminFromAuthCompany.local);
       const response = await app.inject({
         method: 'GET',
-        url: `/courses?action=operations&origin=webapp&holding=${holdingList[0]._id}`,
+        url: `/courses?action=operations&origin=webapp&holding=${otherHolding._id}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
