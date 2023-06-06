@@ -28,7 +28,7 @@ const validate = async (decoded) => {
 
     const user = await User.findById(decoded._id, '_id identity role local')
       .populate({ path: 'company', populate: { path: 'company' } })
-      .populate({ path: 'holding', populate: { path: 'holding', populate: { path: 'companies' } } })
+      .populate({ path: 'holding', populate: { path: 'holding', select: '_id', populate: { path: 'companies' } } })
       .populate({ path: 'sector', options: { requestingOwnInfos: true } })
       .populate({ path: 'customers', options: { requestingOwnInfos: true } })
       .lean({ autopopulate: true });
@@ -53,7 +53,7 @@ const validate = async (decoded) => {
       _id: decoded._id,
       identity: user.identity || null,
       company: user.company || null,
-      holding: user.holding ? { _id: user.holding._id, companies: user.holding.companies } : null,
+      holding: user.holding || null,
       sector: user.sector ? user.sector.toHexString() : null,
       role: pick(user.role, ['client.name', 'vendor.name', 'holding.name']),
       scope,

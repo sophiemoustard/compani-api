@@ -48,7 +48,7 @@ describe('validate', () => {
         { query: 'populate', args: [{ path: 'company', populate: { path: 'company' } }] },
         {
           query: 'populate',
-          args: [{ path: 'holding', populate: { path: 'holding', populate: { path: 'companies' } } }],
+          args: [{ path: 'holding', populate: { path: 'holding', select: '_id', populate: { path: 'companies' } } }],
         },
         { query: 'populate', args: [{ path: 'sector', options: { requestingOwnInfos: true } }] },
         { query: 'populate', args: [{ path: 'customers', options: { requestingOwnInfos: true } }] },
@@ -137,7 +137,7 @@ describe('validate', () => {
         { query: 'populate', args: [{ path: 'company', populate: { path: 'company' } }] },
         {
           query: 'populate',
-          args: [{ path: 'holding', populate: { path: 'holding', populate: { path: 'companies' } } }],
+          args: [{ path: 'holding', populate: { path: 'holding', select: '_id', populate: { path: 'companies' } } }],
         },
         { query: 'populate', args: [{ path: 'sector', options: { requestingOwnInfos: true } }] },
         { query: 'populate', args: [{ path: 'customers', options: { requestingOwnInfos: true } }] },
@@ -226,7 +226,7 @@ describe('validate', () => {
         { query: 'populate', args: [{ path: 'company', populate: { path: 'company' } }] },
         {
           query: 'populate',
-          args: [{ path: 'holding', populate: { path: 'holding', populate: { path: 'companies' } } }],
+          args: [{ path: 'holding', populate: { path: 'holding', select: '_id', populate: { path: 'companies' } } }],
         },
         { query: 'populate', args: [{ path: 'sector', options: { requestingOwnInfos: true } }] },
         { query: 'populate', args: [{ path: 'customers', options: { requestingOwnInfos: true } }] },
@@ -273,7 +273,7 @@ describe('validate', () => {
         { query: 'populate', args: [{ path: 'company', populate: { path: 'company' } }] },
         {
           query: 'populate',
-          args: [{ path: 'holding', populate: { path: 'holding', populate: { path: 'companies' } } }],
+          args: [{ path: 'holding', populate: { path: 'holding', select: '_id', populate: { path: 'companies' } } }],
         },
         { query: 'populate', args: [{ path: 'sector', options: { requestingOwnInfos: true } }] },
         { query: 'populate', args: [{ path: 'customers', options: { requestingOwnInfos: true } }] },
@@ -319,7 +319,7 @@ describe('validate', () => {
         { query: 'populate', args: [{ path: 'company', populate: { path: 'company' } }] },
         {
           query: 'populate',
-          args: [{ path: 'holding', populate: { path: 'holding', populate: { path: 'companies' } } }],
+          args: [{ path: 'holding', populate: { path: 'holding', select: '_id', populate: { path: 'companies' } } }],
         },
         { query: 'populate', args: [{ path: 'sector', options: { requestingOwnInfos: true } }] },
         { query: 'populate', args: [{ path: 'customers', options: { requestingOwnInfos: true } }] },
@@ -404,7 +404,7 @@ describe('validate', () => {
         { query: 'populate', args: [{ path: 'company', populate: { path: 'company' } }] },
         {
           query: 'populate',
-          args: [{ path: 'holding', populate: { path: 'holding', populate: { path: 'companies' } } }],
+          args: [{ path: 'holding', populate: { path: 'holding', select: '_id', populate: { path: 'companies' } } }],
         },
         { query: 'populate', args: [{ path: 'sector', options: { requestingOwnInfos: true } }] },
         { query: 'populate', args: [{ path: 'customers', options: { requestingOwnInfos: true } }] },
