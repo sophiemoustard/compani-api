@@ -80,4 +80,20 @@ const companyWithoutSubscription = {
   subscriptions: { erp: false },
 };
 
-module.exports = { authCompany, companyWithoutSubscription, otherCompany };
+const authHolding = { _id: new ObjectId(), name: 'Auth Holding' };
+const otherHolding = { _id: new ObjectId(), name: 'Other Holding' };
+
+const companyHoldingList = [
+  { _id: new ObjectId(), holding: authHolding._id, company: authCompany._id },
+  { _id: new ObjectId(), holding: otherHolding._id, company: otherCompany._id },
+  { _id: new ObjectId(), holding: otherHolding._id, company: companyWithoutSubscription._id },
+];
+
+module.exports = {
+  authCompany,
+  companyWithoutSubscription,
+  otherCompany,
+  authHolding,
+  otherHolding,
+  companyHoldingList,
+};

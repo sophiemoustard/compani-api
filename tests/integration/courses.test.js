@@ -39,7 +39,13 @@ const {
   traineeFromAuthFormerlyInOther,
 } = require('./seed/coursesSeed');
 const { getToken, getTokenByCredentials } = require('./helpers/authentication');
-const { otherCompany, authCompany, companyWithoutSubscription: thirdCompany } = require('../seed/authCompaniesSeed');
+const {
+  otherCompany,
+  authCompany,
+  companyWithoutSubscription: thirdCompany,
+  authHolding,
+  otherHolding,
+} = require('../seed/authCompaniesSeed');
 const {
   noRoleNoCompany,
   coach,
@@ -48,6 +54,8 @@ const {
   vendorAdmin,
   trainerAndCoach,
   noRole,
+  holdingAdminFromAuthCompany,
+  holdingAdminFromOtherCompany,
 } = require('../seed/authUsersSeed');
 const SmsHelper = require('../../src/helpers/sms');
 const DocxHelper = require('../../src/helpers/docx');
@@ -593,6 +601,18 @@ describe('COURSES ROUTES - GET /courses', () => {
       expect(response.result.data.courses.length).toEqual(10);
     });
 
+    it('should get courses for a specific holding (ops webapp)', async () => {
+      authToken = await getTokenByCredentials(holdingAdminFromOtherCompany.local);
+      const response = await app.inject({
+        method: 'GET',
+        url: `/courses?action=operations&origin=webapp&holding=${otherHolding._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(200);
+      expect(response.result.data.courses.length).toEqual(7);
+    });
+
     it('should return 200 if coach and same company (pedagogy webapp)', async () => {
       authToken = await getToken('coach');
       const url = `/courses?action=pedagogy&origin=webapp&trainee=${traineeFromAuthFormerlyInOther._id.toHexString()}`
@@ -632,6 +652,39 @@ describe('COURSES ROUTES - GET /courses', () => {
       const response = await app.inject({
         method: 'GET',
         url: `/courses?action=pedagogy&origin=webapp&trainee=${userCompanies[1].user.toHexString()}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
+
+    it('should return 400 if company and holding in query', async () => {
+      authToken = await getTokenByCredentials(holdingAdminFromOtherCompany.local);
+      const response = await app.inject({
+        method: 'GET',
+        url: `/courses?action=operations&origin=webapp&holding=${otherHolding._id}&company=${otherCompany._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
+
+    it('should return 403 if has no holding role', async () => {
+      authToken = await getToken('client_admin');
+      const response = await app.inject({
+        method: 'GET',
+        url: `/courses?action=operations&origin=webapp&holding=${authHolding._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
+
+    it('should return 403 if not linked to good holding', async () => {
+      authToken = await getTokenByCredentials(holdingAdminFromAuthCompany.local);
+      const response = await app.inject({
+        method: 'GET',
+        url: `/courses?action=operations&origin=webapp&holding=${otherHolding._id}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 

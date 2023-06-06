@@ -36,7 +36,7 @@ function populateUser(doc, next) {
 
 function populateUsers(docs, next) {
   for (const doc of docs) {
-    if (doc && doc.companies) {
+    if (doc && doc.users) {
       doc.users = doc.users.map(u => u.user);
     }
   }

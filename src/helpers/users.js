@@ -213,6 +213,11 @@ exports.getUser = async (userId, credentials) => {
     .populate({ path: 'contracts', select: '-__v -createdAt -updatedAt' })
     .populate({ path: 'company', populate: { path: 'company' }, select: '-__v -createdAt -updatedAt' })
     .populate({
+      path: 'holding',
+      populate: { path: 'holding', populate: { path: 'companies' } },
+      select: '-__v -createdAt -updatedAt',
+    })
+    .populate({
       path: 'sector',
       select: '_id sector',
       match: { company: companyId },

@@ -73,7 +73,13 @@ const User = require('../../../src/models/User');
 const VendorCompany = require('../../../src/models/VendorCompany');
 const { rolesList } = require('../../seed/authRolesSeed');
 const { userList } = require('../../seed/authUsersSeed');
-const { authCompany, otherCompany, companyWithoutSubscription } = require('../../seed/authCompaniesSeed');
+const {
+  authCompany,
+  otherCompany,
+  companyWithoutSubscription,
+  authHolding,
+  otherHolding,
+} = require('../../seed/authCompaniesSeed');
 const { sector, sectorHistories } = require('../../seed/authSectorsSeed');
 const { authCustomer, helperCustomer } = require('../../seed/authCustomers');
 
@@ -92,7 +98,9 @@ const deleteNonAuthenticationSeeds = async () => {
     Card.deleteMany(),
     Category.deleteMany(),
     Company.deleteMany({ _id: { $nin: [authCompany._id, otherCompany._id, companyWithoutSubscription._id] } }),
-    CompanyHolding.deleteMany(),
+    CompanyHolding.deleteMany({
+      company: { $nin: [authCompany._id, otherCompany._id, companyWithoutSubscription._id] },
+    }),
     CompanyLinkRequest.deleteMany(),
     ContractNumber.deleteMany(),
     Contract.deleteMany(),
@@ -122,7 +130,7 @@ const deleteNonAuthenticationSeeds = async () => {
     FinalPay.deleteMany(),
     FundingHistory.deleteMany(),
     Helper.deleteMany({ _id: { $nin: [helperCustomer._id] } }),
-    Holding.deleteMany(),
+    Holding.deleteMany({ _id: { $nin: [authHolding._id, otherHolding._id] } }),
     IdentityVerification.deleteMany(),
     InternalHour.deleteMany(),
     PartnerOrganization.deleteMany(),
@@ -149,7 +157,7 @@ const deleteNonAuthenticationSeeds = async () => {
     ThirdPartyPayer.deleteMany(),
     TrainingContract.deleteMany(),
     UserCompany.deleteMany({ user: { $nin: userList.map(user => user._id) } }),
-    UserHolding.deleteMany(),
+    UserHolding.deleteMany({ user: { $nin: userList.map(user => user._id) } }),
     User.deleteMany({ _id: { $nin: userList.map(user => user._id) } }),
     VendorCompany.deleteMany(),
   ]);

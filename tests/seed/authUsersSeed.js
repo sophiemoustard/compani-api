@@ -10,8 +10,15 @@ const {
   vendorAdminRoleId,
   trainingOrganisationManagerRoleId,
   trainerRoleId,
+  holdingAdminRoleId,
 } = require('./authRolesSeed');
-const { authCompany, companyWithoutSubscription } = require('./authCompaniesSeed');
+const {
+  authCompany,
+  companyWithoutSubscription,
+  otherCompany,
+  authHolding,
+  otherHolding,
+} = require('./authCompaniesSeed');
 const { WEBAPP, MOBILE } = require('../../src/helpers/constants');
 
 const userList = [
@@ -124,6 +131,22 @@ const userList = [
     role: { client: coachRoleId, vendor: trainerRoleId },
     origin: WEBAPP,
   },
+  { // 13
+    _id: new ObjectId(),
+    identity: { firstname: 'Simon', lastname: 'Holding' },
+    refreshToken: uuidv4(),
+    local: { email: 'holding@alenvi.io', password: '123456!eR' },
+    role: { client: coachRoleId, holding: holdingAdminRoleId },
+    origin: WEBAPP,
+  },
+  { // 14
+    _id: new ObjectId(),
+    identity: { firstname: 'Chloe', lastname: 'Holding' },
+    refreshToken: uuidv4(),
+    local: { email: 'holding@other.io', password: '123456!eR' },
+    role: { client: coachRoleId, holding: holdingAdminRoleId },
+    origin: WEBAPP,
+  },
 ];
 
 const userCompaniesList = [
@@ -186,6 +209,13 @@ const userCompaniesList = [
   { user: userList[7]._id, company: authCompany._id, startDate: '2022-11-30T23:00:00.000Z' },
   { user: userList[10]._id, company: authCompany._id, startDate: '2022-12-30T23:00:00.000Z' },
   { user: userList[12]._id, company: authCompany._id, startDate: '2022-11-30T23:00:00.000Z' },
+  { user: userList[13]._id, company: authCompany._id, startDate: '2022-11-30T23:00:00.000Z' },
+  { user: userList[14]._id, company: otherCompany._id, startDate: '2022-11-30T23:00:00.000Z' },
+];
+
+const userHoldingList = [
+  { _id: new ObjectId(), user: userList[13]._id, holding: authHolding._id },
+  { _id: new ObjectId(), user: userList[14]._id, holding: otherHolding._id },
 ];
 
 const trainer = userList.find(u => u.local.email === 'trainer@alenvi.io');
@@ -199,10 +229,13 @@ const auxiliaryWithoutCompany = userList.find(u => u.local.email === 'auxiliary-
 const clientAdmin = userList.find(u => u.local.email === 'client-admin@alenvi.io');
 const trainerOrganisationManager = userList.find(u => u.local.email === 'training-organisation-manager@alenvi.io');
 const trainerAndCoach = userList.find(u => u.local.email === 'trainercoach@alenvi.io');
+const holdingAdminFromAuthCompany = userList.find(u => u.local.email === 'holding@alenvi.io');
+const holdingAdminFromOtherCompany = userList.find(u => u.local.email === 'holding@other.io');
 
 module.exports = {
   userList,
   userCompaniesList,
+  userHoldingList,
   trainer,
   noRoleNoCompany,
   noRole,
@@ -214,4 +247,6 @@ module.exports = {
   clientAdmin,
   trainerOrganisationManager,
   trainerAndCoach,
+  holdingAdminFromAuthCompany,
+  holdingAdminFromOtherCompany,
 };

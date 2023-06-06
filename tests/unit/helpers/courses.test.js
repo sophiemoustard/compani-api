@@ -51,6 +51,7 @@ const {
   TRAINER,
   COURSE,
   TRAINEE,
+  HOLDING_ADMIN,
 } = require('../../../src/helpers/constants');
 const CourseRepository = require('../../../src/repositories/CourseRepository');
 const CourseHistoriesHelper = require('../../../src/helpers/courseHistories');
@@ -215,7 +216,11 @@ describe('list', () => {
   let formatCourseWithProgress;
   let getCompanyAtCourseRegistrationList;
   const authCompany = new ObjectId();
-  const credentials = { _id: new ObjectId(), role: { vendor: { name: TRAINING_ORGANISATION_MANAGER } } };
+  const credentials = {
+    _id: new ObjectId(),
+    role: { vendor: { name: TRAINING_ORGANISATION_MANAGER }, holding: { name: HOLDING_ADMIN } },
+    holding: { _id: new ObjectId(), companies: [new ObjectId(), new ObjectId()] },
+  };
   const isVendorUser = [TRAINING_ORGANISATION_MANAGER, VENDOR_ADMIN].includes(get(credentials, 'role.vendor.name'));
 
   beforeEach(() => {
@@ -394,6 +399,33 @@ describe('list', () => {
         'webapp'
       );
       sinon.assert.calledTwice(getTotalTheoreticalDurationSpy);
+      sinon.assert.notCalled(userFindOne);
+      sinon.assert.notCalled(find);
+      sinon.assert.notCalled(formatCourseWithProgress);
+      sinon.assert.notCalled(getCompanyAtCourseRegistrationList);
+    });
+
+    it('should return holding courses', async () => {
+      const coursesList = [{ _id: new ObjectId(), misc: 'name' }, { _id: new ObjectId(), misc: 'program' }];
+
+      findCourseAndPopulate.returns(coursesList);
+
+      const query = {
+        format: 'blended',
+        action: 'operations',
+        origin: 'webapp',
+        isArchived: false,
+        holding: credentials.holding._id,
+      };
+      const result = await CourseHelper.list(query, credentials);
+
+      expect(result).toMatchObject(coursesList);
+      sinon.assert.calledOnceWithExactly(
+        findCourseAndPopulate,
+        { format: 'blended', archivedAt: { $exists: false }, companies: { $in: credentials.holding.companies } },
+        'webapp'
+      );
+      sinon.assert.notCalled(getTotalTheoreticalDurationSpy);
       sinon.assert.notCalled(userFindOne);
       sinon.assert.notCalled(find);
       sinon.assert.notCalled(formatCourseWithProgress);

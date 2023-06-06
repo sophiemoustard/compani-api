@@ -5,6 +5,7 @@ const omit = require('lodash/omit');
 const groupBy = require('lodash/groupBy');
 const keyBy = require('lodash/keyBy');
 const mapValues = require('lodash/mapValues');
+const set = require('lodash/set');
 const fs = require('fs');
 const os = require('os');
 const Boom = require('@hapi/boom');
@@ -151,13 +152,21 @@ const listBlendedForCompany = async (query, origin) => {
   ];
 };
 
-const listForOperations = async (query, origin) => {
+const formatQuery = (query, credentials) => {
+  const formattedQuery = omit(query, ['isArchived', 'holding']);
+
+  if (has(query, 'isArchived')) set(formattedQuery, 'archivedAt', { $exists: !!query.isArchived });
+
+  if (has(query, 'holding')) set(formattedQuery, 'companies', { $in: credentials.holding.companies });
+
+  return formattedQuery;
+};
+
+const listForOperations = async (query, origin, credentials) => {
   if (query.company && query.format === STRICTLY_E_LEARNING) {
     return listStrictlyElearningForCompany(query, origin);
   }
-  const formattedQuery = has(query, 'isArchived')
-    ? { ...omit(query, 'isArchived'), archivedAt: { $exists: !!query.isArchived } }
-    : query;
+  const formattedQuery = formatQuery(query, credentials);
   if (query.company) return listBlendedForCompany(formattedQuery, origin);
 
   const courses = await CourseRepository.findCourseAndPopulate(formattedQuery, origin);
@@ -242,7 +251,7 @@ const listForPedagogy = async (query, credentials) => {
 exports.list = async (query, credentials) => {
   const filteredQuery = omit(query, ['origin', 'action']);
   return query.action === OPERATIONS
-    ? listForOperations(filteredQuery, query.origin)
+    ? listForOperations(filteredQuery, query.origin, credentials)
     : listForPedagogy(filteredQuery, credentials);
 };
 

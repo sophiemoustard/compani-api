@@ -3,9 +3,9 @@ const { ObjectId } = require('mongodb');
 const app = require('../../server');
 const CompanyHolding = require('../../src/models/CompanyHolding');
 const Holding = require('../../src/models/Holding');
-const { populateDB, holdings } = require('./seed/holdingsSeed');
+const { populateDB, holdings, company } = require('./seed/holdingsSeed');
 const { getToken } = require('./helpers/authentication');
-const { authCompany, otherCompany } = require('../seed/authCompaniesSeed');
+const { authCompany, otherCompany, authHolding } = require('../seed/authCompaniesSeed');
 
 describe('NODE ENV', () => {
   it('should be \'test\'', () => {
@@ -42,7 +42,7 @@ describe('HOLDINGS ROUTES - POST /holdings', () => {
       const response = await app.inject({
         method: 'POST',
         url: '/holdings',
-        payload: { name: 'Test' },
+        payload: { name: 'Auth Holding' },
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -53,7 +53,7 @@ describe('HOLDINGS ROUTES - POST /holdings', () => {
       const response = await app.inject({
         method: 'POST',
         url: '/holdings',
-        payload: { name: 'TèsT' },
+        payload: { name: 'Aûth Holding' },
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -113,7 +113,7 @@ describe('HOLDINGS ROUTES - GET /holdings', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      expect(response.result.data.holdings.length).toEqual(2);
+      expect(response.result.data.holdings.length).toEqual(3);
     });
   });
 
@@ -143,7 +143,7 @@ describe('HOLDINGS ROUTES - GET /holdings', () => {
 
 describe('HOLDINGS ROUTES - PUT /holdings/{_id}', () => {
   let authToken;
-  const payload = { company: authCompany._id };
+  const payload = { company: company._id };
 
   describe('TRAINING_ORGANISATION_MANAGER', () => {
     beforeEach(populateDB);
@@ -237,15 +237,15 @@ describe('HOLDINGS ROUTES - GET /holdings/{_id}', () => {
     it('should get a holding', async () => {
       const response = await app.inject({
         method: 'GET',
-        url: `/holdings/${holdings[1]._id}`,
+        url: `/holdings/${authHolding._id}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(response.statusCode).toBe(200);
       expect(response.result.data.holding).toMatchObject({
-        _id: holdings[1]._id,
-        name: 'Croix Rouge',
-        companies: [expect.objectContaining({ _id: otherCompany._id, name: 'Un autre SAS' })],
+        _id: authHolding._id,
+        name: 'Auth Holding',
+        companies: [expect.objectContaining({ _id: authCompany._id, name: 'Test SAS' })],
       });
     });
 
@@ -274,7 +274,7 @@ describe('HOLDINGS ROUTES - GET /holdings/{_id}', () => {
         authToken = await getToken(role.name);
         const response = await app.inject({
           method: 'GET',
-          url: `/holdings/${holdings[0]._id}`,
+          url: `/holdings/${authHolding._id}`,
           headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
