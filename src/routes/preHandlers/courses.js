@@ -337,6 +337,7 @@ exports.authorizeGetCourse = async (req) => {
     const userCompany = get(credentials, 'company._id');
     const userVendorRole = get(credentials, 'role.vendor.name');
     const userClientRole = get(credentials, 'role.client.name');
+    const userHoldingRole = get(credentials, 'role.holding.name');
 
     const course = await Course
       .findOne({ _id: req.params._id }, { trainer: 1, format: 1, trainees: 1, companies: 1, accessRules: 1 })
@@ -362,8 +363,12 @@ exports.authorizeGetCourse = async (req) => {
     if (course.format === STRICTLY_E_LEARNING && !companyHasAccess) throw Boom.forbidden();
 
     if (course.format === BLENDED) {
-      const courseCompaniesContainsUserCompany = UtilsHelper.doesArrayIncludeId(course.companies, userCompany);
-      if (!courseCompaniesContainsUserCompany) throw Boom.forbidden();
+      const clientUserHasAccess = UtilsHelper.doesArrayIncludeId(course.companies, userCompany);
+      let holdingUserHasAccess = false;
+      if (userHoldingRole) {
+        holdingUserHasAccess = UtilsHelper.doIdsArraysIntersect(course.companies, credentials.holding.companies);
+      }
+      if (!clientUserHasAccess && !holdingUserHasAccess) throw Boom.forbidden();
     }
 
     return null;
