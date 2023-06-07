@@ -186,6 +186,8 @@ exports.areObjectIdsEquals = (id1, id2) => !!id1 && !!id2 &&
 
 exports.doesArrayIncludeId = (array, id) => array.some(item => exports.areObjectIdsEquals(item, id));
 
+exports.doIdsArraysIntersect = (array1, array2) => array1.some(item => exports.doesArrayIncludeId(array2, item));
+
 exports.isStringedObjectId = value => typeof value === 'string' && !!value.match(/^[0-9a-fA-F]{24}$/);
 
 exports.formatPhoneNumber = phoneNumber => (phoneNumber

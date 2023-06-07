@@ -366,8 +366,7 @@ exports.authorizeGetCourse = async (req) => {
       const clientUserHasAccess = UtilsHelper.doesArrayIncludeId(course.companies, userCompany);
       let holdingUserHasAccess = false;
       if (userHoldingRole) {
-        holdingUserHasAccess = course.companies
-          .some(company => UtilsHelper.doesArrayIncludeId(credentials.holding.companies, company));
+        holdingUserHasAccess = UtilsHelper.doIdsArraysIntersect(course.companies, credentials.holding.companies);
       }
       if (!clientUserHasAccess && !holdingUserHasAccess) throw Boom.forbidden();
     }
