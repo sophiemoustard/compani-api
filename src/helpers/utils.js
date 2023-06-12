@@ -1,3 +1,4 @@
+const get = require('lodash/get');
 const omit = require('lodash/omit');
 const isEmpty = require('lodash/isEmpty');
 const { ObjectId } = require('mongodb');
@@ -272,4 +273,14 @@ exports.formatQuantity = (label, quantity, pluralMark = 's') => {
   if (quantity > 1) itemLabel = label.split(' ').map(word => `${word}${pluralMark}`).join(' ');
 
   return `${quantity} ${itemLabel}`;
+};
+
+exports.hasUserAccessToCompany = (credentials, company) => {
+  const credentialsCompany = get(credentials, 'company._id');
+  if (credentialsCompany && exports.areObjectIdsEquals(credentials.company._id, company)) return true;
+
+  const holdingCompanies = get(credentials, 'holding.companies') || [];
+  if (holdingCompanies.length && exports.doesArrayIncludeId(credentials.holding.companies, company)) return true;
+
+  return false;
 };
