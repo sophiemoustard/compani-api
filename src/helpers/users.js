@@ -317,17 +317,6 @@ exports.createAndSaveFile = async (params, payload) => {
   return uploadedFile;
 };
 
-const createUserCompany = async (payload, company) => {
-  const user = await User.create(payload);
-  await UserCompaniesHelper.create({
-    user: user._id,
-    company,
-    ...(payload.userCompanyStartDate && { startDate: payload.userCompanyStartDate }),
-  });
-
-  return user;
-};
-
 /**
  * 1st case : No role / no company => handle payload as given
  *  - User creates his account
@@ -341,17 +330,21 @@ const createUserCompany = async (payload, company) => {
 exports.createUser = async (userPayload, credentials) => {
   const payload = { ...omit(userPayload, ['role', 'sector', 'customer']), refreshToken: uuidv4() };
 
-  if (!credentials) return User.create(payload);
+  const role = userPayload.role ? await Role.findById(userPayload.role, { name: 1, interface: 1 }).lean() : null;
+  if (userPayload.role && !role) throw Boom.badRequest(translate[language].unknownRole);
+  if (role) payload.role = { [role.interface]: role._id };
+
+  const user = await User.create(payload);
+
+  if (!credentials || (role && role.name === TRAINER)) return user;
 
   const companyId = payload.company || get(credentials, 'company._id');
-  if (!userPayload.role) return createUserCompany(payload, companyId);
-
-  const role = await Role.findById(userPayload.role, { name: 1, interface: 1 }).lean();
-  if (!role) throw Boom.badRequest(translate[language].unknownRole);
-
-  if (role.name === TRAINER) return User.create({ ...payload, role: { [role.interface]: role._id } });
-
-  const user = await createUserCompany({ ...payload, role: { [role.interface]: role._id } }, companyId);
+  await UserCompaniesHelper.create({
+    user: user._id,
+    company: companyId,
+    ...(payload.userCompanyStartDate && { startDate: payload.userCompanyStartDate }),
+  });
+  if (!userPayload.role) return user;
 
   if (userPayload.customer) await HelpersHelper.create(user._id, userPayload.customer, companyId);
 
