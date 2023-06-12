@@ -11,6 +11,7 @@ const {
 } = require('../../helpers/constants');
 const UserCompany = require('../../models/UserCompany');
 const User = require('../../models/User');
+const Company = require('../../models/Company');
 const CourseHistory = require('../../models/CourseHistory');
 const UtilsHelper = require('../../helpers/utils');
 const translate = require('../../helpers/translate');
@@ -20,6 +21,25 @@ const { language } = translate;
 
 const DETACHMENT_ALLOWED_COMPANY_IDS =
   process.env.DETACHMENT_ALLOWED_COMPANY_IDS.split(';').map(id => new ObjectId(id));
+
+exports.authorizeUserCompanyCreation = async (req) => {
+  const { auth: { credentials }, payload } = req;
+  const loggedUserVendorRole = get(credentials, 'role.vendor.name');
+  const loggedUserCompany = get(credentials, 'company._id');
+
+  if (!loggedUserVendorRole) {
+    const sameCompany = UtilsHelper.areObjectIdsEquals(get(req.payload, 'company'), loggedUserCompany);
+    if (!sameCompany) throw Boom.notFound();
+  }
+
+  const userFromDB = await User.findOne({ _id: payload.user }).lean();
+  if (!userFromDB) throw Boom.forbidden();
+
+  const companyFromDB = await Company.findOne({ _id: payload.company }).lean();
+  if (!companyFromDB) throw Boom.forbidden();
+
+  return null;
+};
 
 exports.authorizeUserCompanyEdit = async (req) => {
   const { auth: { credentials }, params, payload } = req;

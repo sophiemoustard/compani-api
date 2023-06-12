@@ -78,26 +78,29 @@ exports.authorizeUserUpdate = async (req) => {
   const loggedUserClientRole = get(credentials, 'role.client.name');
   const loggedUserCompany = get(credentials, 'company._id') || '';
 
-  if (get(req, 'payload.company')) {
-    const company = await Company.countDocuments({ _id: req.payload.company });
-    if (!company) throw Boom.notFound();
-  }
+  // if (get(req, 'payload.company')) {
+  //   const company = await Company.countDocuments({ _id: req.payload.company });
+  //   if (!company) throw Boom.notFound();
+  // }
 
   const isOrWillBeInCompany = UserCompaniesHelper
     .userIsOrWillBeInCompany(userFromDB.userCompanyList, loggedUserCompany);
-  const userCompany = isOrWillBeInCompany ? loggedUserCompany : get(req, 'payload.company');
+  if (!loggedUserVendorRole && !isOrWillBeInCompany) throw Boom.forbidden();
+
   const updatingOwnInfos = UtilsHelper.areObjectIdsEquals(credentials._id, userFromDB._id);
   if (trainerUpdatesForbiddenKeys(req, userFromDB)) throw Boom.forbidden();
 
   if (!loggedUserVendorRole && !updatingOwnInfos) {
     const sameCompany = isOrWillBeInCompany ||
-      UtilsHelper.areObjectIdsEquals(get(req.payload, 'company'), loggedUserCompany);
+    UtilsHelper.areObjectIdsEquals(get(req.payload, 'company'), loggedUserCompany);
     if (!sameCompany) throw Boom.notFound();
   }
 
-  if (get(req, 'payload.establishment')) await checkEstablishment(userCompany, req.payload);
+  // ERP checks : updated user is linked to client logged user company
+  if (get(req, 'payload.establishment')) await checkEstablishment(loggedUserCompany, req.payload);
+  if (get(req, 'payload.customer')) await checkCustomer(loggedUserCompany, req.payload);
+
   if (get(req, 'payload.role')) await checkRole(userFromDB, req.payload);
-  if (get(req, 'payload.customer')) await checkCustomer(userCompany, req.payload);
   if (get(req, 'payload.holding')) {
     if (![TRAINING_ORGANISATION_MANAGER, VENDOR_ADMIN].includes(loggedUserVendorRole)) throw Boom.forbidden();
     const holding = await Holding.countDocuments({ _id: req.payload.holding });
