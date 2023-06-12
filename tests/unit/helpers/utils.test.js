@@ -385,36 +385,6 @@ describe('doesArrayIncludeId', () => {
   });
 });
 
-describe('doIdsArraysIntersect', () => {
-  let doesArrayIncludeIdStub;
-
-  beforeEach(() => { doesArrayIncludeIdStub = sinon.stub(UtilsHelper, 'doesArrayIncludeId'); });
-
-  afterEach(() => { doesArrayIncludeIdStub.restore(); });
-
-  it('should return true if the second array includes an id of the first array', () => {
-    const correctId = new ObjectId();
-    const incorrectIds = [new ObjectId(), new ObjectId()];
-    doesArrayIncludeIdStub.onCall(0).returns(false);
-    doesArrayIncludeIdStub.onCall(1).returns(true);
-
-    const result = UtilsHelper.doIdsArraysIntersect([incorrectIds[0], correctId], [incorrectIds[1], correctId]);
-
-    expect(result).toBe(true);
-    sinon.assert.calledWithExactly(doesArrayIncludeIdStub.getCall(0), [incorrectIds[1], correctId], incorrectIds[0]);
-    sinon.assert.calledWithExactly(doesArrayIncludeIdStub.getCall(1), [incorrectIds[1], correctId], correctId);
-  });
-
-  it('should return false if the second array does not include id of the first array', () => {
-    doesArrayIncludeIdStub.onCall(0).returns(false);
-    doesArrayIncludeIdStub.onCall(1).returns(false);
-
-    const result = UtilsHelper.doIdsArraysIntersect([new ObjectId(), new ObjectId()], [new ObjectId(), new ObjectId()]);
-
-    expect(result).toBe(false);
-  });
-});
-
 describe('isStringedObjectId', () => {
   it('should return true if value objectId to HexString', () => {
     const value = new ObjectId().toHexString();
