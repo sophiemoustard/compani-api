@@ -36,7 +36,11 @@ exports.plugin = {
         auth: { scope: ['attendances:read'] },
         validate: {
           query: Joi.alternatives().try(
-            Joi.object({ course: Joi.objectId().required(), company: Joi.objectId() }),
+            Joi.object({
+              course: Joi.objectId().required(),
+              company: Joi.objectId(),
+              holding: Joi.objectId(),
+            }).oxor('company', 'holding'),
             Joi.object({ trainee: Joi.objectId().required() })
           ),
         },

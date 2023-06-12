@@ -64,7 +64,7 @@ exports.list = async (query, company, credentials) => Attendance
   .setOptions({ isVendorUser: VENDOR_ROLES.includes(get(credentials, 'role.vendor.name')) })
   .lean();
 
-const formatCourseWithAttendances = (course, specificCourseTrainees, specificCourseCompany) =>
+const formatCourseWithAttendances = (course, specificCourseTrainees, specificCourseCompanies) =>
   course.slots.map((slot) => {
     const { attendances } = slot;
     if (!attendances) return {};
@@ -74,10 +74,10 @@ const formatCourseWithAttendances = (course, specificCourseTrainees, specificCou
         const isTraineeOnlySubscribedToSpecificCourse =
           UtilsHelper.doesArrayIncludeId(specificCourseTrainees, a.trainee._id) &&
           !UtilsHelper.doesArrayIncludeId(course.trainees, a.trainee._id);
-        const isAttendanceFromSpecificCompany = !specificCourseCompany ||
-          UtilsHelper.areObjectIdsEquals(a.company, specificCourseCompany);
+        const isAttendanceFromSpecificCompanies = !specificCourseCompanies.length ||
+          UtilsHelper.doesArrayIncludeId(specificCourseCompanies, a.company);
 
-        return isTraineeOnlySubscribedToSpecificCourse && isAttendanceFromSpecificCompany;
+        return isTraineeOnlySubscribedToSpecificCourse && isAttendanceFromSpecificCompanies;
       }).map(a => ({
         trainee: a.trainee,
         courseSlot: pick(slot, ['step', 'startDate', 'endDate']),
@@ -86,7 +86,11 @@ const formatCourseWithAttendances = (course, specificCourseTrainees, specificCou
       }));
   });
 
-exports.listUnsubscribed = async (courseId, company, credentials) => {
+exports.listUnsubscribed = async (courseId, query, credentials) => {
+  const companies = [];
+  if (query.company) companies.push(query.company);
+  if (query.holding) companies.push(...credentials.holding.companies);
+
   const course = await Course.findOne({ _id: courseId })
     .populate({ path: 'subProgram', select: 'program', populate: { path: 'program', select: 'subPrograms' } })
     .lean();
@@ -98,7 +102,7 @@ exports.listUnsubscribed = async (courseId, company, credentials) => {
       select: 'attendances startDate endDate',
       populate: {
         path: 'attendances',
-        ...(company && { match: { company } }),
+        ...(companies.length && { match: { company: { $in: companies } } }),
         select: 'trainee company',
         populate: { path: 'trainee', select: 'identity' },
         options: { isVendorUser: VENDOR_ROLES.includes(get(credentials, 'role.vendor.name')) },
@@ -108,7 +112,7 @@ exports.listUnsubscribed = async (courseId, company, credentials) => {
     .lean();
 
   const unsubscribedAttendances = coursesWithSameProgram
-    .map(c => formatCourseWithAttendances(c, course.trainees, company));
+    .map(c => formatCourseWithAttendances(c, course.trainees, companies));
 
   return groupBy(unsubscribedAttendances.flat(3), 'trainee._id');
 };
