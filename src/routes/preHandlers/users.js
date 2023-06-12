@@ -78,22 +78,13 @@ exports.authorizeUserUpdate = async (req) => {
   const loggedUserClientRole = get(credentials, 'role.client.name');
   const loggedUserCompany = get(credentials, 'company._id') || '';
 
-  // if (get(req, 'payload.company')) {
-  //   const company = await Company.countDocuments({ _id: req.payload.company });
-  //   if (!company) throw Boom.notFound();
-  // }
-
-  const isOrWillBeInCompany = UserCompaniesHelper
-    .userIsOrWillBeInCompany(userFromDB.userCompanyList, loggedUserCompany);
-  if (!loggedUserVendorRole && !isOrWillBeInCompany) throw Boom.forbidden();
-
   const updatingOwnInfos = UtilsHelper.areObjectIdsEquals(credentials._id, userFromDB._id);
   if (trainerUpdatesForbiddenKeys(req, userFromDB)) throw Boom.forbidden();
 
   if (!loggedUserVendorRole && !updatingOwnInfos) {
-    const sameCompany = isOrWillBeInCompany ||
-    UtilsHelper.areObjectIdsEquals(get(req.payload, 'company'), loggedUserCompany);
-    if (!sameCompany) throw Boom.notFound();
+    const isOrWillBeInCompany = UserCompaniesHelper
+      .userIsOrWillBeInCompany(userFromDB.userCompanyList, loggedUserCompany);
+    if (!isOrWillBeInCompany) throw Boom.notFound();
   }
 
   // ERP checks : updated user is linked to client logged user company

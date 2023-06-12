@@ -27,16 +27,16 @@ exports.authorizeUserCompanyCreation = async (req) => {
   const loggedUserVendorRole = get(credentials, 'role.vendor.name');
   const loggedUserCompany = get(credentials, 'company._id');
 
+  const userExists = await User.countDocuments({ _id: payload.user });
+  if (!userExists) throw Boom.forbidden();
+
+  const companyExists = await Company.countDocuments({ _id: payload.company });
+  if (!companyExists) throw Boom.forbidden();
+
   if (!loggedUserVendorRole) {
     const sameCompany = UtilsHelper.areObjectIdsEquals(get(req.payload, 'company'), loggedUserCompany);
     if (!sameCompany) throw Boom.notFound();
   }
-
-  const userFromDB = await User.findOne({ _id: payload.user }).lean();
-  if (!userFromDB) throw Boom.forbidden();
-
-  const companyFromDB = await Company.findOne({ _id: payload.company }).lean();
-  if (!companyFromDB) throw Boom.forbidden();
 
   return null;
 };
