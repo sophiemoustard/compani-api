@@ -1490,7 +1490,7 @@ describe('getCourse', () => {
       sinon.assert.notCalled(attendanceCountDocuments);
     });
 
-    it('should return inter b2b course with trainees filtering (webapp)', async () => {
+    it('should return inter b2b course with trainees filtering on company (webapp)', async () => {
       const course = {
         _id: new ObjectId(),
         type: INTER_B2B,
@@ -1516,6 +1516,95 @@ describe('getCourse', () => {
         { action: OPERATIONS, origin: WEBAPP },
         { _id: course._id },
         { role: { client: { name: 'client_admin' } }, company: { _id: authCompanyId } }
+      );
+
+      expect(result).toMatchObject(courseWithFilteredTrainees);
+      SinonMongoose.calledOnceWithExactly(
+        findOne,
+        [
+          { query: 'findOne', args: [{ _id: course._id }] },
+          {
+            query: 'populate',
+            args: [
+              [
+                { path: 'companies', select: 'name' },
+                {
+                  path: 'trainees',
+                  select: 'identity.firstname identity.lastname local.email contact picture.link firstMobileConnection',
+                  populate: { path: 'company' },
+                },
+                {
+                  path: 'companyRepresentative',
+                  select: 'identity.firstname identity.lastname contact.phone local.email picture.link',
+                },
+                {
+                  path: 'subProgram',
+                  select: 'program steps',
+                  populate: [
+                    { path: 'program', select: 'name learningGoals' },
+                    {
+                      path: 'steps',
+                      select: 'name type theoreticalDuration',
+                      populate: {
+                        path: 'activities',
+                        select: 'name type',
+                        populate: { path: 'activityHistories', select: 'user' },
+                      },
+                    },
+                  ],
+                },
+                { path: 'slots', select: 'step startDate endDate address meetingLink' },
+                { path: 'slotsToPlan', select: '_id step' },
+                {
+                  path: 'trainer',
+                  select: 'identity.firstname identity.lastname contact.phone local.email picture.link',
+                },
+                { path: 'accessRules', select: 'name' },
+                {
+                  path: 'salesRepresentative',
+                  select: 'identity.firstname identity.lastname contact.phone local.email picture.link',
+                },
+                { path: 'contact', select: 'identity.firstname identity.lastname contact.phone' },
+              ]],
+          },
+          { query: 'lean' },
+        ]
+      );
+      sinon.assert.calledOnceWithExactly(
+        getCompanyAtCourseRegistrationList,
+        { key: COURSE, value: course._id },
+        { key: TRAINEE, value: [traineeIds[0], traineeIds[1]] }
+      );
+      sinon.assert.notCalled(formatCourseWithProgress);
+      sinon.assert.notCalled(attendanceCountDocuments);
+    });
+
+    it('should return inter b2b course with trainees filtering on holding (webapp)', async () => {
+      const course = {
+        _id: new ObjectId(),
+        type: INTER_B2B,
+        format: BLENDED,
+        trainees: [{ _id: traineeIds[0] }, { _id: traineeIds[1] }],
+        subProgram: { steps: [] },
+        slots: [{ step: new ObjectId() }],
+      };
+
+      const courseWithFilteredTrainees = {
+        type: INTER_B2B,
+        trainees: [{ _id: traineeIds[0], registrationCompany: authCompanyId }],
+        totalTheoreticalDuration: 'PT0S',
+      };
+
+      findOne.returns(SinonMongoose.stubChainedQueries(course));
+      getCompanyAtCourseRegistrationList.returns([
+        { trainee: traineeIds[0], company: authCompanyId },
+        { trainee: traineeIds[1], company: otherCompanyId },
+      ]);
+
+      const result = await CourseHelper.getCourse(
+        { action: OPERATIONS, origin: WEBAPP },
+        { _id: course._id },
+        { role: { holding: { name: 'holding_admin' } }, holding: { _id: new ObjectId(), companies: [authCompanyId] } }
       );
 
       expect(result).toMatchObject(courseWithFilteredTrainees);

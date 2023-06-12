@@ -367,15 +367,21 @@ const getCourseForOperations = async (courseId, credentials, origin) => {
       .map(trainee => ({ ...trainee, registrationCompany: traineesCompany[trainee._id] }));
   }
 
+  const trainees = [];
+  if (get(credentials, 'role.vendor')) trainees.push(...courseTrainees);
+  else {
+    const filteredCourseTrainees = courseTrainees.filter(t => UtilsHelper
+      .hasUserAccessToCompany(credentials, get(t, isBlended ? 'registrationCompany' : 'company')));
+
+    trainees.push(...filteredCourseTrainees);
+  }
+
   // A coach/client_admin is not supposed to read infos on trainees from other companies
   // espacially for INTER_B2B courses.
   return {
     ...fetchedCourse,
     totalTheoreticalDuration: exports.getTotalTheoreticalDuration(fetchedCourse),
-    trainees: get(credentials, 'role.vendor')
-      ? courseTrainees
-      : courseTrainees.filter(t => UtilsHelper
-        .areObjectIdsEquals(get(t, isBlended ? 'registrationCompany' : 'company'), get(credentials, 'company._id'))),
+    trainees,
   };
 };
 

@@ -277,10 +277,10 @@ exports.formatQuantity = (label, quantity, pluralMark = 's') => {
 
 exports.hasUserAccessToCompany = (credentials, company) => {
   const credentialsCompany = get(credentials, 'company._id');
-  if (credentialsCompany && exports.areObjectIdsEquals(credentials.company._id, company)) return true;
+  if (credentialsCompany && exports.areObjectIdsEquals(credentialsCompany, company)) return true;
 
   const holdingCompanies = get(credentials, 'holding.companies') || [];
-  if (holdingCompanies.length && exports.doesArrayIncludeId(credentials.holding.companies, company)) return true;
+  if (holdingCompanies.length && exports.doesArrayIncludeId(holdingCompanies, company)) return true;
 
   return false;
 };
