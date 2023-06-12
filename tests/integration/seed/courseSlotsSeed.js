@@ -104,6 +104,17 @@ const coursesList = [
     salesRepresentative: vendorAdmin._id,
     archivedAt: '2021-11-15T09:00:00',
   },
+  {
+    _id: new ObjectId(),
+    subProgram: subProgramsList[0]._id,
+    trainees: [],
+    companies: [companyWithoutSubscription._id],
+    misc: 'third company',
+    type: INTRA,
+    maxTrainees: 8,
+    trainer: trainer._id,
+    salesRepresentative: vendorAdmin._id,
+  },
 ];
 
 const courseSlotsList = [
@@ -175,6 +186,13 @@ const courseSlotsList = [
     course: coursesList[0]._id,
     step: stepsList[4]._id,
     meetingLink: 'https://meet.google.com',
+  },
+  {
+    _id: new ObjectId(),
+    startDate: '2020-04-10T09:00:00',
+    endDate: '2020-04-10T12:00:00',
+    course: coursesList[3]._id,
+    step: stepsList[0]._id,
   },
 ];
 

@@ -46,8 +46,12 @@ exports.checkAuthorization = (credentials, courseTrainerId, companies) => {
   const isTOM = userVendorRole === TRAINING_ORGANISATION_MANAGER;
   const isTrainerAndAuthorized = userVendorRole === TRAINER && UtilsHelper.areObjectIdsEquals(userId, courseTrainerId);
   const isClientAndAuthorized = [CLIENT_ADMIN, COACH].includes(userClientRole) && userCompanyId && areCompaniesMatching;
+  const isHoldingAndAuthorized = credentials.role.holding &&
+    UtilsHelper.doIdsArraysIntersect(credentials.holding.companies, companies);
 
-  if (!isAdminVendor && !isTOM && !isTrainerAndAuthorized && !isClientAndAuthorized) throw Boom.forbidden();
+  if (!isAdminVendor && !isTOM && !isTrainerAndAuthorized && !isClientAndAuthorized && !isHoldingAndAuthorized) {
+    throw Boom.forbidden();
+  }
 };
 
 exports.checkSalesRepresentativeExists = async (req) => {
