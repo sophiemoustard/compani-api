@@ -280,7 +280,6 @@ exports.hasUserAccessToCompany = (credentials, company) => {
   if (credentialsCompany && exports.areObjectIdsEquals(credentialsCompany, company)) return true;
 
   const holdingCompanies = get(credentials, 'holding.companies') || [];
-  if (holdingCompanies.length && exports.doesArrayIncludeId(holdingCompanies, company)) return true;
 
-  return false;
+  return exports.doesArrayIncludeId(holdingCompanies, company);
 };
