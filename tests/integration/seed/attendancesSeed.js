@@ -189,7 +189,7 @@ const coursesList = [
     _id: new ObjectId(),
     subProgram: subProgramList[0],
     type: INTER_B2B,
-    trainees: [traineeList[5]._id, traineeList[6]._id, traineeList[0]._id],
+    trainees: [traineeList[5]._id, traineeList[0]._id],
     companies: [authCompany._id, companyWithoutSubscription._id],
     trainer: trainer._id,
     salesRepresentative: userList[2]._id,
@@ -389,14 +389,6 @@ const courseHistoryList = [
     company: authCompany._id,
     createdBy: trainer._id,
     trainee: traineeList[5]._id,
-    createdAt: '2023-01-03T14:00:00.000Z',
-  },
-  {
-    action: TRAINEE_ADDITION,
-    course: coursesList[6]._id,
-    company: otherCompany._id,
-    createdBy: trainer._id,
-    trainee: traineeList[6]._id,
     createdAt: '2023-01-03T14:00:00.000Z',
   },
 ];
