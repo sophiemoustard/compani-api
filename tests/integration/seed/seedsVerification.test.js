@@ -5,6 +5,7 @@ const ActivityHistory = require('../../../src/models/ActivityHistory');
 const Attendance = require('../../../src/models/Attendance');
 const AttendanceSheet = require('../../../src/models/AttendanceSheet');
 const Card = require('../../../src/models/Card');
+const CompanyHolding = require('../../../src/models/CompanyHolding');
 const CompanyLinkRequest = require('../../../src/models/CompanyLinkRequest');
 const Contract = require('../../../src/models/Contract');
 const Course = require('../../../src/models/Course');
@@ -73,6 +74,7 @@ const cardsSeed = require('./cardsSeed');
 const coursesSeed = require('./coursesSeed');
 const courseHistoriesSeed = require('./courseHistoriesSeed');
 const courseSlotsSeed = require('./courseSlotsSeed');
+const holdingsSeed = require('./holdingsSeed');
 const programsSeed = require('./programsSeed');
 const questionnaireHistoriesSeed = require('./questionnaireHistoriesSeed');
 const stepsSeed = require('./stepsSeed');
@@ -89,6 +91,7 @@ const seedList = [
   { label: 'COURSE', value: coursesSeed },
   { label: 'COURSEHISTORY', value: courseHistoriesSeed },
   { label: 'COURSESLOT', value: courseSlotsSeed },
+  { label: 'HOLDING', value: holdingsSeed },
   { label: 'PROGRAM', value: programsSeed },
   { label: 'QUESTIONNAIREHISTORY', value: questionnaireHistoriesSeed },
   { label: 'STEP', value: stepsSeed },
@@ -472,6 +475,35 @@ describe('SEEDS VERIFICATION', () => {
             .some(card => has(card, 'label') && !(has(card, 'label.left') && has(card, 'label.right')));
 
           expect(someSubKeysAreMissing).toBeFalsy();
+        });
+      });
+
+      describe('Collection CompanyHolding', () => {
+        let companyHoldingList;
+        before(async () => {
+          companyHoldingList = await CompanyHolding
+            .find()
+            .populate({ path: 'holding', select: '_id' })
+            .populate({ path: 'company', select: '_id' })
+            .lean();
+        });
+
+        it('should pass if every company exists', () => {
+          const companiesExist = companyHoldingList.map(ch => ch.company).every(company => !!company);
+          expect(companiesExist).toBeTruthy();
+        });
+
+        it('should pass if every holding exists', () => {
+          const holdingsExist = companyHoldingList.map(ch => ch.holding).every(holding => !!holding);
+          expect(holdingsExist).toBeTruthy();
+        });
+
+        it('should pass if every company is linked to a single holding', () => {
+          const companyIsLinkedToOtherHolding = companyHoldingList
+            .some(companyHolding => companyHoldingList
+              .filter(ch2 => UtilsHelper.areObjectIdsEquals(companyHolding.company._id, ch2.company._id)).length > 1
+            );
+          expect(companyIsLinkedToOtherHolding).toBeFalsy();
         });
       });
 
