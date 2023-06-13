@@ -184,8 +184,9 @@ describe('SEEDS VERIFICATION', () => {
           const everyUserIsRegisteredToCourse = activityHistoryList
             .every(ah => groupedStepsByActivity[ah.activity._id]
               .some(step => groupedSubProgramsByStep[step._id]
-                .some(subProgram => groupedCoursesBySubProgram[subProgram._id]
-                  .some(course => UtilsHelper.doesArrayIncludeId(course.trainees, ah.user._id))
+                .some(subProgram => !!groupedCoursesBySubProgram[subProgram._id] &&
+                    groupedCoursesBySubProgram[subProgram._id]
+                      .some(course => UtilsHelper.doesArrayIncludeId(course.trainees, ah.user._id))
                 )
               )
             );
