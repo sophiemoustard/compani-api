@@ -19,6 +19,7 @@ const Step = require('../../../src/models/Step');
 const SubProgram = require('../../../src/models/SubProgram');
 const User = require('../../../src/models/User');
 const UserCompany = require('../../../src/models/UserCompany');
+const UserHolding = require('../../../src/models/UserHolding');
 const { ascendingSort } = require('../../../src/helpers/dates');
 const { CompaniDate } = require('../../../src/helpers/dates/companiDates');
 const { CompaniDuration } = require('../../../src/helpers/dates/companiDurations');
@@ -65,6 +66,7 @@ const {
   ON_SITE,
   REMOTE,
   DAY,
+  HOLDING_ADMIN,
 } = require('../../../src/helpers/constants');
 const attendancesSeed = require('./attendancesSeed');
 const activitiesSeed = require('./activitiesSeed');
@@ -501,7 +503,7 @@ describe('SEEDS VERIFICATION', () => {
         it('should pass if every company is linked to a single holding', () => {
           const companyIsLinkedToOtherHolding = companyHoldingList
             .some(companyHolding => companyHoldingList
-              .filter(ch2 => UtilsHelper.areObjectIdsEquals(companyHolding.company._id, ch2.company._id)).length > 1
+              .filter(ch => UtilsHelper.areObjectIdsEquals(companyHolding.company._id, ch.company._id)).length > 1
             );
           expect(companyIsLinkedToOtherHolding).toBeFalsy();
         });
@@ -1388,6 +1390,62 @@ describe('SEEDS VERIFICATION', () => {
             }
           }
           expect(hasIntersectionInUserCompanies).toBeFalsy();
+        });
+      });
+
+      describe('Collection UserHolding', () => {
+        let userHoldingList;
+        before(async () => {
+          userHoldingList = await UserHolding
+            .find()
+            .populate({
+              path: 'user',
+              select: '_id role',
+              populate: [
+                { path: 'company' },
+                { path: 'role.client', select: 'name' },
+                { path: 'role.holding', select: 'name' },
+              ],
+            })
+            .populate({ path: 'holding', select: '_id' })
+            .lean();
+        });
+
+        it('should pass if every user exists', () => {
+          const usersExist = userHoldingList.map(uh => uh.user).every(user => !!user);
+          expect(usersExist).toBeTruthy();
+        });
+
+        it('should pass if every holding exists', () => {
+          const holdingsExist = userHoldingList.map(uh => uh.holding).every(holding => !!holding);
+          expect(holdingsExist).toBeTruthy();
+        });
+
+        it('should pass if every user is linked to a single holding', () => {
+          const isUserLinkedToOtherHolding = userHoldingList
+            .some(userHolding => userHoldingList
+              .filter(uh => UtilsHelper.areObjectIdsEquals(userHolding.user._id, uh.user._id)).length > 1
+            );
+          expect(isUserLinkedToOtherHolding).toBeFalsy();
+        });
+
+        it('should pass if every user company is linked to holding', async () => {
+          const companyHoldingList = await CompanyHolding.find().lean();
+          const isUserCompanyLinkedToHolding = userHoldingList
+            .every(uh => companyHoldingList
+              .find(ch => UtilsHelper.areObjectIdsEquals(ch.company, uh.user.company) &&
+                UtilsHelper.areObjectIdsEquals(ch.holding, uh.holding._id)
+              )
+            );
+          expect(isUserCompanyLinkedToHolding).toBeTruthy();
+        });
+
+        it('should pass if every user has holding and client role', () => {
+          const everyUserHasGoodRoles = userHoldingList
+            .every(u => [COACH, CLIENT_ADMIN].includes(get(u.user, 'role.client.name')) &&
+              get(u.user, 'role.holding.name') === HOLDING_ADMIN);
+
+          expect(everyUserHasGoodRoles).toBeTruthy();
         });
       });
     });
