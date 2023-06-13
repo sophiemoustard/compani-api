@@ -405,7 +405,10 @@ exports.authorizeGetFollowUp = async (req) => {
   const companyQueryIsValid = !!req.query.company &&
     UtilsHelper.areObjectIdsEquals(get(credentials, 'company._id'), req.query.company);
 
-  if (!loggedUserVendorRole && !companyQueryIsValid) throw Boom.forbidden();
+  const isHoldingAndAuthorized = !!req.query.holding &&
+    UtilsHelper.areObjectIdsEquals(get(credentials, 'holding._id'), req.query.holding);
+
+  if (!loggedUserVendorRole && !companyQueryIsValid && !isHoldingAndAuthorized) throw Boom.forbidden();
 
   return null;
 };
