@@ -502,11 +502,11 @@ describe('SEEDS VERIFICATION', () => {
         });
 
         it('should pass if every company is linked to a single holding', () => {
-          const companyIsLinkedToOtherHolding = companyHoldingList
+          const companyIsLinkedToManyHoldings = companyHoldingList
             .some(companyHolding => companyHoldingList
               .filter(ch => UtilsHelper.areObjectIdsEquals(companyHolding.company._id, ch.company._id)).length > 1
             );
-          expect(companyIsLinkedToOtherHolding).toBeFalsy();
+          expect(companyIsLinkedToManyHoldings).toBeFalsy();
         });
       });
 
@@ -1408,7 +1408,7 @@ describe('SEEDS VERIFICATION', () => {
                 { path: 'role.holding', select: 'name' },
               ],
             })
-            .populate({ path: 'holding', select: '_id' })
+            .populate({ path: 'holding', select: '_id', populate: { path: 'companies' } })
             .lean();
         });
 
@@ -1423,21 +1423,16 @@ describe('SEEDS VERIFICATION', () => {
         });
 
         it('should pass if every user is linked to a single holding', () => {
-          const isUserLinkedToOtherHolding = userHoldingList
+          const isUserLinkedToManyHoldings = userHoldingList
             .some(userHolding => userHoldingList
               .filter(uh => UtilsHelper.areObjectIdsEquals(userHolding.user._id, uh.user._id)).length > 1
             );
-          expect(isUserLinkedToOtherHolding).toBeFalsy();
+          expect(isUserLinkedToManyHoldings).toBeFalsy();
         });
 
         it('should pass if every user company is linked to holding', async () => {
-          const companyHoldingList = await CompanyHolding.find().lean();
           const isUserCompanyLinkedToHolding = userHoldingList
-            .every(uh => companyHoldingList
-              .find(ch => UtilsHelper.areObjectIdsEquals(ch.company, uh.user.company) &&
-                UtilsHelper.areObjectIdsEquals(ch.holding, uh.holding._id)
-              )
-            );
+            .every(uh => UtilsHelper.doesArrayIncludeId(uh.holding.companies, uh.user.company));
           expect(isUserCompanyLinkedToHolding).toBeTruthy();
         });
 
