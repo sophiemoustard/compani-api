@@ -1558,18 +1558,26 @@ describe('createUser', () => {
     const newUser = { ...payload, _id: userId };
 
     userCreate.returns(newUser);
+    userFindOne.returns(SinonMongoose.stubChainedQueries(newUser));
 
     const result = await UsersHelper.createUser(payload, { company: { _id: credentialsCompanyId } });
 
     expect(result).toEqual(newUser);
     sinon.assert.notCalled(createHistoryStub);
     sinon.assert.notCalled(roleFindById);
-    sinon.assert.notCalled(userFindOne);
     sinon.assert.calledOnceWithExactly(
       userCompanyCreate,
       { user: userId, company: userCompanyId, startDate: '2022-12-13T16:00:12.000Z' }
     );
     sinon.assert.calledOnceWithExactly(userCreate, { ...payload, refreshToken: sinon.match.string });
+    SinonMongoose.calledOnceWithExactly(
+      userFindOne,
+      [
+        { query: 'findOne', args: [{ _id: userId }] },
+        { query: 'populate', args: [{ path: 'sector', select: '_id sector', match: { company: payload.company } }] },
+        { query: 'lean', args: [{ virtuals: true, autopopulate: true }] },
+      ]
+    );
   });
 
   it('should return a 400 error if role does not exist', async () => {

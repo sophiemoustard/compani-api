@@ -825,7 +825,7 @@ module.exports = {
     /* UserCompanies */
     userCompanyNotFound: 'Impossible de mettre à jour les informations liées à la structure de cet(te) apprenant(e).',
     userCompanyUpdated: 'Informations sur la structure de l\'apprenant(e) mises à jour.',
-    userCompanyCreated: 'Apprenant rattaché à une structure.',
+    userCompanyCreated: 'Utilisateur rattaché à une structure.',
     userDetachmentBeforeLastSubscription: 'Vous ne pouvez pas détacher cette personne avant le {DATE}.',
     userCompanyDetachmentBeforeAttachment: 'La date de détachement de l\'utilisateur ne peut être antérieure à son '
       + 'rattachement.',

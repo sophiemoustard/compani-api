@@ -35,7 +35,6 @@ const {
   sectorHistories,
   establishmentList,
   auxiliaryFromOtherCompany,
-  traineeWhoLeftCompanyWithoutSubscription,
   coachFromOtherCompany,
 } = require('./seed/usersSeed');
 const { getToken, getTokenByCredentials } = require('./helpers/authentication');

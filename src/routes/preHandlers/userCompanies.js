@@ -28,10 +28,10 @@ exports.authorizeUserCompanyCreation = async (req) => {
   const loggedUserCompany = get(credentials, 'company._id');
 
   const userExists = await User.countDocuments({ _id: payload.user });
-  if (!userExists) throw Boom.forbidden();
+  if (!userExists) throw Boom.notFound();
 
   const companyExists = await Company.countDocuments({ _id: payload.company });
-  if (!companyExists) throw Boom.forbidden();
+  if (!companyExists) throw Boom.notFound();
 
   if (!loggedUserVendorRole) {
     const sameCompany = UtilsHelper.areObjectIdsEquals(get(req.payload, 'company'), loggedUserCompany);
@@ -66,7 +66,7 @@ exports.authorizeUserCompanyEdit = async (req) => {
   if (!isRofOrAdmin && !isSameCompany) throw Boom.forbidden('Error: user is not from right company.');
 
   const userExists = await User.countDocuments({ _id: user, role: { $exists: false } });
-  if (!userExists) throw Boom.forbidden('Error while checking user: user not found.');
+  if (!userExists) throw Boom.notFound();
 
   if (CompaniDate(payload.endDate).isBefore(startDate)) {
     throw Boom.forbidden(translate[language].userCompanyDetachmentBeforeAttachment);

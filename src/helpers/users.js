@@ -344,7 +344,6 @@ exports.createUser = async (userPayload, credentials) => {
     company: companyId,
     ...(payload.userCompanyStartDate && { startDate: payload.userCompanyStartDate }),
   });
-  if (!userPayload.role) return user;
 
   if (userPayload.customer) await HelpersHelper.create(user._id, userPayload.customer, companyId);
 
