@@ -2458,6 +2458,7 @@ describe('getCourseFollowUp', () => {
   });
 
   it('should return course follow up', async () => {
+    const credentials = { role: { vendor: { _id: new ObjectId() } } };
     const companyId = new ObjectId();
     const course = {
       _id: '1234567890',
@@ -2474,7 +2475,7 @@ describe('getCourseFollowUp', () => {
     getTraineesWithElearningProgress.returns([
       { _id: '123213123', steps: { progress: 1 }, progress: 1, company: companyId },
     ]);
-    const result = await CourseHelper.getCourseFollowUp(course._id);
+    const result = await CourseHelper.getCourseFollowUp(course._id, {}, credentials);
 
     expect(result).toEqual({
       _id: '1234567890',
@@ -2533,6 +2534,7 @@ describe('getCourseFollowUp', () => {
 
   it('should return blended course follow up from company', async () => {
     const companyId = new ObjectId();
+    const credentials = { role: { client: { _id: new ObjectId() } }, company: companyId };
     const course = {
       _id: '1234567890',
       subProgram: { name: 'je suis un sous programme', steps: [{ _id: 'abc' }, { _id: 'def' }, { _id: 'ghi' }] },
@@ -2551,7 +2553,7 @@ describe('getCourseFollowUp', () => {
       [{ trainee: '123213123', company: companyId }, { trainee: '123213342', company: new ObjectId() }]
     );
 
-    const result = await CourseHelper.getCourseFollowUp(course._id, companyId);
+    const result = await CourseHelper.getCourseFollowUp(course._id, { company: companyId }, credentials);
 
     expect(result).toEqual({
       _id: '1234567890',
@@ -2612,8 +2614,109 @@ describe('getCourseFollowUp', () => {
     );
   });
 
+  it('should return blended course follow up from holding', async () => {
+    const companyId = new ObjectId();
+    const otherCompanyId = new ObjectId();
+    const holdingId = new ObjectId();
+    const credentials = {
+      role: { holding: { _id: new ObjectId() } },
+      holding: { _id: holdingId, companies: [companyId, otherCompanyId] },
+    };
+
+    const course = {
+      _id: '1234567890',
+      subProgram: { name: 'je suis un sous programme', steps: [{ _id: 'abc' }, { _id: 'def' }, { _id: 'ghi' }] },
+      trainees: [{ _id: '123213123' }, { _id: '123213342' }, { _id: '123213346' }],
+      slots: [{ _id: '123456789' }],
+    };
+    const trainees = [1, 2, 3, 4, 5];
+
+    findOne.onCall(0).returns(SinonMongoose.stubChainedQueries({ trainees, format: BLENDED }, ['lean']));
+    findOne.onCall(1).returns(SinonMongoose.stubChainedQueries(course));
+    formatStep.callsFake(s => s);
+    getTraineesWithElearningProgress.returns([
+      { _id: '123213123', steps: { progress: 1 }, progress: 1, company: companyId },
+      { _id: '123213346', steps: { progress: 1 }, progress: 1, company: otherCompanyId },
+    ]);
+    getCompanyAtCourseRegistrationList.returns(
+      [
+        { trainee: '123213123', company: companyId },
+        { trainee: '123213342', company: new ObjectId() },
+        { trainee: '123213346', company: otherCompanyId },
+      ]
+    );
+
+    const result = await CourseHelper.getCourseFollowUp(course._id, { holding: holdingId }, credentials);
+
+    expect(result).toEqual({
+      _id: '1234567890',
+      subProgram: { name: 'je suis un sous programme', steps: [{ _id: 'abc' }, { _id: 'def' }, { _id: 'ghi' }] },
+      trainees: [
+        { _id: '123213123', steps: { progress: 1 }, progress: 1, company: companyId },
+        { _id: '123213346', steps: { progress: 1 }, progress: 1, company: otherCompanyId },
+      ],
+      slots: [{ _id: '123456789' }],
+    });
+
+    SinonMongoose.calledWithExactly(
+      findOne,
+      [{ query: 'findOne', args: [{ _id: course._id }, { trainees: 1, format: 1 }] }, { query: 'lean' }],
+      0
+    );
+    SinonMongoose.calledWithExactly(
+      findOne,
+      [
+        { query: 'findOne', args: [{ _id: course._id }, { subProgram: 1 }] },
+        {
+          query: 'populate',
+          args: [{
+            path: 'subProgram',
+            select: 'name steps program',
+            populate: [
+              { path: 'program', select: 'name' },
+              {
+                path: 'steps',
+                select: 'name activities type',
+                populate: {
+                  path: 'activities',
+                  select: 'name type',
+                  populate: {
+                    path: 'activityHistories',
+                    match: { user: { $in: trainees } },
+                    populate: { path: 'questionnaireAnswersList.card', select: '-createdAt -updatedAt' },
+                  },
+                },
+              },
+            ],
+          }],
+        },
+        {
+          query: 'populate',
+          args: [{
+            path: 'trainees',
+            select: 'identity.firstname identity.lastname firstMobileConnection',
+            populate: { path: 'company' },
+          }],
+        },
+        { query: 'lean' },
+      ],
+      1
+    );
+    sinon.assert.calledOnceWithExactly(
+      getTraineesWithElearningProgress,
+      [course.trainees[0], course.trainees[2]],
+      course.subProgram.steps
+    );
+    sinon.assert.calledOnceWithExactly(
+      getCompanyAtCourseRegistrationList,
+      { key: COURSE, value: course._id },
+      { key: TRAINEE, value: ['123213123', '123213342', '123213346'] }
+    );
+  });
+
   it('should return elearning course follow up from company', async () => {
     const companyId = new ObjectId();
+    const credentials = { role: { client: { _id: new ObjectId() } }, company: companyId };
     const course = {
       _id: '1234567890',
       subProgram: { name: 'je suis un sous programme', steps: [{ _id: 'abc' }, { _id: 'def' }, { _id: 'ghi' }] },
@@ -2628,7 +2731,7 @@ describe('getCourseFollowUp', () => {
       { _id: '123213123', steps: { progress: 1 }, progress: 1, company: companyId },
     ]);
 
-    const result = await CourseHelper.getCourseFollowUp(course._id, companyId);
+    const result = await CourseHelper.getCourseFollowUp(course._id, { company: companyId }, credentials);
 
     expect(result).toEqual({
       _id: '1234567890',

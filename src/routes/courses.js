@@ -142,7 +142,7 @@ exports.plugin = {
       options: {
         validate: {
           params: Joi.object({ _id: Joi.objectId().required() }),
-          query: Joi.object({ company: Joi.objectId() }),
+          query: Joi.object({ company: Joi.objectId(), holding: Joi.objectId() }).oxor('company', 'holding'),
         },
         auth: { scope: ['courses:read'] },
         pre: [{ method: authorizeGetCourse }, { method: authorizeGetFollowUp }],

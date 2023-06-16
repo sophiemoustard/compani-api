@@ -413,7 +413,10 @@ exports.formatActivity = (activity) => {
 
 exports.formatStep = step => ({ ...step, activities: step.activities.map(a => exports.formatActivity(a)) });
 
-exports.getCourseFollowUp = async (course, company) => {
+exports.getCourseFollowUp = async (course, query, credentials) => {
+  const companies = [];
+  if (query.company) companies.push(query.company);
+  if (query.holding) companies.push(...credentials.holding.companies);
   const courseWithTrainees = await Course.findOne({ _id: course }, { trainees: 1, format: 1 }).lean();
 
   const courseFollowUp = await Course.findOne({ _id: course }, { subProgram: 1 })
@@ -445,16 +448,16 @@ exports.getCourseFollowUp = async (course, company) => {
     .lean();
 
   let filteredTrainees = [];
-  if (!company) filteredTrainees = courseFollowUp.trainees;
+  if (!companies.length) filteredTrainees = courseFollowUp.trainees;
   else if (courseWithTrainees.format === STRICTLY_E_LEARNING) {
-    filteredTrainees = courseFollowUp.trainees.filter(t => UtilsHelper.areObjectIdsEquals(t.company, company));
+    filteredTrainees = courseFollowUp.trainees.filter(t => UtilsHelper.doesArrayIncludeId(companies, t.company));
   } else {
     const traineesCompanyAtCourseRegistration = await CourseHistoriesHelper.getCompanyAtCourseRegistrationList(
       { key: COURSE, value: course }, { key: TRAINEE, value: courseFollowUp.trainees.map(t => t._id) }
     );
     const traineesCompany = mapValues(keyBy(traineesCompanyAtCourseRegistration, 'trainee'), 'company');
     filteredTrainees = courseFollowUp.trainees
-      .filter(trainee => UtilsHelper.areObjectIdsEquals(traineesCompany[trainee._id], company));
+      .filter(trainee => UtilsHelper.doesArrayIncludeId(companies, traineesCompany[trainee._id]));
   }
 
   return {

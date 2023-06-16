@@ -402,10 +402,13 @@ exports.authorizeAccessRuleDeletion = async (req) => {
 exports.authorizeGetFollowUp = async (req) => {
   const credentials = get(req, 'auth.credentials');
   const loggedUserVendorRole = get(credentials, 'role.vendor.name');
-  const companyQueryIsValid = !!req.query.company &&
+  const isClientAndAuthorized = !!req.query.company &&
     UtilsHelper.areObjectIdsEquals(get(credentials, 'company._id'), req.query.company);
 
-  if (!loggedUserVendorRole && !companyQueryIsValid) throw Boom.forbidden();
+  const isHoldingAndAuthorized = !!req.query.holding &&
+    UtilsHelper.areObjectIdsEquals(get(credentials, 'holding._id'), req.query.holding);
+
+  if (!loggedUserVendorRole && !isClientAndAuthorized && !isHoldingAndAuthorized) throw Boom.forbidden();
 
   return null;
 };

@@ -1044,6 +1044,43 @@ describe('COURSES ROUTES - GET /courses/{_id}/follow-up', () => {
     });
   });
 
+  describe('HOLDING_ADMIN', () => {
+    beforeEach(async () => {
+      authToken = await getTokenByCredentials(holdingAdminFromOtherCompany.local);
+    });
+
+    it('should get course with follow up', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/courses/${coursesList[7]._id.toHexString()}/follow-up?holding=${otherHolding._id.toHexString()}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(200);
+    });
+
+    it('should return 400 if holding and company in query', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/courses/${coursesList[4]._id.toHexString()}/follow-up?holding=${otherHolding._id.toHexString()}`
+          + `&company=${otherCompany._id.toHexString()}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
+
+    it('should return 403 if user holding is not query holding', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/courses/${coursesList[7]._id.toHexString()}/follow-up?holding=${authHolding._id.toHexString()}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
+  });
+
   describe('TRAINER', () => {
     beforeEach(async () => {
       authToken = await getToken('trainer');
