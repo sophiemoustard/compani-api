@@ -38,16 +38,17 @@ const { language } = translate;
 exports.checkAuthorization = (credentials, courseTrainerId, companies) => {
   const userVendorRole = get(credentials, 'role.vendor.name');
   const userClientRole = get(credentials, 'role.client.name');
-  const userCompanyId = credentials.company ? credentials.company._id.toHexString() : null;
   const userId = get(credentials, '_id');
-  const areCompaniesMatching = UtilsHelper.doesArrayIncludeId(companies, userCompanyId);
 
   const isAdminVendor = userVendorRole === VENDOR_ADMIN;
   const isTOM = userVendorRole === TRAINING_ORGANISATION_MANAGER;
   const isTrainerAndAuthorized = userVendorRole === TRAINER && UtilsHelper.areObjectIdsEquals(userId, courseTrainerId);
-  const isClientAndAuthorized = [CLIENT_ADMIN, COACH].includes(userClientRole) && userCompanyId && areCompaniesMatching;
+  const isClientOrHoldingAndAuthorized = [CLIENT_ADMIN, COACH].includes(userClientRole) &&
+    companies.some(company => UtilsHelper.hasUserAccessToCompany(credentials, company));
 
-  if (!isAdminVendor && !isTOM && !isTrainerAndAuthorized && !isClientAndAuthorized) throw Boom.forbidden();
+  if (!isAdminVendor && !isTOM && !isTrainerAndAuthorized && !isClientOrHoldingAndAuthorized) {
+    throw Boom.forbidden();
+  }
 };
 
 exports.checkSalesRepresentativeExists = async (req) => {
@@ -337,7 +338,6 @@ exports.authorizeGetCourse = async (req) => {
     const userCompany = get(credentials, 'company._id');
     const userVendorRole = get(credentials, 'role.vendor.name');
     const userClientRole = get(credentials, 'role.client.name');
-    const userHoldingRole = get(credentials, 'role.holding.name');
 
     const course = await Course
       .findOne({ _id: req.params._id }, { trainer: 1, format: 1, trainees: 1, companies: 1, accessRules: 1 })
@@ -363,12 +363,9 @@ exports.authorizeGetCourse = async (req) => {
     if (course.format === STRICTLY_E_LEARNING && !companyHasAccess) throw Boom.forbidden();
 
     if (course.format === BLENDED) {
-      const clientUserHasAccess = UtilsHelper.doesArrayIncludeId(course.companies, userCompany);
-      let holdingUserHasAccess = false;
-      if (userHoldingRole) {
-        holdingUserHasAccess = UtilsHelper.doIdsArraysIntersect(course.companies, credentials.holding.companies);
-      }
-      if (!clientUserHasAccess && !holdingUserHasAccess) throw Boom.forbidden();
+      const clientUserHasAccess = course.companies
+        .some(company => UtilsHelper.hasUserAccessToCompany(credentials, company));
+      if (!clientUserHasAccess) throw Boom.forbidden();
     }
 
     return null;
