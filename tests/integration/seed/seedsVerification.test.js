@@ -5,6 +5,7 @@ const ActivityHistory = require('../../../src/models/ActivityHistory');
 const Attendance = require('../../../src/models/Attendance');
 const AttendanceSheet = require('../../../src/models/AttendanceSheet');
 const Card = require('../../../src/models/Card');
+const CompanyHolding = require('../../../src/models/CompanyHolding');
 const CompanyLinkRequest = require('../../../src/models/CompanyLinkRequest');
 const Contract = require('../../../src/models/Contract');
 const Course = require('../../../src/models/Course');
@@ -18,6 +19,7 @@ const Step = require('../../../src/models/Step');
 const SubProgram = require('../../../src/models/SubProgram');
 const User = require('../../../src/models/User');
 const UserCompany = require('../../../src/models/UserCompany');
+const UserHolding = require('../../../src/models/UserHolding');
 const { ascendingSort } = require('../../../src/helpers/dates');
 const { CompaniDate } = require('../../../src/helpers/dates/companiDates');
 const { CompaniDuration } = require('../../../src/helpers/dates/companiDurations');
@@ -64,6 +66,7 @@ const {
   ON_SITE,
   REMOTE,
   DAY,
+  HOLDING_ADMIN,
 } = require('../../../src/helpers/constants');
 const attendancesSeed = require('./attendancesSeed');
 const activitiesSeed = require('./activitiesSeed');
@@ -73,6 +76,7 @@ const cardsSeed = require('./cardsSeed');
 const coursesSeed = require('./coursesSeed');
 const courseHistoriesSeed = require('./courseHistoriesSeed');
 const courseSlotsSeed = require('./courseSlotsSeed');
+const holdingsSeed = require('./holdingsSeed');
 const programsSeed = require('./programsSeed');
 const questionnaireHistoriesSeed = require('./questionnaireHistoriesSeed');
 const stepsSeed = require('./stepsSeed');
@@ -89,6 +93,7 @@ const seedList = [
   { label: 'COURSE', value: coursesSeed },
   { label: 'COURSEHISTORY', value: courseHistoriesSeed },
   { label: 'COURSESLOT', value: courseSlotsSeed },
+  { label: 'HOLDING', value: holdingsSeed },
   { label: 'PROGRAM', value: programsSeed },
   { label: 'QUESTIONNAIREHISTORY', value: questionnaireHistoriesSeed },
   { label: 'STEP', value: stepsSeed },
@@ -179,8 +184,9 @@ describe('SEEDS VERIFICATION', () => {
           const everyUserIsRegisteredToCourse = activityHistoryList
             .every(ah => groupedStepsByActivity[ah.activity._id]
               .some(step => groupedSubProgramsByStep[step._id]
-                .some(subProgram => groupedCoursesBySubProgram[subProgram._id]
-                  .some(course => UtilsHelper.doesArrayIncludeId(course.trainees, ah.user._id))
+                .some(subProgram => !!groupedCoursesBySubProgram[subProgram._id] &&
+                    groupedCoursesBySubProgram[subProgram._id]
+                      .some(course => UtilsHelper.doesArrayIncludeId(course.trainees, ah.user._id))
                 )
               )
             );
@@ -472,6 +478,35 @@ describe('SEEDS VERIFICATION', () => {
             .some(card => has(card, 'label') && !(has(card, 'label.left') && has(card, 'label.right')));
 
           expect(someSubKeysAreMissing).toBeFalsy();
+        });
+      });
+
+      describe('Collection CompanyHolding', () => {
+        let companyHoldingList;
+        before(async () => {
+          companyHoldingList = await CompanyHolding
+            .find()
+            .populate({ path: 'holding', select: '_id' })
+            .populate({ path: 'company', select: '_id' })
+            .lean();
+        });
+
+        it('should pass if every company exists', () => {
+          const companiesExist = companyHoldingList.map(ch => ch.company).every(company => !!company);
+          expect(companiesExist).toBeTruthy();
+        });
+
+        it('should pass if every holding exists', () => {
+          const holdingsExist = companyHoldingList.map(ch => ch.holding).every(holding => !!holding);
+          expect(holdingsExist).toBeTruthy();
+        });
+
+        it('should pass if every company is linked to a single holding', () => {
+          const companyIsLinkedToManyHoldings = companyHoldingList
+            .some(companyHolding => companyHoldingList
+              .filter(ch => UtilsHelper.areObjectIdsEquals(companyHolding.company._id, ch.company._id)).length > 1
+            );
+          expect(companyIsLinkedToManyHoldings).toBeFalsy();
         });
       });
 
@@ -1356,6 +1391,57 @@ describe('SEEDS VERIFICATION', () => {
             }
           }
           expect(hasIntersectionInUserCompanies).toBeFalsy();
+        });
+      });
+
+      describe('Collection UserHolding', () => {
+        let userHoldingList;
+        before(async () => {
+          userHoldingList = await UserHolding
+            .find()
+            .populate({
+              path: 'user',
+              select: '_id role',
+              populate: [
+                { path: 'company' },
+                { path: 'role.client', select: 'name' },
+                { path: 'role.holding', select: 'name' },
+              ],
+            })
+            .populate({ path: 'holding', select: '_id', populate: { path: 'companies' } })
+            .lean();
+        });
+
+        it('should pass if every user exists', () => {
+          const usersExist = userHoldingList.map(uh => uh.user).every(user => !!user);
+          expect(usersExist).toBeTruthy();
+        });
+
+        it('should pass if every holding exists', () => {
+          const holdingsExist = userHoldingList.map(uh => uh.holding).every(holding => !!holding);
+          expect(holdingsExist).toBeTruthy();
+        });
+
+        it('should pass if every user is linked to a single holding', () => {
+          const isUserLinkedToManyHoldings = userHoldingList
+            .some(userHolding => userHoldingList
+              .filter(uh => UtilsHelper.areObjectIdsEquals(userHolding.user._id, uh.user._id)).length > 1
+            );
+          expect(isUserLinkedToManyHoldings).toBeFalsy();
+        });
+
+        it('should pass if every user company is linked to holding', async () => {
+          const isUserCompanyLinkedToHolding = userHoldingList
+            .every(uh => UtilsHelper.doesArrayIncludeId(uh.holding.companies, uh.user.company));
+          expect(isUserCompanyLinkedToHolding).toBeTruthy();
+        });
+
+        it('should pass if every user has holding and client role', () => {
+          const everyUserHasGoodRoles = userHoldingList
+            .every(u => [COACH, CLIENT_ADMIN].includes(get(u.user, 'role.client.name')) &&
+              get(u.user, 'role.holding.name') === HOLDING_ADMIN);
+
+          expect(everyUserHasGoodRoles).toBeTruthy();
         });
       });
     });
