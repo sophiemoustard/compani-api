@@ -375,7 +375,7 @@ const getCourseForOperations = async (courseId, credentials, origin) => {
     trainees: get(credentials, 'role.vendor')
       ? courseTrainees
       : courseTrainees.filter(t => UtilsHelper
-        .areObjectIdsEquals(get(t, isBlended ? 'registrationCompany' : 'company'), get(credentials, 'company._id'))),
+        .hasUserAccessToCompany(credentials, get(t, isBlended ? 'registrationCompany' : 'company'))),
   };
 };
 
