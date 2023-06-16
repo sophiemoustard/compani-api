@@ -439,7 +439,7 @@ describe('COURSE SLOTS ROUTES - PUT /courseslots/{_id}', () => {
       expect(response.statusCode).toBe(200);
     });
 
-    it('should return 200 as user is holding admin and course company is in holding', async () => {
+    it('should return 403 as user is holding admin and course company is not in holding', async () => {
       authToken = await getTokenByCredentials(holdingAdminFromOtherCompany.local);
       const payload = { startDate: '2020-03-04T09:00:00.000Z', endDate: '2020-03-04T11:00:00.000Z' };
       const response = await app.inject({
