@@ -25,10 +25,9 @@ const listUnsubscribed = async (req) => {
     req.log('attendanceController - listUnsubscribed - query', req.query);
     req.log('attendanceController - listUnsubscribed - company', get(req, 'auth.credentials.company._id'));
 
-    const { course, trainee } = req.query;
-    const unsubscribedAttendances = course
-      ? await AttendanceHelper.listUnsubscribed(course, req.query, req.auth.credentials)
-      : await AttendanceHelper.getTraineeUnsubscribedAttendances(trainee, req.auth.credentials);
+    const unsubscribedAttendances = req.query.course
+      ? await AttendanceHelper.listUnsubscribed(req.query, req.auth.credentials)
+      : await AttendanceHelper.getTraineeUnsubscribedAttendances(req.query.trainee, req.auth.credentials);
 
     return {
       message: unsubscribedAttendances.length

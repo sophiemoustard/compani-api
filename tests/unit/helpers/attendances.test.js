@@ -392,7 +392,7 @@ describe('listUnsubscribed', () => {
     courseFindOne.returns(SinonMongoose.stubChainedQueries(course));
     courseFind.returns(SinonMongoose.stubChainedQueries(courseWithSameSubProgramList));
 
-    const result = await AttendanceHelper.listUnsubscribed(courseId, { company: companyId }, credentials);
+    const result = await AttendanceHelper.listUnsubscribed({ course: courseId, company: companyId }, credentials);
 
     expect(result).toMatchObject({
       [userId]: [
@@ -508,7 +508,7 @@ describe('listUnsubscribed', () => {
     courseFindOne.returns(SinonMongoose.stubChainedQueries(course));
     courseFind.returns(SinonMongoose.stubChainedQueries(courseWithSameSubProgramList));
 
-    const result = await AttendanceHelper.listUnsubscribed(courseId, { holding: holdingId }, credentials);
+    const result = await AttendanceHelper.listUnsubscribed({ course: courseId, holding: holdingId }, credentials);
 
     expect(result).toMatchObject({
       [userId]: [
@@ -622,7 +622,7 @@ describe('listUnsubscribed', () => {
     courseFindOne.returns(SinonMongoose.stubChainedQueries(course));
     courseFind.returns(SinonMongoose.stubChainedQueries(courseWithSameSubProgramList));
 
-    const result = await AttendanceHelper.listUnsubscribed(courseId, {}, credentials);
+    const result = await AttendanceHelper.listUnsubscribed({ course: courseId }, credentials);
 
     expect(result).toMatchObject({
       [userId]: [

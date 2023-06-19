@@ -64,21 +64,15 @@ exports.list = async (query, company, credentials) => Attendance
   .setOptions({ isVendorUser: VENDOR_ROLES.includes(get(credentials, 'role.vendor.name')) })
   .lean();
 
-const formatCourseWithAttendances = (course, specificCourseTrainees, specificCourseCompanies) =>
+const formatAttendances = (course, specificCourseTrainees) =>
   course.slots.map((slot) => {
     const { attendances } = slot;
     if (!attendances) return {};
 
     return attendances
-      .filter((a) => {
-        const isTraineeOnlySubscribedToSpecificCourse =
-          UtilsHelper.doesArrayIncludeId(specificCourseTrainees, a.trainee._id) &&
-          !UtilsHelper.doesArrayIncludeId(course.trainees, a.trainee._id);
-        const isAttendanceFromSpecificCompanies = !specificCourseCompanies.length ||
-          UtilsHelper.doesArrayIncludeId(specificCourseCompanies, a.company);
-
-        return isTraineeOnlySubscribedToSpecificCourse && isAttendanceFromSpecificCompanies;
-      }).map(a => ({
+      .filter(a => UtilsHelper.doesArrayIncludeId(specificCourseTrainees, a.trainee._id) &&
+          !UtilsHelper.doesArrayIncludeId(course.trainees, a.trainee._id))
+      .map(a => ({
         trainee: a.trainee,
         courseSlot: pick(slot, ['step', 'startDate', 'endDate']),
         misc: course.misc,
@@ -86,7 +80,8 @@ const formatCourseWithAttendances = (course, specificCourseTrainees, specificCou
       }));
   });
 
-exports.listUnsubscribed = async (courseId, query, credentials) => {
+exports.listUnsubscribed = async (query, credentials) => {
+  const courseId = query.course;
   const companies = [];
   if (query.company) companies.push(query.company);
   if (query.holding) companies.push(...credentials.holding.companies);
@@ -111,8 +106,7 @@ exports.listUnsubscribed = async (courseId, query, credentials) => {
     .populate({ path: 'trainer', select: 'identity' })
     .lean();
 
-  const unsubscribedAttendances = coursesWithSameProgram
-    .map(c => formatCourseWithAttendances(c, course.trainees, companies));
+  const unsubscribedAttendances = coursesWithSameProgram.map(c => formatAttendances(c, course.trainees));
 
   return groupBy(unsubscribedAttendances.flat(3), 'trainee._id');
 };
