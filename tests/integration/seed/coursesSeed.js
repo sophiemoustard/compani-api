@@ -43,7 +43,7 @@ const {
   BLENDED,
   TRAINEE_ADDITION,
 } = require('../../../src/helpers/constants');
-const { auxiliaryRoleId, trainerRoleId, coachRoleId } = require('../../seed/authRolesSeed');
+const { auxiliaryRoleId, trainerRoleId, coachRoleId, clientAdminRoleId } = require('../../seed/authRolesSeed');
 const { CompaniDate } = require('../../../src/helpers/dates/companiDates');
 
 const traineeFromAuthFormerlyInOther = {
@@ -111,6 +111,24 @@ const traineeFromThirdCompany = {
   refreshToken: uuidv4(),
   origin: WEBAPP,
 };
+const coachFromThirdCompany = {
+  _id: new ObjectId(),
+  identity: { firstname: 'Manon', lastname: 'Subscription' },
+  local: { email: 'coach_third_company@alenvi.io', password: '123456!eR' },
+  role: { client: coachRoleId },
+  contact: { phone: '0734856752' },
+  refreshToken: uuidv4(),
+  origin: WEBAPP,
+};
+const clientAdminFromThirdCompany = {
+  _id: new ObjectId(),
+  identity: { firstname: 'Sophie', lastname: 'Subscription' },
+  local: { email: 'admin_third_company@alenvi.io', password: '123456!eR' },
+  role: { client: clientAdminRoleId },
+  contact: { phone: '0734856752' },
+  refreshToken: uuidv4(),
+  origin: WEBAPP,
+};
 
 const contactWithoutPhone = {
   _id: new ObjectId(),
@@ -138,6 +156,8 @@ const userList = [
   contactWithoutPhone,
   coachFromOtherCompany,
   traineeFromThirdCompany,
+  coachFromThirdCompany,
+  clientAdminFromThirdCompany,
   traineeFormerlyInAuthCompany,
   traineeComingUpInAuthCompany,
   traineeFromAuthFormerlyInOther,
@@ -213,6 +233,18 @@ const userCompanies = [
     user: traineeFormerlyInAuthCompany._id,
     company: otherCompany._id,
     startDate: '2022-01-01T10:00:00.000Z',
+  },
+  { // 11
+    _id: new ObjectId(),
+    user: coachFromThirdCompany._id,
+    company: thirdCompany._id,
+    startDate: '2020-01-01T10:00:00.000Z',
+  },
+  { // 12
+    _id: new ObjectId(),
+    user: clientAdminFromThirdCompany._id,
+    company: thirdCompany._id,
+    startDate: '2020-01-01T10:00:00.000Z',
   },
 ];
 
@@ -501,6 +533,20 @@ const coursesList = [
     companies: [authCompany._id, thirdCompany._id, otherCompany._id],
     trainer: trainer._id,
     salesRepresentative: vendorAdmin._id,
+  },
+  { // 20 third company course
+    _id: new ObjectId(),
+    subProgram: subProgramsList[0]._id,
+    contact: coachFromThirdCompany._id,
+    misc: 'team formation',
+    trainer: trainerAndCoach._id,
+    trainees: [traineeFromThirdCompany._id],
+    companies: [thirdCompany._id],
+    type: INTRA,
+    maxTrainees: 8,
+    salesRepresentative: vendorAdmin._id,
+    companyRepresentative: coachFromThirdCompany._id,
+    expectedBillsCount: 2,
   },
 ];
 
@@ -1054,4 +1100,5 @@ module.exports = {
   traineeFormerlyInAuthCompany,
   traineeComingUpInAuthCompany,
   traineeFromAuthFormerlyInOther,
+  clientAdminFromThirdCompany,
 };

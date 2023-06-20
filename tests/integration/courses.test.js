@@ -37,6 +37,7 @@ const {
   traineeFormerlyInAuthCompany,
   traineeComingUpInAuthCompany,
   traineeFromAuthFormerlyInOther,
+  clientAdminFromThirdCompany,
 } = require('./seed/coursesSeed');
 const { getToken, getTokenByCredentials } = require('./helpers/authentication');
 const {
@@ -413,7 +414,7 @@ describe('COURSES ROUTES - GET /courses', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      expect(response.result.data.courses.length).toEqual(14);
+      expect(response.result.data.courses.length).toEqual(15);
     });
 
     it('should get blended archived courses (ops webapp)', async () => {
@@ -610,7 +611,7 @@ describe('COURSES ROUTES - GET /courses', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      expect(response.result.data.courses.length).toEqual(7);
+      expect(response.result.data.courses.length).toEqual(8);
     });
 
     it('should return 200 if coach and same company (pedagogy webapp)', async () => {
@@ -1850,6 +1851,21 @@ describe('COURSES ROUTES - PUT /courses/{_id}', () => {
 
       expect(response.statusCode).toBe(403);
     });
+
+    it(
+      'should return 200 if holding admin try to update contact and company representative which is contact',
+      async () => {
+        authToken = await getTokenByCredentials(holdingAdminFromOtherCompany.local);
+
+        const response = await app.inject({
+          method: 'PUT',
+          url: `/courses/${coursesList[20]._id}`,
+          headers: { Cookie: `alenvi_token=${authToken}` },
+          payload: { contact: clientAdminFromThirdCompany._id, companyRepresentative: clientAdminFromThirdCompany._id },
+        });
+
+        expect(response.statusCode).toBe(200);
+      });
 
     it('should return 200 if coach try to update contact and company representative which is contact', async () => {
       authToken = await getToken('coach');

@@ -237,7 +237,6 @@ exports.authorizeUserCreation = async (req) => {
 
 exports.authorizeUsersGet = async (req) => {
   const { auth, query } = req;
-  const userCompanyId = get(auth, 'credentials.company._id', null);
   const queryCompanyId = query.company;
   const vendorRole = get(req, 'auth.credentials.role.vendor.name');
   const clientRole = get(req, 'auth.credentials.role.client.name');
@@ -248,7 +247,7 @@ exports.authorizeUsersGet = async (req) => {
   }
 
   if (!vendorRole && !queryCompanyId) throw Boom.forbidden();
-  if (!vendorRole && !UtilsHelper.areObjectIdsEquals(queryCompanyId, userCompanyId)) throw Boom.forbidden();
+  if (!vendorRole && !UtilsHelper.hasUserAccessToCompany(auth.credentials, queryCompanyId)) throw Boom.forbidden();
   if (!clientRole && ![TRAINING_ORGANISATION_MANAGER, VENDOR_ADMIN].includes(vendorRole)) throw Boom.forbidden();
   if (query.holding) {
     if (![TRAINING_ORGANISATION_MANAGER, VENDOR_ADMIN].includes(vendorRole)) throw Boom.forbidden();

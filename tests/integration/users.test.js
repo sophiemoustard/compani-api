@@ -542,6 +542,34 @@ describe('USERS ROUTES - GET /users', () => {
     });
   });
 
+  describe('HOLDING_ADMIN', () => {
+    beforeEach(async () => {
+      authToken = await getTokenByCredentials(holdingAdminFromAuthCompany.local);
+    });
+
+    it('should get all coachs users (company A), role as a string', async () => {
+      const res = await app.inject({
+        method: 'GET',
+        url: `/users?company=${authCompany._id}&role=coach`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(res.statusCode).toBe(200);
+      expect(res.result.data.users.length).toBe(4);
+      expect(res.result.data.users.every(u => get(u, 'role.client.name') === COACH)).toBeTruthy();
+    });
+
+    it('should return a 403 if company is not in holding and does not have a vendor role', async () => {
+      const res = await app.inject({
+        method: 'GET',
+        url: `/users?company=${otherCompany._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(res.statusCode).toBe(403);
+    });
+  });
+
   describe('TRAINING_ORGANISATION_MANAGER', () => {
     beforeEach(async () => {
       authToken = await getToken('training_organisation_manager');
