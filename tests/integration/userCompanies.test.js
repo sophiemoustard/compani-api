@@ -94,7 +94,7 @@ describe('USER COMPANIES ROUTES - POST /usercompanies', () => {
       expect(res.result.message).toBe('Ce compte est déjà rattaché à une structure.');
     });
 
-    it('should return good message if try to link user with 1 inactive company with wrong start date', async () => {
+    it('should return good message if start date is before previous user company end date', async () => {
       const payload = { user: usersSeedList[7]._id, company: authCompany._id, startDate: '2021-10-19T23:00:00.000Z' };
 
       const res = await app.inject({

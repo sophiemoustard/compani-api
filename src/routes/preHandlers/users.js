@@ -74,12 +74,12 @@ exports.authorizeUserUpdate = async (req) => {
     .lean();
   if (!userFromDB) throw Boom.notFound(translate[language].userNotFound);
 
+  if (trainerUpdatesForbiddenKeys(req, userFromDB)) throw Boom.forbidden();
+
   const loggedUserVendorRole = get(credentials, 'role.vendor.name');
   const loggedUserClientRole = get(credentials, 'role.client.name');
   const loggedUserCompany = get(credentials, 'company._id') || '';
-
   const updatingOwnInfos = UtilsHelper.areObjectIdsEquals(credentials._id, userFromDB._id);
-  if (trainerUpdatesForbiddenKeys(req, userFromDB)) throw Boom.forbidden();
 
   if (!loggedUserVendorRole && !updatingOwnInfos) {
     const isOrWillBeInCompany = UserCompaniesHelper

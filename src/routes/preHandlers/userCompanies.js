@@ -34,7 +34,7 @@ exports.authorizeUserCompanyCreation = async (req) => {
   if (!companyExists) throw Boom.notFound();
 
   if (!loggedUserVendorRole) {
-    const sameCompany = UtilsHelper.areObjectIdsEquals(get(req.payload, 'company'), loggedUserCompany);
+    const sameCompany = UtilsHelper.areObjectIdsEquals(payload.company, loggedUserCompany);
     if (!sameCompany) throw Boom.notFound();
   }
 
