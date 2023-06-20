@@ -1014,6 +1014,10 @@ describe('userExists', () => {
   const userWithoutCompany = { ...user, company: null, userCompanyList: [] };
   const vendorCredentials = { role: { vendor: { _id: new ObjectId() } }, company: { _id: new ObjectId() } };
   const clientCredentials = { role: { client: { name: 'coach' } }, company: { _id: new ObjectId() } };
+  const holdingCredentials = {
+    role: { holding: { name: 'holding_admin' }, client: { name: 'coach' } },
+    holding: { _id: new ObjectId(), companies: [company] },
+  };
   beforeEach(() => {
     findOne = sinon.stub(User, 'findOne');
   });
@@ -1141,6 +1145,31 @@ describe('userExists', () => {
 
     expect(rep.exists).toBe(true);
     expect(rep.user).toEqual({});
+
+    SinonMongoose.calledOnceWithExactly(
+      findOne,
+      [
+        {
+          query: 'findOne',
+          args: [
+            { 'local.email': email },
+            { role: 1, 'local.email': 1, 'identity.firstname': 1, 'identity.lastname': 1, 'contact.phone': 1 },
+          ],
+        },
+        { query: 'populate', args: [{ path: 'company' }] },
+        { query: 'populate', args: [{ path: 'userCompanyList', options: { sort: { startDate: 1 } } }] },
+        { query: 'lean' },
+      ]
+    );
+  });
+
+  it('should confirm targeted user exist and send info, as targeted user has holding company', async () => {
+    findOne.returns(SinonMongoose.stubChainedQueries(user));
+
+    const rep = await UsersHelper.userExists(email, holdingCredentials);
+
+    expect(rep.exists).toBe(true);
+    expect(rep.user).toEqual(omit(user, 'serialNumber'));
 
     SinonMongoose.calledOnceWithExactly(
       findOne,
