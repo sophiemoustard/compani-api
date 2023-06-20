@@ -5,10 +5,146 @@ const { getTokenByCredentials, getToken } = require('./helpers/authentication');
 const UserCompany = require('../../src/models/UserCompany');
 const { userCompanies, populateDB, usersSeedList } = require('./seed/userCompaniesSeed');
 const UtilsMock = require('../utilsMock');
+const { authCompany, otherCompany } = require('../seed/authCompaniesSeed');
 
 describe('NODE ENV', () => {
   it('should be \'test\'', () => {
     expect(process.env.NODE_ENV).toBe('test');
+  });
+});
+
+describe('USER COMPANIES ROUTES - POST /usercompanies', () => {
+  let authToken;
+  beforeEach(populateDB);
+
+  describe('COACH', () => {
+    beforeEach(async () => {
+      authToken = await getToken('coach');
+    });
+
+    it('should create user company', async () => {
+      const payload = { user: usersSeedList[10]._id, company: authCompany._id };
+
+      const res = await app.inject({
+        method: 'POST',
+        url: '/usercompanies',
+        payload,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(res.statusCode).toBe(200);
+    });
+
+    it('should return 404 if company is not client user company', async () => {
+      const payload = { user: usersSeedList[10]._id, company: otherCompany._id };
+
+      const res = await app.inject({
+        method: 'POST',
+        url: '/usercompanies',
+        payload,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(res.statusCode).toBe(404);
+    });
+  });
+
+  describe('TRAINING_ORGANISATION_MANAGER', () => {
+    beforeEach(async () => {
+      authToken = await getToken('training_organisation_manager');
+    });
+
+    it('should create user company', async () => {
+      const payload = { user: usersSeedList[10]._id, company: authCompany._id };
+
+      const res = await app.inject({
+        method: 'POST',
+        url: '/usercompanies',
+        payload,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(res.statusCode).toBe(200);
+    });
+
+    it('should return 404 if user does not exist', async () => {
+      const payload = { user: new ObjectId(), company: authCompany._id };
+
+      const res = await app.inject({
+        method: 'POST',
+        url: '/usercompanies',
+        payload,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(res.statusCode).toBe(404);
+    });
+
+    it('should return 409 if user already have a company', async () => {
+      const payload = { user: usersSeedList[0]._id, company: authCompany._id };
+
+      const res = await app.inject({
+        method: 'POST',
+        url: '/usercompanies',
+        payload,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(res.statusCode).toBe(409);
+      expect(res.result.message).toBe('Ce compte est déjà rattaché à une structure.');
+    });
+
+    it('should return good message if start date is before previous user company end date', async () => {
+      const payload = { user: usersSeedList[7]._id, company: authCompany._id, startDate: '2021-10-19T23:00:00.000Z' };
+
+      const res = await app.inject({
+        method: 'POST',
+        url: '/usercompanies',
+        payload,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(res.statusCode).toBe(409);
+      expect(res.result.message).toBe('Ce compte est déjà rattaché à une structure jusqu\'au 20/11/2021.');
+    });
+
+    it('should return 404 if company is does not exist', async () => {
+      const payload = { user: usersSeedList[10]._id, company: new ObjectId() };
+
+      const res = await app.inject({
+        method: 'POST',
+        url: '/usercompanies',
+        payload,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(res.statusCode).toBe(404);
+    });
+  });
+
+  describe('Other roles', () => {
+    const roles = [
+      { name: 'helper', expectedCode: 403, erp: true, message: 'Insufficient scope' },
+      { name: 'planning_referent', expectedCode: 403, erp: true, message: 'Insufficient scope' },
+      { name: 'trainer', expectedCode: 200, erp: false, message: 'Utilisateur rattaché à une structure.' },
+    ];
+
+    const payload = { user: usersSeedList[10]._id, company: authCompany._id };
+
+    roles.forEach((role) => {
+      it(`should return ${role.expectedCode} as user is ${role.name}${role.erp ? '' : ' without erp'}`, async () => {
+        authToken = await getToken(role.name, role.erp);
+
+        const res = await app.inject({
+          method: 'POST',
+          url: '/usercompanies',
+          payload,
+          headers: { Cookie: `alenvi_token=${authToken}` },
+        });
+        expect(res.statusCode).toBe(role.expectedCode);
+        expect(res.result.message).toBe(role.message);
+      });
+    });
   });
 });
 
@@ -130,8 +266,7 @@ describe('USER COMPANIES ROUTES - PUT /usercompanies/{id}', () => {
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
-      expect(res.statusCode).toBe(403);
-      expect(res.result.message).toBe('Error while checking user: user not found.');
+      expect(res.statusCode).toBe(404);
     });
 
     it('should return a 403 if detachment date is before user company startdate', async () => {

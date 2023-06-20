@@ -69,7 +69,7 @@ exports.authorizeCourseCreation = async (req) => {
     const { company } = req.payload;
 
     const companyExists = await Company.countDocuments({ _id: company });
-    if (!companyExists) throw Boom.forbidden();
+    if (!companyExists) throw Boom.notFound();
   }
 
   return null;
@@ -383,7 +383,7 @@ exports.authorizeAccessRuleAddition = async (req) => {
   if (accessRuleAlreadyExist) throw Boom.conflict();
 
   const companyExists = await Company.countDocuments({ _id: req.payload.company });
-  if (!companyExists) throw Boom.badRequest();
+  if (!companyExists) throw Boom.notFound();
 
   return null;
 };

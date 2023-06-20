@@ -266,11 +266,6 @@ exports.plugin = {
             establishment: Joi.objectId(),
             biography: Joi.string().allow(''),
             customer: Joi.objectId(),
-            company: Joi.objectId(),
-            userCompanyStartDate: Joi.when(
-              'company',
-              { is: Joi.exist(), then: Joi.date(), otherwise: Joi.forbidden() }
-            ),
             holding: Joi.objectId(),
           }).required(),
         },

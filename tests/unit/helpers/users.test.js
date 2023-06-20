@@ -1558,18 +1558,26 @@ describe('createUser', () => {
     const newUser = { ...payload, _id: userId };
 
     userCreate.returns(newUser);
+    userFindOne.returns(SinonMongoose.stubChainedQueries(newUser));
 
     const result = await UsersHelper.createUser(payload, { company: { _id: credentialsCompanyId } });
 
     expect(result).toEqual(newUser);
     sinon.assert.notCalled(createHistoryStub);
     sinon.assert.notCalled(roleFindById);
-    sinon.assert.notCalled(userFindOne);
     sinon.assert.calledOnceWithExactly(
       userCompanyCreate,
       { user: userId, company: userCompanyId, startDate: '2022-12-13T16:00:12.000Z' }
     );
     sinon.assert.calledOnceWithExactly(userCreate, { ...payload, refreshToken: sinon.match.string });
+    SinonMongoose.calledOnceWithExactly(
+      userFindOne,
+      [
+        { query: 'findOne', args: [{ _id: userId }] },
+        { query: 'populate', args: [{ path: 'sector', select: '_id sector', match: { company: payload.company } }] },
+        { query: 'lean', args: [{ virtuals: true, autopopulate: true }] },
+      ]
+    );
   });
 
   it('should return a 400 error if role does not exist', async () => {
@@ -1670,7 +1678,6 @@ describe('updateUser', () => {
   let roleFindOne;
   let updateHistoryOnSectorUpdateStub;
   let createHelper;
-  let userCompanyCreate;
   let userHoldingCreate;
   const credentials = { company: { _id: new ObjectId() } };
   const userId = new ObjectId();
@@ -1681,7 +1688,6 @@ describe('updateUser', () => {
     roleFindOne = sinon.stub(Role, 'findOne');
     updateHistoryOnSectorUpdateStub = sinon.stub(SectorHistoriesHelper, 'updateHistoryOnSectorUpdate');
     createHelper = sinon.stub(HelpersHelper, 'create');
-    userCompanyCreate = sinon.stub(UserCompaniesHelper, 'create');
     userHoldingCreate = sinon.stub(UserHolding, 'create');
   });
   afterEach(() => {
@@ -1690,7 +1696,6 @@ describe('updateUser', () => {
     roleFindOne.restore();
     updateHistoryOnSectorUpdateStub.restore();
     createHelper.restore();
-    userCompanyCreate.restore();
     userHoldingCreate.restore();
   });
 
@@ -1702,21 +1707,6 @@ describe('updateUser', () => {
     sinon.assert.calledOnceWithExactly(userUpdateOne, { _id: userId }, { $set: flat(payload) });
     sinon.assert.notCalled(roleFindById);
     sinon.assert.notCalled(updateHistoryOnSectorUpdateStub);
-    sinon.assert.notCalled(userCompanyCreate);
-    sinon.assert.notCalled(userHoldingCreate);
-    sinon.assert.notCalled(roleFindOne);
-  });
-
-  it('should update a user without company', async () => {
-    const payload = { identity: { firstname: 'Titi' } };
-
-    await UsersHelper.updateUser(userId, payload, credentials);
-
-    sinon.assert.calledOnceWithExactly(userUpdateOne, { _id: userId }, { $set: flat(payload) });
-    sinon.assert.notCalled(roleFindById);
-    sinon.assert.notCalled(createHelper);
-    sinon.assert.notCalled(updateHistoryOnSectorUpdateStub);
-    sinon.assert.notCalled(userCompanyCreate);
     sinon.assert.notCalled(userHoldingCreate);
     sinon.assert.notCalled(roleFindOne);
   });
@@ -1739,7 +1729,6 @@ describe('updateUser', () => {
       roleFindById,
       [{ query: 'findById', args: [payload.role, { name: 1, interface: 1 }] }, { query: 'lean' }]
     );
-    sinon.assert.notCalled(userCompanyCreate);
     sinon.assert.notCalled(userHoldingCreate);
     sinon.assert.notCalled(roleFindOne);
   });
@@ -1758,7 +1747,6 @@ describe('updateUser', () => {
       credentials.company._id
     );
     sinon.assert.notCalled(roleFindById);
-    sinon.assert.notCalled(userCompanyCreate);
     sinon.assert.notCalled(userHoldingCreate);
     sinon.assert.notCalled(roleFindOne);
   });
@@ -1781,38 +1769,6 @@ describe('updateUser', () => {
       [{ query: 'findById', args: [payload.role, { name: 1, interface: 1 }] }, { query: 'lean' }]
     );
     sinon.assert.notCalled(updateHistoryOnSectorUpdateStub);
-    sinon.assert.notCalled(userCompanyCreate);
-    sinon.assert.notCalled(userHoldingCreate);
-    sinon.assert.notCalled(roleFindOne);
-  });
-
-  it('should update a user company WITH startDate', async () => {
-    const payload = { company: new ObjectId(), userCompanyStartDate: '2022-12-13T13:45:00.000Z' };
-
-    await UsersHelper.updateUser(userId, payload, credentials);
-
-    sinon.assert.calledOnceWithExactly(userUpdateOne, { _id: userId }, { $set: flat(omit(payload, 'company')) });
-    sinon.assert.calledOnceWithExactly(
-      userCompanyCreate,
-      { user: userId, company: payload.company, startDate: '2022-12-13T13:45:00.000Z' }
-    );
-    sinon.assert.notCalled(createHelper);
-    sinon.assert.notCalled(roleFindById);
-    sinon.assert.notCalled(updateHistoryOnSectorUpdateStub);
-    sinon.assert.notCalled(userHoldingCreate);
-    sinon.assert.notCalled(roleFindOne);
-  });
-
-  it('should update a user company WITHOUT startDate', async () => {
-    const payload = { company: new ObjectId() };
-
-    await UsersHelper.updateUser(userId, payload, credentials);
-
-    sinon.assert.calledOnceWithExactly(userUpdateOne, { _id: userId }, { $set: flat(omit(payload, 'company')) });
-    sinon.assert.calledOnceWithExactly(userCompanyCreate, { user: userId, company: payload.company });
-    sinon.assert.notCalled(createHelper);
-    sinon.assert.notCalled(roleFindById);
-    sinon.assert.notCalled(updateHistoryOnSectorUpdateStub);
     sinon.assert.notCalled(userHoldingCreate);
     sinon.assert.notCalled(roleFindOne);
   });
@@ -1834,7 +1790,6 @@ describe('updateUser', () => {
       sinon.assert.notCalled(createHelper);
       sinon.assert.notCalled(userUpdateOne);
       sinon.assert.notCalled(updateHistoryOnSectorUpdateStub);
-      sinon.assert.notCalled(userCompanyCreate);
       sinon.assert.notCalled(userHoldingCreate);
       sinon.assert.notCalled(roleFindOne);
     }

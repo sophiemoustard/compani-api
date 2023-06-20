@@ -11,6 +11,7 @@ const {
 } = require('../../helpers/constants');
 const UserCompany = require('../../models/UserCompany');
 const User = require('../../models/User');
+const Company = require('../../models/Company');
 const CourseHistory = require('../../models/CourseHistory');
 const UtilsHelper = require('../../helpers/utils');
 const translate = require('../../helpers/translate');
@@ -20,6 +21,25 @@ const { language } = translate;
 
 const DETACHMENT_ALLOWED_COMPANY_IDS =
   process.env.DETACHMENT_ALLOWED_COMPANY_IDS.split(';').map(id => new ObjectId(id));
+
+exports.authorizeUserCompanyCreation = async (req) => {
+  const { auth: { credentials }, payload } = req;
+  const loggedUserVendorRole = get(credentials, 'role.vendor.name');
+  const loggedUserCompany = get(credentials, 'company._id');
+
+  const userExists = await User.countDocuments({ _id: payload.user });
+  if (!userExists) throw Boom.notFound();
+
+  const companyExists = await Company.countDocuments({ _id: payload.company });
+  if (!companyExists) throw Boom.notFound();
+
+  if (!loggedUserVendorRole) {
+    const sameCompany = UtilsHelper.areObjectIdsEquals(payload.company, loggedUserCompany);
+    if (!sameCompany) throw Boom.notFound();
+  }
+
+  return null;
+};
 
 exports.authorizeUserCompanyEdit = async (req) => {
   const { auth: { credentials }, params, payload } = req;
@@ -46,7 +66,7 @@ exports.authorizeUserCompanyEdit = async (req) => {
   if (!isRofOrAdmin && !isSameCompany) throw Boom.forbidden('Error: user is not from right company.');
 
   const userExists = await User.countDocuments({ _id: user, role: { $exists: false } });
-  if (!userExists) throw Boom.forbidden('Error while checking user: user not found.');
+  if (!userExists) throw Boom.notFound();
 
   if (CompaniDate(payload.endDate).isBefore(startDate)) {
     throw Boom.forbidden(translate[language].userCompanyDetachmentBeforeAttachment);

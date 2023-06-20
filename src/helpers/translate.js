@@ -404,6 +404,7 @@ module.exports = {
     /* userCompanies */
     userCompanyNotFound: 'User company doesn\'t exist.',
     userCompanyUpdated: 'User company updated.',
+    userCompanyCreated: 'User company created.',
     userDetachmentBeforeLastSubscription: `You can't detach the user before {DATE}, the user is subscribed to a course
       with this company.`,
     userCompanyDetachmentBeforeAttachment: 'You can\'t detach the user company before its attachment.',
@@ -824,6 +825,7 @@ module.exports = {
     /* UserCompanies */
     userCompanyNotFound: 'Impossible de mettre à jour les informations liées à la structure de cet(te) apprenant(e).',
     userCompanyUpdated: 'Informations sur la structure de l\'apprenant(e) mises à jour.',
+    userCompanyCreated: 'Utilisateur rattaché à une structure.',
     userDetachmentBeforeLastSubscription: 'Vous ne pouvez pas détacher cette personne avant le {DATE}.',
     userCompanyDetachmentBeforeAttachment: 'La date de détachement de l\'utilisateur ne peut être antérieure à son '
       + 'rattachement.',

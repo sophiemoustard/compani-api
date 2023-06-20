@@ -38,7 +38,7 @@ describe('COMPANY LINK REQUESTS ROUTES - POST /companylinkrequests', () => {
       expect(companyLinkRequestsCount).toEqual(1);
     });
 
-    it('should not create a company link request if user already has a company', async () => {
+    it('should return 403 if user already has a company', async () => {
       authToken = await getTokenByCredentials(noRole.local);
 
       const response = await app.inject({
@@ -51,7 +51,7 @@ describe('COMPANY LINK REQUESTS ROUTES - POST /companylinkrequests', () => {
       expect(response.statusCode).toBe(403);
     });
 
-    it('should not create a company link request if user will have a company in the future', async () => {
+    it('should return 403 if user will have a company in the future', async () => {
       authToken = await getTokenByCredentials(usersSeedList[1].local);
 
       const response = await app.inject({
@@ -64,7 +64,7 @@ describe('COMPANY LINK REQUESTS ROUTES - POST /companylinkrequests', () => {
       expect(response.statusCode).toBe(403);
     });
 
-    it('should not create a company link request if company does not exist', async () => {
+    it('should return 404 if company does not exist', async () => {
       authToken = await getTokenByCredentials(usersSeedList[0].local);
 
       const response = await app.inject({
@@ -77,7 +77,7 @@ describe('COMPANY LINK REQUESTS ROUTES - POST /companylinkrequests', () => {
       expect(response.statusCode).toBe(404);
     });
 
-    it('should not create a company link request if user already has a company link request', async () => {
+    it('should return 403 if user already has a company link request', async () => {
       authToken = await getTokenByCredentials(userWithCompanyLinkRequestList[0].local);
 
       const response = await app.inject({
