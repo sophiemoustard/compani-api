@@ -3996,9 +3996,16 @@ describe('generateCompletionCertificates', () => {
 
   it('should download completion certificates from webapp (client)', async () => {
     const companyId = new ObjectId();
-    const credentials = { _id: new ObjectId(), role: { client: 'admin' }, company: { _id: companyId } };
+    const otherCompanyId = new ObjectId();
+    const credentials = {
+      _id: new ObjectId(),
+      role: { client: 'admin', holding: 'holding_admin' },
+      company: { _id: companyId },
+      holding: { companies: [companyId, otherCompanyId] },
+    };
     const courseId = new ObjectId();
     const readable1 = new PassThrough();
+    const readable2 = new PassThrough();
     const traineeId1 = new ObjectId();
     const traineeId2 = new ObjectId();
     const traineeId3 = new ObjectId();
@@ -4011,7 +4018,7 @@ describe('generateCompletionCertificates', () => {
       ],
       misc: 'Bonjour je suis une formation',
       slots: [{ _id: new ObjectId() }, { _id: new ObjectId() }],
-      companies: [companyId],
+      companies: [companyId, new ObjectId(), otherCompanyId],
     };
     const attendances = [
       {
@@ -4036,21 +4043,27 @@ describe('generateCompletionCertificates', () => {
     });
     getCompanyAtCourseRegistrationList.returns([
       { trainee: traineeId1, company: companyId },
-      { trainee: traineeId2, company: new ObjectId() },
+      { trainee: traineeId2, company: otherCompanyId },
       { trainee: traineeId3, company: new ObjectId() },
     ]);
-    createDocx.returns('1.docx');
-    formatIdentity.returns('trainee 1');
-    getTotalDuration.returns('4h30');
-    createReadStream.returns(readable1);
+    createDocx.onCall(0).returns('1.docx');
+    createDocx.onCall(1).returns('2.docx');
+    formatIdentity.onCall(0).returns('trainee 1');
+    formatIdentity.onCall(1).returns('trainee 2');
+    getTotalDuration.onCall(0).returns('4h30');
+    getTotalDuration.onCall(1).returns('3h');
+    createReadStream.onCall(0).returns(readable1);
+    createReadStream.onCall(1).returns(readable2);
 
     await CourseHelper.generateCompletionCertificates(courseId, credentials);
 
     sinon.assert.calledOnceWithExactly(formatCourseForDocuments, course);
-    sinon.assert.calledOnceWithExactly(formatIdentity, { lastname: 'trainee 1' }, 'FL');
-    sinon.assert.calledOnceWithExactly(getTotalDuration, [attendances[0].courseSlot, attendances[1].courseSlot]);
-    sinon.assert.calledOnceWithExactly(
-      createDocx,
+    sinon.assert.calledWithExactly(formatIdentity.getCall(0), { lastname: 'trainee 1' }, 'FL');
+    sinon.assert.calledWithExactly(formatIdentity.getCall(1), { lastname: 'trainee 2' }, 'FL');
+    sinon.assert.calledWithExactly(getTotalDuration.getCall(0), [attendances[0].courseSlot, attendances[1].courseSlot]);
+    sinon.assert.calledWithExactly(getTotalDuration.getCall(1), [attendances[2].courseSlot]);
+    sinon.assert.calledWithExactly(
+      createDocx.getCall(0),
       '/path/certificate_template.docx',
       {
         program: { learningGoals: 'Apprendre', name: 'nom du programme' },
@@ -4059,12 +4072,26 @@ describe('generateCompletionCertificates', () => {
         date: '20/01/2020',
       }
     );
+    sinon.assert.calledWithExactly(
+      createDocx.getCall(1),
+      '/path/certificate_template.docx',
+      {
+        program: { learningGoals: 'Apprendre', name: 'nom du programme' },
+        courseDuration: '8h',
+        trainee: { identity: 'trainee 2', attendanceDuration: '3h' },
+        date: '20/01/2020',
+      }
+    );
     sinon.assert.calledOnceWithExactly(
       generateZip,
       'attestations.zip',
-      [{ name: 'Attestation - trainee 1.docx', file: readable1 }]
+      [
+        { name: 'Attestation - trainee 1.docx', file: readable1 },
+        { name: 'Attestation - trainee 2.docx', file: readable2 },
+      ]
     );
-    sinon.assert.calledOnceWithExactly(createReadStream, '1.docx');
+    sinon.assert.calledWithExactly(createReadStream.getCall(0), '1.docx');
+    sinon.assert.calledWithExactly(createReadStream.getCall(1), '2.docx');
     sinon.assert.calledOnceWithExactly(
       downloadFileById,
       {

@@ -11,8 +11,8 @@ const {
   traineeList,
 } = require('./seed/attendancesSeed');
 const { getToken, getTokenByCredentials } = require('./helpers/authentication');
-const { trainerAndCoach } = require('../seed/authUsersSeed');
-const { authCompany, companyWithoutSubscription } = require('../seed/authCompaniesSeed');
+const { trainerAndCoach, holdingAdminFromOtherCompany } = require('../seed/authUsersSeed');
+const { authCompany, companyWithoutSubscription, otherCompany, otherHolding } = require('../seed/authCompaniesSeed');
 
 describe('NODE ENV', () => {
   it('should be \'test\'', () => {
@@ -460,6 +460,16 @@ describe('ATTENDANCES ROUTES - GET /attendances/unsubscribed', () => {
         expect(response.statusCode).toBe(400);
       });
 
+      it('should return 404 if company is not credentials company', async () => {
+        const response = await app.inject({
+          method: 'GET',
+          url: `/attendances/unsubscribed?course=${coursesList[6]._id}&company=${otherCompany._id}`,
+          headers: { Cookie: `alenvi_token=${authToken}` },
+        });
+
+        expect(response.statusCode).toBe(404);
+      });
+
       it('should return 403 if course is inter_b2b without company trainees', async () => {
         const response = await app.inject({
           method: 'GET',
@@ -478,6 +488,43 @@ describe('ATTENDANCES ROUTES - GET /attendances/unsubscribed', () => {
         });
 
         expect(response.statusCode).toBe(403);
+      });
+    });
+
+    describe('HOLDING_ADMIN', () => {
+      beforeEach(async () => {
+        authToken = await getTokenByCredentials(holdingAdminFromOtherCompany.local);
+      });
+
+      it('should get holding trainees\' attendances', async () => {
+        const response = await app.inject({
+          method: 'GET',
+          url: `/attendances/unsubscribed?course=${coursesList[6]._id}&holding=${otherHolding._id}`,
+          headers: { Cookie: `alenvi_token=${authToken}` },
+        });
+
+        expect(response.statusCode).toBe(200);
+      });
+
+      it('should return 400 if company and holding', async () => {
+        const response = await app.inject({
+          method: 'GET',
+          url: `/attendances/unsubscribed?course=${coursesList[4]._id}`
+            + `&holding=${otherHolding._id}&company=${otherCompany._id}`,
+          headers: { Cookie: `alenvi_token=${authToken}` },
+        });
+
+        expect(response.statusCode).toBe(400);
+      });
+
+      it('should return 404 if holding is not credentials holding', async () => {
+        const response = await app.inject({
+          method: 'GET',
+          url: `/attendances/unsubscribed?course=${coursesList[6]._id}&holding=${authCompany._id}`,
+          headers: { Cookie: `alenvi_token=${authToken}` },
+        });
+
+        expect(response.statusCode).toBe(404);
       });
     });
 

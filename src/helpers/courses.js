@@ -848,10 +848,9 @@ const getTraineeList = async (course, credentials) => {
   const traineesCompanyAtCourseRegistration = await CourseHistoriesHelper
     .getCompanyAtCourseRegistrationList({ key: COURSE, value: course._id }, { key: TRAINEE, value: course.trainees });
   const traineesCompany = mapValues(keyBy(traineesCompanyAtCourseRegistration, 'trainee'), 'company');
-  const loggedUserCompany = get(credentials, 'company._id');
 
   return course.trainees
-    .filter(trainee => UtilsHelper.areObjectIdsEquals(traineesCompany[trainee._id], loggedUserCompany));
+    .filter(trainee => UtilsHelper.hasUserAccessToCompany(credentials, traineesCompany[trainee._id]));
 };
 
 exports.generateCompletionCertificates = async (courseId, credentials, origin = null) => {
