@@ -1028,10 +1028,10 @@ describe('userExists', () => {
   it('should find a user if credentials', async () => {
     findOne.returns(SinonMongoose.stubChainedQueries(user));
 
-    const rep = await UsersHelper.userExists(email, vendorCredentials);
+    const res = await UsersHelper.userExists(email, vendorCredentials);
 
-    expect(rep.exists).toBe(true);
-    expect(rep.user).toEqual(omit(user, 'serialNumber'));
+    expect(res.exists).toBe(true);
+    expect(res.user).toEqual(omit(user, 'serialNumber'));
 
     SinonMongoose.calledOnceWithExactly(
       findOne,
@@ -1053,10 +1053,10 @@ describe('userExists', () => {
   it('should not find as email does not exist', async () => {
     findOne.returns(SinonMongoose.stubChainedQueries(null));
 
-    const rep = await UsersHelper.userExists(nonExistantEmail, vendorCredentials);
+    const res = await UsersHelper.userExists(nonExistantEmail, vendorCredentials);
 
-    expect(rep.exists).toBe(false);
-    expect(rep.user).toEqual({});
+    expect(res.exists).toBe(false);
+    expect(res.user).toEqual({});
 
     SinonMongoose.calledOnceWithExactly(
       findOne,
@@ -1078,10 +1078,10 @@ describe('userExists', () => {
   it('should only confirm targeted user exist, as logged user has only client role', async () => {
     findOne.returns(SinonMongoose.stubChainedQueries(user));
 
-    const rep = await UsersHelper.userExists(email, clientCredentials);
+    const res = await UsersHelper.userExists(email, clientCredentials);
 
-    expect(rep.exists).toBe(true);
-    expect(rep.user).toEqual({});
+    expect(res.exists).toBe(true);
+    expect(res.user).toEqual({});
     SinonMongoose.calledOnceWithExactly(
       findOne,
       [
@@ -1109,10 +1109,10 @@ describe('userExists', () => {
     ];
     findOne.returns(SinonMongoose.stubChainedQueries({ ...userWithoutCompany, userCompanyList }));
 
-    const rep = await UsersHelper.userExists(email, clientCredentials);
+    const res = await UsersHelper.userExists(email, clientCredentials);
 
-    expect(rep.exists).toBe(true);
-    expect(rep.user).toEqual(
+    expect(res.exists).toBe(true);
+    expect(res.user).toEqual(
       { ...omit(userWithoutCompany, 'serialNumber'), userCompanyList: [omit(userCompanyList[0], 'user')] }
     );
 
@@ -1141,10 +1141,10 @@ describe('userExists', () => {
       }
     ));
 
-    const rep = await UsersHelper.userExists(email, clientCredentials);
+    const res = await UsersHelper.userExists(email, clientCredentials);
 
-    expect(rep.exists).toBe(true);
-    expect(rep.user).toEqual({});
+    expect(res.exists).toBe(true);
+    expect(res.user).toEqual({});
 
     SinonMongoose.calledOnceWithExactly(
       findOne,
@@ -1166,10 +1166,10 @@ describe('userExists', () => {
   it('should confirm targeted user exist and send info, as targeted user has holding company', async () => {
     findOne.returns(SinonMongoose.stubChainedQueries(user));
 
-    const rep = await UsersHelper.userExists(email, holdingCredentials);
+    const res = await UsersHelper.userExists(email, holdingCredentials);
 
-    expect(rep.exists).toBe(true);
-    expect(rep.user).toEqual(omit(user, 'serialNumber'));
+    expect(res.exists).toBe(true);
+    expect(res.user).toEqual(omit(user, 'serialNumber'));
 
     SinonMongoose.calledOnceWithExactly(
       findOne,
@@ -1191,10 +1191,10 @@ describe('userExists', () => {
   it('should find targeted user and give all infos, as targeted user has no company', async () => {
     findOne.returns(SinonMongoose.stubChainedQueries(userWithoutCompany));
 
-    const rep = await UsersHelper.userExists(email, clientCredentials);
+    const res = await UsersHelper.userExists(email, clientCredentials);
 
-    expect(rep.exists).toBe(true);
-    expect(rep.user).toEqual(omit(userWithoutCompany, 'serialNumber'));
+    expect(res.exists).toBe(true);
+    expect(res.user).toEqual(omit(userWithoutCompany, 'serialNumber'));
 
     SinonMongoose.calledOnceWithExactly(
       findOne,
@@ -1232,10 +1232,10 @@ describe('userExists', () => {
 
     findOne.returns(SinonMongoose.stubChainedQueries(userWithEndingCompany));
 
-    const rep = await UsersHelper.userExists(email, clientCredentials);
+    const res = await UsersHelper.userExists(email, clientCredentials);
 
-    expect(rep.exists).toBe(true);
-    expect(rep.user).toEqual({
+    expect(res.exists).toBe(true);
+    expect(res.user).toEqual({
       _id: userId,
       local: { email: 'test@compani.fr' },
       contact: { phone: '0987654321' },
@@ -1264,10 +1264,10 @@ describe('userExists', () => {
   it('should find an email but no user if no credentials', async () => {
     findOne.returns(SinonMongoose.stubChainedQueries(user));
 
-    const rep = await UsersHelper.userExists(email, null);
+    const res = await UsersHelper.userExists(email, null);
 
-    expect(rep.exists).toBe(true);
-    expect(rep.user).toEqual({});
+    expect(res.exists).toBe(true);
+    expect(res.user).toEqual({});
 
     SinonMongoose.calledOnceWithExactly(
       findOne,
