@@ -939,7 +939,7 @@ describe('USERS ROUTES - GET /users/learners', () => {
     it('should return 403 if request learners from other holding', async () => {
       const res = await app.inject({
         method: 'GET',
-        url: `/users/learners?companies=${authCompany._id}&action=course`,
+        url: `/users/learners?companies=${authCompany._id}&companies=${otherCompany._id}&action=course`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
