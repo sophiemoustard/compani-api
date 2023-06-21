@@ -38,6 +38,7 @@ const {
   traineeComingUpInAuthCompany,
   traineeFromAuthFormerlyInOther,
   clientAdminFromThirdCompany,
+  traineeFromThirdCompany,
 } = require('./seed/coursesSeed');
 const { getToken, getTokenByCredentials } = require('./helpers/authentication');
 const {
@@ -2836,6 +2837,28 @@ describe('COURSES ROUTES - DELETE /courses/{_id}/trainee/{traineeId}', () => {
 
         expect(response.statusCode).toBe(role.expectedCode);
       });
+    });
+
+    it('should return 200 if holding admin delete learner from his holding', async () => {
+      authToken = await getTokenByCredentials(holdingAdminFromOtherCompany.local);
+      const res = await app.inject({
+        method: 'DELETE',
+        url: `/courses/${coursesList[20]._id.toHexString()}/trainees/${traineeFromThirdCompany._id.toHexString()}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(res.statusCode).toBe(200);
+    });
+
+    it('should return 404 if holding admin delete learner from other holding', async () => {
+      authToken = await getTokenByCredentials(holdingAdminFromOtherCompany.local);
+      const res = await app.inject({
+        method: 'DELETE',
+        url: `/courses/${courseIdFromAuthCompany.toHexString()}/trainees/${traineeId.toHexString()}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(res.statusCode).toBe(403);
     });
 
     it('should return 403 as user is trainer if not one of his courses', async () => {

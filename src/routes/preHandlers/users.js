@@ -82,9 +82,10 @@ exports.authorizeUserUpdate = async (req) => {
   const updatingOwnInfos = UtilsHelper.areObjectIdsEquals(credentials._id, userFromDB._id);
 
   if (!loggedUserVendorRole && !updatingOwnInfos) {
-    const isOrWillBeInCompany = UserCompaniesHelper
-      .userIsOrWillBeInCompany(userFromDB.userCompanyList, loggedUserCompany);
-    if (!isOrWillBeInCompany) throw Boom.notFound();
+    const companies = get(credentials, 'role.holding') ? credentials.holding.companies : [loggedUserCompany];
+    const hasLoggedUserAccessToUserCompany = companies
+      .some(company => UserCompaniesHelper.userIsOrWillBeInCompany(userFromDB.userCompanyList, company));
+    if (!hasLoggedUserAccessToUserCompany) throw Boom.notFound();
   }
 
   // ERP checks : updated user is linked to client logged user company
