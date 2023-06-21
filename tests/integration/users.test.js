@@ -46,6 +46,7 @@ const {
   noRoleNoCompany,
   auxiliary,
   holdingAdminFromAuthCompany,
+  holdingAdminFromOtherCompany,
 } = require('../seed/authUsersSeed');
 const { rolesList, auxiliaryRoleId, coachRoleId, trainerRoleId, helperRoleId } = require('../seed/authRolesSeed');
 const GDriveStorageHelper = require('../../src/helpers/gDriveStorage');
@@ -912,6 +913,33 @@ describe('USERS ROUTES - GET /users/learners', () => {
       const res = await app.inject({
         method: 'GET',
         url: `/users/learners?companies=${otherCompany._id}&action=directory`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(res.statusCode).toBe(403);
+    });
+  });
+
+  describe('HODLING_ADMIN', () => {
+    beforeEach(async () => {
+      authToken = await getTokenByCredentials(holdingAdminFromOtherCompany.local);
+    });
+
+    it('should return 200 if request learners from holding', async () => {
+      const res = await app.inject({
+        method: 'GET',
+        url: `/users/learners?companies=${otherCompany._id}&companies=${companyWithoutSubscription._id}&action=course`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(res.statusCode).toBe(200);
+      expect(res.result.data.users.length).toBe(4);
+    });
+
+    it('should return 403 if request learners from other holding', async () => {
+      const res = await app.inject({
+        method: 'GET',
+        url: `/users/learners?companies=${authCompany._id}&companies=${otherCompany._id}&action=course`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 

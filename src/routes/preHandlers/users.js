@@ -265,11 +265,9 @@ exports.authorizeLearnersGet = async (req) => {
   if (vendorRole) return null;
 
   const clientRole = get(auth, 'credentials.role.client.name');
-  const userCompanyId = get(auth, 'credentials.company._id', null);
   const companies = Array.isArray(query.companies) ? query.companies : [query.companies];
   const isClientAuthorized = [CLIENT_ADMIN, COACH].includes(clientRole) &&
-    UtilsHelper.doesArrayIncludeId(companies, userCompanyId);
-
+    companies.every(company => UtilsHelper.hasUserAccessToCompany(auth.credentials, company));
   if (!isClientAuthorized) throw Boom.forbidden();
 
   return null;

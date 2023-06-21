@@ -261,7 +261,9 @@ exports.userExists = async (email, credentials) => {
   const loggedUserHasVendorRole = has(credentials, 'role.vendor');
 
   const loggedUserHasCoachRights = [COACH, CLIENT_ADMIN].includes(get(credentials, 'role.client.name'));
-  const sameCompany = UserCompaniesHelper.userIsOrWillBeInCompany(targetUser.userCompanyList, companyId);
+  const companies = get(credentials, 'role.holding') ? credentials.holding.companies : [companyId];
+  const sameCompany = companies
+    .some(company => UserCompaniesHelper.userIsOrWillBeInCompany(targetUser.userCompanyList, company));
   const currentAndFuturCompanies = UserCompaniesHelper.getCurrentAndFutureCompanies(targetUser.userCompanyList);
   const coachCanReadAllUserInfo = loggedUserHasCoachRights && (sameCompany || !currentAndFuturCompanies.length);
   const doesEveryUserCompanyHasEndDate = targetUser.userCompanyList.every(uc => uc.endDate);
@@ -272,7 +274,7 @@ exports.userExists = async (email, credentials) => {
     let userCompanyList;
     if (loggedUserHasVendorRole) userCompanyList = targetUser.userCompanyList;
     else if (coachCanReadAllUserInfo) {
-      userCompanyList = targetUser.userCompanyList.filter(uc => UtilsHelper.areObjectIdsEquals(companyId, uc.company));
+      userCompanyList = targetUser.userCompanyList.filter(uc => UtilsHelper.doesArrayIncludeId(companies, uc.company));
     } else {
       userCompanyList = [UtilsHelper.getLastVersion(targetUser.userCompanyList, 'startDate')];
     }
