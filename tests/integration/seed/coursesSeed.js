@@ -111,6 +111,7 @@ const traineeFromThirdCompany = {
   refreshToken: uuidv4(),
   origin: WEBAPP,
 };
+
 const coachFromThirdCompany = {
   _id: new ObjectId(),
   identity: { firstname: 'Manon', lastname: 'Subscription' },
@@ -120,6 +121,7 @@ const coachFromThirdCompany = {
   refreshToken: uuidv4(),
   origin: WEBAPP,
 };
+
 const clientAdminFromThirdCompany = {
   _id: new ObjectId(),
   identity: { firstname: 'Sophie', lastname: 'Subscription' },

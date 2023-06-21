@@ -46,6 +46,7 @@ const {
   noRoleNoCompany,
   auxiliary,
   holdingAdminFromAuthCompany,
+  holdingAdminFromOtherCompany,
 } = require('../seed/authUsersSeed');
 const { rolesList, auxiliaryRoleId, coachRoleId, trainerRoleId, helperRoleId } = require('../seed/authRolesSeed');
 const GDriveStorageHelper = require('../../src/helpers/gDriveStorage');
@@ -544,25 +545,25 @@ describe('USERS ROUTES - GET /users', () => {
 
   describe('HOLDING_ADMIN', () => {
     beforeEach(async () => {
-      authToken = await getTokenByCredentials(holdingAdminFromAuthCompany.local);
+      authToken = await getTokenByCredentials(holdingAdminFromOtherCompany.local);
     });
 
-    it('should get all coachs users (company A), role as a string', async () => {
+    it('should get all coachs from another company from same holding', async () => {
       const res = await app.inject({
         method: 'GET',
-        url: `/users?company=${authCompany._id}&role=coach`,
+        url: `/users?company=${companyWithoutSubscription._id}&role=coach`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(res.statusCode).toBe(200);
-      expect(res.result.data.users.length).toBe(4);
+      expect(res.result.data.users.length).toBe(1);
       expect(res.result.data.users.every(u => get(u, 'role.client.name') === COACH)).toBeTruthy();
     });
 
     it('should return a 403 if company is not in holding and does not have a vendor role', async () => {
       const res = await app.inject({
         method: 'GET',
-        url: `/users?company=${otherCompany._id}`,
+        url: `/users?company=${authCompany._id}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
