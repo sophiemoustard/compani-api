@@ -1,6 +1,7 @@
 const { ObjectId } = require('mongodb');
 const Questionnaire = require('../../../src/models/Questionnaire');
 const Card = require('../../../src/models/Card');
+const CourseHistory = require('../../../src/models/CourseHistory');
 const Course = require('../../../src/models/Course');
 const CourseSlot = require('../../../src/models/CourseSlot');
 const Step = require('../../../src/models/Step');
@@ -11,7 +12,14 @@ const User = require('../../../src/models/User');
 const QuestionnaireHistory = require('../../../src/models/QuestionnaireHistory');
 const { userList, vendorAdmin, trainerAndCoach } = require('../../seed/authUsersSeed');
 const { deleteNonAuthenticationSeeds } = require('../helpers/db');
-const { TRANSITION, OPEN_QUESTION, INTER_B2B, INTER_B2C } = require('../../../src/helpers/constants');
+const {
+  TRANSITION,
+  OPEN_QUESTION,
+  INTER_B2B,
+  INTER_B2C,
+  TRAINEE_ADDITION,
+  COMPANY_ADDITION,
+} = require('../../../src/helpers/constants');
 const { trainerRoleId } = require('../../seed/authRolesSeed');
 const { companyWithoutSubscription, authCompany } = require('../../seed/authCompaniesSeed');
 
@@ -91,6 +99,39 @@ const coursesList = [
   },
 ];
 
+const courseHistories = [
+  {
+    course: coursesList[0]._id,
+    company: authCompany._id,
+    trainee: traineeList[0]._id,
+    action: TRAINEE_ADDITION,
+    createdBy: vendorAdmin._id,
+    createdAt: '2023-01-03T14:00:00.000Z',
+  },
+  {
+    course: coursesList[2]._id,
+    company: companyWithoutSubscription._id,
+    trainee: traineeList[0]._id,
+    action: TRAINEE_ADDITION,
+    createdBy: vendorAdmin._id,
+    createdAt: '2022-10-03T14:00:00.000Z',
+  },
+  {
+    action: COMPANY_ADDITION,
+    course: coursesList[0]._id,
+    company: authCompany._id,
+    createdBy: vendorAdmin._id,
+    createdAt: '2020-01-01T23:00:00.000Z',
+  },
+  {
+    action: COMPANY_ADDITION,
+    course: coursesList[2]._id,
+    company: companyWithoutSubscription._id,
+    createdBy: vendorAdmin._id,
+    createdAt: '2020-01-01T23:00:00.000Z',
+  },
+];
+
 const traineeCompanyList = [
   // old inactive user company
   {
@@ -114,16 +155,16 @@ const questionnaireHistories = [
   {
     course: coursesList[0]._id,
     company: authCompany._id,
-    questionnaire: questionnairesList[0]._id,
+    questionnaire: questionnairesList[1]._id,
     user: traineeList[0]._id,
-    questionnaireAnswersList: [{ card: cardsList[1]._id, answerList: ['blabla'] }],
+    questionnaireAnswersList: [{ card: cardsList[3]._id, answerList: ['blabla'] }],
   },
   {
     course: coursesList[2]._id,
     company: companyWithoutSubscription._id,
-    questionnaire: questionnairesList[0]._id,
+    questionnaire: questionnairesList[1]._id,
     user: traineeList[0]._id,
-    questionnaireAnswersList: [{ card: cardsList[1]._id, answerList: ['blabla2'] }],
+    questionnaireAnswersList: [{ card: cardsList[3]._id, answerList: ['blabla2'] }],
   },
 ];
 
@@ -136,6 +177,7 @@ const populateDB = async () => {
     Questionnaire.create(questionnairesList),
     Card.create(cardsList),
     Course.create(coursesList),
+    CourseHistory.create(courseHistories),
     CourseSlot.create(slots),
     SubProgram.create(subProgramsList),
     Step.create(stepList),

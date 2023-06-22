@@ -218,7 +218,7 @@ describe('SEEDS VERIFICATION', () => {
           expect(someCardsAreNotInActivities).toBeFalsy();
         });
 
-        it('should pass if every card is a questionnaire card', () => {
+        it('should pass if every questionnaire answers list card is a questionnaire card', () => {
           const everyCardHasGoodTemplate = activityHistoryList
             .every(ah => ah.questionnaireAnswersList
               .every(qal => [SURVEY, OPEN_QUESTION, QUESTION_ANSWER].includes(qal.card.template)));
@@ -1233,6 +1233,10 @@ describe('SEEDS VERIFICATION', () => {
           questionnaireHistoryList = await QuestionnaireHistory
             .find()
             .populate({ path: 'user', select: 'id', populate: { path: 'userCompanyList' } })
+            .populate({ path: 'company', select: 'id' })
+            .populate({ path: 'course', select: 'id' })
+            .populate({ path: 'questionnaire', select: '_id cards status', populate: { path: 'cards' }, transform })
+            .populate({ path: 'questionnaireAnswersList.card', select: 'template', transform })
             .setOptions({ allCompanies: true })
             .lean();
         });
@@ -1240,9 +1244,131 @@ describe('SEEDS VERIFICATION', () => {
         it('should pass if all questionnaire history\'s user are in questionnaire history\'s company', () => {
           const areUsersInCompany = questionnaireHistoryList
             .every(questionnaireHistory => questionnaireHistory.user.userCompanyList
-              .some(uc => UtilsHelper.areObjectIdsEquals(uc.company, questionnaireHistory.company))
+              .some(uc => UtilsHelper.areObjectIdsEquals(uc.company, questionnaireHistory.company._id))
             );
           expect(areUsersInCompany).toBeTruthy();
+        });
+
+        it('should pass if every course exists', () => {
+          const someCoursesDontExist = questionnaireHistoryList.some(qh => !qh.course);
+
+          expect(someCoursesDontExist).toBeFalsy();
+        });
+
+        it('should pass if every user exists', () => {
+          const someUsersDontExist = questionnaireHistoryList.some(qh => !qh.user);
+
+          expect(someUsersDontExist).toBeFalsy();
+        });
+
+        it('should pass if user is registered to course', async () => {
+          const trainees = questionnaireHistoryList.map(qh => qh.user._id);
+          const courses = questionnaireHistoryList.map(qh => qh.course._id);
+          const histories = await CourseHistory
+            .find({ trainee: { $in: trainees }, course: { $in: courses }, action: TRAINEE_ADDITION })
+            .lean();
+          const everyUserIsRegisteredToCourse = questionnaireHistoryList
+            .every(qh => histories.find(
+              history => UtilsHelper.areObjectIdsEquals(history.trainee, qh.user._id) &&
+                UtilsHelper.areObjectIdsEquals(history.course, qh.course._id) && history.action === TRAINEE_ADDITION
+            )
+
+            );
+          expect(everyUserIsRegisteredToCourse).toBeTruthy();
+        });
+
+        it('should pass if every questionnaire exists and is published', () => {
+          const someQuestionnaireDontExist = questionnaireHistoryList
+            .some(qh => !qh.questionnaire || qh.questionnaire.status !== PUBLISHED);
+
+          expect(someQuestionnaireDontExist).toBeFalsy();
+        });
+
+        it('should pass if every card exists and is in questionnaire', () => {
+          const someCardsDontExist = questionnaireHistoryList
+            .some(qh => qh.questionnaireAnswersList.some(qal => !qal.card));
+
+          expect(someCardsDontExist).toBeFalsy();
+
+          const someCardsAreNotInQuestionnaires = questionnaireHistoryList
+            .some((qh) => {
+              const cardIds = qh.questionnaire.cards.map(c => c._id);
+
+              return qh.questionnaireAnswersList.some(qal => !UtilsHelper.doesArrayIncludeId(cardIds, qal.card._id));
+            });
+
+          expect(someCardsAreNotInQuestionnaires).toBeFalsy();
+        });
+
+        it('should pass if every questionnaire answers list card is a questionnaire card', () => {
+          const everyCardHasGoodTemplate = questionnaireHistoryList
+            .every(qh => qh.questionnaireAnswersList
+              .every(qal => [SURVEY, OPEN_QUESTION, QUESTION_ANSWER].includes(qal.card.template)));
+
+          expect(everyCardHasGoodTemplate).toBeTruthy();
+        });
+
+        it('should pass if every mandatory card has answer', () => {
+          const everyMandatoryCardHasAnswer = questionnaireHistoryList
+            .every(qh => qh.questionnaire.cards.every(c => !c.isMandatory ||
+              qh.questionnaireAnswersList.some(qal => UtilsHelper.areObjectIdsEquals(c._id, qal.card._id)))
+            );
+
+          expect(everyMandatoryCardHasAnswer).toBeTruthy();
+        });
+
+        it('should pass if there is the good answers number', () => {
+          const everyHistoryHasGoodAnswersNumber = questionnaireHistoryList
+            .every(qh => qh.questionnaireAnswersList.length &&
+              qh.questionnaireAnswersList
+                .every(qal => qal.answerList.length === 1 || qal.card.template === QUESTION_ANSWER));
+
+          expect(everyHistoryHasGoodAnswersNumber).toBeTruthy();
+        });
+
+        it('should pass if every company exists', () => {
+          const someCompaniessDontExist = questionnaireHistoryList.some(qh => !qh.company);
+
+          expect(someCompaniessDontExist).toBeFalsy();
+        });
+
+        it('should pass if company is linked to course', async () => {
+          const companies = questionnaireHistoryList.map(qh => qh.company._id);
+          const courses = questionnaireHistoryList.map(qh => qh.course._id);
+          const histories = await CourseHistory
+            .find({ company: { $in: companies }, course: { $in: courses }, action: COMPANY_ADDITION })
+            .lean();
+          const everyCompanyIsLinkedToCourse = questionnaireHistoryList
+            .every(qh => histories.find(
+              history => UtilsHelper.areObjectIdsEquals(history.company, qh.company._id) &&
+                UtilsHelper.areObjectIdsEquals(history.course, qh.course._id) && history.action === COMPANY_ADDITION
+            )
+
+            );
+          expect(everyCompanyIsLinkedToCourse).toBeTruthy();
+        });
+
+        it('should pass if user is registered to course with company', async () => {
+          const companies = questionnaireHistoryList.map(qh => qh.company._id);
+          const trainees = questionnaireHistoryList.map(qh => qh.user._id);
+          const courses = questionnaireHistoryList.map(qh => qh.course._id);
+          const histories = await CourseHistory
+            .find({
+              company: { $in: companies },
+              trainee: { $in: trainees },
+              course: { $in: courses },
+              action: TRAINEE_ADDITION,
+            })
+            .lean();
+          const everyTraineeIsRegisteredToCourseWithCompany = questionnaireHistoryList
+            .every(qh => histories.find(
+              history => UtilsHelper.areObjectIdsEquals(history.company, qh.company._id) &&
+                UtilsHelper.areObjectIdsEquals(history.trainee, qh.user._id) &&
+                UtilsHelper.areObjectIdsEquals(history.course, qh.course._id) && history.action === TRAINEE_ADDITION
+            )
+
+            );
+          expect(everyTraineeIsRegisteredToCourseWithCompany).toBeTruthy();
         });
       });
 
