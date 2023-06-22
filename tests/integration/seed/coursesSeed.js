@@ -253,7 +253,7 @@ const userCompanies = [
 const cardsList = [
   { _id: new ObjectId(), template: 'title_text' },
   { _id: new ObjectId(), template: 'survey' },
-  { _id: new ObjectId(), template: 'survey' },
+  { _id: new ObjectId(), template: 'survey', label: { right: 'right', left: 'left' }, question: 'question ?' },
 ];
 
 const activitiesList = [

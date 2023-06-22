@@ -13,6 +13,7 @@ const CourseSlot = require('../../../src/models/CourseSlot');
 const CourseHistory = require('../../../src/models/CourseHistory');
 const Helper = require('../../../src/models/Helper');
 const Program = require('../../../src/models/Program');
+const Questionnaire = require('../../../src/models/Questionnaire');
 const QuestionnaireHistory = require('../../../src/models/QuestionnaireHistory');
 const SectorHistory = require('../../../src/models/SectorHistory');
 const Step = require('../../../src/models/Step');
@@ -1176,6 +1177,53 @@ describe('SEEDS VERIFICATION', () => {
               .some(tester => [TRAINING_ORGANISATION_MANAGER, VENDOR_ADMIN].includes(get(tester, 'role.vendor.name'))));
 
           expect(someTestersAreRofOrVendorAdmin).toBeFalsy();
+        });
+      });
+
+      describe('Collection Questionnaire', () => {
+        let questionnaireList;
+        before(async () => {
+          questionnaireList = await Questionnaire
+            .find()
+            .populate({ path: 'cards', select: '-__v -createdAt -updatedAt', transform })
+            .lean({ virtuals: true });
+        });
+
+        it('should pass if every card exists and is not duplicated', () => {
+          const someCardsDontExist = questionnaireList.some(questionnaire => questionnaire.cards.some(card => !card));
+
+          expect(someCardsDontExist).toBeFalsy();
+
+          const someCardsAreDuplicated = questionnaireList
+            .some((questionnaire) => {
+              const cardsWithoutDuplicates = [...new Set(questionnaire.cards.map(card => card._id.toHexString()))];
+
+              return questionnaire.cards.length !== cardsWithoutDuplicates.length;
+            });
+
+          expect(someCardsAreDuplicated).toBeFalsy();
+        });
+
+        it('should pass if some cards have questionnaire template', () => {
+          const noneCardsHasQuestionnaireTemplate = questionnaireList
+            .some(questionnaire => questionnaire.cards
+              .every(card => ![OPEN_QUESTION, SURVEY, QUESTION_ANSWER].includes(card.template)));
+
+          expect(noneCardsHasQuestionnaireTemplate).toBeFalsy();
+        });
+
+        it('should pass if published questionnaires have at least one card', () => {
+          const everyPublishedQuestionnaireHasCards = questionnaireList
+            .every(questionnaire => questionnaire.status === DRAFT || questionnaire.cards.length);
+
+          expect(everyPublishedQuestionnaireHasCards).toBeTruthy();
+        });
+
+        it('should pass if published questionnaires have all their cards valid', () => {
+          const everyPublishedQuestionnaireHasValidCards = questionnaireList
+            .every(questionnaire => questionnaire.status === DRAFT || questionnaire.areCardsValid);
+
+          expect(everyPublishedQuestionnaireHasValidCards).toBeTruthy();
         });
       });
 
