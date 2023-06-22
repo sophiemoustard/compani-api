@@ -1268,10 +1268,11 @@ describe('SEEDS VERIFICATION', () => {
             .find({ trainee: { $in: trainees }, course: { $in: courses }, action: TRAINEE_ADDITION })
             .lean();
           const everyUserIsRegisteredToCourse = questionnaireHistoryList
-            .every(qh => histories.find(
-              history => UtilsHelper.areObjectIdsEquals(history.trainee, qh.user._id) &&
-                UtilsHelper.areObjectIdsEquals(history.course, qh.course._id) && history.action === TRAINEE_ADDITION
-            )
+            .every(qh => histories
+              .find(
+                history => UtilsHelper.areObjectIdsEquals(history.trainee, qh.user._id) &&
+                UtilsHelper.areObjectIdsEquals(history.course, qh.course._id)
+              )
 
             );
           expect(everyUserIsRegisteredToCourse).toBeTruthy();
@@ -1310,7 +1311,8 @@ describe('SEEDS VERIFICATION', () => {
 
         it('should pass if every mandatory card has answer', () => {
           const everyMandatoryCardHasAnswer = questionnaireHistoryList
-            .every(qh => qh.questionnaire.cards.every(c => !c.isMandatory ||
+            .every(qh => qh.questionnaire.cards
+              .every(c => !c.isMandatory ||
               qh.questionnaireAnswersList.some(qal => UtilsHelper.areObjectIdsEquals(c._id, qal.card._id)))
             );
 
@@ -1339,10 +1341,11 @@ describe('SEEDS VERIFICATION', () => {
             .find({ company: { $in: companies }, course: { $in: courses }, action: COMPANY_ADDITION })
             .lean();
           const everyCompanyIsLinkedToCourse = questionnaireHistoryList
-            .every(qh => histories.find(
-              history => UtilsHelper.areObjectIdsEquals(history.company, qh.company._id) &&
-                UtilsHelper.areObjectIdsEquals(history.course, qh.course._id) && history.action === COMPANY_ADDITION
-            )
+            .every(qh => histories
+              .find(
+                history => UtilsHelper.areObjectIdsEquals(history.company, qh.company._id) &&
+                UtilsHelper.areObjectIdsEquals(history.course, qh.course._id)
+              )
 
             );
           expect(everyCompanyIsLinkedToCourse).toBeTruthy();
@@ -1361,11 +1364,12 @@ describe('SEEDS VERIFICATION', () => {
             })
             .lean();
           const everyTraineeIsRegisteredToCourseWithCompany = questionnaireHistoryList
-            .every(qh => histories.find(
-              history => UtilsHelper.areObjectIdsEquals(history.company, qh.company._id) &&
+            .every(qh => histories
+              .find(
+                history => UtilsHelper.areObjectIdsEquals(history.company, qh.company._id) &&
                 UtilsHelper.areObjectIdsEquals(history.trainee, qh.user._id) &&
-                UtilsHelper.areObjectIdsEquals(history.course, qh.course._id) && history.action === TRAINEE_ADDITION
-            )
+                UtilsHelper.areObjectIdsEquals(history.course, qh.course._id)
+              )
 
             );
           expect(everyTraineeIsRegisteredToCourseWithCompany).toBeTruthy();
