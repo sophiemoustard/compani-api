@@ -26,7 +26,7 @@ const stepsList = [
     name: 'etape 2',
     activities: [activitiesList[0]._id, activitiesList[2]._id],
   },
-  { _id: new ObjectId(), type: 'e_learning', name: 'etape 3' },
+  { _id: new ObjectId(), type: 'e_learning', name: 'etape 3', activities: [] },
   {
     _id: new ObjectId(),
     type: 'e_learning',
