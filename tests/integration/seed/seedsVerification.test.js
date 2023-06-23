@@ -122,9 +122,9 @@ describe('SEEDS VERIFICATION', () => {
         });
 
         it('should pass if every card exists and is not duplicated', () => {
-          const someCardsDontExist = activityList.some(activity => activity.cards.some(card => !card));
+          const everyCardsExists = activityList.every(activity => activity.cards.every(card => card));
 
-          expect(someCardsDontExist).toBeFalsy();
+          expect(everyCardsExists).toBeTruthy();
 
           const someCardsAreDuplicated = activityList
             .some((activity) => {
@@ -163,9 +163,9 @@ describe('SEEDS VERIFICATION', () => {
         });
 
         it('should pass if every user exists', () => {
-          const someUsersDontExist = activityHistoryList.some(ah => !ah.user);
+          const everyUsersExists = activityHistoryList.every(ah => ah.user);
 
-          expect(someUsersDontExist).toBeFalsy();
+          expect(everyUsersExists).toBeTruthy();
         });
 
         it('should pass if user is registered to a course with the activity', async () => {
@@ -197,16 +197,15 @@ describe('SEEDS VERIFICATION', () => {
         });
 
         it('should pass if every activity exists', () => {
-          const someActivitiesDontExist = activityHistoryList.some(ah => !ah.activity);
+          const everyActivityExists = activityHistoryList.every(ah => ah.activity);
 
-          expect(someActivitiesDontExist).toBeFalsy();
+          expect(everyActivityExists).toBeTruthy();
         });
 
         it('should pass if every card exists and is in activity', () => {
-          const someCardsDontExist = activityHistoryList
-            .some(ah => ah.questionnaireAnswersList.some(qal => !qal.card));
+          const everyCardExists = activityHistoryList.every(ah => ah.questionnaireAnswersList.every(qal => qal.card));
 
-          expect(someCardsDontExist).toBeFalsy();
+          expect(everyCardExists).toBeTruthy();
 
           const someCardsAreNotInActivities = activityHistoryList
             .some((ah) => {
@@ -275,9 +274,9 @@ describe('SEEDS VERIFICATION', () => {
         });
 
         it('should pass if every trainee exists', () => {
-          const someTraineesDontExist = attendanceList.some(a => !a.trainee);
+          const everyTraineeExists = attendanceList.every(a => a.trainee);
 
-          expect(someTraineesDontExist).toBeFalsy();
+          expect(everyTraineeExists).toBeTruthy();
         });
 
         it('should pass if all attendance\'s trainee are in attendance\'s company', () => {
@@ -289,15 +288,15 @@ describe('SEEDS VERIFICATION', () => {
         });
 
         it('should pass if every slot exists', () => {
-          const someSlotsDontExist = attendanceList.some(a => !a.courseSlot);
+          const everySlotExists = attendanceList.every(a => a.courseSlot);
 
-          expect(someSlotsDontExist).toBeFalsy();
+          expect(everySlotExists).toBeTruthy();
         });
 
         it('should pass if every company exists', () => {
-          const someCompaniesDontExist = attendanceList.some(a => !a.company);
+          const everyCompanyExists = attendanceList.every(a => a.company);
 
-          expect(someCompaniesDontExist).toBeFalsy();
+          expect(everyCompanyExists).toBeTruthy();
         });
 
         it('should pass if every company is rattached to course', () => {
@@ -325,9 +324,9 @@ describe('SEEDS VERIFICATION', () => {
         });
 
         it('should pass if every course exists', () => {
-          const someCoursesDontExist = attendanceSheetList.some(a => !a.course);
+          const everyCourseExists = attendanceSheetList.every(a => a.course);
 
-          expect(someCoursesDontExist).toBeFalsy();
+          expect(everyCourseExists).toBeTruthy();
         });
 
         it('should pass if only intra courses have date in attendance sheet', () => {
@@ -343,9 +342,9 @@ describe('SEEDS VERIFICATION', () => {
         });
 
         it('should pass if only inter courses have trainee in attendance sheet', () => {
-          const someTraineesDontExist = attendanceSheetList.some(a => a.course.type === INTER_B2B && !a.trainee);
+          const everyTraineeExists = attendanceSheetList.every(a => a.course.type === INTRA || a.trainee);
 
-          expect(someTraineesDontExist).toBeFalsy();
+          expect(everyTraineeExists).toBeTruthy();
 
           const someIntraAttendanceSheetHasTrainee = attendanceSheetList
             .some(a => a.course.type === INTRA && a.trainee);
@@ -375,9 +374,9 @@ describe('SEEDS VERIFICATION', () => {
         });
 
         it('should pass if every company exists', () => {
-          const someCompaniesDontExist = attendanceSheetList.some(a => !a.company);
+          const everyCompanyExists = attendanceSheetList.every(a => a.company);
 
-          expect(someCompaniesDontExist).toBeFalsy();
+          expect(everyCompanyExists).toBeTruthy();
         });
 
         it('should pass if every company is rattached to course', () => {
@@ -623,9 +622,9 @@ describe('SEEDS VERIFICATION', () => {
 
         it('should pass if every access rules company exists and is not duplicated', () => {
           const coursesWithAccessRules = courseList.filter(c => c.accessRules.length);
-          const someCompaniesDontExist = coursesWithAccessRules.some(c => c.accessRules.some(company => !company));
+          const everyCompanyExists = coursesWithAccessRules.every(c => c.accessRules.every(company => company));
 
-          expect(someCompaniesDontExist).toBeFalsy();
+          expect(everyCompanyExists).toBeTruthy();
 
           const someAccessRulesAreDuplicated = coursesWithAccessRules
             .some((course) => {
@@ -643,11 +642,11 @@ describe('SEEDS VERIFICATION', () => {
         });
 
         it('should pass if every company exists and is not duplicated', () => {
-          const someCompaniesDontExist = courseList
+          const everyCompanyExists = courseList
             .filter(c => c.format === BLENDED)
-            .some(c => c.companies.some(company => !company));
+            .every(c => c.companies.every(company => company));
 
-          expect(someCompaniesDontExist).toBeFalsy();
+          expect(everyCompanyExists).toBeTruthy();
 
           const someCompaniesAreDuplicated = courseList
             .filter(course => get(course, 'companies.length'))
@@ -706,9 +705,9 @@ describe('SEEDS VERIFICATION', () => {
         });
 
         it('should pass if every trainee exists and is not duplicated', () => {
-          const someTraineesDontExist = courseList.some(c => c.trainees.some(trainee => !trainee));
+          const everyTraineeExists = courseList.every(c => c.trainees.every(trainee => trainee));
 
-          expect(someTraineesDontExist).toBeFalsy();
+          expect(everyTraineeExists).toBeTruthy();
 
           const someTraineesAreDuplicated = courseList
             .some((course) => {
@@ -802,17 +801,17 @@ describe('SEEDS VERIFICATION', () => {
         });
 
         it('should pass if every interlocutor exists', () => {
-          const someUsersDontExist = courseList.some((c) => {
+          const everyUserExists = courseList.every((c) => {
             const userList = [
               ...(has(c, 'companyRepresentative') ? [c.companyRepresentative] : []),
               ...(has(c, 'salesRepresentative') ? [c.salesRepresentative] : []),
               ...(has(c, 'trainer') ? [c.trainer] : []),
             ];
 
-            return userList.some(u => u === null || u === 'user not found');
+            return userList.every(u => u);
           });
 
-          expect(someUsersDontExist).toBeFalsy();
+          expect(everyUserExists).toBeTruthy();
         });
       });
 
@@ -1130,9 +1129,9 @@ describe('SEEDS VERIFICATION', () => {
         });
 
         it('should pass if every subprogram exists and is not duplicated in same or different program', () => {
-          const someSubProgramsDontExist = programList.some(p => p.subPrograms.some(subProgram => !subProgram));
+          const everySubProgramExists = programList.every(p => p.subPrograms.every(subProgram => subProgram));
 
-          expect(someSubProgramsDontExist).toBeFalsy();
+          expect(everySubProgramExists).toBeTruthy();
 
           const subProgramsList = programList
             .flatMap(program => program.subPrograms.map(sp => sp._id.toHexString()));
@@ -1142,9 +1141,9 @@ describe('SEEDS VERIFICATION', () => {
         });
 
         it('should pass if every category exists and is not duplicated', () => {
-          const someCategoriesDontExist = programList.some(p => p.categories.some(category => !category));
+          const everyCategoryExists = programList.every(p => p.categories.every(category => category));
 
-          expect(someCategoriesDontExist).toBeFalsy();
+          expect(everyCategoryExists).toBeTruthy();
 
           const someCategoriesAreDuplicated = programList
             .some((program) => {
@@ -1157,9 +1156,9 @@ describe('SEEDS VERIFICATION', () => {
         });
 
         it('should pass if every tester exists and is not duplicated', () => {
-          const someTestersDontExist = programList.some(p => p.testers.some(tester => !tester));
+          const everyTesterExists = programList.every(p => p.testers.every(tester => tester));
 
-          expect(someTestersDontExist).toBeFalsy();
+          expect(everyTesterExists).toBeTruthy();
 
           const someTestersAreDuplicated = programList
             .some((program) => {
@@ -1190,9 +1189,9 @@ describe('SEEDS VERIFICATION', () => {
         });
 
         it('should pass if every card exists and is not duplicated', () => {
-          const someCardsDontExist = questionnaireList.some(questionnaire => questionnaire.cards.some(card => !card));
+          const everyCardExists = questionnaireList.every(questionnaire => questionnaire.cards.every(card => card));
 
-          expect(someCardsDontExist).toBeFalsy();
+          expect(everyCardExists).toBeTruthy();
 
           const someCardsAreDuplicated = questionnaireList
             .some((questionnaire) => {
@@ -1250,15 +1249,15 @@ describe('SEEDS VERIFICATION', () => {
         });
 
         it('should pass if every course exists', () => {
-          const someCoursesDontExist = questionnaireHistoryList.some(qh => !qh.course);
+          const everyCourseExists = questionnaireHistoryList.every(qh => qh.course);
 
-          expect(someCoursesDontExist).toBeFalsy();
+          expect(everyCourseExists).toBeTruthy();
         });
 
         it('should pass if every user exists', () => {
-          const someUsersDontExist = questionnaireHistoryList.some(qh => !qh.user);
+          const everyUserExists = questionnaireHistoryList.every(qh => qh.user);
 
-          expect(someUsersDontExist).toBeFalsy();
+          expect(everyUserExists).toBeTruthy();
         });
 
         it('should pass if user is registered to course', async () => {
@@ -1279,17 +1278,17 @@ describe('SEEDS VERIFICATION', () => {
         });
 
         it('should pass if every questionnaire exists and is published', () => {
-          const someQuestionnaireDontExist = questionnaireHistoryList
-            .some(qh => !qh.questionnaire || qh.questionnaire.status !== PUBLISHED);
+          const everyQuestionnaireExists = questionnaireHistoryList
+            .every(qh => qh.questionnaire && qh.questionnaire.status === PUBLISHED);
 
-          expect(someQuestionnaireDontExist).toBeFalsy();
+          expect(everyQuestionnaireExists).toBeTruthy();
         });
 
         it('should pass if every card exists and is in questionnaire', () => {
-          const someCardsDontExist = questionnaireHistoryList
-            .some(qh => qh.questionnaireAnswersList.some(qal => !qal.card));
+          const everyCardExists = questionnaireHistoryList
+            .every(qh => qh.questionnaireAnswersList.every(qal => qal.card));
 
-          expect(someCardsDontExist).toBeFalsy();
+          expect(everyCardExists).toBeTruthy();
 
           const someCardsAreNotInQuestionnaires = questionnaireHistoryList
             .some((qh) => {
@@ -1329,9 +1328,9 @@ describe('SEEDS VERIFICATION', () => {
         });
 
         it('should pass if every company exists', () => {
-          const someCompaniessDontExist = questionnaireHistoryList.some(qh => !qh.company);
+          const everyCompanyExists = questionnaireHistoryList.every(qh => qh.company);
 
-          expect(someCompaniessDontExist).toBeFalsy();
+          expect(everyCompanyExists).toBeTruthy();
         });
 
         it('should pass if company is linked to course', async () => {
@@ -1407,9 +1406,9 @@ describe('SEEDS VERIFICATION', () => {
         });
 
         it('should pass if every activity exists and is not duplicated', () => {
-          const someActivitiesDontExist = stepList.some(step => step.activities.some(activity => !activity));
+          const everyActivityExists = stepList.every(step => step.activities.every(activity => activity));
 
-          expect(someActivitiesDontExist).toBeFalsy();
+          expect(everyActivityExists).toBeTruthy();
 
           const someActivitiesAreDuplicated = stepList
             .some((step) => {
@@ -1473,9 +1472,9 @@ describe('SEEDS VERIFICATION', () => {
         });
 
         it('should pass if every step exists and is not duplicated', () => {
-          const someStepsDontExist = subProgramList.some(sp => sp.steps.some(step => !step));
+          const everyStepExists = subProgramList.every(sp => sp.steps.every(step => step));
 
-          expect(someStepsDontExist).toBeFalsy();
+          expect(everyStepExists).toBeTruthy();
 
           const someStepsAreDuplicated = subProgramList
             .some((subProgram) => {
