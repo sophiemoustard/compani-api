@@ -5,7 +5,8 @@ const { getTokenByCredentials, getToken } = require('./helpers/authentication');
 const UserCompany = require('../../src/models/UserCompany');
 const { userCompanies, populateDB, usersSeedList } = require('./seed/userCompaniesSeed');
 const UtilsMock = require('../utilsMock');
-const { authCompany, otherCompany } = require('../seed/authCompaniesSeed');
+const { authCompany, otherCompany, companyWithoutSubscription } = require('../seed/authCompaniesSeed');
+const { holdingAdminFromOtherCompany } = require('../seed/authUsersSeed');
 
 describe('NODE ENV', () => {
   it('should be \'test\'', () => {
@@ -37,6 +38,38 @@ describe('USER COMPANIES ROUTES - POST /usercompanies', () => {
 
     it('should return 404 if company is not client user company', async () => {
       const payload = { user: usersSeedList[10]._id, company: otherCompany._id };
+
+      const res = await app.inject({
+        method: 'POST',
+        url: '/usercompanies',
+        payload,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(res.statusCode).toBe(404);
+    });
+  });
+
+  describe('HOLDING_ADMIN', () => {
+    beforeEach(async () => {
+      authToken = await getTokenByCredentials(holdingAdminFromOtherCompany.local);
+    });
+
+    it('should create user company', async () => {
+      const payload = { user: usersSeedList[10]._id, company: companyWithoutSubscription._id };
+
+      const res = await app.inject({
+        method: 'POST',
+        url: '/usercompanies',
+        payload,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(res.statusCode).toBe(200);
+    });
+
+    it('should return 404 if company is not in user holding', async () => {
+      const payload = { user: usersSeedList[10]._id, company: authCompany._id };
 
       const res = await app.inject({
         method: 'POST',
