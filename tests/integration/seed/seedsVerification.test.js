@@ -300,10 +300,10 @@ describe('SEEDS VERIFICATION', () => {
         });
 
         it('should pass if every company is rattached to course', () => {
-          const someCompaniesAreNotInCourse = attendanceList
-            .some(a => !UtilsHelper.doesArrayIncludeId(a.courseSlot.course.companies, a.company._id));
+          const everyCompanyIsInCourse = attendanceList
+            .every(a => UtilsHelper.doesArrayIncludeId(a.courseSlot.course.companies, a.company._id));
 
-          expect(someCompaniesAreNotInCourse).toBeFalsy();
+          expect(everyCompanyIsInCourse).toBeTruthy();
         });
       });
 
@@ -380,10 +380,10 @@ describe('SEEDS VERIFICATION', () => {
         });
 
         it('should pass if every company is rattached to course', () => {
-          const someCompaniesAreNotInCourse = attendanceSheetList
-            .some(a => !UtilsHelper.doesArrayIncludeId(a.course.companies, a.company._id));
+          const everyCompanyIsInCourse = attendanceSheetList
+            .every(a => UtilsHelper.doesArrayIncludeId(a.course.companies, a.company._id));
 
-          expect(someCompaniesAreNotInCourse).toBeFalsy();
+          expect(everyCompanyIsInCourse).toBeTruthy();
         });
       });
 
@@ -668,17 +668,17 @@ describe('SEEDS VERIFICATION', () => {
         });
 
         it('should pass if no e-learning course has companies field', () => {
-          const someELearningCourseHasCompanies = courseList
+          const noElearningCourseHasCompanies = courseList
             .filter(course => course.format === STRICTLY_E_LEARNING)
-            .some(course => has(course, 'companies'));
-          expect(someELearningCourseHasCompanies).toBeFalsy();
+            .every(course => !has(course, 'companies'));
+          expect(noElearningCourseHasCompanies).toBeTruthy();
         });
 
         it('should pass if no e-learning course has misc field', () => {
-          const someELearningCourseHasMisc = courseList
+          const noELearningCourseHasMisc = courseList
             .filter(course => course.format === STRICTLY_E_LEARNING)
-            .some(course => has(course, 'misc'));
-          expect(someELearningCourseHasMisc).toBeFalsy();
+            .every(course => !has(course, 'misc'));
+          expect(noELearningCourseHasMisc).toBeTruthy();
         });
 
         it('should pass if every blended course is intra ou inter_b2b', () => {
@@ -740,8 +740,8 @@ describe('SEEDS VERIFICATION', () => {
         });
 
         it('should pass if no access rules for blended courses', () => {
-          const haveBlendedCoursesAccessRules = courseList.some(c => c.format === BLENDED && c.accessRules.length);
-          expect(haveBlendedCoursesAccessRules).toBeFalsy();
+          const noBlendedCourseHasAccessRules = courseList.every(c => c.format !== BLENDED || !c.accessRules.length);
+          expect(noBlendedCourseHasAccessRules).toBeTruthy();
         });
 
         it('should pass if only blended courses have interlocutors', () => {
