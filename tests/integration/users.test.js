@@ -1512,6 +1512,34 @@ describe('USERS ROUTES - PUT /users/:id', () => {
     });
   });
 
+  describe('HOLDING_ADMIN', () => {
+    beforeEach(async () => {
+      authToken = await getTokenByCredentials(holdingAdminFromOtherCompany.local);
+    });
+
+    it('should update user from other company in same holding', async () => {
+      const res = await app.inject({
+        method: 'PUT',
+        url: `/users/${userList[9]._id.toHexString()}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload: { identity: { firstname: 'Test' } },
+      });
+
+      expect(res.statusCode).toBe(200);
+    });
+
+    it('should return 404 if user is not from his holding', async () => {
+      const res = await app.inject({
+        method: 'PUT',
+        url: `/users/${usersSeedList[0]._id.toHexString()}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload: { identity: { firstname: 'Test' } },
+      });
+
+      expect(res.statusCode).toBe(404);
+    });
+  });
+
   describe('TRAINING_ORGANISATION_MANAGER', () => {
     beforeEach(async () => {
       authToken = await getToken('training_organisation_manager');

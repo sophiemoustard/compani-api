@@ -1103,4 +1103,5 @@ module.exports = {
   traineeComingUpInAuthCompany,
   traineeFromAuthFormerlyInOther,
   clientAdminFromThirdCompany,
+  traineeFromThirdCompany,
 };
