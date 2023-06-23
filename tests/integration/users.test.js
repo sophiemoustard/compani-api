@@ -1528,7 +1528,7 @@ describe('USERS ROUTES - PUT /users/:id', () => {
       expect(res.statusCode).toBe(200);
     });
 
-    it('should return 404 if user is from other company in other holding', async () => {
+    it('should return 404 if user is not from his holding', async () => {
       const res = await app.inject({
         method: 'PUT',
         url: `/users/${usersSeedList[0]._id.toHexString()}`,

@@ -2850,7 +2850,7 @@ describe('COURSES ROUTES - DELETE /courses/{_id}/trainee/{traineeId}', () => {
       expect(res.statusCode).toBe(200);
     });
 
-    it('should return 404 if holding admin delete learner from other holding', async () => {
+    it('should return 404 if holding admin delete learner not from his holding', async () => {
       authToken = await getTokenByCredentials(holdingAdminFromOtherCompany.local);
       const res = await app.inject({
         method: 'DELETE',
