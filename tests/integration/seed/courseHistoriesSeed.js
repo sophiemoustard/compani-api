@@ -4,7 +4,7 @@ const Course = require('../../../src/models/Course');
 const CourseHistory = require('../../../src/models/CourseHistory');
 const SubProgram = require('../../../src/models/SubProgram');
 const User = require('../../../src/models/User');
-const { authCompany, otherCompany } = require('../../seed/authCompaniesSeed');
+const { authCompany, companyWithoutSubscription } = require('../../seed/authCompaniesSeed');
 const { trainerOrganisationManager } = require('../../seed/authUsersSeed');
 const { SLOT_CREATION, WEBAPP, INTRA, INTER_B2B } = require('../../../src/helpers/constants');
 const { deleteNonAuthenticationSeeds } = require('../helpers/db');
@@ -50,7 +50,7 @@ const coursesList = [{
   maxTrainees: 8,
   trainer: userList[0]._id,
   trainees: [],
-  companies: [otherCompany._id],
+  companies: [companyWithoutSubscription._id],
   salesRepresentative: userList[1]._id,
 },
 {
