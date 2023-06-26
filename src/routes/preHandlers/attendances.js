@@ -47,7 +47,9 @@ exports.authorizeAttendancesGet = async (req) => {
   if (!courseSlots.length) throw Boom.notFound();
 
   const { credentials } = req.auth;
-  const loggedUserCompany = get(credentials, 'company._id');
+  const companies = get(credentials, 'role.holding')
+    ? credentials.holding.companies
+    : [get(credentials, 'company._id')];
   const loggedUserHasVendorRole = get(credentials, 'role.vendor');
   const { course } = courseSlots[0];
 
@@ -55,7 +57,7 @@ exports.authorizeAttendancesGet = async (req) => {
 
   return {
     courseSlotsIds: courseSlots.map(cs => cs._id),
-    company: !loggedUserHasVendorRole ? loggedUserCompany : null,
+    companies: !loggedUserHasVendorRole ? companies : null,
   };
 };
 

@@ -59,8 +59,8 @@ exports.create = async (payload, credentials) => {
   return createManyAttendances(course.trainees, courseSlotId, credentials, traineesCompanyForAttendance);
 };
 
-exports.list = async (query, company, credentials) => Attendance
-  .find({ courseSlot: { $in: query }, ...(company && { company }) })
+exports.list = async (query, companies, credentials) => Attendance
+  .find({ courseSlot: { $in: query }, ...(companies && { company: { $in: companies } }) })
   .setOptions({ isVendorUser: VENDOR_ROLES.includes(get(credentials, 'role.vendor.name')) })
   .lean();
 
