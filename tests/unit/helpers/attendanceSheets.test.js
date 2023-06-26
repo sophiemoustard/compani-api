@@ -10,7 +10,7 @@ const CourseHistoriesHelper = require('../../../src/helpers/courseHistories');
 const SinonMongoose = require('../sinonMongoose');
 const GCloudStorageHelper = require('../../../src/helpers/gCloudStorage');
 const UtilsHelper = require('../../../src/helpers/utils');
-const { VENDOR_ADMIN, COACH, COURSE, TRAINEE } = require('../../../src/helpers/constants');
+const { VENDOR_ADMIN, COACH, COURSE, TRAINEE, HOLDING_ADMIN } = require('../../../src/helpers/constants');
 
 describe('list', () => {
   let find;
@@ -72,7 +72,46 @@ describe('list', () => {
     SinonMongoose.calledOnceWithExactly(
       find,
       [
-        { query: 'find', args: [{ course: courseId, company: authCompanyId }] },
+        { query: 'find', args: [{ course: courseId, company: { $in: [authCompanyId] } }] },
+        { query: 'populate', args: [{ path: 'trainee', select: 'identity' }] },
+        { query: 'setOptions', args: [{ isVendorUser: !!get(credentials, 'role.vendor') }] },
+        { query: 'lean' },
+      ]
+    );
+  });
+
+  it('should return course attendance sheets as holding user', async () => {
+    const authCompanyId = new ObjectId();
+    const otherCompanyId = new ObjectId();
+    const credentials = {
+      company: { _id: authCompanyId },
+      holding: { _id: new ObjectId(), companies: [authCompanyId, otherCompanyId] },
+      role: { client: { name: COACH }, holding: { name: HOLDING_ADMIN } },
+    };
+
+    const courseId = new ObjectId();
+    const attendanceSheets = [
+      {
+        course: courseId,
+        file: { publicId: 'mon upload avec un trainne de authCompany', link: 'www.test.com' },
+        trainee: { _id: new ObjectId(), identity: { firstname: 'Helo', name: 'World' } },
+      },
+      {
+        course: courseId,
+        file: { publicId: 'mon upload avec un trainne de otherCompany', link: 'www.test.com' },
+        trainee: { _id: new ObjectId(), identity: { firstname: 'Aline', name: 'Opiné' } },
+      },
+    ];
+
+    find.returns(SinonMongoose.stubChainedQueries(attendanceSheets, ['populate', 'setOptions', 'lean']));
+
+    const result = await attendanceSheetHelper.list(courseId, credentials);
+
+    expect(result).toMatchObject(attendanceSheets);
+    SinonMongoose.calledOnceWithExactly(
+      find,
+      [
+        { query: 'find', args: [{ course: courseId, company: { $in: [authCompanyId, otherCompanyId] } }] },
         { query: 'populate', args: [{ path: 'trainee', select: 'identity' }] },
         { query: 'setOptions', args: [{ isVendorUser: !!get(credentials, 'role.vendor') }] },
         { query: 'lean' },

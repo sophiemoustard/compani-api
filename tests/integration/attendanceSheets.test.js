@@ -7,10 +7,11 @@ const { ObjectId } = require('mongodb');
 const GCloudStorageHelper = require('../../src/helpers/gCloudStorage');
 const app = require('../../server');
 const { populateDB, coursesList, attendanceSheetList } = require('./seed/attendanceSheetsSeed');
-const { getToken } = require('./helpers/authentication');
+const { getToken, getTokenByCredentials } = require('./helpers/authentication');
 const { generateFormData } = require('./utils');
 const { WEBAPP, MOBILE } = require('../../src/helpers/constants');
 const AttendanceSheet = require('../../src/models/AttendanceSheet');
+const { holdingAdminFromOtherCompany } = require('../seed/authUsersSeed');
 
 describe('NODE ENV', () => {
   it('should be \'test\'', () => {
@@ -363,6 +364,31 @@ describe('ATTENDANCE SHEETS ROUTES - GET /attendancesheets', () => {
     it('should get only authCompany\'s attendance sheets for interB2B course if user does not have vendor role',
       async () => {
         authToken = await getToken('coach');
+
+        const response = await app.inject({
+          method: 'GET',
+          url: `/attendancesheets?course=${coursesList[1]._id}`,
+          headers: { Cookie: `alenvi_token=${authToken}` },
+        });
+
+        expect(response.statusCode).toBe(200);
+        expect(response.result.data.attendanceSheets.length).toEqual(1);
+      });
+
+    it('should return a 403 if course company is not in holding and user has no vendor role', async () => {
+      authToken = await getTokenByCredentials(holdingAdminFromOtherCompany.local);
+      const response = await app.inject({
+        method: 'GET',
+        url: `/attendancesheets?course=${coursesList[0]._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
+
+    it('should get only holding\'s attendance sheets for interB2B course if user is holding admin only',
+      async () => {
+        authToken = await getTokenByCredentials(holdingAdminFromOtherCompany.local);
 
         const response = await app.inject({
           method: 'GET',

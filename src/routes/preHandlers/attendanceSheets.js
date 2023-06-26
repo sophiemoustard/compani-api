@@ -23,11 +23,12 @@ exports.authorizeAttendanceSheetsGet = async (req) => {
   const { credentials } = req.auth;
   isTrainerAuthorized(course.trainer, credentials);
 
-  const loggedUserCompany = get(credentials, 'company._id');
   const loggedUserHasVendorRole = get(credentials, 'role.vendor');
   if (loggedUserHasVendorRole) return null;
 
-  if (!UtilsHelper.doesArrayIncludeId(course.companies, loggedUserCompany)) throw Boom.forbidden();
+  if (!course.companies.some(company => UtilsHelper.hasUserAccessToCompany(credentials, company))) {
+    throw Boom.forbidden();
+  }
 
   return null;
 };

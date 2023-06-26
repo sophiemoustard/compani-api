@@ -39,10 +39,12 @@ exports.create = async (payload) => {
 
 exports.list = async (course, credentials) => {
   const isVendorUser = !!get(credentials, 'role.vendor');
-  const company = get(credentials, 'company._id');
+  const companies = get(credentials, 'role.holding')
+    ? credentials.holding.companies
+    : [get(credentials, 'company._id')];
 
   const attendanceSheets = await AttendanceSheet
-    .find({ course, ...(!isVendorUser && { company }) })
+    .find({ course, ...(!isVendorUser && { company: { $in: companies } }) })
     .populate({ path: 'trainee', select: 'identity' })
     .setOptions({ isVendorUser })
     .lean();
