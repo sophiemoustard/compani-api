@@ -386,7 +386,7 @@ describe('ATTENDANCE SHEETS ROUTES - GET /attendancesheets', () => {
       expect(response.statusCode).toBe(403);
     });
 
-    it('should get only holding\'s attendance sheets for interB2B course if user is holding admin only',
+    it('should get holding\'s attendance sheets for interB2B course if user is holding admin only',
       async () => {
         authToken = await getTokenByCredentials(holdingAdminFromOtherCompany.local);
 
