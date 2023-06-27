@@ -3,6 +3,7 @@ const get = require('lodash/get');
 const Course = require('../../models/Course');
 const TrainingContract = require('../../models/TrainingContract');
 const translate = require('../../helpers/translate');
+const UtilsHelper = require('../../helpers/utils');
 
 const { language } = translate;
 
@@ -21,11 +22,26 @@ exports.authorizeTrainingContractGet = async (req) => {
   const { course: courseId } = req.query;
   const { credentials } = req.auth;
   const isVendorUser = !!get(credentials, 'role.vendor');
-  const company = get(credentials, 'company._id');
 
-  const course = await Course.countDocuments({ _id: courseId, ...(!isVendorUser && { companies: company }) });
-
+  const course = await Course.findOne({ _id: courseId }).lean();
   if (!course) throw Boom.notFound();
+
+  if (isVendorUser) return null;
+
+  if (get(req.query, 'company')) {
+    const loggedUserCompany = get(credentials, 'company._id');
+    const isCompanyInCourse = UtilsHelper.doesArrayIncludeId(course.companies, req.query.company);
+    const isLoggedUserInCompany = UtilsHelper.areObjectIdsEquals(loggedUserCompany, req.query.company);
+
+    if (!isCompanyInCourse || !isLoggedUserInCompany) throw Boom.forbidden();
+  } else {
+    const hasHoldingRole = !!get(credentials, 'role.holding');
+    const isLoggedUserInHolding = UtilsHelper
+      .areObjectIdsEquals(get(req.query, 'holding'), get(credentials, 'holding._id'));
+    const hasHoldingAccessToCourse = course.companies
+      .some(company => UtilsHelper.doesArrayIncludeId(get(credentials, 'holding.companies') || [], company));
+    if (!hasHoldingRole || !isLoggedUserInHolding || !hasHoldingAccessToCourse) throw Boom.forbidden();
+  }
 
   return null;
 };
