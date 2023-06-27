@@ -42,6 +42,7 @@ const {
   INTER_B2C,
   BLENDED,
   TRAINEE_ADDITION,
+  COMPANY_ADDITION,
 } = require('../../../src/helpers/constants');
 const { auxiliaryRoleId, trainerRoleId, coachRoleId, clientAdminRoleId } = require('../../seed/authRolesSeed');
 const { CompaniDate } = require('../../../src/helpers/dates/companiDates');
@@ -253,7 +254,7 @@ const userCompanies = [
 const cardsList = [
   { _id: new ObjectId(), template: 'title_text' },
   { _id: new ObjectId(), template: 'survey' },
-  { _id: new ObjectId(), template: 'survey' },
+  { _id: new ObjectId(), template: 'survey', label: { right: 'right', left: 'left' }, question: 'question ?' },
 ];
 
 const activitiesList = [
@@ -934,6 +935,13 @@ const courseHistories = [
     course: coursesList[19]._id,
     trainee: traineeFromAuthFormerlyInOther._id,
     company: otherCompany._id,
+    createdBy: trainerOrganisationManager._id,
+    createdAt: '2020-01-03T14:00:00.000Z',
+  },
+  {
+    action: COMPANY_ADDITION,
+    course: coursesList[0]._id,
+    company: authCompany._id,
     createdBy: trainerOrganisationManager._id,
     createdAt: '2020-01-03T14:00:00.000Z',
   },

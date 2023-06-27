@@ -35,10 +35,8 @@ describe('QUESTIONNAIRE HISTORIES ROUTES - POST /questionnairehistories', () => 
         user: questionnaireHistoriesUsersList[0],
         questionnaire: questionnairesList[0]._id,
         questionnaireAnswersList: [
-          { card: cardsList[0]._id, answerList: ['blabla'] },
+          { card: cardsList[0]._id, answerList: ['5'] },
           { card: cardsList[3]._id, answerList: ['blebleble'] },
-          { card: cardsList[4]._id, answerList: [new ObjectId(), new ObjectId()] },
-          { card: cardsList[5]._id, answerList: [new ObjectId()] },
         ],
       };
 
