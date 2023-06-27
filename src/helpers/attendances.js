@@ -59,7 +59,7 @@ exports.create = async (payload, credentials) => {
   return createManyAttendances(course.trainees, courseSlotId, credentials, traineesCompanyForAttendance);
 };
 
-exports.list = async (query, credentials) => {
+exports.list = async (courseSlotsIds, credentials) => {
   const loggedUserCompanies = get(credentials, 'role.holding')
     ? credentials.holding.companies
     : [get(credentials, 'company._id')];
@@ -67,7 +67,7 @@ exports.list = async (query, credentials) => {
   const companies = !loggedUserHasVendorRole ? loggedUserCompanies : null;
 
   return Attendance
-    .find({ courseSlot: { $in: query }, ...(companies && { company: { $in: companies } }) })
+    .find({ courseSlot: { $in: courseSlotsIds }, ...(companies && { company: { $in: companies } }) })
     .setOptions({ isVendorUser: VENDOR_ROLES.includes(get(credentials, 'role.vendor.name')) })
     .lean();
 };

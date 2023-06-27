@@ -375,7 +375,7 @@ describe('ATTENDANCE SHEETS ROUTES - GET /attendancesheets', () => {
         expect(response.result.data.attendanceSheets.length).toEqual(1);
       });
 
-    it('should return a 403 if course company is not in holding and user has no vendor role', async () => {
+    it('should return 403 if course company is not in holding and user has no vendor role', async () => {
       authToken = await getTokenByCredentials(holdingAdminFromOtherCompany.local);
       const response = await app.inject({
         method: 'GET',
