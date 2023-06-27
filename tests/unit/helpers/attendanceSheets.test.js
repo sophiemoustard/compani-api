@@ -32,7 +32,7 @@ describe('list', () => {
 
     find.returns(SinonMongoose.stubChainedQueries(attendanceSheets, ['populate', 'setOptions', 'lean']));
 
-    const result = await attendanceSheetHelper.list(courseId, credentials);
+    const result = await attendanceSheetHelper.list({ course: courseId }, credentials);
 
     expect(result).toMatchObject(attendanceSheets);
     SinonMongoose.calledOnceWithExactly(
@@ -66,7 +66,7 @@ describe('list', () => {
 
     find.returns(SinonMongoose.stubChainedQueries(attendanceSheets, ['populate', 'setOptions', 'lean']));
 
-    const result = await attendanceSheetHelper.list(courseId, credentials);
+    const result = await attendanceSheetHelper.list({ course: courseId, company: authCompanyId }, credentials);
 
     expect(result).toMatchObject(attendanceSheets);
     SinonMongoose.calledOnceWithExactly(
@@ -83,9 +83,10 @@ describe('list', () => {
   it('should return course attendance sheets as holding user', async () => {
     const authCompanyId = new ObjectId();
     const otherCompanyId = new ObjectId();
+    const holdingId = new ObjectId();
     const credentials = {
       company: { _id: authCompanyId },
-      holding: { _id: new ObjectId(), companies: [authCompanyId, otherCompanyId] },
+      holding: { _id: holdingId, companies: [authCompanyId, otherCompanyId] },
       role: { client: { name: COACH }, holding: { name: HOLDING_ADMIN } },
     };
 
@@ -105,7 +106,7 @@ describe('list', () => {
 
     find.returns(SinonMongoose.stubChainedQueries(attendanceSheets, ['populate', 'setOptions', 'lean']));
 
-    const result = await attendanceSheetHelper.list(courseId, credentials);
+    const result = await attendanceSheetHelper.list({ course: courseId, holding: holdingId }, credentials);
 
     expect(result).toMatchObject(attendanceSheets);
     SinonMongoose.calledOnceWithExactly(
