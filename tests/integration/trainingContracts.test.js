@@ -164,7 +164,7 @@ describe('TRAINING CONTRACTS ROUTES - GET /trainingcontracts', () => {
       expect(response.result.data.trainingContracts.length).toEqual(trainingContractsLength);
     });
 
-    it('should return a 404 if course doesn\'t exist', async () => {
+    it('should return 404 if course doesn\'t exist', async () => {
       const response = await app.inject({
         method: 'GET',
         url: `/trainingcontracts?course=${new ObjectId()}`,
@@ -191,7 +191,7 @@ describe('TRAINING CONTRACTS ROUTES - GET /trainingcontracts', () => {
       expect(response.statusCode).toBe(200);
     });
 
-    it('should return a 403 if user company is not attached to course and user has no vendor role', async () => {
+    it('should return 403 if user company is not attached to course and user has no vendor role', async () => {
       const response = await app.inject({
         method: 'GET',
         url: `/trainingcontracts?course=${courseList[2]._id}&company=${authCompany._id}`,
@@ -201,7 +201,7 @@ describe('TRAINING CONTRACTS ROUTES - GET /trainingcontracts', () => {
       expect(response.statusCode).toBe(403);
     });
 
-    it('should return a 403 if user is not attached to company', async () => {
+    it('should return 403 if user is not attached to company', async () => {
       const response = await app.inject({
         method: 'GET',
         url: `/trainingcontracts?course=${courseList[2]._id}&company=${companyWithoutSubscription._id}`,
@@ -228,7 +228,7 @@ describe('TRAINING CONTRACTS ROUTES - GET /trainingcontracts', () => {
       expect(response.statusCode).toBe(200);
     });
 
-    it('should return a 403 if course company is not in user holding', async () => {
+    it('should return 403 if course company is not in user holding', async () => {
       const response = await app.inject({
         method: 'GET',
         url: `/trainingcontracts?course=${courseList[0]._id}&holding=${otherHolding._id}`,
@@ -238,7 +238,7 @@ describe('TRAINING CONTRACTS ROUTES - GET /trainingcontracts', () => {
       expect(response.statusCode).toBe(403);
     });
 
-    it('should return a 403 if user is not attached to holding', async () => {
+    it('should return 403 if user is not attached to holding', async () => {
       const response = await app.inject({
         method: 'GET',
         url: `/trainingcontracts?course=${courseList[0]._id}&holding=${authHolding._id}`,
@@ -248,7 +248,7 @@ describe('TRAINING CONTRACTS ROUTES - GET /trainingcontracts', () => {
       expect(response.statusCode).toBe(403);
     });
 
-    it('should return a 403 if no vendor role and no holding or company query ', async () => {
+    it('should return 403 if no vendor role and no holding or company query ', async () => {
       const response = await app.inject({
         method: 'GET',
         url: `/trainingcontracts?course=${courseList[2]._id}`,
@@ -258,7 +258,7 @@ describe('TRAINING CONTRACTS ROUTES - GET /trainingcontracts', () => {
       expect(response.statusCode).toBe(403);
     });
 
-    it('should return a 400 if holding and company query', async () => {
+    it('should return 400 if holding and company query', async () => {
       const response = await app.inject({
         method: 'GET',
         url: `/trainingcontracts?course=${courseList[2]._id}&company=${otherCompany._id}&holding=${otherHolding._id}`,
@@ -320,7 +320,7 @@ describe('TRAINING CONTRACTS ROUTES - DELETE /trainingcontracts/{_id}', () => {
       sinon.assert.calledOnce(deleteCourseFile);
     });
 
-    it('should return a 404 if training contract does not exist', async () => {
+    it('should return 404 if training contract does not exist', async () => {
       const response = await app.inject({
         method: 'DELETE',
         url: `/trainingcontracts/${new ObjectId()}`,
@@ -330,7 +330,7 @@ describe('TRAINING CONTRACTS ROUTES - DELETE /trainingcontracts/{_id}', () => {
       expect(response.statusCode).toBe(404);
     });
 
-    it('should return a 403 if course is archived', async () => {
+    it('should return 403 if course is archived', async () => {
       const response = await app.inject({
         method: 'DELETE',
         url: `/trainingcontracts/${trainingContractList[1]._id}`,
