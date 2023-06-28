@@ -11,6 +11,7 @@ const Contract = require('../../../src/models/Contract');
 const Course = require('../../../src/models/Course');
 const CourseBill = require('../../../src/models/CourseBill');
 const CourseBillingItem = require('../../../src/models/CourseBillingItem');
+const CourseBillsNumber = require('../../../src/models/CourseBillsNumber');
 const CourseSlot = require('../../../src/models/CourseSlot');
 const CourseHistory = require('../../../src/models/CourseHistory');
 const Helper = require('../../../src/models/Helper');
@@ -918,6 +919,24 @@ describe('SEEDS VERIFICATION', () => {
           const courseBillingItemNamesWithoutDuplicates = [...new Set(courseBillingItemNameList)];
 
           expect(courseBillingItemNamesWithoutDuplicates.length).toEqual(courseBillingItemNameList.length);
+        });
+      });
+
+      describe('Collection CourseBillsNumber', () => {
+        let courseBillsNumberList;
+        before(async () => {
+          courseBillsNumberList = await CourseBillsNumber.find().lean();
+        });
+
+        it('should pass if only one item in list', () => {
+          expect(courseBillsNumberList.length).toBeLessThanOrEqual(1);
+        });
+
+        it('should pass if value is a positive integer', () => {
+          const isCourseBillsNumberAPositiveInteger = courseBillsNumberList
+            .every(number => number.seq >= 0 && Number.isInteger(number.seq));
+
+          expect(isCourseBillsNumberAPositiveInteger).toBeTruthy();
         });
       });
 
