@@ -561,7 +561,7 @@ const courseBillsList = [
     company: authCompany._id,
     billingPurchaseList: [],
     billedAt: '2022-04-12T09:00:00.000Z',
-    number: 'F00001',
+    number: 'FACT-00001',
     payer: { company: authCompany._id },
   },
   {
@@ -571,7 +571,7 @@ const courseBillsList = [
     company: authCompany._id,
     billingPurchaseList: [],
     billedAt: '2022-04-12T09:00:00.000Z',
-    number: 'F00002',
+    number: 'FACT-00002',
     payer: { company: authCompany._id },
   },
   {
@@ -581,7 +581,7 @@ const courseBillsList = [
     company: authCompany._id,
     billingPurchaseList: [],
     billedAt: '2022-04-16T09:00:00.000Z',
-    number: 'F00003',
+    number: 'FACT-00003',
     payer: { company: authCompany._id },
   },
   {
@@ -591,7 +591,7 @@ const courseBillsList = [
     company: authCompany._id,
     billingPurchaseList: [],
     billedAt: '2022-04-20T09:00:00.000Z',
-    number: 'F00004',
+    number: 'FACT-00004',
     payer: { company: authCompany._id },
   },
   {
@@ -601,7 +601,7 @@ const courseBillsList = [
     company: authCompany._id,
     billingPurchaseList: [],
     billedAt: '2022-04-20T09:00:00.000Z',
-    number: 'F00005',
+    number: 'FACT-00005',
     payer: { company: authCompany._id },
   },
   {
@@ -611,7 +611,7 @@ const courseBillsList = [
     company: authCompany._id,
     billingPurchaseList: [],
     billedAt: '2022-04-20T09:00:00.000Z',
-    number: 'F00006',
+    number: 'FACT-00006',
     payer: { company: authCompany._id },
   },
   {
@@ -621,7 +621,7 @@ const courseBillsList = [
     company: authCompany._id,
     billingPurchaseList: [],
     billedAt: '2022-04-20T09:00:00.000Z',
-    number: 'F00007',
+    number: 'FACT-00007',
     payer: { company: authCompany._id },
   },
 ];

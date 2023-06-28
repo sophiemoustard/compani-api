@@ -9,6 +9,7 @@ const CompanyHolding = require('../../../src/models/CompanyHolding');
 const CompanyLinkRequest = require('../../../src/models/CompanyLinkRequest');
 const Contract = require('../../../src/models/Contract');
 const Course = require('../../../src/models/Course');
+const CourseBill = require('../../../src/models/CourseBill');
 const CourseSlot = require('../../../src/models/CourseSlot');
 const CourseHistory = require('../../../src/models/CourseHistory');
 const Helper = require('../../../src/models/Helper');
@@ -814,6 +815,92 @@ describe('SEEDS VERIFICATION', () => {
           });
 
           expect(everyUserExists).toBeTruthy();
+        });
+      });
+
+      describe('Collection CourseBill', () => {
+        let courseBillList;
+        before(async () => {
+          courseBillList = await CourseBill
+            .find()
+            .populate({ path: 'course', select: 'format companies', transform })
+            .populate({ path: 'company', transform })
+            .populate({ path: 'payer.company', transform })
+            .populate({ path: 'payer.fundingOrganisation', transform })
+            .populate({
+              path: 'billingPurchaseList',
+              select: 'billingItem',
+              populate: { path: 'billingItem', transform },
+            })
+            .setOptions({ allCompanies: true })
+            .lean();
+        });
+
+        it('should pass if every course exists and is blended', () => {
+          const everyCourseIsBlended = courseBillList.every(bill => bill.course && bill.course.format === BLENDED);
+          expect(everyCourseIsBlended).toBeTruthy();
+        });
+
+        it('should pass if every price is positive and greater than 0', () => {
+          const everyPriceIsPositiveAndGreaterThanZero = courseBillList.every(bill => bill.mainFee.price > 0);
+          expect(everyPriceIsPositiveAndGreaterThanZero).toBeTruthy();
+        });
+
+        it('should pass if every count is a positive and greater than 0 integer', () => {
+          const everyCountIsAPositiveAndGreaterThanZeroInteger = courseBillList
+            .every(bill => bill.mainFee.count > 0 && Number.isInteger(bill.mainFee.count));
+          expect(everyCountIsAPositiveAndGreaterThanZeroInteger).toBeTruthy();
+        });
+
+        it('should pass if every company exists', () => {
+          const everyCompanyExists = courseBillList.every(bill => !!bill.company);
+          expect(everyCompanyExists).toBeTruthy();
+        });
+
+        it('should pass if every company is linked to course', () => {
+          const everyCompanyIsLinkedToCourse = courseBillList
+            .every(bill => UtilsHelper.doesArrayIncludeId(bill.course.companies, bill.company._id));
+          expect(everyCompanyIsLinkedToCourse).toBeTruthy();
+        });
+
+        it('should pass if every payer exists', () => {
+          const everyPayerExists = courseBillList.every(bill => !!bill.payer._id);
+
+          expect(everyPayerExists).toBeTruthy();
+        });
+
+        it('should pass if every billing item exists', () => {
+          const everyBillingItemExists = courseBillList
+            .every(bill => bill.billingPurchaseList.every(purchase => !!purchase.billingItem));
+
+          expect(everyBillingItemExists).toBeTruthy();
+        });
+
+        it('should pass if every billing purchase price is positive and greater than 0', () => {
+          const everyPriceIsPositiveAndGreaterThanZero = courseBillList
+            .every(bill => bill.billingPurchaseList.every(purchase => purchase.price > 0));
+          expect(everyPriceIsPositiveAndGreaterThanZero).toBeTruthy();
+        });
+
+        it('should pass if every billing purchase count is a positive and greater than 0 integer', () => {
+          const everyCountIsAPositiveAndGreaterThanZeroInteger = courseBillList
+            .every(bill => bill.billingPurchaseList
+              .every(purchase => purchase.count > 0 && Number.isInteger(purchase.count)));
+          expect(everyCountIsAPositiveAndGreaterThanZeroInteger).toBeTruthy();
+        });
+
+        it('should pass if every number has good format', () => {
+          const everyNumberHasGoodFormat = courseBillList
+            .every(bill => !bill.number || bill.number.match(/FACT-[0-9]{5}/));
+
+          expect(everyNumberHasGoodFormat).toBeTruthy();
+        });
+
+        it('should pass if every number is unique', () => {
+          const courseBillNumberList = compact(courseBillList.map(bill => bill.number));
+          const courseBillNumbersWithoutDuplicates = [...new Set(courseBillNumberList)];
+
+          expect(courseBillNumbersWithoutDuplicates.length).toEqual(courseBillNumberList.length);
         });
       });
 
