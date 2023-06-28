@@ -74,6 +74,7 @@ const activitiesSeed = require('./activitiesSeed');
 const activityHistoriesSeed = require('./activityHistoriesSeed');
 const attendanceSheetsSeed = require('./attendanceSheetsSeed');
 const cardsSeed = require('./cardsSeed');
+const courseBillsSeed = require('./courseBillsSeed');
 const coursesSeed = require('./coursesSeed');
 const courseHistoriesSeed = require('./courseHistoriesSeed');
 const courseSlotsSeed = require('./courseSlotsSeed');
@@ -93,6 +94,7 @@ const seedList = [
   { label: 'ATTENDANCESHEET', value: attendanceSheetsSeed },
   { label: 'CARD', value: cardsSeed },
   { label: 'COURSE', value: coursesSeed },
+  { label: 'COURSEBILL', value: courseBillsSeed },
   { label: 'COURSEHISTORY', value: courseHistoriesSeed },
   { label: 'COURSESLOT', value: courseSlotsSeed },
   { label: 'HOLDING', value: holdingsSeed },
@@ -1501,7 +1503,7 @@ describe('SEEDS VERIFICATION', () => {
             .lean();
         });
 
-        it('should pass if every user with client role has a company', () => {
+        it('should pass if every user with client role has a company #tag', () => {
           const doUsersWithClientRoleHaveCompany = userList.filter(u => get(u, 'role.client')).every(u => u.company);
           expect(doUsersWithClientRoleHaveCompany).toBeTruthy();
         });
