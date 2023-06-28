@@ -25,7 +25,6 @@ const DETACHMENT_ALLOWED_COMPANY_IDS =
 exports.authorizeUserCompanyCreation = async (req) => {
   const { auth: { credentials }, payload } = req;
   const loggedUserVendorRole = get(credentials, 'role.vendor.name');
-  const loggedUserCompany = get(credentials, 'company._id');
 
   const userExists = await User.countDocuments({ _id: payload.user });
   if (!userExists) throw Boom.notFound();
@@ -34,7 +33,7 @@ exports.authorizeUserCompanyCreation = async (req) => {
   if (!companyExists) throw Boom.notFound();
 
   if (!loggedUserVendorRole) {
-    const sameCompany = UtilsHelper.areObjectIdsEquals(payload.company, loggedUserCompany);
+    const sameCompany = UtilsHelper.hasUserAccessToCompany(credentials, payload.company);
     if (!sameCompany) throw Boom.notFound();
   }
 
