@@ -35,13 +35,14 @@ exports.create = async (payload) => {
 };
 
 exports.list = async (query, credentials) => {
+  const { course, company, holding } = query;
   const isVendorUser = !!get(credentials, 'role.vendor');
   const companies = [];
-  if (query.holding) companies.push(...credentials.holding.companies);
-  if (query.company) companies.push(query.company);
+  if (holding) companies.push(...credentials.holding.companies);
+  if (company) companies.push(query.company);
 
   return TrainingContract
-    .find({ course: query.course, ...(companies.length && { company: { $in: companies } }) })
+    .find({ course, ...(companies.length && { company: { $in: companies } }) })
     .setOptions({ isVendorUser })
     .lean();
 };

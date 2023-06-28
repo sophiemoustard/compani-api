@@ -191,7 +191,7 @@ describe('TRAINING CONTRACTS ROUTES - GET /trainingcontracts', () => {
       expect(response.statusCode).toBe(200);
     });
 
-    it('should return 403 if user company is not attached to course and user has no vendor role', async () => {
+    it('should return 403 if user company is not attached to course', async () => {
       const response = await app.inject({
         method: 'GET',
         url: `/trainingcontracts?course=${courseList[2]._id}&company=${authCompany._id}`,
@@ -248,14 +248,14 @@ describe('TRAINING CONTRACTS ROUTES - GET /trainingcontracts', () => {
       expect(response.statusCode).toBe(403);
     });
 
-    it('should return 403 if no vendor role and no holding or company query ', async () => {
+    it('should return 400 if no vendor role and no holding or company query ', async () => {
       const response = await app.inject({
         method: 'GET',
         url: `/trainingcontracts?course=${courseList[2]._id}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
-      expect(response.statusCode).toBe(403);
+      expect(response.statusCode).toBe(400);
     });
 
     it('should return 400 if holding and company query', async () => {
