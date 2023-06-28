@@ -6,7 +6,7 @@ const { language } = translate;
 
 const list = async (req) => {
   try {
-    const attendanceSheets = await AttendanceSheetHelper.list(req.query.course, req.auth.credentials);
+    const attendanceSheets = await AttendanceSheetHelper.list(req.query, req.auth.credentials);
 
     return {
       message: attendanceSheets.length

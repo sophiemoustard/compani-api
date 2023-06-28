@@ -7,8 +7,8 @@ const { language } = translate;
 
 const list = async (req) => {
   try {
-    const { courseSlotsIds, company } = req.pre.attendancesInfos;
-    const attendances = await AttendanceHelper.list(courseSlotsIds, company, req.auth.credentials);
+    const { courseSlotsIds } = req.pre.attendancesInfos;
+    const attendances = await AttendanceHelper.list(courseSlotsIds, req.auth.credentials);
 
     return {
       message: attendances.length ? translate[language].attendancesFound : translate[language].attendancesNotFound,

@@ -43,6 +43,12 @@ const userList = [
     role: { vendor: trainerRoleId },
     origin: WEBAPP,
   },
+  {
+    _id: new ObjectId(),
+    identity: { firstname: 'thirdCompany', lastname: 'User' },
+    local: { email: 'trainerFromThirdCompany@compani.fr' },
+    origin: WEBAPP,
+  },
 ];
 
 const userCompaniesList = [
@@ -58,6 +64,7 @@ const userCompaniesList = [
   { _id: new ObjectId(), user: userList[1]._id, company: authCompany._id },
   { _id: new ObjectId(), user: userList[2]._id, company: otherCompany._id },
   { _id: new ObjectId(), user: userList[3]._id, company: otherCompany._id },
+  { _id: new ObjectId(), user: userList[4]._id, company: companyWithoutSubscription._id },
 ];
 
 const steps = [{ _id: new ObjectId(), type: 'on_site', name: 'étape' }];
@@ -78,8 +85,8 @@ const coursesList = [
     _id: new ObjectId(),
     subProgram: subProgram._id,
     type: INTER_B2B,
-    trainees: [userList[1]._id, userList[2]._id],
-    companies: [authCompany._id, otherCompany._id],
+    trainees: [userList[1]._id, userList[2]._id, userList[4]._id],
+    companies: [authCompany._id, otherCompany._id, companyWithoutSubscription._id],
     salesRepresentative: userList[0]._id,
   },
   { // 2
@@ -182,6 +189,14 @@ const attendanceSheetList = [
     file: { publicId: 'fromOtherCompany', link: 'www.test.com' },
     date: '2020-01-25T09:00:00.000Z',
     company: authCompany._id,
+    origin: MOBILE,
+  },
+  {
+    _id: new ObjectId(),
+    course: coursesList[1],
+    file: { publicId: 'fromThirdCompany', link: 'www.test.com' },
+    trainee: userList[4]._id,
+    company: companyWithoutSubscription._id,
     origin: MOBILE,
   },
 ];

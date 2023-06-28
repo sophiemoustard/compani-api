@@ -16,6 +16,7 @@ const {
   COURSE,
   TRAINEE,
   HOLDING_ADMIN,
+  CLIENT_ADMIN,
 } = require('../../../src/helpers/constants');
 const CourseSlot = require('../../../src/models/CourseSlot');
 const User = require('../../../src/models/User');
@@ -279,9 +280,6 @@ describe('create', () => {
 });
 
 describe('list', () => {
-  const credentials = { company: { _id: new ObjectId() }, role: { vendor: { name: TRAINING_ORGANISATION_MANAGER } } };
-  const isVendorUser = VENDOR_ROLES.includes(get(credentials, 'role.vendor.name'));
-
   let find;
   beforeEach(() => {
     find = sinon.stub(Attendance, 'find');
@@ -290,7 +288,9 @@ describe('list', () => {
     find.restore();
   });
 
-  it('should return courseSlots\' attendances', async () => {
+  it('should return courseSlots\' attendances (vendor)', async () => {
+    const credentials = { company: { _id: new ObjectId() }, role: { vendor: { name: TRAINING_ORGANISATION_MANAGER } } };
+    const isVendorUser = VENDOR_ROLES.includes(get(credentials, 'role.vendor.name'));
     const courseSlots = [new ObjectId(), new ObjectId()];
     const attendancesList = [
       { trainee: new ObjectId(), courseSlot: courseSlots[0] },
@@ -299,7 +299,7 @@ describe('list', () => {
 
     find.returns(SinonMongoose.stubChainedQueries(attendancesList, ['setOptions', 'lean']));
 
-    const result = await AttendanceHelper.list([courseSlots], null, credentials);
+    const result = await AttendanceHelper.list([courseSlots], credentials);
 
     expect(result).toMatchObject(attendancesList);
     SinonMongoose.calledOnceWithExactly(
@@ -307,6 +307,52 @@ describe('list', () => {
       [
         { query: 'find', args: [{ courseSlot: { $in: [courseSlots] } }] },
         { query: 'setOptions', args: [{ isVendorUser }] },
+        { query: 'lean' },
+      ]
+    );
+  });
+  it('should return courseSlots\' attendances (holding)', async () => {
+    const companies = [new ObjectId(), new ObjectId()];
+    const credentials = { holding: { _id: new ObjectId(), companies }, role: { holding: { name: HOLDING_ADMIN } } };
+    const courseSlots = [new ObjectId(), new ObjectId()];
+    const attendancesList = [
+      { trainee: new ObjectId(), courseSlot: courseSlots[0] },
+      { trainee: new ObjectId(), courseSlot: courseSlots[1] },
+    ];
+
+    find.returns(SinonMongoose.stubChainedQueries(attendancesList, ['setOptions', 'lean']));
+
+    const result = await AttendanceHelper.list([courseSlots], credentials);
+
+    expect(result).toMatchObject(attendancesList);
+    SinonMongoose.calledOnceWithExactly(
+      find,
+      [
+        { query: 'find', args: [{ courseSlot: { $in: [courseSlots] }, company: { $in: companies } }] },
+        { query: 'setOptions', args: [{ isVendorUser: false }] },
+        { query: 'lean' },
+      ]
+    );
+  });
+
+  it('should return courseSlots\' attendances (client)', async () => {
+    const credentials = { company: { _id: new ObjectId() }, role: { client: { name: CLIENT_ADMIN } } };
+    const courseSlots = [new ObjectId(), new ObjectId()];
+    const attendancesList = [
+      { trainee: new ObjectId(), courseSlot: courseSlots[0] },
+      { trainee: new ObjectId(), courseSlot: courseSlots[1] },
+    ];
+
+    find.returns(SinonMongoose.stubChainedQueries(attendancesList, ['setOptions', 'lean']));
+
+    const result = await AttendanceHelper.list([courseSlots], credentials);
+
+    expect(result).toMatchObject(attendancesList);
+    SinonMongoose.calledOnceWithExactly(
+      find,
+      [
+        { query: 'find', args: [{ courseSlot: { $in: [courseSlots] }, company: { $in: [credentials.company._id] } }] },
+        { query: 'setOptions', args: [{ isVendorUser: false }] },
         { query: 'lean' },
       ]
     );
