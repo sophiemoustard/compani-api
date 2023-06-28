@@ -10,6 +10,7 @@ const CompanyLinkRequest = require('../../../src/models/CompanyLinkRequest');
 const Contract = require('../../../src/models/Contract');
 const Course = require('../../../src/models/Course');
 const CourseBill = require('../../../src/models/CourseBill');
+const CourseBillingItem = require('../../../src/models/CourseBillingItem');
 const CourseSlot = require('../../../src/models/CourseSlot');
 const CourseHistory = require('../../../src/models/CourseHistory');
 const Helper = require('../../../src/models/Helper');
@@ -76,6 +77,7 @@ const activityHistoriesSeed = require('./activityHistoriesSeed');
 const attendanceSheetsSeed = require('./attendanceSheetsSeed');
 const cardsSeed = require('./cardsSeed');
 const courseBillsSeed = require('./courseBillsSeed');
+const courseBillingItemsSeed = require('./courseBillingItemsSeed');
 const coursesSeed = require('./coursesSeed');
 const courseHistoriesSeed = require('./courseHistoriesSeed');
 const courseSlotsSeed = require('./courseSlotsSeed');
@@ -96,6 +98,7 @@ const seedList = [
   { label: 'CARD', value: cardsSeed },
   { label: 'COURSE', value: coursesSeed },
   { label: 'COURSEBILL', value: courseBillsSeed },
+  { label: 'COURSEBILLINGITEM', value: courseBillingItemsSeed },
   { label: 'COURSEHISTORY', value: courseHistoriesSeed },
   { label: 'COURSESLOT', value: courseSlotsSeed },
   { label: 'HOLDING', value: holdingsSeed },
@@ -901,6 +904,20 @@ describe('SEEDS VERIFICATION', () => {
           const courseBillNumbersWithoutDuplicates = [...new Set(courseBillNumberList)];
 
           expect(courseBillNumbersWithoutDuplicates.length).toEqual(courseBillNumberList.length);
+        });
+      });
+
+      describe('Collection CourseBillingItem', () => {
+        let courseBillingItemList;
+        before(async () => {
+          courseBillingItemList = await CourseBillingItem.find().lean();
+        });
+
+        it('should pass if every name is unique', () => {
+          const courseBillingItemNameList = courseBillingItemList.map(item => item.name);
+          const courseBillingItemNamesWithoutDuplicates = [...new Set(courseBillingItemNameList)];
+
+          expect(courseBillingItemNamesWithoutDuplicates.length).toEqual(courseBillingItemNameList.length);
         });
       });
 
