@@ -78,7 +78,9 @@ exports.authorizeCourseCreation = async (req) => {
 exports.authorizeGetDocumentsAndSms = async (req) => {
   const { credentials } = req.auth;
 
-  const course = await Course.findOne({ _id: req.params._id }, { trainees: 1, companies: 1, trainer: 1 }).lean();
+  const course = await Course
+    .findOne({ _id: req.params._id }, { trainees: 1, companies: 1, trainer: 1, type: 1 })
+    .lean();
   if (!course) throw Boom.notFound();
 
   const isTrainee = UtilsHelper.doesArrayIncludeId(course.trainees, get(credentials, '_id'));
@@ -87,7 +89,7 @@ exports.authorizeGetDocumentsAndSms = async (req) => {
   const courseTrainerId = get(course, 'trainer') || null;
   this.checkAuthorization(credentials, courseTrainerId, course.companies);
 
-  return null;
+  return course;
 };
 
 exports.checkInterlocutors = async (req, courseCompanyId) => {
@@ -422,10 +424,14 @@ exports.authorizeGetQuestionnaires = async (req) => {
 };
 
 exports.authorizeGetAttendanceSheets = async (req) => {
-  await exports.authorizeGetDocumentsAndSms(req);
+  const course = await exports.authorizeGetDocumentsAndSms(req);
+  const { credentials } = req.auth;
+  const userVendorRole = get(credentials, 'role.vendor.name');
 
   const slots = await CourseSlot.find({ course: req.params._id }).populate({ path: 'step', select: 'type' }).lean();
   if (!slots.some(s => s.step.type === ON_SITE)) throw Boom.notFound(translate[language].courseAttendanceNotGenerated);
+
+  if (course.type === INTER_B2B && !userVendorRole) throw Boom.forbidden();
 
   return null;
 };
