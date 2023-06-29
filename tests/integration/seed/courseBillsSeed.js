@@ -89,7 +89,7 @@ const coursesList = [
     misc: 'group 1',
     trainer: trainer._id,
     salesRepresentative: vendorAdmin._id,
-    contact: vendorCompany._id,
+    contact: vendorAdmin._id,
     trainees: [auxiliary._id],
     expectedBillsCount: 1,
     companies: [authCompany._id],

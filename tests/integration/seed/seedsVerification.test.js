@@ -741,7 +741,7 @@ describe('SEEDS VERIFICATION', () => {
                 get(c, 'companyRepresentative._id'),
               ]);
 
-              return UtilsHelper.doesArrayIncludeId(acceptedUsers, c.contact._id);
+              return UtilsHelper.doesArrayIncludeId(acceptedUsers, c.contact);
             });
           expect(isContactGoodUser).toBeTruthy();
         });
@@ -841,29 +841,34 @@ describe('SEEDS VERIFICATION', () => {
         });
 
         it('should pass if every course exists and is blended', () => {
-          const everyCourseIsBlended = courseBillList.every(bill => bill.course && bill.course.format === BLENDED);
+          const everyCourseIsBlended = courseBillList.every(bill => get(bill, 'course.format') === BLENDED);
+
           expect(everyCourseIsBlended).toBeTruthy();
         });
 
         it('should pass if every price is positive and greater than 0', () => {
-          const everyPriceIsPositiveAndGreaterThanZero = courseBillList.every(bill => bill.mainFee.price > 0);
-          expect(everyPriceIsPositiveAndGreaterThanZero).toBeTruthy();
+          const everyPriceIsValid = courseBillList.every(bill => bill.mainFee.price > 0);
+
+          expect(everyPriceIsValid).toBeTruthy();
         });
 
         it('should pass if every count is a positive and greater than 0 integer', () => {
-          const everyCountIsAPositiveAndGreaterThanZeroInteger = courseBillList
+          const everyCountIsAValidInteger = courseBillList
             .every(bill => bill.mainFee.count > 0 && Number.isInteger(bill.mainFee.count));
-          expect(everyCountIsAPositiveAndGreaterThanZeroInteger).toBeTruthy();
+
+          expect(everyCountIsAValidInteger).toBeTruthy();
         });
 
         it('should pass if every company exists', () => {
           const everyCompanyExists = courseBillList.every(bill => !!bill.company);
+
           expect(everyCompanyExists).toBeTruthy();
         });
 
         it('should pass if every company is linked to course', () => {
           const everyCompanyIsLinkedToCourse = courseBillList
             .every(bill => UtilsHelper.doesArrayIncludeId(bill.course.companies, bill.company._id));
+
           expect(everyCompanyIsLinkedToCourse).toBeTruthy();
         });
 
@@ -881,16 +886,18 @@ describe('SEEDS VERIFICATION', () => {
         });
 
         it('should pass if every billing purchase price is positive and greater than 0', () => {
-          const everyPriceIsPositiveAndGreaterThanZero = courseBillList
+          const everyPriceIsValid = courseBillList
             .every(bill => bill.billingPurchaseList.every(purchase => purchase.price > 0));
-          expect(everyPriceIsPositiveAndGreaterThanZero).toBeTruthy();
+
+          expect(everyPriceIsValid).toBeTruthy();
         });
 
         it('should pass if every billing purchase count is a positive and greater than 0 integer', () => {
-          const everyCountIsAPositiveAndGreaterThanZeroInteger = courseBillList
+          const everyCountIsAValidInteger = courseBillList
             .every(bill => bill.billingPurchaseList
               .every(purchase => purchase.count > 0 && Number.isInteger(purchase.count)));
-          expect(everyCountIsAPositiveAndGreaterThanZeroInteger).toBeTruthy();
+
+          expect(everyCountIsAValidInteger).toBeTruthy();
         });
 
         it('should pass if every number has good format', () => {
@@ -934,7 +941,7 @@ describe('SEEDS VERIFICATION', () => {
 
         it('should pass if value is a positive integer', () => {
           const isCourseBillsNumberAPositiveInteger = courseBillsNumberList
-            .every(number => number.seq >= 0 && Number.isInteger(number.seq));
+            .every(number => number.seq > 0 && Number.isInteger(number.seq));
 
           expect(isCourseBillsNumberAPositiveInteger).toBeTruthy();
         });
