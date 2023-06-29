@@ -23,6 +23,7 @@ const subProgramList = [{ _id: new ObjectId(), name: 'subProgram 1', steps: [] }
 const programList = [{ _id: new ObjectId(), name: 'Program 1', subPrograms: [subProgramList[0]._id] }];
 
 const vendorCompany = {
+  _id: new ObjectId(),
   name: 'Vendor Company',
   siret: '12345678901234',
   activityDeclarationNumber: '13736343575',
