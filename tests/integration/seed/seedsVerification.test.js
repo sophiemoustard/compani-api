@@ -9,6 +9,9 @@ const CompanyHolding = require('../../../src/models/CompanyHolding');
 const CompanyLinkRequest = require('../../../src/models/CompanyLinkRequest');
 const Contract = require('../../../src/models/Contract');
 const Course = require('../../../src/models/Course');
+const CourseBill = require('../../../src/models/CourseBill');
+const CourseBillingItem = require('../../../src/models/CourseBillingItem');
+const CourseBillsNumber = require('../../../src/models/CourseBillsNumber');
 const CourseSlot = require('../../../src/models/CourseSlot');
 const CourseHistory = require('../../../src/models/CourseHistory');
 const Helper = require('../../../src/models/Helper');
@@ -74,6 +77,8 @@ const activitiesSeed = require('./activitiesSeed');
 const activityHistoriesSeed = require('./activityHistoriesSeed');
 const attendanceSheetsSeed = require('./attendanceSheetsSeed');
 const cardsSeed = require('./cardsSeed');
+const courseBillsSeed = require('./courseBillsSeed');
+const courseBillingItemsSeed = require('./courseBillingItemsSeed');
 const coursesSeed = require('./coursesSeed');
 const courseHistoriesSeed = require('./courseHistoriesSeed');
 const courseSlotsSeed = require('./courseSlotsSeed');
@@ -93,6 +98,8 @@ const seedList = [
   { label: 'ATTENDANCESHEET', value: attendanceSheetsSeed },
   { label: 'CARD', value: cardsSeed },
   { label: 'COURSE', value: coursesSeed },
+  { label: 'COURSEBILL', value: courseBillsSeed },
+  { label: 'COURSEBILLINGITEM', value: courseBillingItemsSeed },
   { label: 'COURSEHISTORY', value: courseHistoriesSeed },
   { label: 'COURSESLOT', value: courseSlotsSeed },
   { label: 'HOLDING', value: holdingsSeed },
@@ -734,7 +741,7 @@ describe('SEEDS VERIFICATION', () => {
                 get(c, 'companyRepresentative._id'),
               ]);
 
-              return UtilsHelper.doesArrayIncludeId(acceptedUsers, c.contact._id);
+              return UtilsHelper.doesArrayIncludeId(acceptedUsers, c.contact);
             });
           expect(isContactGoodUser).toBeTruthy();
         });
@@ -812,6 +819,131 @@ describe('SEEDS VERIFICATION', () => {
           });
 
           expect(everyUserExists).toBeTruthy();
+        });
+      });
+
+      describe('Collection CourseBill', () => {
+        let courseBillList;
+        before(async () => {
+          courseBillList = await CourseBill
+            .find()
+            .populate({ path: 'course', select: 'format companies', transform })
+            .populate({ path: 'company', transform })
+            .populate({ path: 'payer.company', transform })
+            .populate({ path: 'payer.fundingOrganisation', transform })
+            .populate({
+              path: 'billingPurchaseList',
+              select: 'billingItem',
+              populate: { path: 'billingItem', transform },
+            })
+            .setOptions({ allCompanies: true })
+            .lean();
+        });
+
+        it('should pass if every course exists and is blended', () => {
+          const everyCourseIsBlended = courseBillList.every(bill => get(bill, 'course.format') === BLENDED);
+
+          expect(everyCourseIsBlended).toBeTruthy();
+        });
+
+        it('should pass if every price is positive', () => {
+          const everyPriceIsValid = courseBillList.every(bill => bill.mainFee.price > 0);
+
+          expect(everyPriceIsValid).toBeTruthy();
+        });
+
+        it('should pass if every count is a positive integer', () => {
+          const everyCountIsAValidInteger = courseBillList
+            .every(bill => bill.mainFee.count > 0 && Number.isInteger(bill.mainFee.count));
+
+          expect(everyCountIsAValidInteger).toBeTruthy();
+        });
+
+        it('should pass if every company exists', () => {
+          const everyCompanyExists = courseBillList.every(bill => !!bill.company);
+
+          expect(everyCompanyExists).toBeTruthy();
+        });
+
+        it('should pass if every company is linked to course', () => {
+          const everyCompanyIsLinkedToCourse = courseBillList
+            .every(bill => UtilsHelper.doesArrayIncludeId(bill.course.companies, bill.company._id));
+
+          expect(everyCompanyIsLinkedToCourse).toBeTruthy();
+        });
+
+        it('should pass if every payer exists', () => {
+          const everyPayerExists = courseBillList.every(bill => !!bill.payer._id);
+
+          expect(everyPayerExists).toBeTruthy();
+        });
+
+        it('should pass if every billing item exists', () => {
+          const everyBillingItemExists = courseBillList
+            .every(bill => bill.billingPurchaseList.every(purchase => !!purchase.billingItem));
+
+          expect(everyBillingItemExists).toBeTruthy();
+        });
+
+        it('should pass if every billing purchase price is positive', () => {
+          const everyPriceIsValid = courseBillList
+            .every(bill => bill.billingPurchaseList.every(purchase => purchase.price > 0));
+
+          expect(everyPriceIsValid).toBeTruthy();
+        });
+
+        it('should pass if every billing purchase count is a positive integer', () => {
+          const everyCountIsAValidInteger = courseBillList
+            .every(bill => bill.billingPurchaseList
+              .every(purchase => purchase.count > 0 && Number.isInteger(purchase.count)));
+
+          expect(everyCountIsAValidInteger).toBeTruthy();
+        });
+
+        it('should pass if every number has good format', () => {
+          const everyNumberHasGoodFormat = courseBillList
+            .every(bill => !bill.number || bill.number.match(/FACT-[0-9]{5}/));
+
+          expect(everyNumberHasGoodFormat).toBeTruthy();
+        });
+
+        it('should pass if every number is unique', () => {
+          const courseBillNumberList = compact(courseBillList.map(bill => bill.number));
+          const courseBillNumbersWithoutDuplicates = [...new Set(courseBillNumberList)];
+
+          expect(courseBillNumbersWithoutDuplicates.length).toEqual(courseBillNumberList.length);
+        });
+      });
+
+      describe('Collection CourseBillingItem', () => {
+        let courseBillingItemList;
+        before(async () => {
+          courseBillingItemList = await CourseBillingItem.find().lean();
+        });
+
+        it('should pass if every name is unique', () => {
+          const courseBillingItemNameList = courseBillingItemList.map(item => item.name);
+          const courseBillingItemNamesWithoutDuplicates = [...new Set(courseBillingItemNameList)];
+
+          expect(courseBillingItemNamesWithoutDuplicates.length).toEqual(courseBillingItemNameList.length);
+        });
+      });
+
+      describe('Collection CourseBillsNumber', () => {
+        let courseBillsNumberList;
+        before(async () => {
+          courseBillsNumberList = await CourseBillsNumber.find().lean();
+        });
+
+        it('should pass if only one item in list', () => {
+          expect(courseBillsNumberList.length).toBeLessThanOrEqual(1);
+        });
+
+        it('should pass if value is a positive integer', () => {
+          const isCourseBillsNumberAPositiveInteger = courseBillsNumberList
+            .every(number => number.seq > 0 && Number.isInteger(number.seq));
+
+          expect(isCourseBillsNumberAPositiveInteger).toBeTruthy();
         });
       });
 
