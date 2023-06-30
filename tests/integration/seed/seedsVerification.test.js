@@ -846,13 +846,13 @@ describe('SEEDS VERIFICATION', () => {
           expect(everyCourseIsBlended).toBeTruthy();
         });
 
-        it('should pass if every price is positive and greater than 0', () => {
+        it('should pass if every price is positive', () => {
           const everyPriceIsValid = courseBillList.every(bill => bill.mainFee.price > 0);
 
           expect(everyPriceIsValid).toBeTruthy();
         });
 
-        it('should pass if every count is a positive and greater than 0 integer', () => {
+        it('should pass if every count is a positive integer', () => {
           const everyCountIsAValidInteger = courseBillList
             .every(bill => bill.mainFee.count > 0 && Number.isInteger(bill.mainFee.count));
 
@@ -885,14 +885,14 @@ describe('SEEDS VERIFICATION', () => {
           expect(everyBillingItemExists).toBeTruthy();
         });
 
-        it('should pass if every billing purchase price is positive and greater than 0', () => {
+        it('should pass if every billing purchase price is positive', () => {
           const everyPriceIsValid = courseBillList
             .every(bill => bill.billingPurchaseList.every(purchase => purchase.price > 0));
 
           expect(everyPriceIsValid).toBeTruthy();
         });
 
-        it('should pass if every billing purchase count is a positive and greater than 0 integer', () => {
+        it('should pass if every billing purchase count is a positive integer', () => {
           const everyCountIsAValidInteger = courseBillList
             .every(bill => bill.billingPurchaseList
               .every(purchase => purchase.count > 0 && Number.isInteger(purchase.count)));
@@ -1633,7 +1633,7 @@ describe('SEEDS VERIFICATION', () => {
             .lean();
         });
 
-        it('should pass if every user with client role has a company #tag', () => {
+        it('should pass if every user with client role has a company', () => {
           const doUsersWithClientRoleHaveCompany = userList.filter(u => get(u, 'role.client')).every(u => u.company);
           expect(doUsersWithClientRoleHaveCompany).toBeTruthy();
         });
