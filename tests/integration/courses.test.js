@@ -3014,6 +3014,17 @@ describe('COURSES ROUTES - GET /:_id/attendance-sheets', () => {
 
       expect(response.statusCode).toBe(403);
     });
+
+    it('should return 403 as user is client_admin requesting on inter b2b course', async () => {
+      authToken = await getToken('client_admin');
+      const response = await app.inject({
+        method: 'GET',
+        url: `/courses/${interCourseIdFromAuthCompany}/attendance-sheets`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
   });
 });
 

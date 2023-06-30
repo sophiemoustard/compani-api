@@ -289,7 +289,7 @@ exports.plugin = {
         validate: {
           params: Joi.object({ _id: Joi.objectId().required() }),
         },
-        pre: [{ method: authorizeGetAttendanceSheets }],
+        pre: [{ method: authorizeGetDocumentsAndSms }, { method: authorizeGetAttendanceSheets }],
       },
       handler: downloadAttendanceSheets,
     });
