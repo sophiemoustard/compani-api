@@ -89,7 +89,7 @@ exports.authorizeGetDocumentsAndSms = async (req) => {
   const courseTrainerId = get(course, 'trainer') || null;
   this.checkAuthorization(credentials, courseTrainerId, course.companies);
 
-  return course;
+  return null;
 };
 
 exports.checkInterlocutors = async (req, courseCompanyId) => {
@@ -424,13 +424,13 @@ exports.authorizeGetQuestionnaires = async (req) => {
 };
 
 exports.authorizeGetAttendanceSheets = async (req) => {
-  const course = await exports.authorizeGetDocumentsAndSms(req);
   const { credentials } = req.auth;
   const userVendorRole = get(credentials, 'role.vendor.name');
 
   const slots = await CourseSlot.find({ course: req.params._id }).populate({ path: 'step', select: 'type' }).lean();
   if (!slots.some(s => s.step.type === ON_SITE)) throw Boom.notFound(translate[language].courseAttendanceNotGenerated);
 
+  const course = await Course.findOne({ _id: req.params._id }, { type: 1 }).lean();
   if (course.type === INTER_B2B && !userVendorRole) throw Boom.forbidden();
 
   return null;
