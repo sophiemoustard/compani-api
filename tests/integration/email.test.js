@@ -10,10 +10,12 @@ const {
   coachFromOtherCompany,
   helperFromOtherCompany,
   futureTraineeFromAuthCompany,
+  emailUserFromThirdCompany,
 } = require('./seed/emailSeed');
-const { getToken } = require('./helpers/authentication');
+const { getToken, getTokenByCredentials } = require('./helpers/authentication');
 const NodemailerHelper = require('../../src/helpers/nodemailer');
 const { TRAINEE } = require('../../src/helpers/constants');
+const { holdingAdminFromOtherCompany } = require('../seed/authUsersSeed');
 
 describe('NODE ENV', () => {
   it('should be \'test\'', () => {
@@ -145,6 +147,31 @@ describe('EMAIL ROUTES - POST emails/send-welcome', () => {
         url: '/email/send-welcome',
         headers: { Cookie: `alenvi_token=${authToken}` },
         payload: { ...payload, email: emailUserFromOtherCompany.local.email },
+      });
+
+      expect(response.statusCode).toBe(404);
+    });
+
+    it('should send a welcoming email as sender is holding admin and receiver is in holding company',
+      async () => {
+        const authToken = await getTokenByCredentials(holdingAdminFromOtherCompany.local);
+        const response = await app.inject({
+          method: 'POST',
+          url: '/email/send-welcome',
+          headers: { Cookie: `alenvi_token=${authToken}` },
+          payload: { email: emailUserFromThirdCompany.local.email, type: TRAINEE },
+        });
+
+        expect(response.statusCode).toBe(200);
+      });
+
+    it('should return 404 as sender has holding role but receiver is from company not in holding', async () => {
+      const authToken = await getTokenByCredentials(holdingAdminFromOtherCompany.local);
+      const response = await app.inject({
+        method: 'POST',
+        url: '/email/send-welcome',
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload: { ...payload, email: futureTraineeFromAuthCompany.local.email },
       });
 
       expect(response.statusCode).toBe(404);

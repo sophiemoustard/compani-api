@@ -313,6 +313,49 @@ describe('USERS ROUTES - POST /users', () => {
     });
   });
 
+  describe('HOLDING_ADMIN', () => {
+    beforeEach(populateDB);
+    beforeEach(async () => {
+      authToken = await getTokenByCredentials(holdingAdminFromOtherCompany.local);
+    });
+
+    it('should create a user', async () => {
+      const payload = {
+        identity: { firstname: 'user', lastname: 'FromThirdCompany' },
+        local: { email: 'user.thirdcompany@alenvi.io' },
+        origin: WEBAPP,
+        company: companyWithoutSubscription._id,
+        contact: { phone: '0987654321' },
+      };
+      const res = await app.inject({
+        method: 'POST',
+        url: '/users',
+        payload,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(res.statusCode).toBe(200);
+    });
+
+    it('should return 403 if company not in holding', async () => {
+      const payload = {
+        identity: { firstname: 'user', lastname: 'FromAuthCompany' },
+        local: { email: 'user.authcompany@alenvi.io' },
+        origin: WEBAPP,
+        company: authCompany._id,
+        contact: { phone: '0987654321' },
+      };
+      const res = await app.inject({
+        method: 'POST',
+        url: '/users',
+        payload,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(res.statusCode).toBe(403);
+    });
+  });
+
   describe('TRAINING_ORGANISATION_MANAGER', () => {
     beforeEach(populateDB);
     beforeEach(async () => {

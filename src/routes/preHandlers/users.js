@@ -226,8 +226,7 @@ exports.authorizeUserCreation = async (req) => {
   }
 
   const vendorRole = get(credentials, 'role.vendor.name');
-  const loggedUserCompany = get(credentials, 'company._id');
-  if (req.payload.company && !UtilsHelper.areObjectIdsEquals(req.payload.company, loggedUserCompany) && !vendorRole) {
+  if (req.payload.company && !UtilsHelper.hasUserAccessToCompany(credentials, req.payload.company) && !vendorRole) {
     throw Boom.forbidden();
   }
 
