@@ -3,6 +3,7 @@ const app = require('../../server');
 const { getToken } = require('./helpers/authentication');
 const { populateDB } = require('./seed/vendorCompaniesSeed');
 const VendorCompany = require('../../src/models/VendorCompany');
+const { vendorAdmin, clientAdmin } = require('../seed/authUsersSeed');
 
 describe('NODE ENV', () => {
   it('should be \'test\'', () => {
@@ -87,6 +88,7 @@ describe('VENDOR COMPANY ROUTES - PUT /vendorcompanies', () => {
       },
       { key: 'siret', value: '12345678901235' },
       { key: 'activityDeclarationNumber', value: '10736353175' },
+      { key: 'billingRepresentative', value: vendorAdmin._id },
     ];
     payloads.forEach((payload) => {
       it(`should update vendor company ${payload.key}`, async () => {
@@ -134,6 +136,21 @@ describe('VENDOR COMPANY ROUTES - PUT /vendorcompanies', () => {
 
         expect(response.statusCode).toBe(400);
       });
+    });
+
+    it('should return 403 if invalid billingRepresentative', async () => {
+      const payload = {
+        name: 'Test',
+        billingRepresentative: clientAdmin._id,
+      };
+      const response = await app.inject({
+        method: 'PUT',
+        url: '/vendorcompanies',
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload,
+      });
+
+      expect(response.statusCode).toBe(403);
     });
   });
 
