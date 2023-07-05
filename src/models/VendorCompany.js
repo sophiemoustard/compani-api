@@ -8,6 +8,7 @@ const VendorCompanySchema = mongoose.Schema({
   address: { type: mongoose.Schema(addressSchemaDefinition, { _id: false, id: false }), required: true },
   siret: { type: String, validate: SIRET_VALIDATION, required: true, unique: true },
   activityDeclarationNumber: { type: String, required: true, unique: true },
+  billingRepresentative: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
 }, { timestamps: true });
 
 queryMiddlewareList.map(middleware => VendorCompanySchema.pre(middleware, formatQuery));
