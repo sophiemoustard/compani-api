@@ -36,7 +36,11 @@ exports.plugin = {
       options: {
         auth: { scope: ['trainingcontracts:read'] },
         validate: {
-          query: Joi.object({ course: Joi.objectId().required() }),
+          query: Joi.object({
+            course: Joi.objectId().required(),
+            company: Joi.objectId(),
+            holding: Joi.objectId(),
+          }).oxor('company', 'holding'),
         },
         pre: [{ method: authorizeTrainingContractGet }],
       },

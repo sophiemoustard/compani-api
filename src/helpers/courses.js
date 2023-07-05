@@ -5,6 +5,7 @@ const omit = require('lodash/omit');
 const groupBy = require('lodash/groupBy');
 const keyBy = require('lodash/keyBy');
 const mapValues = require('lodash/mapValues');
+const set = require('lodash/set');
 const fs = require('fs');
 const os = require('os');
 const Boom = require('@hapi/boom');
@@ -151,13 +152,21 @@ const listBlendedForCompany = async (query, origin) => {
   ];
 };
 
-const listForOperations = async (query, origin) => {
+const formatQuery = (query, credentials) => {
+  const formattedQuery = omit(query, ['isArchived', 'holding']);
+
+  if (has(query, 'isArchived')) set(formattedQuery, 'archivedAt', { $exists: !!query.isArchived });
+
+  if (has(query, 'holding')) set(formattedQuery, 'companies', { $in: credentials.holding.companies });
+
+  return formattedQuery;
+};
+
+const listForOperations = async (query, origin, credentials) => {
   if (query.company && query.format === STRICTLY_E_LEARNING) {
     return listStrictlyElearningForCompany(query, origin);
   }
-  const formattedQuery = has(query, 'isArchived')
-    ? { ...omit(query, 'isArchived'), archivedAt: { $exists: !!query.isArchived } }
-    : query;
+  const formattedQuery = formatQuery(query, credentials);
   if (query.company) return listBlendedForCompany(formattedQuery, origin);
 
   const courses = await CourseRepository.findCourseAndPopulate(formattedQuery, origin);
@@ -242,7 +251,7 @@ const listForPedagogy = async (query, credentials) => {
 exports.list = async (query, credentials) => {
   const filteredQuery = omit(query, ['origin', 'action']);
   return query.action === OPERATIONS
-    ? listForOperations(filteredQuery, query.origin)
+    ? listForOperations(filteredQuery, query.origin, credentials)
     : listForPedagogy(filteredQuery, credentials);
 };
 
@@ -366,7 +375,7 @@ const getCourseForOperations = async (courseId, credentials, origin) => {
     trainees: get(credentials, 'role.vendor')
       ? courseTrainees
       : courseTrainees.filter(t => UtilsHelper
-        .areObjectIdsEquals(get(t, isBlended ? 'registrationCompany' : 'company'), get(credentials, 'company._id'))),
+        .hasUserAccessToCompany(credentials, get(t, isBlended ? 'registrationCompany' : 'company'))),
   };
 };
 
@@ -404,7 +413,10 @@ exports.formatActivity = (activity) => {
 
 exports.formatStep = step => ({ ...step, activities: step.activities.map(a => exports.formatActivity(a)) });
 
-exports.getCourseFollowUp = async (course, company) => {
+exports.getCourseFollowUp = async (course, query, credentials) => {
+  const companies = [];
+  if (query.company) companies.push(query.company);
+  if (query.holding) companies.push(...credentials.holding.companies);
   const courseWithTrainees = await Course.findOne({ _id: course }, { trainees: 1, format: 1 }).lean();
 
   const courseFollowUp = await Course.findOne({ _id: course }, { subProgram: 1 })
@@ -436,16 +448,16 @@ exports.getCourseFollowUp = async (course, company) => {
     .lean();
 
   let filteredTrainees = [];
-  if (!company) filteredTrainees = courseFollowUp.trainees;
+  if (!companies.length) filteredTrainees = courseFollowUp.trainees;
   else if (courseWithTrainees.format === STRICTLY_E_LEARNING) {
-    filteredTrainees = courseFollowUp.trainees.filter(t => UtilsHelper.areObjectIdsEquals(t.company, company));
+    filteredTrainees = courseFollowUp.trainees.filter(t => UtilsHelper.doesArrayIncludeId(companies, t.company));
   } else {
     const traineesCompanyAtCourseRegistration = await CourseHistoriesHelper.getCompanyAtCourseRegistrationList(
       { key: COURSE, value: course }, { key: TRAINEE, value: courseFollowUp.trainees.map(t => t._id) }
     );
     const traineesCompany = mapValues(keyBy(traineesCompanyAtCourseRegistration, 'trainee'), 'company');
     filteredTrainees = courseFollowUp.trainees
-      .filter(trainee => UtilsHelper.areObjectIdsEquals(traineesCompany[trainee._id], company));
+      .filter(trainee => UtilsHelper.doesArrayIncludeId(companies, traineesCompany[trainee._id]));
   }
 
   return {
@@ -836,10 +848,9 @@ const getTraineeList = async (course, credentials) => {
   const traineesCompanyAtCourseRegistration = await CourseHistoriesHelper
     .getCompanyAtCourseRegistrationList({ key: COURSE, value: course._id }, { key: TRAINEE, value: course.trainees });
   const traineesCompany = mapValues(keyBy(traineesCompanyAtCourseRegistration, 'trainee'), 'company');
-  const loggedUserCompany = get(credentials, 'company._id');
 
   return course.trainees
-    .filter(trainee => UtilsHelper.areObjectIdsEquals(traineesCompany[trainee._id], loggedUserCompany));
+    .filter(trainee => UtilsHelper.hasUserAccessToCompany(credentials, traineesCompany[trainee._id]));
 };
 
 exports.generateCompletionCertificates = async (courseId, credentials, origin = null) => {

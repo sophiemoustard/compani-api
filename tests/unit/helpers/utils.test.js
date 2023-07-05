@@ -698,3 +698,42 @@ describe('formatQuantity', () => {
     expect(result).toBe('4 créneaux');
   });
 });
+
+describe('hasUserAccessToCompany', () => {
+  const company = new ObjectId();
+
+  it('should return true if user is in same company', () => {
+    const credentials = { company: { _id: company } };
+
+    const result = UtilsHelper.hasUserAccessToCompany(credentials, company);
+
+    expect(result).toBeTruthy();
+  });
+
+  it('should return true if company is in user holding', () => {
+    const credentials = { holding: { _id: new ObjectId(), companies: [company, new ObjectId()] } };
+
+    const result = UtilsHelper.hasUserAccessToCompany(credentials, company);
+
+    expect(result).toBeTruthy();
+  });
+
+  it('should return false if user is in another company and company is not in holding', () => {
+    const credentials = {
+      company: { _id: new ObjectId() },
+      holding: { _id: new ObjectId(), companies: [new ObjectId(), new ObjectId()] },
+    };
+
+    const result = UtilsHelper.hasUserAccessToCompany(credentials, company);
+
+    expect(result).toBeFalsy();
+  });
+
+  it('should return false if user doesn\'t have company or holding', () => {
+    const credentials = { company: null, holding: null };
+
+    const result = UtilsHelper.hasUserAccessToCompany(credentials, company);
+
+    expect(result).toBeFalsy();
+  });
+});

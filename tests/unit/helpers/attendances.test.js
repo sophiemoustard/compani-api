@@ -15,6 +15,8 @@ const {
   VENDOR_ROLES,
   COURSE,
   TRAINEE,
+  HOLDING_ADMIN,
+  CLIENT_ADMIN,
 } = require('../../../src/helpers/constants');
 const CourseSlot = require('../../../src/models/CourseSlot');
 const User = require('../../../src/models/User');
@@ -278,9 +280,6 @@ describe('create', () => {
 });
 
 describe('list', () => {
-  const credentials = { company: { _id: new ObjectId() }, role: { vendor: { name: TRAINING_ORGANISATION_MANAGER } } };
-  const isVendorUser = VENDOR_ROLES.includes(get(credentials, 'role.vendor.name'));
-
   let find;
   beforeEach(() => {
     find = sinon.stub(Attendance, 'find');
@@ -289,7 +288,9 @@ describe('list', () => {
     find.restore();
   });
 
-  it('should return courseSlots\' attendances', async () => {
+  it('should return courseSlots\' attendances (vendor)', async () => {
+    const credentials = { company: { _id: new ObjectId() }, role: { vendor: { name: TRAINING_ORGANISATION_MANAGER } } };
+    const isVendorUser = VENDOR_ROLES.includes(get(credentials, 'role.vendor.name'));
     const courseSlots = [new ObjectId(), new ObjectId()];
     const attendancesList = [
       { trainee: new ObjectId(), courseSlot: courseSlots[0] },
@@ -298,7 +299,7 @@ describe('list', () => {
 
     find.returns(SinonMongoose.stubChainedQueries(attendancesList, ['setOptions', 'lean']));
 
-    const result = await AttendanceHelper.list([courseSlots], null, credentials);
+    const result = await AttendanceHelper.list([courseSlots], credentials);
 
     expect(result).toMatchObject(attendancesList);
     SinonMongoose.calledOnceWithExactly(
@@ -310,10 +311,60 @@ describe('list', () => {
       ]
     );
   });
+  it('should return courseSlots\' attendances (holding)', async () => {
+    const companies = [new ObjectId(), new ObjectId()];
+    const credentials = { holding: { _id: new ObjectId(), companies }, role: { holding: { name: HOLDING_ADMIN } } };
+    const courseSlots = [new ObjectId(), new ObjectId()];
+    const attendancesList = [
+      { trainee: new ObjectId(), courseSlot: courseSlots[0] },
+      { trainee: new ObjectId(), courseSlot: courseSlots[1] },
+    ];
+
+    find.returns(SinonMongoose.stubChainedQueries(attendancesList, ['setOptions', 'lean']));
+
+    const result = await AttendanceHelper.list([courseSlots], credentials);
+
+    expect(result).toMatchObject(attendancesList);
+    SinonMongoose.calledOnceWithExactly(
+      find,
+      [
+        { query: 'find', args: [{ courseSlot: { $in: [courseSlots] }, company: { $in: companies } }] },
+        { query: 'setOptions', args: [{ isVendorUser: false }] },
+        { query: 'lean' },
+      ]
+    );
+  });
+
+  it('should return courseSlots\' attendances (client)', async () => {
+    const credentials = { company: { _id: new ObjectId() }, role: { client: { name: CLIENT_ADMIN } } };
+    const courseSlots = [new ObjectId(), new ObjectId()];
+    const attendancesList = [
+      { trainee: new ObjectId(), courseSlot: courseSlots[0] },
+      { trainee: new ObjectId(), courseSlot: courseSlots[1] },
+    ];
+
+    find.returns(SinonMongoose.stubChainedQueries(attendancesList, ['setOptions', 'lean']));
+
+    const result = await AttendanceHelper.list([courseSlots], credentials);
+
+    expect(result).toMatchObject(attendancesList);
+    SinonMongoose.calledOnceWithExactly(
+      find,
+      [
+        { query: 'find', args: [{ courseSlot: { $in: [courseSlots] }, company: { $in: [credentials.company._id] } }] },
+        { query: 'setOptions', args: [{ isVendorUser: false }] },
+        { query: 'lean' },
+      ]
+    );
+  });
 });
 
 describe('listUnsubscribed', () => {
-  const credentials = { company: { _id: new ObjectId() }, role: { vendor: { name: TRAINING_ORGANISATION_MANAGER } } };
+  const credentials = {
+    company: { _id: new ObjectId() },
+    role: { vendor: { name: TRAINING_ORGANISATION_MANAGER }, holding: { name: HOLDING_ADMIN } },
+    holding: { companies: [new ObjectId(), new ObjectId()] },
+  };
   const isVendorUser = VENDOR_ROLES.includes(get(credentials, 'role.vendor.name'));
 
   let courseFindOne;
@@ -387,7 +438,7 @@ describe('listUnsubscribed', () => {
     courseFindOne.returns(SinonMongoose.stubChainedQueries(course));
     courseFind.returns(SinonMongoose.stubChainedQueries(courseWithSameSubProgramList));
 
-    const result = await AttendanceHelper.listUnsubscribed(courseId, companyId, credentials);
+    const result = await AttendanceHelper.listUnsubscribed({ course: courseId, company: companyId }, credentials);
 
     expect(result).toMatchObject({
       [userId]: [
@@ -429,7 +480,7 @@ describe('listUnsubscribed', () => {
             select: 'attendances startDate endDate',
             populate: {
               path: 'attendances',
-              ...(companyId && { match: { company: companyId } }),
+              ...([companyId].length && { match: { company: { $in: [companyId] } } }),
               select: 'trainee company',
               populate: { path: 'trainee', select: 'identity' },
               options: { isVendorUser },
@@ -442,7 +493,123 @@ describe('listUnsubscribed', () => {
     );
   });
 
-  it('should return unexpected attendances grouped by trainee (without company)', async () => {
+  it('should return unexpected attendances grouped by trainee (with holding)', async () => {
+    const courseId = new ObjectId();
+    const holdingId = new ObjectId();
+    const holdingCompanies = credentials.holding.companies;
+    const subProgramId = new ObjectId();
+    const userId = new ObjectId();
+    const course = {
+      _id: new ObjectId(),
+      subProgram: { _id: subProgramId, program: { _id: new ObjectId(), subPrograms: [subProgramId] } },
+      trainees: [userId],
+    };
+    const courseWithSameSubProgramList = [
+      {
+        _id: new ObjectId(),
+        format: 'blended',
+        trainees: [userId],
+        misc: 'group 4',
+        type: 'inter b2b',
+        subProgram: subProgramId,
+        trainer: { _id: new ObjectId(), identity: { lastname: 'Trainer', firstname: 'Jean' } },
+        slots: [
+          {
+            endDate: new Date('2020-11-18T15:00:00.000Z'),
+            startDate: new Date('2020-11-18T13:00:00.000Z'),
+            attendances: [
+              {
+                _id: new ObjectId(),
+                trainee: { _id: userId, identity: { lastname: 'Test', firstname: 'Marie' } },
+                company: holdingCompanies[0],
+              },
+            ],
+          },
+        ],
+      },
+      {
+        _id: course._id,
+        format: 'blended',
+        trainees: [],
+        misc: 'group 1',
+        type: 'inter_b2b',
+        subProgram: subProgramId,
+        trainer: { _id: new ObjectId(), identity: { lastname: 'Trainer', firstname: 'Paul' } },
+        slots: [
+          {
+            endDate: new Date('2020-11-20T15:00:00.000Z'),
+            startDate: new Date('2020-11-20T13:00:00.000Z'),
+            attendances: [
+              {
+                _id: new ObjectId(),
+                trainee: { _id: userId, identity: { lastname: 'Test', firstname: 'Marie' } },
+                company: holdingCompanies[0],
+              },
+            ],
+          },
+        ],
+      },
+    ];
+
+    courseFindOne.returns(SinonMongoose.stubChainedQueries(course));
+    courseFind.returns(SinonMongoose.stubChainedQueries(courseWithSameSubProgramList));
+
+    const result = await AttendanceHelper.listUnsubscribed({ course: courseId, holding: holdingId }, credentials);
+
+    expect(result).toMatchObject({
+      [userId]: [
+        {
+          trainee: { _id: userId, identity: { firstname: 'Marie', lastname: 'Test' } },
+          trainer: { identity: { firstname: 'Paul', lastname: 'Trainer' } },
+          misc: 'group 1',
+          courseSlot: {
+            endDate: new Date('2020-11-20T15:00:00.000Z'),
+            startDate: new Date('2020-11-20T13:00:00.000Z'),
+          },
+        },
+      ],
+    });
+
+    SinonMongoose.calledOnceWithExactly(
+      courseFindOne,
+      [
+        { query: 'findOne', args: [{ _id: courseId }] },
+        {
+          query: 'populate',
+          args: [{ path: 'subProgram', select: 'program', populate: { path: 'program', select: 'subPrograms' } }],
+        },
+        { query: 'lean' },
+      ]
+    );
+
+    SinonMongoose.calledOnceWithExactly(
+      courseFind,
+      [
+        {
+          query: 'find',
+          args: [{ format: BLENDED, subProgram: { $in: get(course, 'subProgram.program.subPrograms') } }],
+        },
+        {
+          query: 'populate',
+          args: [{
+            path: 'slots',
+            select: 'attendances startDate endDate',
+            populate: {
+              path: 'attendances',
+              ...(holdingCompanies.length && { match: { company: { $in: holdingCompanies } } }),
+              select: 'trainee company',
+              populate: { path: 'trainee', select: 'identity' },
+              options: { isVendorUser },
+            },
+          }],
+        },
+        { query: 'populate', args: [{ path: 'trainer', select: 'identity' }] },
+        { query: 'lean' },
+      ]
+    );
+  });
+
+  it('should return unexpected attendances grouped by trainee (without company and holding)', async () => {
     const courseId = new ObjectId();
     const subProgramId = new ObjectId();
     const userId = new ObjectId();
@@ -501,7 +668,7 @@ describe('listUnsubscribed', () => {
     courseFindOne.returns(SinonMongoose.stubChainedQueries(course));
     courseFind.returns(SinonMongoose.stubChainedQueries(courseWithSameSubProgramList));
 
-    const result = await AttendanceHelper.listUnsubscribed(courseId, null, credentials);
+    const result = await AttendanceHelper.listUnsubscribed({ course: courseId }, credentials);
 
     expect(result).toMatchObject({
       [userId]: [

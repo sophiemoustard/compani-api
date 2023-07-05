@@ -16,7 +16,7 @@ const CustomerAbsence = require('../../../src/models/CustomerAbsence');
 const DistanceMatrix = require('../../../src/models/DistanceMatrix');
 const Helper = require('../../../src/models/Helper');
 const { authCompany, otherCompany } = require('../../seed/authCompaniesSeed');
-const { deleteNonAuthenticationSeeds } = require('../helpers/authentication');
+const { deleteNonAuthenticationSeeds } = require('../helpers/db');
 const app = require('../../../server');
 const {
   EVERY_WEEK,

@@ -2,10 +2,12 @@ const { ObjectId } = require('mongodb');
 const { v4: uuidv4 } = require('uuid');
 const Course = require('../../../src/models/Course');
 const CourseHistory = require('../../../src/models/CourseHistory');
+const SubProgram = require('../../../src/models/SubProgram');
 const User = require('../../../src/models/User');
-const { authCompany } = require('../../seed/authCompaniesSeed');
+const { authCompany, companyWithoutSubscription } = require('../../seed/authCompaniesSeed');
+const { trainerOrganisationManager } = require('../../seed/authUsersSeed');
 const { SLOT_CREATION, WEBAPP, INTRA, INTER_B2B } = require('../../../src/helpers/constants');
-const { deleteNonAuthenticationSeeds } = require('../helpers/authentication');
+const { deleteNonAuthenticationSeeds } = require('../helpers/db');
 const { vendorAdminRoleId, trainerRoleId } = require('../../seed/authRolesSeed');
 
 const userList = [
@@ -46,9 +48,9 @@ const coursesList = [{
   misc: 'first session',
   type: INTRA,
   maxTrainees: 8,
-  trainer: new ObjectId(),
+  trainer: userList[0]._id,
   trainees: [],
-  companies: [new ObjectId()],
+  companies: [companyWithoutSubscription._id],
   salesRepresentative: userList[1]._id,
 },
 {
@@ -64,7 +66,7 @@ const coursesList = [{
 }];
 
 const courseHistoriesList = [{
-  createdBy: new ObjectId(),
+  createdBy: trainerOrganisationManager._id,
   action: SLOT_CREATION,
   course: coursesList[0]._id,
   slot: {
@@ -80,7 +82,7 @@ const courseHistoriesList = [{
   },
 },
 {
-  createdBy: new ObjectId(),
+  createdBy: trainerOrganisationManager._id,
   action: SLOT_CREATION,
   course: coursesList[1]._id,
   slot: {
@@ -96,7 +98,7 @@ const courseHistoriesList = [{
   },
 },
 {
-  createdBy: new ObjectId(),
+  createdBy: trainerOrganisationManager._id,
   action: SLOT_CREATION,
   course: coursesList[2]._id,
   slot: {
@@ -113,7 +115,7 @@ const courseHistoriesList = [{
   createdAt: '2020-06-26T05:00:00',
 },
 {
-  createdBy: new ObjectId(),
+  createdBy: trainerOrganisationManager._id,
   action: SLOT_CREATION,
   course: coursesList[2]._id,
   slot: {
@@ -133,7 +135,12 @@ const courseHistoriesList = [{
 const populateDB = async () => {
   await deleteNonAuthenticationSeeds();
 
-  await Promise.all([Course.create(coursesList), CourseHistory.create(courseHistoriesList), User.create(userList)]);
+  await Promise.all([
+    Course.create(coursesList),
+    CourseHistory.create(courseHistoriesList),
+    SubProgram.create(subProgramsList),
+    User.create(userList),
+  ]);
 };
 
 module.exports = {

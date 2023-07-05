@@ -20,7 +20,11 @@ exports.plugin = {
       options: {
         auth: { scope: ['attendances:read'] },
         validate: {
-          query: Joi.object({ course: Joi.objectId() }),
+          query: Joi.object({
+            course: Joi.objectId().required(),
+            company: Joi.objectId(),
+            holding: Joi.objectId(),
+          }).oxor('company', 'holding'),
         },
         pre: [{ method: authorizeAttendanceSheetsGet }],
       },

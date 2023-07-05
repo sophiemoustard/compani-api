@@ -4,10 +4,11 @@ const AttendanceSheet = require('../../../src/models/AttendanceSheet');
 const Course = require('../../../src/models/Course');
 const CourseHistory = require('../../../src/models/CourseHistory');
 const CourseSlot = require('../../../src/models/CourseSlot');
+const Step = require('../../../src/models/Step');
 const SubProgram = require('../../../src/models/SubProgram');
 const { authCompany, otherCompany, companyWithoutSubscription } = require('../../seed/authCompaniesSeed');
 const { WEBAPP, INTRA, INTER_B2B, TRAINEE_ADDITION, MOBILE } = require('../../../src/helpers/constants');
-const { deleteNonAuthenticationSeeds } = require('../helpers/authentication');
+const { deleteNonAuthenticationSeeds } = require('../helpers/db');
 const UserCompany = require('../../../src/models/UserCompany');
 const User = require('../../../src/models/User');
 const { vendorAdminRoleId, trainerRoleId } = require('../../seed/authRolesSeed');
@@ -42,6 +43,12 @@ const userList = [
     role: { vendor: trainerRoleId },
     origin: WEBAPP,
   },
+  {
+    _id: new ObjectId(),
+    identity: { firstname: 'thirdCompany', lastname: 'User' },
+    local: { email: 'trainerFromThirdCompany@compani.fr' },
+    origin: WEBAPP,
+  },
 ];
 
 const userCompaniesList = [
@@ -57,9 +64,12 @@ const userCompaniesList = [
   { _id: new ObjectId(), user: userList[1]._id, company: authCompany._id },
   { _id: new ObjectId(), user: userList[2]._id, company: otherCompany._id },
   { _id: new ObjectId(), user: userList[3]._id, company: otherCompany._id },
+  { _id: new ObjectId(), user: userList[4]._id, company: companyWithoutSubscription._id },
 ];
 
-const subProgram = { _id: new ObjectId(), name: 'Subprogram 1' };
+const steps = [{ _id: new ObjectId(), type: 'on_site', name: 'étape' }];
+
+const subProgram = { _id: new ObjectId(), name: 'Subprogram 1', steps: [steps[0]._id] };
 
 const coursesList = [
   { // 0
@@ -75,8 +85,8 @@ const coursesList = [
     _id: new ObjectId(),
     subProgram: subProgram._id,
     type: INTER_B2B,
-    trainees: [userList[1]._id, userList[2]._id],
-    companies: [authCompany._id, otherCompany._id],
+    trainees: [userList[1]._id, userList[2]._id, userList[4]._id],
+    companies: [authCompany._id, otherCompany._id, companyWithoutSubscription._id],
     salesRepresentative: userList[0]._id,
   },
   { // 2
@@ -181,6 +191,14 @@ const attendanceSheetList = [
     company: authCompany._id,
     origin: MOBILE,
   },
+  {
+    _id: new ObjectId(),
+    course: coursesList[1],
+    file: { publicId: 'fromThirdCompany', link: 'www.test.com' },
+    trainee: userList[4]._id,
+    company: companyWithoutSubscription._id,
+    origin: MOBILE,
+  },
 ];
 
 const slotsList = [
@@ -188,13 +206,13 @@ const slotsList = [
     startDate: '2020-01-23T09:00:00.000Z',
     endDate: '2020-01-23T11:00:00.000Z',
     course: coursesList[0],
-    step: new ObjectId(),
+    step: steps[0]._id,
   },
   {
     startDate: '2020-01-25T09:00:00.000Z',
     endDate: '2020-01-25T11:00:00.000Z',
     course: coursesList[2],
-    step: new ObjectId(),
+    step: steps[0]._id,
   },
 ];
 
@@ -208,6 +226,7 @@ const populateDB = async () => {
     User.create(userList),
     UserCompany.create(userCompaniesList),
     CourseHistory.create(courseHistoriesList),
+    Step.create(steps),
     SubProgram.create(subProgram),
   ]);
 };

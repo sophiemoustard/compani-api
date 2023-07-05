@@ -1,3 +1,4 @@
+const { ObjectId } = require('mongodb');
 const sinon = require('sinon');
 const VendorCompany = require('../../../src/models/VendorCompany');
 const VendorCompaniesHelper = require('../../../src/helpers/vendorCompanies');
@@ -15,11 +16,29 @@ describe('get', () => {
   });
 
   it('should return vendor company infos', async () => {
-    findOne.returns(SinonMongoose.stubChainedQueries(VendorCompany, ['lean']));
+    const vendorCompany = {
+      name: 'Company',
+      billingRepresentative: {
+        _id: ObjectId(),
+        identity: { firstname: 'toto', lastname: 'zero' },
+        contact: {},
+        local: { email: 'toto@zero.io' },
+      },
+    };
+    findOne.returns(SinonMongoose.stubChainedQueries(vendorCompany));
 
     await VendorCompaniesHelper.get();
 
-    SinonMongoose.calledOnceWithExactly(findOne, [{ query: 'findOne', args: [] }, { query: 'lean' }]);
+    SinonMongoose.calledOnceWithExactly(
+      findOne,
+      [
+        { query: 'findOne' },
+        {
+          query: 'populate',
+          args: [{ path: 'billingRepresentative', select: '_id picture contact identity local' }],
+        },
+        { query: 'lean' },
+      ]);
   });
 });
 

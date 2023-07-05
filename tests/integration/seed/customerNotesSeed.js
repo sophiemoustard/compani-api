@@ -2,7 +2,7 @@ const { ObjectId } = require('mongodb');
 const Customer = require('../../../src/models/Customer');
 const CustomerNote = require('../../../src/models/CustomerNote');
 const { authCompany, otherCompany } = require('../../seed/authCompaniesSeed');
-const { deleteNonAuthenticationSeeds } = require('../helpers/authentication');
+const { deleteNonAuthenticationSeeds } = require('../helpers/db');
 
 const customersList = [
   {

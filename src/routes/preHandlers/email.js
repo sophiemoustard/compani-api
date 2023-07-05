@@ -9,8 +9,8 @@ const UserCompaniesHelper = require('../../helpers/userCompanies');
 const { language } = translate;
 
 exports.authorizeSendEmail = async (req) => {
-  const companyId = get(req, 'auth.credentials.company._id') || '';
-  const isVendorUser = get(req, 'auth.credentials.role.vendor') || false;
+  const { credentials } = req.auth;
+  const isVendorUser = get(credentials, 'role.vendor') || false;
 
   const receiver = await User.findOne({ 'local.email': req.payload.email })
     .populate({ path: 'userCompanyList' })
@@ -25,7 +25,8 @@ exports.authorizeSendEmail = async (req) => {
   const vendorIsSendingToAuthorizedType = isVendorUser &&
     (receiverIsTrainer || req.payload.type === TRAINEE || receiverIsCoachOrAdmin);
   const currentAndFutureCompanies = UserCompaniesHelper.getCurrentAndFutureCompanies(receiver.userCompanyList);
-  const sameCompany = UtilsHelper.doesArrayIncludeId(currentAndFutureCompanies, companyId);
+  const sameCompany = currentAndFutureCompanies
+    .some(company => UtilsHelper.hasUserAccessToCompany(credentials, company));
   if (!vendorIsSendingToAuthorizedType && !sameCompany) throw Boom.notFound();
 
   return null;

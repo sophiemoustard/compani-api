@@ -10,12 +10,14 @@ const uniqBy = require('lodash/uniqBy');
 const flat = require('flat');
 const { v4: uuidv4 } = require('uuid');
 const CompanyLinkRequest = require('../models/CompanyLinkRequest');
+const CompanyHolding = require('../models/CompanyHolding');
 const ActivityHistory = require('../models/ActivityHistory');
 const Role = require('../models/Role');
 const User = require('../models/User');
 const Course = require('../models/Course');
 const CourseHistory = require('../models/CourseHistory');
 const UserCompany = require('../models/UserCompany');
+const UserHolding = require('../models/UserHolding');
 const Contract = require('../models/Contract');
 const translate = require('./translate');
 const GCloudStorageHelper = require('./gCloudStorage');
@@ -29,6 +31,7 @@ const {
   TRAINEE_ADDITION,
   STRICTLY_E_LEARNING,
   DIRECTORY,
+  HOLDING_ADMIN,
 } = require('./constants');
 const SectorHistoriesHelper = require('./sectorHistories');
 const GDriveStorageHelper = require('./gDriveStorage');
@@ -41,7 +44,7 @@ const { CompaniDate } = require('./dates/companiDates');
 const { language } = translate;
 
 exports.formatQueryForUsersList = async (query) => {
-  const formattedQuery = pickBy(omit(query, ['role', 'company']));
+  const formattedQuery = pickBy(omit(query, ['role', 'company', 'holding']));
 
   if (query.role) {
     const roleNames = Array.isArray(query.role) ? query.role : [query.role];
@@ -53,6 +56,13 @@ exports.formatQueryForUsersList = async (query) => {
 
   if (query.company) {
     const users = await UserCompany.find({ company: query.company }, { user: 1 }).lean();
+
+    formattedQuery._id = { $in: users.map(u => u.user) };
+  }
+
+  if (query.holding) {
+    const companies = await CompanyHolding.find({ holding: query.holding }, { company: 1 }).lean();
+    const users = await UserCompany.find({ company: { $in: companies.map(c => c.company) } }, { user: 1 }).lean();
 
     formattedQuery._id = { $in: users.map(u => u.user) };
   }
@@ -203,6 +213,11 @@ exports.getUser = async (userId, credentials) => {
     .populate({ path: 'contracts', select: '-__v -createdAt -updatedAt' })
     .populate({ path: 'company', populate: { path: 'company' }, select: '-__v -createdAt -updatedAt' })
     .populate({
+      path: 'holding',
+      populate: { path: 'holding', populate: { path: 'companies' } },
+      select: '-__v -createdAt -updatedAt',
+    })
+    .populate({
       path: 'sector',
       select: '_id sector',
       match: { company: companyId },
@@ -246,7 +261,9 @@ exports.userExists = async (email, credentials) => {
   const loggedUserHasVendorRole = has(credentials, 'role.vendor');
 
   const loggedUserHasCoachRights = [COACH, CLIENT_ADMIN].includes(get(credentials, 'role.client.name'));
-  const sameCompany = UserCompaniesHelper.userIsOrWillBeInCompany(targetUser.userCompanyList, companyId);
+  const companies = get(credentials, 'role.holding') ? credentials.holding.companies : [companyId];
+  const sameCompany = companies
+    .some(company => UserCompaniesHelper.userIsOrWillBeInCompany(targetUser.userCompanyList, company));
   const currentAndFuturCompanies = UserCompaniesHelper.getCurrentAndFutureCompanies(targetUser.userCompanyList);
   const coachCanReadAllUserInfo = loggedUserHasCoachRights && (sameCompany || !currentAndFuturCompanies.length);
   const doesEveryUserCompanyHasEndDate = targetUser.userCompanyList.every(uc => uc.endDate);
@@ -257,7 +274,7 @@ exports.userExists = async (email, credentials) => {
     let userCompanyList;
     if (loggedUserHasVendorRole) userCompanyList = targetUser.userCompanyList;
     else if (coachCanReadAllUserInfo) {
-      userCompanyList = targetUser.userCompanyList.filter(uc => UtilsHelper.areObjectIdsEquals(companyId, uc.company));
+      userCompanyList = targetUser.userCompanyList.filter(uc => UtilsHelper.doesArrayIncludeId(companies, uc.company));
     } else {
       userCompanyList = [UtilsHelper.getLastVersion(targetUser.userCompanyList, 'startDate')];
     }
@@ -302,17 +319,6 @@ exports.createAndSaveFile = async (params, payload) => {
   return uploadedFile;
 };
 
-const createUserCompany = async (payload, company) => {
-  const user = await User.create(payload);
-  await UserCompaniesHelper.create({
-    user: user._id,
-    company,
-    ...(payload.userCompanyStartDate && { startDate: payload.userCompanyStartDate }),
-  });
-
-  return user;
-};
-
 /**
  * 1st case : No role / no company => handle payload as given
  *  - User creates his account
@@ -326,17 +332,20 @@ const createUserCompany = async (payload, company) => {
 exports.createUser = async (userPayload, credentials) => {
   const payload = { ...omit(userPayload, ['role', 'sector', 'customer']), refreshToken: uuidv4() };
 
-  if (!credentials) return User.create(payload);
+  const role = userPayload.role ? await Role.findById(userPayload.role, { name: 1, interface: 1 }).lean() : null;
+  if (userPayload.role && !role) throw Boom.badRequest(translate[language].unknownRole);
+  if (role) payload.role = { [role.interface]: role._id };
+
+  const user = await User.create(payload);
+
+  if (!credentials || (role && role.name === TRAINER)) return user;
 
   const companyId = payload.company || get(credentials, 'company._id');
-  if (!userPayload.role) return createUserCompany(payload, companyId);
-
-  const role = await Role.findById(userPayload.role, { name: 1, interface: 1 }).lean();
-  if (!role) throw Boom.badRequest(translate[language].unknownRole);
-
-  if (role.name === TRAINER) return User.create({ ...payload, role: { [role.interface]: role._id } });
-
-  const user = await createUserCompany({ ...payload, role: { [role.interface]: role._id } }, companyId);
+  await UserCompaniesHelper.create({
+    user: user._id,
+    company: companyId,
+    ...(payload.userCompanyStartDate && { startDate: payload.userCompanyStartDate }),
+  });
 
   if (userPayload.customer) await HelpersHelper.create(user._id, userPayload.customer, companyId);
 
@@ -350,13 +359,19 @@ exports.createUser = async (userPayload, credentials) => {
 };
 
 const formatUpdatePayload = async (updatedUser) => {
-  const payload = omit(updatedUser, ['role', 'customer', 'sector', 'company']);
+  const payload = omit(updatedUser, ['role', 'customer', 'sector', 'company', 'holding']);
 
   if (updatedUser.role) {
     const role = await Role.findById(updatedUser.role, { name: 1, interface: 1 }).lean();
     if (!role) throw Boom.badRequest(translate[language].unknownRole);
 
     payload.role = { [role.interface]: role._id.toHexString() };
+  }
+
+  if (updatedUser.holding) {
+    const role = await Role.findOne({ name: HOLDING_ADMIN }).lean();
+
+    payload.role = { holding: role._id };
   }
 
   return payload;
@@ -378,6 +393,8 @@ exports.updateUser = async (userId, userPayload, credentials) => {
   if (userPayload.sector) {
     await SectorHistoriesHelper.updateHistoryOnSectorUpdate(userId, userPayload.sector, companyId);
   }
+
+  if (userPayload.holding) await UserHolding.create({ user: userId, holding: userPayload.holding });
 
   await User.updateOne({ _id: userId }, { $set: flat(payload) });
 };

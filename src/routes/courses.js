@@ -78,9 +78,13 @@ exports.plugin = {
                 otherwise: Joi.forbidden(),
               }),
             company: Joi.objectId().when('origin', { is: MOBILE, then: Joi.forbidden() }),
+            holding: Joi.objectId().when(
+              'action',
+              { is: OPERATIONS, then: Joi.objectId(), otherwise: Joi.forbidden() }
+            ),
             format: Joi.string().valid(...COURSE_FORMATS),
             isArchived: Joi.boolean(),
-          }),
+          }).oxor('company', 'holding'),
         },
         pre: [{ method: authorizeGetList }],
       },
@@ -138,7 +142,7 @@ exports.plugin = {
       options: {
         validate: {
           params: Joi.object({ _id: Joi.objectId().required() }),
-          query: Joi.object({ company: Joi.objectId() }),
+          query: Joi.object({ company: Joi.objectId(), holding: Joi.objectId() }).oxor('company', 'holding'),
         },
         auth: { scope: ['courses:read'] },
         pre: [{ method: authorizeGetCourse }, { method: authorizeGetFollowUp }],
@@ -285,7 +289,7 @@ exports.plugin = {
         validate: {
           params: Joi.object({ _id: Joi.objectId().required() }),
         },
-        pre: [{ method: authorizeGetAttendanceSheets }],
+        pre: [{ method: authorizeGetDocumentsAndSms }, { method: authorizeGetAttendanceSheets }],
       },
       handler: downloadAttendanceSheets,
     });

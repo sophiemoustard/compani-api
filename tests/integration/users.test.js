@@ -14,6 +14,7 @@ const Role = require('../../src/models/Role');
 const UserCompany = require('../../src/models/UserCompany');
 const Helper = require('../../src/models/Helper');
 const SectorHistory = require('../../src/models/SectorHistory');
+const UserHolding = require('../../src/models/UserHolding');
 const {
   HELPER,
   COACH,
@@ -25,7 +26,6 @@ const {
 } = require('../../src/helpers/constants');
 const {
   usersSeedList,
-  usersFromOtherCompany,
   usersFromDifferentCompanyList,
   populateDB,
   customer,
@@ -35,11 +35,19 @@ const {
   sectorHistories,
   establishmentList,
   auxiliaryFromOtherCompany,
-  traineeWhoLeftCompanyWithoutSubscription,
+  coachFromOtherCompany,
 } = require('./seed/usersSeed');
 const { getToken, getTokenByCredentials } = require('./helpers/authentication');
-const { otherCompany, authCompany, companyWithoutSubscription } = require('../seed/authCompaniesSeed');
-const { coach, trainer, userList, noRoleNoCompany, auxiliary } = require('../seed/authUsersSeed');
+const { otherCompany, authCompany, companyWithoutSubscription, authHolding } = require('../seed/authCompaniesSeed');
+const {
+  coach,
+  trainer,
+  userList,
+  noRoleNoCompany,
+  auxiliary,
+  holdingAdminFromAuthCompany,
+  holdingAdminFromOtherCompany,
+} = require('../seed/authUsersSeed');
 const { rolesList, auxiliaryRoleId, coachRoleId, trainerRoleId, helperRoleId } = require('../seed/authRolesSeed');
 const GDriveStorageHelper = require('../../src/helpers/gDriveStorage');
 const GCloudStorageHelper = require('../../src/helpers/gCloudStorage');
@@ -134,7 +142,7 @@ describe('USERS ROUTES - POST /users', () => {
       const userCompanyCount = await UserCompany.countDocuments({
         user: userId,
         company: authCompany._id,
-        userCompanyStartDate: CompaniDate().startOf(DAY).toISO(),
+        startDate: CompaniDate().startOf(DAY).toISO(),
       });
       expect(userCompanyCount).toEqual(1);
     });
@@ -302,6 +310,49 @@ describe('USERS ROUTES - POST /users', () => {
       });
 
       expect(response.statusCode).toBe(403);
+    });
+  });
+
+  describe('HOLDING_ADMIN', () => {
+    beforeEach(populateDB);
+    beforeEach(async () => {
+      authToken = await getTokenByCredentials(holdingAdminFromOtherCompany.local);
+    });
+
+    it('should create a user', async () => {
+      const payload = {
+        identity: { firstname: 'user', lastname: 'FromThirdCompany' },
+        local: { email: 'user.thirdcompany@alenvi.io' },
+        origin: WEBAPP,
+        company: companyWithoutSubscription._id,
+        contact: { phone: '0987654321' },
+      };
+      const res = await app.inject({
+        method: 'POST',
+        url: '/users',
+        payload,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(res.statusCode).toBe(200);
+    });
+
+    it('should return 403 if company not in holding', async () => {
+      const payload = {
+        identity: { firstname: 'user', lastname: 'FromAuthCompany' },
+        local: { email: 'user.authcompany@alenvi.io' },
+        origin: WEBAPP,
+        company: authCompany._id,
+        contact: { phone: '0987654321' },
+      };
+      const res = await app.inject({
+        method: 'POST',
+        url: '/users',
+        payload,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(res.statusCode).toBe(403);
     });
   });
 
@@ -474,7 +525,7 @@ describe('USERS ROUTES - GET /users', () => {
       });
 
       expect(res.statusCode).toBe(200);
-      expect(res.result.data.users.length).toBe(3);
+      expect(res.result.data.users.length).toBe(4);
       expect(res.result.data.users.every(u => get(u, 'role.client.name') === COACH)).toBeTruthy();
     });
 
@@ -504,10 +555,58 @@ describe('USERS ROUTES - GET /users', () => {
       expect(res.statusCode).toBe(400);
     });
 
+    it('should return a 404 if company does not exist', async () => {
+      const res = await app.inject({
+        method: 'GET',
+        url: `/users?company=${new ObjectId()}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(res.statusCode).toBe(404);
+    });
+
     it('should return a 403 if company is not the same and does not have a vendor role', async () => {
       const res = await app.inject({
         method: 'GET',
         url: `/users?company=${otherCompany._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(res.statusCode).toBe(403);
+    });
+
+    it('should return 403 if try to get holding users', async () => {
+      const res = await app.inject({
+        method: 'GET',
+        url: `/users?holding=${authHolding._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(res.statusCode).toBe(403);
+    });
+  });
+
+  describe('HOLDING_ADMIN', () => {
+    beforeEach(async () => {
+      authToken = await getTokenByCredentials(holdingAdminFromOtherCompany.local);
+    });
+
+    it('should get all coachs from another company from same holding', async () => {
+      const res = await app.inject({
+        method: 'GET',
+        url: `/users?company=${companyWithoutSubscription._id}&role=coach`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(res.statusCode).toBe(200);
+      expect(res.result.data.users.length).toBe(1);
+      expect(res.result.data.users.every(u => get(u, 'role.client.name') === COACH)).toBeTruthy();
+    });
+
+    it('should return a 403 if company is not in holding and does not have a vendor role', async () => {
+      const res = await app.inject({
+        method: 'GET',
+        url: `/users?company=${authCompany._id}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -540,7 +639,38 @@ describe('USERS ROUTES - GET /users', () => {
       });
 
       expect(res.statusCode).toBe(200);
-      expect(res.result.data.users.length).toBe(usersFromOtherCompany.length);
+      expect(res.result.data.users.length).toBe(4);
+    });
+
+    it('should get users from a holding', async () => {
+      const res = await app.inject({
+        method: 'GET',
+        url: `/users?holding=${authHolding._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(res.statusCode).toBe(200);
+      expect(res.result.data.users.length).toBe(23);
+    });
+
+    it('should return 404 if holding does not exist', async () => {
+      const res = await app.inject({
+        method: 'GET',
+        url: `/users?holding=${new ObjectId()}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(res.statusCode).toBe(404);
+    });
+
+    it('should return 400 if holding and company in query', async () => {
+      const res = await app.inject({
+        method: 'GET',
+        url: `/users?holding=${authHolding._id}&company=${authCompany._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(res.statusCode).toBe(400);
     });
   });
 
@@ -755,7 +885,7 @@ describe('USERS ROUTES - GET /users/learners', () => {
       });
 
       expect(res.statusCode).toBe(200);
-      expect(res.result.data.users.length).toBe(17);
+      expect(res.result.data.users.length).toBe(18);
       expect(res.result.data.users
         .every(user => ['activityHistoryCount', 'lastActivityHistory', 'blendedCoursesCount', 'eLearningCoursesCount']
           .every(key => !Object.keys(user).includes(key))
@@ -839,7 +969,7 @@ describe('USERS ROUTES - GET /users/learners', () => {
       });
 
       expect(res.statusCode).toBe(200);
-      expect(res.result.data.users.length).toBe(14);
+      expect(res.result.data.users.length).toBe(15);
       expect(res.result.data.users.every(u => UtilsHelper.areObjectIdsEquals(u.company._id, authCompany._id)))
         .toBeTruthy();
     });
@@ -854,6 +984,33 @@ describe('USERS ROUTES - GET /users/learners', () => {
       const res = await app.inject({
         method: 'GET',
         url: `/users/learners?companies=${otherCompany._id}&action=directory`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(res.statusCode).toBe(403);
+    });
+  });
+
+  describe('HODLING_ADMIN', () => {
+    beforeEach(async () => {
+      authToken = await getTokenByCredentials(holdingAdminFromOtherCompany.local);
+    });
+
+    it('should return 200 if request learners from holding', async () => {
+      const res = await app.inject({
+        method: 'GET',
+        url: `/users/learners?companies=${otherCompany._id}&companies=${companyWithoutSubscription._id}&action=course`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(res.statusCode).toBe(200);
+      expect(res.result.data.users.length).toBe(4);
+    });
+
+    it('should return 403 if request learners from other holding', async () => {
+      const res = await app.inject({
+        method: 'GET',
+        url: `/users/learners?companies=${authCompany._id}&companies=${otherCompany._id}&action=course`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -1269,42 +1426,18 @@ describe('USERS ROUTES - PUT /users/:id', () => {
 
     it('should add helper role and company to user with previously no company', async () => {
       const role = await Role.findOne({ name: HELPER }).lean();
-      const userId = usersSeedList[11]._id;
-      const noCompanyBefore = !await UserCompany.countDocuments({ user: userId });
+      const userId = usersSeedList[7]._id;
 
       const res = await app.inject({
         method: 'PUT',
         url: `/users/${userId}`,
-        payload: { customer: customer._id, role: role._id, company: authCompany._id },
+        payload: { customer: customer._id, role: role._id },
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(res.statusCode).toBe(200);
       const updatedRole = await User.countDocuments({ _id: userId, 'role.client': role._id });
-      const updatedCompany = await UserCompany.countDocuments({
-        user: userId,
-        startDate: CompaniDate().startOf(DAY).toISO(),
-      });
       expect(updatedRole).toBeTruthy();
-      expect(updatedCompany).toBeTruthy();
-      expect(noCompanyBefore).toBeTruthy();
-    });
-
-    it('should update previously detached learner with new company', async () => {
-      const res = await app.inject({
-        method: 'PUT',
-        url: `/users/${traineeWhoLeftCompanyWithoutSubscription._id.toHexString()}`,
-        payload: { company: authCompany._id, userCompanyStartDate: '2022-12-20T12:00:00.000Z' },
-        headers: { Cookie: `alenvi_token=${authToken}` },
-      });
-
-      expect(res.statusCode).toBe(200);
-      const createdUserCompany = await UserCompany.countDocuments({
-        user: traineeWhoLeftCompanyWithoutSubscription._id,
-        company: authCompany._id,
-        startDate: '2022-12-19T23:00:00.000Z',
-      });
-      expect(createdUserCompany).toBeTruthy();
     });
 
     it('should add auxiliary in the future', async () => {
@@ -1339,7 +1472,7 @@ describe('USERS ROUTES - PUT /users/:id', () => {
       const res = await app.inject({
         method: 'PUT',
         url: `/users/${usersSeedList[0]._id}`,
-        payload: { customer: customerFromOtherCompany._id, role: role._id },
+        payload: { customer: customer._id, role: role._id },
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -1409,6 +1542,45 @@ describe('USERS ROUTES - PUT /users/:id', () => {
 
       expect(response.statusCode).toBe(400);
     });
+
+    it('should return 403 if try to update holding', async () => {
+      const res = await app.inject({
+        method: 'PUT',
+        url: `/users/${coach._id.toHexString()}`,
+        payload: { holding: authHolding._id },
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(res.statusCode).toBe(403);
+    });
+  });
+
+  describe('HOLDING_ADMIN', () => {
+    beforeEach(async () => {
+      authToken = await getTokenByCredentials(holdingAdminFromOtherCompany.local);
+    });
+
+    it('should update user from other company in same holding', async () => {
+      const res = await app.inject({
+        method: 'PUT',
+        url: `/users/${userList[9]._id.toHexString()}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload: { identity: { firstname: 'Test' } },
+      });
+
+      expect(res.statusCode).toBe(200);
+    });
+
+    it('should return 404 if user is not from his holding', async () => {
+      const res = await app.inject({
+        method: 'PUT',
+        url: `/users/${usersSeedList[0]._id.toHexString()}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload: { identity: { firstname: 'Test' } },
+      });
+
+      expect(res.statusCode).toBe(404);
+    });
   });
 
   describe('TRAINING_ORGANISATION_MANAGER', () => {
@@ -1424,8 +1596,6 @@ describe('USERS ROUTES - PUT /users/:id', () => {
         payload: {
           identity: { firstname: 'trainerUpdate' },
           biography: 'It\'s my life',
-          company: authCompany._id,
-          userCompanyStartDate: '2022-12-12T12:00:00.000Z',
         },
       });
 
@@ -1434,89 +1604,52 @@ describe('USERS ROUTES - PUT /users/:id', () => {
       const updatedTrainer = await User
         .countDocuments({ _id: usersSeedList[11]._id, 'identity.firstname': 'trainerUpdate' });
       expect(updatedTrainer).toBeTruthy();
-
-      const createdUserCompany = await UserCompany.countDocuments({
-        user: usersSeedList[11]._id,
-        company: authCompany._id,
-        startDate: '2022-12-11T23:00:00.000Z',
-      });
-      expect(createdUserCompany).toBeTruthy();
     });
 
-    it('should update previously detached learner with new company', async () => {
+    it('should update user with holding', async () => {
       const res = await app.inject({
         method: 'PUT',
-        url: `/users/${traineeWhoLeftCompanyWithoutSubscription._id.toHexString()}`,
-        payload: { company: authCompany._id, userCompanyStartDate: '2022-12-20T12:00:00.000Z' },
+        url: `/users/${usersSeedList[2]._id.toHexString()}`,
+        payload: { holding: authHolding._id },
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(res.statusCode).toBe(200);
-      const createdUserCompany = await UserCompany.countDocuments({
-        user: traineeWhoLeftCompanyWithoutSubscription._id,
-        company: authCompany._id,
-        startDate: '2022-12-19T23:00:00.000Z',
-      });
-      expect(createdUserCompany).toBeTruthy();
+      const userHolding = await UserHolding.countDocuments({ user: usersSeedList[2]._id, holding: authHolding._id });
+      expect(userHolding).toBeTruthy();
     });
 
-    it('should return 409 if trying to create usercompany for same company for user (current or futur)', async () => {
+    it('should return 404 if holding does not exist', async () => {
       const res = await app.inject({
         method: 'PUT',
-        url: `/users/${usersSeedList[1]._id.toHexString()}`,
-        payload: { company: authCompany._id },
+        url: `/users/${coach._id.toHexString()}`,
+        payload: { holding: new ObjectId() },
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
+
+      expect(res.statusCode).toBe(404);
+    });
+
+    it('should return 403 if company is not in holding', async () => {
+      const res = await app.inject({
+        method: 'PUT',
+        url: `/users/${coachFromOtherCompany._id.toHexString()}`,
+        payload: { holding: authHolding._id },
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(res.statusCode).toBe(403);
+    });
+
+    it('should return 409 if user is already in holding', async () => {
+      const res = await app.inject({
+        method: 'PUT',
+        url: `/users/${holdingAdminFromAuthCompany._id.toHexString()}`,
+        payload: { holding: authHolding._id },
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
       expect(res.statusCode).toBe(409);
-    });
-
-    it('should return 200 if company is in payload and userCompanyStartDate is not', async () => {
-      const res = await app.inject({
-        method: 'PUT',
-        url: `/users/${usersSeedList[11]._id.toHexString()}`,
-        payload: { company: authCompany._id },
-        headers: { Cookie: `alenvi_token=${authToken}` },
-      });
-
-      expect(res.statusCode).toBe(200);
-      const createdUserCompany = await UserCompany.countDocuments({
-        user: usersSeedList[11]._id,
-        company: authCompany._id,
-        startDate: CompaniDate().startOf(DAY).toISO(),
-      });
-      expect(createdUserCompany).toBeTruthy();
-    });
-
-    it('should return 400 if userCompanyStartDate is in payload and company is not', async () => {
-      const res = await app.inject({
-        method: 'PUT',
-        url: `/users/${usersSeedList[0]._id.toHexString()}`,
-        payload: { userCompanyStartDate: '2022-11-12T12:30:00.000Z' },
-        headers: { Cookie: `alenvi_token=${authToken}` },
-      });
-      expect(res.statusCode).toBe(400);
-    });
-
-    it('should return a 409 if trying to link company on a user with current company', async () => {
-      const res = await app.inject({
-        method: 'PUT',
-        url: `/users/${helperFromOtherCompany._id}`,
-        payload: { company: authCompany._id },
-        headers: { Cookie: `alenvi_token=${authToken}` },
-      });
-      expect(res.statusCode).toBe(409);
-      expect(res.result.message).toBe('Ce compte est déjà rattaché à une structure.');
-    });
-
-    it('should return good message if try to link user with 2 inactive companies with wrong start date', async () => {
-      const res = await app.inject({
-        method: 'PUT',
-        url: `/users/${usersSeedList[14]._id}`,
-        payload: { company: authCompany._id, userCompanyStartDate: '2022-11-28T23:00:00.000Z' },
-        headers: { Cookie: `alenvi_token=${authToken}` },
-      });
-      expect(res.statusCode).toBe(409);
-      expect(res.result.message).toBe('Ce compte est déjà rattaché à une structure jusqu\'au 31/12/2022.');
     });
   });
 
@@ -1530,8 +1663,6 @@ describe('USERS ROUTES - PUT /users/:id', () => {
         identity: { firstname: 'Riri' },
         contact: { phone: '0102030405' },
         local: { email: 'norole.nocompany@userseed.fr' },
-        company: otherCompany._id,
-        userCompanyStartDate: '2022-12-10T00:00:00.000Z',
       };
 
       const response = await app.inject({

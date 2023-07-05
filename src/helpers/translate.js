@@ -64,6 +64,12 @@ module.exports = {
     companyFound: 'Company found.',
     companyNotFound: 'Company not found.',
     companyExists: 'Company already exists.',
+    holdingCreated: 'Holding created.',
+    holdingExists: 'Holding already exists.',
+    holdingsFound: 'Holding(s) found.',
+    holdingUpdated: 'Holding updated.',
+    userCompanyNotLinkedToHolding: 'Company not linked to holding.',
+    userAlreadyLinkedToHolding: 'User already linked to holding.',
     companyLinkRequestCreated: 'Company link request created.',
     companyLinkRequestsFound: 'Company link requests found.',
     companyLinkRequestDeleted: 'Company link request deleted.',
@@ -398,6 +404,7 @@ module.exports = {
     /* userCompanies */
     userCompanyNotFound: 'User company doesn\'t exist.',
     userCompanyUpdated: 'User company updated.',
+    userCompanyCreated: 'User company created.',
     userDetachmentBeforeLastSubscription: `You can't detach the user before {DATE}, the user is subscribed to a course
       with this company.`,
     userCompanyDetachmentBeforeAttachment: 'You can\'t detach the user company before its attachment.',
@@ -476,6 +483,12 @@ module.exports = {
     companyFound: 'Entreprise trouvée.',
     companyNotFound: 'Entreprise non trouvée.',
     companyExists: 'Entreprise déjà existante.',
+    holdingCreated: 'Société mère créée.',
+    holdingExists: 'Société mère déjà existante.',
+    holdingsFound: 'Société(s) mère(s) trouvée(s).',
+    holdingUpdated: 'Société mère mise à jour.',
+    userCompanyNotLinkedToHolding: 'La structure de la personne n\'est pas rattachée à la société mère.',
+    userAlreadyLinkedToHolding: 'La personne est déjà rattachée à une société mère.',
     companyLinkRequestCreated: 'Demande de rattachement à une structure créée.',
     companyLinkRequestsFound: 'Demandes de rattachement à la structure trouvées.',
     companyLinkRequestDeleted: 'Demande de rattachement à la structure supprimée.',
@@ -812,6 +825,7 @@ module.exports = {
     /* UserCompanies */
     userCompanyNotFound: 'Impossible de mettre à jour les informations liées à la structure de cet(te) apprenant(e).',
     userCompanyUpdated: 'Informations sur la structure de l\'apprenant(e) mises à jour.',
+    userCompanyCreated: 'Utilisateur rattaché à une structure.',
     userDetachmentBeforeLastSubscription: 'Vous ne pouvez pas détacher cette personne avant le {DATE}.',
     userCompanyDetachmentBeforeAttachment: 'La date de détachement de l\'utilisateur ne peut être antérieure à son '
       + 'rattachement.',

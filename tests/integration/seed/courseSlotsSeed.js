@@ -11,8 +11,8 @@ const Attendance = require('../../../src/models/Attendance');
 const { authCompany, otherCompany, companyWithoutSubscription } = require('../../seed/authCompaniesSeed');
 const { vendorAdmin } = require('../../seed/authUsersSeed');
 const { WEBAPP, INTRA } = require('../../../src/helpers/constants');
-const { deleteNonAuthenticationSeeds } = require('../helpers/authentication');
-const { trainerRoleId } = require('../../seed/authRolesSeed');
+const { deleteNonAuthenticationSeeds } = require('../helpers/db');
+const { trainerRoleId, auxiliaryRoleId } = require('../../seed/authRolesSeed');
 
 const trainer = {
   _id: new ObjectId(),
@@ -20,6 +20,16 @@ const trainer = {
   refreshToken: uuidv4(),
   local: { email: 'course_slot_trainer@alenvi.io', password: '123456!eR' },
   role: { vendor: trainerRoleId },
+  origin: WEBAPP,
+};
+
+const traineeFromOtherCompany = {
+  _id: new ObjectId(),
+  identity: { firstname: 'fdsdsdf', lastname: 'sdfds' },
+  local: { email: 'traineeOtherCompany@alenvi.fr' },
+  role: { client: auxiliaryRoleId },
+  contact: { phone: '0734856751' },
+  refreshToken: uuidv4(),
   origin: WEBAPP,
 };
 
@@ -33,6 +43,12 @@ const userCompanies = [
     endDate: '2022-11-30T23:00:00.000Z',
   },
   { _id: new ObjectId(), user: trainer._id, company: authCompany._id },
+  {
+    _id: new ObjectId(),
+    user: traineeFromOtherCompany._id,
+    company: otherCompany._id,
+    startDate: '2020-01-01T23:00:00.000Z',
+  },
 ];
 
 const stepsList = [
@@ -62,13 +78,13 @@ const coursesList = [
     misc: 'first session',
     type: INTRA,
     maxTrainees: 8,
-    trainer: new ObjectId(),
+    trainer: trainer._id,
     salesRepresentative: vendorAdmin._id,
   },
   {
     _id: new ObjectId(),
     subProgram: subProgramsList[0]._id,
-    trainees: [],
+    trainees: [traineeFromOtherCompany._id],
     companies: [otherCompany._id],
     misc: 'team formation',
     type: INTRA,
@@ -87,6 +103,17 @@ const coursesList = [
     trainer: trainer._id,
     salesRepresentative: vendorAdmin._id,
     archivedAt: '2021-11-15T09:00:00',
+  },
+  {
+    _id: new ObjectId(),
+    subProgram: subProgramsList[0]._id,
+    trainees: [],
+    companies: [companyWithoutSubscription._id],
+    misc: 'third company',
+    type: INTRA,
+    maxTrainees: 8,
+    trainer: trainer._id,
+    salesRepresentative: vendorAdmin._id,
   },
 ];
 
@@ -160,11 +187,18 @@ const courseSlotsList = [
     step: stepsList[4]._id,
     meetingLink: 'https://meet.google.com',
   },
+  {
+    _id: new ObjectId(),
+    startDate: '2020-04-10T09:00:00',
+    endDate: '2020-04-10T12:00:00',
+    course: coursesList[3]._id,
+    step: stepsList[0]._id,
+  },
 ];
 
 const attendance = {
   _id: new ObjectId(),
-  trainee: new ObjectId(),
+  trainee: traineeFromOtherCompany._id,
   courseSlot: courseSlotsList[4]._id,
   company: otherCompany._id,
 };
@@ -178,7 +212,7 @@ const populateDB = async () => {
     Course.create(coursesList),
     CourseSlot.create(courseSlotsList),
     Step.create(stepsList),
-    User.create(trainer),
+    User.create([trainer, traineeFromOtherCompany]),
     Attendance.create(attendance),
     UserCompany.create(userCompanies),
   ]);

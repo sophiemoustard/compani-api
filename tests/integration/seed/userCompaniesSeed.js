@@ -11,8 +11,8 @@ const Card = require('../../../src/models/Card');
 const Step = require('../../../src/models/Step');
 const SubProgram = require('../../../src/models/SubProgram');
 const { authCompany, companyWithoutSubscription } = require('../../seed/authCompaniesSeed');
-const { deleteNonAuthenticationSeeds } = require('../helpers/authentication');
-const { WEBAPP, TRAINEE_ADDITION, INTRA, VIDEO, TRAINEE_DELETION } = require('../../../src/helpers/constants');
+const { deleteNonAuthenticationSeeds } = require('../helpers/db');
+const { WEBAPP, TRAINEE_ADDITION, INTRA, VIDEO, TRAINEE_DELETION, MOBILE } = require('../../../src/helpers/constants');
 const { auxiliaryRoleId, coachRoleId, trainingOrganisationManagerRoleId } = require('../../seed/authRolesSeed');
 const { vendorAdmin, trainerOrganisationManager, trainer } = require('../../seed/authUsersSeed');
 
@@ -44,10 +44,7 @@ const usersSeedList = [
     identity: { firstname: 'Apprenant', lastname: 'coucou' },
     local: { email: 'coucou@alenvi.io', password: '123456!eR' },
     refreshToken: uuidv4(),
-    administrative: { certificates: [{ driveId: '1234567890' }], driveFolder: { driveId: '0987654321' } },
     contact: { phone: '0987654321' },
-    contracts: [{ _id: new ObjectId() }],
-    establishment: establishmentList[0]._id,
     picture: { publicId: 'a/public/id', link: 'https://the.complete.com/link/to/the/picture/storage/location' },
     origin: WEBAPP,
     formationExpoTokenList: ['ExponentPushToken[jeSuisUnIdExpo]'],
@@ -96,10 +93,7 @@ const usersSeedList = [
     identity: { firstname: 'Apprenant', lastname: 'autre' },
     local: { email: 'autreApp@company.io', password: '123456!eR' },
     refreshToken: uuidv4(),
-    administrative: { certificates: [{ driveId: '1234567890' }], driveFolder: { driveId: '0987654321' } },
     contact: { phone: '0987654321' },
-    contracts: [{ _id: new ObjectId() }],
-    establishment: establishmentList[0]._id,
     picture: { publicId: 'a/public/id', link: 'https://the.complete.com/link/to/the/picture/storage/location' },
     origin: WEBAPP,
     formationExpoTokenList: ['ExponentPushToken[jeSuisUnIdExpo]'],
@@ -109,10 +103,7 @@ const usersSeedList = [
     identity: { firstname: 'Apprenant', lastname: '3' },
     local: { email: '3app@company.io', password: '123456!eR' },
     refreshToken: uuidv4(),
-    administrative: { certificates: [{ driveId: '1234567890' }], driveFolder: { driveId: '0987654321' } },
     contact: { phone: '0987654321' },
-    contracts: [{ _id: new ObjectId() }],
-    establishment: establishmentList[0]._id,
     picture: { publicId: 'a/public/id', link: 'https://the.complete.com/link/to/the/picture/storage/location' },
     origin: WEBAPP,
     formationExpoTokenList: ['ExponentPushToken[jeSuisUnIdExpo]'],
@@ -136,10 +127,7 @@ const usersSeedList = [
     identity: { firstname: 'Apprenant', lastname: 'deja detaché' },
     local: { email: 'appSansStruc@alenvi.io', password: '123456!eR' },
     refreshToken: uuidv4(),
-    administrative: { certificates: [{ driveId: '1234567890' }], driveFolder: { driveId: '0987654321' } },
     contact: { phone: '0987654321' },
-    contracts: [{ _id: new ObjectId() }],
-    establishment: establishmentList[0]._id,
     picture: { publicId: 'a/public/id', link: 'https://the.complete.com/link/to/the/picture/storage/location' },
     origin: WEBAPP,
     formationExpoTokenList: ['ExponentPushToken[jeSuisUnIdExpo]'],
@@ -149,10 +137,7 @@ const usersSeedList = [
     identity: { firstname: 'Apprenant', lastname: 'inscrit a une formation' },
     local: { email: 'appinscrit@alenvi.io', password: '123456!eR' },
     refreshToken: uuidv4(),
-    administrative: { certificates: [{ driveId: '1234567890' }], driveFolder: { driveId: '0987654321' } },
     contact: { phone: '0987654321' },
-    contracts: [{ _id: new ObjectId() }],
-    establishment: establishmentList[0]._id,
     picture: { publicId: 'a/public/id', link: 'https://the.complete.com/link/to/the/picture/storage/location' },
     origin: WEBAPP,
     formationExpoTokenList: ['ExponentPushToken[jeSuisUnIdExpo]'],
@@ -168,6 +153,15 @@ const usersSeedList = [
     contracts: [{ _id: new ObjectId() }],
     picture: { publicId: 'a/public/id', link: 'https://the.complete.com/link/to/the/picture/storage/location' },
     origin: WEBAPP,
+    formationExpoTokenList: ['ExponentPushToken[jeSuisUnIdExpo]'],
+  },
+  { // 10
+    _id: new ObjectId(),
+    identity: { firstname: 'Apprenant', lastname: 'Sans structure' },
+    local: { email: 'apprenanatsansstructure@autre.io', password: '123456!eR' },
+    refreshToken: uuidv4(),
+    contact: { phone: '0987654321' },
+    origin: MOBILE,
     formationExpoTokenList: ['ExponentPushToken[jeSuisUnIdExpo]'],
   },
 ];
@@ -243,7 +237,7 @@ const coursesList = [
     subProgram: subProgramsList[0]._id,
     misc: 'first session',
     trainer: trainer._id,
-    trainees: [usersSeedList[0]._id, usersSeedList[4]._id],
+    trainees: [usersSeedList[8]._id],
     companies: [company._id],
     type: INTRA,
     maxTrainees: 8,

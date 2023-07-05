@@ -3,8 +3,8 @@ const Course = require('../../../src/models/Course');
 const Program = require('../../../src/models/Program');
 const SubProgram = require('../../../src/models/SubProgram');
 const TrainingContract = require('../../../src/models/TrainingContract');
-const { authCompany, otherCompany } = require('../../seed/authCompaniesSeed');
-const { deleteNonAuthenticationSeeds } = require('../helpers/authentication');
+const { authCompany, otherCompany, companyWithoutSubscription } = require('../../seed/authCompaniesSeed');
+const { deleteNonAuthenticationSeeds } = require('../helpers/db');
 const { vendorAdmin, helper, clientAdmin, coach, trainer, trainerAndCoach } = require('../../seed/authUsersSeed');
 const { INTRA, INTER_B2B } = require('../../../src/helpers/constants');
 
@@ -53,7 +53,7 @@ const courseList = [
     misc: 'third session',
     trainer: trainer._id,
     trainees: [],
-    companies: [otherCompany._id],
+    companies: [companyWithoutSubscription._id],
     type: INTRA,
     maxTrainees: 8,
     salesRepresentative: vendorAdmin._id,

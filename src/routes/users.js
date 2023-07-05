@@ -115,7 +115,8 @@ exports.plugin = {
           query: Joi.object({
             role: [Joi.array().items(Joi.string().valid(...USER_ROLE_LIST)), Joi.string().valid(...USER_ROLE_LIST)],
             company: Joi.objectId(),
-          }),
+            holding: Joi.objectId(),
+          }).oxor('company', 'holding'),
         },
         pre: [{ method: authorizeUsersGet }],
       },
@@ -265,11 +266,7 @@ exports.plugin = {
             establishment: Joi.objectId(),
             biography: Joi.string().allow(''),
             customer: Joi.objectId(),
-            company: Joi.objectId(),
-            userCompanyStartDate: Joi.when(
-              'company',
-              { is: Joi.exist(), then: Joi.date(), otherwise: Joi.forbidden() }
-            ),
+            holding: Joi.objectId(),
           }).required(),
         },
         pre: [{ method: authorizeUserUpdate }],

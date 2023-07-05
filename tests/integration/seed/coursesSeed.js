@@ -19,14 +19,12 @@ const CourseCreditNote = require('../../../src/models/CourseCreditNote');
 const Attendance = require('../../../src/models/Attendance');
 const AttendanceSheet = require('../../../src/models/AttendanceSheet');
 const { authCompany, otherCompany, companyWithoutSubscription: thirdCompany } = require('../../seed/authCompaniesSeed');
-const { deleteNonAuthenticationSeeds } = require('../helpers/authentication');
+const { deleteNonAuthenticationSeeds } = require('../helpers/db');
 const {
   vendorAdmin,
-  noRoleNoCompany,
   noRole,
   auxiliary,
   helper,
-  auxiliaryWithoutCompany,
   clientAdmin,
   trainerOrganisationManager,
   coach,
@@ -44,8 +42,9 @@ const {
   INTER_B2C,
   BLENDED,
   TRAINEE_ADDITION,
+  COMPANY_ADDITION,
 } = require('../../../src/helpers/constants');
-const { auxiliaryRoleId, trainerRoleId, coachRoleId } = require('../../seed/authRolesSeed');
+const { auxiliaryRoleId, trainerRoleId, coachRoleId, clientAdminRoleId } = require('../../seed/authRolesSeed');
 const { CompaniDate } = require('../../../src/helpers/dates/companiDates');
 
 const traineeFromAuthFormerlyInOther = {
@@ -114,6 +113,26 @@ const traineeFromThirdCompany = {
   origin: WEBAPP,
 };
 
+const coachFromThirdCompany = {
+  _id: new ObjectId(),
+  identity: { firstname: 'Manon', lastname: 'Subscription' },
+  local: { email: 'coach_third_company@alenvi.io', password: '123456!eR' },
+  role: { client: coachRoleId },
+  contact: { phone: '0734856752' },
+  refreshToken: uuidv4(),
+  origin: WEBAPP,
+};
+
+const clientAdminFromThirdCompany = {
+  _id: new ObjectId(),
+  identity: { firstname: 'Sophie', lastname: 'Subscription' },
+  local: { email: 'admin_third_company@alenvi.io', password: '123456!eR' },
+  role: { client: clientAdminRoleId },
+  contact: { phone: '0734856752' },
+  refreshToken: uuidv4(),
+  origin: WEBAPP,
+};
+
 const contactWithoutPhone = {
   _id: new ObjectId(),
   identity: { firstname: 'Cathy', lastname: 'Palenne' },
@@ -140,6 +159,8 @@ const userList = [
   contactWithoutPhone,
   coachFromOtherCompany,
   traineeFromThirdCompany,
+  coachFromThirdCompany,
+  clientAdminFromThirdCompany,
   traineeFormerlyInAuthCompany,
   traineeComingUpInAuthCompany,
   traineeFromAuthFormerlyInOther,
@@ -216,12 +237,24 @@ const userCompanies = [
     company: otherCompany._id,
     startDate: '2022-01-01T10:00:00.000Z',
   },
+  { // 11
+    _id: new ObjectId(),
+    user: coachFromThirdCompany._id,
+    company: thirdCompany._id,
+    startDate: '2020-01-01T10:00:00.000Z',
+  },
+  { // 12
+    _id: new ObjectId(),
+    user: clientAdminFromThirdCompany._id,
+    company: thirdCompany._id,
+    startDate: '2020-01-01T10:00:00.000Z',
+  },
 ];
 
 const cardsList = [
   { _id: new ObjectId(), template: 'title_text' },
   { _id: new ObjectId(), template: 'survey' },
-  { _id: new ObjectId(), template: 'survey' },
+  { _id: new ObjectId(), template: 'survey', label: { right: 'right', left: 'left' }, question: 'question ?' },
 ];
 
 const activitiesList = [
@@ -233,15 +266,12 @@ const activitiesHistory = [
   { _id: new ObjectId(), user: clientAdmin._id, activity: activitiesList[0]._id },
   { _id: new ObjectId(), user: helper._id, activity: activitiesList[0]._id },
   { _id: new ObjectId(), user: auxiliary._id, activity: activitiesList[0]._id },
-  { _id: new ObjectId(), user: auxiliaryWithoutCompany._id, activity: activitiesList[0]._id },
   { _id: new ObjectId(), user: trainerOrganisationManager._id, activity: activitiesList[0]._id },
-  { _id: new ObjectId(), user: trainer._id, activity: activitiesList[0]._id },
-  { _id: new ObjectId(), user: noRoleNoCompany._id, activity: activitiesList[0]._id },
   {
     _id: new ObjectId(),
     user: coach._id,
     activity: activitiesList[1]._id,
-    questionnaireAnswersList: [{ card: cardsList[0]._id, answerList: ['3'] }],
+    questionnaireAnswersList: [{ card: cardsList[1]._id, answerList: ['3'] }],
   },
 ];
 
@@ -507,6 +537,20 @@ const coursesList = [
     trainer: trainer._id,
     salesRepresentative: vendorAdmin._id,
   },
+  { // 20 third company course
+    _id: new ObjectId(),
+    subProgram: subProgramsList[0]._id,
+    contact: coachFromThirdCompany._id,
+    misc: 'team formation',
+    trainer: trainerAndCoach._id,
+    trainees: [traineeFromThirdCompany._id],
+    companies: [thirdCompany._id],
+    type: INTRA,
+    maxTrainees: 8,
+    salesRepresentative: vendorAdmin._id,
+    companyRepresentative: coachFromThirdCompany._id,
+    expectedBillsCount: 2,
+  },
 ];
 
 const courseBillsList = [
@@ -517,7 +561,7 @@ const courseBillsList = [
     company: authCompany._id,
     billingPurchaseList: [],
     billedAt: '2022-04-12T09:00:00.000Z',
-    number: 'F00001',
+    number: 'FACT-00001',
     payer: { company: authCompany._id },
   },
   {
@@ -527,7 +571,7 @@ const courseBillsList = [
     company: authCompany._id,
     billingPurchaseList: [],
     billedAt: '2022-04-12T09:00:00.000Z',
-    number: 'F00002',
+    number: 'FACT-00002',
     payer: { company: authCompany._id },
   },
   {
@@ -537,7 +581,7 @@ const courseBillsList = [
     company: authCompany._id,
     billingPurchaseList: [],
     billedAt: '2022-04-16T09:00:00.000Z',
-    number: 'F00003',
+    number: 'FACT-00003',
     payer: { company: authCompany._id },
   },
   {
@@ -547,7 +591,7 @@ const courseBillsList = [
     company: authCompany._id,
     billingPurchaseList: [],
     billedAt: '2022-04-20T09:00:00.000Z',
-    number: 'F00004',
+    number: 'FACT-00004',
     payer: { company: authCompany._id },
   },
   {
@@ -557,7 +601,7 @@ const courseBillsList = [
     company: authCompany._id,
     billingPurchaseList: [],
     billedAt: '2022-04-20T09:00:00.000Z',
-    number: 'F00005',
+    number: 'FACT-00005',
     payer: { company: authCompany._id },
   },
   {
@@ -567,7 +611,7 @@ const courseBillsList = [
     company: authCompany._id,
     billingPurchaseList: [],
     billedAt: '2022-04-20T09:00:00.000Z',
-    number: 'F00006',
+    number: 'FACT-00006',
     payer: { company: authCompany._id },
   },
   {
@@ -577,7 +621,7 @@ const courseBillsList = [
     company: authCompany._id,
     billingPurchaseList: [],
     billedAt: '2022-04-20T09:00:00.000Z',
-    number: 'F00007',
+    number: 'FACT-00007',
     payer: { company: authCompany._id },
   },
 ];
@@ -784,34 +828,9 @@ const courseHistories = [
   },
   {
     action: TRAINEE_ADDITION,
-    course: coursesList[9]._id,
-    trainee: coach._id,
-    company: authCompany._id,
-    createdBy: trainerOrganisationManager._id,
-    createdAt: '2023-01-03T14:00:00.000Z',
-
-  },
-  {
-    action: TRAINEE_ADDITION,
-    course: coursesList[9]._id,
-    trainee: traineeFromOtherCompany._id,
-    company: otherCompany._id,
-    createdBy: trainerOrganisationManager._id,
-    createdAt: '2023-01-03T14:00:00.000Z',
-  },
-  {
-    action: TRAINEE_ADDITION,
     course: coursesList[10]._id,
     trainee: traineeFromOtherCompany._id,
     company: otherCompany._id,
-    createdBy: trainerOrganisationManager._id,
-    createdAt: '2023-01-03T14:00:00.000Z',
-  },
-  {
-    action: TRAINEE_ADDITION,
-    course: coursesList[12]._id,
-    trainee: coach._id,
-    company: authCompany._id,
     createdBy: trainerOrganisationManager._id,
     createdAt: '2023-01-03T14:00:00.000Z',
   },
@@ -919,6 +938,13 @@ const courseHistories = [
     createdBy: trainerOrganisationManager._id,
     createdAt: '2020-01-03T14:00:00.000Z',
   },
+  {
+    action: COMPANY_ADDITION,
+    course: coursesList[0]._id,
+    company: authCompany._id,
+    createdBy: trainerOrganisationManager._id,
+    createdAt: '2020-01-03T14:00:00.000Z',
+  },
 ];
 
 const slots = [
@@ -1005,13 +1031,6 @@ const slots = [
     course: coursesList[7]._id,
     step: stepList[0]._id,
   },
-  { // 12
-    _id: new ObjectId(),
-    startDate: '2020-03-08T08:00:00.000Z',
-    endDate: '2020-03-08T10:00:00.000Z',
-    course: coursesList[8]._id,
-    step: stepList[0]._id,
-  },
   { // 13
     _id: new ObjectId(),
     startDate: '2020-03-10T08:00:00.000Z',
@@ -1036,7 +1055,7 @@ const slots = [
 const attendanceList = [{
   _id: new ObjectId(),
   trainee: traineeFromThirdCompany._id,
-  courseSlot: slots[15]._id,
+  courseSlot: slots[14]._id,
   company: thirdCompany._id,
 }];
 
@@ -1091,4 +1110,6 @@ module.exports = {
   traineeFormerlyInAuthCompany,
   traineeComingUpInAuthCompany,
   traineeFromAuthFormerlyInOther,
+  clientAdminFromThirdCompany,
+  traineeFromThirdCompany,
 };

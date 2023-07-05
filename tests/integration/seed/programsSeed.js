@@ -8,7 +8,7 @@ const ActivityHistory = require('../../../src/models/ActivityHistory');
 const Card = require('../../../src/models/Card');
 const Course = require('../../../src/models/Course');
 const { userList, vendorAdmin, coach } = require('../../seed/authUsersSeed');
-const { deleteNonAuthenticationSeeds } = require('../helpers/authentication');
+const { deleteNonAuthenticationSeeds } = require('../helpers/db');
 const { INTER_B2C } = require('../../../src/helpers/constants');
 
 const cards = [
@@ -95,7 +95,7 @@ const course = {
   subProgram: subProgramsList[1]._id,
   type: INTER_B2C,
   format: 'strictly_e_learning',
-  trainees: [userList[0]._id],
+  trainees: [userList[0]._id, vendorAdmin._id],
 };
 
 const populateDB = async () => {

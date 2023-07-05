@@ -265,7 +265,7 @@ describe('QUESTIONNAIRE ROUTES - GET /questionnaires/{_id}/follow-up', () => {
     });
 
     it('should get questionnaire answers', async () => {
-      const questionnaireId = questionnairesList[0]._id;
+      const questionnaireId = questionnairesList[1]._id;
       const courseId = coursesList[0]._id;
 
       const response = await app.inject({
@@ -365,7 +365,7 @@ describe('QUESTIONNAIRE ROUTES - GET /questionnaires/{_id}/follow-up', () => {
 
     it('should return 200 as user is ROF and route not called for a specific course', async () => {
       authToken = await getToken('training_organisation_manager');
-      const questionnaireId = questionnairesList[0]._id;
+      const questionnaireId = questionnairesList[1]._id;
 
       const response = await app.inject({
         method: 'GET',

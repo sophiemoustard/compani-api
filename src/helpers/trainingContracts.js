@@ -34,12 +34,15 @@ exports.create = async (payload) => {
   await TrainingContract.create({ ...omit(payload, 'file'), file: fileUploaded });
 };
 
-exports.list = async (course, credentials) => {
+exports.list = async (query, credentials) => {
+  const { course, company, holding } = query;
   const isVendorUser = !!get(credentials, 'role.vendor');
-  const company = get(credentials, 'company._id');
+  const companies = [];
+  if (holding) companies.push(...credentials.holding.companies);
+  if (company) companies.push(query.company);
 
   return TrainingContract
-    .find({ course, ...(!isVendorUser && { company }) })
+    .find({ course, ...(companies.length && { company: { $in: companies } }) })
     .setOptions({ isVendorUser })
     .lean();
 };

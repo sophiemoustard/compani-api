@@ -2,6 +2,7 @@
 
 const Joi = require('joi');
 const { get, update } = require('../controllers/vendorCompanyController');
+const { authorizeVendorCompanyUpdate } = require('./preHandlers/vendorCompanies');
 const { addressValidation, siretValidation } = require('./validations/utils');
 
 exports.plugin = {
@@ -26,9 +27,11 @@ exports.plugin = {
             address: addressValidation,
             siret: siretValidation,
             activityDeclarationNumber: Joi.string(),
+            billingRepresentative: Joi.objectId(),
           }),
         },
         auth: { scope: ['config:vendor'] },
+        pre: [{ method: authorizeVendorCompanyUpdate }],
       },
       handler: update,
     });

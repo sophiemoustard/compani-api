@@ -23,7 +23,6 @@ const isTrainerAuthorized = (loggedUserId, trainer) => {
 };
 
 const checkPermissionOnCourse = (course, credentials) => {
-  const loggedUserCompany = get(credentials, 'company._id');
   const loggedUserVendorRole = get(credentials, 'role.vendor.name');
   const loggedUserClientRole = get(credentials, 'role.client.name');
 
@@ -31,10 +30,10 @@ const checkPermissionOnCourse = (course, credentials) => {
     UtilsHelper.areObjectIdsEquals(credentials._id, course.trainer);
   const isAdminVendor = [TRAINING_ORGANISATION_MANAGER, VENDOR_ADMIN].includes(loggedUserVendorRole);
 
-  const isClientAndAuthorized = [COACH, CLIENT_ADMIN].includes(loggedUserClientRole) &&
-    UtilsHelper.doesArrayIncludeId(course.companies, loggedUserCompany);
+  const isClientOrHoldingAndAuthorized = [COACH, CLIENT_ADMIN].includes(loggedUserClientRole) &&
+    course.companies.some(company => UtilsHelper.hasUserAccessToCompany(credentials, company));
 
-  if (!isClientAndAuthorized && !isAdminVendor && !isCourseTrainer) throw Boom.forbidden();
+  if (!isClientOrHoldingAndAuthorized && !isAdminVendor && !isCourseTrainer) throw Boom.forbidden();
 
   return null;
 };
@@ -48,27 +47,24 @@ exports.authorizeAttendancesGet = async (req) => {
   if (!courseSlots.length) throw Boom.notFound();
 
   const { credentials } = req.auth;
-  const loggedUserCompany = get(credentials, 'company._id');
-  const loggedUserHasVendorRole = get(credentials, 'role.vendor');
   const { course } = courseSlots[0];
 
   checkPermissionOnCourse(course, credentials);
 
-  return {
-    courseSlotsIds: courseSlots.map(cs => cs._id),
-    company: !loggedUserHasVendorRole ? loggedUserCompany : null,
-  };
+  return { courseSlotsIds: courseSlots.map(cs => cs._id) };
 };
 
 exports.authorizeUnsubscribedAttendancesGet = async (req) => {
-  const { course: courseId, trainee: traineeId } = req.query;
+  const { course: courseId, trainee: traineeId, company: companyId, holding: holdingId } = req.query;
   const { credentials } = req.auth;
   const loggedUserHasVendorRole = has(credentials, 'role.vendor');
   const loggedUserClientRole = get(credentials, 'role.client.name');
   const loggedUserVendorRole = get(credentials, 'role.vendor.name');
+  const loggedUserCompany = get(credentials, 'company._id');
 
   if (courseId) {
-    if (!loggedUserHasVendorRole && [COACH, CLIENT_ADMIN].includes(loggedUserClientRole) && !req.query.company) {
+    if (!loggedUserHasVendorRole && [COACH, CLIENT_ADMIN].includes(loggedUserClientRole) &&
+      !(req.query.company || req.query.holding)) {
       throw Boom.badRequest();
     }
 
@@ -81,11 +77,15 @@ exports.authorizeUnsubscribedAttendancesGet = async (req) => {
     const trainee = await User.findOne({ _id: traineeId }).populate({ path: 'company' }).lean();
     if (!trainee) throw Boom.notFound();
 
-    if (!UtilsHelper.areObjectIdsEquals(trainee.company, get(credentials, 'company._id'))) {
+    if (!UtilsHelper.areObjectIdsEquals(trainee.company, loggedUserCompany)) {
       if (!loggedUserVendorRole) throw Boom.notFound();
       if (loggedUserVendorRole === TRAINER) throw Boom.forbidden();
     }
   }
+  if (companyId && !loggedUserHasVendorRole && !UtilsHelper.areObjectIdsEquals(loggedUserCompany, companyId)) {
+    throw Boom.notFound();
+  }
+  if (holdingId && !UtilsHelper.areObjectIdsEquals(get(credentials, 'holding._id'), holdingId)) throw Boom.notFound();
 
   return null;
 };

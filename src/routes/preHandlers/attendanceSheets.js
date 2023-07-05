@@ -23,11 +23,23 @@ exports.authorizeAttendanceSheetsGet = async (req) => {
   const { credentials } = req.auth;
   isTrainerAuthorized(course.trainer, credentials);
 
-  const loggedUserCompany = get(credentials, 'company._id');
   const loggedUserHasVendorRole = get(credentials, 'role.vendor');
   if (loggedUserHasVendorRole) return null;
 
-  if (!UtilsHelper.doesArrayIncludeId(course.companies, loggedUserCompany)) throw Boom.forbidden();
+  if (get(req.query, 'company')) {
+    const loggedUserCompany = get(credentials, 'company._id');
+    const isCompanyInCourse = UtilsHelper.doesArrayIncludeId(course.companies, req.query.company);
+    const isLoggedUserInCompany = UtilsHelper.areObjectIdsEquals(loggedUserCompany, req.query.company);
+
+    if (!isCompanyInCourse || !isLoggedUserInCompany) throw Boom.forbidden();
+  } else {
+    const hasHoldingRole = !!get(credentials, 'role.holding');
+    const isLoggedUserInHolding = UtilsHelper
+      .areObjectIdsEquals(get(req.query, 'holding'), get(credentials, 'holding._id'));
+    const hasHoldingAccessToCourse = course.companies
+      .some(company => UtilsHelper.doesArrayIncludeId(get(credentials, 'holding.companies') || [], company));
+    if (!hasHoldingRole || !isLoggedUserInHolding || !hasHoldingAccessToCourse) throw Boom.forbidden();
+  }
 
   return null;
 };

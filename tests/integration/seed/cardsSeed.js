@@ -16,7 +16,7 @@ const {
   OPEN_QUESTION,
   QUESTION_ANSWER,
 } = require('../../../src/helpers/constants');
-const { deleteNonAuthenticationSeeds } = require('../helpers/authentication');
+const { deleteNonAuthenticationSeeds } = require('../helpers/db');
 
 const cardsList = [
   { _id: new ObjectId(), template: TRANSITION, title: 'Lala' },
@@ -39,6 +39,7 @@ const cardsList = [
       { _id: new ObjectId(), correct: true, text: 'j\'ai pas d\'autres jeux de mots' },
     ],
     question: 'what is the question ?',
+    explanation: 'explanation',
   },
   {
     _id: new ObjectId(),
@@ -59,7 +60,7 @@ const cardsList = [
       { _id: new ObjectId(), text: 'encore des trucs' },
     ],
   },
-  { _id: new ObjectId(), template: SURVEY },
+  { _id: new ObjectId(), template: SURVEY, label: { right: 'right', left: 'left' }, question: 'question ?' },
   { _id: new ObjectId(), template: OPEN_QUESTION },
   {
     _id: new ObjectId(),
@@ -142,7 +143,7 @@ const questionnairesList = [
     name: 'test',
     status: 'published',
     type: 'expectations',
-    cards: [cardsList[6]._id, cardsList[7]._id],
+    cards: [cardsList[6]._id, cardsList[9]._id],
   },
 ];
 

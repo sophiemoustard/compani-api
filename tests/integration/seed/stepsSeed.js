@@ -4,7 +4,7 @@ const SubProgram = require('../../../src/models/SubProgram');
 const Step = require('../../../src/models/Step');
 const Activity = require('../../../src/models/Activity');
 const Card = require('../../../src/models/Card');
-const { deleteNonAuthenticationSeeds } = require('../helpers/authentication');
+const { deleteNonAuthenticationSeeds } = require('../helpers/db');
 
 const cardsList = [
   { _id: new ObjectId(), template: 'transition', title: 'do mi sol do' },
@@ -26,7 +26,7 @@ const stepsList = [
     name: 'etape 2',
     activities: [activitiesList[0]._id, activitiesList[2]._id],
   },
-  { _id: new ObjectId(), type: 'e_learning', name: 'etape 3' },
+  { _id: new ObjectId(), type: 'e_learning', name: 'etape 3', activities: [] },
   {
     _id: new ObjectId(),
     type: 'e_learning',

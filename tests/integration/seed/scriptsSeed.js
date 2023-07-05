@@ -1,6 +1,6 @@
 const { ObjectId } = require('mongodb');
 const { authCompany, companyWithoutSubscription } = require('../../seed/authCompaniesSeed');
-const { deleteNonAuthenticationSeeds } = require('../helpers/authentication');
+const { deleteNonAuthenticationSeeds } = require('../helpers/db');
 const Bill = require('../../../src/models/Bill');
 const Customer = require('../../../src/models/Customer');
 const Helper = require('../../../src/models/Helper');

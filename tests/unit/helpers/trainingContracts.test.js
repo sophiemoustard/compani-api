@@ -6,7 +6,7 @@ const TrainingContract = require('../../../src/models/TrainingContract');
 const trainingContractsHelper = require('../../../src/helpers/trainingContracts');
 const SinonMongoose = require('../sinonMongoose');
 const GCloudStorageHelper = require('../../../src/helpers/gCloudStorage');
-const { VENDOR_ADMIN, COACH } = require('../../../src/helpers/constants');
+const { VENDOR_ADMIN, COACH, HOLDING_ADMIN } = require('../../../src/helpers/constants');
 
 describe('create', () => {
   let uploadCourseFile;
@@ -85,7 +85,7 @@ describe('list', () => {
 
     find.returns(SinonMongoose.stubChainedQueries(trainingContracts, ['setOptions', 'lean']));
 
-    const result = await trainingContractsHelper.list(courseId, credentials);
+    const result = await trainingContractsHelper.list({ course: courseId }, credentials);
 
     expect(result).toMatchObject(trainingContracts);
     SinonMongoose.calledOnceWithExactly(
@@ -118,13 +118,51 @@ describe('list', () => {
 
     find.returns(SinonMongoose.stubChainedQueries(trainingContracts, ['setOptions', 'lean']));
 
-    const result = await trainingContractsHelper.list(courseId, credentials);
+    const result = await trainingContractsHelper.list({ course: courseId, company: authCompanyId }, credentials);
 
     expect(result).toMatchObject(trainingContracts);
     SinonMongoose.calledOnceWithExactly(
       find,
       [
-        { query: 'find', args: [{ course: courseId, company: authCompanyId }] },
+        { query: 'find', args: [{ course: courseId, company: { $in: [authCompanyId] } }] },
+        { query: 'setOptions', args: [{ isVendorUser: false }] },
+        { query: 'lean' },
+      ]
+    );
+  });
+
+  it('should return course training contracts as holding user', async () => {
+    const authCompanyId = new ObjectId();
+    const otherCompanyId = new ObjectId();
+    const holdingId = new ObjectId();
+    const credentials = {
+      holding: { _id: holdingId, companies: [authCompanyId, otherCompanyId] },
+      role: { holding: { name: HOLDING_ADMIN } },
+    };
+
+    const courseId = new ObjectId();
+    const trainingContracts = [
+      {
+        course: courseId,
+        file: { publicId: 'mon upload avec un trainne de authCompany', link: 'www.test.com' },
+        company: authCompanyId,
+      },
+      {
+        course: courseId,
+        file: { publicId: 'mon upload avec un trainne de otherCompany', link: 'www.test.com' },
+        company: new ObjectId(),
+      },
+    ];
+
+    find.returns(SinonMongoose.stubChainedQueries(trainingContracts, ['setOptions', 'lean']));
+
+    const result = await trainingContractsHelper.list({ course: courseId, holding: holdingId }, credentials);
+
+    expect(result).toMatchObject(trainingContracts);
+    SinonMongoose.calledOnceWithExactly(
+      find,
+      [
+        { query: 'find', args: [{ course: courseId, company: { $in: [authCompanyId, otherCompanyId] } }] },
         { query: 'setOptions', args: [{ isVendorUser: false }] },
         { query: 'lean' },
       ]

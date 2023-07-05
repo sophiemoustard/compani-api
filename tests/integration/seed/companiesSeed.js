@@ -5,7 +5,7 @@ const Event = require('../../../src/models/Event');
 const User = require('../../../src/models/User');
 const UserCompany = require('../../../src/models/UserCompany');
 const { authCompany, companyWithoutSubscription } = require('../../seed/authCompaniesSeed');
-const { deleteNonAuthenticationSeeds } = require('../helpers/authentication');
+const { deleteNonAuthenticationSeeds } = require('../helpers/db');
 const { clientAdminRoleId } = require('../../seed/authRolesSeed');
 const { INTERVENTION, MOBILE } = require('../../../src/helpers/constants');
 

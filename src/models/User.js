@@ -77,6 +77,7 @@ const UserSchema = mongoose.Schema({
   role: {
     client: roleSchemaDefinition,
     vendor: roleSchemaDefinition,
+    holding: roleSchemaDefinition,
   },
   youtube: {
     link: { type: String, trim: true },
@@ -307,6 +308,25 @@ function populateCompanies(docs, next) {
   return next();
 }
 
+function populateHolding(doc, next) {
+  if (!doc) next();
+
+  // eslint-disable-next-line no-param-reassign
+  doc.holding = get(doc, 'holding.length') ? doc.holding[0].holding : null;
+
+  return next();
+}
+
+function populateHoldings(docs, next) {
+  for (const doc of docs) {
+    if (doc && get(doc, 'holding.length')) {
+      doc.holding = doc.holding[0].holding;
+    }
+  }
+
+  return next();
+}
+
 function populateCustomers(doc, next) {
   // eslint-disable-next-line no-param-reassign
   if (get(doc, 'customers.customer')) doc.customers = [doc.customers.customer];
@@ -358,6 +378,8 @@ UserSchema.virtual(
   { ref: 'UserCompany', localField: '_id', foreignField: 'user', sort: { startDate: -1 } }
 );
 
+UserSchema.virtual('holding', { ref: 'UserHolding', localField: '_id', foreignField: 'user' });
+
 UserSchema.statics.isActive = isActive;
 
 UserSchema.virtual('isActive').get(setIsActive);
@@ -371,10 +393,13 @@ queryMiddlewareList.map(middleware => UserSchema.pre(middleware, formatQuery));
 
 UserSchema.post('find', populateSectors);
 UserSchema.post('find', populateCompanies);
+UserSchema.post('find', populateHoldings);
 UserSchema.post('findOne', populateSector);
 UserSchema.post('findOne', populateCustomers);
 UserSchema.post('findOne', populateCompany);
+UserSchema.post('findOne', populateHolding);
 UserSchema.post('findOneAndUpdate', populateCompany);
+UserSchema.post('findOneAndUpdate', populateHolding);
 UserSchema.post('findOneAndUpdate', populateSector);
 UserSchema.post('findOneAndUpdate', populateCustomers);
 UserSchema.post('save', formatPayload);

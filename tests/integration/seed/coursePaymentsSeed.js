@@ -4,7 +4,7 @@ const CourseBill = require('../../../src/models/CourseBill');
 const CoursePaymentNumber = require('../../../src/models/CoursePaymentNumber');
 const CoursePayment = require('../../../src/models/CoursePayment');
 const { authCompany } = require('../../seed/authCompaniesSeed');
-const { deleteNonAuthenticationSeeds } = require('../helpers/authentication');
+const { deleteNonAuthenticationSeeds } = require('../helpers/db');
 
 const courseBillsList = [
   { // 0

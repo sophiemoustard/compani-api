@@ -1,18 +1,11 @@
 const Boom = require('@hapi/boom');
 const get = require('lodash/get');
 const Course = require('../../models/Course');
-const {
-  VENDOR_ADMIN,
-  CLIENT_ADMIN,
-  TRAINING_ORGANISATION_MANAGER,
-  COACH,
-  INTRA,
-} = require('../../helpers/constants');
+const { VENDOR_ADMIN, TRAINING_ORGANISATION_MANAGER, INTRA } = require('../../helpers/constants');
 
 exports.authorizeGetCourseHistories = async (req) => {
   const { credentials } = req.auth;
   const courseId = req.query.course;
-  const clientRole = get(credentials, 'role.client.name');
   const vendorRole = get(credentials, 'role.vendor.name');
 
   if (vendorRole) {
@@ -22,12 +15,13 @@ exports.authorizeGetCourseHistories = async (req) => {
     if (isTrainer) return null;
   }
 
-  if ([CLIENT_ADMIN, COACH].includes(clientRole)) {
-    const isIntraAndIncludesUserCompany = await Course
-      .countDocuments({ _id: courseId, type: INTRA, companies: credentials.company._id });
+  const companies = get(credentials, 'role.holding')
+    ? get(credentials, 'holding.companies')
+    : [get(credentials, 'company._id')];
+  const isIntraAndIncludesUserCompany = await Course
+    .countDocuments({ _id: courseId, type: INTRA, companies: { $in: companies } });
 
-    if (isIntraAndIncludesUserCompany) return null;
-  }
+  if (!isIntraAndIncludesUserCompany) throw Boom.forbidden();
 
-  throw Boom.forbidden();
+  return null;
 };

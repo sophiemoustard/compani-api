@@ -12,7 +12,7 @@ const {
   FILL_THE_GAPS,
   ORDER_THE_SEQUENCE,
 } = require('../../../src/helpers/constants');
-const { deleteNonAuthenticationSeeds } = require('../helpers/authentication');
+const { deleteNonAuthenticationSeeds } = require('../helpers/db');
 
 const cardsList = [
   { _id: new ObjectId(), template: TRANSITION, title: 'ceci est un titre' },

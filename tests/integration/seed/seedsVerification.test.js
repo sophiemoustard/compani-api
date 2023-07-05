@@ -1,21 +1,29 @@
 const { expect } = require('expect');
 const { groupBy, get, has, compact } = require('lodash');
 const Activity = require('../../../src/models/Activity');
+const ActivityHistory = require('../../../src/models/ActivityHistory');
 const Attendance = require('../../../src/models/Attendance');
 const AttendanceSheet = require('../../../src/models/AttendanceSheet');
 const Card = require('../../../src/models/Card');
+const CompanyHolding = require('../../../src/models/CompanyHolding');
 const CompanyLinkRequest = require('../../../src/models/CompanyLinkRequest');
 const Contract = require('../../../src/models/Contract');
 const Course = require('../../../src/models/Course');
+const CourseBill = require('../../../src/models/CourseBill');
+const CourseBillingItem = require('../../../src/models/CourseBillingItem');
+const CourseBillsNumber = require('../../../src/models/CourseBillsNumber');
+const CourseSlot = require('../../../src/models/CourseSlot');
 const CourseHistory = require('../../../src/models/CourseHistory');
 const Helper = require('../../../src/models/Helper');
 const Program = require('../../../src/models/Program');
+const Questionnaire = require('../../../src/models/Questionnaire');
 const QuestionnaireHistory = require('../../../src/models/QuestionnaireHistory');
 const SectorHistory = require('../../../src/models/SectorHistory');
 const Step = require('../../../src/models/Step');
 const SubProgram = require('../../../src/models/SubProgram');
 const User = require('../../../src/models/User');
 const UserCompany = require('../../../src/models/UserCompany');
+const UserHolding = require('../../../src/models/UserHolding');
 const { ascendingSort } = require('../../../src/helpers/dates');
 const { CompaniDate } = require('../../../src/helpers/dates/companiDates');
 const { CompaniDuration } = require('../../../src/helpers/dates/companiDurations');
@@ -25,7 +33,6 @@ const UserCompaniesHelper = require('../../../src/helpers/userCompanies');
 const {
   INTRA,
   COACH,
-  ADMIN_CLIENT,
   TRAINEE_ADDITION,
   TRAINEE_DELETION,
   BLENDED,
@@ -52,13 +59,32 @@ const {
   TRANSITION,
   FLASHCARD,
   DD_MM_YYYY,
+  TRAINER,
+  SLOT_CREATION,
+  SLOT_DELETION,
+  ESTIMATED_START_DATE_EDITION,
+  COMPANY_ADDITION,
+  COMPANY_DELETION,
+  SLOT_EDITION,
+  CLIENT_ADMIN,
+  ON_SITE,
+  REMOTE,
+  DAY,
+  HOLDING_ADMIN,
 } = require('../../../src/helpers/constants');
 const attendancesSeed = require('./attendancesSeed');
 const activitiesSeed = require('./activitiesSeed');
+const activityHistoriesSeed = require('./activityHistoriesSeed');
 const attendanceSheetsSeed = require('./attendanceSheetsSeed');
 const cardsSeed = require('./cardsSeed');
+const courseBillsSeed = require('./courseBillsSeed');
+const courseBillingItemsSeed = require('./courseBillingItemsSeed');
 const coursesSeed = require('./coursesSeed');
+const courseHistoriesSeed = require('./courseHistoriesSeed');
+const courseSlotsSeed = require('./courseSlotsSeed');
+const holdingsSeed = require('./holdingsSeed');
 const programsSeed = require('./programsSeed');
+const questionnairesSeed = require('./questionnairesSeed');
 const questionnaireHistoriesSeed = require('./questionnaireHistoriesSeed');
 const stepsSeed = require('./stepsSeed');
 const subProgramsSeed = require('./subProgramsSeed');
@@ -67,17 +93,26 @@ const usersSeed = require('./usersSeed');
 
 const seedList = [
   { label: 'ACTIVITY', value: activitiesSeed },
+  { label: 'ACTIVITYHISTORY', value: activityHistoriesSeed },
   { label: 'ATTENDANCE', value: attendancesSeed },
   { label: 'ATTENDANCESHEET', value: attendanceSheetsSeed },
   { label: 'CARD', value: cardsSeed },
   { label: 'COURSE', value: coursesSeed },
+  { label: 'COURSEBILL', value: courseBillsSeed },
+  { label: 'COURSEBILLINGITEM', value: courseBillingItemsSeed },
+  { label: 'COURSEHISTORY', value: courseHistoriesSeed },
+  { label: 'COURSESLOT', value: courseSlotsSeed },
+  { label: 'HOLDING', value: holdingsSeed },
   { label: 'PROGRAM', value: programsSeed },
+  { label: 'QUESTIONNAIRE', value: questionnairesSeed },
   { label: 'QUESTIONNAIREHISTORY', value: questionnaireHistoriesSeed },
   { label: 'STEP', value: stepsSeed },
   { label: 'SUBPROGRAM', value: subProgramsSeed },
   { label: 'USERCOMPANY', value: userCompaniesSeed },
   { label: 'USER', value: usersSeed },
 ];
+
+const transform = doc => (doc || null);
 
 describe('SEEDS VERIFICATION', () => {
   seedList.forEach(({ label, value: seeds }) => {
@@ -89,14 +124,14 @@ describe('SEEDS VERIFICATION', () => {
         before(async () => {
           activityList = await Activity
             .find()
-            .populate({ path: 'cards', select: '-__v -createdAt -updatedAt', transform: doc => (doc || null) })
+            .populate({ path: 'cards', select: '-__v -createdAt -updatedAt', transform })
             .lean({ virtuals: true });
         });
 
         it('should pass if every card exists and is not duplicated', () => {
-          const someCardsDontExist = activityList.some(activity => activity.cards.some(card => !card));
+          const everyCardsExists = activityList.every(activity => activity.cards.every(card => card));
 
-          expect(someCardsDontExist).toBeFalsy();
+          expect(everyCardsExists).toBeTruthy();
 
           const someCardsAreDuplicated = activityList
             .some((activity) => {
@@ -123,6 +158,116 @@ describe('SEEDS VERIFICATION', () => {
         });
       });
 
+      describe('Collection Activity History', () => {
+        let activityHistoryList;
+        before(async () => {
+          activityHistoryList = await ActivityHistory
+            .find()
+            .populate({ path: 'user', select: '_id', transform })
+            .populate({ path: 'activity', select: '_id cards', populate: { path: 'cards' }, transform })
+            .populate({ path: 'questionnaireAnswersList.card', select: 'template', transform })
+            .lean({ virtuals: true });
+        });
+
+        it('should pass if every user exists', () => {
+          const everyUsersExists = activityHistoryList.every(ah => ah.user);
+
+          expect(everyUsersExists).toBeTruthy();
+        });
+
+        it('should pass if user is registered to a course with the activity', async () => {
+          const stepList = await Step
+            .find({ activities: { $in: activityHistoryList.map(ah => ah.activity._id) } })
+            .lean();
+          const subProgramList = await SubProgram.find({ step: { $in: stepList.map(s => s._id) } }).lean();
+          const courseList = await Course.find({ subProgram: { $in: subProgramList.map(sp => sp._id) } }).lean();
+
+          const groupedStepsByActivity = groupBy(
+            stepList.flatMap(s => s.activities.map(a => ({ ...s, activities: a }))),
+            'activities'
+          );
+          const groupedSubProgramsByStep = groupBy(
+            subProgramList.flatMap(sp => sp.steps.map(s => ({ ...sp, steps: s }))),
+            'steps'
+          );
+          const groupedCoursesBySubProgram = groupBy(courseList, 'subProgram');
+          const everyUserIsRegisteredToCourse = activityHistoryList
+            .every(ah => groupedStepsByActivity[ah.activity._id]
+              .some(step => groupedSubProgramsByStep[step._id]
+                .some(subProgram => !!groupedCoursesBySubProgram[subProgram._id] &&
+                    groupedCoursesBySubProgram[subProgram._id]
+                      .some(course => UtilsHelper.doesArrayIncludeId(course.trainees, ah.user._id))
+                )
+              )
+            );
+          expect(everyUserIsRegisteredToCourse).toBeTruthy();
+        });
+
+        it('should pass if every activity exists', () => {
+          const everyActivityExists = activityHistoryList.every(ah => ah.activity);
+
+          expect(everyActivityExists).toBeTruthy();
+        });
+
+        it('should pass if every card exists and is in activity', () => {
+          const everyCardExists = activityHistoryList.every(ah => ah.questionnaireAnswersList.every(qal => qal.card));
+
+          expect(everyCardExists).toBeTruthy();
+
+          const someCardsAreNotInActivities = activityHistoryList
+            .some((ah) => {
+              const cardIds = ah.activity.cards.map(c => c._id);
+
+              return ah.questionnaireAnswersList.some(qal => !UtilsHelper.doesArrayIncludeId(cardIds, qal.card._id));
+            });
+
+          expect(someCardsAreNotInActivities).toBeFalsy();
+        });
+
+        it('should pass if every questionnaire answers list card is a questionnaire card', () => {
+          const everyCardHasGoodTemplate = activityHistoryList
+            .every(ah => ah.questionnaireAnswersList
+              .every(qal => [SURVEY, OPEN_QUESTION, QUESTION_ANSWER].includes(qal.card.template)));
+
+          expect(everyCardHasGoodTemplate).toBeTruthy();
+        });
+
+        it('should pass if every mandatory card has answer', () => {
+          const everyMandatoryCardHasAnswer = activityHistoryList
+            .every(ah => ah.activity.cards.every(c => !c.isMandatory ||
+              ah.questionnaireAnswersList.some(qal => UtilsHelper.areObjectIdsEquals(c._id, qal.card._id)))
+            );
+
+          expect(everyMandatoryCardHasAnswer).toBeTruthy();
+        });
+
+        it('should pass if there is the good answers number', () => {
+          const everyHistoryHasGoodAnswersNumber = activityHistoryList
+            .every(ah => !ah.questionnaireAnswersList.length ||
+              ah.questionnaireAnswersList
+                .every(qal => qal.answerList.length === 1 || qal.card.template === QUESTION_ANSWER));
+
+          expect(everyHistoryHasGoodAnswersNumber).toBeTruthy();
+        });
+
+        it('should pass if score is lower or equal to quizz cards count in activity', () => {
+          const isScoreLowerOrEqualToQuizzCardsCount = activityHistoryList
+            .every((ah) => {
+              const quizzCardsTemplates = [
+                FILL_THE_GAPS,
+                MULTIPLE_CHOICE_QUESTION,
+                SINGLE_CHOICE_QUESTION,
+                ORDER_THE_SEQUENCE,
+              ];
+              const quizzCardsCount = ah.activity.cards.filter(c => quizzCardsTemplates.includes(c.template)).length;
+
+              return (!quizzCardsCount && !has(ah, 'score')) || (ah.score <= quizzCardsCount);
+            });
+
+          expect(isScoreLowerOrEqualToQuizzCardsCount).toBeTruthy();
+        });
+      });
+
       describe('Collection Attendance', () => {
         let attendanceList;
         before(async () => {
@@ -136,9 +281,9 @@ describe('SEEDS VERIFICATION', () => {
         });
 
         it('should pass if every trainee exists', () => {
-          const someTraineesDontExist = attendanceList.some(a => !a.trainee);
+          const everyTraineeExists = attendanceList.every(a => a.trainee);
 
-          expect(someTraineesDontExist).toBeFalsy();
+          expect(everyTraineeExists).toBeTruthy();
         });
 
         it('should pass if all attendance\'s trainee are in attendance\'s company', () => {
@@ -150,22 +295,22 @@ describe('SEEDS VERIFICATION', () => {
         });
 
         it('should pass if every slot exists', () => {
-          const someSlotsDontExist = attendanceList.some(a => !a.courseSlot);
+          const everySlotExists = attendanceList.every(a => a.courseSlot);
 
-          expect(someSlotsDontExist).toBeFalsy();
+          expect(everySlotExists).toBeTruthy();
         });
 
         it('should pass if every company exists', () => {
-          const someCompaniesDontExist = attendanceList.some(a => !a.company);
+          const everyCompanyExists = attendanceList.every(a => a.company);
 
-          expect(someCompaniesDontExist).toBeFalsy();
+          expect(everyCompanyExists).toBeTruthy();
         });
 
         it('should pass if every company is rattached to course', () => {
-          const someCompaniesAreNotInCourse = attendanceList
-            .some(a => !UtilsHelper.doesArrayIncludeId(a.courseSlot.course.companies, a.company._id));
+          const everyCompanyIsInCourse = attendanceList
+            .every(a => UtilsHelper.doesArrayIncludeId(a.courseSlot.course.companies, a.company._id));
 
-          expect(someCompaniesAreNotInCourse).toBeFalsy();
+          expect(everyCompanyIsInCourse).toBeTruthy();
         });
       });
 
@@ -186,9 +331,9 @@ describe('SEEDS VERIFICATION', () => {
         });
 
         it('should pass if every course exists', () => {
-          const someCoursesDontExist = attendanceSheetList.some(a => !a.course);
+          const everyCourseExists = attendanceSheetList.every(a => a.course);
 
-          expect(someCoursesDontExist).toBeFalsy();
+          expect(everyCourseExists).toBeTruthy();
         });
 
         it('should pass if only intra courses have date in attendance sheet', () => {
@@ -204,9 +349,9 @@ describe('SEEDS VERIFICATION', () => {
         });
 
         it('should pass if only inter courses have trainee in attendance sheet', () => {
-          const someTraineesDontExist = attendanceSheetList.some(a => a.course.type === INTER_B2B && !a.trainee);
+          const everyTraineeExists = attendanceSheetList.every(a => a.course.type === INTRA || a.trainee);
 
-          expect(someTraineesDontExist).toBeFalsy();
+          expect(everyTraineeExists).toBeTruthy();
 
           const someIntraAttendanceSheetHasTrainee = attendanceSheetList
             .some(a => a.course.type === INTRA && a.trainee);
@@ -236,16 +381,16 @@ describe('SEEDS VERIFICATION', () => {
         });
 
         it('should pass if every company exists', () => {
-          const someCompaniesDontExist = attendanceSheetList.some(a => !a.company);
+          const everyCompanyExists = attendanceSheetList.every(a => a.company);
 
-          expect(someCompaniesDontExist).toBeFalsy();
+          expect(everyCompanyExists).toBeTruthy();
         });
 
         it('should pass if every company is rattached to course', () => {
-          const someCompaniesAreNotInCourse = attendanceSheetList
-            .some(a => !UtilsHelper.doesArrayIncludeId(a.course.companies, a.company._id));
+          const everyCompanyIsInCourse = attendanceSheetList
+            .every(a => UtilsHelper.doesArrayIncludeId(a.course.companies, a.company._id));
 
-          expect(someCompaniesAreNotInCourse).toBeFalsy();
+          expect(everyCompanyIsInCourse).toBeTruthy();
         });
       });
 
@@ -345,6 +490,35 @@ describe('SEEDS VERIFICATION', () => {
         });
       });
 
+      describe('Collection CompanyHolding', () => {
+        let companyHoldingList;
+        before(async () => {
+          companyHoldingList = await CompanyHolding
+            .find()
+            .populate({ path: 'holding', select: '_id' })
+            .populate({ path: 'company', select: '_id' })
+            .lean();
+        });
+
+        it('should pass if every company exists', () => {
+          const companiesExist = companyHoldingList.map(ch => ch.company).every(company => !!company);
+          expect(companiesExist).toBeTruthy();
+        });
+
+        it('should pass if every holding exists', () => {
+          const holdingsExist = companyHoldingList.map(ch => ch.holding).every(holding => !!holding);
+          expect(holdingsExist).toBeTruthy();
+        });
+
+        it('should pass if every company is linked to a single holding', () => {
+          const companyIsLinkedToManyHoldings = companyHoldingList
+            .some(companyHolding => companyHoldingList
+              .filter(ch => UtilsHelper.areObjectIdsEquals(companyHolding.company._id, ch.company._id)).length > 1
+            );
+          expect(companyIsLinkedToManyHoldings).toBeFalsy();
+        });
+      });
+
       describe('Collection CompanyLinkRequest', () => {
         let companyLinkRequestList;
         before(async () => {
@@ -393,7 +567,7 @@ describe('SEEDS VERIFICATION', () => {
               path: 'trainees',
               select: '_id',
               populate: { path: 'userCompanyList' },
-              transform: doc => (doc || null),
+              transform,
             })
             .populate({
               path: 'companyRepresentative',
@@ -406,12 +580,8 @@ describe('SEEDS VERIFICATION', () => {
               populate: [{ path: 'role.vendor', select: 'name' }],
             })
             .populate({ path: 'trainer', select: '_id role.vendor' })
-            .populate({ path: 'companies', select: '_id', transform: doc => (doc || null) })
-            .populate({
-              path: 'accessRules',
-              select: '_id',
-              transform: doc => (doc || null),
-            })
+            .populate({ path: 'companies', select: '_id', transform })
+            .populate({ path: 'accessRules', select: '_id', transform })
             .populate({ path: 'subProgram', select: '_id' })
             .populate({ path: 'slots', select: 'endDate' })
             .populate({ path: 'slotsToPlan' })
@@ -436,7 +606,7 @@ describe('SEEDS VERIFICATION', () => {
 
         it('should pass if companyRepresentative has good role', () => {
           const areCompanyRepresentativesCoachOrAdmin = courseList.every(c => !c.companyRepresentative ||
-            [COACH, ADMIN_CLIENT].includes(get(c.companyRepresentative, 'role.client.name')));
+            [COACH, CLIENT_ADMIN].includes(get(c.companyRepresentative, 'role.client.name')));
           expect(areCompanyRepresentativesCoachOrAdmin).toBeTruthy();
         });
 
@@ -459,9 +629,9 @@ describe('SEEDS VERIFICATION', () => {
 
         it('should pass if every access rules company exists and is not duplicated', () => {
           const coursesWithAccessRules = courseList.filter(c => c.accessRules.length);
-          const someCompaniesDontExist = coursesWithAccessRules.some(c => c.accessRules.some(company => !company));
+          const everyCompanyExists = coursesWithAccessRules.every(c => c.accessRules.every(company => company));
 
-          expect(someCompaniesDontExist).toBeFalsy();
+          expect(everyCompanyExists).toBeTruthy();
 
           const someAccessRulesAreDuplicated = coursesWithAccessRules
             .some((course) => {
@@ -479,11 +649,11 @@ describe('SEEDS VERIFICATION', () => {
         });
 
         it('should pass if every company exists and is not duplicated', () => {
-          const someCompaniesDontExist = courseList
+          const everyCompanyExists = courseList
             .filter(c => c.format === BLENDED)
-            .some(c => c.companies.some(company => !company));
+            .every(c => c.companies.every(company => company));
 
-          expect(someCompaniesDontExist).toBeFalsy();
+          expect(everyCompanyExists).toBeTruthy();
 
           const someCompaniesAreDuplicated = courseList
             .filter(course => get(course, 'companies.length'))
@@ -505,17 +675,17 @@ describe('SEEDS VERIFICATION', () => {
         });
 
         it('should pass if no e-learning course has companies field', () => {
-          const someELearningCourseHasCompanies = courseList
+          const noElearningCourseHasCompanies = courseList
             .filter(course => course.format === STRICTLY_E_LEARNING)
-            .some(course => has(course, 'companies'));
-          expect(someELearningCourseHasCompanies).toBeFalsy();
+            .every(course => !has(course, 'companies'));
+          expect(noElearningCourseHasCompanies).toBeTruthy();
         });
 
         it('should pass if no e-learning course has misc field', () => {
-          const someELearningCourseHasMisc = courseList
+          const noELearningCourseHasMisc = courseList
             .filter(course => course.format === STRICTLY_E_LEARNING)
-            .some(course => has(course, 'misc'));
-          expect(someELearningCourseHasMisc).toBeFalsy();
+            .every(course => !has(course, 'misc'));
+          expect(noELearningCourseHasMisc).toBeTruthy();
         });
 
         it('should pass if every blended course is intra ou inter_b2b', () => {
@@ -542,9 +712,9 @@ describe('SEEDS VERIFICATION', () => {
         });
 
         it('should pass if every trainee exists and is not duplicated', () => {
-          const someTraineesDontExist = courseList.some(c => c.trainees.some(trainee => !trainee));
+          const everyTraineeExists = courseList.every(c => c.trainees.every(trainee => trainee));
 
-          expect(someTraineesDontExist).toBeFalsy();
+          expect(everyTraineeExists).toBeTruthy();
 
           const someTraineesAreDuplicated = courseList
             .some((course) => {
@@ -571,14 +741,14 @@ describe('SEEDS VERIFICATION', () => {
                 get(c, 'companyRepresentative._id'),
               ]);
 
-              return UtilsHelper.doesArrayIncludeId(acceptedUsers, c.contact._id);
+              return UtilsHelper.doesArrayIncludeId(acceptedUsers, c.contact);
             });
           expect(isContactGoodUser).toBeTruthy();
         });
 
         it('should pass if no access rules for blended courses', () => {
-          const haveBlendedCoursesAccessRules = courseList.some(c => c.format === BLENDED && c.accessRules.length);
-          expect(haveBlendedCoursesAccessRules).toBeFalsy();
+          const noBlendedCourseHasAccessRules = courseList.every(c => c.format !== BLENDED || !c.accessRules.length);
+          expect(noBlendedCourseHasAccessRules).toBeTruthy();
         });
 
         it('should pass if only blended courses have interlocutors', () => {
@@ -638,17 +808,190 @@ describe('SEEDS VERIFICATION', () => {
         });
 
         it('should pass if every interlocutor exists', () => {
-          const someUsersDontExist = courseList.some((c) => {
+          const everyUserExists = courseList.every((c) => {
             const userList = [
               ...(has(c, 'companyRepresentative') ? [c.companyRepresentative] : []),
               ...(has(c, 'salesRepresentative') ? [c.salesRepresentative] : []),
               ...(has(c, 'trainer') ? [c.trainer] : []),
             ];
 
-            return userList.some(u => u === null || u === 'user not found');
+            return userList.every(u => u);
           });
 
-          expect(someUsersDontExist).toBeFalsy();
+          expect(everyUserExists).toBeTruthy();
+        });
+      });
+
+      describe('Collection CourseBill', () => {
+        let courseBillList;
+        before(async () => {
+          courseBillList = await CourseBill
+            .find()
+            .populate({ path: 'course', select: 'format companies', transform })
+            .populate({ path: 'company', transform })
+            .populate({ path: 'payer.company', transform })
+            .populate({ path: 'payer.fundingOrganisation', transform })
+            .populate({
+              path: 'billingPurchaseList',
+              select: 'billingItem',
+              populate: { path: 'billingItem', transform },
+            })
+            .setOptions({ allCompanies: true })
+            .lean();
+        });
+
+        it('should pass if every course exists and is blended', () => {
+          const everyCourseIsBlended = courseBillList.every(bill => get(bill, 'course.format') === BLENDED);
+
+          expect(everyCourseIsBlended).toBeTruthy();
+        });
+
+        it('should pass if every price is positive', () => {
+          const everyPriceIsValid = courseBillList.every(bill => bill.mainFee.price > 0);
+
+          expect(everyPriceIsValid).toBeTruthy();
+        });
+
+        it('should pass if every count is a positive integer', () => {
+          const everyCountIsAValidInteger = courseBillList
+            .every(bill => bill.mainFee.count > 0 && Number.isInteger(bill.mainFee.count));
+
+          expect(everyCountIsAValidInteger).toBeTruthy();
+        });
+
+        it('should pass if every company exists', () => {
+          const everyCompanyExists = courseBillList.every(bill => !!bill.company);
+
+          expect(everyCompanyExists).toBeTruthy();
+        });
+
+        it('should pass if every company is linked to course', () => {
+          const everyCompanyIsLinkedToCourse = courseBillList
+            .every(bill => UtilsHelper.doesArrayIncludeId(bill.course.companies, bill.company._id));
+
+          expect(everyCompanyIsLinkedToCourse).toBeTruthy();
+        });
+
+        it('should pass if every payer exists', () => {
+          const everyPayerExists = courseBillList.every(bill => !!bill.payer._id);
+
+          expect(everyPayerExists).toBeTruthy();
+        });
+
+        it('should pass if every billing item exists', () => {
+          const everyBillingItemExists = courseBillList
+            .every(bill => bill.billingPurchaseList.every(purchase => !!purchase.billingItem));
+
+          expect(everyBillingItemExists).toBeTruthy();
+        });
+
+        it('should pass if every billing purchase price is positive', () => {
+          const everyPriceIsValid = courseBillList
+            .every(bill => bill.billingPurchaseList.every(purchase => purchase.price > 0));
+
+          expect(everyPriceIsValid).toBeTruthy();
+        });
+
+        it('should pass if every billing purchase count is a positive integer', () => {
+          const everyCountIsAValidInteger = courseBillList
+            .every(bill => bill.billingPurchaseList
+              .every(purchase => purchase.count > 0 && Number.isInteger(purchase.count)));
+
+          expect(everyCountIsAValidInteger).toBeTruthy();
+        });
+
+        it('should pass if every number has good format', () => {
+          const everyNumberHasGoodFormat = courseBillList
+            .every(bill => !bill.number || bill.number.match(/FACT-[0-9]{5}/));
+
+          expect(everyNumberHasGoodFormat).toBeTruthy();
+        });
+
+        it('should pass if every number is unique', () => {
+          const courseBillNumberList = compact(courseBillList.map(bill => bill.number));
+          const courseBillNumbersWithoutDuplicates = [...new Set(courseBillNumberList)];
+
+          expect(courseBillNumbersWithoutDuplicates.length).toEqual(courseBillNumberList.length);
+        });
+      });
+
+      describe('Collection CourseBillingItem', () => {
+        let courseBillingItemList;
+        before(async () => {
+          courseBillingItemList = await CourseBillingItem.find().lean();
+        });
+
+        it('should pass if every name is unique', () => {
+          const courseBillingItemNameList = courseBillingItemList.map(item => item.name);
+          const courseBillingItemNamesWithoutDuplicates = [...new Set(courseBillingItemNameList)];
+
+          expect(courseBillingItemNamesWithoutDuplicates.length).toEqual(courseBillingItemNameList.length);
+        });
+      });
+
+      describe('Collection CourseBillsNumber', () => {
+        let courseBillsNumberList;
+        before(async () => {
+          courseBillsNumberList = await CourseBillsNumber.find().lean();
+        });
+
+        it('should pass if only one item in list', () => {
+          expect(courseBillsNumberList.length).toBeLessThanOrEqual(1);
+        });
+
+        it('should pass if value is a positive integer', () => {
+          const isCourseBillsNumberAPositiveInteger = courseBillsNumberList
+            .every(number => number.seq > 0 && Number.isInteger(number.seq));
+
+          expect(isCourseBillsNumberAPositiveInteger).toBeTruthy();
+        });
+      });
+
+      describe('Collection CourseSlot', () => {
+        let courseSlotList;
+        before(async () => {
+          courseSlotList = await CourseSlot
+            .find()
+            .populate({
+              path: 'course',
+              select: 'format subProgram',
+              populate: { path: 'subProgram', select: 'steps' },
+              transform,
+            })
+            .populate({ path: 'step', select: 'type', transform })
+            .lean();
+        });
+
+        it('should pass if every course exists and is blended', () => {
+          const everyCourseIsBlended = courseSlotList.every(cs => cs.course && cs.course.format === BLENDED);
+          expect(everyCourseIsBlended).toBeTruthy();
+        });
+
+        it('should pass if every startDate is before endDate and same day', () => {
+          const everyStartDateIsBeforeEndDateInTheDay = courseSlotList
+            .every(cs => !has(cs, 'startDate') ||
+              (CompaniDate(cs.startDate).isBefore(cs.endDate) &&
+                CompaniDate(cs.startDate).isSame(CompaniDate(cs.endDate), DAY))
+            );
+          expect(everyStartDateIsBeforeEndDateInTheDay).toBeTruthy();
+        });
+
+        it('should pass if addresses are on site slots only', () => {
+          const areAddressesOnSiteSlotsOnly = courseSlotList
+            .every(cs => !has(cs, 'address') || cs.step.type === ON_SITE);
+          expect(areAddressesOnSiteSlotsOnly).toBeTruthy();
+        });
+
+        it('should pass if links are on remote slots only', () => {
+          const areLinksOnRemoteSlotsOnly = courseSlotList
+            .every(cs => !has(cs, 'meetingLink') || cs.step.type === REMOTE);
+          expect(areLinksOnRemoteSlotsOnly).toBeTruthy();
+        });
+
+        it('should pass if step exists and is in course', () => {
+          const everyStepIsInCourse = courseSlotList
+            .every(cs => cs.step && UtilsHelper.doesArrayIncludeId(cs.course.subProgram.steps, cs.step._id));
+          expect(everyStepIsInCourse).toBeTruthy();
         });
       });
 
@@ -656,16 +999,154 @@ describe('SEEDS VERIFICATION', () => {
         let courseHistoryList;
         before(async () => {
           courseHistoryList = await CourseHistory
-            .find(
-              { action: { $in: [TRAINEE_ADDITION, TRAINEE_DELETION] } },
-              { action: 1, createdAt: 1, trainee: 1, course: 1, company: 1 }
-            )
-            .populate({ path: 'trainee', select: '_id', populate: { path: 'userCompanyList' } })
+            .find({})
+            .populate({ path: 'trainee', select: '_id', transform, populate: { path: 'userCompanyList' } })
+            .populate({ path: 'company', select: '_id', transform })
+            .populate({
+              path: 'createdBy',
+              select: '_id role',
+              transform,
+              populate: [
+                { path: 'role.vendor', select: 'name' },
+                { path: 'role.client', select: 'name' },
+                { path: 'userCompanyList' },
+              ],
+            })
+            .populate({ path: 'course', select: 'trainer companies trainees' })
             .lean();
         });
 
+        it('should pass if user who created history exists', () => {
+          const everyHistoryCreatorExists = courseHistoryList.every(ch => !!ch.createdBy);
+          expect(everyHistoryCreatorExists).toBeTruthy();
+        });
+
+        it('should pass if user who created history has good role', () => {
+          const everyHistoryCreatorHasGoodRole = courseHistoryList.every((ch) => {
+            const rofOrVendorAdminActions = [
+              SLOT_CREATION,
+              ESTIMATED_START_DATE_EDITION,
+              COMPANY_ADDITION,
+              COMPANY_DELETION,
+            ];
+            const otherActions = [
+              SLOT_DELETION,
+              SLOT_EDITION,
+              TRAINEE_ADDITION,
+              TRAINEE_DELETION,
+            ];
+
+            const hasRofOrVendorAdminRole = [TRAINING_ORGANISATION_MANAGER, VENDOR_ADMIN]
+              .includes(get(ch.createdBy, 'role.vendor.name'));
+            const hasCourseEditionRole = [TRAINING_ORGANISATION_MANAGER, VENDOR_ADMIN, TRAINER]
+              .includes(get(ch.createdBy, 'role.vendor.name')) ||
+              [COACH, CLIENT_ADMIN].includes(get(ch.createdBy, 'role.client.name'));
+
+            if (rofOrVendorAdminActions.includes(ch.action) && !hasRofOrVendorAdminRole) return false;
+            if (otherActions.includes(ch.action) && !hasCourseEditionRole) return false;
+
+            return true;
+          });
+          expect(everyHistoryCreatorHasGoodRole).toBeTruthy();
+        });
+
+        it('should pass if user who created history is allowed to access course', () => {
+          const everyHistoryCreatorIsAllowedToAccessCourse = courseHistoryList.every((ch) => {
+            const hasRofOrVendorAdminRole = [TRAINING_ORGANISATION_MANAGER, VENDOR_ADMIN]
+              .includes(get(ch.createdBy, 'role.vendor.name'));
+
+            const isCourseTrainer = get(ch.createdBy, 'role.vendor.name') === TRAINER &&
+              UtilsHelper.areObjectIdsEquals(ch.createdBy._id, ch.course.trainer);
+
+            const isFromCompanyLinkedToCourse = [COACH, CLIENT_ADMIN].includes(get(ch.createdBy, 'role.client.name')) &&
+              ch.course.type === INTRA &&
+              ch.createdBy.userCompanyList.some(uc => UtilsHelper.doesArrayIncludeId(ch.course.companies, uc.company));
+
+            if (hasRofOrVendorAdminRole || isCourseTrainer || isFromCompanyLinkedToCourse) return true;
+
+            return false;
+          });
+          expect(everyHistoryCreatorIsAllowedToAccessCourse).toBeTruthy();
+        });
+
+        it('should pass if trainee is in course for trainee_addition action', () => {
+          const isEveryTraineeInCourse = courseHistoryList
+            .filter(ch => ch.action === TRAINEE_ADDITION)
+            .every((ch) => {
+              if (UtilsHelper.doesArrayIncludeId(ch.course.trainees, ch.trainee._id)) return true;
+
+              const traineeDeletions = courseHistoryList
+                .filter(
+                  history => history.action === TRAINEE_DELETION &&
+                  UtilsHelper.areObjectIdsEquals(history.trainee._id, ch.trainee._id) &&
+                  UtilsHelper.areObjectIdsEquals(history.course._id, ch.course._id)
+                );
+
+              const traineeAdditions = courseHistoryList
+                .filter(
+                  history => history.action === TRAINEE_ADDITION &&
+                  UtilsHelper.areObjectIdsEquals(history.trainee._id, ch.trainee._id) &&
+                  UtilsHelper.areObjectIdsEquals(history.course._id, ch.course._id)
+                );
+
+              return traineeDeletions.length === traineeAdditions.length;
+            });
+
+          expect(isEveryTraineeInCourse).toBeTruthy();
+        });
+
+        it('should pass if course exists', () => {
+          const everyCourseExists = courseHistoryList.every(ch => !!ch.course);
+          expect(everyCourseExists).toBeTruthy();
+        });
+
+        it('should pass if none history has address and meeting link fields', () => {
+          const someHistoryHaveAddressAndMeetingLink = courseHistoryList
+            .filter(ch => has(ch, 'slot'))
+            .some(ch => ch.slot.address && ch.slot.meetingLink);
+
+          expect(someHistoryHaveAddressAndMeetingLink).toBeFalsy();
+        });
+
+        it('should pass if startDate is before endDate', () => {
+          const everyStartDateIsBeforeEndDate = courseHistoryList
+            .every(ch => !has(ch, 'slot') || CompaniDate(ch.slot.startDate).isBefore(ch.slot.endDate));
+
+          expect(everyStartDateIsBeforeEndDate).toBeTruthy();
+        });
+
+        it('should pass if histories with slot have good action', () => {
+          const everyHistoryWithSlotHasGoodAction = courseHistoryList
+            .every(ch => !has(ch, 'slot') || [SLOT_CREATION, SLOT_DELETION, SLOT_EDITION].includes(ch.action));
+
+          expect(everyHistoryWithSlotHasGoodAction).toBeTruthy();
+        });
+
+        it('should pass if startHour is before endHour', () => {
+          const everyStartDateIsBeforeEndDate = courseHistoryList
+            .every(ch => !has(ch, 'update') || CompaniDate(ch.update.startHour.to).isBefore(ch.update.endHour.to));
+
+          expect(everyStartDateIsBeforeEndDate).toBeTruthy();
+        });
+
+        it('should pass if estimatedStartDate is the only field in update and has good action', () => {
+          const everyStartDateIsBeforeEndDate = courseHistoryList
+            .every(ch => !has(ch, 'update.estimatedStartDate') ||
+              (Object.keys(ch.update).length === 1 && ch.action === ESTIMATED_START_DATE_EDITION));
+
+          expect(everyStartDateIsBeforeEndDate).toBeTruthy();
+        });
+
+        it('should pass if trainee exists', () => {
+          const everyTraineeExists = courseHistoryList
+            .every(ch => ![TRAINEE_ADDITION, TRAINEE_DELETION].includes(ch.action) || !!ch.trainee);
+          expect(everyTraineeExists).toBeTruthy();
+        });
+
         it('should pass if all trainees are in course company at registration', () => {
-          const courseHistoriesGroupedByCourse = groupBy(courseHistoryList, 'course');
+          const traineeHistoryList = courseHistoryList
+            .filter(ch => [TRAINEE_ADDITION, TRAINEE_DELETION].includes(ch.action));
+          const courseHistoriesGroupedByCourse = groupBy(traineeHistoryList, 'course._id');
 
           for (const courseHistories of Object.values(courseHistoriesGroupedByCourse)) {
             const courseHistoriesGroupedByTrainee = groupBy(courseHistories, 'trainee._id');
@@ -676,7 +1157,7 @@ describe('SEEDS VERIFICATION', () => {
                 .every((ch, i) => {
                   if (i % 2 === 0) {
                     return ch.action === TRAINEE_ADDITION && ch.trainee.userCompanyList
-                      .some(uc => UtilsHelper.areObjectIdsEquals(uc.company, ch.company));
+                      .some(uc => UtilsHelper.areObjectIdsEquals(uc.company, ch.company._id));
                   }
 
                   return ch.action === TRAINEE_DELETION;
@@ -688,7 +1169,7 @@ describe('SEEDS VERIFICATION', () => {
               let isTraineeStillInCompanyAtRegistration = true;
               if (isLastHistoryAddition) {
                 isTraineeStillInCompanyAtRegistration = lastHistory.trainee.userCompanyList.some(uc =>
-                  UtilsHelper.areObjectIdsEquals(uc.company, lastHistory.company) &&
+                  UtilsHelper.areObjectIdsEquals(uc.company, lastHistory.company._id) &&
                     (!uc.endDate || CompaniDate(lastHistory.createdAt).isBefore(uc.endDate))
                 );
               }
@@ -696,6 +1177,40 @@ describe('SEEDS VERIFICATION', () => {
               expect(!isLastHistoryAddition || isTraineeStillInCompanyAtRegistration).toBeTruthy();
             }
           }
+        });
+
+        it('should pass if company exists', () => {
+          const everyCompanyExists = courseHistoryList
+            .every(ch => ![COMPANY_ADDITION, COMPANY_DELETION, TRAINEE_ADDITION].includes(ch.action) || !!ch.company);
+          expect(everyCompanyExists).toBeTruthy();
+        });
+
+        it('should pass if company is in course', () => {
+          const everyCompanyExists = courseHistoryList
+            .every((ch) => {
+              if (![COMPANY_ADDITION, TRAINEE_ADDITION].includes(ch.action)) return true;
+
+              const isCompanyInCourse = UtilsHelper.doesArrayIncludeId(ch.course.companies, ch.company._id);
+
+              const companyDeletions = courseHistoryList
+                .filter(
+                  history => history.action === COMPANY_DELETION &&
+                  UtilsHelper.areObjectIdsEquals(history.company._id, ch.company._id) &&
+                  UtilsHelper.areObjectIdsEquals(history.course._id, ch.course._id)
+                );
+
+              const companyAdditions = courseHistoryList
+                .filter(
+                  history => history.action === COMPANY_ADDITION &&
+                  UtilsHelper.areObjectIdsEquals(history.company._id, ch.company._id) &&
+                  UtilsHelper.areObjectIdsEquals(history.course._id, ch.course._id)
+                );
+
+              const hasCompanyBeenRemoved = companyDeletions.length === companyAdditions.length;
+
+              return isCompanyInCourse || hasCompanyBeenRemoved;
+            });
+          expect(everyCompanyExists).toBeTruthy();
         });
       });
 
@@ -734,21 +1249,21 @@ describe('SEEDS VERIFICATION', () => {
         before(async () => {
           programList = await Program
             .find()
-            .populate({ path: 'subPrograms', select: '_id', transform: doc => (doc || null) })
-            .populate({ path: 'categories', select: '_id', transform: doc => (doc || null) })
+            .populate({ path: 'subPrograms', select: '_id', transform })
+            .populate({ path: 'categories', select: '_id', transform })
             .populate({
               path: 'testers',
               select: '_id',
-              transform: doc => (doc || null),
+              transform,
               populate: { path: 'role.vendor', select: 'name' },
             })
             .lean();
         });
 
         it('should pass if every subprogram exists and is not duplicated in same or different program', () => {
-          const someSubProgramsDontExist = programList.some(p => p.subPrograms.some(subProgram => !subProgram));
+          const everySubProgramExists = programList.every(p => p.subPrograms.every(subProgram => subProgram));
 
-          expect(someSubProgramsDontExist).toBeFalsy();
+          expect(everySubProgramExists).toBeTruthy();
 
           const subProgramsList = programList
             .flatMap(program => program.subPrograms.map(sp => sp._id.toHexString()));
@@ -758,9 +1273,9 @@ describe('SEEDS VERIFICATION', () => {
         });
 
         it('should pass if every category exists and is not duplicated', () => {
-          const someCategoriesDontExist = programList.some(p => p.categories.some(category => !category));
+          const everyCategoryExists = programList.every(p => p.categories.every(category => category));
 
-          expect(someCategoriesDontExist).toBeFalsy();
+          expect(everyCategoryExists).toBeTruthy();
 
           const someCategoriesAreDuplicated = programList
             .some((program) => {
@@ -773,9 +1288,9 @@ describe('SEEDS VERIFICATION', () => {
         });
 
         it('should pass if every tester exists and is not duplicated', () => {
-          const someTestersDontExist = programList.some(p => p.testers.some(tester => !tester));
+          const everyTesterExists = programList.every(p => p.testers.every(tester => tester));
 
-          expect(someTestersDontExist).toBeFalsy();
+          expect(everyTesterExists).toBeTruthy();
 
           const someTestersAreDuplicated = programList
             .some((program) => {
@@ -796,12 +1311,63 @@ describe('SEEDS VERIFICATION', () => {
         });
       });
 
+      describe('Collection Questionnaire', () => {
+        let questionnaireList;
+        before(async () => {
+          questionnaireList = await Questionnaire
+            .find()
+            .populate({ path: 'cards', select: '-__v -createdAt -updatedAt', transform })
+            .lean({ virtuals: true });
+        });
+
+        it('should pass if every card exists and is not duplicated', () => {
+          const everyCardExists = questionnaireList.every(questionnaire => questionnaire.cards.every(card => card));
+
+          expect(everyCardExists).toBeTruthy();
+
+          const someCardsAreDuplicated = questionnaireList
+            .some((questionnaire) => {
+              const cardsWithoutDuplicates = [...new Set(questionnaire.cards.map(card => card._id.toHexString()))];
+
+              return questionnaire.cards.length !== cardsWithoutDuplicates.length;
+            });
+
+          expect(someCardsAreDuplicated).toBeFalsy();
+        });
+
+        it('should pass if some cards have questionnaire template', () => {
+          const noneCardsHasQuestionnaireTemplate = questionnaireList
+            .some(questionnaire => questionnaire.cards
+              .every(card => ![OPEN_QUESTION, SURVEY, QUESTION_ANSWER].includes(card.template)));
+
+          expect(noneCardsHasQuestionnaireTemplate).toBeFalsy();
+        });
+
+        it('should pass if published questionnaires have at least one card', () => {
+          const everyPublishedQuestionnaireHasCards = questionnaireList
+            .every(questionnaire => questionnaire.status === DRAFT || questionnaire.cards.length);
+
+          expect(everyPublishedQuestionnaireHasCards).toBeTruthy();
+        });
+
+        it('should pass if published questionnaires have all their cards valid', () => {
+          const everyPublishedQuestionnaireHasValidCards = questionnaireList
+            .every(questionnaire => questionnaire.status === DRAFT || questionnaire.areCardsValid);
+
+          expect(everyPublishedQuestionnaireHasValidCards).toBeTruthy();
+        });
+      });
+
       describe('Collection QuestionnaireHistory', () => {
         let questionnaireHistoryList;
         before(async () => {
           questionnaireHistoryList = await QuestionnaireHistory
             .find()
             .populate({ path: 'user', select: 'id', populate: { path: 'userCompanyList' } })
+            .populate({ path: 'company', select: 'id' })
+            .populate({ path: 'course', select: 'id' })
+            .populate({ path: 'questionnaire', select: '_id cards status', populate: { path: 'cards' }, transform })
+            .populate({ path: 'questionnaireAnswersList.card', select: 'template', transform })
             .setOptions({ allCompanies: true })
             .lean();
         });
@@ -809,9 +1375,132 @@ describe('SEEDS VERIFICATION', () => {
         it('should pass if all questionnaire history\'s user are in questionnaire history\'s company', () => {
           const areUsersInCompany = questionnaireHistoryList
             .every(questionnaireHistory => questionnaireHistory.user.userCompanyList
-              .some(uc => UtilsHelper.areObjectIdsEquals(uc.company, questionnaireHistory.company))
+              .some(uc => UtilsHelper.areObjectIdsEquals(uc.company, questionnaireHistory.company._id))
             );
           expect(areUsersInCompany).toBeTruthy();
+        });
+
+        it('should pass if every course exists', () => {
+          const everyCourseExists = questionnaireHistoryList.every(qh => qh.course);
+
+          expect(everyCourseExists).toBeTruthy();
+        });
+
+        it('should pass if every user exists', () => {
+          const everyUserExists = questionnaireHistoryList.every(qh => qh.user);
+
+          expect(everyUserExists).toBeTruthy();
+        });
+
+        it('should pass if user is registered to course', async () => {
+          const trainees = questionnaireHistoryList.map(qh => qh.user._id);
+          const courses = questionnaireHistoryList.map(qh => qh.course._id);
+          const histories = await CourseHistory
+            .find({ trainee: { $in: trainees }, course: { $in: courses }, action: TRAINEE_ADDITION })
+            .lean();
+          const everyUserIsRegisteredToCourse = questionnaireHistoryList
+            .every(qh => histories
+              .some(
+                history => UtilsHelper.areObjectIdsEquals(history.trainee, qh.user._id) &&
+                  UtilsHelper.areObjectIdsEquals(history.course, qh.course._id)
+              )
+            );
+          expect(everyUserIsRegisteredToCourse).toBeTruthy();
+        });
+
+        it('should pass if every questionnaire exists and is published', () => {
+          const everyQuestionnaireExists = questionnaireHistoryList
+            .every(qh => qh.questionnaire && qh.questionnaire.status === PUBLISHED);
+
+          expect(everyQuestionnaireExists).toBeTruthy();
+        });
+
+        it('should pass if every card exists and is in questionnaire', () => {
+          const everyCardExists = questionnaireHistoryList
+            .every(qh => qh.questionnaireAnswersList.every(qal => qal.card));
+
+          expect(everyCardExists).toBeTruthy();
+
+          const someCardsAreNotInQuestionnaires = questionnaireHistoryList
+            .some((qh) => {
+              const cardIds = qh.questionnaire.cards.map(c => c._id);
+
+              return qh.questionnaireAnswersList.some(qal => !UtilsHelper.doesArrayIncludeId(cardIds, qal.card._id));
+            });
+
+          expect(someCardsAreNotInQuestionnaires).toBeFalsy();
+        });
+
+        it('should pass if every questionnaire answers list card is a questionnaire card', () => {
+          const everyCardHasGoodTemplate = questionnaireHistoryList
+            .every(qh => qh.questionnaireAnswersList
+              .every(qal => [SURVEY, OPEN_QUESTION, QUESTION_ANSWER].includes(qal.card.template)));
+
+          expect(everyCardHasGoodTemplate).toBeTruthy();
+        });
+
+        it('should pass if every mandatory card has answer', () => {
+          const everyMandatoryCardHasAnswer = questionnaireHistoryList
+            .every(qh => qh.questionnaire.cards
+              .every(c => !c.isMandatory ||
+              qh.questionnaireAnswersList.some(qal => UtilsHelper.areObjectIdsEquals(c._id, qal.card._id)))
+            );
+
+          expect(everyMandatoryCardHasAnswer).toBeTruthy();
+        });
+
+        it('should pass if there is the good answers number', () => {
+          const everyHistoryHasGoodAnswersNumber = questionnaireHistoryList
+            .every(qh => qh.questionnaireAnswersList.length &&
+              qh.questionnaireAnswersList
+                .every(qal => qal.answerList.length === 1 || qal.card.template === QUESTION_ANSWER));
+
+          expect(everyHistoryHasGoodAnswersNumber).toBeTruthy();
+        });
+
+        it('should pass if every company exists', () => {
+          const everyCompanyExists = questionnaireHistoryList.every(qh => qh.company);
+
+          expect(everyCompanyExists).toBeTruthy();
+        });
+
+        it('should pass if company is linked to course', async () => {
+          const companies = questionnaireHistoryList.map(qh => qh.company._id);
+          const courses = questionnaireHistoryList.map(qh => qh.course._id);
+          const histories = await CourseHistory
+            .find({ company: { $in: companies }, course: { $in: courses }, action: COMPANY_ADDITION })
+            .lean();
+          const everyCompanyIsLinkedToCourse = questionnaireHistoryList
+            .every(qh => histories
+              .some(
+                history => UtilsHelper.areObjectIdsEquals(history.company, qh.company._id) &&
+                  UtilsHelper.areObjectIdsEquals(history.course, qh.course._id)
+              )
+            );
+          expect(everyCompanyIsLinkedToCourse).toBeTruthy();
+        });
+
+        it('should pass if user is registered to course with company', async () => {
+          const companies = questionnaireHistoryList.map(qh => qh.company._id);
+          const trainees = questionnaireHistoryList.map(qh => qh.user._id);
+          const courses = questionnaireHistoryList.map(qh => qh.course._id);
+          const histories = await CourseHistory
+            .find({
+              company: { $in: companies },
+              trainee: { $in: trainees },
+              course: { $in: courses },
+              action: TRAINEE_ADDITION,
+            })
+            .lean();
+          const everyTraineeIsRegisteredToCourseWithCompany = questionnaireHistoryList
+            .every(qh => histories
+              .some(
+                history => UtilsHelper.areObjectIdsEquals(history.company, qh.company._id) &&
+                  UtilsHelper.areObjectIdsEquals(history.trainee, qh.user._id) &&
+                  UtilsHelper.areObjectIdsEquals(history.course, qh.course._id)
+              )
+            );
+          expect(everyTraineeIsRegisteredToCourseWithCompany).toBeTruthy();
         });
       });
 
@@ -841,14 +1530,14 @@ describe('SEEDS VERIFICATION', () => {
         before(async () => {
           stepList = await Step
             .find()
-            .populate({ path: 'activities', select: '_id status', transform: doc => (doc || null) })
+            .populate({ path: 'activities', select: '_id status', transform })
             .lean();
         });
 
         it('should pass if every activity exists and is not duplicated', () => {
-          const someActivitiesDontExist = stepList.some(step => step.activities.some(activity => !activity));
+          const everyActivityExists = stepList.every(step => step.activities.every(activity => activity));
 
-          expect(someActivitiesDontExist).toBeFalsy();
+          expect(everyActivityExists).toBeTruthy();
 
           const someActivitiesAreDuplicated = stepList
             .some((step) => {
@@ -907,14 +1596,14 @@ describe('SEEDS VERIFICATION', () => {
         before(async () => {
           subProgramList = await SubProgram
             .find()
-            .populate({ path: 'steps', select: '_id', transform: doc => (doc || null) })
+            .populate({ path: 'steps', select: '_id', transform })
             .lean();
         });
 
         it('should pass if every step exists and is not duplicated', () => {
-          const someStepsDontExist = subProgramList.some(sp => sp.steps.some(step => !step));
+          const everyStepExists = subProgramList.every(sp => sp.steps.every(step => step));
 
-          expect(someStepsDontExist).toBeFalsy();
+          expect(everyStepExists).toBeTruthy();
 
           const someStepsAreDuplicated = subProgramList
             .some((subProgram) => {
@@ -1010,6 +1699,57 @@ describe('SEEDS VERIFICATION', () => {
             }
           }
           expect(hasIntersectionInUserCompanies).toBeFalsy();
+        });
+      });
+
+      describe('Collection UserHolding', () => {
+        let userHoldingList;
+        before(async () => {
+          userHoldingList = await UserHolding
+            .find()
+            .populate({
+              path: 'user',
+              select: '_id role',
+              populate: [
+                { path: 'company' },
+                { path: 'role.client', select: 'name' },
+                { path: 'role.holding', select: 'name' },
+              ],
+            })
+            .populate({ path: 'holding', select: '_id', populate: { path: 'companies' } })
+            .lean();
+        });
+
+        it('should pass if every user exists', () => {
+          const usersExist = userHoldingList.map(uh => uh.user).every(user => !!user);
+          expect(usersExist).toBeTruthy();
+        });
+
+        it('should pass if every holding exists', () => {
+          const holdingsExist = userHoldingList.map(uh => uh.holding).every(holding => !!holding);
+          expect(holdingsExist).toBeTruthy();
+        });
+
+        it('should pass if every user is linked to a single holding', () => {
+          const isUserLinkedToManyHoldings = userHoldingList
+            .some(userHolding => userHoldingList
+              .filter(uh => UtilsHelper.areObjectIdsEquals(userHolding.user._id, uh.user._id)).length > 1
+            );
+          expect(isUserLinkedToManyHoldings).toBeFalsy();
+        });
+
+        it('should pass if every user company is linked to holding', async () => {
+          const isUserCompanyLinkedToHolding = userHoldingList
+            .every(uh => UtilsHelper.doesArrayIncludeId(uh.holding.companies, uh.user.company));
+          expect(isUserCompanyLinkedToHolding).toBeTruthy();
+        });
+
+        it('should pass if every user has holding and client role', () => {
+          const everyUserHasGoodRoles = userHoldingList
+            .every(u => [COACH, CLIENT_ADMIN].includes(get(u.user, 'role.client.name')) &&
+              get(u.user, 'role.holding.name') === HOLDING_ADMIN);
+
+          expect(everyUserHasGoodRoles).toBeTruthy();
         });
       });
     });

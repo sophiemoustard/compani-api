@@ -1,10 +1,14 @@
 const Boom = require('@hapi/boom');
 const get = require('lodash/get');
 const flat = require('flat');
+const Company = require('../../models/Company');
+const CompanyHolding = require('../../models/CompanyHolding');
+const Holding = require('../../models/Holding');
 const User = require('../../models/User');
 const Role = require('../../models/Role');
 const Customer = require('../../models/Customer');
 const Establishment = require('../../models/Establishment');
+const UserHolding = require('../../models/UserHolding');
 const translate = require('../../helpers/translate');
 const UtilsHelper = require('../../helpers/utils');
 const UserCompaniesHelper = require('../../helpers/userCompanies');
@@ -63,28 +67,45 @@ const trainerUpdatesForbiddenKeys = (req, user) => {
 
 exports.authorizeUserUpdate = async (req) => {
   const { credentials } = req.auth;
-  const userFromDB = await User.findOne({ _id: req.params._id }).populate({ path: 'userCompanyList' }).lean();
+  const userFromDB = await User
+    .findOne({ _id: req.params._id })
+    .populate({ path: 'company' })
+    .populate({ path: 'userCompanyList' })
+    .lean();
   if (!userFromDB) throw Boom.notFound(translate[language].userNotFound);
 
-  const isLoggedUserVendor = !!get(credentials, 'role.vendor');
-  const loggedUserClientRole = get(credentials, 'role.client.name');
-  const loggedUserCompany = get(credentials, 'company._id') || '';
-  const isOrWillBeInCompany = UserCompaniesHelper
-    .userIsOrWillBeInCompany(userFromDB.userCompanyList, loggedUserCompany);
-  const userCompany = isOrWillBeInCompany ? loggedUserCompany : get(req, 'payload.company');
-  const updatingOwnInfos = UtilsHelper.areObjectIdsEquals(credentials._id, userFromDB._id);
   if (trainerUpdatesForbiddenKeys(req, userFromDB)) throw Boom.forbidden();
 
-  if (!isLoggedUserVendor && !updatingOwnInfos) {
-    const sameCompany = isOrWillBeInCompany ||
-      UtilsHelper.areObjectIdsEquals(get(req.payload, 'company'), loggedUserCompany);
-    if (!sameCompany) throw Boom.notFound();
+  const loggedUserVendorRole = get(credentials, 'role.vendor.name');
+  const loggedUserClientRole = get(credentials, 'role.client.name');
+  const loggedUserCompany = get(credentials, 'company._id') || '';
+  const updatingOwnInfos = UtilsHelper.areObjectIdsEquals(credentials._id, userFromDB._id);
+
+  if (!loggedUserVendorRole && !updatingOwnInfos) {
+    const companies = get(credentials, 'role.holding') ? credentials.holding.companies : [loggedUserCompany];
+    const hasLoggedUserAccessToUserCompany = companies
+      .some(company => UserCompaniesHelper.userIsOrWillBeInCompany(userFromDB.userCompanyList, company));
+    if (!hasLoggedUserAccessToUserCompany) throw Boom.notFound();
   }
 
-  if (get(req, 'payload.establishment')) await checkEstablishment(userCompany, req.payload);
+  // ERP checks : updated user is linked to client logged user company
+  if (get(req, 'payload.establishment')) await checkEstablishment(loggedUserCompany, req.payload);
+  if (get(req, 'payload.customer')) await checkCustomer(loggedUserCompany, req.payload);
+
   if (get(req, 'payload.role')) await checkRole(userFromDB, req.payload);
-  if (get(req, 'payload.customer')) await checkCustomer(userCompany, req.payload);
-  if (!isLoggedUserVendor && (!loggedUserClientRole || loggedUserClientRole === AUXILIARY_WITHOUT_COMPANY)) {
+  if (get(req, 'payload.holding')) {
+    if (![TRAINING_ORGANISATION_MANAGER, VENDOR_ADMIN].includes(loggedUserVendorRole)) throw Boom.forbidden();
+    const holding = await Holding.countDocuments({ _id: req.payload.holding });
+    if (!holding) throw Boom.notFound();
+
+    const companyHolding = await CompanyHolding
+      .countDocuments({ holding: req.payload.holding, company: userFromDB.company });
+    if (!companyHolding) throw Boom.forbidden(translate[language].userCompanyNotLinkedToHolding);
+
+    const userHolding = await UserHolding.countDocuments({ user: userFromDB._id });
+    if (userHolding) throw Boom.conflict(translate[language].userAlreadyLinkedToHolding);
+  }
+  if (!loggedUserVendorRole && (!loggedUserClientRole || loggedUserClientRole === AUXILIARY_WITHOUT_COMPANY)) {
     checkUpdateAndCreateRestrictions(req.payload);
   }
 
@@ -205,8 +226,7 @@ exports.authorizeUserCreation = async (req) => {
   }
 
   const vendorRole = get(credentials, 'role.vendor.name');
-  const loggedUserCompany = get(credentials, 'company._id');
-  if (req.payload.company && !UtilsHelper.areObjectIdsEquals(req.payload.company, loggedUserCompany) && !vendorRole) {
+  if (req.payload.company && !UtilsHelper.hasUserAccessToCompany(credentials, req.payload.company) && !vendorRole) {
     throw Boom.forbidden();
   }
 
@@ -217,14 +237,23 @@ exports.authorizeUserCreation = async (req) => {
 
 exports.authorizeUsersGet = async (req) => {
   const { auth, query } = req;
-  const userCompanyId = get(auth, 'credentials.company._id', null);
   const queryCompanyId = query.company;
   const vendorRole = get(req, 'auth.credentials.role.vendor.name');
   const clientRole = get(req, 'auth.credentials.role.client.name');
 
+  if (queryCompanyId) {
+    const company = await Company.countDocuments({ _id: queryCompanyId });
+    if (!company) throw Boom.notFound();
+  }
+
   if (!vendorRole && !queryCompanyId) throw Boom.forbidden();
-  if (!vendorRole && !UtilsHelper.areObjectIdsEquals(queryCompanyId, userCompanyId)) throw Boom.forbidden();
+  if (!vendorRole && !UtilsHelper.hasUserAccessToCompany(auth.credentials, queryCompanyId)) throw Boom.forbidden();
   if (!clientRole && ![TRAINING_ORGANISATION_MANAGER, VENDOR_ADMIN].includes(vendorRole)) throw Boom.forbidden();
+  if (query.holding) {
+    if (![TRAINING_ORGANISATION_MANAGER, VENDOR_ADMIN].includes(vendorRole)) throw Boom.forbidden();
+    const holding = await Holding.countDocuments({ _id: query.holding });
+    if (!holding) throw Boom.notFound();
+  }
 
   return null;
 };
@@ -235,11 +264,9 @@ exports.authorizeLearnersGet = async (req) => {
   if (vendorRole) return null;
 
   const clientRole = get(auth, 'credentials.role.client.name');
-  const userCompanyId = get(auth, 'credentials.company._id', null);
   const companies = Array.isArray(query.companies) ? query.companies : [query.companies];
   const isClientAuthorized = [CLIENT_ADMIN, COACH].includes(clientRole) &&
-    UtilsHelper.doesArrayIncludeId(companies, userCompanyId);
-
+    companies.every(company => UtilsHelper.hasUserAccessToCompany(auth.credentials, company));
   if (!isClientAuthorized) throw Boom.forbidden();
 
   return null;

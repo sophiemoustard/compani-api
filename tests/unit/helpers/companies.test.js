@@ -3,6 +3,7 @@ const flat = require('flat');
 const { expect } = require('expect');
 const { ObjectId } = require('mongodb');
 const Company = require('../../../src/models/Company');
+const CompanyHolding = require('../../../src/models/CompanyHolding');
 const Event = require('../../../src/models/Event');
 const CompanyHelper = require('../../../src/helpers/companies');
 const GDriveStorageHelper = require('../../../src/helpers/gDriveStorage');
@@ -67,23 +68,49 @@ describe('createCompany', () => {
 
 describe('list', () => {
   let find;
+  let companyHoldingFind;
   beforeEach(() => {
     find = sinon.stub(Company, 'find');
+    companyHoldingFind = sinon.stub(CompanyHolding, 'find');
   });
   afterEach(() => {
     find.restore();
+    companyHoldingFind.restore();
   });
 
-  it('should return companies', async () => {
+  it('should return all companies', async () => {
     const companyList = [{ _id: new ObjectId(), name: 'Alenvi' }];
     find.returns(SinonMongoose.stubChainedQueries(companyList, ['lean']));
 
-    const result = await CompanyHelper.list();
+    const result = await CompanyHelper.list({});
 
     expect(result).toEqual(companyList);
     SinonMongoose.calledOnceWithExactly(
       find,
-      [{ query: 'find', args: [{}, { _id: 1, name: 1 }] }, { query: 'lean', args: [] }]
+      [{ query: 'find', args: [{ _id: { $nin: [] } }, { name: 1 }] }, { query: 'lean', args: [] }]
+    );
+    sinon.assert.notCalled(companyHoldingFind);
+  });
+
+  it('should return companies without holdings', async () => {
+    const companyHoldingsList = [{ _id: new ObjectId(), company: new ObjectId(), holding: new ObjectId() }];
+    const companyList = [{ _id: new ObjectId(), name: 'Alenvi' }];
+    find.returns(SinonMongoose.stubChainedQueries(companyList, ['lean']));
+    companyHoldingFind.returns(SinonMongoose.stubChainedQueries(companyHoldingsList, ['lean']));
+
+    const result = await CompanyHelper.list({ noHolding: true });
+
+    expect(result).toEqual(companyList);
+    SinonMongoose.calledOnceWithExactly(
+      companyHoldingFind,
+      [{ query: 'find', args: [{}, { company: 1 }] }, { query: 'lean', args: [] }]
+    );
+    SinonMongoose.calledOnceWithExactly(
+      find,
+      [
+        { query: 'find', args: [{ _id: { $nin: [companyHoldingsList[0].company] } }, { name: 1 }] },
+        { query: 'lean', args: [] },
+      ]
     );
   });
 });

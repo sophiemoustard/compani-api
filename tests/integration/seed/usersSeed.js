@@ -12,7 +12,7 @@ const IdentityVerification = require('../../../src/models/IdentityVerification')
 const Contract = require('../../../src/models/Contract');
 const Establishment = require('../../../src/models/Establishment');
 const { otherCompany, authCompany, companyWithoutSubscription } = require('../../seed/authCompaniesSeed');
-const { deleteNonAuthenticationSeeds } = require('../helpers/authentication');
+const { deleteNonAuthenticationSeeds } = require('../helpers/db');
 const { vendorAdmin } = require('../../seed/authUsersSeed');
 const ActivityHistory = require('../../../src/models/ActivityHistory');
 const Course = require('../../../src/models/Course');
@@ -489,7 +489,6 @@ const populateDB = async () => {
 module.exports = {
   usersSeedList,
   usersFromDifferentCompanyList,
-  usersFromOtherCompany,
   populateDB,
   isInList,
   customer,

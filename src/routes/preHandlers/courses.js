@@ -38,16 +38,17 @@ const { language } = translate;
 exports.checkAuthorization = (credentials, courseTrainerId, companies) => {
   const userVendorRole = get(credentials, 'role.vendor.name');
   const userClientRole = get(credentials, 'role.client.name');
-  const userCompanyId = credentials.company ? credentials.company._id.toHexString() : null;
   const userId = get(credentials, '_id');
-  const areCompaniesMatching = UtilsHelper.doesArrayIncludeId(companies, userCompanyId);
 
   const isAdminVendor = userVendorRole === VENDOR_ADMIN;
   const isTOM = userVendorRole === TRAINING_ORGANISATION_MANAGER;
   const isTrainerAndAuthorized = userVendorRole === TRAINER && UtilsHelper.areObjectIdsEquals(userId, courseTrainerId);
-  const isClientAndAuthorized = [CLIENT_ADMIN, COACH].includes(userClientRole) && userCompanyId && areCompaniesMatching;
+  const isClientOrHoldingAndAuthorized = [CLIENT_ADMIN, COACH].includes(userClientRole) &&
+    companies.some(company => UtilsHelper.hasUserAccessToCompany(credentials, company));
 
-  if (!isAdminVendor && !isTOM && !isTrainerAndAuthorized && !isClientAndAuthorized) throw Boom.forbidden();
+  if (!isAdminVendor && !isTOM && !isTrainerAndAuthorized && !isClientOrHoldingAndAuthorized) {
+    throw Boom.forbidden();
+  }
 };
 
 exports.checkSalesRepresentativeExists = async (req) => {
@@ -68,7 +69,7 @@ exports.authorizeCourseCreation = async (req) => {
     const { company } = req.payload;
 
     const companyExists = await Company.countDocuments({ _id: company });
-    if (!companyExists) throw Boom.forbidden();
+    if (!companyExists) throw Boom.notFound();
   }
 
   return null;
@@ -77,7 +78,9 @@ exports.authorizeCourseCreation = async (req) => {
 exports.authorizeGetDocumentsAndSms = async (req) => {
   const { credentials } = req.auth;
 
-  const course = await Course.findOne({ _id: req.params._id }, { trainees: 1, companies: 1, trainer: 1 }).lean();
+  const course = await Course
+    .findOne({ _id: req.params._id }, { trainees: 1, companies: 1, trainer: 1, type: 1 })
+    .lean();
   if (!course) throw Boom.notFound();
 
   const isTrainee = UtilsHelper.doesArrayIncludeId(course.trainees, get(credentials, '_id'));
@@ -167,8 +170,8 @@ exports.authorizeCourseEdit = async (req) => {
     if (get(req, 'payload.contact')) {
       const isCompanyRepContactAndUpdated = !!get(req, 'payload.companyRepresentative') &&
         UtilsHelper.areObjectIdsEquals(course.companyRepresentative, get(course, 'contact._id'));
-      const isUserFromCourseCompany = UtilsHelper.doesArrayIncludeId(companies, get(credentials, 'company._id'));
-      if (!isRofOrAdmin && !(isCompanyRepContactAndUpdated && isUserFromCourseCompany)) throw Boom.forbidden();
+      const hasUserAccessToCourseCompany = companies.some(c => UtilsHelper.hasUserAccessToCompany(credentials, c));
+      if (!isRofOrAdmin && !(isCompanyRepContactAndUpdated && hasUserAccessToCourseCompany)) throw Boom.forbidden();
 
       const payloadInterlocutors = pick(req.payload, ['salesRepresentative', 'trainer', 'companyRepresentative']);
       const courseInterlocutors = pick(course, ['salesRepresentative', 'trainer', 'companyRepresentative']);
@@ -199,7 +202,13 @@ exports.authorizeCourseEdit = async (req) => {
 const authorizeGetListForOperations = (credentials, query) => {
   const courseTrainerId = query.trainer;
 
-  this.checkAuthorization(credentials, courseTrainerId, [query.company]);
+  if (query.holding) {
+    if (!get(credentials, 'holding._id') || !UtilsHelper.areObjectIdsEquals(credentials.holding._id, query.holding)) {
+      throw Boom.forbidden();
+    }
+  } else {
+    this.checkAuthorization(credentials, courseTrainerId, [query.company]);
+  }
 
   return null;
 };
@@ -356,8 +365,9 @@ exports.authorizeGetCourse = async (req) => {
     if (course.format === STRICTLY_E_LEARNING && !companyHasAccess) throw Boom.forbidden();
 
     if (course.format === BLENDED) {
-      const courseCompaniesContainsUserCompany = UtilsHelper.doesArrayIncludeId(course.companies, userCompany);
-      if (!courseCompaniesContainsUserCompany) throw Boom.forbidden();
+      const clientUserHasAccess = course.companies
+        .some(company => UtilsHelper.hasUserAccessToCompany(credentials, company));
+      if (!clientUserHasAccess) throw Boom.forbidden();
     }
 
     return null;
@@ -375,7 +385,7 @@ exports.authorizeAccessRuleAddition = async (req) => {
   if (accessRuleAlreadyExist) throw Boom.conflict();
 
   const companyExists = await Company.countDocuments({ _id: req.payload.company });
-  if (!companyExists) throw Boom.badRequest();
+  if (!companyExists) throw Boom.notFound();
 
   return null;
 };
@@ -391,10 +401,13 @@ exports.authorizeAccessRuleDeletion = async (req) => {
 exports.authorizeGetFollowUp = async (req) => {
   const credentials = get(req, 'auth.credentials');
   const loggedUserVendorRole = get(credentials, 'role.vendor.name');
-  const companyQueryIsValid = !!req.query.company &&
+  const isClientAndAuthorized = !!req.query.company &&
     UtilsHelper.areObjectIdsEquals(get(credentials, 'company._id'), req.query.company);
 
-  if (!loggedUserVendorRole && !companyQueryIsValid) throw Boom.forbidden();
+  const isHoldingAndAuthorized = !!req.query.holding &&
+    UtilsHelper.areObjectIdsEquals(get(credentials, 'holding._id'), req.query.holding);
+
+  if (!loggedUserVendorRole && !isClientAndAuthorized && !isHoldingAndAuthorized) throw Boom.forbidden();
 
   return null;
 };
@@ -411,10 +424,14 @@ exports.authorizeGetQuestionnaires = async (req) => {
 };
 
 exports.authorizeGetAttendanceSheets = async (req) => {
-  await exports.authorizeGetDocumentsAndSms(req);
+  const { credentials } = req.auth;
+  const userVendorRole = get(credentials, 'role.vendor.name');
 
   const slots = await CourseSlot.find({ course: req.params._id }).populate({ path: 'step', select: 'type' }).lean();
   if (!slots.some(s => s.step.type === ON_SITE)) throw Boom.notFound(translate[language].courseAttendanceNotGenerated);
+
+  const course = await Course.findOne({ _id: req.params._id }, { type: 1 }).lean();
+  if (course.type === INTER_B2B && !userVendorRole) throw Boom.forbidden();
 
   return null;
 };

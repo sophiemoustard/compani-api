@@ -6,14 +6,14 @@ const Card = require('../../../src/models/Card');
 const QuestionnaireHistory = require('../../../src/models/QuestionnaireHistory');
 const SubProgram = require('../../../src/models/SubProgram');
 const { userList, trainerOrganisationManager, vendorAdmin } = require('../../seed/authUsersSeed');
-const { deleteNonAuthenticationSeeds } = require('../helpers/authentication');
-const { INTER_B2B, TRAINEE_ADDITION } = require('../../../src/helpers/constants');
+const { deleteNonAuthenticationSeeds } = require('../helpers/db');
+const { INTER_B2B, TRAINEE_ADDITION, COMPANY_ADDITION } = require('../../../src/helpers/constants');
 const { authCompany, companyWithoutSubscription } = require('../../seed/authCompaniesSeed');
 
 const questionnaireHistoriesUsersList = [userList[6]._id, userList[5]._id, userList[4]._id];
 
 const cardsList = [
-  { _id: new ObjectId(), template: 'survey', question: 'test?' },
+  { _id: new ObjectId(), template: 'survey', question: 'test?', label: { right: 'right', left: 'left' } },
   { _id: new ObjectId(), template: 'survey', question: 'test2?' },
   { _id: new ObjectId(), template: 'single_choice_question', question: 'test3?' },
   { _id: new ObjectId(), template: 'open_question', question: 'test4?' },
@@ -25,9 +25,9 @@ const questionnairesList = [
   {
     _id: new ObjectId(),
     name: 'test',
-    status: 'draft',
+    status: 'published',
     type: 'expectations',
-    cards: [cardsList[0]._id, cardsList[2]._id, cardsList[3]._id, cardsList[4]._id, cardsList[5]._id],
+    cards: [cardsList[0]._id, cardsList[3]._id],
   },
 ];
 
@@ -60,6 +60,7 @@ const questionnaireHistoriesList = [
     user: questionnaireHistoriesUsersList[2],
     questionnaire: questionnairesList[0]._id,
     company: authCompany._id,
+    questionnaireAnswersList: [{ card: cardsList[3]._id, answerList: ['blabla'] }],
   },
 ];
 
@@ -74,7 +75,7 @@ const courseHistoriesList = [
   },
   {
     action: TRAINEE_ADDITION,
-    course: coursesList[0]._id,
+    course: coursesList[1]._id,
     trainee: questionnaireHistoriesUsersList[1],
     company: authCompany._id,
     createdBy: trainerOrganisationManager._id,
@@ -84,6 +85,13 @@ const courseHistoriesList = [
     action: TRAINEE_ADDITION,
     course: coursesList[0]._id,
     trainee: questionnaireHistoriesUsersList[2],
+    company: authCompany._id,
+    createdBy: trainerOrganisationManager._id,
+    createdAt: '2020-01-01T23:00:00.000Z',
+  },
+  {
+    action: COMPANY_ADDITION,
+    course: coursesList[0]._id,
     company: authCompany._id,
     createdBy: trainerOrganisationManager._id,
     createdAt: '2020-01-01T23:00:00.000Z',

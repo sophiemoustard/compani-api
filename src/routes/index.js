@@ -38,6 +38,7 @@ exports.routes = [
   { plugin: require('./finalPay'), routes: { prefix: '/finalpay' } },
   { plugin: require('./Google/drive'), routes: { prefix: '/gdrive' } },
   { plugin: require('./helpers'), routes: { prefix: '/helpers' } },
+  { plugin: require('./holdings'), routes: { prefix: '/holdings' } },
   { plugin: require('./internalHours'), routes: { prefix: '/internalhours' } },
   { plugin: require('./partnerOrganizations'), routes: { prefix: '/partnerorganizations' } },
   { plugin: require('./partners'), routes: { prefix: '/partners' } },

@@ -8,8 +8,8 @@ const Card = require('../../../src/models/Card');
 const ActivityHistory = require('../../../src/models/ActivityHistory');
 const User = require('../../../src/models/User');
 const UserCompany = require('../../../src/models/UserCompany');
-const { STRICTLY_E_LEARNING, WEBAPP, INTRA } = require('../../../src/helpers/constants');
-const { deleteNonAuthenticationSeeds } = require('../helpers/authentication');
+const { STRICTLY_E_LEARNING, WEBAPP, INTER_B2C } = require('../../../src/helpers/constants');
+const { deleteNonAuthenticationSeeds } = require('../helpers/db');
 const { vendorAdminRoleId } = require('../../seed/authRolesSeed');
 const { authCompany, companyWithoutSubscription } = require('../../seed/authCompaniesSeed');
 
@@ -74,13 +74,8 @@ const coursesList = [
   {
     _id: new ObjectId(),
     subProgram: subProgramsList[0]._id,
-    misc: 'first session',
-    type: INTRA,
-    maxTrainees: 8,
-    trainer: new ObjectId(),
+    type: INTER_B2C,
     trainees: [userList[1]._id],
-    companies: [authCompany._id],
-    salesRepresentative: userList[0]._id,
     format: STRICTLY_E_LEARNING,
   },
 ];
@@ -91,6 +86,7 @@ const activityHistories = [
     user: userList[1]._id,
     activity: activitiesList[0]._id,
     date: new Date('2020-12-15T23:00:00'),
+    score: 1,
   },
 ];
 

@@ -1,8 +1,8 @@
 const mongoose = require('mongoose');
-const { VENDOR, CLIENT } = require('../helpers/constants');
+const { VENDOR, CLIENT, HOLDING } = require('../helpers/constants');
 const { formatQuery, queryMiddlewareList } = require('./preHooks/validate');
 
-const INTERFACE_TYPES = [CLIENT, VENDOR];
+const INTERFACE_TYPES = [CLIENT, VENDOR, HOLDING];
 
 const RoleSchema = mongoose.Schema({
   name: { type: String, unique: true, required: true },

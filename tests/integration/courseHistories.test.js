@@ -1,7 +1,7 @@
 const { expect } = require('expect');
 const app = require('../../server');
 const { populateDB, coursesList, courseHistoriesList, userList } = require('./seed/courseHistoriesSeed');
-const { trainerAndCoach } = require('../seed/authUsersSeed');
+const { trainerAndCoach, holdingAdminFromOtherCompany } = require('../seed/authUsersSeed');
 const { getToken, getTokenByCredentials } = require('./helpers/authentication');
 const { CompaniDate } = require('../../src/helpers/dates/companiDates');
 
@@ -80,6 +80,28 @@ describe('COURSE HISTORIES ROUTES - GET /coursehistories', () => {
       });
 
       expect(response.statusCode).toEqual(200);
+    });
+
+    it('should return 200 as user is holding admin and course is from user holding', async () => {
+      authToken = await getTokenByCredentials(holdingAdminFromOtherCompany.local);
+      const response = await app.inject({
+        method: 'GET',
+        url: `/coursehistories?course=${coursesList[1]._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toEqual(200);
+    });
+
+    it('should return 403 as user is holding admin and course is not from user holding', async () => {
+      authToken = await getTokenByCredentials(holdingAdminFromOtherCompany.local);
+      const response = await app.inject({
+        method: 'GET',
+        url: `/coursehistories?course=${coursesList[0]._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toEqual(403);
     });
 
     it('should return 403 as user is client_admin and course is inter_b2b', async () => {
