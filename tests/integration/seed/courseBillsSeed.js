@@ -355,7 +355,7 @@ const courseCreditNoteList = [
   {
     _id: new ObjectId(),
     number: 'AV-00001',
-    courseBill: courseBillsList[1]._id,
+    courseBill: courseBillsList[8]._id,
     date: '2022-04-15T10:00:00.000Z',
     misc: 'wesh',
     company: authCompany._id,
