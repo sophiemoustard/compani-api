@@ -14,6 +14,7 @@ const CourseBillingItem = require('../../../src/models/CourseBillingItem');
 const CourseBillsNumber = require('../../../src/models/CourseBillsNumber');
 const CourseCreditNote = require('../../../src/models/CourseCreditNote');
 const CourseCreditNoteNumber = require('../../../src/models/CourseCreditNoteNumber');
+const CourseFundingOrganisation = require('../../../src/models/CourseFundingOrganisation');
 const CourseSlot = require('../../../src/models/CourseSlot');
 const CourseHistory = require('../../../src/models/CourseHistory');
 const Helper = require('../../../src/models/Helper');
@@ -82,6 +83,7 @@ const cardsSeed = require('./cardsSeed');
 const courseBillsSeed = require('./courseBillsSeed');
 const courseBillingItemsSeed = require('./courseBillingItemsSeed');
 const courseCreditNotesSeed = require('./courseCreditNotesSeed');
+const courseFundingOrganisationsSeed = require('./courseFundingOrganisationsSeed');
 const coursesSeed = require('./coursesSeed');
 const courseHistoriesSeed = require('./courseHistoriesSeed');
 const courseSlotsSeed = require('./courseSlotsSeed');
@@ -104,6 +106,7 @@ const seedList = [
   { label: 'COURSEBILL', value: courseBillsSeed },
   { label: 'COURSEBILLINGITEM', value: courseBillingItemsSeed },
   { label: 'COURSECREDITNOTE', value: courseCreditNotesSeed },
+  { label: 'COURSEFUNDINGORGANISATION', value: courseFundingOrganisationsSeed },
   { label: 'COURSEHISTORY', value: courseHistoriesSeed },
   { label: 'COURSESLOT', value: courseSlotsSeed },
   { label: 'HOLDING', value: holdingsSeed },
@@ -1045,6 +1048,20 @@ describe('SEEDS VERIFICATION', () => {
 
           if (!courseCreditNoteCount) expect(courseCreditNoteNumberList.length).toEqual(0);
           else expect(courseCreditNoteCount).toEqual(courseCreditNoteNumberList[0].seq);
+        });
+      });
+
+      describe('Collection CourseFundingOrganisation', () => {
+        let courseFundingOrganisationsList;
+        before(async () => {
+          courseFundingOrganisationsList = await CourseFundingOrganisation.find().lean();
+        });
+
+        it('should pass if name is unique', () => {
+          const organisationNameList = compact(courseFundingOrganisationsList.map(organisation => organisation.name));
+          const organisationNamesWithoutDuplicates = [...new Set(organisationNameList)];
+
+          expect(organisationNamesWithoutDuplicates.length).toEqual(courseFundingOrganisationsList.length);
         });
       });
 
