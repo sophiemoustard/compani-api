@@ -910,7 +910,7 @@ describe('SEEDS VERIFICATION', () => {
 
         it('should pass if every number has good format', () => {
           const everyNumberHasGoodFormat = courseBillList
-            .every(bill => !bill.number || bill.number.match(/FACT-[0-9]{5}/));
+            .every(bill => !bill.number || bill.number.match(/FACT-[0-9]{5}$/));
 
           expect(everyNumberHasGoodFormat).toBeTruthy();
         });
@@ -974,7 +974,7 @@ describe('SEEDS VERIFICATION', () => {
           const courseBillCount = await CourseBill.countDocuments({ billedAt: { $exists: true } });
 
           if (!courseBillCount) expect(courseBillsNumberList.length).toEqual(0);
-          else expect(courseBillCount).toEqual(courseBillsNumberList[0].seq);
+          else expect(courseBillsNumberList[0].seq).toEqual(courseBillCount);
         });
       });
 
@@ -991,7 +991,7 @@ describe('SEEDS VERIFICATION', () => {
 
         it('should pass if every number has good format', () => {
           const everyNumberHasGoodFormat = courseCreditNoteList
-            .every(creditNote => creditNote.number.match(/AV-[0-9]{5}/));
+            .every(creditNote => creditNote.number.match(/AV-[0-9]{5}$/));
 
           expect(everyNumberHasGoodFormat).toBeTruthy();
         });
@@ -1014,8 +1014,7 @@ describe('SEEDS VERIFICATION', () => {
         });
 
         it('should pass if every date is after billing', () => {
-          const everyCourseBillIsBilled = courseCreditNoteList
-            .every(creditNote => !!creditNote.courseBill.billedAt);
+          const everyCourseBillIsBilled = courseCreditNoteList.every(creditNote => !!creditNote.courseBill.billedAt);
 
           expect(everyCourseBillIsBilled).toBeTruthy();
 
@@ -1047,7 +1046,7 @@ describe('SEEDS VERIFICATION', () => {
           const courseCreditNoteCount = await CourseCreditNote.countDocuments();
 
           if (!courseCreditNoteCount) expect(courseCreditNoteNumberList.length).toEqual(0);
-          else expect(courseCreditNoteCount).toEqual(courseCreditNoteNumberList[0].seq);
+          else expect(courseCreditNoteNumberList[0].seq).toEqual(courseCreditNoteCount);
         });
       });
 
