@@ -15,7 +15,9 @@ const Card = require('../../../src/models/Card');
 const Questionnaire = require('../../../src/models/Questionnaire');
 const QuestionnaireHistory = require('../../../src/models/QuestionnaireHistory');
 const CourseBill = require('../../../src/models/CourseBill');
+const CourseBillsNumber = require('../../../src/models/CourseBillsNumber');
 const CourseCreditNote = require('../../../src/models/CourseCreditNote');
+const CourseCreditNoteNumber = require('../../../src/models/CourseCreditNoteNumber');
 const Attendance = require('../../../src/models/Attendance');
 const AttendanceSheet = require('../../../src/models/AttendanceSheet');
 const { authCompany, otherCompany, companyWithoutSubscription: thirdCompany } = require('../../seed/authCompaniesSeed');
@@ -627,6 +629,8 @@ const courseBillsList = [
   },
 ];
 
+const courseBillNumber = { _id: new ObjectId(), seq: 7 };
+
 const courseCreditNoteList = [
   {
     _id: new ObjectId(),
@@ -645,6 +649,8 @@ const courseCreditNoteList = [
     company: authCompany._id,
   },
 ];
+
+const courseCreditNoteNumber = { _id: new ObjectId(), seq: 2 };
 
 const questionnaire = {
   _id: new ObjectId(),
@@ -1082,7 +1088,9 @@ const populateDB = async () => {
     Card.create(cardsList),
     Course.create(coursesList),
     CourseBill.create(courseBillsList),
+    CourseBillsNumber.create(courseBillNumber),
     CourseCreditNote.create(courseCreditNoteList),
+    CourseCreditNoteNumber.create(courseCreditNoteNumber),
     CourseSlot.create(slots),
     CourseSmsHistory.create(courseSmsHistory),
     CourseHistory.create(courseHistories),

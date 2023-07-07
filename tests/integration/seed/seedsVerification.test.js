@@ -13,6 +13,7 @@ const CourseBill = require('../../../src/models/CourseBill');
 const CourseBillingItem = require('../../../src/models/CourseBillingItem');
 const CourseBillsNumber = require('../../../src/models/CourseBillsNumber');
 const CourseCreditNote = require('../../../src/models/CourseCreditNote');
+const CourseCreditNoteNumber = require('../../../src/models/CourseCreditNoteNumber');
 const CourseSlot = require('../../../src/models/CourseSlot');
 const CourseHistory = require('../../../src/models/CourseHistory');
 const Helper = require('../../../src/models/Helper');
@@ -965,6 +966,13 @@ describe('SEEDS VERIFICATION', () => {
 
           expect(isCourseBillsNumberAPositiveInteger).toBeTruthy();
         });
+
+        it('should pass if course bill number has good value', async () => {
+          const courseBillCount = await CourseBill.countDocuments({ billedAt: { $exists: true } });
+
+          if (!courseBillCount) expect(courseBillsNumberList.length).toEqual(0);
+          else expect(courseBillCount).toEqual(courseBillsNumberList[0].seq);
+        });
       });
 
       describe('Collection CourseCreditNote', () => {
@@ -1012,6 +1020,31 @@ describe('SEEDS VERIFICATION', () => {
             .every(creditNote => CompaniDate(creditNote.date).isAfter(creditNote.courseBill.billedAt));
 
           expect(everyDateIsAfterBilling).toBeTruthy();
+        });
+      });
+
+      describe('Collection CourseCreditNoteNumber', () => {
+        let courseCreditNoteNumberList;
+        before(async () => {
+          courseCreditNoteNumberList = await CourseCreditNoteNumber.find().lean();
+        });
+
+        it('should pass if only one item in list', () => {
+          expect(courseCreditNoteNumberList.length).toBeLessThanOrEqual(1);
+        });
+
+        it('should pass if value is a positive integer', () => {
+          const isCourseCreditNoteNumberAPositiveInteger = courseCreditNoteNumberList
+            .every(number => number.seq > 0 && Number.isInteger(number.seq));
+
+          expect(isCourseCreditNoteNumberAPositiveInteger).toBeTruthy();
+        });
+
+        it('should pass if credit note number has good value', async () => {
+          const courseCreditNoteCount = await CourseCreditNote.countDocuments();
+
+          if (!courseCreditNoteCount) expect(courseCreditNoteNumberList.length).toEqual(0);
+          else expect(courseCreditNoteCount).toEqual(courseCreditNoteNumberList[0].seq);
         });
       });
 

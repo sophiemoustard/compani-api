@@ -1,6 +1,7 @@
 const { ObjectId } = require('mongodb');
 const { INTRA, INTER_B2B } = require('../../../src/helpers/constants');
 const CourseBill = require('../../../src/models/CourseBill');
+const CourseBillsNumber = require('../../../src/models/CourseBillsNumber');
 const Course = require('../../../src/models/Course');
 const CourseCreditNote = require('../../../src/models/CourseCreditNote');
 const CourseCreditNoteNumber = require('../../../src/models/CourseCreditNoteNumber');
@@ -105,6 +106,8 @@ const courseBillsList = [
   },
 ];
 
+const courseBillNumber = { _id: new ObjectId(), seq: 4 };
+
 const courseCreditNote = [
   {
     _id: new ObjectId(),
@@ -139,6 +142,7 @@ const populateDB = async () => {
 
   await Promise.all([
     CourseBill.create(courseBillsList),
+    CourseBillsNumber.create(courseBillNumber),
     Course.create(coursesList),
     CourseCreditNote.create(courseCreditNote),
     CourseCreditNoteNumber.create(courseCreditNoteNumber),

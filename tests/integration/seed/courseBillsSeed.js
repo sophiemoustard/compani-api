@@ -7,6 +7,7 @@ const CourseBill = require('../../../src/models/CourseBill');
 const CourseBillingItem = require('../../../src/models/CourseBillingItem');
 const CourseBillsNumber = require('../../../src/models/CourseBillsNumber');
 const CourseCreditNote = require('../../../src/models/CourseCreditNote');
+const CourseCreditNoteNumber = require('../../../src/models/CourseCreditNoteNumber');
 const CourseFundingOrganisation = require('../../../src/models/CourseFundingOrganisation');
 const Program = require('../../../src/models/Program');
 const SubProgram = require('../../../src/models/SubProgram');
@@ -236,7 +237,7 @@ const billingItemList = [
   { _id: new ObjectId(), name: 'petit déjeuner' },
 ];
 
-const courseBillNumber = { _id: new ObjectId(), seq: 4 };
+const courseBillNumber = { _id: new ObjectId(), seq: 6 };
 
 const courseBillsList = [
   { // 0
@@ -370,6 +371,8 @@ const courseCreditNoteList = [
   },
 ];
 
+const courseCreditNoteNumber = { _id: new ObjectId(), seq: 2 };
+
 const populateDB = async () => {
   await deleteNonAuthenticationSeeds();
 
@@ -380,6 +383,7 @@ const populateDB = async () => {
     CourseBillingItem.create(billingItemList),
     CourseBillsNumber.create(courseBillNumber),
     CourseCreditNote.create(courseCreditNoteList),
+    CourseCreditNoteNumber.create(courseCreditNoteNumber),
     CourseFundingOrganisation.create(courseFundingOrganisationList),
     Program.create(programList),
     SubProgram.create(subProgramList),
