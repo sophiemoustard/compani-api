@@ -173,13 +173,15 @@ exports.authorizeUserGetById = async (req) => {
     .lean();
   if (!user) throw Boom.notFound(translate[language].userNotFound);
 
-  const loggedCompanyId = get(credentials, 'company._id', null);
-  const isLoggedUserVendor = get(credentials, 'role.vendor', null);
+  const isLoggedUserVendor = get(credentials, 'role.vendor');
   const hasCompany = UserCompaniesHelper.getCurrentAndFutureCompanies(user.userCompanyList).length;
   if (!isLoggedUserVendor && hasCompany) {
-    const isClientFromDifferentCompany = !UserCompaniesHelper
-      .userIsOrWillBeInCompany(user.userCompanyList, loggedCompanyId);
-    if (isClientFromDifferentCompany) throw Boom.notFound();
+    const companies = get(credentials, 'role.holding')
+      ? credentials.holding.companies
+      : [get(credentials, 'company._id')];
+    const hasUserAccessToCompany = companies
+      .some(company => UserCompaniesHelper.userIsOrWillBeInCompany(user.userCompanyList, company));
+    if (!hasUserAccessToCompany) throw Boom.notFound();
   }
 
   return null;
