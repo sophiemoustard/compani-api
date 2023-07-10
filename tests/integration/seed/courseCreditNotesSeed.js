@@ -1,20 +1,26 @@
 const { ObjectId } = require('mongodb');
-const { INTRA } = require('../../../src/helpers/constants');
+const { INTRA, INTER_B2B } = require('../../../src/helpers/constants');
 const CourseBill = require('../../../src/models/CourseBill');
+const CourseBillsNumber = require('../../../src/models/CourseBillsNumber');
 const Course = require('../../../src/models/Course');
 const CourseCreditNote = require('../../../src/models/CourseCreditNote');
 const CourseCreditNoteNumber = require('../../../src/models/CourseCreditNoteNumber');
+const Step = require('../../../src/models/Step');
 const SubProgram = require('../../../src/models/SubProgram');
 const VendorCompany = require('../../../src/models/VendorCompany');
 const Program = require('../../../src/models/Program');
 const { authCompany, otherCompany } = require('../../seed/authCompaniesSeed');
+const { trainer, vendorAdmin, auxiliary } = require('../../seed/authUsersSeed');
 const { deleteNonAuthenticationSeeds } = require('../helpers/db');
 
-const subProgramList = [{ _id: new ObjectId(), name: 'subProgram 1', steps: [new ObjectId()] }];
+const steps = [{ _id: new ObjectId(), type: 'on_site', name: 'étape' }];
+
+const subProgramList = [{ _id: new ObjectId(), name: 'subProgram 1', steps: [steps[0]._id] }];
 
 const programList = [{ _id: new ObjectId(), name: 'Program 1', subPrograms: [subProgramList[0]._id] }];
 
 const vendorCompany = {
+  _id: new ObjectId(),
   name: 'Vendor Company',
   siret: '12345678901234',
   activityDeclarationNumber: '13736343575',
@@ -28,24 +34,36 @@ const vendorCompany = {
 };
 
 const coursesList = [
-  { // 0 - linked to bill 2
+  { // 0 - linked to bill 2 3 4
+    _id: new ObjectId(),
+    type: INTER_B2B,
+    subProgram: subProgramList[0]._id,
+    misc: 'group inter',
+    trainer: trainer._id,
+    salesRepresentative: vendorAdmin._id,
+    contact: vendorAdmin._id,
+    trainees: [auxiliary._id],
+    companies: [authCompany._id, otherCompany._id],
+  },
+  { // 1 - linked to bill 0 1
     _id: new ObjectId(),
     type: INTRA,
     maxTrainees: 8,
     subProgram: subProgramList[0]._id,
-    misc: 'group 1',
-    trainer: new ObjectId(),
-    salesRepresentative: new ObjectId(),
-    contact: new ObjectId(),
-    trainees: [new ObjectId()],
+    misc: 'group intra',
+    trainer: trainer._id,
+    salesRepresentative: vendorAdmin._id,
+    contact: vendorAdmin._id,
+    trainees: [auxiliary._id],
     companies: [authCompany._id],
+    expectedBillsCount: 2,
   },
 ];
 
 const courseBillsList = [
   { // 0 valid bill
     _id: new ObjectId(),
-    course: new ObjectId(),
+    course: coursesList[1]._id,
     company: authCompany._id,
     payer: { company: authCompany._id },
     mainFee: { price: 44.88, count: 2 },
@@ -54,7 +72,7 @@ const courseBillsList = [
   },
   { // 1 draft bill
     _id: new ObjectId(),
-    course: new ObjectId(),
+    course: coursesList[1]._id,
     company: authCompany._id,
     payer: { company: authCompany._id },
     mainFee: { price: 65, count: 3, description: 'Salut à toi' },
@@ -88,12 +106,14 @@ const courseBillsList = [
   },
 ];
 
+const courseBillNumber = { _id: new ObjectId(), seq: 4 };
+
 const courseCreditNote = [
   {
     _id: new ObjectId(),
     number: 'AV-00001',
     courseBill: courseBillsList[2]._id,
-    date: '2022-04-08T10:00:00.000Z',
+    date: '2022-06-08T10:00:00.000Z',
     misc: 'wesh',
     company: authCompany._id,
   },
@@ -101,7 +121,7 @@ const courseCreditNote = [
     _id: new ObjectId(),
     number: 'AV-00002',
     courseBill: courseBillsList[3]._id,
-    date: '2022-04-08T10:00:00.000Z',
+    date: '2022-06-08T10:00:00.000Z',
     misc: 'wesh',
     company: otherCompany._id,
   },
@@ -109,7 +129,7 @@ const courseCreditNote = [
     _id: new ObjectId(),
     number: 'AV-00003',
     courseBill: courseBillsList[4]._id,
-    date: '2022-04-08T10:00:00.000Z',
+    date: '2022-06-08T10:00:00.000Z',
     misc: 'wesh',
     company: otherCompany._id,
   },
@@ -122,10 +142,12 @@ const populateDB = async () => {
 
   await Promise.all([
     CourseBill.create(courseBillsList),
+    CourseBillsNumber.create(courseBillNumber),
     Course.create(coursesList),
     CourseCreditNote.create(courseCreditNote),
     CourseCreditNoteNumber.create(courseCreditNoteNumber),
     Program.create(programList),
+    Step.create(steps),
     SubProgram.create(subProgramList),
     VendorCompany.create(vendorCompany),
   ]);

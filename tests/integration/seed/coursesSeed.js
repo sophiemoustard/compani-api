@@ -15,7 +15,9 @@ const Card = require('../../../src/models/Card');
 const Questionnaire = require('../../../src/models/Questionnaire');
 const QuestionnaireHistory = require('../../../src/models/QuestionnaireHistory');
 const CourseBill = require('../../../src/models/CourseBill');
+const CourseBillsNumber = require('../../../src/models/CourseBillsNumber');
 const CourseCreditNote = require('../../../src/models/CourseCreditNote');
+const CourseCreditNoteNumber = require('../../../src/models/CourseCreditNoteNumber');
 const Attendance = require('../../../src/models/Attendance');
 const AttendanceSheet = require('../../../src/models/AttendanceSheet');
 const { authCompany, otherCompany, companyWithoutSubscription: thirdCompany } = require('../../seed/authCompaniesSeed');
@@ -318,7 +320,7 @@ const coursesList = [
     salesRepresentative: vendorAdmin._id,
     companyRepresentative: trainerAndCoach._id,
     contact: trainerAndCoach._id,
-    expectedBillsCount: 2,
+    expectedBillsCount: 3,
   },
   { // 1
     _id: new ObjectId(),
@@ -481,6 +483,7 @@ const coursesList = [
     salesRepresentative: vendorAdmin._id,
     trainees: [],
     companies: [authCompany._id],
+    expectedBillsCount: 1,
   },
   { // 16 course without trainee and with slots to plan
     _id: new ObjectId(),
@@ -600,7 +603,7 @@ const courseBillsList = [
     mainFee: { price: 1500, count: 1, description: 'Bonjour' },
     company: authCompany._id,
     billingPurchaseList: [],
-    billedAt: '2022-04-20T09:00:00.000Z',
+    billedAt: '2022-04-21T09:00:00.000Z',
     number: 'FACT-00005',
     payer: { company: authCompany._id },
   },
@@ -610,7 +613,7 @@ const courseBillsList = [
     mainFee: { price: 1600, count: 1, description: 'Bonjour' },
     company: authCompany._id,
     billingPurchaseList: [],
-    billedAt: '2022-04-20T09:00:00.000Z',
+    billedAt: '2022-04-23T09:00:00.000Z',
     number: 'FACT-00006',
     payer: { company: authCompany._id },
   },
@@ -626,6 +629,8 @@ const courseBillsList = [
   },
 ];
 
+const courseBillNumber = { _id: new ObjectId(), seq: 7 };
+
 const courseCreditNoteList = [
   {
     _id: new ObjectId(),
@@ -639,11 +644,13 @@ const courseCreditNoteList = [
     _id: new ObjectId(),
     number: 'AV-00002',
     courseBill: courseBillsList[4]._id,
-    date: '2022-04-15T10:00:00.000Z',
+    date: '2022-04-21T10:00:00.000Z',
     misc: 'wesh2',
     company: authCompany._id,
   },
 ];
+
+const courseCreditNoteNumber = { _id: new ObjectId(), seq: 2 };
 
 const questionnaire = {
   _id: new ObjectId(),
@@ -1081,7 +1088,9 @@ const populateDB = async () => {
     Card.create(cardsList),
     Course.create(coursesList),
     CourseBill.create(courseBillsList),
+    CourseBillsNumber.create(courseBillNumber),
     CourseCreditNote.create(courseCreditNoteList),
+    CourseCreditNoteNumber.create(courseCreditNoteNumber),
     CourseSlot.create(slots),
     CourseSmsHistory.create(courseSmsHistory),
     CourseHistory.create(courseHistories),
