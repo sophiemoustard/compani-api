@@ -910,7 +910,7 @@ describe('SEEDS VERIFICATION', () => {
 
         it('should pass if every number has good format', () => {
           const everyNumberHasGoodFormat = courseBillList
-            .every(bill => !bill.number || bill.number.match(/FACT-[0-9]{5}$/));
+            .every(bill => !bill.number || bill.number.match(/^FACT-[0-9]{5}$/));
 
           expect(everyNumberHasGoodFormat).toBeTruthy();
         });
@@ -923,16 +923,15 @@ describe('SEEDS VERIFICATION', () => {
         });
 
         it('should pass if no more active bill than expected', () => {
-          const everyBillCountIsLowerThanExpected = courseBillList
-            .every((bill) => {
-              if (bill.course.type !== INTRA) return true;
+          const courseBillGroupedByCourse = groupBy(courseBillList, 'course._id');
+          const everyBillCountIsLowerThanExpected = Object.keys(courseBillGroupedByCourse)
+            .every((courseId) => {
+              const { course } = courseBillGroupedByCourse[courseId][0];
+              if (course.type !== INTRA) return true;
 
-              const otherBills = courseBillList
-                .filter(b => UtilsHelper.areObjectIdsEquals(bill.course._id, b.course._id) &&
-                  !UtilsHelper.areObjectIdsEquals(bill._id, b._id)
-                );
+              const activeBills = courseBillGroupedByCourse[courseId].filter(b => !b.courseCreditNote);
 
-              return [...otherBills, bill].filter(b => !b.courseCreditNote).length <= bill.course.expectedBillsCount;
+              return activeBills.length <= course.expectedBillsCount;
             });
 
           expect(everyBillCountIsLowerThanExpected).toBeTruthy();
@@ -964,8 +963,8 @@ describe('SEEDS VERIFICATION', () => {
         });
 
         it('should pass if value is a positive integer', () => {
-          const isCourseBillsNumberAPositiveInteger = courseBillsNumberList
-            .every(number => number.seq > 0 && Number.isInteger(number.seq));
+          const isCourseBillsNumberAPositiveInteger = !courseBillsNumberList.length ||
+            (courseBillsNumberList[0].seq > 0 && Number.isInteger(courseBillsNumberList[0].seq));
 
           expect(isCourseBillsNumberAPositiveInteger).toBeTruthy();
         });
@@ -991,7 +990,7 @@ describe('SEEDS VERIFICATION', () => {
 
         it('should pass if every number has good format', () => {
           const everyNumberHasGoodFormat = courseCreditNoteList
-            .every(creditNote => creditNote.number.match(/AV-[0-9]{5}$/));
+            .every(creditNote => creditNote.number.match(/^AV-[0-9]{5}$/));
 
           expect(everyNumberHasGoodFormat).toBeTruthy();
         });
@@ -1036,8 +1035,8 @@ describe('SEEDS VERIFICATION', () => {
         });
 
         it('should pass if value is a positive integer', () => {
-          const isCourseCreditNoteNumberAPositiveInteger = courseCreditNoteNumberList
-            .every(number => number.seq > 0 && Number.isInteger(number.seq));
+          const isCourseCreditNoteNumberAPositiveInteger = !courseCreditNoteNumberList.length ||
+            (courseCreditNoteNumberList[0].seq > 0 && Number.isInteger(courseCreditNoteNumberList[0].seq));
 
           expect(isCourseCreditNoteNumberAPositiveInteger).toBeTruthy();
         });
@@ -1057,7 +1056,7 @@ describe('SEEDS VERIFICATION', () => {
         });
 
         it('should pass if name is unique', () => {
-          const organisationNameList = compact(courseFundingOrganisationsList.map(organisation => organisation.name));
+          const organisationNameList = compact(courseFundingOrganisationsList.map(o => o.name.toLowerCase()));
           const organisationNamesWithoutDuplicates = [...new Set(organisationNameList)];
 
           expect(organisationNamesWithoutDuplicates.length).toEqual(courseFundingOrganisationsList.length);
