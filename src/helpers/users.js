@@ -240,7 +240,8 @@ exports.getUser = async (userId, credentials) => {
     ? user
     : {
       ...user,
-      userCompanyList: user.userCompanyList.filter(uc => UtilsHelper.areObjectIdsEquals(companyId, get(uc, 'company'))),
+      userCompanyList: user.userCompanyList
+        .filter(uc => UtilsHelper.hasUserAccessToCompany(credentials, get(uc, 'company'))),
     };
 };
 
