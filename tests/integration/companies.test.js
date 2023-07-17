@@ -9,8 +9,9 @@ const app = require('../../server');
 const { company, populateDB, companyClientAdmin } = require('./seed/companiesSeed');
 const { getToken, getTokenByCredentials } = require('./helpers/authentication');
 const { authCompany, otherCompany } = require('../seed/authCompaniesSeed');
-const { noRoleNoCompany } = require('../seed/authUsersSeed');
+const { noRoleNoCompany, coach } = require('../seed/authUsersSeed');
 const { generateFormData } = require('./utils');
+const { usersSeedList } = require('./seed/usersSeed');
 
 describe('NODE ENV', () => {
   it('should be \'test\'', () => {
@@ -119,6 +120,30 @@ describe('COMPANIES ROUTES - PUT /companies/:id', () => {
 
       expect(response.statusCode).toBe(404);
     });
+
+    it('should return 404 if billingRepresentative is from an other company', async () => {
+      const payload = { name: 'Alenvi Alenvi', billingRepresentative: companyClientAdmin._id };
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/companies/${company._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload,
+      });
+
+      expect(response.statusCode).toBe(404);
+    });
+
+    it('should return 404 if billingRepresentative is not client_admin', async () => {
+      const payload = { name: 'Alenvi Alenvi', billingRepresentative: coach._id };
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/companies/${company._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload,
+      });
+
+      expect(response.statusCode).toBe(404);
+    });
   });
 
   describe('CLIENT_ADMIN', () => {
@@ -150,6 +175,30 @@ describe('COMPANIES ROUTES - PUT /companies/:id', () => {
       });
 
       expect(response.statusCode).toBe(403);
+    });
+
+    it('should return 404 if billingRepresentative is from an other company', async () => {
+      const payload = { name: 'Alenvi Alenvi', billingRepresentative: usersSeedList[6]._id };
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/companies/${company._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload,
+      });
+
+      expect(response.statusCode).toBe(404);
+    });
+
+    it('should return 404 if billingRepresentative is not client_admin', async () => {
+      const payload = { name: 'Alenvi Alenvi', billingRepresentative: coach._id };
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/companies/${company._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload,
+      });
+
+      expect(response.statusCode).toBe(404);
     });
 
     const falsyAssertions = [
