@@ -6,12 +6,11 @@ const GDriveStorageHelper = require('../../src/helpers/gDriveStorage');
 const Company = require('../../src/models/Company');
 const Drive = require('../../src/models/Google/Drive');
 const app = require('../../server');
-const { company, populateDB, companyClientAdmin } = require('./seed/companiesSeed');
+const { company, populateDB, usersList } = require('./seed/companiesSeed');
 const { getToken, getTokenByCredentials } = require('./helpers/authentication');
 const { authCompany, otherCompany } = require('../seed/authCompaniesSeed');
 const { noRoleNoCompany, coach } = require('../seed/authUsersSeed');
 const { generateFormData } = require('./utils');
-const { usersSeedList } = require('./seed/usersSeed');
 
 describe('NODE ENV', () => {
   it('should be \'test\'', () => {
@@ -122,7 +121,7 @@ describe('COMPANIES ROUTES - PUT /companies/:id', () => {
     });
 
     it('should return 404 if billingRepresentative is from an other company', async () => {
-      const payload = { name: 'Alenvi Alenvi', billingRepresentative: companyClientAdmin._id };
+      const payload = { name: 'Alenvi Alenvi', billingRepresentative: usersList[1]._id };
       const response = await app.inject({
         method: 'PUT',
         url: `/companies/${company._id}`,
@@ -149,7 +148,7 @@ describe('COMPANIES ROUTES - PUT /companies/:id', () => {
   describe('CLIENT_ADMIN', () => {
     beforeEach(populateDB);
     beforeEach(async () => {
-      authToken = await getTokenByCredentials(companyClientAdmin.local);
+      authToken = await getTokenByCredentials(usersList[0].local);
     });
 
     it('should update company', async () => {
@@ -178,7 +177,7 @@ describe('COMPANIES ROUTES - PUT /companies/:id', () => {
     });
 
     it('should return 404 if billingRepresentative is from an other company', async () => {
-      const payload = { name: 'Alenvi Alenvi', billingRepresentative: usersSeedList[6]._id };
+      const payload = { name: 'Alenvi Alenvi', billingRepresentative: usersList[1]._id };
       const response = await app.inject({
         method: 'PUT',
         url: `/companies/${company._id}`,
@@ -268,7 +267,7 @@ describe('COMPANIES ROUTES - POST /{_id}/gdrive/{driveId}/upload', () => {
   describe('CLIENT_ADMIN', () => {
     beforeEach(populateDB);
     beforeEach(async () => {
-      authToken = await getTokenByCredentials(companyClientAdmin.local);
+      authToken = await getTokenByCredentials(usersList[0].local);
     });
 
     it('should upload a file', async () => {

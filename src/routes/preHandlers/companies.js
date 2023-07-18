@@ -42,7 +42,7 @@ exports.authorizeCompanyUpdate = async (req) => {
       .lean({ autopopulate: true });
 
     const billingRepresentativeExistsAndIsClientAdmin = billingRepresentative &&
-      UtilsHelper.areObjectIdsEquals(billingRepresentative.company, companyId) &&
+      UtilsHelper.areObjectIdsEquals(billingRepresentative.company, params._id) &&
       get(billingRepresentative, 'role.client.name') === CLIENT_ADMIN;
     if (!billingRepresentativeExistsAndIsClientAdmin) throw Boom.notFound();
   }
