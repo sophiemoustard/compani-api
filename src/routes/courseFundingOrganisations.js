@@ -14,7 +14,7 @@ exports.plugin = {
     server.route({
       method: 'GET',
       path: '/',
-      options: { auth: { scope: ['config:vendor'] } },
+      options: { auth: { scope: ['vendorcompanies:edit'] } },
       handler: list,
     });
 
@@ -28,7 +28,7 @@ exports.plugin = {
             address: Joi.string().required(),
           }),
         },
-        auth: { scope: ['config:vendor'] },
+        auth: { scope: ['vendorcompanies:edit'] },
         pre: [{ method: authorizeCourseFundingOrganisationCreation }],
       },
       handler: create,
@@ -41,7 +41,7 @@ exports.plugin = {
         validate: {
           params: Joi.object({ _id: Joi.objectId().required() }),
         },
-        auth: { scope: ['config:vendor'] },
+        auth: { scope: ['vendorcompanies:edit'] },
         pre: [{ method: authorizeCourseFundingOrganisationDeletion }],
       },
       handler: remove,
