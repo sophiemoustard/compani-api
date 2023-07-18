@@ -12,7 +12,7 @@ exports.plugin = {
       method: 'GET',
       path: '/',
       options: {
-        auth: { scope: ['config:vendor'] },
+        auth: { scope: ['vendorcompanies:read'] },
       },
       handler: get,
     });
@@ -30,7 +30,7 @@ exports.plugin = {
             billingRepresentative: Joi.objectId(),
           }),
         },
-        auth: { scope: ['config:vendor'] },
+        auth: { scope: ['vendorcompanies:edit'] },
         pre: [{ method: authorizeVendorCompanyUpdate }],
       },
       handler: update,

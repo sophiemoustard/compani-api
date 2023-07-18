@@ -38,6 +38,43 @@ describe('VENDOR COMPANY ROUTES - GET /vendorcompanies', () => {
           city: 'Antony',
           location: { type: 'Point', coordinates: [2.377133, 48.801389] },
         },
+        billingRepresentative: {
+          _id: vendorAdmin._id,
+          identity: { firstname: 'vendor_admin', lastname: 'SuperChef' },
+          local: { email: 'vendor-admin@alenvi.io' },
+        },
+      });
+    });
+  });
+
+  describe('COACH', () => {
+    beforeEach(async () => {
+      authToken = await getToken('coach');
+    });
+
+    it('should get vendor company infos', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: '/vendorcompanies',
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(200);
+      expect(response.result.data.vendorCompany).toMatchObject({
+        name: 'Test Company',
+        siret: '12345678901234',
+        address: {
+          fullAddress: '12 rue du test 92160 Antony',
+          street: '12 rue du test',
+          zipCode: '92160',
+          city: 'Antony',
+          location: { type: 'Point', coordinates: [2.377133, 48.801389] },
+        },
+        billingRepresentative: {
+          _id: vendorAdmin._id,
+          identity: { firstname: 'vendor_admin', lastname: 'SuperChef' },
+          local: { email: 'vendor-admin@alenvi.io' },
+        },
       });
     });
   });
@@ -46,7 +83,6 @@ describe('VENDOR COMPANY ROUTES - GET /vendorcompanies', () => {
     const roles = [
       { name: 'helper', expectedCode: 403 },
       { name: 'planning_referent', expectedCode: 403 },
-      { name: 'client_admin', expectedCode: 403 },
       { name: 'trainer', expectedCode: 403 },
     ];
 
