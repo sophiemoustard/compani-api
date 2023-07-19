@@ -45,6 +45,7 @@ exports.plugin = {
               firstname: Joi.string(),
               position: Joi.string(),
             }),
+            billingRepresentative: Joi.objectId(),
             apeCode: Joi.string().regex(APE_CODE_REGEX),
             rhConfig: Joi.object().keys({
               grossHourlyRate: Joi.number(),

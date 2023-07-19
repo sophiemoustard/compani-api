@@ -6,10 +6,10 @@ const GDriveStorageHelper = require('../../src/helpers/gDriveStorage');
 const Company = require('../../src/models/Company');
 const Drive = require('../../src/models/Google/Drive');
 const app = require('../../server');
-const { company, populateDB, companyClientAdmin } = require('./seed/companiesSeed');
+const { company, populateDB, usersList } = require('./seed/companiesSeed');
 const { getToken, getTokenByCredentials } = require('./helpers/authentication');
 const { authCompany, otherCompany } = require('../seed/authCompaniesSeed');
-const { noRoleNoCompany } = require('../seed/authUsersSeed');
+const { noRoleNoCompany, coach } = require('../seed/authUsersSeed');
 const { generateFormData } = require('./utils');
 
 describe('NODE ENV', () => {
@@ -119,12 +119,36 @@ describe('COMPANIES ROUTES - PUT /companies/:id', () => {
 
       expect(response.statusCode).toBe(404);
     });
+
+    it('should return 404 if billingRepresentative is from an other company', async () => {
+      const payload = { name: 'Alenvi Alenvi', billingRepresentative: usersList[1]._id };
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/companies/${company._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload,
+      });
+
+      expect(response.statusCode).toBe(404);
+    });
+
+    it('should return 404 if billingRepresentative is not client_admin', async () => {
+      const payload = { name: 'Alenvi Alenvi', billingRepresentative: coach._id };
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/companies/${company._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload,
+      });
+
+      expect(response.statusCode).toBe(404);
+    });
   });
 
   describe('CLIENT_ADMIN', () => {
     beforeEach(populateDB);
     beforeEach(async () => {
-      authToken = await getTokenByCredentials(companyClientAdmin.local);
+      authToken = await getTokenByCredentials(usersList[0].local);
     });
 
     it('should update company', async () => {
@@ -150,6 +174,30 @@ describe('COMPANIES ROUTES - PUT /companies/:id', () => {
       });
 
       expect(response.statusCode).toBe(403);
+    });
+
+    it('should return 404 if billingRepresentative is from an other company', async () => {
+      const payload = { name: 'Alenvi Alenvi', billingRepresentative: usersList[1]._id };
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/companies/${company._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload,
+      });
+
+      expect(response.statusCode).toBe(404);
+    });
+
+    it('should return 404 if billingRepresentative is not client_admin', async () => {
+      const payload = { name: 'Alenvi Alenvi', billingRepresentative: coach._id };
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/companies/${company._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload,
+      });
+
+      expect(response.statusCode).toBe(404);
     });
 
     const falsyAssertions = [
@@ -219,7 +267,7 @@ describe('COMPANIES ROUTES - POST /{_id}/gdrive/{driveId}/upload', () => {
   describe('CLIENT_ADMIN', () => {
     beforeEach(populateDB);
     beforeEach(async () => {
-      authToken = await getTokenByCredentials(companyClientAdmin.local);
+      authToken = await getTokenByCredentials(usersList[0].local);
     });
 
     it('should upload a file', async () => {

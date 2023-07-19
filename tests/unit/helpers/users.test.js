@@ -776,7 +776,11 @@ describe('getUser', () => {
         { query: 'populate', args: [{ path: 'contracts', select: '-__v -createdAt -updatedAt' }] },
         {
           query: 'populate',
-          args: [{ path: 'company', populate: { path: 'company' }, select: '-__v -createdAt -updatedAt' }],
+          args: [{
+            path: 'company',
+            populate: { path: 'company', populate: { path: 'billingRepresentative' } },
+            select: '-__v -createdAt -updatedAt',
+          }],
         },
         {
           query: 'populate',
@@ -844,7 +848,11 @@ describe('getUser', () => {
         { query: 'populate', args: [{ path: 'contracts', select: '-__v -createdAt -updatedAt' }] },
         {
           query: 'populate',
-          args: [{ path: 'company', populate: { path: 'company' }, select: '-__v -createdAt -updatedAt' }],
+          args: [{
+            path: 'company',
+            populate: { path: 'company', populate: { path: 'billingRepresentative' } },
+            select: '-__v -createdAt -updatedAt',
+          }],
         },
         {
           query: 'populate',
@@ -906,7 +914,11 @@ describe('getUser', () => {
         { query: 'findOne', args: [{ _id: userId }] },
         {
           query: 'populate',
-          args: [{ path: 'company', populate: { path: 'company' }, select: '-__v -createdAt -updatedAt' }],
+          args: [{
+            path: 'company',
+            populate: { path: 'company', populate: { path: 'billingRepresentative' } },
+            select: '-__v -createdAt -updatedAt',
+          }],
         },
         {
           query: 'populate',
@@ -962,7 +974,11 @@ describe('getUser', () => {
         { query: 'findOne', args: [{ _id: userId }] },
         {
           query: 'populate',
-          args: [{ path: 'company', populate: { path: 'company' }, select: '-__v -createdAt -updatedAt' }],
+          args: [{
+            path: 'company',
+            populate: { path: 'company', populate: { path: 'billingRepresentative' } },
+            select: '-__v -createdAt -updatedAt',
+          }],
         },
         {
           query: 'populate',
@@ -1023,7 +1039,11 @@ describe('getUser', () => {
           { query: 'findOne', args: [{ _id: userId }] },
           {
             query: 'populate',
-            args: [{ path: 'company', populate: { path: 'company' }, select: '-__v -createdAt -updatedAt' }],
+            args: [{
+              path: 'company',
+              populate: { path: 'company', populate: { path: 'billingRepresentative' } },
+              select: '-__v -createdAt -updatedAt',
+            }],
           },
           {
             query: 'populate',
