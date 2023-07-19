@@ -21,17 +21,18 @@ exports.companyExists = async (req) => {
 };
 
 exports.authorizeCompanyUpdate = async (req) => {
-  const companyId = get(req, 'auth.credentials.company._id', null);
-  const vendorRole = get(req, 'auth.credentials.role.vendor.name') || null;
   const { params, payload } = req;
+  const updatedCompanyId = params._id;
+  const loggedCompanyId = get(req, 'auth.credentials.company._id');
+  const vendorRole = get(req, 'auth.credentials.role.vendor.name');
 
   const isVendorAdmin = !!vendorRole && [TRAINING_ORGANISATION_MANAGER, VENDOR_ADMIN].includes(vendorRole);
-  if (!isVendorAdmin && (!companyId || !UtilsHelper.areObjectIdsEquals(params._id, companyId))) {
+  if (!isVendorAdmin && (!UtilsHelper.areObjectIdsEquals(updatedCompanyId, loggedCompanyId))) {
     throw Boom.forbidden();
   }
 
   const nameAlreadyExists = await Company
-    .countDocuments({ _id: { $ne: params._id }, name: payload.name }, { limit: 1 })
+    .countDocuments({ _id: { $ne: updatedCompanyId }, name: payload.name }, { limit: 1 })
     .collation({ locale: 'fr', strength: 1 });
   if (nameAlreadyExists) throw Boom.conflict(translate[language].companyExists);
 
@@ -42,7 +43,7 @@ exports.authorizeCompanyUpdate = async (req) => {
       .lean({ autopopulate: true });
 
     const billingRepresentativeExistsAndIsClientAdmin = billingRepresentative &&
-      UtilsHelper.areObjectIdsEquals(billingRepresentative.company, params._id) &&
+      UtilsHelper.areObjectIdsEquals(billingRepresentative.company, updatedCompanyId) &&
       get(billingRepresentative, 'role.client.name') === CLIENT_ADMIN;
     if (!billingRepresentativeExistsAndIsClientAdmin) throw Boom.notFound();
   }
