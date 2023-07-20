@@ -145,6 +145,7 @@ exports.plugin = {
           params: Joi.object({ _id: Joi.objectId().required() }),
         },
         auth: { scope: ['companies:read'] },
+        pre: [{ method: companyExists }],
       },
     });
   },

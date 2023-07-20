@@ -125,15 +125,28 @@ describe('getCompany', () => {
   });
 
   it('should return company', async () => {
-    const company = { _id: new ObjectId() };
-    findOne.returns(SinonMongoose.stubChainedQueries(company, ['lean']));
+    const company = {
+      _id: new ObjectId(),
+      name: 'test',
+      billingRepresentative: {
+        _id: ObjectId(),
+        identity: { firstname: 'nono', lastname: 'toto' },
+        contact: {},
+        local: { email: 'nono@struc.fr' },
+      },
+    };
+    findOne.returns(SinonMongoose.stubChainedQueries(company));
 
     const result = await CompanyHelper.getCompany(company._id);
 
     expect(result).toEqual(company);
     SinonMongoose.calledOnceWithExactly(
       findOne,
-      [{ query: 'findOne', args: [{ _id: company._id }] }, { query: 'lean', args: [] }]
+      [
+        { query: 'findOne', args: [{ _id: company._id }] },
+        { query: 'populate', args: [{ path: 'billingRepresentative', select: '_id picture contact identity local' }] },
+        { query: 'lean', args: [] },
+      ]
     );
   });
 });

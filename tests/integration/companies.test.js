@@ -521,6 +521,17 @@ describe('COMPANIES ROUTES - GET /companies/:id', () => {
       expect(response.statusCode).toBe(200);
       expect(response.result.data.company._id).toEqual(authCompany._id);
     });
+
+    it('should return 404 if company doesnt exist', async () => {
+      authToken = await getToken('training_organisation_manager');
+      const response = await app.inject({
+        method: 'GET',
+        url: `/companies/${new ObjectId()}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(404);
+    });
   });
 
   describe('Other roles', () => {
