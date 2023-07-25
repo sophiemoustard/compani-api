@@ -8,7 +8,7 @@ const User = require('../../models/User');
 
 const { language } = translate;
 
-exports.companyExists = async (req) => {
+exports.doesCompanyExist = async (req) => {
   try {
     const company = await Company.countDocuments({ _id: req.params._id });
     if (!company) throw Boom.notFound(translate[language].CompanyNotFound);
