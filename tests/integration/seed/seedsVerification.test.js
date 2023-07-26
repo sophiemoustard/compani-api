@@ -80,6 +80,7 @@ const activitiesSeed = require('./activitiesSeed');
 const activityHistoriesSeed = require('./activityHistoriesSeed');
 const attendanceSheetsSeed = require('./attendanceSheetsSeed');
 const cardsSeed = require('./cardsSeed');
+const companyLinkRequestsSeed = require('./companyLinkRequestsSeed');
 const courseBillsSeed = require('./courseBillsSeed');
 const courseBillingItemsSeed = require('./courseBillingItemsSeed');
 const courseCreditNotesSeed = require('./courseCreditNotesSeed');
@@ -102,6 +103,7 @@ const seedList = [
   { label: 'ATTENDANCE', value: attendancesSeed },
   { label: 'ATTENDANCESHEET', value: attendanceSheetsSeed },
   { label: 'CARD', value: cardsSeed },
+  { label: 'COMPANYLINKREQUEST', value: companyLinkRequestsSeed },
   { label: 'COURSE', value: coursesSeed },
   { label: 'COURSEBILL', value: courseBillsSeed },
   { label: 'COURSEBILLINGITEM', value: courseBillingItemsSeed },
@@ -532,7 +534,18 @@ describe('SEEDS VERIFICATION', () => {
           companyLinkRequestList = await CompanyLinkRequest
             .find()
             .populate({ path: 'user', select: '_id', populate: { path: 'userCompanyList' } })
+            .populate({ path: 'company', select: '_id', transform })
             .lean();
+        });
+
+        it('should pass if every user exists', () => {
+          const usersExist = companyLinkRequestList.map(request => request.user).every(user => !!user);
+          expect(usersExist).toBeTruthy();
+        });
+
+        it('should pass if every company exists', () => {
+          const companiesExist = companyLinkRequestList.map(request => request.company).every(company => !!company);
+          expect(companiesExist).toBeTruthy();
         });
 
         it('should pass if no user has or will have a company', () => {
