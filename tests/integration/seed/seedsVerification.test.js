@@ -75,6 +75,7 @@ const {
   REMOTE,
   DAY,
   HOLDING_ADMIN,
+  PAYMENT,
 } = require('../../../src/helpers/constants');
 const attendancesSeed = require('./attendancesSeed');
 const activitiesSeed = require('./activitiesSeed');
@@ -1076,6 +1077,62 @@ describe('SEEDS VERIFICATION', () => {
           const organisationNamesWithoutDuplicates = [...new Set(organisationNameList)];
 
           expect(organisationNamesWithoutDuplicates.length).toEqual(courseFundingOrganisationsList.length);
+        });
+      });
+
+      describe('Collection CoursePayment', () => {
+        let coursePaymentList;
+        before(async () => {
+          coursePaymentList = await CoursePayment
+            .find()
+            .populate({ path: 'courseBill', select: 'company billedAt', transform })
+            .populate({ path: 'company', transform })
+            .setOptions({ allCompanies: true })
+            .lean();
+        });
+
+        it('should pass if every number has good format', () => {
+          const everyNumberHasGoodFormat = coursePaymentList
+            .every(creditNote => creditNote.number.match(/^(REG|REMB)-[0-9]{5}$/));
+
+          expect(everyNumberHasGoodFormat).toBeTruthy();
+        });
+
+        it('should pass if every course bill exists', () => {
+          const everyCourseBillExists = coursePaymentList.every(payment => !!payment.courseBill);
+
+          expect(everyCourseBillExists).toBeTruthy();
+        });
+
+        it('should pass if every course payment has good company', () => {
+          const everyCompanyExists = coursePaymentList.every(payment => !!payment.company);
+
+          expect(everyCompanyExists).toBeTruthy();
+
+          const everyCompanyIsInCourseBill = coursePaymentList
+            .every(payment => UtilsHelper.areObjectIdsEquals(payment.company._id, payment.courseBill.company));
+
+          expect(everyCompanyIsInCourseBill).toBeTruthy();
+        });
+
+        it('should pass if every date is after billing', () => {
+          const everyCourseBillIsBilled = coursePaymentList.every(payment => !!payment.courseBill.billedAt);
+
+          expect(everyCourseBillIsBilled).toBeTruthy();
+
+          const everyDateIsAfterBilling = coursePaymentList
+            .every(payment => CompaniDate(payment.date).isAfter(payment.courseBill.billedAt));
+
+          expect(everyDateIsAfterBilling).toBeTruthy();
+        });
+
+        it('should pass if nature is consistent with number', () => {
+          const everyNatureIsConsistent = coursePaymentList.every((payment) => {
+            if (payment.nature === PAYMENT) return payment.number.match(/^REG-[0-9]{5}$/);
+            return payment.number.match(/^REMB-[0-9]{5}$/);
+          });
+
+          expect(everyNatureIsConsistent).toBeTruthy();
         });
       });
 
