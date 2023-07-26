@@ -16,6 +16,7 @@ const CourseCreditNote = require('../../../src/models/CourseCreditNote');
 const CourseCreditNoteNumber = require('../../../src/models/CourseCreditNoteNumber');
 const CourseFundingOrganisation = require('../../../src/models/CourseFundingOrganisation');
 const CoursePayment = require('../../../src/models/CoursePayment');
+const CoursePaymentNumber = require('../../../src/models/CoursePaymentNumber');
 const CourseSlot = require('../../../src/models/CourseSlot');
 const CourseHistory = require('../../../src/models/CourseHistory');
 const Helper = require('../../../src/models/Helper');
@@ -76,6 +77,7 @@ const {
   DAY,
   HOLDING_ADMIN,
   PAYMENT,
+  REFUND,
 } = require('../../../src/helpers/constants');
 const attendancesSeed = require('./attendancesSeed');
 const activitiesSeed = require('./activitiesSeed');
@@ -1133,6 +1135,45 @@ describe('SEEDS VERIFICATION', () => {
           });
 
           expect(everyNatureIsConsistent).toBeTruthy();
+        });
+      });
+
+      describe('Collection CoursePaymentNumber', () => {
+        let coursePaymentNumberList;
+        before(async () => {
+          coursePaymentNumberList = await CoursePaymentNumber.find().lean();
+        });
+
+        it('should pass if no more thant 2 items in list and they have different nature', () => {
+          expect(coursePaymentNumberList.length).toBeLessThanOrEqual(2);
+
+          const paymentsNaturesWithoutDuplicates = [...new Set(coursePaymentNumberList.map(payment => payment.nature))];
+          expect(paymentsNaturesWithoutDuplicates.length).toEqual(coursePaymentNumberList.length);
+        });
+
+        it('should pass if value is a positive integer', () => {
+          const areCoursePaymentNumbersPositiveIntegers = coursePaymentNumberList
+            .every(number => number.seq > 0 && Number.isInteger(number.seq));
+
+          expect(areCoursePaymentNumbersPositiveIntegers).toBeTruthy();
+        });
+
+        it('should pass if course payment number has good value', async () => {
+          const coursePaymentList = await CoursePayment.find().setOptions({ allCompanies: true }).lean();
+
+          if (!coursePaymentList.length) expect(coursePaymentNumberList.length).toEqual(0);
+          else {
+            const paymentCount = coursePaymentList.filter(payment => payment.nature === PAYMENT).length;
+            const refundCount = coursePaymentList.filter(payment => payment.nature === REFUND).length;
+
+            const paymentNumber = coursePaymentNumberList.find(n => n.nature === PAYMENT);
+            if (paymentCount) expect(paymentNumber.seq).toEqual(paymentCount);
+            else expect(paymentNumber).toBeUndefined();
+
+            const refundNumber = coursePaymentNumberList.find(n => n.nature === REFUND);
+            if (refundCount) expect(refundNumber.seq).toEqual(refundCount);
+            else expect(refundNumber).toBeUndefined();
+          }
         });
       });
 
