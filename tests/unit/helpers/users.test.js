@@ -760,7 +760,7 @@ describe('getUser', () => {
     const user = {
       _id: userId,
       role: { name: 'helper', rights: [] },
-      userCompanyList: [{ _id: new ObjectId() }],
+      userCompanyList: [{ company: new ObjectId() }],
     };
     const credentials = { role: { client: 'coach' }, company: { _id: new ObjectId() }, _id: new ObjectId() };
 
@@ -776,7 +776,83 @@ describe('getUser', () => {
         { query: 'populate', args: [{ path: 'contracts', select: '-__v -createdAt -updatedAt' }] },
         {
           query: 'populate',
-          args: [{ path: 'company', populate: { path: 'company' }, select: '-__v -createdAt -updatedAt' }],
+          args: [{
+            path: 'company',
+            populate: { path: 'company', populate: { path: 'billingRepresentative' } },
+            select: '-__v -createdAt -updatedAt',
+          }],
+        },
+        {
+          query: 'populate',
+          args: [{
+            path: 'holding',
+            populate: { path: 'holding', populate: { path: 'companies' } },
+            select: '-__v -createdAt -updatedAt',
+          }],
+        },
+        {
+          query: 'populate',
+          args: [{
+            path: 'sector',
+            select: '_id sector',
+            match: { company: credentials.company._id },
+            options: { isVendorUser: false, requestingOwnInfos: false },
+          }],
+        },
+        {
+          query: 'populate',
+          args: [{
+            path: 'customers',
+            select: '-__v -createdAt -updatedAt',
+            match: { company: credentials.company._id },
+            options: {
+              isVendorUser: false,
+              requestingOwnInfos: false,
+            },
+          }],
+        },
+        {
+          query: 'populate',
+          args: [{ path: 'companyLinkRequest', populate: { path: 'company', select: '_id name' } }],
+        },
+        { query: 'populate', args: [{ path: 'establishment', select: 'siret' }] },
+        { query: 'populate', args: [{ path: 'userCompanyList' }] },
+        { query: 'lean', args: [{ autopopulate: true, virtuals: true }] },
+      ]
+    );
+  });
+
+  it('should return user as holding', async () => {
+    const holdingCompany = new ObjectId();
+    const userId = new ObjectId();
+    const user = {
+      _id: userId,
+      role: { name: 'helper', rights: [] },
+      userCompanyList: [{ company: new ObjectId() }, { company: holdingCompany }],
+    };
+    const credentials = {
+      role: { holding: 'holding_admin' },
+      holding: { companies: [holdingCompany] },
+      company: { _id: new ObjectId() },
+    };
+
+    findOne.returns(SinonMongoose.stubChainedQueries(user));
+
+    const res = await UsersHelper.getUser(userId, credentials);
+    expect(res).toEqual({ ...user, userCompanyList: [{ company: holdingCompany }] });
+
+    SinonMongoose.calledOnceWithExactly(
+      findOne,
+      [
+        { query: 'findOne', args: [{ _id: userId }] },
+        { query: 'populate', args: [{ path: 'contracts', select: '-__v -createdAt -updatedAt' }] },
+        {
+          query: 'populate',
+          args: [{
+            path: 'company',
+            populate: { path: 'company', populate: { path: 'billingRepresentative' } },
+            select: '-__v -createdAt -updatedAt',
+          }],
         },
         {
           query: 'populate',
@@ -823,7 +899,7 @@ describe('getUser', () => {
     const user = {
       _id: userId,
       role: { vendor: 'trainer', rights: [] },
-      userCompanyList: [{ _id: new ObjectId() }, { _id: new ObjectId() }],
+      userCompanyList: [{ company: new ObjectId() }, { company: new ObjectId() }],
     };
     const credentials = { company: { _id: new ObjectId() }, _id: new ObjectId(), role: { vendor: 'trainer' } };
 
@@ -838,7 +914,11 @@ describe('getUser', () => {
         { query: 'findOne', args: [{ _id: userId }] },
         {
           query: 'populate',
-          args: [{ path: 'company', populate: { path: 'company' }, select: '-__v -createdAt -updatedAt' }],
+          args: [{
+            path: 'company',
+            populate: { path: 'company', populate: { path: 'billingRepresentative' } },
+            select: '-__v -createdAt -updatedAt',
+          }],
         },
         {
           query: 'populate',
@@ -880,7 +960,7 @@ describe('getUser', () => {
 
   it('should return user as itself', async () => {
     const userId = new ObjectId();
-    const user = { _id: userId, userCompanyList: [{ _id: new ObjectId() }, { _id: new ObjectId() }] };
+    const user = { _id: userId, userCompanyList: [{ company: new ObjectId() }, { company: new ObjectId() }] };
     const credentials = { company: { _id: new ObjectId() }, _id: userId };
 
     findOne.returns(SinonMongoose.stubChainedQueries(user));
@@ -894,7 +974,11 @@ describe('getUser', () => {
         { query: 'findOne', args: [{ _id: userId }] },
         {
           query: 'populate',
-          args: [{ path: 'company', populate: { path: 'company' }, select: '-__v -createdAt -updatedAt' }],
+          args: [{
+            path: 'company',
+            populate: { path: 'company', populate: { path: 'billingRepresentative' } },
+            select: '-__v -createdAt -updatedAt',
+          }],
         },
         {
           query: 'populate',
@@ -955,7 +1039,11 @@ describe('getUser', () => {
           { query: 'findOne', args: [{ _id: userId }] },
           {
             query: 'populate',
-            args: [{ path: 'company', populate: { path: 'company' }, select: '-__v -createdAt -updatedAt' }],
+            args: [{
+              path: 'company',
+              populate: { path: 'company', populate: { path: 'billingRepresentative' } },
+              select: '-__v -createdAt -updatedAt',
+            }],
           },
           {
             query: 'populate',

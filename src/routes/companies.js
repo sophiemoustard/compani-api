@@ -13,7 +13,7 @@ const {
 } = require('../controllers/companyController');
 const { DOCUMENT_TYPE_LIST } = require('../helpers/constants');
 const { COMPANY_BILLING_PERIODS, COMPANY_TYPES, TRADE_NAME_REGEX, APE_CODE_REGEX } = require('../models/Company');
-const { authorizeCompanyUpdate, companyExists, authorizeCompanyCreation } = require('./preHandlers/companies');
+const { authorizeCompanyUpdate, authorizeCompanyCreation, doesCompanyExist } = require('./preHandlers/companies');
 const { addressValidation, formDataPayload } = require('./validations/utils');
 
 const tradeNameValidation = Joi.string().regex(TRADE_NAME_REGEX);
@@ -45,6 +45,7 @@ exports.plugin = {
               firstname: Joi.string(),
               position: Joi.string(),
             }),
+            billingRepresentative: Joi.objectId(),
             apeCode: Joi.string().regex(APE_CODE_REGEX),
             rhConfig: Joi.object().keys({
               grossHourlyRate: Joi.number(),
@@ -75,7 +76,7 @@ exports.plugin = {
           }),
         },
         pre: [
-          { method: companyExists },
+          { method: doesCompanyExist },
           { method: authorizeCompanyUpdate },
         ],
       },
@@ -144,6 +145,7 @@ exports.plugin = {
           params: Joi.object({ _id: Joi.objectId().required() }),
         },
         auth: { scope: ['companies:read'] },
+        pre: [{ method: doesCompanyExist }],
       },
     });
   },

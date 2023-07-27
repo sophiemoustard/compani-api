@@ -13,7 +13,7 @@ exports.plugin = {
     server.route({
       method: 'GET',
       path: '/',
-      options: { auth: { scope: ['config:vendor'] } },
+      options: { auth: { scope: ['vendorcompanies:edit'] } },
       handler: list,
     });
 
@@ -26,7 +26,7 @@ exports.plugin = {
             name: Joi.string().required(),
           }),
         },
-        auth: { scope: ['config:vendor'] },
+        auth: { scope: ['vendorcompanies:edit'] },
         pre: [{ method: authorizeCourseBillingItemCreation }],
       },
       handler: create,

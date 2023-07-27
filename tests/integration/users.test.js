@@ -1153,6 +1153,34 @@ describe('USERS ROUTES - GET /users/:id', () => {
     });
   });
 
+  describe('HOLDING_ADMIN', () => {
+    beforeEach(async () => {
+      authToken = await getTokenByCredentials(holdingAdminFromOtherCompany.local);
+    });
+
+    it('should return user from holding', async () => {
+      const userId = userList[9]._id;
+      const res = await app.inject({
+        method: 'GET',
+        url: `/users/${userId}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(res.statusCode).toBe(200);
+      expect(UtilsHelper.areObjectIdsEquals(res.result.data.user._id, userId)).toBeTruthy();
+    });
+
+    it('should return a 404 if user is not in holding', async () => {
+      const res = await app.inject({
+        method: 'GET',
+        url: `/users/${holdingAdminFromAuthCompany._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(res.statusCode).toBe(404);
+    });
+  });
+
   describe('TRAINER', () => {
     beforeEach(async () => {
       authToken = await getToken('trainer');

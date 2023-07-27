@@ -1,4 +1,5 @@
 const VendorCompany = require('../../../src/models/VendorCompany');
+const { vendorAdmin } = require('../../seed/authUsersSeed');
 const { deleteNonAuthenticationSeeds } = require('../helpers/db');
 
 const vendorCompany = {
@@ -12,6 +13,7 @@ const vendorCompany = {
     city: 'Antony',
     location: { type: 'Point', coordinates: [2.377133, 48.801389] },
   },
+  billingRepresentative: vendorAdmin._id,
 };
 
 const populateDB = async () => {

@@ -12,6 +12,9 @@ const Course = require('../../../src/models/Course');
 const CourseBill = require('../../../src/models/CourseBill');
 const CourseBillingItem = require('../../../src/models/CourseBillingItem');
 const CourseBillsNumber = require('../../../src/models/CourseBillsNumber');
+const CourseCreditNote = require('../../../src/models/CourseCreditNote');
+const CourseCreditNoteNumber = require('../../../src/models/CourseCreditNoteNumber');
+const CourseFundingOrganisation = require('../../../src/models/CourseFundingOrganisation');
 const CourseSlot = require('../../../src/models/CourseSlot');
 const CourseHistory = require('../../../src/models/CourseHistory');
 const Helper = require('../../../src/models/Helper');
@@ -79,6 +82,8 @@ const attendanceSheetsSeed = require('./attendanceSheetsSeed');
 const cardsSeed = require('./cardsSeed');
 const courseBillsSeed = require('./courseBillsSeed');
 const courseBillingItemsSeed = require('./courseBillingItemsSeed');
+const courseCreditNotesSeed = require('./courseCreditNotesSeed');
+const courseFundingOrganisationsSeed = require('./courseFundingOrganisationsSeed');
 const coursesSeed = require('./coursesSeed');
 const courseHistoriesSeed = require('./courseHistoriesSeed');
 const courseSlotsSeed = require('./courseSlotsSeed');
@@ -100,6 +105,8 @@ const seedList = [
   { label: 'COURSE', value: coursesSeed },
   { label: 'COURSEBILL', value: courseBillsSeed },
   { label: 'COURSEBILLINGITEM', value: courseBillingItemsSeed },
+  { label: 'COURSECREDITNOTE', value: courseCreditNotesSeed },
+  { label: 'COURSEFUNDINGORGANISATION', value: courseFundingOrganisationsSeed },
   { label: 'COURSEHISTORY', value: courseHistoriesSeed },
   { label: 'COURSESLOT', value: courseSlotsSeed },
   { label: 'HOLDING', value: holdingsSeed },
@@ -827,7 +834,7 @@ describe('SEEDS VERIFICATION', () => {
         before(async () => {
           courseBillList = await CourseBill
             .find()
-            .populate({ path: 'course', select: 'format companies', transform })
+            .populate({ path: 'course', select: 'format companies type expectedBillsCount', transform })
             .populate({ path: 'company', transform })
             .populate({ path: 'payer.company', transform })
             .populate({ path: 'payer.fundingOrganisation', transform })
@@ -836,6 +843,7 @@ describe('SEEDS VERIFICATION', () => {
               select: 'billingItem',
               populate: { path: 'billingItem', transform },
             })
+            .populate({ path: 'courseCreditNote', options: { allCompanies: true } })
             .setOptions({ allCompanies: true })
             .lean();
         });
@@ -902,7 +910,7 @@ describe('SEEDS VERIFICATION', () => {
 
         it('should pass if every number has good format', () => {
           const everyNumberHasGoodFormat = courseBillList
-            .every(bill => !bill.number || bill.number.match(/FACT-[0-9]{5}/));
+            .every(bill => !bill.number || bill.number.match(/^FACT-[0-9]{5}$/));
 
           expect(everyNumberHasGoodFormat).toBeTruthy();
         });
@@ -912,6 +920,21 @@ describe('SEEDS VERIFICATION', () => {
           const courseBillNumbersWithoutDuplicates = [...new Set(courseBillNumberList)];
 
           expect(courseBillNumbersWithoutDuplicates.length).toEqual(courseBillNumberList.length);
+        });
+
+        it('should pass if no more active bill than expected', () => {
+          const courseBillGroupedByCourse = groupBy(courseBillList, 'course._id');
+          const everyBillCountIsLowerThanExpected = Object.keys(courseBillGroupedByCourse)
+            .every((courseId) => {
+              const { course } = courseBillGroupedByCourse[courseId][0];
+              if (course.type !== INTRA) return true;
+
+              const activeBills = courseBillGroupedByCourse[courseId].filter(b => !b.courseCreditNote);
+
+              return activeBills.length <= course.expectedBillsCount;
+            });
+
+          expect(everyBillCountIsLowerThanExpected).toBeTruthy();
         });
       });
 
@@ -940,10 +963,103 @@ describe('SEEDS VERIFICATION', () => {
         });
 
         it('should pass if value is a positive integer', () => {
-          const isCourseBillsNumberAPositiveInteger = courseBillsNumberList
-            .every(number => number.seq > 0 && Number.isInteger(number.seq));
+          const isCourseBillsNumberAPositiveInteger = !courseBillsNumberList.length ||
+            (courseBillsNumberList[0].seq > 0 && Number.isInteger(courseBillsNumberList[0].seq));
 
           expect(isCourseBillsNumberAPositiveInteger).toBeTruthy();
+        });
+
+        it('should pass if course bill number has good value', async () => {
+          const courseBillCount = await CourseBill.countDocuments({ billedAt: { $exists: true } });
+
+          if (!courseBillCount) expect(courseBillsNumberList.length).toEqual(0);
+          else expect(courseBillsNumberList[0].seq).toEqual(courseBillCount);
+        });
+      });
+
+      describe('Collection CourseCreditNote', () => {
+        let courseCreditNoteList;
+        before(async () => {
+          courseCreditNoteList = await CourseCreditNote
+            .find()
+            .populate({ path: 'courseBill', select: 'company billedAt', transform })
+            .populate({ path: 'company', transform })
+            .setOptions({ allCompanies: true })
+            .lean();
+        });
+
+        it('should pass if every number has good format', () => {
+          const everyNumberHasGoodFormat = courseCreditNoteList
+            .every(creditNote => creditNote.number.match(/^AV-[0-9]{5}$/));
+
+          expect(everyNumberHasGoodFormat).toBeTruthy();
+        });
+
+        it('should pass if every course bill exists', () => {
+          const everyCourseBillExists = courseCreditNoteList.every(creditNote => !!creditNote.courseBill);
+
+          expect(everyCourseBillExists).toBeTruthy();
+        });
+
+        it('should pass if every course credit note has good company', () => {
+          const everyCompanyExists = courseCreditNoteList.every(creditNote => !!creditNote.company);
+
+          expect(everyCompanyExists).toBeTruthy();
+
+          const everyCompanyIsInCourseBill = courseCreditNoteList
+            .every(creditNote => UtilsHelper.areObjectIdsEquals(creditNote.company._id, creditNote.courseBill.company));
+
+          expect(everyCompanyIsInCourseBill).toBeTruthy();
+        });
+
+        it('should pass if every date is after billing', () => {
+          const everyCourseBillIsBilled = courseCreditNoteList.every(creditNote => !!creditNote.courseBill.billedAt);
+
+          expect(everyCourseBillIsBilled).toBeTruthy();
+
+          const everyDateIsAfterBilling = courseCreditNoteList
+            .every(creditNote => CompaniDate(creditNote.date).isAfter(creditNote.courseBill.billedAt));
+
+          expect(everyDateIsAfterBilling).toBeTruthy();
+        });
+      });
+
+      describe('Collection CourseCreditNoteNumber', () => {
+        let courseCreditNoteNumberList;
+        before(async () => {
+          courseCreditNoteNumberList = await CourseCreditNoteNumber.find().lean();
+        });
+
+        it('should pass if only one item in list', () => {
+          expect(courseCreditNoteNumberList.length).toBeLessThanOrEqual(1);
+        });
+
+        it('should pass if value is a positive integer', () => {
+          const isCourseCreditNoteNumberAPositiveInteger = !courseCreditNoteNumberList.length ||
+            (courseCreditNoteNumberList[0].seq > 0 && Number.isInteger(courseCreditNoteNumberList[0].seq));
+
+          expect(isCourseCreditNoteNumberAPositiveInteger).toBeTruthy();
+        });
+
+        it('should pass if credit note number has good value', async () => {
+          const courseCreditNoteCount = await CourseCreditNote.countDocuments();
+
+          if (!courseCreditNoteCount) expect(courseCreditNoteNumberList.length).toEqual(0);
+          else expect(courseCreditNoteNumberList[0].seq).toEqual(courseCreditNoteCount);
+        });
+      });
+
+      describe('Collection CourseFundingOrganisation', () => {
+        let courseFundingOrganisationsList;
+        before(async () => {
+          courseFundingOrganisationsList = await CourseFundingOrganisation.find().lean();
+        });
+
+        it('should pass if name is unique', () => {
+          const organisationNameList = compact(courseFundingOrganisationsList.map(o => o.name.toLowerCase()));
+          const organisationNamesWithoutDuplicates = [...new Set(organisationNameList)];
+
+          expect(organisationNamesWithoutDuplicates.length).toEqual(courseFundingOrganisationsList.length);
         });
       });
 

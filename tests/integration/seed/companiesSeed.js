@@ -4,10 +4,10 @@ const Company = require('../../../src/models/Company');
 const Event = require('../../../src/models/Event');
 const User = require('../../../src/models/User');
 const UserCompany = require('../../../src/models/UserCompany');
-const { authCompany, companyWithoutSubscription } = require('../../seed/authCompaniesSeed');
+const { authCompany, companyWithoutSubscription, otherCompany } = require('../../seed/authCompaniesSeed');
 const { deleteNonAuthenticationSeeds } = require('../helpers/db');
 const { clientAdminRoleId } = require('../../seed/authRolesSeed');
-const { INTERVENTION, MOBILE } = require('../../../src/helpers/constants');
+const { INTERVENTION, MOBILE, WEBAPP } = require('../../../src/helpers/constants');
 
 const company = {
   _id: new ObjectId(),
@@ -44,25 +44,35 @@ const event = {
   },
 };
 
-const companyClientAdmin = {
-  _id: new ObjectId(),
-  identity: { firstname: 'client_admin', lastname: 'Chef' },
-  refreshToken: uuidv4(),
-  local: { email: 'client_admin@alenvi.io', password: '123456!eR' },
-  role: { client: clientAdminRoleId },
-  origin: MOBILE,
-};
+const usersList = [
+  {
+    _id: new ObjectId(),
+    identity: { firstname: 'client_admin', lastname: 'Chef' },
+    refreshToken: uuidv4(),
+    local: { email: 'client_admin@alenvi.io', password: '123456!eR' },
+    role: { client: clientAdminRoleId },
+    origin: MOBILE,
+  },
+  {
+    _id: new ObjectId(),
+    identity: { firstname: 'Futur', lastname: 'Chargé de factu' },
+    local: { email: 'sfjgp@tt.com', password: '123456!eR' },
+    refreshToken: uuidv4(),
+    role: { client: clientAdminRoleId },
+    origin: WEBAPP,
+  }];
 
 const userCompanies = [
   // old inactive user company
   {
     _id: new ObjectId(),
-    user: companyClientAdmin._id,
+    user: usersList[0]._id,
     company: companyWithoutSubscription._id,
     startDate: '2022-01-01T23:00:00.000Z',
     endDate: '2022-11-30T23:00:00.000Z',
   },
-  { _id: new ObjectId(), user: companyClientAdmin._id, company: company._id },
+  { _id: new ObjectId(), user: usersList[0]._id, company: company._id },
+  { _id: new ObjectId(), user: usersList[1]._id, company: otherCompany._id },
 ];
 const populateDB = async () => {
   await deleteNonAuthenticationSeeds();
@@ -70,9 +80,9 @@ const populateDB = async () => {
   await Promise.all([
     Company.create(company),
     Event.create(event),
-    User.create(companyClientAdmin),
+    User.create(usersList),
     UserCompany.create(userCompanies),
   ]);
 };
 
-module.exports = { company, companyClientAdmin, populateDB };
+module.exports = { company, usersList, populateDB };

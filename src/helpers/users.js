@@ -211,7 +211,11 @@ exports.getUser = async (userId, credentials) => {
 
   const user = await User.findOne({ _id: userId })
     .populate({ path: 'contracts', select: '-__v -createdAt -updatedAt' })
-    .populate({ path: 'company', populate: { path: 'company' }, select: '-__v -createdAt -updatedAt' })
+    .populate({
+      path: 'company',
+      populate: { path: 'company', populate: { path: 'billingRepresentative' } },
+      select: '-__v -createdAt -updatedAt',
+    })
     .populate({
       path: 'holding',
       populate: { path: 'holding', populate: { path: 'companies' } },
@@ -240,7 +244,8 @@ exports.getUser = async (userId, credentials) => {
     ? user
     : {
       ...user,
-      userCompanyList: user.userCompanyList.filter(uc => UtilsHelper.areObjectIdsEquals(companyId, get(uc, 'company'))),
+      userCompanyList: user.userCompanyList
+        .filter(uc => UtilsHelper.hasUserAccessToCompany(credentials, get(uc, 'company'))),
     };
 };
 

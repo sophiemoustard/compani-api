@@ -686,6 +686,9 @@ describe('COURSE BILL ROUTES - PUT /coursebills/{_id}', () => {
     });
 
     it('should invoice course bill', async () => {
+      const isBilledBefore = await CourseBill.countDocuments({ number: 'FACT-00007' });
+      expect(isBilledBefore).toBeFalsy();
+
       const response = await app.inject({
         method: 'PUT',
         url: `/coursebills/${courseBillsList[0]._id}`,
@@ -695,9 +698,9 @@ describe('COURSE BILL ROUTES - PUT /coursebills/{_id}', () => {
 
       expect(response.statusCode).toBe(200);
 
-      const isBilled = await CourseBill
-        .countDocuments({ _id: courseBillsList[0]._id, billedAt: '2022-03-08T00:00:00.000Z', number: 'FACT-00005' });
-      expect(isBilled).toBeTruthy();
+      const isBilledAfter = await CourseBill
+        .countDocuments({ _id: courseBillsList[0]._id, billedAt: '2022-03-08T00:00:00.000Z', number: 'FACT-00007' });
+      expect(isBilledAfter).toBeTruthy();
     });
 
     it('should update description on invoiced course bill', async () => {
