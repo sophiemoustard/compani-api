@@ -15,6 +15,8 @@ const CourseBillsNumber = require('../../../src/models/CourseBillsNumber');
 const CourseCreditNote = require('../../../src/models/CourseCreditNote');
 const CourseCreditNoteNumber = require('../../../src/models/CourseCreditNoteNumber');
 const CourseFundingOrganisation = require('../../../src/models/CourseFundingOrganisation');
+const CoursePayment = require('../../../src/models/CoursePayment');
+const CoursePaymentNumber = require('../../../src/models/CoursePaymentNumber');
 const CourseSlot = require('../../../src/models/CourseSlot');
 const CourseHistory = require('../../../src/models/CourseHistory');
 const Helper = require('../../../src/models/Helper');
@@ -74,16 +76,20 @@ const {
   REMOTE,
   DAY,
   HOLDING_ADMIN,
+  PAYMENT,
+  REFUND,
 } = require('../../../src/helpers/constants');
 const attendancesSeed = require('./attendancesSeed');
 const activitiesSeed = require('./activitiesSeed');
 const activityHistoriesSeed = require('./activityHistoriesSeed');
 const attendanceSheetsSeed = require('./attendanceSheetsSeed');
 const cardsSeed = require('./cardsSeed');
+const companyLinkRequestsSeed = require('./companyLinkRequestsSeed');
 const courseBillsSeed = require('./courseBillsSeed');
 const courseBillingItemsSeed = require('./courseBillingItemsSeed');
 const courseCreditNotesSeed = require('./courseCreditNotesSeed');
 const courseFundingOrganisationsSeed = require('./courseFundingOrganisationsSeed');
+const coursePaymentsSeed = require('./coursePaymentsSeed');
 const coursesSeed = require('./coursesSeed');
 const courseHistoriesSeed = require('./courseHistoriesSeed');
 const courseSlotsSeed = require('./courseSlotsSeed');
@@ -102,11 +108,13 @@ const seedList = [
   { label: 'ATTENDANCE', value: attendancesSeed },
   { label: 'ATTENDANCESHEET', value: attendanceSheetsSeed },
   { label: 'CARD', value: cardsSeed },
+  { label: 'COMPANYLINKREQUEST', value: companyLinkRequestsSeed },
   { label: 'COURSE', value: coursesSeed },
   { label: 'COURSEBILL', value: courseBillsSeed },
   { label: 'COURSEBILLINGITEM', value: courseBillingItemsSeed },
   { label: 'COURSECREDITNOTE', value: courseCreditNotesSeed },
   { label: 'COURSEFUNDINGORGANISATION', value: courseFundingOrganisationsSeed },
+  { label: 'COURSEPAYMENT', value: coursePaymentsSeed },
   { label: 'COURSEHISTORY', value: courseHistoriesSeed },
   { label: 'COURSESLOT', value: courseSlotsSeed },
   { label: 'HOLDING', value: holdingsSeed },
@@ -532,7 +540,18 @@ describe('SEEDS VERIFICATION', () => {
           companyLinkRequestList = await CompanyLinkRequest
             .find()
             .populate({ path: 'user', select: '_id', populate: { path: 'userCompanyList' } })
+            .populate({ path: 'company', select: '_id', transform })
             .lean();
+        });
+
+        it('should pass if every user exists', () => {
+          const usersExist = companyLinkRequestList.map(request => request.user).every(user => !!user);
+          expect(usersExist).toBeTruthy();
+        });
+
+        it('should pass if every company exists', () => {
+          const companiesExist = companyLinkRequestList.map(request => request.company).every(company => !!company);
+          expect(companiesExist).toBeTruthy();
         });
 
         it('should pass if no user has or will have a company', () => {
@@ -1060,6 +1079,103 @@ describe('SEEDS VERIFICATION', () => {
           const organisationNamesWithoutDuplicates = [...new Set(organisationNameList)];
 
           expect(organisationNamesWithoutDuplicates.length).toEqual(courseFundingOrganisationsList.length);
+        });
+      });
+
+      describe('Collection CoursePayment', () => {
+        let coursePaymentList;
+        before(async () => {
+          coursePaymentList = await CoursePayment
+            .find()
+            .populate({ path: 'courseBill', select: 'company billedAt', transform })
+            .populate({ path: 'company', transform })
+            .setOptions({ allCompanies: true })
+            .lean();
+        });
+
+        it('should pass if every number has good format', () => {
+          const everyNumberHasGoodFormat = coursePaymentList
+            .every(creditNote => creditNote.number.match(/^(REG|REMB)-[0-9]{5}$/));
+
+          expect(everyNumberHasGoodFormat).toBeTruthy();
+        });
+
+        it('should pass if every course bill exists', () => {
+          const everyCourseBillExists = coursePaymentList.every(payment => !!payment.courseBill);
+
+          expect(everyCourseBillExists).toBeTruthy();
+        });
+
+        it('should pass if every course payment has good company', () => {
+          const everyCompanyExists = coursePaymentList.every(payment => !!payment.company);
+
+          expect(everyCompanyExists).toBeTruthy();
+
+          const everyCompanyIsInCourseBill = coursePaymentList
+            .every(payment => UtilsHelper.areObjectIdsEquals(payment.company._id, payment.courseBill.company));
+
+          expect(everyCompanyIsInCourseBill).toBeTruthy();
+        });
+
+        it('should pass if every date is after billing', () => {
+          const everyCourseBillIsBilled = coursePaymentList.every(payment => !!payment.courseBill.billedAt);
+
+          expect(everyCourseBillIsBilled).toBeTruthy();
+
+          const everyDateIsAfterBilling = coursePaymentList
+            .every(payment => CompaniDate(payment.date).isAfter(payment.courseBill.billedAt));
+
+          expect(everyDateIsAfterBilling).toBeTruthy();
+        });
+
+        it('should pass if nature is consistent with number', () => {
+          const everyNatureIsConsistent = coursePaymentList
+            .every(payment => (
+              payment.nature === PAYMENT
+                ? payment.number.match(/^REG-[0-9]{5}$/)
+                : payment.number.match(/^REMB-[0-9]{5}$/)
+            ));
+
+          expect(everyNatureIsConsistent).toBeTruthy();
+        });
+      });
+
+      describe('Collection CoursePaymentNumber', () => {
+        let coursePaymentNumberList;
+        before(async () => {
+          coursePaymentNumberList = await CoursePaymentNumber.find().lean();
+        });
+
+        it('should pass if no more thant 2 items in list and they have different nature', () => {
+          expect(coursePaymentNumberList.length).toBeLessThanOrEqual(2);
+
+          const paymentsNaturesWithoutDuplicates = [...new Set(coursePaymentNumberList.map(payment => payment.nature))];
+          expect(paymentsNaturesWithoutDuplicates.length).toEqual(coursePaymentNumberList.length);
+        });
+
+        it('should pass if value is a positive integer', () => {
+          const areCoursePaymentNumbersPositiveIntegers = coursePaymentNumberList
+            .every(number => number.seq > 0 && Number.isInteger(number.seq));
+
+          expect(areCoursePaymentNumbersPositiveIntegers).toBeTruthy();
+        });
+
+        it('should pass if course payment number has good value', async () => {
+          const coursePaymentList = await CoursePayment.find().setOptions({ allCompanies: true }).lean();
+
+          if (!coursePaymentList.length) expect(coursePaymentNumberList.length).toEqual(0);
+          else {
+            const paymentCount = coursePaymentList.filter(payment => payment.nature === PAYMENT).length;
+            const refundCount = coursePaymentList.filter(payment => payment.nature === REFUND).length;
+
+            const paymentNumber = coursePaymentNumberList.find(n => n.nature === PAYMENT);
+            if (paymentCount) expect(paymentNumber.seq).toEqual(paymentCount);
+            else expect(paymentNumber).toBeUndefined();
+
+            const refundNumber = coursePaymentNumberList.find(n => n.nature === REFUND);
+            if (refundCount) expect(refundNumber.seq).toEqual(refundCount);
+            else expect(refundNumber).toBeUndefined();
+          }
         });
       });
 
