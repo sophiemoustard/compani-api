@@ -1129,10 +1129,12 @@ describe('SEEDS VERIFICATION', () => {
         });
 
         it('should pass if nature is consistent with number', () => {
-          const everyNatureIsConsistent = coursePaymentList.every((payment) => {
-            if (payment.nature === PAYMENT) return payment.number.match(/^REG-[0-9]{5}$/);
-            return payment.number.match(/^REMB-[0-9]{5}$/);
-          });
+          const everyNatureIsConsistent = coursePaymentList
+            .every(payment => (
+              payment.nature === PAYMENT
+                ? payment.number.match(/^REG-[0-9]{5}$/)
+                : payment.number.match(/^REMB-[0-9]{5}$/)
+            ));
 
           expect(everyNatureIsConsistent).toBeTruthy();
         });
