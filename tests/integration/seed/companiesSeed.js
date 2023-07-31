@@ -7,7 +7,7 @@ const UserCompany = require('../../../src/models/UserCompany');
 const { authCompany, companyWithoutSubscription, otherCompany } = require('../../seed/authCompaniesSeed');
 const { deleteNonAuthenticationSeeds } = require('../helpers/db');
 const { clientAdminRoleId } = require('../../seed/authRolesSeed');
-const { INTERVENTION, MOBILE, WEBAPP } = require('../../../src/helpers/constants');
+const { INTERVENTION, MOBILE, WEBAPP, COMPANY } = require('../../../src/helpers/constants');
 
 const company = {
   _id: new ObjectId(),
@@ -25,6 +25,7 @@ const company = {
   customersFolderId: 'mnbvcxz',
   auxiliariesFolderId: 'kjhgf',
   prefixNumber: 104,
+  type: COMPANY,
 };
 
 const event = {

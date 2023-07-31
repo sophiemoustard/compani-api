@@ -5,6 +5,7 @@ const ActivityHistory = require('../../../src/models/ActivityHistory');
 const Attendance = require('../../../src/models/Attendance');
 const AttendanceSheet = require('../../../src/models/AttendanceSheet');
 const Card = require('../../../src/models/Card');
+const Company = require('../../../src/models/Company');
 const CompanyHolding = require('../../../src/models/CompanyHolding');
 const CompanyLinkRequest = require('../../../src/models/CompanyLinkRequest');
 const Contract = require('../../../src/models/Contract');
@@ -78,12 +79,16 @@ const {
   HOLDING_ADMIN,
   PAYMENT,
   REFUND,
+  COMPANY,
+  ASSOCIATION,
 } = require('../../../src/helpers/constants');
 const attendancesSeed = require('./attendancesSeed');
 const activitiesSeed = require('./activitiesSeed');
 const activityHistoriesSeed = require('./activityHistoriesSeed');
 const attendanceSheetsSeed = require('./attendanceSheetsSeed');
 const cardsSeed = require('./cardsSeed');
+const categoriesSeed = require('./categoriesSeed');
+const companiesSeed = require('./companiesSeed');
 const companyLinkRequestsSeed = require('./companyLinkRequestsSeed');
 const courseBillsSeed = require('./courseBillsSeed');
 const courseBillingItemsSeed = require('./courseBillingItemsSeed');
@@ -108,6 +113,8 @@ const seedList = [
   { label: 'ATTENDANCE', value: attendancesSeed },
   { label: 'ATTENDANCESHEET', value: attendanceSheetsSeed },
   { label: 'CARD', value: cardsSeed },
+  { label: 'CATEGORY', value: categoriesSeed },
+  { label: 'COMPANY', value: companiesSeed },
   { label: 'COMPANYLINKREQUEST', value: companyLinkRequestsSeed },
   { label: 'COURSE', value: coursesSeed },
   { label: 'COURSEBILL', value: courseBillsSeed },
@@ -502,6 +509,37 @@ describe('SEEDS VERIFICATION', () => {
             .some(card => has(card, 'label') && !(has(card, 'label.left') && has(card, 'label.right')));
 
           expect(someSubKeysAreMissing).toBeFalsy();
+        });
+      });
+
+      describe('Collection Company', () => {
+        let companyList;
+        before((async () => {
+          companyList = await Company
+            .find()
+            .populate({ path: 'billingRepresentative', populate: { path: 'role.client', select: 'name' } })
+            .lean();
+        }));
+
+        it('should pass if every name is unique', () => {
+          const companiesWithoutDuplicates = [...new Set(companyList.map(company => company.name))];
+          expect(companiesWithoutDuplicates.length).toEqual(companyList.length);
+        });
+
+        it('should pass if every billingRepresentative exists and has good role', () => {
+          const doesEveryUserExistAndHasGoodRole = companyList
+            .every(company => !has(company, 'billingRepresentative') ||
+              get(company.billingRepresentative, 'role.client.name') === CLIENT_ADMIN);
+          expect(doesEveryUserExistAndHasGoodRole).toBeTruthy();
+        });
+
+        it('should pass if every company has good register code type', () => {
+          const hasGoodRegisterCode = companyList.every((company) => {
+            if (company.rcs) return company.type === COMPANY;
+            if (company.rna) return company.type === ASSOCIATION;
+            return true;
+          });
+          expect(hasGoodRegisterCode).toBeTruthy();
         });
       });
 

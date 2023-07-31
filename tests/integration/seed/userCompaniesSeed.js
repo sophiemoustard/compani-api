@@ -12,7 +12,15 @@ const Step = require('../../../src/models/Step');
 const SubProgram = require('../../../src/models/SubProgram');
 const { authCompany, companyWithoutSubscription } = require('../../seed/authCompaniesSeed');
 const { deleteNonAuthenticationSeeds } = require('../helpers/db');
-const { WEBAPP, TRAINEE_ADDITION, INTRA, VIDEO, TRAINEE_DELETION, MOBILE } = require('../../../src/helpers/constants');
+const {
+  WEBAPP,
+  TRAINEE_ADDITION,
+  INTRA,
+  VIDEO,
+  TRAINEE_DELETION,
+  MOBILE,
+  COMPANY,
+} = require('../../../src/helpers/constants');
 const { auxiliaryRoleId, coachRoleId, trainingOrganisationManagerRoleId } = require('../../seed/authRolesSeed');
 const { vendorAdmin, trainerOrganisationManager, trainer } = require('../../seed/authUsersSeed');
 
@@ -182,6 +190,7 @@ const company = {
   customersFolderId: 'mnbvcxz',
   auxiliariesFolderId: 'kjhgf',
   prefixNumber: 104,
+  type: COMPANY,
 };
 
 const userCompanies = [
