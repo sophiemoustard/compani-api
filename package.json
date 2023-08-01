@@ -42,7 +42,7 @@
     "cron": "~2.1.0",
     "date-holidays": "~3.21.2",
     "docxtemplater": "3.28.1",
-    "dotenv": "~16.0.0",
+    "dotenv": "~16.3.1",
     "feedparser-promised": "~2.0.1",
     "flat": "~5.0.2",
     "form-data": "~4.0.0",
