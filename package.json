@@ -60,7 +60,7 @@
     "moment-business-days": "~1.2.0",
     "moment-range": "~4.0.2",
     "moment-timezone": "~0.5.34",
-    "mongodb": "~4.2.2",
+    "mongodb": "~4.13.0",
     "mongoose": "~6.11.4",
     "mongoose-autopopulate": "~0.17.1",
     "mongoose-lean-virtuals": "~0.9.0",
