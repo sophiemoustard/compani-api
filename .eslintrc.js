@@ -16,6 +16,7 @@ module.exports = {
     'no-console': ['error', { allow: ['error'] }],
     'no-trailing-spaces': 'error',
     'arrow-parens': [2, 'as-needed', { requireForBlockBody: true }],
+    'import/order': ['error', { groups: [['builtin', 'external'], ['parent', 'sibling']] }],
     // Un-used AirBnb rules
     'comma-dangle': [
       'error',
