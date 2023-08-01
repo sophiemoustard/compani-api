@@ -1,24 +1,24 @@
-name: Test ESLint
+name: ESLint
 
 on:
   - pull_request
 
+
 jobs:
   build:
-    name: Run ESLint
+
     runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [16.x, 18.x]
+
     steps:
-
-      # Check out the repository
       - uses: actions/checkout@v3
-
-      # Install Node.js
-      - uses: actions/setup-node@v3
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v3
         with:
-          node-version: 18.17.0
-
-      # Install your dependencies
+          node-version: ${{ matrix.node-version }}
       - run: npm ci
-
-      # Run ESLint
-      - run: yarn lint
+      - run: npm run build --if-present
+      - run: npm test
