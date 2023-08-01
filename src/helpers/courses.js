@@ -329,6 +329,7 @@ exports.selectUserHistory = (histories) => {
 };
 
 exports.formatActivity = (activity) => {
+  console.log(('je passe ici'));
   const followUp = {};
   const filteredHistories = exports.selectUserHistory(activity.activityHistories);
   for (const history of filteredHistories) {
