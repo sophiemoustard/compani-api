@@ -78,12 +78,12 @@
   },
   "devDependencies": {
     "@hapi/eslint-plugin": "~5.1.0",
-    "eslint": "~8.30.0",
+    "eslint": "~8.46.0",
     "eslint-config-airbnb-base": "~15.0.0",
-    "eslint-plugin-import": "~2.26.0",
+    "eslint-plugin-import": "~2.28.0",
     "eslint-plugin-mocha": "~10.1.0",
-    "expect": "~29.3.1",
+    "expect": "~29.6.2",
     "mocha": "~10.2.0",
-    "sinon": "~15.0.1"
+    "sinon": "~15.2.0"
   }
 }
