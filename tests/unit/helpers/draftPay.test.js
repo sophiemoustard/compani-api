@@ -1181,7 +1181,7 @@ describe('getPayFromEvents', () => {
   it('should return pay for internal hour', async () => {
     const surchargeId = new ObjectId();
     const subId = new ObjectId();
-    const subscriptions = [{ _id: subId, service: { _id: ObjectId() } }];
+    const subscriptions = [{ _id: subId, service: { _id: new ObjectId() } }];
     const events = [[{ startDate: '2019-07-12T09:00:00', endDate: '2019-07-01T11:00:00', type: INTERNAL_HOUR }]];
     const surcharges = [{ _id: surchargeId, sunday: 10 }, { _id: new ObjectId(), sunday: 14 }];
     const query = { startDate: '2019-07-01T00:00:00', endDate: '2019-07-31T23:59:59' };
@@ -1624,7 +1624,7 @@ describe('computeBalance', () => {
       ],
     };
     const subId = new ObjectId();
-    const subscriptions = { [subId]: { _id: ObjectId(), service: { _id: ObjectId() } } };
+    const subscriptions = { [subId]: { _id: new ObjectId(), service: { _id: new ObjectId() } } };
     const company = { rhConfig: { phoneFeeAmount: 37, shouldPayHolidays: false } };
     const query = { startDate: '2019-05-01T00:00:00', endDate: '2019-05-31T23:59:59' };
 
@@ -1674,7 +1674,7 @@ describe('computeBalance', () => {
       ],
     };
     const subId = new ObjectId();
-    const subscriptions = { [subId]: { _id: ObjectId(), service: { _id: ObjectId() } } };
+    const subscriptions = { [subId]: { _id: new ObjectId(), service: { _id: new ObjectId() } } };
     const company = { rhConfig: { phoneFeeAmount: 37, shouldPayHolidays: false } };
     const query = { startDate: '2019-05-01T00:00:00', endDate: '2019-05-31T23:59:59' };
 
@@ -1725,7 +1725,7 @@ describe('computeBalance', () => {
       ],
     };
     const subId = new ObjectId();
-    const subscriptions = { [subId]: { _id: ObjectId(), service: { _id: ObjectId() } } };
+    const subscriptions = { [subId]: { _id: new ObjectId(), service: { _id: new ObjectId() } } };
     const company = { rhConfig: { phoneFeeAmount: 37, shouldPayHolidays: false } };
     const query = { startDate: '2019-05-01T00:00:00', endDate: '2019-05-31T23:59:59' };
 
@@ -1768,7 +1768,7 @@ describe('computeAuxiliaryDraftPay', () => {
     const query = { startDate: '2019-05-01T00:00:00', endDate: '2019-05-31T23:59:59' };
     const prevPay = { hoursCounter: 10, diff: { hoursBalance: 2 } };
     const subId = new ObjectId();
-    const subscriptions = { [subId]: { _id: ObjectId(), service: { _id: ObjectId() } } };
+    const subscriptions = { [subId]: { _id: new ObjectId(), service: { _id: new ObjectId() } } };
     const computedPay = {
       contractHours: 150,
       workedHours: 138,
@@ -1839,7 +1839,7 @@ describe('computeAuxiliaryDraftPay', () => {
     const query = { startDate: '2019-05-01T00:00:00', endDate: '2019-05-31T23:59:59' };
     const prevPay = null;
     const subId = new ObjectId();
-    const subscriptions = { [subId]: { _id: ObjectId(), service: { _id: ObjectId() } } };
+    const subscriptions = { [subId]: { _id: new ObjectId(), service: { _id: new ObjectId() } } };
     const computedPay = {
       contractHours: 150,
       workedHours: 138,
@@ -1984,7 +1984,7 @@ describe('computePrevPayDiff', () => {
     const auxiliary = { _id: '1234567890', contracts: [{ _id: 'poiuytre' }] };
     const events = [{ _id: new ObjectId() }];
     const subId = new ObjectId();
-    const subscriptions = { [subId]: { _id: ObjectId(), service: { _id: ObjectId() } } };
+    const subscriptions = { [subId]: { _id: new ObjectId(), service: { _id: new ObjectId() } } };
     const hours = {
       workedHours: 24,
       notSurchargedAndNotExempt: 12,
@@ -2031,7 +2031,7 @@ describe('computePrevPayDiff', () => {
     const auxiliary = { _id: '1234567890', contracts: [{ _id: 'poiuytre' }] };
     const events = [{ _id: new ObjectId() }];
     const subId = new ObjectId();
-    const subscriptions = { [subId]: { _id: ObjectId(), service: { _id: ObjectId() } } };
+    const subscriptions = { [subId]: { _id: new ObjectId(), service: { _id: new ObjectId() } } };
     const prevPay = {
       contractHours: 34,
       workedHours: 26,
@@ -2111,7 +2111,7 @@ describe('getPreviousMonthPay', () => {
     const query = { startDate: '2019-05-01T00:00:00', endDate: '2019-05-31T23:59:59' };
     const auxiliaries = [];
     const subId = new ObjectId();
-    const subscriptions = { [subId]: { _id: ObjectId(), service: { _id: ObjectId() } } };
+    const subscriptions = { [subId]: { _id: new ObjectId(), service: { _id: new ObjectId() } } };
     getEventsToPay.returns([]);
 
     const result = await DraftPayHelper.getPreviousMonthPay(auxiliaries, subscriptions, query, [], []);
@@ -2124,7 +2124,7 @@ describe('getPreviousMonthPay', () => {
     const query = { startDate: '2019-05-01T00:00:00', endDate: '2019-05-31T23:59:59' };
     const auxiliaries = [{ _id: auxiliaryId, sector: { name: 'Abeilles' }, prevPay: { _id: '1234567890' } }];
     const subId = new ObjectId();
-    const subscriptions = { [subId]: { _id: subId, service: { _id: ObjectId() } } };
+    const subscriptions = { [subId]: { _id: subId, service: { _id: new ObjectId() } } };
 
     const payData = [
       {
@@ -2205,7 +2205,7 @@ describe('computeDraftPay', () => {
     const credentials = { company: { _id: companyId, rhConfig: { shouldPayHolidays: false } } };
     const query = { startDate: '2019-05-01T00:00:00', endDate: '2019-05-31T23:59:59' };
     const subId = new ObjectId();
-    const subscriptions = { [subId]: { _id: ObjectId(), service: { _id: ObjectId() } } };
+    const subscriptions = { [subId]: { _id: new ObjectId(), service: { _id: new ObjectId() } } };
     companyFindOne.returns(SinonMongoose.stubChainedQueries({ _id: companyId }, ['lean']));
     surchargeFind.returns(SinonMongoose.stubChainedQueries([{ _id: 'sur' }], ['lean']));
     distanceMatrixFind.returns(SinonMongoose.stubChainedQueries([{ _id: 'dm' }], ['lean']));
@@ -2279,7 +2279,7 @@ describe('computeDraftPay', () => {
     }];
     const prevPay = [{ auxiliary: auxiliaryId, hoursCounter: 23, diff: 2 }];
     const subId = new ObjectId();
-    const subscriptions = { [subId]: { _id: ObjectId(), service: { _id: ObjectId() } } };
+    const subscriptions = { [subId]: { _id: new ObjectId(), service: { _id: new ObjectId() } } };
 
     getEventsToPay.returns(payData);
     getSubscriptionsForPay.returns(subscriptions);
@@ -2345,7 +2345,7 @@ describe('computeDraftPay', () => {
       { auxiliary: new ObjectId(), hoursCounter: 25, diff: -3 },
     ];
     const subId = new ObjectId();
-    const subscriptions = { [subId]: { _id: ObjectId(), service: { _id: ObjectId() } } };
+    const subscriptions = { [subId]: { _id: new ObjectId(), service: { _id: new ObjectId() } } };
 
     getEventsToPay.returns(payData);
     getSubscriptionsForPay.returns(subscriptions);
@@ -2416,7 +2416,7 @@ describe('computeDraftPay', () => {
       auxiliary: { _id: auxiliaryId },
     }];
     const subId = new ObjectId();
-    const subscriptions = { [subId]: { _id: ObjectId(), service: { _id: ObjectId() } } };
+    const subscriptions = { [subId]: { _id: new ObjectId(), service: { _id: new ObjectId() } } };
 
     getEventsToPay.returns(payData);
     getSubscriptionsForPay.returns(subscriptions);

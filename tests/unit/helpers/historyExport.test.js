@@ -1133,7 +1133,7 @@ describe('exportPayAndFinalPayHistory', () => {
   const pays = [
     {
       auxiliary: {
-        _id: ObjectId(),
+        _id: new ObjectId(),
         identity: { firstname: 'Tata', lastname: 'Toto', title: 'mrs' },
         sector: { name: 'Test' },
         contracts: [{ startDate: '2019-05-04T00:00:00' }],
@@ -1177,7 +1177,7 @@ describe('exportPayAndFinalPayHistory', () => {
     },
     {
       auxiliary: {
-        _id: ObjectId(),
+        _id: new ObjectId(),
         identity: { firstname: 'Titi', lastname: 'Tutu' },
         sector: { name: 'Autre test' },
       },
@@ -1221,7 +1221,7 @@ describe('exportPayAndFinalPayHistory', () => {
   const finalPays = [
     {
       auxiliary: {
-        _id: ObjectId(),
+        _id: new ObjectId(),
         identity: { firstname: 'Tata', lastname: 'Toto', title: 'mr' },
         sector: { name: 'Test' },
         contracts: [{ startDate: '2019-03-04T00:00:00' }],
@@ -1267,7 +1267,7 @@ describe('exportPayAndFinalPayHistory', () => {
     },
     {
       auxiliary: {
-        _id: ObjectId(),
+        _id: new ObjectId(),
         identity: { firstname: 'Titi', lastname: 'Tutu' },
         sector: { name: 'Autre test' },
         contracts: [{ startDate: '2019-03-04T00:00:00' }, { startDate: '2019-01-19T00:00:00' }],

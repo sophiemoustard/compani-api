@@ -638,7 +638,11 @@ describe('getBalances', () => {
   let getBalancesFromPayments;
   let findThirdPartyPayer;
 
-  const nonArchivedCustomers = [new ObjectId(), new ObjectId(), new ObjectId()];
+  const customerId1 = new ObjectId();
+  const customerId2 = new ObjectId();
+  const customerId3 = new ObjectId();
+  const nonArchivedCustomerIds = [customerId1, customerId2, customerId3];
+  const nonArchivedCustomers = [{ _id: customerId1 }, { _id: customerId2 }, { _id: customerId3 }];
   const tpps = [new ObjectId(), new ObjectId(), new ObjectId()];
   const credentials = { company: { _id: new ObjectId() } };
   const maxDate = new Date('2019-01-01');
@@ -673,21 +677,21 @@ describe('getBalances', () => {
 
   it('should return balances for customers', async () => {
     const billsAmountsGroupedByClient = [
-      { _id: { customer: nonArchivedCustomers[0], tpp: tpps[1] }, billed: 120 },
-      { _id: { customer: nonArchivedCustomers[0], tpp: tpps[0] }, billed: 450 },
+      { _id: { customer: customerId1, tpp: tpps[1] }, billed: 120 },
+      { _id: { customer: customerId1, tpp: tpps[0] }, billed: 450 },
     ];
     const cnAmountsGroupedByCustomer = [
-      { _id: { customer: nonArchivedCustomers[0] }, refund: 20 },
-      { _id: { customer: nonArchivedCustomers[1] }, refund: 40 },
+      { _id: { customer: customerId1 }, refund: 20 },
+      { _id: { customer: customerId2 }, refund: 40 },
     ];
     const cnAmountsGroupedByTpp = [
-      { _id: { customer: nonArchivedCustomers[0], tpp: tpps[1], refund: 10 } },
-      { _id: { customer: nonArchivedCustomers[1], tpp: tpps[1], refund: 50 } },
+      { _id: { customer: customerId1, tpp: tpps[1], refund: 10 } },
+      { _id: { customer: customerId2, tpp: tpps[1], refund: 50 } },
     ];
     const paymentsAmountsGroupedByClient = [
-      { _id: { customer: nonArchivedCustomers[2], tpp: tpps[0] }, payments: [{ netInclTaxes: 200 }] },
-      { _id: { customer: nonArchivedCustomers[2], tpp: tpps[1] }, payments: [{ netInclTaxes: 130 }] },
-      { _id: { customer: nonArchivedCustomers[1], tpp: tpps[1] }, payments: [{ netInclTaxes: 145 }] },
+      { _id: { customer: customerId3, tpp: tpps[0] }, payments: [{ netInclTaxes: 200 }] },
+      { _id: { customer: customerId3, tpp: tpps[1] }, payments: [{ netInclTaxes: 130 }] },
+      { _id: { customer: customerId2, tpp: tpps[1] }, payments: [{ netInclTaxes: 145 }] },
     ];
 
     findCustomers.returns(SinonMongoose.stubChainedQueries(nonArchivedCustomers, ['lean']));
@@ -700,36 +704,36 @@ describe('getBalances', () => {
     const balances = await BalanceHelper.getBalances(credentials, null, maxDate);
 
     expect(balances).toEqual([
-      { _id: { customer: nonArchivedCustomers[0], tpp: tpps[1] }, billed: 120 },
-      { _id: { customer: nonArchivedCustomers[0], tpp: tpps[0] }, billed: 450 },
-      { _id: { customer: nonArchivedCustomers[0] }, refund: 20 },
-      { _id: { customer: nonArchivedCustomers[1] }, refund: 40 },
-      { _id: { customer: nonArchivedCustomers[1], tpp: tpps[1], refund: 50 } },
-      { _id: { customer: nonArchivedCustomers[2], tpp: tpps[0] }, payments: [{ netInclTaxes: 200 }] },
-      { _id: { customer: nonArchivedCustomers[2], tpp: tpps[1] }, payments: [{ netInclTaxes: 130 }] },
+      { _id: { customer: customerId1, tpp: tpps[1] }, billed: 120 },
+      { _id: { customer: customerId1, tpp: tpps[0] }, billed: 450 },
+      { _id: { customer: customerId1 }, refund: 20 },
+      { _id: { customer: customerId2 }, refund: 40 },
+      { _id: { customer: customerId2, tpp: tpps[1], refund: 50 } },
+      { _id: { customer: customerId3, tpp: tpps[0] }, payments: [{ netInclTaxes: 200 }] },
+      { _id: { customer: customerId3, tpp: tpps[1] }, payments: [{ netInclTaxes: 130 }] },
     ]);
     sinon.assert.calledOnceWithExactly(
       findBillsAmountsGroupedByClient,
       credentials.company._id,
-      nonArchivedCustomers,
+      nonArchivedCustomerIds,
       maxDate
     );
     sinon.assert.calledOnceWithExactly(
       findCNAmountsGroupedByCustomer,
       credentials.company._id,
-      nonArchivedCustomers,
+      nonArchivedCustomerIds,
       maxDate
     );
     sinon.assert.calledOnceWithExactly(
       findCNAmountsGroupedByTpp,
       credentials.company._id,
-      nonArchivedCustomers,
+      nonArchivedCustomerIds,
       maxDate
     );
     sinon.assert.calledOnceWithExactly(
       findPaymentsAmountsGroupedByClient,
       credentials.company._id,
-      nonArchivedCustomers,
+      nonArchivedCustomerIds,
       maxDate
     );
     SinonMongoose.calledOnceWithExactly(
@@ -775,14 +779,13 @@ describe('getBalances', () => {
   });
 
   it('should return balances for a customer', async () => {
-    const customerId = nonArchivedCustomers[0];
-    const billsAmountsGroupedByClient = [{ _id: { customer: customerId, tpp: tpps[1] }, billed: 120 }];
-    const cnAmountsGroupedByCustomer = [{ _id: { customer: customerId }, refund: 20 }];
-    const cnAmountsGroupedByTpp = [{ _id: { customer: customerId, tpp: tpps[1], refund: 10 } }];
+    const billsAmountsGroupedByClient = [{ _id: { customer: customerId1, tpp: tpps[1] }, billed: 120 }];
+    const cnAmountsGroupedByCustomer = [{ _id: { customer: customerId1 }, refund: 20 }];
+    const cnAmountsGroupedByTpp = [{ _id: { customer: customerId1, tpp: tpps[1], refund: 10 } }];
     const paymentsAmountsGroupedByClient = [
-      { _id: { customer: customerId, tpp: tpps[1] }, payments: [{ netInclTaxes: 130 }] },
-      { _id: { customer: customerId, tpp: tpps[0] }, payments: [{ netInclTaxes: 200 }] },
-      { _id: { customer: customerId, tpp: tpps[2] }, payments: [{ netInclTaxes: 240 }] },
+      { _id: { customer: customerId1, tpp: tpps[1] }, payments: [{ netInclTaxes: 130 }] },
+      { _id: { customer: customerId1, tpp: tpps[0] }, payments: [{ netInclTaxes: 200 }] },
+      { _id: { customer: customerId1, tpp: tpps[2] }, payments: [{ netInclTaxes: 240 }] },
     ];
 
     findBillsAmountsGroupedByClient.returns(billsAmountsGroupedByClient);
@@ -791,21 +794,26 @@ describe('getBalances', () => {
     findPaymentsAmountsGroupedByClient.returns(paymentsAmountsGroupedByClient);
     findThirdPartyPayer.returns(SinonMongoose.stubChainedQueries(tpps, ['lean']));
 
-    const balances = await BalanceHelper.getBalances(credentials, customerId, maxDate);
+    const balances = await BalanceHelper.getBalances(credentials, customerId1, maxDate);
 
     expect(balances).toEqual([
-      { _id: { customer: customerId, tpp: tpps[1] }, billed: 120 },
-      { _id: { customer: customerId }, refund: 20 },
-      { _id: { customer: customerId, tpp: tpps[0] }, payments: [{ netInclTaxes: 200 }] },
-      { _id: { customer: customerId, tpp: tpps[2] }, payments: [{ netInclTaxes: 240 }] },
+      { _id: { customer: customerId1, tpp: tpps[1] }, billed: 120 },
+      { _id: { customer: customerId1 }, refund: 20 },
+      { _id: { customer: customerId1, tpp: tpps[0] }, payments: [{ netInclTaxes: 200 }] },
+      { _id: { customer: customerId1, tpp: tpps[2] }, payments: [{ netInclTaxes: 240 }] },
     ]);
-    sinon.assert.calledOnceWithExactly(findBillsAmountsGroupedByClient, credentials.company._id, [customerId], maxDate);
-    sinon.assert.calledOnceWithExactly(findCNAmountsGroupedByCustomer, credentials.company._id, [customerId], maxDate);
-    sinon.assert.calledOnceWithExactly(findCNAmountsGroupedByTpp, credentials.company._id, [customerId], maxDate);
+    sinon.assert.calledOnceWithExactly(
+      findBillsAmountsGroupedByClient,
+      credentials.company._id,
+      [customerId1],
+      maxDate
+    );
+    sinon.assert.calledOnceWithExactly(findCNAmountsGroupedByCustomer, credentials.company._id, [customerId1], maxDate);
+    sinon.assert.calledOnceWithExactly(findCNAmountsGroupedByTpp, credentials.company._id, [customerId1], maxDate);
     sinon.assert.calledOnceWithExactly(
       findPaymentsAmountsGroupedByClient,
       credentials.company._id,
-      [customerId],
+      [customerId1],
       maxDate
     );
     sinon.assert.calledOnceWithExactly(
@@ -829,8 +837,8 @@ describe('getBalances', () => {
 
   it('should return balances for customers with only bills', async () => {
     const billsAmountsGroupedByClient = [
-      { _id: { customer: nonArchivedCustomers[0], tpp: tpps[1] }, billed: 120 },
-      { _id: { customer: nonArchivedCustomers[0], tpp: tpps[0] }, billed: 450 },
+      { _id: { customer: customerId1, tpp: tpps[1] }, billed: 120 },
+      { _id: { customer: customerId1, tpp: tpps[0] }, billed: 450 },
     ];
 
     findCustomers.returns(SinonMongoose.stubChainedQueries(nonArchivedCustomers, ['lean']));
@@ -843,8 +851,8 @@ describe('getBalances', () => {
     const balances = await BalanceHelper.getBalances(credentials, null, maxDate);
 
     expect(balances).toEqual([
-      { _id: { customer: nonArchivedCustomers[0], tpp: tpps[1] }, billed: 120 },
-      { _id: { customer: nonArchivedCustomers[0], tpp: tpps[0] }, billed: 450 },
+      { _id: { customer: customerId1, tpp: tpps[1] }, billed: 120 },
+      { _id: { customer: customerId1, tpp: tpps[0] }, billed: 450 },
     ]);
     sinon.assert.calledWithExactly(getBalance.getCall(0), billsAmountsGroupedByClient[0], [], [], [], tpps);
     sinon.assert.calledWithExactly(getBalance.getCall(1), billsAmountsGroupedByClient[1], [], [], [], tpps);
@@ -854,8 +862,8 @@ describe('getBalances', () => {
 
   it('should return balances for customers with only customer credit notes', async () => {
     const cnAmountsGroupedByCustomer = [
-      { _id: { customer: nonArchivedCustomers[0] }, refund: 20 },
-      { _id: { customer: nonArchivedCustomers[1] }, refund: 40 },
+      { _id: { customer: customerId1 }, refund: 20 },
+      { _id: { customer: customerId2 }, refund: 40 },
     ];
 
     findCustomers.returns(SinonMongoose.stubChainedQueries(nonArchivedCustomers, ['lean']));
@@ -868,8 +876,8 @@ describe('getBalances', () => {
     const balances = await BalanceHelper.getBalances(credentials, null, maxDate);
 
     expect(balances).toEqual([
-      { _id: { customer: nonArchivedCustomers[0] }, refund: 20 },
-      { _id: { customer: nonArchivedCustomers[1] }, refund: 40 },
+      { _id: { customer: customerId1 }, refund: 20 },
+      { _id: { customer: customerId2 }, refund: 40 },
     ]);
     sinon.assert.calledWithExactly(getBalancesFromCreditNotes.getCall(0), cnAmountsGroupedByCustomer[0], [], tpps);
     sinon.assert.calledWithExactly(getBalancesFromCreditNotes.getCall(1), cnAmountsGroupedByCustomer[1], [], tpps);
@@ -879,8 +887,8 @@ describe('getBalances', () => {
 
   it('should return balances for customers with only tpp credit notes', async () => {
     const cnAmountsGroupedByTpp = [
-      { _id: { customer: nonArchivedCustomers[0], tpp: tpps[1], refund: 10 } },
-      { _id: { customer: nonArchivedCustomers[1], tpp: tpps[1], refund: 50 } },
+      { _id: { customer: customerId1, tpp: tpps[1], refund: 10 } },
+      { _id: { customer: customerId2, tpp: tpps[1], refund: 50 } },
     ];
 
     findCustomers.returns(SinonMongoose.stubChainedQueries(nonArchivedCustomers, ['lean']));
@@ -893,8 +901,8 @@ describe('getBalances', () => {
     const balances = await BalanceHelper.getBalances(credentials, null, maxDate);
 
     expect(balances).toEqual([
-      { _id: { customer: nonArchivedCustomers[0], tpp: tpps[1], refund: 10 } },
-      { _id: { customer: nonArchivedCustomers[1], tpp: tpps[1], refund: 50 } },
+      { _id: { customer: customerId1, tpp: tpps[1], refund: 10 } },
+      { _id: { customer: customerId2, tpp: tpps[1], refund: 50 } },
     ]);
     sinon.assert.calledWithExactly(getBalancesFromCreditNotes.getCall(0), cnAmountsGroupedByTpp[0], [], tpps);
     sinon.assert.calledWithExactly(getBalancesFromCreditNotes.getCall(1), cnAmountsGroupedByTpp[1], [], tpps);
@@ -904,9 +912,9 @@ describe('getBalances', () => {
 
   it('should return balances for customers with only payments', async () => {
     const paymentsAmountsGroupedByClient = [
-      { _id: { customer: nonArchivedCustomers[2], tpp: tpps[0] }, payments: [{ netInclTaxes: 200 }] },
-      { _id: { customer: nonArchivedCustomers[2], tpp: tpps[1] }, payments: [{ netInclTaxes: 130 }] },
-      { _id: { customer: nonArchivedCustomers[1], tpp: tpps[1] }, payments: [{ netInclTaxes: 145 }] },
+      { _id: { customer: customerId3, tpp: tpps[0] }, payments: [{ netInclTaxes: 200 }] },
+      { _id: { customer: customerId3, tpp: tpps[1] }, payments: [{ netInclTaxes: 130 }] },
+      { _id: { customer: customerId2, tpp: tpps[1] }, payments: [{ netInclTaxes: 145 }] },
     ];
 
     findCustomers.returns(SinonMongoose.stubChainedQueries(nonArchivedCustomers, ['lean']));
@@ -919,9 +927,9 @@ describe('getBalances', () => {
     const balances = await BalanceHelper.getBalances(credentials, null, maxDate);
 
     expect(balances).toEqual([
-      { _id: { customer: nonArchivedCustomers[2], tpp: tpps[0] }, payments: [{ netInclTaxes: 200 }] },
-      { _id: { customer: nonArchivedCustomers[2], tpp: tpps[1] }, payments: [{ netInclTaxes: 130 }] },
-      { _id: { customer: nonArchivedCustomers[1], tpp: tpps[1] }, payments: [{ netInclTaxes: 145 }] },
+      { _id: { customer: customerId3, tpp: tpps[0] }, payments: [{ netInclTaxes: 200 }] },
+      { _id: { customer: customerId3, tpp: tpps[1] }, payments: [{ netInclTaxes: 130 }] },
+      { _id: { customer: customerId2, tpp: tpps[1] }, payments: [{ netInclTaxes: 145 }] },
     ]);
     sinon.assert.calledWithExactly(getBalancesFromPayments.getCall(0), paymentsAmountsGroupedByClient[0], tpps);
     sinon.assert.calledWithExactly(getBalancesFromPayments.getCall(1), paymentsAmountsGroupedByClient[1], tpps);
@@ -931,15 +939,13 @@ describe('getBalances', () => {
   });
 
   it('should return no balance', async () => {
-    const customerId = nonArchivedCustomers[0];
-
     findBillsAmountsGroupedByClient.returns([]);
     findCNAmountsGroupedByCustomer.returns([]);
     findCNAmountsGroupedByTpp.returns([]);
     findPaymentsAmountsGroupedByClient.returns([]);
     findThirdPartyPayer.returns(SinonMongoose.stubChainedQueries([], ['lean']));
 
-    const balances = await BalanceHelper.getBalances(credentials, customerId, maxDate);
+    const balances = await BalanceHelper.getBalances(credentials, customerId1, maxDate);
 
     expect(balances).toEqual([]);
     sinon.assert.notCalled(getBalance);

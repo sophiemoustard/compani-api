@@ -1273,10 +1273,17 @@ describe('formatCourseWithProgress', () => {
         },
         ],
       },
-      slots: [
-        { startDate: '2020-11-03T09:00:00.000Z', endDate: '2020-11-03T12:00:00.000Z', step: stepId, attendances: [] },
-        { startDate: '2020-11-04T09:00:00.000Z', endDate: '2020-11-04T16:01:00.000Z', step: stepId, attendances: [] },
-      ],
+      slots: [{
+        startDate: '2020-11-03T09:00:00.000Z',
+        endDate: '2020-11-03T12:00:00.000Z',
+        step: { _id: stepId },
+        attendances: [],
+      }, {
+        startDate: '2020-11-04T09:00:00.000Z',
+        endDate: '2020-11-04T16:01:00.000Z',
+        step: { _id: stepId },
+        attendances: [],
+      }],
     };
     getProgress.onCall(0).returns({ eLearning: 1 });
     getProgress.onCall(1).returns({
@@ -1343,10 +1350,17 @@ describe('formatCourseWithProgress', () => {
         },
         ],
       },
-      slots: [
-        { startDate: '2020-11-03T09:00:00.000Z', endDate: '2020-11-03T12:00:00.000Z', step: stepId, attendances: [] },
-        { startDate: '2020-11-04T09:00:00.000Z', endDate: '2020-11-04T16:01:00.000Z', step: stepId, attendances: [] },
-      ],
+      slots: [{
+        startDate: '2020-11-03T09:00:00.000Z',
+        endDate: '2020-11-03T12:00:00.000Z',
+        step: { _id: stepId },
+        attendances: [],
+      }, {
+        startDate: '2020-11-04T09:00:00.000Z',
+        endDate: '2020-11-04T16:01:00.000Z',
+        step: { _id: stepId },
+        attendances: [],
+      }],
     };
     getProgress.onCall(0).returns({ eLearning: 1 });
     getProgress.onCall(1).returns({ live: 1 });
@@ -1823,7 +1837,7 @@ describe('getCourse', () => {
     it('should return elearning course for trainee', async () => {
       const authCompanyId = new ObjectId();
       const loggedUser = {
-        _id: ObjectId(),
+        _id: new ObjectId(),
         role: { client: { name: 'client_admin' } },
         company: { _id: authCompanyId },
       };
@@ -1920,7 +1934,7 @@ describe('getCourse', () => {
     it('should return blended course for trainee (no attendance on last slot)', async () => {
       const authCompanyId = new ObjectId();
       const loggedUser = {
-        _id: ObjectId(),
+        _id: new ObjectId(),
         role: { client: { name: 'client_admin' } },
         company: { _id: authCompanyId },
       };
@@ -2073,7 +2087,7 @@ describe('getCourse', () => {
     it('should return blended course for trainee (attendance on last slot)', async () => {
       const authCompanyId = new ObjectId();
       const loggedUser = {
-        _id: ObjectId(),
+        _id: new ObjectId(),
         role: { client: { name: 'client_admin' } },
         company: { _id: authCompanyId },
       };
@@ -2226,7 +2240,7 @@ describe('getCourse', () => {
     it('should return course as trainer', async () => {
       const authCompanyId = new ObjectId();
       const loggedUser = {
-        _id: ObjectId(),
+        _id: new ObjectId(),
         role: { vendor: { name: 'trainer' } },
         company: { _id: authCompanyId },
       };
@@ -3590,7 +3604,7 @@ describe('formatInterCourseForPdf', () => {
     const traineeIds = [new ObjectId(), new ObjectId()];
     const companyId = new ObjectId();
     const course = {
-      _id: ObjectId(),
+      _id: new ObjectId(),
       slots: [
         { startDate: '2020-03-20T09:00:00', endDate: '2020-03-20T11:00:00', step: { type: 'on_site' } },
         { startDate: '2020-04-21T09:00:00', endDate: '2020-04-21T11:30:00', step: { type: 'on_site' } },
@@ -4561,7 +4575,7 @@ describe('removeCourseCompany', () => {
     const credentials = { _id: new ObjectId() };
     const trainingContract = { _id: new ObjectId() };
 
-    findOneTrainingContract.returns(SinonMongoose.stubChainedQueries(trainingContract._id, ['lean']));
+    findOneTrainingContract.returns(SinonMongoose.stubChainedQueries(trainingContract, ['lean']));
 
     await CourseHelper.removeCourseCompany(course._id, companyId, credentials);
 

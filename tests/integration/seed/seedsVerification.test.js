@@ -194,7 +194,7 @@ describe('SEEDS VERIFICATION', () => {
           const stepList = await Step
             .find({ activities: { $in: activityHistoryList.map(ah => ah.activity._id) } })
             .lean();
-          const subProgramList = await SubProgram.find({ step: { $in: stepList.map(s => s._id) } }).lean();
+          const subProgramList = await SubProgram.find({ steps: { $in: stepList.map(s => s._id) } }).lean();
           const courseList = await Course.find({ subProgram: { $in: subProgramList.map(sp => sp._id) } }).lean();
 
           const groupedStepsByActivity = groupBy(

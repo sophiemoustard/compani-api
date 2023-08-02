@@ -650,7 +650,7 @@ describe('formatHistoryForAuxiliaryUpdate', () => {
     const mainInfo = { createdBy: 'james bond', action: 'event_update', event: { type: 'intervention' } };
     const payload = { auxiliary: 'qwertyuiop' };
     const event = { auxiliary: auxiliaryId };
-    find.returns(SinonMongoose.stubChainedQueries([{ _id: auxiliaryId, sector: sectorId }]));
+    find.returns(SinonMongoose.stubChainedQueries([{ _id: auxiliaryId, sector: { _id: sectorId } }]));
 
     const result = await EventHistoryHelper.formatHistoryForAuxiliaryUpdate(mainInfo, payload, event, companyId);
 

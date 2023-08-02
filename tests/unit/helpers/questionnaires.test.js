@@ -752,7 +752,7 @@ describe('getFollowUp', () => {
   it('should return follow up for for all courses', async () => {
     const questionnaireId = new ObjectId();
     const cardsIds = [new ObjectId(), new ObjectId()];
-    const companyId = ObjectId();
+    const companyId = new ObjectId();
     const questionnaire = {
       _id: questionnaireId,
       type: EXPECTATIONS,

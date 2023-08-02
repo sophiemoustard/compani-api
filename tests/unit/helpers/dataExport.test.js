@@ -214,7 +214,7 @@ describe('exportAuxiliaries', () => {
     const userCompanies = [{ user: new ObjectId() }];
 
     findUserCompany.returns(SinonMongoose.stubChainedQueries(userCompanies, ['lean']));
-    findRole.returns(SinonMongoose.stubChainedQueries(roleIds, ['lean']));
+    findRole.returns(SinonMongoose.stubChainedQueries([{ _id: roleIds[0] }, { _id: roleIds[1] }], ['lean']));
     findUser.returns(SinonMongoose.stubChainedQueries([]));
 
     const result = await ExportHelper.exportAuxiliaries(credentials);
