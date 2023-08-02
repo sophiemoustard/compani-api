@@ -19,6 +19,7 @@ const CourseFundingOrganisation = require('../../../src/models/CourseFundingOrga
 const CoursePayment = require('../../../src/models/CoursePayment');
 const CoursePaymentNumber = require('../../../src/models/CoursePaymentNumber');
 const CourseSlot = require('../../../src/models/CourseSlot');
+const CourseSmsHistory = require('../../../src/models/CourseSmsHistory');
 const CourseHistory = require('../../../src/models/CourseHistory');
 const Helper = require('../../../src/models/Helper');
 const Program = require('../../../src/models/Program');
@@ -1262,6 +1263,78 @@ describe('SEEDS VERIFICATION', () => {
           const everyStepIsInCourse = courseSlotList
             .every(cs => cs.step && UtilsHelper.doesArrayIncludeId(cs.course.subProgram.steps, cs.step._id));
           expect(everyStepIsInCourse).toBeTruthy();
+        });
+      });
+
+      describe('Collection CourseSmsHistory', () => {
+        let courseSmsHistoryList;
+        before(async () => {
+          courseSmsHistoryList = await CourseSmsHistory
+            .find({})
+            .populate({ path: 'course', select: 'format type companies trainer' })
+            .populate({
+              path: 'sender',
+              select: 'role',
+              transform,
+              populate: [
+                { path: 'role.vendor', select: 'name' },
+                { path: 'role.client', select: 'name' },
+                { path: 'company' },
+              ],
+            })
+            .populate({ path: 'missingPhones', transform, populate: [{ path: 'userCompanyList' }] })
+            .lean();
+        });
+
+        it('should pass if every course exists and is blended', () => {
+          const areCoursesBlended = courseSmsHistoryList.every(ch => ch.course.format === BLENDED);
+          expect(areCoursesBlended).toBeTruthy();
+        });
+
+        it('should pass if every sender exists and has good role', () => {
+          const haveSendersGoodRole = courseSmsHistoryList
+            .every(ch =>
+              ([CLIENT_ADMIN, COACH].includes(get(ch.sender, 'role.client.name')) && ch.course.type === INTRA) ||
+              ([VENDOR_ADMIN, TRAINING_ORGANISATION_MANAGER, TRAINER].includes(get(ch.sender, 'role.vendor.name')))
+            );
+          expect(haveSendersGoodRole).toBeTruthy();
+        });
+
+        it('should pass if every sender is allowed to access course', () => {
+          const areSendersAllowedToAccessCourse = courseSmsHistoryList
+            .every((ch) => {
+              const vendorRole = get(ch.sender, 'role.vendor.name');
+              if ([VENDOR_ADMIN, TRAINING_ORGANISATION_MANAGER].includes(vendorRole)) return true;
+
+              const { course } = ch;
+              const isCourseTrainer = vendorRole === TRAINER &&
+                UtilsHelper.areObjectIdsEquals(course.trainer, ch.sender._id);
+              if (isCourseTrainer) return true;
+
+              const clientRole = get(ch.sender, 'role.client.name');
+              const isFromCourseCompany = UtilsHelper.doesArrayIncludeId(course.companies, ch.sender.company);
+              if ([CLIENT_ADMIN, COACH].includes(clientRole) && isFromCourseCompany) return true;
+
+              return false;
+            }
+            );
+          expect(areSendersAllowedToAccessCourse).toBeTruthy();
+        });
+
+        it('should pass if every missing phone user exists and is registered to course', async () => {
+          const missingPhonesList = courseSmsHistoryList.map(ch => ch.missingPhones).flat();
+          const missingPhonesAdditionHistories = await CourseHistory
+            .find({ trainee: { $in: missingPhonesList }, action: TRAINEE_ADDITION })
+            .lean();
+          const areMissingPhonesRegisteredToCourse = courseSmsHistoryList
+            .every(ch => ch.missingPhones
+              .every(user => missingPhonesAdditionHistories
+                .find(history => UtilsHelper.areObjectIdsEquals(history.trainee, user._id) &&
+                 UtilsHelper.areObjectIdsEquals(history.course, ch.course._id)
+                )
+              )
+            );
+          expect(areMissingPhonesRegisteredToCourse).toBeTruthy();
         });
       });
 
