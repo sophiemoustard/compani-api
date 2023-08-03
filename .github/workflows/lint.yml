@@ -18,7 +18,7 @@ jobs:
           node-version: 18.17.0
 
       # Install your dependencies
-      - run: npm ci
+      - run: npm install
 
       # Run ESLint
       - run: yarn lint
