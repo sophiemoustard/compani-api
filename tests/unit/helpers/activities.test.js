@@ -107,25 +107,29 @@ describe('addActivity', () => {
         { _id: new ObjectId(), template: 'title_text', title: 'ok' },
       ],
     };
-    const newActivity = {
-      ...activity,
-      _id: new ObjectId(),
-      cards: activity.cards.map(c => ({ ...c, _id: new ObjectId() })),
-    };
+    const newActivityId = new ObjectId();
     getActivity.returns(activity);
-    const cards = activity.cards.map(a => ({ ...a, _id: sinon.match(ObjectId) }));
-    create.returns({ _id: newActivity._id });
+    create.returns({ _id: newActivityId });
 
     await ActivityHelper.addActivity(stepId, { activityId: activity._id });
 
     sinon.assert.calledOnceWithExactly(getActivity, activity._id);
-    sinon.assert.calledOnceWithExactly(insertMany, cards);
-    sinon.assert.calledOnceWithExactly(create, {
-      name: activity.name,
-      type: activity.type,
-      cards: cards.map(c => c._id),
-    });
-    sinon.assert.calledOnceWithExactly(updateOne, { _id: stepId }, { $push: { activities: newActivity._id } });
+    sinon.assert.calledOnceWithExactly(
+      insertMany,
+      [
+        { _id: sinon.match(Object), template: 'transition', title: 'coucou' },
+        { _id: sinon.match(Object), template: 'title_text', title: 'ok' },
+      ]
+    );
+    sinon.assert.calledOnceWithExactly(
+      create,
+      {
+        name: activity.name,
+        type: activity.type,
+        cards: [sinon.match(Object), sinon.match(Object)],
+      }
+    );
+    sinon.assert.calledOnceWithExactly(updateOne, { _id: stepId }, { $push: { activities: newActivityId } });
   });
 });
 

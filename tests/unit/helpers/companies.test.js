@@ -129,7 +129,7 @@ describe('getCompany', () => {
       _id: new ObjectId(),
       name: 'test',
       billingRepresentative: {
-        _id: ObjectId(),
+        _id: new ObjectId(),
         identity: { firstname: 'nono', lastname: 'toto' },
         contact: {},
         local: { email: 'nono@struc.fr' },

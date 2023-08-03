@@ -66,7 +66,7 @@ exports.updateHistoryOnContractUpdate = async (contractId, versionToUpdate, comp
     );
   }
 
-  await SectorHistory.remove({
+  await SectorHistory.deleteMany({
     auxiliary: contract.user,
     endDate: { $gte: contract.startDate, $lte: versionToUpdate.startDate },
   });
@@ -85,7 +85,7 @@ exports.updateHistoryOnContractUpdate = async (contractId, versionToUpdate, comp
 
 exports.updateHistoryOnContractDeletion = async (contract, companyId) => {
   const sectorHistory = await SectorHistory.findOne({ auxiliary: contract.user._id, endDate: null }).lean();
-  await SectorHistory.remove({
+  await SectorHistory.deleteMany({
     auxiliary: contract.user._id,
     company: companyId,
     startDate: { $gte: contract.startDate, $lt: sectorHistory.startDate },

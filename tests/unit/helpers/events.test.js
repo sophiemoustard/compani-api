@@ -1413,41 +1413,43 @@ describe('createEvent', () => {
   });
 
   it('should create repetitions as event is a repetition', async () => {
-    const payload = { type: INTERVENTION, repetition: { frequency: EVERY_WEEK } };
+    const auxiliaryId = new ObjectId();
+    const payload = { type: INTERVENTION, repetition: { frequency: EVERY_WEEK }, auxiliary: auxiliaryId };
     const event = { ...payload, _id: new ObjectId() };
+    const populatedEvent = { type: INTERVENTION, repetition: { frequency: EVERY_WEEK }, _id: new ObjectId() };
 
     isCreationAllowed.returns(true);
     hasConflicts.returns(false);
     createEvent.returns(SinonMongoose.stubChainedQueries(event, ['toObject']));
-    getEvent.returns(event);
+    getEvent.returns(populatedEvent);
     isRepetition.returns(true);
     formatPayloadForRepetitionCreation.returns({
-      ...payload,
+      ...populatedEvent,
       company: companyId,
       repetition: { ...payload.repetition, parentId: event._id },
     });
 
     await EventHelper.createEvent(payload, credentials);
 
-    sinon.assert.calledOnceWithExactly(formatPayloadForRepetitionCreation, event, payload, companyId);
+    sinon.assert.calledOnceWithExactly(isRepetition, { ...payload, company: companyId });
+    SinonMongoose.calledOnceWithExactly(
+      createEvent,
+      [{ query: 'create', args: [{ ...payload, company: companyId }] }, { query: 'toObject' }]
+    );
+    sinon.assert.calledOnceWithExactly(getEvent, event._id, credentials);
+    sinon.assert.calledOnceWithExactly(formatPayloadForRepetitionCreation, populatedEvent, payload, companyId);
     sinon.assert.calledOnceWithExactly(
       createEventHistoryOnCreate,
       {
-        ...payload,
+        ...populatedEvent,
         company: companyId,
         repetition: { ...payload.repetition, parentId: event._id },
         _id: event._id,
       },
       credentials
     );
-    sinon.assert.calledOnceWithExactly(getEvent, event._id, credentials);
-    sinon.assert.calledOnceWithExactly(createRepetitions, event, payload, credentials);
-    sinon.assert.calledOnceWithExactly(populateEventSubscription, event);
-    SinonMongoose.calledOnceWithExactly(
-      createEvent,
-      [{ query: 'create', args: [{ ...payload, company: companyId }] }, { query: 'toObject' }]
-    );
-    sinon.assert.calledOnceWithExactly(isRepetition, { ...payload, company: companyId });
+    sinon.assert.calledOnceWithExactly(createRepetitions, populatedEvent, payload, credentials);
+    sinon.assert.calledOnceWithExactly(populateEventSubscription, populatedEvent);
     sinon.assert.notCalled(findOneUser);
     sinon.assert.notCalled(detachAuxiliaryFromEvent);
   });
@@ -1463,12 +1465,19 @@ describe('createEvent', () => {
       company: new ObjectId(),
     };
     const event = { ...payload, _id: eventId };
+    const populatedEvent = {
+      type: ABSENCE,
+      startDate: '2019-03-20T10:00:00.000Z',
+      endDate: '2019-03-20T12:00:00.000Z',
+      auxiliary: { _id: auxiliaryId, identity: { lastname: 'test' } },
+      company: new ObjectId(),
+    };
     const auxiliary = { _id: auxiliaryId, sector: new ObjectId() };
 
     isCreationAllowed.returns(true);
     isRepetition.returns(false);
     createEvent.returns(SinonMongoose.stubChainedQueries(event, ['toObject']));
-    getEvent.returns(payload);
+    getEvent.returns(populatedEvent);
     findOneUser.returns(SinonMongoose.stubChainedQueries(auxiliary));
 
     await EventHelper.createEvent(payload, credentials);
@@ -1476,7 +1485,7 @@ describe('createEvent', () => {
     sinon.assert.calledOnceWithExactly(createEventHistoryOnCreate, event, credentials);
     sinon.assert.calledOnceWithExactly(
       deleteConflictInternalHoursAndUnavailabilities,
-      payload,
+      populatedEvent,
       auxiliary,
       credentials
     );
@@ -1489,7 +1498,7 @@ describe('createEvent', () => {
     SinonMongoose.calledOnceWithExactly(
       findOneUser,
       [
-        { query: 'findOne', args: [{ _id: event.auxiliary }] },
+        { query: 'findOne', args: [{ _id: auxiliaryId }] },
         { query: 'populate', args: [{ path: 'sector', select: '_id sector', match: { company: companyId } }] },
         { query: 'lean', args: [{ autopopulate: true, virtuals: true }] },
       ]
@@ -1577,7 +1586,7 @@ describe('unassignConflictInterventions', () => {
     formatEventsInConflictQuery.returns(query);
     findEvent.returns(SinonMongoose.stubChainedQueries(events, ['lean']));
 
-    await EventHelper.unassignConflictInterventions(dates, auxiliaryId, credentials);
+    await EventHelper.unassignConflictInterventions(dates, { _id: auxiliaryId }, credentials);
 
     sinon.assert.calledOnceWithExactly(formatEventsInConflictQuery, dates, auxiliaryId, [INTERVENTION], companyId);
     sinon.assert.callCount(updateEvent, events.length);
@@ -2052,7 +2061,7 @@ describe('workingStats', () => {
     const hours = { workedHours: 12 };
     const absencesHours = 3;
     const subId = new ObjectId();
-    const subscriptions = { [subId]: { _id: ObjectId(), service: { _id: ObjectId() } } };
+    const subscriptions = { [subId]: { _id: new ObjectId(), service: { _id: new ObjectId() } } };
 
     getEventsToPayStub.returns([{ auxiliary: { _id: auxiliaryId }, events: [], absences: [] }]);
     getSubscriptionsForPayStub.returns(subscriptions);
@@ -2111,7 +2120,7 @@ describe('workingStats', () => {
     const absencesHours = 3;
     const users = [{ _id: new ObjectId(), user: auxiliaries[0]._id }];
     const subId = new ObjectId();
-    const subscriptions = { [subId]: { _id: ObjectId(), service: { _id: ObjectId() } } };
+    const subscriptions = { [subId]: { _id: new ObjectId(), service: { _id: new ObjectId() } } };
 
     getEventsToPayStub.returns([{ auxiliary: { _id: auxiliaryId }, events: [], absences: [] }]);
     getSubscriptionsForPayStub.returns(subscriptions);
@@ -2163,7 +2172,7 @@ describe('workingStats', () => {
   });
 
   it('should return {} if no contract in auxiliaries', async () => {
-    getSubscriptionsForPayStub.returns([{ _id: ObjectId(), service: { _id: ObjectId() } }]);
+    getSubscriptionsForPayStub.returns([{ _id: new ObjectId(), service: { _id: new ObjectId() } }]);
     getEventsToPayStub.returns([{ auxiliary: { _id: auxiliaryId } }]);
     findUser.returns(SinonMongoose.stubChainedQueries([{ _id: auxiliaryId, firstname: 'toto' }]));
     findDistanceMatrix.returns(SinonMongoose.stubChainedQueries(distanceMatrix, ['lean']));
@@ -2195,7 +2204,7 @@ describe('workingStats', () => {
     const contracts = [{ _id: new ObjectId() }];
 
     getEventsToPayStub.returns([{ auxiliary: { _id: auxiliaryId } }]);
-    getSubscriptionsForPayStub.returns([{ _id: ObjectId(), service: { _id: ObjectId() } }]);
+    getSubscriptionsForPayStub.returns([{ _id: new ObjectId(), service: { _id: new ObjectId() } }]);
     getContractStub.returns();
     findUser.returns(SinonMongoose.stubChainedQueries([{ _id: auxiliaryId, firstname: 'toto', contracts }]));
     findDistanceMatrix.returns(SinonMongoose.stubChainedQueries(distanceMatrix, ['lean']));

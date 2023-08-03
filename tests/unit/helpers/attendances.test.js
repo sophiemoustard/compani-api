@@ -177,7 +177,7 @@ describe('create', () => {
     courseSlotFindById.returns(SinonMongoose.stubChainedQueries({ course }));
     find.returns(
       SinonMongoose
-        .stubChainedQueries([{ courseSlot, trainee: course.trainees[0]._id }], ['setOptions', 'lean'])
+        .stubChainedQueries([{ courseSlot, trainee: course.trainees[0] }], ['setOptions', 'lean'])
     );
     getCompanyAtCourseRegistrationList.returns([
       { trainee: courseTrainees[0], company },
@@ -207,8 +207,8 @@ describe('create', () => {
     sinon.assert.calledOnceWithExactly(
       insertMany,
       [
-        { courseSlot, trainee: course.trainees[1]._id, company },
-        { courseSlot, trainee: course.trainees[2]._id, company },
+        { courseSlot, trainee: course.trainees[1], company },
+        { courseSlot, trainee: course.trainees[2], company },
       ]
     );
     sinon.assert.calledOnceWithExactly(
@@ -235,7 +235,7 @@ describe('create', () => {
     courseSlotFindById.returns(SinonMongoose.stubChainedQueries({ course }));
     find.returns(
       SinonMongoose
-        .stubChainedQueries([{ courseSlot, trainee: course.trainees[0]._id }], ['setOptions', 'lean'])
+        .stubChainedQueries([{ courseSlot, trainee: course.trainees[0] }], ['setOptions', 'lean'])
     );
     getCompanyAtCourseRegistrationList.returns([
       { trainee: courseTrainees[0], company: companies[0] },
@@ -265,8 +265,8 @@ describe('create', () => {
     sinon.assert.calledOnceWithExactly(
       insertMany,
       [
-        { courseSlot, trainee: course.trainees[1]._id, company: companies[1] },
-        { courseSlot, trainee: course.trainees[2]._id, company: companies[2] },
+        { courseSlot, trainee: course.trainees[1], company: companies[1] },
+        { courseSlot, trainee: course.trainees[2], company: companies[2] },
       ]
     );
     sinon.assert.calledOnceWithExactly(
@@ -762,7 +762,7 @@ describe('getTraineeUnsubscribedAttendances', () => {
           course: {
             trainer: { _id: new ObjectId(), identity: { firstname: 'Zinedine', lastname: 'Zidane' } },
             misc: 'équipe 1',
-            subProgram: { _id: ObjectId(), program: { _id: programAId, name: '1000 pompes' } },
+            subProgram: { _id: new ObjectId(), program: { _id: programAId, name: '1000 pompes' } },
           },
           endDate: '2021-11-10T11:30:00.000Z',
           startDate: '2021-11-10T08:00:00.000Z',
@@ -776,7 +776,7 @@ describe('getTraineeUnsubscribedAttendances', () => {
           course: {
             trainer: { _id: new ObjectId(), identity: { firstname: 'Zinedine', lastname: 'Zidane' } },
             misc: 'équipe 1',
-            subProgram: { _id: ObjectId(), program: { _id: programAId, name: '1000 pompes' } },
+            subProgram: { _id: new ObjectId(), program: { _id: programAId, name: '1000 pompes' } },
           },
           endDate: '2021-12-24T11:30:00.000Z',
           startDate: '2021-12-24T08:00:00.000Z',
@@ -790,7 +790,7 @@ describe('getTraineeUnsubscribedAttendances', () => {
           course: {
             trainer: { _id: new ObjectId(), identity: { firstname: 'Didier', lastname: 'Deschamps' } },
             misc: 'équipe 2',
-            subProgram: { _id: ObjectId(), program: { _id: programBId, name: '2 tractions' } },
+            subProgram: { _id: new ObjectId(), program: { _id: programBId, name: '2 tractions' } },
           },
           endDate: '2022-01-27T11:30:00.000Z',
           startDate: '2022-01-27T08:00:00.000Z',

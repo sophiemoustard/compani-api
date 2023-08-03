@@ -400,7 +400,7 @@ describe('exportCourseHistory', () => {
 
   it('should return an empty array if no course', async () => {
     findCourseSlot.returns(SinonMongoose.stubChainedQueries(courseSlotList, ['lean']));
-    findCourse.returns(SinonMongoose.stubChainedQueries([]));
+    findCourse.returns(SinonMongoose.stubChainedQueries([], ['select', 'populate', 'lean']));
 
     const result = await ExportHelper.exportCourseHistory('2021-01-14T23:00:00.000Z', '2022-01-20T22:59:59.000Z', credentials);
 
@@ -428,9 +428,9 @@ describe('exportCourseHistory', () => {
                 archivedAt: { $exists: false },
               },
             ],
-            select: '_id type misc estimatedStartDate',
           }],
         },
+        { query: 'select', args: ['_id type misc estimatedStartDate expectedBillsCount'] },
         { query: 'populate', args: [{ path: 'companies', select: 'name' }] },
         {
           query: 'populate',
@@ -500,9 +500,10 @@ describe('exportCourseHistory', () => {
 
   it('should return an array with the header and 4 rows', async () => {
     findCourseSlot.returns(SinonMongoose.stubChainedQueries(courseSlotList, ['lean']));
-    findCourse.returns(SinonMongoose.stubChainedQueries(courseList));
-    findQuestionnaireHistory
-      .returns(SinonMongoose.stubChainedQueries(questionnaireHistoriesList, ['populate', 'setOptions', 'lean']));
+    findCourse.returns(SinonMongoose.stubChainedQueries(courseList, ['select', 'populate', 'lean']));
+    findQuestionnaireHistory.returns(
+      SinonMongoose.stubChainedQueries(questionnaireHistoriesList, ['select', 'populate', 'setOptions', 'lean'])
+    );
     findCourseHistory.returns(SinonMongoose.stubChainedQueries(estimatedStartDateHistoriesList));
     groupSlotsByDate.onCall(0).returns([[courseSlotList[0], courseSlotList[1]]]);
     groupSlotsByDate.onCall(1).returns([[courseSlotList[2]], [courseSlotList[3]]]);
@@ -516,11 +517,11 @@ describe('exportCourseHistory', () => {
     getTotalDurationForExport.onCall(4).returns('2,00');
     findCourseSmsHistory.returns(SinonMongoose.stubChainedQueries(
       [{ course: courseList[0]._id }, { course: courseList[0]._id }, { course: courseList[1]._id }],
-      ['lean']
+      ['select', 'lean']
     ));
     findAttendanceSheet.returns(SinonMongoose.stubChainedQueries(
       [{ course: courseList[0]._id }],
-      ['setOptions', 'lean']
+      ['select', 'setOptions', 'lean']
     ));
     getTraineesWithElearningProgress.onCall(0).returns([
       { _id: traineeList[0]._id, firstMobileConnection: traineeList[0].firstMobileConnection, steps: [], progress: {} },
@@ -797,9 +798,9 @@ describe('exportCourseHistory', () => {
                 archivedAt: { $exists: false },
               },
             ],
-            select: '_id type misc estimatedStartDate',
           }],
         },
+        { query: 'select', args: ['_id type misc estimatedStartDate expectedBillsCount'] },
         { query: 'populate', args: [{ path: 'companies', select: 'name' }] },
         {
           query: 'populate',
@@ -861,7 +862,8 @@ describe('exportCourseHistory', () => {
     SinonMongoose.calledOnceWithExactly(
       findQuestionnaireHistory,
       [
-        { query: 'find', args: [{ course: { $in: courseIdList }, select: 'course questionnaire' }] },
+        { query: 'find', args: [{ course: { $in: courseIdList } }] },
+        { query: 'select', args: ['course questionnaire'] },
         { query: 'populate', args: [{ path: 'questionnaire', select: 'type' }] },
         { query: 'setOptions', args: [{ isVendorUser: true }] },
         { query: 'lean' },
@@ -869,12 +871,17 @@ describe('exportCourseHistory', () => {
     );
     SinonMongoose.calledOnceWithExactly(
       findCourseSmsHistory,
-      [{ query: 'find', args: [{ course: { $in: courseIdList }, select: 'course' }] }, { query: 'lean' }]
+      [
+        { query: 'find', args: [{ course: { $in: courseIdList } }] },
+        { query: 'select', args: ['course'] },
+        { query: 'lean' },
+      ]
     );
     SinonMongoose.calledOnceWithExactly(
       findAttendanceSheet,
       [
-        { query: 'find', args: [{ course: { $in: courseIdList }, select: 'course' }] },
+        { query: 'find', args: [{ course: { $in: courseIdList } }] },
+        { query: 'select', args: ['course'] },
         {
           query: 'setOptions',
           args: [{

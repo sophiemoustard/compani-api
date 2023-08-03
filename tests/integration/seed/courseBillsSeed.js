@@ -38,7 +38,7 @@ const vendorCompany = {
 };
 
 const companyWithoutAddress = {
-  _id: ObjectId(),
+  _id: new ObjectId(),
   name: 'Structure sans adresse',
   prefixNumber: 45,
   folderId: '0987654321',

@@ -14,6 +14,7 @@ const EventsHelper = require('../../../src/helpers/events');
 const EventsRepetitionHelper = require('../../../src/helpers/eventsRepetition');
 const EventsValidationHelper = require('../../../src/helpers/eventsValidation');
 const CustomerAbsencesHelper = require('../../../src/helpers/customerAbsences');
+const UtilsHelper = require('../../../src/helpers/utils');
 const RepetitionHelper = require('../../../src/helpers/repetitions');
 const {
   INTERVENTION,
@@ -59,7 +60,7 @@ describe('formatRepeatedPayload', () => {
     expect(result).toBeDefined();
     expect(result.startDate).toEqual(new Date('2019-07-16T22:00:00.000Z'));
     expect(result.endDate).toEqual(new Date('2019-07-17T22:00:00.000Z'));
-    expect(result.auxiliary).toEqual(auxiliaryId);
+    expect(UtilsHelper.areObjectIdsEquals(result.auxiliary, auxiliaryId)).toBeTruthy();
     sinon.assert.calledWithExactly(hasConflicts, payload);
     sinon.assert.calledOnceWithExactly(isAbsent, event.customer, payload.startDate);
   });
@@ -88,7 +89,7 @@ describe('formatRepeatedPayload', () => {
     expect(result.startDate).toEqual(new Date('2019-07-16T22:00:00.000Z'));
     expect(result.endDate).toEqual(new Date('2019-07-17T22:00:00.000Z'));
     expect(result.auxiliary).toBeUndefined();
-    expect(result.sector).toEqual(sector);
+    expect(UtilsHelper.areObjectIdsEquals(result.sector, sector)).toBeTruthy();
     expect(result.repetition.frequency).toEqual('never');
     sinon.assert.calledWithExactly(hasConflicts, payload);
   });
@@ -140,7 +141,7 @@ describe('formatRepeatedPayload', () => {
 
     expect(result).toBeDefined();
     expect(result.auxiliary).toBeUndefined();
-    expect(result.sector).toEqual(sector);
+    expect(UtilsHelper.areObjectIdsEquals(sector, result.sector)).toBeTruthy();
     sinon.assert.calledWithExactly(hasConflicts, payload);
   });
 
@@ -454,7 +455,11 @@ describe('createRepetitions', () => {
     const companyId = new ObjectId();
     const credentials = { company: { _id: companyId } };
     const payload = { _id: '1234567890', repetition: { frequency: 'every_day', parentId: '0987654321' } };
-    const event = new Event({ repetition: { frequency: EVERY_WEEK }, company: new ObjectId(), auxiliary: auxiliaryId });
+    const event = {
+      repetition: { frequency: EVERY_WEEK },
+      company: new ObjectId(),
+      auxiliary: { _id: auxiliaryId },
+    };
 
     findOne.returns(SinonMongoose.stubChainedQueries({ _id: auxiliaryId, sector: sectorId }));
     formatPayloadForRepetitionCreation.returns({
@@ -490,7 +495,7 @@ describe('createRepetitions', () => {
       repetition: { frequency: 'every_day', parentId: '0987654321' },
       startDate: '2019-01-15T09:00:00.000Z',
     };
-    const event = new Event({ company: new ObjectId(), auxiliary: auxiliaryId });
+    const event = { company: new ObjectId(), auxiliary: { _id: auxiliaryId } };
     const range = ['2019-01-15T09:00:00.000Z', '2019-01-16T09:00:00.000Z', '2019-01-17T09:00:00.000Z',
       '2019-01-18T09:00:00.000Z', '2019-01-19T09:00:00.000Z', '2019-01-20T09:00:00.000Z', '2019-01-21T09:00:00.000Z'];
 
@@ -537,7 +542,7 @@ describe('createRepetitions', () => {
       repetition: { frequency: 'every_week_day', parentId: '0987654321' },
       startDate: '2019-01-15T09:00:00.000Z',
     };
-    const event = new Event({ company: new ObjectId(), sector: sectorId });
+    const event = { company: new ObjectId(), sector: sectorId };
 
     formatPayloadForRepetitionCreation.returns({
       ...payload,
@@ -577,7 +582,7 @@ describe('createRepetitions', () => {
       repetition: { frequency: 'every_week', parentId: '0987654321' },
       startDate: '2019-01-15T09:00:00.000Z',
     };
-    const event = new Event({ company: new ObjectId(), sector: sectorId });
+    const event = { company: new ObjectId(), sector: sectorId };
 
     formatPayloadForRepetitionCreation.returns({
       ...payload,
@@ -604,7 +609,7 @@ describe('createRepetitions', () => {
       repetition: { frequency: 'every_two_weeks', parentId: '0987654321' },
       startDate: '2019-01-15T09:00:00.000Z',
     };
-    const event = new Event({ company: new ObjectId(), sector: sectorId });
+    const event = { company: new ObjectId(), sector: sectorId };
 
     formatPayloadForRepetitionCreation.returns({
       ...payload,

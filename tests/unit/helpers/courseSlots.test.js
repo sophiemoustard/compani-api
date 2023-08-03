@@ -5,6 +5,7 @@ const { ObjectId } = require('mongodb');
 const CourseSlot = require('../../../src/models/CourseSlot');
 const CourseSlotsHelper = require('../../../src/helpers/courseSlots');
 const CourseHistoriesHelper = require('../../../src/helpers/courseHistories');
+const UtilsHelper = require('../../../src/helpers/utils');
 const SinonMongoose = require('../sinonMongoose');
 const { REMOTE, ON_SITE } = require('../../../src/helpers/constants');
 
@@ -75,7 +76,7 @@ describe('createCourseSlot', () => {
     const newSlot = { course: new ObjectId(), step: new ObjectId() };
 
     const result = await CourseSlotsHelper.createCourseSlot(newSlot);
-    expect(result.course).toEqual(newSlot.course);
+    expect(UtilsHelper.areObjectIdsEquals(result.course, newSlot.course)).toBeTruthy();
   });
 });
 

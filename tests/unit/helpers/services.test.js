@@ -3,6 +3,7 @@ const { expect } = require('expect');
 const { ObjectId } = require('mongodb');
 const Service = require('../../../src/models/Service');
 const ServiceHelper = require('../../../src/helpers/services');
+const UtilsHelper = require('../../../src/helpers/utils');
 const SinonMongoose = require('../sinonMongoose');
 
 describe('list', () => {
@@ -51,8 +52,8 @@ describe('create', () => {
   it('should create a service', async () => {
     const result = await ServiceHelper.create(companyId, { nature: 'hourly' });
 
-    expect(result.nature).toBe('hourly');
-    expect(result.company).toBe(companyId);
+    expect(result.nature).toEqual('hourly');
+    expect(UtilsHelper.areObjectIdsEquals(result.company, companyId)).toBeTruthy();
     sinon.assert.calledOnce(save);
   });
 });

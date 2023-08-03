@@ -50,7 +50,7 @@ describe('list', () => {
     const secondUserId = new ObjectId();
     const activityHistories = [
       {
-        user: firstUserId,
+        user: { _id: firstUserId },
         activity: {
           steps: [
             {
@@ -63,9 +63,9 @@ describe('list', () => {
           ],
         },
       },
-      { user: firstUserId, activity: { steps: [] } },
+      { user: { _id: firstUserId }, activity: { steps: [] } },
       {
-        user: secondUserId,
+        user: { _id: secondUserId },
         activity: {
           steps: [{
             subPrograms: [{
@@ -76,7 +76,7 @@ describe('list', () => {
         },
       }];
     const filteredActivityHistories = {
-      user: firstUserId,
+      user: { _id: firstUserId },
       activity: {
         steps: [{
           subPrograms: [{
