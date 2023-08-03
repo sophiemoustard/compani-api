@@ -1,4 +1,4 @@
-name: Test ESLint
+name: ESLint
 
 on:
   - pull_request
@@ -18,7 +18,7 @@ jobs:
           node-version: 18.17.0
 
       # Install your dependencies
-      - run: npm install
+      - run: yarn install
 
       # Run ESLint
       - run: yarn lint
