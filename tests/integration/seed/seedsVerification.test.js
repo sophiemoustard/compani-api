@@ -1282,7 +1282,6 @@ describe('SEEDS VERIFICATION', () => {
                 { path: 'company' },
               ],
             })
-            .populate({ path: 'missingPhones', transform, populate: [{ path: 'userCompanyList' }] })
             .lean();
         });
 
@@ -1316,13 +1315,12 @@ describe('SEEDS VERIFICATION', () => {
               if ([CLIENT_ADMIN, COACH].includes(clientRole) && isFromCourseCompany) return true;
 
               return false;
-            }
-            );
+            });
           expect(areSendersAllowedToAccessCourse).toBeTruthy();
         });
 
         it('should pass if every missing phone user exists and is registered to course', async () => {
-          const missingPhonesList = courseSmsHistoryList.map(ch => ch.missingPhones).flat();
+          const missingPhonesList = courseSmsHistoryList.flatMap(ch => ch.missingPhones);
           const missingPhonesAdditionHistories = await CourseHistory
             .find({ trainee: { $in: missingPhonesList }, action: TRAINEE_ADDITION })
             .lean();
@@ -1330,7 +1328,7 @@ describe('SEEDS VERIFICATION', () => {
             .every(ch => ch.missingPhones
               .every(user => missingPhonesAdditionHistories
                 .find(history => UtilsHelper.areObjectIdsEquals(history.trainee, user._id) &&
-                 UtilsHelper.areObjectIdsEquals(history.course, ch.course._id)
+                  UtilsHelper.areObjectIdsEquals(history.course, ch.course._id)
                 )
               )
             );
