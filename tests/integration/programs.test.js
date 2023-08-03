@@ -452,7 +452,7 @@ describe('PROGRAMS ROUTES - POST /programs/{_id}/subprogram', () => {
   });
 });
 
-describe('PROGRAMS ROUTES - POST /programs/:id/upload #tag', () => {
+describe('PROGRAMS ROUTES - POST /programs/:id/upload', () => {
   let authToken;
   let uploadProgramMediaStub;
   const program = programsList[0];

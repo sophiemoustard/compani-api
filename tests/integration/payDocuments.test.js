@@ -25,7 +25,7 @@ describe('NODE ENV', () => {
   });
 });
 
-describe('PAY DOCUMENTS - POST /paydocuments #tag', () => {
+describe('PAY DOCUMENTS - POST /paydocuments', () => {
   let authToken;
   let addStub;
   let addFileStub;

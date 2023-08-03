@@ -247,7 +247,7 @@ describe('COMPANIES ROUTES - PUT /companies/:id', () => {
   });
 });
 
-describe('COMPANIES ROUTES - POST /{_id}/gdrive/{driveId}/upload #tag', () => {
+describe('COMPANIES ROUTES - POST /{_id}/gdrive/{driveId}/upload', () => {
   let authToken;
   const fakeDriveId = 'fakeDriveId';
   let addStub;

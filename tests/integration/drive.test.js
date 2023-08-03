@@ -20,7 +20,7 @@ describe('NODE ENV', () => {
   });
 });
 
-describe('GOOGLE DRIVE ROUTES - POST /gdrive/:id/upload #tag', () => {
+describe('GOOGLE DRIVE ROUTES - POST /gdrive/:id/upload', () => {
   let authToken;
   const userFolderId = auxiliary.administrative.driveFolder.driveId;
   let addFileStub;

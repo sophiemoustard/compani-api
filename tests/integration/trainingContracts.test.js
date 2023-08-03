@@ -24,7 +24,7 @@ describe('NODE ENV', () => {
   });
 });
 
-describe('TRAINING CONTRACTS ROUTES - POST /trainingcontracts #tag', () => {
+describe('TRAINING CONTRACTS ROUTES - POST /trainingcontracts', () => {
   let authToken;
   let uploadCourseFileStub;
 

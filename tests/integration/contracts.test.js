@@ -820,7 +820,7 @@ describe('CONTRACTS ROUTES - GET contracts/staff-register', () => {
   });
 });
 
-describe('CONTRACTS ROUTES - GET /{_id}/gdrive/{driveId}/upload #tag', () => {
+describe('CONTRACTS ROUTES - GET /{_id}/gdrive/{driveId}/upload', () => {
   const fakeDriveId = 'fakeDriveId';
   let addStub;
   let getFileByIdStub;

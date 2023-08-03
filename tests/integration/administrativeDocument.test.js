@@ -15,7 +15,7 @@ describe('NODE ENV', () => {
   });
 });
 
-describe('ADMINISTRATIVE DOCUMENT ROUTES - GET /administrativedocuments #tag', () => {
+describe('ADMINISTRATIVE DOCUMENT ROUTES - GET /administrativedocuments', () => {
   let authToken;
   beforeEach(populateDB);
 
@@ -59,7 +59,7 @@ describe('ADMINISTRATIVE DOCUMENT ROUTES - GET /administrativedocuments #tag', (
   });
 });
 
-describe('ADMINISTRATIVE DOCUMENT ROUTES - POST /administrativedocuments #tag', () => {
+describe('ADMINISTRATIVE DOCUMENT ROUTES - POST /administrativedocuments', () => {
   let authToken;
   beforeEach(populateDB);
 
@@ -139,7 +139,7 @@ describe('ADMINISTRATIVE DOCUMENT ROUTES - POST /administrativedocuments #tag', 
   });
 });
 
-describe('ADMINISTRATIVE DOCUMENT ROUTES - DELETE /administrativedocuments #tag', () => {
+describe('ADMINISTRATIVE DOCUMENT ROUTES - DELETE /administrativedocuments', () => {
   let authToken;
   beforeEach(populateDB);
 

@@ -2029,7 +2029,7 @@ describe('USERS ROUTES - PUT /users/:id/certificates', () => {
   });
 });
 
-describe('USERS ROUTES - POST /users/:id/gdrive/:drive_id/upload #tag', () => {
+describe('USERS ROUTES - POST /users/:id/gdrive/:drive_id/upload', () => {
   let authToken;
   let docPayload;
   let form;
@@ -2142,7 +2142,7 @@ describe('USERS ROUTES - POST /users/:id/gdrive/:drive_id/upload #tag', () => {
   });
 });
 
-describe('USERS ROUTES - POST /users/:id/upload #tag', () => {
+describe('USERS ROUTES - POST /users/:id/upload', () => {
   let authToken;
   let uploadUserMediaStub;
   beforeEach(() => {

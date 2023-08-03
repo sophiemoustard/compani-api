@@ -142,7 +142,7 @@ describe('TAX CERTIFICATES ROUTES - GET /{_id}/pdf', () => {
   });
 });
 
-describe('TAX CERTIFICATES ROUTES - POST / #tag', () => {
+describe('TAX CERTIFICATES ROUTES - POST /', () => {
   let authToken;
   describe('COACH', () => {
     let addStub;

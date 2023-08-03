@@ -19,7 +19,7 @@ describe('NODE ENV', () => {
   });
 });
 
-describe('ATTENDANCE SHEETS ROUTES - POST /attendancesheets #tag', () => {
+describe('ATTENDANCE SHEETS ROUTES - POST /attendancesheets', () => {
   let authToken;
   let uploadCourseFile;
   describe('TRAINER', () => {

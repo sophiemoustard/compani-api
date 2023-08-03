@@ -2570,7 +2570,7 @@ describe('CUSTOMERS FUNDINGS ROUTES', () => {
   });
 });
 
-describe('CUSTOMERS FILE UPLOAD ROUTES #tag', () => {
+describe('CUSTOMERS FILE UPLOAD ROUTES', () => {
   let authToken;
   beforeEach(populateDB);
 

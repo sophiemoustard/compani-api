@@ -792,7 +792,7 @@ describe('CARDS ROUTES - DELETE /cards/{_id}/answers/{answerId}', () => {
   });
 });
 
-describe('CARDS ROUTES - POST /cards/:id/upload #tag', () => {
+describe('CARDS ROUTES - POST /cards/:id/upload', () => {
   let authToken;
   let uploadProgramMediaStub;
   beforeEach(() => {

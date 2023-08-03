@@ -48,7 +48,7 @@ describe('formatEventSurchargesForPdf', () => {
   });
 });
 
-describe('generatePdf #tag', () => {
+describe('generatePdf', () => {
   let createPdfKitDocument;
   let deleteImages;
 
