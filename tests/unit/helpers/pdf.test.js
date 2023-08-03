@@ -1,7 +1,6 @@
 const sinon = require('sinon');
 const { expect } = require('expect');
 const PdfPrinter = require('pdfmake');
-const getStream = require('get-stream');
 const PdfHelper = require('../../../src/helpers/pdf');
 const FileHelper = require('../../../src/helpers/file');
 
@@ -49,37 +48,31 @@ describe('formatEventSurchargesForPdf', () => {
   });
 });
 
-describe('generatePdf', () => {
+describe('generatePdf #tag', () => {
   let createPdfKitDocument;
-  let buffer;
   let deleteImages;
 
   beforeEach(() => {
     createPdfKitDocument = sinon.stub(PdfPrinter.prototype, 'createPdfKitDocument');
-    buffer = sinon.stub(getStream, 'buffer');
     deleteImages = sinon.stub(FileHelper, 'deleteImages');
   });
 
   afterEach(() => {
     createPdfKitDocument.restore();
-    buffer.restore();
     deleteImages.restore();
   });
 
   it('should generate pdf', async () => {
     const template = { content: [{ text: 'test' }] };
     const doc = { end: sinon.stub() };
-    const pdf = Buffer;
     const images = ['/data/pdf/tmp/aux-pouce.png', '/data/pdf/tmp/doct-explication.png'];
 
     createPdfKitDocument.returns(doc);
-    buffer.returns(pdf);
 
     const result = await PdfHelper.generatePdf(template, images);
 
-    expect(result).toBe(pdf);
+    expect(result).toBe(doc);
     sinon.assert.calledOnceWithExactly(createPdfKitDocument, template);
-    sinon.assert.calledOnceWithExactly(buffer, doc);
     sinon.assert.calledOnceWithExactly(deleteImages, images);
   });
 });

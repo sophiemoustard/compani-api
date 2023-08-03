@@ -3,7 +3,6 @@ const { expect } = require('expect');
 const sinon = require('sinon');
 const get = require('lodash/get');
 const fs = require('fs');
-const GetStream = require('get-stream');
 const path = require('path');
 const cloneDeep = require('lodash/cloneDeep');
 const omit = require('lodash/omit');
@@ -23,7 +22,7 @@ const {
   otherContractUser,
   contractUserCompanies,
 } = require('./seed/contractsSeed');
-const { generateFormData } = require('./utils');
+const { generateFormData, getStream } = require('./utils');
 const { getToken } = require('./helpers/authentication');
 const { authCompany } = require('../seed/authCompaniesSeed');
 const EsignHelper = require('../../src/helpers/eSign');
@@ -821,7 +820,7 @@ describe('CONTRACTS ROUTES - GET contracts/staff-register', () => {
   });
 });
 
-describe('CONTRACTS ROUTES - GET /{_id}/gdrive/{driveId}/upload', () => {
+describe('CONTRACTS ROUTES - GET /{_id}/gdrive/{driveId}/upload #tag', () => {
   const fakeDriveId = 'fakeDriveId';
   let addStub;
   let getFileByIdStub;
@@ -856,7 +855,7 @@ describe('CONTRACTS ROUTES - GET /{_id}/gdrive/{driveId}/upload', () => {
       const response = await app.inject({
         method: 'POST',
         url: `/contracts/${contractsList[0]._id}/gdrive/${fakeDriveId}/upload`,
-        payload: await GetStream(form),
+        payload: await getStream(form),
         headers: { ...form.getHeaders(), Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -889,7 +888,7 @@ describe('CONTRACTS ROUTES - GET /{_id}/gdrive/{driveId}/upload', () => {
         const response = await app.inject({
           method: 'POST',
           url: `/contracts/${contractsList[0]._id}/gdrive/${fakeDriveId}/upload`,
-          payload: await GetStream(form),
+          payload: await getStream(form),
           headers: { ...form.getHeaders(), Cookie: `alenvi_token=${authToken}` },
         });
 

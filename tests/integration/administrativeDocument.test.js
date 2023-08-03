@@ -1,14 +1,13 @@
 const { expect } = require('expect');
 const omit = require('lodash/omit');
 const sinon = require('sinon');
-const GetStream = require('get-stream');
 const AdministrativeDocument = require('../../src/models/AdministrativeDocument');
 const app = require('../../server');
 const Drive = require('../../src/models/Google/Drive');
 const { populateDB, administrativeDocumentsList } = require('./seed/administrativeDocumentSeed');
 const { getToken } = require('./helpers/authentication');
 const { authCompany } = require('../seed/authCompaniesSeed');
-const { generateFormData } = require('./utils');
+const { generateFormData, getStream } = require('./utils');
 
 describe('NODE ENV', () => {
   it('should be \'test\'', () => {
@@ -16,7 +15,7 @@ describe('NODE ENV', () => {
   });
 });
 
-describe('ADMINISTRATIVE DOCUMENT ROUTES - GET /administrativedocuments', () => {
+describe('ADMINISTRATIVE DOCUMENT ROUTES - GET /administrativedocuments #tag', () => {
   let authToken;
   beforeEach(populateDB);
 
@@ -60,7 +59,7 @@ describe('ADMINISTRATIVE DOCUMENT ROUTES - GET /administrativedocuments', () => 
   });
 });
 
-describe('ADMINISTRATIVE DOCUMENT ROUTES - POST /administrativedocuments', () => {
+describe('ADMINISTRATIVE DOCUMENT ROUTES - POST /administrativedocuments #tag', () => {
   let authToken;
   beforeEach(populateDB);
 
@@ -86,7 +85,7 @@ describe('ADMINISTRATIVE DOCUMENT ROUTES - POST /administrativedocuments', () =>
       const response = await app.inject({
         method: 'POST',
         url: '/administrativedocuments',
-        payload: await GetStream(form),
+        payload: await getStream(form),
         headers: { ...form.getHeaders(), Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -107,7 +106,7 @@ describe('ADMINISTRATIVE DOCUMENT ROUTES - POST /administrativedocuments', () =>
           method: 'POST',
           url: '/administrativedocuments',
           headers: { ...form.getHeaders(), Cookie: `alenvi_token=${authToken}` },
-          payload: await GetStream(form),
+          payload: await getStream(form),
         });
 
         expect(response.statusCode).toBe(400);
@@ -130,7 +129,7 @@ describe('ADMINISTRATIVE DOCUMENT ROUTES - POST /administrativedocuments', () =>
         const response = await app.inject({
           method: 'POST',
           url: '/administrativedocuments',
-          payload: await GetStream(form),
+          payload: await getStream(form),
           headers: { ...form.getHeaders(), Cookie: `alenvi_token=${authToken}` },
         });
 
@@ -140,7 +139,7 @@ describe('ADMINISTRATIVE DOCUMENT ROUTES - POST /administrativedocuments', () =>
   });
 });
 
-describe('ADMINISTRATIVE DOCUMENT ROUTES - DELETE /administrativedocuments', () => {
+describe('ADMINISTRATIVE DOCUMENT ROUTES - DELETE /administrativedocuments #tag', () => {
   let authToken;
   beforeEach(populateDB);
 

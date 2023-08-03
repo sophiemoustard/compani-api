@@ -1,5 +1,4 @@
 const { expect } = require('expect');
-const GetStream = require('get-stream');
 const sinon = require('sinon');
 const omit = require('lodash/omit');
 const { ObjectId } = require('mongodb');
@@ -8,7 +7,7 @@ const Card = require('../../src/models/Card');
 const GCloudStorageHelper = require('../../src/helpers/gCloudStorage');
 const { populateDB, cardsList } = require('./seed/cardsSeed');
 const { getToken } = require('./helpers/authentication');
-const { generateFormData } = require('./utils');
+const { generateFormData, getStream } = require('./utils');
 
 describe('NODE ENV', () => {
   it('should be \'test\'', () => {
@@ -793,7 +792,7 @@ describe('CARDS ROUTES - DELETE /cards/{_id}/answers/{answerId}', () => {
   });
 });
 
-describe('CARDS ROUTES - POST /cards/:id/upload', () => {
+describe('CARDS ROUTES - POST /cards/:id/upload #tag', () => {
   let authToken;
   let uploadProgramMediaStub;
   beforeEach(() => {
@@ -813,7 +812,7 @@ describe('CARDS ROUTES - POST /cards/:id/upload', () => {
       const form = generateFormData({ fileName: 'title_text_media', file: 'true' });
       uploadProgramMediaStub.returns({ link: 'https://gcp/BucketKFC/my', publicId: 'media-ttm' });
 
-      const payload = await GetStream(form);
+      const payload = await getStream(form);
       const response = await app.inject({
         method: 'POST',
         url: `/cards/${cardsList[0]._id}/upload`,
@@ -836,7 +835,7 @@ describe('CARDS ROUTES - POST /cards/:id/upload', () => {
         const response = await app.inject({
           method: 'POST',
           url: `/cards/${cardsList[0]._id}/upload`,
-          payload: await GetStream(invalidForm),
+          payload: await getStream(invalidForm),
           headers: { ...invalidForm.getHeaders(), Cookie: `alenvi_token=${authToken}` },
         });
 
@@ -861,7 +860,7 @@ describe('CARDS ROUTES - POST /cards/:id/upload', () => {
         const response = await app.inject({
           method: 'POST',
           url: `/cards/${cardsList[0]._id}/upload`,
-          payload: await GetStream(form),
+          payload: await getStream(form),
           headers: { ...form.getHeaders(), Cookie: `alenvi_token=${authToken}` },
         });
 

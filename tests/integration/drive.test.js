@@ -1,6 +1,5 @@
 const { expect } = require('expect');
 const omit = require('lodash/omit');
-const GetStream = require('get-stream');
 const path = require('path');
 const fs = require('fs');
 const sinon = require('sinon');
@@ -9,7 +8,7 @@ const GDriveStorageHelper = require('../../src/helpers/gDriveStorage');
 const DriveHelper = require('../../src/helpers/drive');
 const DocxHelper = require('../../src/helpers/docx');
 const Drive = require('../../src/models/Google/Drive');
-const { generateFormData } = require('./utils');
+const { generateFormData, getStream } = require('./utils');
 const { getTokenByCredentials } = require('./helpers/authentication');
 const { noRoleNoCompany } = require('../seed/authUsersSeed');
 const { auxiliary, populateDB } = require('./seed/driveSeed');
@@ -21,7 +20,7 @@ describe('NODE ENV', () => {
   });
 });
 
-describe('GOOGLE DRIVE ROUTES - POST /gdrive/:id/upload', () => {
+describe('GOOGLE DRIVE ROUTES - POST /gdrive/:id/upload #tag', () => {
   let authToken;
   const userFolderId = auxiliary.administrative.driveFolder.driveId;
   let addFileStub;
@@ -53,7 +52,7 @@ describe('GOOGLE DRIVE ROUTES - POST /gdrive/:id/upload', () => {
       const response = await app.inject({
         method: 'POST',
         url: `/gdrive/${userFolderId}/upload`,
-        payload: await GetStream(form),
+        payload: await getStream(form),
         headers: { ...form.getHeaders(), Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -77,7 +76,7 @@ describe('GOOGLE DRIVE ROUTES - POST /gdrive/:id/upload', () => {
         const response = await app.inject({
           method: 'POST',
           url: `/gdrive/${userFolderId}/upload`,
-          payload: await GetStream(form),
+          payload: await getStream(form),
           headers: { ...form.getHeaders(), Cookie: `alenvi_token=${authToken}` },
         });
 
