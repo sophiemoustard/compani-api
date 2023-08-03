@@ -52,7 +52,7 @@ describe('GOOGLE DRIVE ROUTES - POST /gdrive/:id/upload', () => {
       const response = await app.inject({
         method: 'POST',
         url: `/gdrive/${userFolderId}/upload`,
-        payload: await getStream(form),
+        payload: getStream(form),
         headers: { ...form.getHeaders(), Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -76,7 +76,7 @@ describe('GOOGLE DRIVE ROUTES - POST /gdrive/:id/upload', () => {
         const response = await app.inject({
           method: 'POST',
           url: `/gdrive/${userFolderId}/upload`,
-          payload: await getStream(form),
+          payload: getStream(form),
           headers: { ...form.getHeaders(), Cookie: `alenvi_token=${authToken}` },
         });
 

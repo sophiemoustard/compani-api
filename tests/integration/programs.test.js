@@ -477,7 +477,7 @@ describe('PROGRAMS ROUTES - POST /programs/:id/upload', () => {
       const response = await app.inject({
         method: 'POST',
         url: `/programs/${program._id}/upload`,
-        payload: await getStream(form),
+        payload: getStream(form),
         headers: { ...form.getHeaders(), Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -494,7 +494,7 @@ describe('PROGRAMS ROUTES - POST /programs/:id/upload', () => {
       const response = await app.inject({
         method: 'POST',
         url: `/programs/${new ObjectId()}/upload`,
-        payload: await getStream(form),
+        payload: getStream(form),
         headers: { ...form.getHeaders(), Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -507,7 +507,7 @@ describe('PROGRAMS ROUTES - POST /programs/:id/upload', () => {
         const response = await app.inject({
           method: 'POST',
           url: `/programs/${program._id}/upload`,
-          payload: await getStream(invalidForm),
+          payload: getStream(invalidForm),
           headers: { ...invalidForm.getHeaders(), Cookie: `alenvi_token=${authToken}` },
         });
 
@@ -532,7 +532,7 @@ describe('PROGRAMS ROUTES - POST /programs/:id/upload', () => {
         const response = await app.inject({
           method: 'POST',
           url: `/programs/${program._id}/upload`,
-          payload: await getStream(form),
+          payload: getStream(form),
           headers: { ...form.getHeaders(), Cookie: `alenvi_token=${authToken}` },
         });
 

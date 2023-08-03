@@ -2609,7 +2609,7 @@ describe('CUSTOMERS FILE UPLOAD ROUTES', () => {
         const response = await app.inject({
           method: 'POST',
           url: `/customers/${customersList[1]._id}/gdrive/${fakeDriveId}/upload`,
-          payload: await getStream(form),
+          payload: getStream(form),
           headers: { ...form.getHeaders(), Cookie: `alenvi_token=${authToken}` },
         });
 
@@ -2633,7 +2633,7 @@ describe('CUSTOMERS FILE UPLOAD ROUTES', () => {
         const response = await app.inject({
           method: 'POST',
           url: `/customers/${otherCompanyCustomers[0]._id}/gdrive/${fakeDriveId}/upload`,
-          payload: await getStream(form),
+          payload: getStream(form),
           headers: { ...form.getHeaders(), Cookie: `alenvi_token=${authToken}` },
         });
 
@@ -2656,7 +2656,7 @@ describe('CUSTOMERS FILE UPLOAD ROUTES', () => {
         const response = await app.inject({
           method: 'POST',
           url: `/customers/${customer._id}/gdrive/${fakeDriveId}/upload`,
-          payload: await getStream(form),
+          payload: getStream(form),
           headers: { ...form.getHeaders(), Cookie: `alenvi_token=${authToken}` },
         });
 
@@ -2679,7 +2679,7 @@ describe('CUSTOMERS FILE UPLOAD ROUTES', () => {
         const response = await app.inject({
           method: 'POST',
           url: `/customers/${customersList[0]._id}/gdrive/${fakeDriveId}/upload`,
-          payload: await getStream(form),
+          payload: getStream(form),
           headers: { ...form.getHeaders(), Cookie: `alenvi_token=${authToken}` },
         });
 
@@ -2704,7 +2704,7 @@ describe('CUSTOMERS FILE UPLOAD ROUTES', () => {
         const res = await app.inject({
           method: 'POST',
           url: `/customers/${customersList[0]._id}/gdrive/${fakeDriveId}/upload`,
-          payload: await getStream(form),
+          payload: getStream(form),
           headers: { ...form.getHeaders(), Cookie: `alenvi_token=${authToken}` },
         });
         expect(res.statusCode).toBe(200);
@@ -2732,7 +2732,7 @@ describe('CUSTOMERS FILE UPLOAD ROUTES', () => {
           const response = await app.inject({
             method: 'POST',
             url: `/customers/${customersList[0]._id}/gdrive/${fakeDriveId}/upload`,
-            payload: await getStream(form),
+            payload: getStream(form),
             headers: { ...form.getHeaders(), Cookie: `alenvi_token=${authToken}` },
           });
 

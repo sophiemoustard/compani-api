@@ -1,9 +1,6 @@
 const FormData = require('form-data');
-const stream = require('stream');
 const { PassThrough: PassThroughStream } = require('stream');
-const { promisify } = require('util');
-
-const streamPipelinePromisified = promisify(stream.pipeline);
+const { pipeline: streamPipeline } = require('stream/promises');
 
 exports.generateFormData = (payload) => {
   const form = new FormData();
@@ -15,7 +12,7 @@ exports.generateFormData = (payload) => {
 };
 
 const bufferStream = () => {
-  const streamData = new PassThroughStream({ objectMode: false });
+  const streamData = new PassThroughStream();
   streamData.setEncoding('utf8');
 
   let length = 0;
@@ -33,12 +30,11 @@ const bufferStream = () => {
   return streamData;
 };
 
-exports.getStream = async (inputStream) => {
+exports.getStream = (inputStream) => {
   if (!inputStream) throw new Error('Expected a stream');
 
   const streamData = bufferStream();
-
-  await streamPipelinePromisified(inputStream, streamData);
+  streamPipeline(inputStream, streamData);
 
   return streamData.getBufferedValue();
 };

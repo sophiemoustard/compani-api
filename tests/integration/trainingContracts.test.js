@@ -55,7 +55,7 @@ describe('TRAINING CONTRACTS ROUTES - POST /trainingcontracts', () => {
         method: 'POST',
         url: '/trainingcontracts',
         headers: { ...form.getHeaders(), Cookie: `alenvi_token=${authToken}` },
-        payload: await getStream(form),
+        payload: getStream(form),
       });
 
       expect(response.statusCode).toBe(200);
@@ -80,7 +80,7 @@ describe('TRAINING CONTRACTS ROUTES - POST /trainingcontracts', () => {
         method: 'POST',
         url: '/trainingcontracts',
         headers: { ...form.getHeaders(), Cookie: `alenvi_token=${authToken}` },
-        payload: await getStream(form),
+        payload: getStream(form),
       });
 
       expect(response.statusCode).toBe(404);
@@ -99,7 +99,7 @@ describe('TRAINING CONTRACTS ROUTES - POST /trainingcontracts', () => {
         method: 'POST',
         url: '/trainingcontracts',
         headers: { ...form.getHeaders(), Cookie: `alenvi_token=${authToken}` },
-        payload: await getStream(form),
+        payload: getStream(form),
       });
 
       expect(response.statusCode).toBe(403);
@@ -132,7 +132,7 @@ describe('TRAINING CONTRACTS ROUTES - POST /trainingcontracts', () => {
           method: 'POST',
           url: '/trainingcontracts',
           headers: { ...form.getHeaders(), Cookie: `alenvi_token=${authToken}` },
-          payload: await getStream(form),
+          payload: getStream(form),
         });
 
         expect(response.statusCode).toBe(role.expectedCode);

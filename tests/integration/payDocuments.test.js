@@ -58,7 +58,7 @@ describe('PAY DOCUMENTS - POST /paydocuments', () => {
       const response = await app.inject({
         method: 'POST',
         url: '/paydocuments',
-        payload: await getStream(form),
+        payload: getStream(form),
         headers: { ...form.getHeaders(), Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -83,7 +83,7 @@ describe('PAY DOCUMENTS - POST /paydocuments', () => {
         const response = await app.inject({
           method: 'POST',
           url: '/paydocuments',
-          payload: await getStream(form),
+          payload: getStream(form),
           headers: { ...form.getHeaders(), Cookie: `alenvi_token=${authToken}` },
         });
 
@@ -105,7 +105,7 @@ describe('PAY DOCUMENTS - POST /paydocuments', () => {
       const response = await app.inject({
         method: 'POST',
         url: '/paydocuments',
-        payload: await getStream(form),
+        payload: getStream(form),
         headers: { ...form.getHeaders(), Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -152,7 +152,7 @@ describe('PAY DOCUMENTS - POST /paydocuments', () => {
         const response = await app.inject({
           method: 'POST',
           url: '/paydocuments',
-          payload: await getStream(form),
+          payload: getStream(form),
           headers: { ...form.getHeaders(), Cookie: `alenvi_token=${authToken}` },
         });
 
