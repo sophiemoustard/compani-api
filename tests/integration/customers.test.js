@@ -8,7 +8,6 @@ const pick = require('lodash/pick');
 const omit = require('lodash/omit');
 const has = require('lodash/has');
 const cloneDeep = require('lodash/cloneDeep');
-const fs = require('fs');
 const { generateFormData, getStream } = require('./utils');
 const app = require('../../server');
 const {
@@ -2600,7 +2599,7 @@ describe('CUSTOMERS FILE UPLOAD ROUTES', () => {
 
         const payload = {
           fileName: 'mandat_signe',
-          file: fs.createReadStream(path.join(__dirname, 'assets/test_upload.png')),
+          file: 'test',
           type: 'signedMandate',
           mandateId: customersList[1].payment.mandates[0]._id.toHexString(),
         };
@@ -2624,7 +2623,7 @@ describe('CUSTOMERS FILE UPLOAD ROUTES', () => {
 
         const payload = {
           fileName: 'mandat_signe',
-          file: fs.createReadStream(path.join(__dirname, 'assets/test_upload.png')),
+          file: 'test',
           type: 'signedMandate',
           mandateId: otherCompanyCustomers[0].payment.mandates[0]._id.toHexString(),
         };
@@ -2647,7 +2646,7 @@ describe('CUSTOMERS FILE UPLOAD ROUTES', () => {
         const customer = customersList[0];
         const payload = {
           fileName: 'devis_signe',
-          file: fs.createReadStream(path.join(__dirname, 'assets/test_upload.png')),
+          file: 'test',
           type: 'signedQuote',
           quoteId: customer.quotes[0]._id.toHexString(),
         };
@@ -2670,7 +2669,7 @@ describe('CUSTOMERS FILE UPLOAD ROUTES', () => {
         getFileByIdStub.returns({ webViewLink: 'fakeWebViewLink' });
 
         const payload = {
-          file: fs.createReadStream(path.join(__dirname, 'assets/test_upload.png')),
+          file: 'test',
           type: 'financialCertificates',
           fileName: 'financialCertificate',
         };
@@ -2693,7 +2692,7 @@ describe('CUSTOMERS FILE UPLOAD ROUTES', () => {
       it('should upload a financial certificate if I am its helper', async () => {
         const payload = {
           fileName: 'financialCertificate',
-          file: fs.createReadStream(path.join(__dirname, 'assets/test_upload.png')),
+          file: 'test',
           type: 'financialCertificates',
         };
         addStub.returns({ id: 'fakeFileDriveId' });
@@ -2721,7 +2720,7 @@ describe('CUSTOMERS FILE UPLOAD ROUTES', () => {
         it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
           const payload = {
             fileName: 'financialCertificate',
-            file: fs.createReadStream(path.join(__dirname, 'assets/test_upload.png')),
+            file: 'test',
             type: 'financialCertificates',
           };
           addStub.returns({ id: 'fakeFileDriveId' });

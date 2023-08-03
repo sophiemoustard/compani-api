@@ -1,7 +1,5 @@
 const { expect } = require('expect');
 const sinon = require('sinon');
-const fs = require('fs');
-const path = require('path');
 const { ObjectId } = require('mongodb');
 const omit = require('lodash/omit');
 const app = require('../../server');
@@ -163,7 +161,7 @@ describe('TAX CERTIFICATES ROUTES - POST /', () => {
 
     it('should create a new tax certificate', async () => {
       const docPayload = {
-        taxCertificate: fs.createReadStream(path.join(__dirname, 'assets/test_esign.pdf')),
+        taxCertificate: 'test',
         driveFolderId: '09876543211',
         fileName: 'tax-certificate',
         date: '2019-01-23T00:00:00.000Z',
@@ -205,7 +203,7 @@ describe('TAX CERTIFICATES ROUTES - POST /', () => {
     wrongParams.forEach((param) => {
       it(`should return a 400 error if missing '${param}' parameter`, async () => {
         const docPayload = {
-          taxCertificate: fs.createReadStream(path.join(__dirname, 'assets/test_esign.pdf')),
+          taxCertificate: 'test',
           driveFolderId: '09876543211',
           fileName: 'tax-certificate',
           date: '2019-01-23T00:00:00.000Z',
@@ -227,7 +225,7 @@ describe('TAX CERTIFICATES ROUTES - POST /', () => {
 
     it('should return 404 if customer is not from the same company', async () => {
       const docPayload = {
-        taxCertificate: fs.createReadStream(path.join(__dirname, 'assets/test_esign.pdf')),
+        taxCertificate: 'test',
         driveFolderId: '09876543211',
         fileName: 'tax-certificate',
         date: '2019-01-23T00:00:00.000Z',
@@ -250,7 +248,7 @@ describe('TAX CERTIFICATES ROUTES - POST /', () => {
 
     it('should return 400 if year is invalid', async () => {
       const docPayload = {
-        taxCertificate: fs.createReadStream(path.join(__dirname, 'assets/test_esign.pdf')),
+        taxCertificate: 'test',
         driveFolderId: '09876543211',
         fileName: 'tax-certificate',
         date: '2019-01-23T00:00:00.000Z',
@@ -297,7 +295,7 @@ describe('TAX CERTIFICATES ROUTES - POST /', () => {
       it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
         authToken = await getToken(role.name);
         const docPayload = {
-          taxCertificate: fs.createReadStream(path.join(__dirname, 'assets/test_esign.pdf')),
+          taxCertificate: 'test',
           driveFolderId: '09876543211',
           fileName: 'tax-certificates',
           date: '2019-01-23T00:00:00.000Z',

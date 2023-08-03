@@ -1,7 +1,5 @@
 const { expect } = require('expect');
 const sinon = require('sinon');
-const fs = require('fs');
-const path = require('path');
 const { ObjectId } = require('mongodb');
 const GCloudStorageHelper = require('../../src/helpers/gCloudStorage');
 const app = require('../../server');
@@ -35,7 +33,7 @@ describe('ATTENDANCE SHEETS ROUTES - POST /attendancesheets', () => {
     it('should upload attendance sheet to intra course (webapp)', async () => {
       const formData = {
         course: coursesList[0]._id.toHexString(),
-        file: fs.createReadStream(path.join(__dirname, 'assets/test_esign.pdf')),
+        file: 'test',
         date: new Date('2020-01-23').toISOString(),
         origin: WEBAPP,
       };
@@ -62,7 +60,7 @@ describe('ATTENDANCE SHEETS ROUTES - POST /attendancesheets', () => {
     it('should upload attendance sheet with origin mobile if no info in payload', async () => {
       const formData = {
         course: coursesList[0]._id.toHexString(),
-        file: fs.createReadStream(path.join(__dirname, 'assets/test_esign.pdf')),
+        file: 'test',
         date: new Date('2020-01-23').toISOString(),
       };
 
@@ -88,7 +86,7 @@ describe('ATTENDANCE SHEETS ROUTES - POST /attendancesheets', () => {
     it('should upload attendance sheet to inter course (mobile)', async () => {
       const formData = {
         course: coursesList[1]._id.toHexString(),
-        file: fs.createReadStream(path.join(__dirname, 'assets/test_esign.pdf')),
+        file: 'test',
         trainee: coursesList[1].trainees[0].toHexString(),
         origin: MOBILE,
       };
@@ -115,7 +113,7 @@ describe('ATTENDANCE SHEETS ROUTES - POST /attendancesheets', () => {
     it('should return 400 trying to pass trainee for intra course', async () => {
       const formData = {
         course: coursesList[0]._id.toHexString(),
-        file: fs.createReadStream(path.join(__dirname, 'assets/test_esign.pdf')),
+        file: 'test',
         trainee: coursesList[0].trainees[0]._id.toHexString(),
       };
 
@@ -134,7 +132,7 @@ describe('ATTENDANCE SHEETS ROUTES - POST /attendancesheets', () => {
     it('should return 400 trying to pass date for inter course', async () => {
       const formData = {
         course: coursesList[1]._id.toHexString(),
-        file: fs.createReadStream(path.join(__dirname, 'assets/test_esign.pdf')),
+        file: 'test',
         date: new Date('2020-01-23').toISOString(),
       };
 
@@ -153,7 +151,7 @@ describe('ATTENDANCE SHEETS ROUTES - POST /attendancesheets', () => {
     it('should return 400 if both date and trainee are missing in payload', async () => {
       const formData = {
         course: coursesList[2]._id.toHexString(),
-        file: fs.createReadStream(path.join(__dirname, 'assets/test_esign.pdf')),
+        file: 'test',
       };
 
       const form = generateFormData(formData);
@@ -171,7 +169,7 @@ describe('ATTENDANCE SHEETS ROUTES - POST /attendancesheets', () => {
     it('should return 400 if origin is neither webapp nor mobile', async () => {
       const formData = {
         course: coursesList[0]._id.toHexString(),
-        file: fs.createReadStream(path.join(__dirname, 'assets/test_esign.pdf')),
+        file: 'test',
         date: new Date('2020-01-23').toISOString(),
         origin: 'poiuytr',
       };
@@ -191,7 +189,7 @@ describe('ATTENDANCE SHEETS ROUTES - POST /attendancesheets', () => {
     it('should return a 403 if trainer is from an other company', async () => {
       const formData = {
         course: coursesList[2]._id.toHexString(),
-        file: fs.createReadStream(path.join(__dirname, 'assets/test_esign.pdf')),
+        file: 'test',
         date: '2020-01-25T09:00:00.000Z',
       };
 
@@ -210,7 +208,7 @@ describe('ATTENDANCE SHEETS ROUTES - POST /attendancesheets', () => {
     it('should return 403 trying to pass unknowned trainee', async () => {
       const formData = {
         course: coursesList[1]._id.toHexString(),
-        file: fs.createReadStream(path.join(__dirname, 'assets/test_esign.pdf')),
+        file: 'test',
         trainee: new ObjectId().toHexString(),
       };
 
@@ -229,7 +227,7 @@ describe('ATTENDANCE SHEETS ROUTES - POST /attendancesheets', () => {
     it('should return 403 trying to pass date outside course dates', async () => {
       const formData = {
         course: coursesList[0]._id.toHexString(),
-        file: fs.createReadStream(path.join(__dirname, 'assets/test_esign.pdf')),
+        file: 'test',
         date: new Date('2018-01-23').toISOString(),
       };
 
@@ -249,7 +247,7 @@ describe('ATTENDANCE SHEETS ROUTES - POST /attendancesheets', () => {
       const course = coursesList[3];
       const formData = {
         course: course._id.toHexString(),
-        file: fs.createReadStream(path.join(__dirname, 'assets/test_esign.pdf')),
+        file: 'test',
         trainee: course.trainees[0].toHexString(),
       };
 
@@ -286,7 +284,7 @@ describe('ATTENDANCE SHEETS ROUTES - POST /attendancesheets', () => {
         authToken = await getToken(role.name);
         const formData = {
           course: coursesList[0]._id.toHexString(),
-          file: fs.createReadStream(path.join(__dirname, 'assets/test_esign.pdf')),
+          file: 'test',
           date: new Date('2020-01-23').toISOString(),
         };
         const form = generateFormData(formData);

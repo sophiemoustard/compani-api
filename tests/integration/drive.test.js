@@ -1,7 +1,6 @@
 const { expect } = require('expect');
 const omit = require('lodash/omit');
 const path = require('path');
-const fs = require('fs');
 const sinon = require('sinon');
 const { ObjectId } = require('mongodb');
 const GDriveStorageHelper = require('../../src/helpers/gDriveStorage');
@@ -44,7 +43,7 @@ describe('GOOGLE DRIVE ROUTES - POST /gdrive/:id/upload', () => {
 
     it('should add an absence document for an event', async () => {
       const payload = {
-        file: fs.createReadStream(path.join(__dirname, 'assets/test_esign.pdf')),
+        file: 'test',
         fileName: 'absence',
         type: 'absence',
       };
@@ -68,7 +67,7 @@ describe('GOOGLE DRIVE ROUTES - POST /gdrive/:id/upload', () => {
     missingParams.forEach((param) => {
       it(`should return a 400 error if '${param}' params is missing`, async () => {
         const payload = {
-          file: fs.createReadStream(path.join(__dirname, 'assets/test_esign.pdf')),
+          file: 'test',
           fileName: 'absence',
           type: 'file',
         };
