@@ -673,6 +673,7 @@ const courseSmsHistory = {
   message: 'Hola ! This is a test',
   course: coursesList[0]._id,
   sender: trainer._id,
+  missingPhones: [],
 };
 
 const courseHistories = [

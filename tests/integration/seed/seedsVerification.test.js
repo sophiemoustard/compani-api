@@ -5,6 +5,7 @@ const ActivityHistory = require('../../../src/models/ActivityHistory');
 const Attendance = require('../../../src/models/Attendance');
 const AttendanceSheet = require('../../../src/models/AttendanceSheet');
 const Card = require('../../../src/models/Card');
+const Company = require('../../../src/models/Company');
 const CompanyHolding = require('../../../src/models/CompanyHolding');
 const CompanyLinkRequest = require('../../../src/models/CompanyLinkRequest');
 const Contract = require('../../../src/models/Contract');
@@ -18,6 +19,7 @@ const CourseFundingOrganisation = require('../../../src/models/CourseFundingOrga
 const CoursePayment = require('../../../src/models/CoursePayment');
 const CoursePaymentNumber = require('../../../src/models/CoursePaymentNumber');
 const CourseSlot = require('../../../src/models/CourseSlot');
+const CourseSmsHistory = require('../../../src/models/CourseSmsHistory');
 const CourseHistory = require('../../../src/models/CourseHistory');
 const Helper = require('../../../src/models/Helper');
 const Program = require('../../../src/models/Program');
@@ -78,12 +80,16 @@ const {
   HOLDING_ADMIN,
   PAYMENT,
   REFUND,
+  COMPANY,
+  ASSOCIATION,
 } = require('../../../src/helpers/constants');
 const attendancesSeed = require('./attendancesSeed');
 const activitiesSeed = require('./activitiesSeed');
 const activityHistoriesSeed = require('./activityHistoriesSeed');
 const attendanceSheetsSeed = require('./attendanceSheetsSeed');
 const cardsSeed = require('./cardsSeed');
+const categoriesSeed = require('./categoriesSeed');
+const companiesSeed = require('./companiesSeed');
 const companyLinkRequestsSeed = require('./companyLinkRequestsSeed');
 const courseBillsSeed = require('./courseBillsSeed');
 const courseBillingItemsSeed = require('./courseBillingItemsSeed');
@@ -108,6 +114,8 @@ const seedList = [
   { label: 'ATTENDANCE', value: attendancesSeed },
   { label: 'ATTENDANCESHEET', value: attendanceSheetsSeed },
   { label: 'CARD', value: cardsSeed },
+  { label: 'CATEGORY', value: categoriesSeed },
+  { label: 'COMPANY', value: companiesSeed },
   { label: 'COMPANYLINKREQUEST', value: companyLinkRequestsSeed },
   { label: 'COURSE', value: coursesSeed },
   { label: 'COURSEBILL', value: courseBillsSeed },
@@ -502,6 +510,37 @@ describe('SEEDS VERIFICATION', () => {
             .some(card => has(card, 'label') && !(has(card, 'label.left') && has(card, 'label.right')));
 
           expect(someSubKeysAreMissing).toBeFalsy();
+        });
+      });
+
+      describe('Collection Company', () => {
+        let companyList;
+        before((async () => {
+          companyList = await Company
+            .find()
+            .populate({ path: 'billingRepresentative', populate: { path: 'role.client', select: 'name' } })
+            .lean();
+        }));
+
+        it('should pass if every name is unique', () => {
+          const companiesWithoutDuplicates = [...new Set(companyList.map(company => company.name))];
+          expect(companiesWithoutDuplicates.length).toEqual(companyList.length);
+        });
+
+        it('should pass if every billingRepresentative exists and has good role', () => {
+          const doesEveryUserExistAndHasGoodRole = companyList
+            .every(company => !has(company, 'billingRepresentative') ||
+              get(company.billingRepresentative, 'role.client.name') === CLIENT_ADMIN);
+          expect(doesEveryUserExistAndHasGoodRole).toBeTruthy();
+        });
+
+        it('should pass if every company has good register code type', () => {
+          const hasGoodRegisterCode = companyList.every((company) => {
+            if (company.rcs) return company.type === COMPANY;
+            if (company.rna) return company.type === ASSOCIATION;
+            return true;
+          });
+          expect(hasGoodRegisterCode).toBeTruthy();
         });
       });
 
@@ -1224,6 +1263,76 @@ describe('SEEDS VERIFICATION', () => {
           const everyStepIsInCourse = courseSlotList
             .every(cs => cs.step && UtilsHelper.doesArrayIncludeId(cs.course.subProgram.steps, cs.step._id));
           expect(everyStepIsInCourse).toBeTruthy();
+        });
+      });
+
+      describe('Collection CourseSmsHistory', () => {
+        let courseSmsHistoryList;
+        before(async () => {
+          courseSmsHistoryList = await CourseSmsHistory
+            .find({})
+            .populate({ path: 'course', select: 'format type companies trainer' })
+            .populate({
+              path: 'sender',
+              select: 'role',
+              transform,
+              populate: [
+                { path: 'role.vendor', select: 'name' },
+                { path: 'role.client', select: 'name' },
+                { path: 'company' },
+              ],
+            })
+            .lean();
+        });
+
+        it('should pass if every course exists and is blended', () => {
+          const areCoursesBlended = courseSmsHistoryList.every(ch => ch.course.format === BLENDED);
+          expect(areCoursesBlended).toBeTruthy();
+        });
+
+        it('should pass if every sender exists and has good role', () => {
+          const haveSendersGoodRole = courseSmsHistoryList
+            .every(ch =>
+              ([CLIENT_ADMIN, COACH].includes(get(ch.sender, 'role.client.name')) && ch.course.type === INTRA) ||
+              ([VENDOR_ADMIN, TRAINING_ORGANISATION_MANAGER, TRAINER].includes(get(ch.sender, 'role.vendor.name')))
+            );
+          expect(haveSendersGoodRole).toBeTruthy();
+        });
+
+        it('should pass if every sender is allowed to access course', () => {
+          const areSendersAllowedToAccessCourse = courseSmsHistoryList
+            .every((ch) => {
+              const vendorRole = get(ch.sender, 'role.vendor.name');
+              if ([VENDOR_ADMIN, TRAINING_ORGANISATION_MANAGER].includes(vendorRole)) return true;
+
+              const { course } = ch;
+              const isCourseTrainer = vendorRole === TRAINER &&
+                UtilsHelper.areObjectIdsEquals(course.trainer, ch.sender._id);
+              if (isCourseTrainer) return true;
+
+              const clientRole = get(ch.sender, 'role.client.name');
+              const isFromCourseCompany = UtilsHelper.doesArrayIncludeId(course.companies, ch.sender.company);
+              if ([CLIENT_ADMIN, COACH].includes(clientRole) && isFromCourseCompany) return true;
+
+              return false;
+            });
+          expect(areSendersAllowedToAccessCourse).toBeTruthy();
+        });
+
+        it('should pass if every missing phone user exists and is registered to course', async () => {
+          const missingPhonesList = courseSmsHistoryList.flatMap(ch => ch.missingPhones);
+          const missingPhonesAdditionHistories = await CourseHistory
+            .find({ trainee: { $in: missingPhonesList }, action: TRAINEE_ADDITION })
+            .lean();
+          const areMissingPhonesRegisteredToCourse = courseSmsHistoryList
+            .every(ch => ch.missingPhones
+              .every(user => missingPhonesAdditionHistories
+                .find(history => UtilsHelper.areObjectIdsEquals(history.trainee, user._id) &&
+                  UtilsHelper.areObjectIdsEquals(history.course, ch.course._id)
+                )
+              )
+            );
+          expect(areMissingPhonesRegisteredToCourse).toBeTruthy();
         });
       });
 
