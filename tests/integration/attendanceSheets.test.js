@@ -2,13 +2,12 @@ const { expect } = require('expect');
 const sinon = require('sinon');
 const fs = require('fs');
 const path = require('path');
-const GetStream = require('get-stream');
 const { ObjectId } = require('mongodb');
 const GCloudStorageHelper = require('../../src/helpers/gCloudStorage');
 const app = require('../../server');
 const { populateDB, coursesList, attendanceSheetList } = require('./seed/attendanceSheetsSeed');
 const { getToken, getTokenByCredentials } = require('./helpers/authentication');
-const { generateFormData } = require('./utils');
+const { generateFormData, getStream } = require('./utils');
 const { WEBAPP, MOBILE } = require('../../src/helpers/constants');
 const AttendanceSheet = require('../../src/models/AttendanceSheet');
 const { holdingAdminFromOtherCompany } = require('../seed/authUsersSeed');
@@ -49,7 +48,7 @@ describe('ATTENDANCE SHEETS ROUTES - POST /attendancesheets', () => {
       const response = await app.inject({
         method: 'POST',
         url: '/attendancesheets',
-        payload: await GetStream(form),
+        payload: await getStream(form),
         headers: { ...form.getHeaders(), Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -75,7 +74,7 @@ describe('ATTENDANCE SHEETS ROUTES - POST /attendancesheets', () => {
       const response = await app.inject({
         method: 'POST',
         url: '/attendancesheets',
-        payload: await GetStream(form),
+        payload: await getStream(form),
         headers: { ...form.getHeaders(), Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -102,7 +101,7 @@ describe('ATTENDANCE SHEETS ROUTES - POST /attendancesheets', () => {
       const response = await app.inject({
         method: 'POST',
         url: '/attendancesheets',
-        payload: await GetStream(form),
+        payload: await getStream(form),
         headers: { ...form.getHeaders(), Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -125,7 +124,7 @@ describe('ATTENDANCE SHEETS ROUTES - POST /attendancesheets', () => {
       const response = await app.inject({
         method: 'POST',
         url: '/attendancesheets',
-        payload: await GetStream(form),
+        payload: await getStream(form),
         headers: { ...form.getHeaders(), Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -144,7 +143,7 @@ describe('ATTENDANCE SHEETS ROUTES - POST /attendancesheets', () => {
       const response = await app.inject({
         method: 'POST',
         url: '/attendancesheets',
-        payload: await GetStream(form),
+        payload: await getStream(form),
         headers: { ...form.getHeaders(), Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -162,7 +161,7 @@ describe('ATTENDANCE SHEETS ROUTES - POST /attendancesheets', () => {
       const response = await app.inject({
         method: 'POST',
         url: '/attendancesheets',
-        payload: await GetStream(form),
+        payload: await getStream(form),
         headers: { ...form.getHeaders(), Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -182,7 +181,7 @@ describe('ATTENDANCE SHEETS ROUTES - POST /attendancesheets', () => {
       const response = await app.inject({
         method: 'POST',
         url: '/attendancesheets',
-        payload: await GetStream(form),
+        payload: await getStream(form),
         headers: { ...form.getHeaders(), Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -201,7 +200,7 @@ describe('ATTENDANCE SHEETS ROUTES - POST /attendancesheets', () => {
       const response = await app.inject({
         method: 'POST',
         url: '/attendancesheets',
-        payload: await GetStream(form),
+        payload: await getStream(form),
         headers: { ...form.getHeaders(), Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -220,7 +219,7 @@ describe('ATTENDANCE SHEETS ROUTES - POST /attendancesheets', () => {
       const response = await app.inject({
         method: 'POST',
         url: '/attendancesheets',
-        payload: await GetStream(form),
+        payload: await getStream(form),
         headers: { ...form.getHeaders(), Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -239,7 +238,7 @@ describe('ATTENDANCE SHEETS ROUTES - POST /attendancesheets', () => {
       const response = await app.inject({
         method: 'POST',
         url: '/attendancesheets',
-        payload: await GetStream(form),
+        payload: await getStream(form),
         headers: { ...form.getHeaders(), Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -259,7 +258,7 @@ describe('ATTENDANCE SHEETS ROUTES - POST /attendancesheets', () => {
       const response = await app.inject({
         method: 'POST',
         url: '/attendancesheets',
-        payload: await GetStream(form),
+        payload: await getStream(form),
         headers: { ...form.getHeaders(), Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -295,7 +294,7 @@ describe('ATTENDANCE SHEETS ROUTES - POST /attendancesheets', () => {
         const response = await app.inject({
           method: 'POST',
           url: '/attendancesheets',
-          payload: await GetStream(form),
+          payload: await getStream(form),
           headers: { ...form.getHeaders(), Cookie: `alenvi_token=${authToken}` },
         });
 

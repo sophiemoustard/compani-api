@@ -2,7 +2,6 @@ const { expect } = require('expect');
 const sinon = require('sinon');
 const fs = require('fs');
 const path = require('path');
-const GetStream = require('get-stream');
 const { ObjectId } = require('mongodb');
 const omit = require('lodash/omit');
 const app = require('../../server');
@@ -12,7 +11,7 @@ const GDriveStorageHelper = require('../../src/helpers/gDriveStorage');
 const { populateDB, customersList, taxCertificatesList, helper } = require('./seed/taxCertificatesSeed');
 const { getToken, getTokenByCredentials } = require('./helpers/authentication');
 const { authCompany } = require('../seed/authCompaniesSeed');
-const { generateFormData } = require('./utils');
+const { generateFormData, getStream } = require('./utils');
 
 describe('NODE ENV', () => {
   it('should be \'test\'', () => {
@@ -178,7 +177,7 @@ describe('TAX CERTIFICATES ROUTES - POST /', () => {
       const response = await app.inject({
         method: 'POST',
         url: '/taxcertificates',
-        payload: await GetStream(form),
+        payload: await getStream(form),
         headers: { ...form.getHeaders(), Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -218,7 +217,7 @@ describe('TAX CERTIFICATES ROUTES - POST /', () => {
         const response = await app.inject({
           method: 'POST',
           url: '/taxcertificates',
-          payload: await GetStream(form),
+          payload: await getStream(form),
           headers: { ...form.getHeaders(), Cookie: `alenvi_token=${authToken}` },
         });
 
@@ -242,7 +241,7 @@ describe('TAX CERTIFICATES ROUTES - POST /', () => {
       const response = await app.inject({
         method: 'POST',
         url: '/taxcertificates',
-        payload: await GetStream(form),
+        payload: await getStream(form),
         headers: { ...form.getHeaders(), Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -265,7 +264,7 @@ describe('TAX CERTIFICATES ROUTES - POST /', () => {
       const response = await app.inject({
         method: 'POST',
         url: '/taxcertificates',
-        payload: await GetStream(form),
+        payload: await getStream(form),
         headers: { ...form.getHeaders(), Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -312,7 +311,7 @@ describe('TAX CERTIFICATES ROUTES - POST /', () => {
         const response = await app.inject({
           method: 'POST',
           url: '/taxcertificates',
-          payload: await GetStream(form),
+          payload: await getStream(form),
           headers: { ...form.getHeaders(), Cookie: `alenvi_token=${authToken}` },
         });
 

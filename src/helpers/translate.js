@@ -23,8 +23,6 @@ module.exports = {
     userLogout: 'User disconnected successfully.',
     userRoleConflict: 'User already has a role on this interface.',
     userDeletionForbidden: 'You can not delete your account if it is linked to a company.',
-    /* Rss feeds */
-    blogGetRssFeedsOk: 'Rss feed found.',
     /* Api */
     apiVersionUpToDate: 'api version up to date.',
     apiVersionToUpdate: 'api version must be updated.',
@@ -444,8 +442,6 @@ module.exports = {
     userLogout: 'Compte déconnecté avec succès.',
     userRoleConflict: 'Ce compte a déjà un rôle sur cette interface.',
     userDeletionForbidden: 'Vous ne pouvez pas supprimer votre compte s\'il est rattaché à une structure.',
-    /* Rss feeds */
-    blogGetRssFeedsOk: 'Flux Rss trouvé avec succès.',
     /* Api */
     apiVersionUpToDate: 'La version de l\'api est à jour.',
     apiVersionToUpdate: 'La version de l\'api doit être mis à jour.',

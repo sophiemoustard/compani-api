@@ -2,7 +2,6 @@ const { expect } = require('expect');
 const sinon = require('sinon');
 const fs = require('fs');
 const path = require('path');
-const GetStream = require('get-stream');
 const omit = require('lodash/omit');
 const app = require('../../server');
 const Gdrive = require('../../src/models/Google/Drive');
@@ -18,7 +17,7 @@ const { getToken, getTokenByCredentials } = require('./helpers/authentication');
 const { authCompany } = require('../seed/authCompaniesSeed');
 const GDriveStorageHelper = require('../../src/helpers/gDriveStorage');
 const { PAYSLIP } = require('../../src/helpers/constants');
-const { generateFormData } = require('./utils');
+const { generateFormData, getStream } = require('./utils');
 
 describe('NODE ENV', () => {
   it('should be "test"', () => {
@@ -59,7 +58,7 @@ describe('PAY DOCUMENTS - POST /paydocuments', () => {
       const response = await app.inject({
         method: 'POST',
         url: '/paydocuments',
-        payload: await GetStream(form),
+        payload: await getStream(form),
         headers: { ...form.getHeaders(), Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -84,7 +83,7 @@ describe('PAY DOCUMENTS - POST /paydocuments', () => {
         const response = await app.inject({
           method: 'POST',
           url: '/paydocuments',
-          payload: await GetStream(form),
+          payload: await getStream(form),
           headers: { ...form.getHeaders(), Cookie: `alenvi_token=${authToken}` },
         });
 
@@ -106,7 +105,7 @@ describe('PAY DOCUMENTS - POST /paydocuments', () => {
       const response = await app.inject({
         method: 'POST',
         url: '/paydocuments',
-        payload: await GetStream(form),
+        payload: await getStream(form),
         headers: { ...form.getHeaders(), Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -153,7 +152,7 @@ describe('PAY DOCUMENTS - POST /paydocuments', () => {
         const response = await app.inject({
           method: 'POST',
           url: '/paydocuments',
-          payload: await GetStream(form),
+          payload: await getStream(form),
           headers: { ...form.getHeaders(), Cookie: `alenvi_token=${authToken}` },
         });
 

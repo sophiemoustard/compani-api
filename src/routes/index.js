@@ -9,7 +9,6 @@ exports.routes = [
   { plugin: require('./billingItems'), routes: { prefix: '/billingitems' } },
   { plugin: require('./bills'), routes: { prefix: '/bills' } },
   { plugin: require('./billSlips'), routes: { prefix: '/billslips' } },
-  { plugin: require('./blog'), routes: { prefix: '/blog' } },
   { plugin: require('./cards'), routes: { prefix: '/cards' } },
   { plugin: require('./categories'), routes: { prefix: '/categories' } },
   { plugin: require('./companies'), routes: { prefix: '/companies' } },
