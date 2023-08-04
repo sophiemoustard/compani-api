@@ -2056,7 +2056,7 @@ describe('USERS ROUTES - POST /users/:id/gdrive/:drive_id/upload', () => {
       const response = await app.inject({
         method: 'POST',
         url: `/users/${usersSeedList[0]._id}/gdrive/${userFolderId}/upload`,
-        payload: await getStream(form),
+        payload: getStream(form),
         headers: { ...form.getHeaders(), Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -2074,7 +2074,7 @@ describe('USERS ROUTES - POST /users/:id/gdrive/:drive_id/upload', () => {
       const response = await app.inject({
         method: 'POST',
         url: `/users/${auxiliaryFromOtherCompany._id}/gdrive/${new ObjectId()}/upload`,
-        payload: await getStream(form),
+        payload: getStream(form),
         headers: { ...form.getHeaders(), Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -2089,7 +2089,7 @@ describe('USERS ROUTES - POST /users/:id/gdrive/:drive_id/upload', () => {
         const response = await app.inject({
           method: 'POST',
           url: `/users/${usersSeedList[0]._id}/gdrive/${userFolderId}/upload`,
-          payload: await getStream(form),
+          payload: getStream(form),
           headers: { ...form.getHeaders(), Cookie: `alenvi_token=${authToken}` },
         });
 
@@ -2106,7 +2106,7 @@ describe('USERS ROUTES - POST /users/:id/gdrive/:drive_id/upload', () => {
       const response = await app.inject({
         method: 'POST',
         url: `/users/${auxiliary._id}/gdrive/${auxiliaryFolderId}/upload`,
-        payload: await getStream(form),
+        payload: getStream(form),
         headers: { ...form.getHeaders(), Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -2132,7 +2132,7 @@ describe('USERS ROUTES - POST /users/:id/gdrive/:drive_id/upload', () => {
         const response = await app.inject({
           method: 'POST',
           url: `/users/${usersSeedList[1]._id}/gdrive/${usersSeedList[1].administrative.driveFolder}/upload`,
-          payload: await getStream(form),
+          payload: getStream(form),
           headers: { ...form.getHeaders(), Cookie: `alenvi_token=${authToken}` },
         });
 
@@ -2187,7 +2187,7 @@ describe('USERS ROUTES - POST /users/:id/upload', () => {
         const response = await app.inject({
           method: 'POST',
           url: `/users/${user._id}/upload`,
-          payload: await getStream(invalidForm),
+          payload: getStream(invalidForm),
           headers: { ...invalidForm.getHeaders(), Cookie: `alenvi_token=${authToken}` },
         });
 
@@ -2206,7 +2206,7 @@ describe('USERS ROUTES - POST /users/:id/upload', () => {
       const response = await app.inject({
         method: 'POST',
         url: `/users/${noRoleNoCompany._id.toHexString()}/upload`,
-        payload: await getStream(form),
+        payload: getStream(form),
         headers: { ...form.getHeaders(), 'x-access-token': authToken },
       });
 
@@ -2232,7 +2232,7 @@ describe('USERS ROUTES - POST /users/:id/upload', () => {
         const response = await app.inject({
           method: 'POST',
           url: `/users/${user._id}/upload`,
-          payload: await getStream(form),
+          payload: getStream(form),
           headers: { ...form.getHeaders(), Cookie: `alenvi_token=${authToken}` },
         });
 

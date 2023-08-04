@@ -2,8 +2,6 @@ const { ObjectId } = require('mongodb');
 const { expect } = require('expect');
 const sinon = require('sinon');
 const get = require('lodash/get');
-const fs = require('fs');
-const path = require('path');
 const cloneDeep = require('lodash/cloneDeep');
 const omit = require('lodash/omit');
 const app = require('../../server');
@@ -845,7 +843,7 @@ describe('CONTRACTS ROUTES - GET /{_id}/gdrive/{driveId}/upload', () => {
       getFileByIdStub.returns({ webViewLink: 'fakeWebViewLink' });
       const payload = {
         fileName: 'contrat_signe',
-        file: fs.createReadStream(path.join(__dirname, 'assets/test_upload.png')),
+        file: 'test',
         type: 'signedContract',
         contractId: contractsList[0]._id.toHexString(),
         versionId: contractsList[0].versions[0]._id.toHexString(),
@@ -855,7 +853,7 @@ describe('CONTRACTS ROUTES - GET /{_id}/gdrive/{driveId}/upload', () => {
       const response = await app.inject({
         method: 'POST',
         url: `/contracts/${contractsList[0]._id}/gdrive/${fakeDriveId}/upload`,
-        payload: await getStream(form),
+        payload: getStream(form),
         headers: { ...form.getHeaders(), Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -879,7 +877,7 @@ describe('CONTRACTS ROUTES - GET /{_id}/gdrive/{driveId}/upload', () => {
         getFileByIdStub.returns({ webViewLink: 'fakeWebViewLink' });
         const payload = {
           fileName: 'contrat_signe',
-          file: fs.createReadStream(path.join(__dirname, 'assets/test_upload.png')),
+          file: 'test',
           type: 'signedContract',
           contractId: contractsList[0]._id.toHexString(),
           versionId: contractsList[0].versions[0]._id.toHexString(),
@@ -888,7 +886,7 @@ describe('CONTRACTS ROUTES - GET /{_id}/gdrive/{driveId}/upload', () => {
         const response = await app.inject({
           method: 'POST',
           url: `/contracts/${contractsList[0]._id}/gdrive/${fakeDriveId}/upload`,
-          payload: await getStream(form),
+          payload: getStream(form),
           headers: { ...form.getHeaders(), Cookie: `alenvi_token=${authToken}` },
         });
 

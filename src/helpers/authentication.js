@@ -1,6 +1,6 @@
 const jwt = require('jsonwebtoken');
 const Boom = require('@hapi/boom');
-const bcrypt = require('bcrypt');
+const bcrypt = require('bcryptjs');
 const pickBy = require('lodash/pickBy');
 const get = require('lodash/get');
 const flat = require('flat');

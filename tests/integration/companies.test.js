@@ -278,7 +278,7 @@ describe('COMPANIES ROUTES - POST /{_id}/gdrive/{driveId}/upload', () => {
       const response = await app.inject({
         method: 'POST',
         url: `/companies/${company._id}/gdrive/${fakeDriveId}/upload`,
-        payload: await getStream(form),
+        payload: getStream(form),
         headers: { ...form.getHeaders(), Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -294,7 +294,7 @@ describe('COMPANIES ROUTES - POST /{_id}/gdrive/{driveId}/upload', () => {
       const response = await app.inject({
         method: 'POST',
         url: `/companies/${otherCompany._id}/gdrive/${fakeDriveId}/upload`,
-        payload: await getStream(form),
+        payload: getStream(form),
         headers: { ...form.getHeaders(), Cookie: `alenvi_token=${authToken}` },
       });
       expect(response.statusCode).toBe(403);
@@ -320,7 +320,7 @@ describe('COMPANIES ROUTES - POST /{_id}/gdrive/{driveId}/upload', () => {
         const response = await app.inject({
           method: 'POST',
           url: `/companies/${company._id}/gdrive/${fakeDriveId}/upload`,
-          payload: await getStream(form),
+          payload: getStream(form),
           headers: { ...form.getHeaders(), Cookie: `alenvi_token=${authToken}` },
         });
 

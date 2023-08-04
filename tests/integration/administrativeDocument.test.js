@@ -85,7 +85,7 @@ describe('ADMINISTRATIVE DOCUMENT ROUTES - POST /administrativedocuments', () =>
       const response = await app.inject({
         method: 'POST',
         url: '/administrativedocuments',
-        payload: await getStream(form),
+        payload: getStream(form),
         headers: { ...form.getHeaders(), Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -106,7 +106,7 @@ describe('ADMINISTRATIVE DOCUMENT ROUTES - POST /administrativedocuments', () =>
           method: 'POST',
           url: '/administrativedocuments',
           headers: { ...form.getHeaders(), Cookie: `alenvi_token=${authToken}` },
-          payload: await getStream(form),
+          payload: getStream(form),
         });
 
         expect(response.statusCode).toBe(400);
@@ -129,7 +129,7 @@ describe('ADMINISTRATIVE DOCUMENT ROUTES - POST /administrativedocuments', () =>
         const response = await app.inject({
           method: 'POST',
           url: '/administrativedocuments',
-          payload: await getStream(form),
+          payload: getStream(form),
           headers: { ...form.getHeaders(), Cookie: `alenvi_token=${authToken}` },
         });
 

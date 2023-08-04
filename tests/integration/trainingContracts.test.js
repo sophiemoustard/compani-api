@@ -1,7 +1,5 @@
 const { expect } = require('expect');
 const sinon = require('sinon');
-const fs = require('fs');
-const path = require('path');
 const { ObjectId } = require('mongodb');
 const app = require('../../server');
 const TrainingContract = require('../../src/models/TrainingContract');
@@ -46,7 +44,7 @@ describe('TRAINING CONTRACTS ROUTES - POST /trainingcontracts', () => {
       const formData = {
         course: courseList[0]._id.toHexString(),
         company: authCompany._id.toHexString(),
-        file: fs.createReadStream(path.join(__dirname, 'assets/test_esign.pdf')),
+        file: 'test',
       };
       const form = generateFormData(formData);
       uploadCourseFileStub.returns({ publicId: '1234567890', link: 'ceciestunautrelien' });
@@ -55,7 +53,7 @@ describe('TRAINING CONTRACTS ROUTES - POST /trainingcontracts', () => {
         method: 'POST',
         url: '/trainingcontracts',
         headers: { ...form.getHeaders(), Cookie: `alenvi_token=${authToken}` },
-        payload: await getStream(form),
+        payload: getStream(form),
       });
 
       expect(response.statusCode).toBe(200);
@@ -71,7 +69,7 @@ describe('TRAINING CONTRACTS ROUTES - POST /trainingcontracts', () => {
       const formData = {
         course: courseList[0]._id.toHexString(),
         company: otherCompany._id.toHexString(),
-        file: fs.createReadStream(path.join(__dirname, 'assets/test_esign.pdf')),
+        file: 'test',
       };
       const form = generateFormData(formData);
       uploadCourseFileStub.returns({ publicId: '1234567890', link: 'https://test.com/file.pdf' });
@@ -80,7 +78,7 @@ describe('TRAINING CONTRACTS ROUTES - POST /trainingcontracts', () => {
         method: 'POST',
         url: '/trainingcontracts',
         headers: { ...form.getHeaders(), Cookie: `alenvi_token=${authToken}` },
-        payload: await getStream(form),
+        payload: getStream(form),
       });
 
       expect(response.statusCode).toBe(404);
@@ -90,7 +88,7 @@ describe('TRAINING CONTRACTS ROUTES - POST /trainingcontracts', () => {
       const formData = {
         course: courseList[1]._id.toHexString(),
         company: authCompany._id.toHexString(),
-        file: fs.createReadStream(path.join(__dirname, 'assets/test_esign.pdf')),
+        file: 'test',
       };
       const form = generateFormData(formData);
       uploadCourseFileStub.returns({ publicId: '1234567890', link: 'https://test.com/file.pdf' });
@@ -99,7 +97,7 @@ describe('TRAINING CONTRACTS ROUTES - POST /trainingcontracts', () => {
         method: 'POST',
         url: '/trainingcontracts',
         headers: { ...form.getHeaders(), Cookie: `alenvi_token=${authToken}` },
-        payload: await getStream(form),
+        payload: getStream(form),
       });
 
       expect(response.statusCode).toBe(403);
@@ -122,7 +120,7 @@ describe('TRAINING CONTRACTS ROUTES - POST /trainingcontracts', () => {
         const formData = {
           course: courseList[0]._id.toHexString(),
           company: authCompany._id.toHexString(),
-          file: fs.createReadStream(path.join(__dirname, 'assets/test_esign.pdf')),
+          file: 'test',
         };
 
         const form = generateFormData(formData);
@@ -132,7 +130,7 @@ describe('TRAINING CONTRACTS ROUTES - POST /trainingcontracts', () => {
           method: 'POST',
           url: '/trainingcontracts',
           headers: { ...form.getHeaders(), Cookie: `alenvi_token=${authToken}` },
-          payload: await getStream(form),
+          payload: getStream(form),
         });
 
         expect(response.statusCode).toBe(role.expectedCode);

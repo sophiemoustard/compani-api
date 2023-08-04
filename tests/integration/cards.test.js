@@ -835,7 +835,7 @@ describe('CARDS ROUTES - POST /cards/:id/upload', () => {
         const response = await app.inject({
           method: 'POST',
           url: `/cards/${cardsList[0]._id}/upload`,
-          payload: await getStream(invalidForm),
+          payload: getStream(invalidForm),
           headers: { ...invalidForm.getHeaders(), Cookie: `alenvi_token=${authToken}` },
         });
 
@@ -860,7 +860,7 @@ describe('CARDS ROUTES - POST /cards/:id/upload', () => {
         const response = await app.inject({
           method: 'POST',
           url: `/cards/${cardsList[0]._id}/upload`,
-          payload: await getStream(form),
+          payload: getStream(form),
           headers: { ...form.getHeaders(), Cookie: `alenvi_token=${authToken}` },
         });
 

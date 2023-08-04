@@ -1,4 +1,4 @@
-name: Test ESLint
+name: ESLint
 
 on:
   - pull_request
@@ -15,10 +15,10 @@ jobs:
       # Install Node.js
       - uses: actions/setup-node@v3
         with:
-          node-version: 16.18.0
+          node-version: 18.17.0
 
       # Install your dependencies
-      - run: npm ci
+      - run: yarn install
 
       # Run ESLint
       - run: yarn lint

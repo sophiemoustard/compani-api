@@ -17,7 +17,7 @@ exports.mongooseConnection = async (server) => {
   // When the connection is disconnected
   mongoose.connection.once('disconnected', () => server.log(['info', 'db'], 'Successfully disconnected from MongoDB'));
 
-  const uri = process.env.NODE_ENV === 'test' ? 'mongodb://localhost:27017/hapitest' : process.env.MONGODB_URI;
+  const uri = process.env.NODE_ENV === 'test' ? 'mongodb://127.0.0.1:27017/hapitest' : process.env.MONGODB_URI;
   try {
     await mongoose.connect(uri, { retryWrites: false });
   } catch (e) {
