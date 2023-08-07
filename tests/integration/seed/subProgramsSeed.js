@@ -87,7 +87,7 @@ const subProgramsList = [
   { _id: new ObjectId(), name: 'subProgram 0', steps: [stepsList[0]._id, stepsList[1]._id] },
   { _id: new ObjectId(), name: 'subProgram 1', steps: [stepsList[1]._id] },
   { _id: new ObjectId(), name: 'subProgram 2', status: PUBLISHED, steps: [stepsList[0]._id] },
-  { _id: new ObjectId(), name: 'subProgram 3', status: DRAFT, steps: [stepsList[2]._id] },
+  { _id: new ObjectId(), name: 'subProgram 3', status: DRAFT, steps: [stepsList[1]._id] },
   { _id: new ObjectId(), name: 'subProgram 4', status: PUBLISHED, steps: [stepsList[2]._id] },
   { _id: new ObjectId(), name: 'subProgram 5', status: DRAFT, steps: [stepsList[3]._id] },
   { _id: new ObjectId(), name: 'subProgram 6', status: DRAFT, steps: [stepsList[4]._id, stepsList[5]._id] },
