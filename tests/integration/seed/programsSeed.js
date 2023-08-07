@@ -13,12 +13,12 @@ const { INTER_B2C, PUBLISHED } = require('../../../src/helpers/constants');
 
 const cards = [
   { _id: new ObjectId(), template: 'transition', title: 'skusku' },
-  { _id: new ObjectId(), template: 'transition', title: 'test' },
+  { _id: new ObjectId(), template: 'transition' },
 ];
 
 const activitiesList = [
   { _id: new ObjectId(), name: 'activité 1', type: 'sharing_experience', cards: [cards[0]._id], status: PUBLISHED },
-  { _id: new ObjectId(), name: 'activité 2', type: 'quiz', cards: [cards[1]._id], status: PUBLISHED },
+  { _id: new ObjectId(), name: 'activité 2', type: 'quiz', cards: [cards[1]._id] },
   { _id: new ObjectId(), name: 'activité 3', type: 'quiz', cards: [] },
 ];
 
@@ -36,7 +36,7 @@ const stepsList = [
     _id: new ObjectId(),
     type: 'e_learning',
     name: 'étape 1',
-    activities: [activitiesList[0]._id, activitiesList[1]._id],
+    activities: [activitiesList[0]._id],
     status: PUBLISHED,
     theoreticalDuration: 60,
   },
