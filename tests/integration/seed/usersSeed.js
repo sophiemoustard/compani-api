@@ -1,5 +1,6 @@
 const { v4: uuidv4 } = require('uuid');
 const { ObjectId } = require('mongodb');
+const Card = require('../../../src/models/Card');
 const User = require('../../../src/models/User');
 const Step = require('../../../src/models/Step');
 const SubProgram = require('../../../src/models/SubProgram');
@@ -26,6 +27,7 @@ const {
   INTER_B2C,
   BLENDED,
   STRICTLY_E_LEARNING,
+  PUBLISHED,
 } = require('../../../src/helpers/constants');
 const Helper = require('../../../src/models/Helper');
 const {
@@ -417,12 +419,32 @@ const sectorHistories = [
   },
 ];
 
-const activityList = [{ _id: new ObjectId(), name: 'great activity', type: VIDEO, cards: [] }];
+const cardsList = [
+  { _id: new ObjectId(), template: 'transition', title: 'ceci est un titre' },
+];
 
-const stepList = [{ _id: new ObjectId(), name: 'etape', type: 'e_learning', activities: [activityList[0]._id] }];
+const activityList = [{
+  _id: new ObjectId(),
+  name: 'great activity',
+  type: VIDEO,
+  cards: [cardsList[0]._id],
+  status: PUBLISHED,
+}];
+
+const stepList = [
+  { _id: new ObjectId(), name: 'etape', type: 'on_site', status: PUBLISHED, theoreticalDuration: 60 },
+  {
+    _id: new ObjectId(),
+    name: 'etape',
+    type: 'e_learning',
+    activities: [activityList[0]._id],
+    status: PUBLISHED,
+    theoreticalDuration: 60,
+  },
+];
 const subProgramsList = [
-  { _id: new ObjectId(), name: 'subProgram 1' },
-  { _id: new ObjectId(), name: 'subProgram 2', steps: stepList },
+  { _id: new ObjectId(), name: 'subProgram 1', steps: [stepList[0]._id], status: PUBLISHED },
+  { _id: new ObjectId(), name: 'subProgram 2', steps: [stepList[1]._id], status: PUBLISHED },
 ];
 
 const coursesList = [
@@ -470,6 +492,7 @@ const populateDB = async () => {
   await Promise.all([
     Activity.create(activityList),
     ActivityHistory.create(activityHistoryList),
+    Card.create(cardsList),
     Contract.create(contracts),
     Course.create(coursesList),
     Customer.create(customer, customerFromOtherCompany),

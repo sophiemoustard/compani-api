@@ -4,10 +4,11 @@ const Course = require('../../../src/models/Course');
 const CourseHistory = require('../../../src/models/CourseHistory');
 const Card = require('../../../src/models/Card');
 const QuestionnaireHistory = require('../../../src/models/QuestionnaireHistory');
+const Step = require('../../../src/models/Step');
 const SubProgram = require('../../../src/models/SubProgram');
 const { userList, trainerOrganisationManager, vendorAdmin } = require('../../seed/authUsersSeed');
 const { deleteNonAuthenticationSeeds } = require('../helpers/db');
-const { INTER_B2B, TRAINEE_ADDITION, COMPANY_ADDITION } = require('../../../src/helpers/constants');
+const { INTER_B2B, TRAINEE_ADDITION, COMPANY_ADDITION, PUBLISHED } = require('../../../src/helpers/constants');
 const { authCompany, companyWithoutSubscription } = require('../../seed/authCompaniesSeed');
 
 const questionnaireHistoriesUsersList = [userList[6]._id, userList[5]._id, userList[4]._id];
@@ -31,7 +32,9 @@ const questionnairesList = [
   },
 ];
 
-const subProgram = { _id: new ObjectId(), name: 'Subprogram 1' };
+const steps = [{ _id: new ObjectId(), type: 'on_site', name: 'étape', status: PUBLISHED, theoreticalDuration: 60 }];
+
+const subProgram = { _id: new ObjectId(), name: 'Subprogram 1', steps: [steps[0]._id], status: PUBLISHED };
 
 const coursesList = [
   {
@@ -107,6 +110,7 @@ const populateDB = async () => {
     Course.create(coursesList),
     Card.create(cardsList),
     CourseHistory.create(courseHistoriesList),
+    Step.create(steps),
     SubProgram.create(subProgram),
   ]);
 };

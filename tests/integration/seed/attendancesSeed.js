@@ -9,7 +9,7 @@ const SubProgram = require('../../../src/models/SubProgram');
 const User = require('../../../src/models/User');
 const UserCompany = require('../../../src/models/UserCompany');
 const { otherCompany, authCompany, companyWithoutSubscription } = require('../../seed/authCompaniesSeed');
-const { WEBAPP, INTRA, INTER_B2B, TRAINEE_ADDITION } = require('../../../src/helpers/constants');
+const { WEBAPP, INTRA, INTER_B2B, TRAINEE_ADDITION, PUBLISHED } = require('../../../src/helpers/constants');
 const { deleteNonAuthenticationSeeds } = require('../helpers/db');
 const { trainerRoleId, vendorAdminRoleId } = require('../../seed/authRolesSeed');
 const { trainer } = require('../../seed/authUsersSeed');
@@ -42,7 +42,7 @@ const userList = [
   },
 ];
 
-const steps = [{ _id: new ObjectId(), type: 'on_site', name: 'étape' }];
+const steps = [{ _id: new ObjectId(), type: 'on_site', name: 'étape', status: PUBLISHED, theoreticalDuration: 60 }];
 
 const subProgramIdList = [new ObjectId(), new ObjectId(), new ObjectId()];
 const programList = [
@@ -52,9 +52,9 @@ const programList = [
 ];
 
 const subProgramList = [
-  { _id: subProgramIdList[0], name: 'Subprogram 1', steps: [steps[0]._id] },
-  { _id: subProgramIdList[1], name: 'Subprogram 2', steps: [steps[0]._id] },
-  { _id: subProgramIdList[2], name: 'Subprogram 3', steps: [steps[0]._id] },
+  { _id: subProgramIdList[0], name: 'Subprogram 1', steps: [steps[0]._id], status: PUBLISHED },
+  { _id: subProgramIdList[1], name: 'Subprogram 2', steps: [steps[0]._id], status: PUBLISHED },
+  { _id: subProgramIdList[2], name: 'Subprogram 3', steps: [steps[0]._id], status: PUBLISHED },
 ];
 
 const traineeList = [

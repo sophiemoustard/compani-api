@@ -647,10 +647,10 @@ describe('SEEDS VERIFICATION', () => {
             .populate({ path: 'trainer', select: '_id role.vendor' })
             .populate({ path: 'companies', select: '_id', transform })
             .populate({ path: 'accessRules', select: '_id', transform })
-            .populate({ path: 'subProgram', select: '_id' })
+            .populate({ path: 'subProgram', select: '_id status steps', populate: { path: 'steps', select: 'type' } })
             .populate({ path: 'slots', select: 'endDate' })
             .populate({ path: 'slotsToPlan' })
-            .lean();
+            .lean({ virtuals: true });
         });
 
         it('should pass if all trainees are in course companies', () => {
@@ -708,9 +708,11 @@ describe('SEEDS VERIFICATION', () => {
           expect(someAccessRulesAreDuplicated).toBeFalsy();
         });
 
-        it('should pass if every subprogram exists', () => {
-          const subProgramsExist = courseList.map(course => course.subProgram).every(subProgram => !!subProgram);
-          expect(subProgramsExist).toBeTruthy();
+        it('should pass if every subprogram exists and is published', () => {
+          const subProgramsExistAndIsPublished = courseList
+            .map(course => course.subProgram)
+            .every(subProgram => subProgram.status === PUBLISHED);
+          expect(subProgramsExistAndIsPublished).toBeTruthy();
         });
 
         it('should pass if every company exists and is not duplicated', () => {
@@ -759,6 +761,14 @@ describe('SEEDS VERIFICATION', () => {
             .every(course => [INTRA, INTER_B2B].includes(course.type));
 
           expect(everyBlendedCourseHasGoodType).toBeTruthy();
+        });
+
+        it('should pass if only strictly elearning course has strictly e_learning subProgram', () => {
+          const doCoursesHaveGoodSubProgramFormat = courseList
+            .every(course => (course.subProgram.isStrictlyELearning && course.format === STRICTLY_E_LEARNING) ||
+              course.format === BLENDED);
+
+          expect(doCoursesHaveGoodSubProgramFormat).toBeTruthy();
         });
 
         it('should pass if every strictly e-learning course is inter_b2c', () => {
@@ -1937,7 +1947,7 @@ describe('SEEDS VERIFICATION', () => {
         before(async () => {
           subProgramList = await SubProgram
             .find()
-            .populate({ path: 'steps', select: '_id', transform })
+            .populate({ path: 'steps', select: '_id status', transform })
             .lean();
         });
 
@@ -1960,6 +1970,13 @@ describe('SEEDS VERIFICATION', () => {
           const doesEveryPublishedProgramHaveStep = subProgramList.every(sp => sp.status === DRAFT || sp.steps.length);
 
           expect(doesEveryPublishedProgramHaveStep).toBeTruthy();
+        });
+
+        it('should pass if every published subProgram has published steps', () => {
+          const doesEveryPublishedProgramHavePublishedStep = subProgramList
+            .every(sp => sp.status === DRAFT || sp.steps.every(step => step.status === PUBLISHED));
+
+          expect(doesEveryPublishedProgramHavePublishedStep).toBeTruthy();
         });
       });
 

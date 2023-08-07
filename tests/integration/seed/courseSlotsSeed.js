@@ -1,5 +1,7 @@
 const { ObjectId } = require('mongodb');
 const { v4: uuidv4 } = require('uuid');
+const Activity = require('../../../src/models/Activity');
+const Card = require('../../../src/models/Card');
 const Course = require('../../../src/models/Course');
 const Program = require('../../../src/models/Program');
 const CourseSlot = require('../../../src/models/CourseSlot');
@@ -10,7 +12,7 @@ const SubProgram = require('../../../src/models/SubProgram');
 const Attendance = require('../../../src/models/Attendance');
 const { authCompany, otherCompany, companyWithoutSubscription } = require('../../seed/authCompaniesSeed');
 const { vendorAdmin } = require('../../seed/authUsersSeed');
-const { WEBAPP, INTRA } = require('../../../src/helpers/constants');
+const { WEBAPP, INTRA, PUBLISHED, LESSON } = require('../../../src/helpers/constants');
 const { deleteNonAuthenticationSeeds } = require('../helpers/db');
 const { trainerRoleId, auxiliaryRoleId } = require('../../seed/authRolesSeed');
 
@@ -51,16 +53,36 @@ const userCompanies = [
   },
 ];
 
+const cardsList = [
+  { _id: new ObjectId(), template: 'title_text', title: 'title', text: 'text' },
+];
+
+const activitiesList = [
+  { _id: new ObjectId(), name: 'great activity', type: LESSON, cards: [cardsList[0]._id], status: PUBLISHED },
+];
+
 const stepsList = [
-  { _id: new ObjectId(), type: 'on_site', name: 'c\'est une étape' },
-  { _id: new ObjectId(), type: 'e_learning', name: 'toujours une étape' },
+  { _id: new ObjectId(), type: 'on_site', name: 'c\'est une étape', status: PUBLISHED, theoreticalDuration: 60 },
+  {
+    _id: new ObjectId(),
+    type: 'e_learning',
+    name: 'toujours une étape',
+    status: PUBLISHED,
+    theoreticalDuration: 60,
+    activities: [activitiesList[0]._id],
+  },
   { _id: new ObjectId(), type: 'e_learning', name: 'encore une étape' },
   { _id: new ObjectId(), type: 'on_site', name: 'encore une étape' },
-  { _id: new ObjectId(), type: 'remote', name: 'une étape de plus' },
+  { _id: new ObjectId(), type: 'remote', name: 'une étape de plus', status: PUBLISHED, theoreticalDuration: 60 },
 ];
 
 const subProgramsList = [
-  { _id: new ObjectId(), name: 'sous-programme A', steps: [stepsList[0]._id, stepsList[1]._id, stepsList[4]._id] },
+  {
+    _id: new ObjectId(),
+    name: 'sous-programme A',
+    steps: [stepsList[0]._id, stepsList[1]._id, stepsList[4]._id],
+    status: PUBLISHED,
+  },
   { _id: new ObjectId(), name: 'sous-programme B', steps: [stepsList[2]._id, stepsList[3]._id] },
 ];
 
@@ -207,6 +229,8 @@ const populateDB = async () => {
   await deleteNonAuthenticationSeeds();
 
   await Promise.all([
+    Activity.create(activitiesList),
+    Card.create(cardsList),
     SubProgram.create(subProgramsList),
     Program.create(programsList),
     Course.create(coursesList),

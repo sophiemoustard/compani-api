@@ -1,4 +1,5 @@
 const { ObjectId } = require('mongodb');
+const Activity = require('../../../src/models/Activity');
 const Questionnaire = require('../../../src/models/Questionnaire');
 const Card = require('../../../src/models/Card');
 const CourseHistory = require('../../../src/models/CourseHistory');
@@ -19,6 +20,7 @@ const {
   INTER_B2C,
   TRAINEE_ADDITION,
   COMPANY_ADDITION,
+  PUBLISHED,
 } = require('../../../src/helpers/constants');
 const { trainerRoleId } = require('../../seed/authRolesSeed');
 const { companyWithoutSubscription, authCompany } = require('../../seed/authCompaniesSeed');
@@ -47,16 +49,27 @@ const questionnairesList = [
   },
 ];
 
+const activityList = [
+  { _id: new ObjectId(), name: 'activité 1', type: 'sharing_experience', cards: [cardsList[0]._id], status: PUBLISHED },
+];
+
 const courseTrainer = userList.find(user => user.role.vendor === trainerRoleId);
 
 const stepList = [
-  { _id: new ObjectId(), type: 'on_site', name: 'etape 1', activities: [] },
-  { _id: new ObjectId(), type: 'e_learning', name: 'etape 2', activities: [] },
+  { _id: new ObjectId(), type: 'on_site', name: 'etape 1', activities: [], status: PUBLISHED, theoreticalDuration: 60 },
+  {
+    _id: new ObjectId(),
+    type: 'e_learning',
+    name: 'etape 2',
+    activities: [activityList[0]._id],
+    status: PUBLISHED,
+    theoreticalDuration: 60,
+  },
 ];
 
 const subProgramsList = [
-  { _id: new ObjectId(), name: 'sous-programme 1', steps: [stepList[0]._id] },
-  { _id: new ObjectId(), name: 'sous-programme 2', steps: [stepList[1]._id] },
+  { _id: new ObjectId(), name: 'sous-programme 1', steps: [stepList[0]._id], status: PUBLISHED },
+  { _id: new ObjectId(), name: 'sous-programme 2', steps: [stepList[1]._id], status: PUBLISHED },
 ];
 
 const programsList = [{ _id: new ObjectId(), name: 'test', subPrograms: [subProgramsList[0]._id] }];
@@ -83,7 +96,7 @@ const coursesList = [
   {
     _id: new ObjectId(),
     format: 'strictly_e_learning',
-    subProgram: subProgramsList[0]._id,
+    subProgram: subProgramsList[1]._id,
     type: INTER_B2C,
     trainees: [],
   },
@@ -172,6 +185,7 @@ const populateDB = async () => {
   await deleteNonAuthenticationSeeds();
 
   await Promise.all([
+    Activity.create(activityList),
     User.create(traineeList),
     UserCompany.create(traineeCompanyList),
     Questionnaire.create(questionnairesList),
