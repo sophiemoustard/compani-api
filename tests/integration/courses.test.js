@@ -183,6 +183,66 @@ describe('COURSES ROUTES - POST /courses', () => {
       expect(response.statusCode).toBe(404);
     });
 
+    it('should return 404 if subProgram does not exist', async () => {
+      const payload = {
+        misc: 'course',
+        type: INTRA,
+        company: authCompany._id,
+        maxTrainees: 12,
+        subProgram: new ObjectId(),
+        salesRepresentative: vendorAdmin._id,
+        expectedBillsCount: 0,
+      };
+      const response = await app.inject({
+        method: 'POST',
+        url: '/courses',
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload,
+      });
+
+      expect(response.statusCode).toBe(404);
+    });
+
+    it('should return 403 if subProgram is strictly e_learning', async () => {
+      const payload = {
+        misc: 'course',
+        type: INTRA,
+        company: authCompany._id,
+        maxTrainees: 12,
+        subProgram: subProgramsList[2]._id,
+        salesRepresentative: vendorAdmin._id,
+        expectedBillsCount: 0,
+      };
+      const response = await app.inject({
+        method: 'POST',
+        url: '/courses',
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload,
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
+
+    it('should return 403 if subProgram is not published', async () => {
+      const payload = {
+        misc: 'course',
+        type: INTRA,
+        company: authCompany._id,
+        maxTrainees: 12,
+        subProgram: subProgramsList[1]._id,
+        salesRepresentative: vendorAdmin._id,
+        expectedBillsCount: 0,
+      };
+      const response = await app.inject({
+        method: 'POST',
+        url: '/courses',
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload,
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
+
     it('should return 400 if invalid type', async () => {
       const payload = {
         misc: 'course',

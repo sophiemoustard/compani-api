@@ -10,8 +10,8 @@ const { STRICTLY_E_LEARNING, WEBAPP } = require('./constants');
 exports.createProgram = async payload => Program.create(payload);
 
 exports.list = async () => Program.find({})
-  .populate({ path: 'subPrograms', select: 'name' })
-  .lean();
+  .populate({ path: 'subPrograms', populate: { path: 'steps', select: 'type' } })
+  .lean({ virtuals: true });
 
 exports.listELearning = async (credentials, query) => {
   const eLearningCourse = await Course
