@@ -229,7 +229,7 @@ describe('COURSES ROUTES - POST /courses', () => {
         type: INTRA,
         company: authCompany._id,
         maxTrainees: 12,
-        subProgram: subProgramsList[1]._id,
+        subProgram: subProgramsList[3]._id,
         salesRepresentative: vendorAdmin._id,
         expectedBillsCount: 0,
       };

@@ -2,11 +2,12 @@ const { ObjectId } = require('mongodb');
 const { v4: uuidv4 } = require('uuid');
 const Course = require('../../../src/models/Course');
 const CourseHistory = require('../../../src/models/CourseHistory');
+const Step = require('../../../src/models/Step');
 const SubProgram = require('../../../src/models/SubProgram');
 const User = require('../../../src/models/User');
 const { authCompany, companyWithoutSubscription } = require('../../seed/authCompaniesSeed');
 const { trainerOrganisationManager } = require('../../seed/authUsersSeed');
-const { SLOT_CREATION, WEBAPP, INTRA, INTER_B2B } = require('../../../src/helpers/constants');
+const { SLOT_CREATION, WEBAPP, INTRA, INTER_B2B, PUBLISHED } = require('../../../src/helpers/constants');
 const { deleteNonAuthenticationSeeds } = require('../helpers/db');
 const { vendorAdminRoleId, trainerRoleId } = require('../../seed/authRolesSeed');
 
@@ -29,7 +30,9 @@ const userList = [
   },
 ];
 
-const subProgramsList = [{ _id: new ObjectId(), name: 'sous-programme A', steps: [] }];
+const steps = [{ _id: new ObjectId(), type: 'on_site', name: 'étape', status: PUBLISHED, theoreticalDuration: 60 }];
+
+const subProgramsList = [{ _id: new ObjectId(), name: 'sous-programme A', steps: [steps[0]._id], status: PUBLISHED }];
 
 const coursesList = [{
   _id: new ObjectId(),
@@ -138,6 +141,7 @@ const populateDB = async () => {
   await Promise.all([
     Course.create(coursesList),
     CourseHistory.create(courseHistoriesList),
+    Step.create(steps),
     SubProgram.create(subProgramsList),
     User.create(userList),
   ]);

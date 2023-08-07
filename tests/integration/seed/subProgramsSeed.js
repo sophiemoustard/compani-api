@@ -34,6 +34,7 @@ const activitiesList = [
     type: 'sharing_experience',
     name: 'activite',
     cards: [cardsList[0]._id, cardsList[1]._id, cardsList[2]._id],
+    status: PUBLISHED,
   },
   {
     _id: new ObjectId(),
@@ -44,7 +45,7 @@ const activitiesList = [
 ];
 
 const stepsList = [
-  { _id: new ObjectId(), name: 'step 0', type: 'on_site', theoreticalDuration: 9000 },
+  { _id: new ObjectId(), name: 'step 0', type: 'on_site', theoreticalDuration: 9000, status: PUBLISHED },
   {
     _id: new ObjectId(),
     name: 'step 1',
@@ -58,6 +59,7 @@ const stepsList = [
     type: 'e_learning',
     activities: [activitiesList[0]._id],
     theoreticalDuration: 9000,
+    status: PUBLISHED,
   },
   { _id: new ObjectId(), name: 'step 3', type: 'e_learning', theoreticalDuration: 9000 },
   {
@@ -118,7 +120,7 @@ const programsList = [
 const coursesList = [{
   _id: new ObjectId(),
   format: 'blended',
-  subProgram: subProgramsList[7]._id,
+  subProgram: subProgramsList[2]._id,
   type: INTRA,
   maxTrainees: 8,
   trainees: [],
@@ -132,7 +134,7 @@ const courseSlotsList = [
     startDate: '2020-03-10T09:00:00.000Z',
     endDate: '2020-03-10T12:00:00.000Z',
     course: coursesList[0]._id,
-    step: stepsList[5]._id,
+    step: stepsList[0]._id,
   },
 ];
 

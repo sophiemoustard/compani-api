@@ -11,6 +11,7 @@ const {
   TITLE_TEXT_MEDIA,
   FILL_THE_GAPS,
   ORDER_THE_SEQUENCE,
+  PUBLISHED,
 } = require('../../../src/helpers/constants');
 const { deleteNonAuthenticationSeeds } = require('../helpers/db');
 
@@ -45,7 +46,7 @@ const activitiesList = [
     _id: new ObjectId(),
     name: 'publiée',
     type: 'video',
-    status: 'published',
+    status: PUBLISHED,
     cards: [cardsList[4]._id, cardsList[5]._id],
   },
 ];
