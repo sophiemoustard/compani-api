@@ -45,6 +45,7 @@ const {
   BLENDED,
   TRAINEE_ADDITION,
   COMPANY_ADDITION,
+  PUBLISHED,
 } = require('../../../src/helpers/constants');
 const { auxiliaryRoleId, trainerRoleId, coachRoleId, clientAdminRoleId } = require('../../seed/authRolesSeed');
 const { CompaniDate } = require('../../../src/helpers/dates/companiDates');
@@ -290,7 +291,7 @@ const stepList = [
 ];
 
 const subProgramsList = [
-  { _id: new ObjectId(), name: 'sous-programme 1', steps: [stepList[0]._id, stepList[1]._id] },
+  { _id: new ObjectId(), name: 'sous-programme 1', steps: [stepList[0]._id, stepList[1]._id], status: PUBLISHED },
   { _id: new ObjectId(), name: 'sous-programme 2', steps: [stepList[1]._id, stepList[2]._id] },
   { _id: new ObjectId(), name: 'sous-programme 3', steps: [stepList[1]._id] },
 ];

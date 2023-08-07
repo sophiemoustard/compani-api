@@ -8,6 +8,7 @@ const CourseSlot = require('../../models/CourseSlot');
 const Company = require('../../models/Company');
 const CourseBill = require('../../models/CourseBill');
 const AttendanceSheet = require('../../models/AttendanceSheet');
+const SubProgram = require('../../models/SubProgram');
 const {
   TRAINER,
   INTRA,
@@ -27,6 +28,7 @@ const {
   COURSE,
   TRAINEE,
   PEDAGOGY,
+  PUBLISHED,
 } = require('../../helpers/constants');
 const translate = require('../../helpers/translate');
 const UtilsHelper = require('../../helpers/utils');
@@ -65,6 +67,15 @@ exports.checkSalesRepresentativeExists = async (req) => {
 
 exports.authorizeCourseCreation = async (req) => {
   await this.checkSalesRepresentativeExists(req);
+
+  const subProgram = await SubProgram
+    .findOne({ _id: req.payload.subProgram })
+    .populate({ path: 'steps', select: 'type' })
+    .lean({ virtuals: true });
+
+  if (!subProgram) throw Boom.notFound();
+  if (subProgram.status !== PUBLISHED) throw Boom.forbidden();
+  if (subProgram.isStrictlyElearning) throw Boom.forbidden();
 
   if (get(req, 'payload.company')) {
     const { company } = req.payload;
