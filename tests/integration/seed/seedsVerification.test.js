@@ -32,6 +32,7 @@ const SubProgram = require('../../../src/models/SubProgram');
 const User = require('../../../src/models/User');
 const UserCompany = require('../../../src/models/UserCompany');
 const UserHolding = require('../../../src/models/UserHolding');
+const VendorCompany = require('../../../src/models/VendorCompany');
 const { ascendingSort } = require('../../../src/helpers/dates');
 const { CompaniDate } = require('../../../src/helpers/dates/companiDates');
 const { CompaniDuration } = require('../../../src/helpers/dates/companiDurations');
@@ -104,10 +105,12 @@ const holdingsSeed = require('./holdingsSeed');
 const programsSeed = require('./programsSeed');
 const questionnairesSeed = require('./questionnairesSeed');
 const questionnaireHistoriesSeed = require('./questionnaireHistoriesSeed');
+const rolesSeed = require('./rolesSeed');
 const stepsSeed = require('./stepsSeed');
 const subProgramsSeed = require('./subProgramsSeed');
 const userCompaniesSeed = require('./userCompaniesSeed');
 const usersSeed = require('./usersSeed');
+const vendorCompaniesSeed = require('./vendorCompaniesSeed');
 
 const seedList = [
   { label: 'ACTIVITY', value: activitiesSeed },
@@ -130,10 +133,12 @@ const seedList = [
   { label: 'PROGRAM', value: programsSeed },
   { label: 'QUESTIONNAIRE', value: questionnairesSeed },
   { label: 'QUESTIONNAIREHISTORY', value: questionnaireHistoriesSeed },
+  { label: 'ROLE', value: rolesSeed },
   { label: 'STEP', value: stepsSeed },
   { label: 'SUBPROGRAM', value: subProgramsSeed },
   { label: 'USERCOMPANY', value: userCompaniesSeed },
   { label: 'USER', value: usersSeed },
+  { label: 'VENDORCOMPANY', value: vendorCompaniesSeed },
 ];
 
 const transform = doc => (doc || null);
@@ -1602,7 +1607,7 @@ describe('SEEDS VERIFICATION', () => {
           identityVerificationList = await IdentityVerification.find().lean();
         });
 
-        it('should pass if none email match severals codes', async () => {
+        it('should pass if no email is linked to severals codes', async () => {
           const emailListWithoutDuplicates = [...new Set(identityVerificationList.map(iv => iv.email))];
 
           expect(emailListWithoutDuplicates.length).toEqual(identityVerificationList.length);
@@ -2129,6 +2134,24 @@ describe('SEEDS VERIFICATION', () => {
               get(u.user, 'role.holding.name') === HOLDING_ADMIN);
 
           expect(everyUserHasGoodRoles).toBeTruthy();
+        });
+      });
+
+      describe('Collection VendorCompany', () => {
+        let vendorCompanyList;
+        before(async () => {
+          vendorCompanyList = await VendorCompany
+            .find()
+            .populate({ path: 'billingRepresentative', populate: { path: 'role.vendor', select: 'name' } })
+            .lean();
+        });
+
+        it('should pass if every billingRepresentative exists and has good role', () => {
+          const doesEveryUserExistAndHasGoodRole = vendorCompanyList
+            .every(vendorCompany => !has(vendorCompany, 'billingRepresentative') ||
+              [VENDOR_ADMIN, TRAINING_ORGANISATION_MANAGER]
+                .includes(get(vendorCompany.billingRepresentative, 'role.vendor.name')));
+          expect(doesEveryUserExistAndHasGoodRole).toBeTruthy();
         });
       });
     });
