@@ -764,11 +764,13 @@ exports.formatInterCourseForPdf = async (course) => {
   const companiesById = mapValues(keyBy(companiesList, '_id'), 'name');
 
   return {
-    trainees: course.trainees.map(trainee => ({
-      traineeName: UtilsHelper.formatIdentity(trainee.identity, 'FL'),
-      registrationCompany: companiesById[traineesCompany[trainee._id]],
-      course: { ...courseData },
-    })),
+    trainees: course.trainees.length
+      ? course.trainees.map(trainee => ({
+        traineeName: UtilsHelper.formatIdentity(trainee.identity, 'FL'),
+        registrationCompany: companiesById[traineesCompany[trainee._id]],
+        course: { ...courseData },
+      }))
+      : [{ traineeName: '', registrationCompany: '', course: { ...courseData } }],
   };
 };
 

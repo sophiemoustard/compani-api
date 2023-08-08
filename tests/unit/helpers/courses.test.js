@@ -3681,6 +3681,66 @@ describe('formatInterCourseForPdf', () => {
       ]
     );
   });
+
+  it('should format course without trainees', async () => {
+    const course = {
+      _id: new ObjectId(),
+      slots: [
+        { startDate: '2020-03-20T09:00:00', endDate: '2020-03-20T11:00:00', step: { type: 'on_site' } },
+        { startDate: '2020-04-21T09:00:00', endDate: '2020-04-21T11:30:00', step: { type: 'on_site' } },
+        { startDate: '2020-04-12T09:00:00', endDate: '2020-04-12T11:30:00', step: { type: 'on_site' } },
+        { startDate: '2020-04-12T09:00:00', endDate: '2020-04-15T11:30:00', step: { type: 'remote' } },
+      ],
+      misc: 'des infos en plus',
+      trainer: { identity: { lastname: 'MasterClass' } },
+      trainees: [],
+      subProgram: { program: { name: 'programme de formation' } },
+    };
+    const sortedSlots = [
+      { startDate: '2020-03-20T09:00:00', endDate: '2020-03-20T11:00:00', step: { type: 'on_site' } },
+      { startDate: '2020-04-12T09:00:00', endDate: '2020-04-12T11:30:00', step: { type: 'on_site' } },
+      { startDate: '2020-04-21T09:00:00', endDate: '2020-04-21T11:30:00', step: { type: 'on_site' } },
+    ];
+    formatInterCourseSlotsForPdf.returns('slot');
+    formatIdentity.returns('Pere Castor');
+    getTotalDuration.returns('7h');
+    getCompanyAtCourseRegistrationList.returns([]);
+    findCompanies.returns(SinonMongoose.stubChainedQueries([], ['lean']));
+
+    const result = await CourseHelper.formatInterCourseForPdf(course);
+
+    expect(result).toEqual({
+      trainees: [
+        {
+          traineeName: '',
+          registrationCompany: '',
+          course: {
+            name: 'programme de formation - des infos en plus',
+            slots: ['slot', 'slot', 'slot'],
+            trainer: 'Pere Castor',
+            firstDate: '20/03/2020',
+            lastDate: '21/04/2020',
+            duration: '7h',
+          },
+        },
+      ],
+    });
+    sinon.assert.calledOnceWithExactly(formatIdentity, { lastname: 'MasterClass' }, 'FL');
+    sinon.assert.calledOnceWithExactly(getTotalDuration, sortedSlots);
+    sinon.assert.calledOnceWithExactly(
+      getCompanyAtCourseRegistrationList,
+      { key: COURSE, value: course._id },
+      { key: TRAINEE, value: course.trainees }
+    );
+    sinon.assert.callCount(formatInterCourseSlotsForPdf, 3);
+    SinonMongoose.calledOnceWithExactly(
+      findCompanies,
+      [
+        { query: 'find', args: [{ _id: { $in: [] } }, { name: 1 }] },
+        { query: 'lean' },
+      ]
+    );
+  });
 });
 
 describe('generateAttendanceSheets', () => {
