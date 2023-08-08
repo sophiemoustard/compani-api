@@ -22,6 +22,7 @@ const CourseSlot = require('../../../src/models/CourseSlot');
 const CourseSmsHistory = require('../../../src/models/CourseSmsHistory');
 const CourseHistory = require('../../../src/models/CourseHistory');
 const Helper = require('../../../src/models/Helper');
+const IdentityVerification = require('../../../src/models/IdentityVerification');
 const Program = require('../../../src/models/Program');
 const Questionnaire = require('../../../src/models/Questionnaire');
 const QuestionnaireHistory = require('../../../src/models/QuestionnaireHistory');
@@ -1592,6 +1593,26 @@ describe('SEEDS VERIFICATION', () => {
               .some(uc => UtilsHelper.areObjectIdsEquals(uc.company, helper.company._id))
             );
           expect(areUserAndCompanyMatching).toBeTruthy();
+        });
+      });
+
+      describe('Collection IdentityVerification', () => {
+        let identityVerificationList;
+        before(async () => {
+          identityVerificationList = await IdentityVerification.find().lean();
+        });
+
+        it('should pass if none email match severals codes', async () => {
+          const emailListWithoutDuplicates = [...new Set(identityVerificationList.map(iv => iv.email))];
+
+          expect(emailListWithoutDuplicates.length).toEqual(identityVerificationList.length);
+        });
+
+        it('should pass if every email match a user', async () => {
+          const emailList = identityVerificationList.map(iv => iv.email);
+          const usersCount = await User.countDocuments({ 'local.email': { $in: emailList } });
+
+          expect(emailList.length).toEqual(usersCount);
         });
       });
 
