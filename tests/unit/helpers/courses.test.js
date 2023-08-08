@@ -3083,6 +3083,28 @@ describe('updateCourse', () => {
     );
   });
 
+  it('should unarchive course', async () => {
+    const courseId = new ObjectId();
+    const payload = { archivedAt: '' };
+    const courseFromDb = { _id: courseId, archivedAt: '2022-11-18T10:20:00.000Z' };
+
+    courseFindOneAndUpdate.returns(SinonMongoose.stubChainedQueries(courseFromDb, ['lean']));
+
+    await CourseHelper.updateCourse(courseId, payload, credentials);
+
+    sinon.assert.notCalled(createHistoryOnEstimatedStartDateEdition);
+    SinonMongoose.calledOnceWithExactly(
+      courseFindOneAndUpdate,
+      [
+        {
+          query: 'findOneAndUpdate',
+          args: [{ _id: courseId }, { $set: { }, $unset: { archivedAt: '' } }],
+        },
+        { query: 'lean' },
+      ]
+    );
+  });
+
   it('should update estimatedStartDate and create history', async () => {
     const courseId = new ObjectId();
     const payload = { estimatedStartDate: '2022-11-18T10:20:00.000Z' };

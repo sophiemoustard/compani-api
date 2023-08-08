@@ -188,7 +188,7 @@ exports.plugin = {
             contact: Joi.objectId().allow(''),
             salesRepresentative: Joi.objectId(),
             companyRepresentative: Joi.objectId(),
-            archivedAt: Joi.date(),
+            archivedAt: Joi.date().allow(''),
             estimatedStartDate: dateToISOString,
             maxTrainees: Joi.number().positive().integer(),
             expectedBillsCount: Joi.number().min(0).integer(),

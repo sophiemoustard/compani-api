@@ -580,9 +580,17 @@ const _getCourseForPedagogy = async (courseId, credentials) => {
 };
 
 exports.updateCourse = async (courseId, payload, credentials) => {
-  const params = payload.contact === ''
-    ? { $set: omit(payload, 'contact'), $unset: { contact: '' } }
-    : { $set: payload };
+  let omittedPayload = payload;
+  let unsetFields = {};
+  if (payload.contact === '') {
+    omittedPayload = omit(omittedPayload, 'contact');
+    unsetFields = { $unset: { contact: '' } };
+  }
+  if (payload.archivedAt === '') {
+    omittedPayload = omit(omittedPayload, 'archivedAt');
+    unsetFields = { ...unsetFields, $unset: { archivedAt: '' } };
+  }
+  const params = { $set: omittedPayload, ...unsetFields };
 
   const courseFromDb = await Course.findOneAndUpdate({ _id: courseId }, params).lean();
 
