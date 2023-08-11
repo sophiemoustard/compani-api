@@ -78,10 +78,7 @@ exports.plugin = {
                 otherwise: Joi.forbidden(),
               }),
             company: Joi.objectId().when('origin', { is: MOBILE, then: Joi.forbidden() }),
-            holding: Joi.objectId().when(
-              'action',
-              { is: OPERATIONS, then: Joi.objectId(), otherwise: Joi.forbidden() }
-            ),
+            holding: Joi.objectId().when('origin', { is: MOBILE, then: Joi.forbidden() }),
             format: Joi.string().valid(...COURSE_FORMATS),
             isArchived: Joi.boolean(),
           }).oxor('company', 'holding'),

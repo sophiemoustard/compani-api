@@ -956,6 +956,14 @@ const courseHistories = [
     createdBy: trainerOrganisationManager._id,
     createdAt: '2020-01-03T14:00:00.000Z',
   },
+  {
+    action: TRAINEE_ADDITION,
+    course: coursesList[20]._id,
+    trainee: traineeFromThirdCompany._id,
+    company: thirdCompany._id,
+    createdBy: trainerOrganisationManager._id,
+    createdAt: '2020-01-03T14:00:00.000Z',
+  },
 ];
 
 const slots = [
