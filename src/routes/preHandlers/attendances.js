@@ -77,7 +77,7 @@ exports.authorizeUnsubscribedAttendancesGet = async (req) => {
     const trainee = await User.findOne({ _id: traineeId }).populate({ path: 'company' }).lean();
     if (!trainee) throw Boom.notFound();
 
-    if (!UtilsHelper.areObjectIdsEquals(trainee.company, loggedUserCompany)) {
+    if (!UtilsHelper.hasUserAccessToCompany(credentials, trainee.company)) {
       if (!loggedUserVendorRole) throw Boom.notFound();
       if (loggedUserVendorRole === TRAINER) throw Boom.forbidden();
     }
