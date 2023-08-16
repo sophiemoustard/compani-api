@@ -11,6 +11,7 @@ const {
   INTRA,
   TRAINING_ORGANISATION_MANAGER,
   VENDOR_ADMIN,
+  TRAINER,
 } = require('./constants');
 const DatesUtilsHelper = require('./dates/utils');
 const { CompaniDate } = require('./dates/companiDates');
@@ -18,9 +19,10 @@ const { CompaniDate } = require('./dates/companiDates');
 exports.create = async payload => Questionnaire.create(payload);
 
 exports.list = async (credentials) => {
-  const isRofOrAdmin = [TRAINING_ORGANISATION_MANAGER, VENDOR_ADMIN].includes(get(credentials, 'role.vendor.name'));
+  const vendorRoleName = get(credentials, 'role.vendor.name');
+  const isVendorUser = [TRAINING_ORGANISATION_MANAGER, VENDOR_ADMIN, TRAINER].includes(vendorRoleName);
 
-  return Questionnaire.find().populate({ path: 'historiesCount', options: { isVendorUser: isRofOrAdmin } }).lean();
+  return Questionnaire.find().populate({ path: 'historiesCount', options: { isVendorUser } }).lean();
 };
 
 exports.getQuestionnaire = async id => Questionnaire.findOne({ _id: id })

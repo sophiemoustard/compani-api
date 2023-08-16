@@ -101,9 +101,9 @@ describe('QUESTIONNAIRES ROUTES - GET /questionnaires', () => {
   let authToken;
   beforeEach(populateDB);
 
-  describe('TRAINING_ORGANISATION_MANAGER', () => {
+  describe('TRAINER', () => {
     beforeEach(async () => {
-      authToken = await getToken('training_organisation_manager');
+      authToken = await getToken('trainer');
     });
 
     it('should get all questionnaires', async () => {
@@ -123,7 +123,6 @@ describe('QUESTIONNAIRES ROUTES - GET /questionnaires', () => {
       { name: 'helper', expectedCode: 403 },
       { name: 'planning_referent', expectedCode: 403 },
       { name: 'client_admin', expectedCode: 403 },
-      { name: 'trainer', expectedCode: 403 },
     ];
 
     roles.forEach((role) => {

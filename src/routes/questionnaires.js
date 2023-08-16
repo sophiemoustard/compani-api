@@ -30,7 +30,7 @@ exports.plugin = {
       method: 'GET',
       path: '/',
       options: {
-        auth: { scope: ['questionnaires:edit'] },
+        auth: { scope: ['questionnaires:read'] },
       },
       handler: list,
     });
