@@ -1,27 +1,18 @@
 const get = require('lodash/get');
+const has = require('lodash/has');
 const QRCode = require('qrcode');
 const Questionnaire = require('../models/Questionnaire');
 const Course = require('../models/Course');
 const Card = require('../models/Card');
 const CardHelper = require('./cards');
-const {
-  EXPECTATIONS,
-  PUBLISHED,
-  STRICTLY_E_LEARNING,
-  END_OF_COURSE,
-  INTRA,
-  TRAINING_ORGANISATION_MANAGER,
-  VENDOR_ADMIN,
-  TRAINER,
-} = require('./constants');
+const { EXPECTATIONS, PUBLISHED, STRICTLY_E_LEARNING, END_OF_COURSE, INTRA } = require('./constants');
 const DatesUtilsHelper = require('./dates/utils');
 const { CompaniDate } = require('./dates/companiDates');
 
 exports.create = async payload => Questionnaire.create(payload);
 
 exports.list = async (credentials) => {
-  const vendorRoleName = get(credentials, 'role.vendor.name');
-  const isVendorUser = [TRAINING_ORGANISATION_MANAGER, VENDOR_ADMIN, TRAINER].includes(vendorRoleName);
+  const isVendorUser = has(credentials, 'role.vendor');
 
   return Questionnaire.find().populate({ path: 'historiesCount', options: { isVendorUser } }).lean();
 };
