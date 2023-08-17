@@ -1,4 +1,5 @@
 const get = require('lodash/get');
+const QRCode = require('qrcode');
 const Questionnaire = require('../models/Questionnaire');
 const Course = require('../models/Course');
 const Card = require('../models/Card');
@@ -136,4 +137,14 @@ exports.getFollowUp = async (id, courseId, credentials) => {
   };
 
   return courseId ? formatQuestionnaireAnswersWithCourse(courseId, questionnaireAnswers) : questionnaireAnswers;
+};
+
+exports.generateQRCode = async (questionnaireId, courseId) => {
+  const qrCode = await QRCode
+    .toDataURL(
+      `${process.env.WEBSITE_HOSTNAME}/ni/questionnaire/${questionnaireId}?courseId=${courseId}`,
+      { margin: 0 }
+    );
+
+  return { qrCode };
 };

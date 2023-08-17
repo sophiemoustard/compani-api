@@ -105,4 +105,15 @@ const getFollowUp = async (req) => {
   }
 };
 
-module.exports = { list, create, getById, update, addCard, removeCard, getUserQuestionnaires, getFollowUp };
+const getQRCode = async (req) => {
+  try {
+    const { qrCode } = await QuestionnaireHelper.generateQRCode(req.params._id, req.query.course);
+
+    return qrCode;
+  } catch (e) {
+    req.log('error', e);
+    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
+  }
+};
+
+module.exports = { list, create, getById, update, addCard, removeCard, getUserQuestionnaires, getFollowUp, getQRCode };
