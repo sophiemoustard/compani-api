@@ -145,6 +145,7 @@ exports.plugin = {
           params: Joi.object({ _id: Joi.objectId().required() }),
           query: Joi.object({ course: Joi.objectId().required() }),
         },
+        pre: [{ method: authorizeQuestionnaireGet }],
       },
       handler: getQRCode,
     });
