@@ -107,9 +107,9 @@ const getFollowUp = async (req) => {
 
 const getQRCode = async (req) => {
   try {
-    const { qrCode } = await QuestionnaireHelper.generateQRCode(req.params._id, req.query.course);
+    const qrCode = await QuestionnaireHelper.generateQRCode(req.params._id, req.query.course);
 
-    return qrCode;
+    return { message: translate[language].questionnaireQRCodeGenerated, data: { qrCode } };
   } catch (e) {
     req.log('error', e);
     return Boom.isBoom(e) ? e : Boom.badImplementation(e);

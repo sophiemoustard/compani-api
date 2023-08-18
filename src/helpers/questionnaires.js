@@ -137,5 +137,5 @@ exports.generateQRCode = async (questionnaireId, courseId) => {
       { margin: 0 }
     );
 
-  return { qrCode };
+  return qrCode;
 };
