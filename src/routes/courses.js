@@ -48,7 +48,7 @@ const {
   authorizeCourseCompanyDeletion,
   authorizeGenerateTrainingContract,
 } = require('./preHandlers/courses');
-const { INTRA, OPERATIONS, MOBILE, WEBAPP, PEDAGOGY, ORIGIN_OPTIONS } = require('../helpers/constants');
+const { INTRA, OPERATIONS, MOBILE, WEBAPP, PEDAGOGY, ORIGIN_OPTIONS, QUESTIONNAIRE } = require('../helpers/constants');
 const { dateToISOString } = require('./validations/utils');
 
 exports.plugin = {
@@ -124,13 +124,13 @@ exports.plugin = {
         validate: {
           params: Joi.object({ _id: Joi.objectId().required() }),
           query: Joi.object({
-            action: Joi.string().required().valid(OPERATIONS, PEDAGOGY),
+            action: Joi.string().required().valid(OPERATIONS, PEDAGOGY, QUESTIONNAIRE),
             origin: Joi.string()
               .when('action', { is: OPERATIONS, then: Joi.required(), otherwise: Joi.forbidden() })
               .valid(...ORIGIN_OPTIONS),
           }),
         },
-        auth: { mode: 'required' },
+        auth: { mode: 'optional' },
         pre: [{ method: authorizeGetCourse }],
       },
       handler: getById,
