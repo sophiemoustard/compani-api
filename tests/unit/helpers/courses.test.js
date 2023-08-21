@@ -52,6 +52,7 @@ const {
   COURSE,
   TRAINEE,
   HOLDING_ADMIN,
+  QUESTIONNAIRE,
 } = require('../../../src/helpers/constants');
 const CourseRepository = require('../../../src/repositories/CourseRepository');
 const CourseHistoriesHelper = require('../../../src/helpers/courseHistories');
@@ -2348,6 +2349,49 @@ describe('getCourse', () => {
 
       sinon.assert.notCalled(formatCourseWithProgress);
       sinon.assert.notCalled(attendanceCountDocuments);
+    });
+  });
+
+  describe('QUESTIONNAIRE', () => {
+    it('should return blended course', async () => {
+      const course = {
+        _id: new ObjectId(),
+        subProgram: { program: { name: 'Savoir évoluer en équipe autonome' } },
+        trainer: { identity: { firstname: 'super', lastname: 'formateur' } },
+        trainees: [
+          { identity: { firstname: 'titi', lastname: 'grosminet' }, local: { email: 'titi@compa.fr' } },
+          { identity: { firstname: 'asterix', lastname: 'obelix' }, local: { email: 'aasterix@compa.fr' } },
+        ],
+      };
+
+      findOne.returns(SinonMongoose.stubChainedQueries(course));
+
+      const result = await CourseHelper.getCourse({ action: QUESTIONNAIRE }, { _id: course._id });
+
+      expect(result).toMatchObject(course);
+
+      SinonMongoose.calledOnceWithExactly(
+        findOne,
+        [
+          {
+            query: 'findOne',
+            args: [{ _id: course._id }, { subProgram: 1, type: 1, trainer: 1, trainees: 1, misc: 1 }],
+          },
+          {
+            query: 'populate',
+            args: [{ path: 'subProgram', select: 'program', populate: [{ path: 'program', select: 'name' }] }],
+          },
+          {
+            query: 'populate',
+            args: [{ path: 'trainer', select: 'identity.firstname identity.lastname' }],
+          },
+          {
+            query: 'populate',
+            args: [{ path: 'trainees', select: 'identity.firstname identity.lastname local.email' }],
+          },
+          { query: 'lean', args: [{ virtuals: true }] },
+        ]
+      );
     });
   });
 });
