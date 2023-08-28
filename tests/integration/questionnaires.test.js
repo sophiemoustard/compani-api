@@ -8,7 +8,7 @@ const UtilsHelper = require('../../src/helpers/utils');
 const { populateDB, questionnairesList, cardsList, coursesList } = require('./seed/questionnairesSeed');
 const { getToken, getTokenByCredentials } = require('./helpers/authentication');
 const { noRoleNoCompany } = require('../seed/authUsersSeed');
-const { SURVEY, PUBLISHED, DRAFT } = require('../../src/helpers/constants');
+const { SURVEY, PUBLISHED, DRAFT, FLASHCARD } = require('../../src/helpers/constants');
 const { companyWithoutSubscription, authCompany } = require('../seed/authCompaniesSeed');
 
 describe('NODE ENV', () => {
@@ -599,7 +599,7 @@ describe('QUESTIONNAIRES ROUTES - POST /questionnaires/{_id}/card', () => {
       const response = await app.inject({
         method: 'POST',
         url: `/questionnaires/${questionnaireId.toHexString()}/cards`,
-        payload: { template: 'invalid template' },
+        payload: { template: FLASHCARD },
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
