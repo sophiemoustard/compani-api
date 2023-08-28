@@ -1,5 +1,4 @@
 const get = require('lodash/get');
-const has = require('lodash/has');
 const QRCode = require('qrcode');
 const Questionnaire = require('../models/Questionnaire');
 const Course = require('../models/Course');
@@ -11,10 +10,11 @@ const { CompaniDate } = require('./dates/companiDates');
 
 exports.create = async payload => Questionnaire.create(payload);
 
-exports.list = async (credentials) => {
-  const isVendorUser = has(credentials, 'role.vendor');
+exports.list = async (credentials, qStatus) => {
+  const isVendorUser = !!get(credentials, 'role.vendor');
+  const findQuery = { ...(qStatus && { status: qStatus }) };
 
-  return Questionnaire.find().populate({ path: 'historiesCount', options: { isVendorUser } }).lean();
+  return Questionnaire.find(findQuery).populate({ path: 'historiesCount', options: { isVendorUser } }).lean();
 };
 
 exports.getQuestionnaire = async id => Questionnaire.findOne({ _id: id })

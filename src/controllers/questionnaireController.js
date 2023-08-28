@@ -6,7 +6,7 @@ const { language } = translate;
 
 const list = async (req) => {
   try {
-    const questionnaires = await QuestionnaireHelper.list(req.auth.credentials);
+    const questionnaires = await QuestionnaireHelper.list(req.auth.credentials, req.query.status);
 
     return {
       message: questionnaires.length

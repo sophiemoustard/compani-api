@@ -31,6 +31,9 @@ exports.plugin = {
       method: 'GET',
       path: '/',
       options: {
+        validate: {
+          query: Joi.object({ status: Joi.string().valid(PUBLISHED) }),
+        },
         auth: { scope: ['questionnaires:read'] },
       },
       handler: list,
