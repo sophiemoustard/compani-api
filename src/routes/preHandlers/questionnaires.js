@@ -29,14 +29,6 @@ exports.authorizeQuestionnaireGet = async (req) => {
   if (!questionnaire) throw Boom.notFound();
 
   const loggedUserVendorRole = get(req, 'auth.credentials.role.vendor.name');
-  if (req.query.course) {
-    const course = await Course.findOne({ _id: req.query.course }).lean();
-    if (!course) throw Boom.notFound();
-
-    if (!loggedUserVendorRole) throw Boom.forbidden();
-
-    return null;
-  }
 
   if (![TRAINING_ORGANISATION_MANAGER, VENDOR_ADMIN].includes(loggedUserVendorRole) &&
     questionnaire.status !== PUBLISHED) {
@@ -96,6 +88,18 @@ exports.authorizeGetFollowUp = async (req) => {
 
   const questionnaire = await Questionnaire.countDocuments({ _id: req.params._id });
   if (!questionnaire) throw Boom.notFound();
+
+  return null;
+};
+
+exports.authorizeQuestionnaireQRCodeGet = async (req) => {
+  const loggedUserVendorRole = get(req, 'auth.credentials.role.vendor.name');
+  if (req.query.course) {
+    const course = await Course.findOne({ _id: req.query.course }).lean();
+    if (!course) throw Boom.notFound();
+
+    if (!loggedUserVendorRole) throw Boom.forbidden();
+  }
 
   return null;
 };

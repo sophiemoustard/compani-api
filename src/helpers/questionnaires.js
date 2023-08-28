@@ -10,11 +10,10 @@ const { CompaniDate } = require('./dates/companiDates');
 
 exports.create = async payload => Questionnaire.create(payload);
 
-exports.list = async (credentials, qStatus) => {
+exports.list = async (credentials, query = {}) => {
   const isVendorUser = !!get(credentials, 'role.vendor');
-  const findQuery = { ...(qStatus && { status: qStatus }) };
 
-  return Questionnaire.find(findQuery).populate({ path: 'historiesCount', options: { isVendorUser } }).lean();
+  return Questionnaire.find(query).populate({ path: 'historiesCount', options: { isVendorUser } }).lean();
 };
 
 exports.getQuestionnaire = async id => Questionnaire.findOne({ _id: id })

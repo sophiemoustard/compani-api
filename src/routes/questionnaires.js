@@ -20,6 +20,7 @@ const {
   authorizeCardDeletion,
   authorizeUserQuestionnairesGet,
   authorizeGetFollowUp,
+  authorizeQuestionnaireQRCodeGet,
 } = require('./preHandlers/questionnaires');
 const { CARD_TEMPLATES } = require('../models/Card');
 const { PUBLISHED } = require('../helpers/constants');
@@ -148,7 +149,7 @@ exports.plugin = {
           params: Joi.object({ _id: Joi.objectId().required() }),
           query: Joi.object({ course: Joi.objectId().required() }),
         },
-        pre: [{ method: authorizeQuestionnaireGet }],
+        pre: [{ method: authorizeQuestionnaireGet }, { method: authorizeQuestionnaireQRCodeGet }],
       },
       handler: getQRCode,
     });
