@@ -133,7 +133,7 @@ exports.getFollowUp = async (id, courseId, credentials) => {
 exports.generateQRCode = async (questionnaireId, courseId) => {
   const qrCode = await QRCode
     .toDataURL(
-      `${process.env.WEBSITE_HOSTNAME}/ni/questionnaire/${questionnaireId}?courseId=${courseId}`,
+      `${process.env.WEBSITE_HOSTNAME}/ni/questionnaires/${questionnaireId}?courseId=${courseId}`,
       { margin: 0 }
     );
 
