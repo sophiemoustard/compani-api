@@ -74,8 +74,7 @@ exports.authorizeCourseCreation = async (req) => {
     .lean({ virtuals: true });
 
   if (!subProgram) throw Boom.notFound();
-  if (subProgram.status !== PUBLISHED) throw Boom.forbidden();
-  if (subProgram.isStrictlyELearning) throw Boom.forbidden();
+  if (subProgram.status !== PUBLISHED || subProgram.isStrictlyELearning) throw Boom.forbidden();
 
   if (get(req, 'payload.company')) {
     const { company } = req.payload;
