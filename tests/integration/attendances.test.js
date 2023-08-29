@@ -618,6 +618,35 @@ describe('ATTENDANCES ROUTES - GET /attendances/unsubscribed', () => {
       });
     });
 
+    describe('HOLDING_ADMIN', () => {
+      beforeEach(async () => {
+        authToken = await getTokenByCredentials(holdingAdminFromOtherCompany.local);
+      });
+
+      it('should get holding trainee\'s attendances', async () => {
+        const response = await app.inject({
+          method: 'GET',
+          url: `/attendances/unsubscribed?trainee=${traineeList[7]._id}`,
+          headers: { Cookie: `alenvi_token=${authToken}` },
+        });
+
+        expect(response.statusCode).toBe(200);
+
+        const unsubscribedAttendances = Object.values(response.result.data.unsubscribedAttendances).flat();
+        expect(unsubscribedAttendances.length).toEqual(1);
+      });
+
+      it('should return 404 if trainee is from other holding', async () => {
+        const response = await app.inject({
+          method: 'GET',
+          url: `/attendances/unsubscribed?trainee=${traineeList[0]._id}`,
+          headers: { Cookie: `alenvi_token=${authToken}` },
+        });
+
+        expect(response.statusCode).toBe(404);
+      });
+    });
+
     describe('TRAINER AND COACH', () => {
       beforeEach(async () => {
         authToken = await getTokenByCredentials(trainerAndCoach.local);

@@ -273,6 +273,12 @@ const attendancesList = [
   { _id: new ObjectId(), courseSlot: slotsList[1]._id, trainee: traineeList[0]._id, company: authCompany._id },
   { _id: new ObjectId(), courseSlot: slotsList[2]._id, trainee: traineeList[9]._id, company: otherCompany._id },
   { _id: new ObjectId(), courseSlot: slotsList[3]._id, trainee: traineeList[9]._id, company: otherCompany._id },
+  {
+    _id: new ObjectId(),
+    courseSlot: slotsList[6]._id,
+    trainee: traineeList[7]._id,
+    company: companyWithoutSubscription._id,
+  },
 ];
 
 const userCompanyList = [
@@ -289,7 +295,7 @@ const userCompanyList = [
   { user: traineeList[4]._id, company: otherCompany._id, startDate: '2023-01-01T23:00:00.000Z' },
   { user: traineeList[5]._id, company: authCompany._id, startDate: '2023-01-01T23:00:00.000Z' },
   { user: traineeList[6]._id, company: otherCompany._id, startDate: '2023-01-01T23:00:00.000Z' },
-  { user: traineeList[7]._id, company: otherCompany._id, startDate: '2023-01-01T23:00:00.000Z' },
+  { user: traineeList[7]._id, company: companyWithoutSubscription._id, startDate: '2023-01-01T23:00:00.000Z' },
   { user: traineeList[8]._id, company: authCompany._id, startDate: '2023-01-01T23:00:00.000Z' },
   { user: traineeList[9]._id, company: otherCompany._id, startDate: '2023-01-01T23:00:00.000Z' },
 ];
