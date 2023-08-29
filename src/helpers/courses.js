@@ -381,32 +381,24 @@ const getCourseForOperations = async (courseId, credentials, origin) => {
   };
 };
 
-exports.getCourseForQuestionnaire = async (courseId) => {
-  const fetchedCourse = await Course
-    .findOne({ _id: courseId }, { subProgram: 1, type: 1, trainer: 1, trainees: 1, misc: 1 })
-    .populate({ path: 'subProgram', select: 'program', populate: [{ path: 'program', select: 'name' }] })
-    .populate({ path: 'trainer', select: 'identity.firstname identity.lastname' })
-    .populate({ path: 'trainees', select: 'identity.firstname identity.lastname local.email' })
-    .lean({ virtuals: true });
-
-  return fetchedCourse;
-};
+const getCourseForQuestionnaire = async courseId => Course
+  .findOne({ _id: courseId }, { subProgram: 1, type: 1, trainer: 1, trainees: 1, misc: 1 })
+  .populate({ path: 'subProgram', select: 'program', populate: [{ path: 'program', select: 'name' }] })
+  .populate({ path: 'trainer', select: 'identity.firstname identity.lastname' })
+  .populate({ path: 'trainees', select: 'identity.firstname identity.lastname local.email' })
+  .lean({ virtuals: true });
 
 exports.getCourse = async (query, params, credentials) => {
-  let course;
   switch (query.action) {
     case QUESTIONNAIRE:
-      course = this.getCourseForQuestionnaire(params._id);
-      break;
+      return getCourseForQuestionnaire(params._id);
     case OPERATIONS:
-      course = getCourseForOperations(params._id, credentials, query.origin);
-      break;
+      return getCourseForOperations(params._id, credentials, query.origin);
     case PEDAGOGY:
-      course = _getCourseForPedagogy(params._id, credentials);
-      break;
+      return _getCourseForPedagogy(params._id, credentials);
+    default:
+      return null;
   }
-
-  return course;
 };
 
 exports.selectUserHistory = (histories) => {

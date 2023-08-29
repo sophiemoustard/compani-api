@@ -26,6 +26,7 @@ const {
   CONVOCATION,
   COURSE,
   TRAINEE,
+  PEDAGOGY,
 } = require('../../helpers/constants');
 const translate = require('../../helpers/translate');
 const UtilsHelper = require('../../helpers/utils');
@@ -343,7 +344,10 @@ exports.authorizeGetCourse = async (req) => {
       .lean();
     if (!course) throw Boom.notFound();
 
-    if (!credentials) return null;
+    if (!credentials) {
+      if ([PEDAGOGY, OPERATIONS].includes(req.query.action)) throw Boom.badRequest();
+      return null;
+    }
 
     const userCompany = get(credentials, 'company._id');
     const userVendorRole = get(credentials, 'role.vendor.name');

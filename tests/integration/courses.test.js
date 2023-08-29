@@ -951,6 +951,24 @@ describe('COURSES ROUTES - GET /courses/{_id}', () => {
 
       expect(response.statusCode).toBe(404);
     });
+
+    it('should return 400 if user is not logged and action is pedagogy', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/courses/${courseFromAuthCompanyIntra._id}?action=pedagogy`,
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
+
+    it('should return 400 if user is not logged and action is operations', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/courses/${courseFromAuthCompanyIntra._id}?action=operations`,
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
   });
 
   describe('Other roles', () => {
