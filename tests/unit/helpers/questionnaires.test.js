@@ -55,7 +55,7 @@ describe('list', () => {
     SinonMongoose.calledOnceWithExactly(
       find,
       [
-        { query: 'find' },
+        { query: 'find', args: [{}] },
         { query: 'populate', args: [{ path: 'historiesCount', options: { isVendorUser: true } }] },
         { query: 'lean' },
       ]

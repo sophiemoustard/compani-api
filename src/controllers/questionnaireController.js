@@ -6,7 +6,7 @@ const { language } = translate;
 
 const list = async (req) => {
   try {
-    const questionnaires = await QuestionnaireHelper.list(req.auth.credentials);
+    const questionnaires = await QuestionnaireHelper.list(req.auth.credentials, req.query);
 
     return {
       message: questionnaires.length
@@ -105,4 +105,15 @@ const getFollowUp = async (req) => {
   }
 };
 
-module.exports = { list, create, getById, update, addCard, removeCard, getUserQuestionnaires, getFollowUp };
+const getQRCode = async (req) => {
+  try {
+    const qrCode = await QuestionnaireHelper.generateQRCode(req.params._id, req.query.course);
+
+    return { message: translate[language].questionnaireQRCodeGenerated, data: { qrCode } };
+  } catch (e) {
+    req.log('error', e);
+    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
+  }
+};
+
+module.exports = { list, create, getById, update, addCard, removeCard, getUserQuestionnaires, getFollowUp, getQRCode };

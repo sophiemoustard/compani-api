@@ -1,26 +1,19 @@
 const get = require('lodash/get');
+const QRCode = require('qrcode');
 const Questionnaire = require('../models/Questionnaire');
 const Course = require('../models/Course');
 const Card = require('../models/Card');
 const CardHelper = require('./cards');
-const {
-  EXPECTATIONS,
-  PUBLISHED,
-  STRICTLY_E_LEARNING,
-  END_OF_COURSE,
-  INTRA,
-  TRAINING_ORGANISATION_MANAGER,
-  VENDOR_ADMIN,
-} = require('./constants');
+const { EXPECTATIONS, PUBLISHED, STRICTLY_E_LEARNING, END_OF_COURSE, INTRA } = require('./constants');
 const DatesUtilsHelper = require('./dates/utils');
 const { CompaniDate } = require('./dates/companiDates');
 
 exports.create = async payload => Questionnaire.create(payload);
 
-exports.list = async (credentials) => {
-  const isRofOrAdmin = [TRAINING_ORGANISATION_MANAGER, VENDOR_ADMIN].includes(get(credentials, 'role.vendor.name'));
+exports.list = async (credentials, query = {}) => {
+  const isVendorUser = !!get(credentials, 'role.vendor');
 
-  return Questionnaire.find().populate({ path: 'historiesCount', options: { isVendorUser: isRofOrAdmin } }).lean();
+  return Questionnaire.find(query).populate({ path: 'historiesCount', options: { isVendorUser } }).lean();
 };
 
 exports.getQuestionnaire = async id => Questionnaire.findOne({ _id: id })
@@ -134,4 +127,14 @@ exports.getFollowUp = async (id, courseId, credentials) => {
   };
 
   return courseId ? formatQuestionnaireAnswersWithCourse(courseId, questionnaireAnswers) : questionnaireAnswers;
+};
+
+exports.generateQRCode = async (questionnaireId, courseId) => {
+  const qrCode = await QRCode
+    .toDataURL(
+      `${process.env.WEBSITE_HOSTNAME}/ni/questionnaires/${questionnaireId}?courseId=${courseId}`,
+      { margin: 0 }
+    );
+
+  return qrCode;
 };
