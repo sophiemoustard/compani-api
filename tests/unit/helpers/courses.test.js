@@ -3625,7 +3625,7 @@ describe('formatInterCourseForPdf', () => {
       { startDate: '2020-04-21T09:00:00', endDate: '2020-04-21T11:30:00', step: { type: 'on_site' } },
     ];
     formatInterCourseSlotsForPdf.returns('slot');
-    formatIdentity.onCall(0).returns('Pere Castor');
+    formatIdentity.onCall(0).returns('MasterClass');
     formatIdentity.onCall(1).returns('trainee 1');
     formatIdentity.onCall(2).returns('trainee 2');
     getTotalDuration.returns('7h');
@@ -3643,7 +3643,7 @@ describe('formatInterCourseForPdf', () => {
           course: {
             name: 'programme de formation - des infos en plus',
             slots: ['slot', 'slot', 'slot'],
-            trainer: 'Pere Castor',
+            trainer: 'MasterClass',
             firstDate: '20/03/2020',
             lastDate: '21/04/2020',
             duration: '7h',
@@ -3655,7 +3655,7 @@ describe('formatInterCourseForPdf', () => {
           course: {
             name: 'programme de formation - des infos en plus',
             slots: ['slot', 'slot', 'slot'],
-            trainer: 'Pere Castor',
+            trainer: 'MasterClass',
             firstDate: '20/03/2020',
             lastDate: '21/04/2020',
             duration: '7h',
@@ -3702,7 +3702,7 @@ describe('formatInterCourseForPdf', () => {
       { startDate: '2020-04-21T09:00:00', endDate: '2020-04-21T11:30:00', step: { type: 'on_site' } },
     ];
     formatInterCourseSlotsForPdf.returns('slot');
-    formatIdentity.returns('Pere Castor');
+    formatIdentity.returns('MasterClass');
     getTotalDuration.returns('7h');
     getCompanyAtCourseRegistrationList.returns([]);
     findCompanies.returns(SinonMongoose.stubChainedQueries([], ['lean']));
@@ -3717,7 +3717,7 @@ describe('formatInterCourseForPdf', () => {
           course: {
             name: 'programme de formation - des infos en plus',
             slots: ['slot', 'slot', 'slot'],
-            trainer: 'Pere Castor',
+            trainer: 'MasterClass',
             firstDate: '20/03/2020',
             lastDate: '21/04/2020',
             duration: '7h',
