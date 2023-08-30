@@ -580,17 +580,18 @@ const _getCourseForPedagogy = async (courseId, credentials) => {
 };
 
 exports.updateCourse = async (courseId, payload, credentials) => {
-  let omittedPayload = payload;
-  let unsetFields = {};
+  let setFields = payload;
+  let unsetFields = null;
+
   if (payload.contact === '') {
-    omittedPayload = omit(omittedPayload, 'contact');
-    unsetFields = { $unset: { contact: '' } };
+    setFields = omit(setFields, 'contact');
+    unsetFields = { contact: '' };
   }
   if (payload.archivedAt === '') {
-    omittedPayload = omit(omittedPayload, 'archivedAt');
-    unsetFields = { ...unsetFields, $unset: { archivedAt: '' } };
+    setFields = omit(setFields, 'archivedAt');
+    unsetFields = { ...unsetFields, archivedAt: '' };
   }
-  const params = { $set: omittedPayload, ...unsetFields };
+  const params = { $set: { ...setFields }, $unset: { ...unsetFields } };
 
   const courseFromDb = await Course.findOneAndUpdate({ _id: courseId }, params).lean();
 

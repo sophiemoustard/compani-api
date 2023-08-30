@@ -3054,7 +3054,7 @@ describe('updateCourse', () => {
     SinonMongoose.calledOnceWithExactly(
       courseFindOneAndUpdate,
       [
-        { query: 'findOneAndUpdate', args: [{ _id: courseId }, { $set: payload }] },
+        { query: 'findOneAndUpdate', args: [{ _id: courseId }, { $set: payload, $unset: {} }] },
         { query: 'lean' },
       ]
     );
@@ -3119,7 +3119,7 @@ describe('updateCourse', () => {
       [
         {
           query: 'findOneAndUpdate',
-          args: [{ _id: courseId }, { $set: { estimatedStartDate: '2022-11-18T10:20:00.000Z' } }],
+          args: [{ _id: courseId }, { $set: { estimatedStartDate: '2022-11-18T10:20:00.000Z' }, $unset: {} }],
         },
         { query: 'lean' },
       ]
@@ -3147,7 +3147,7 @@ describe('updateCourse', () => {
       [
         {
           query: 'findOneAndUpdate',
-          args: [{ _id: courseId }, { $set: { estimatedStartDate: '2022-11-18T10:20:00.000Z' } }],
+          args: [{ _id: courseId }, { $set: { estimatedStartDate: '2022-11-18T10:20:00.000Z' }, $unset: {} }],
         },
         { query: 'lean' },
       ]
