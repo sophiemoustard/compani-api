@@ -442,7 +442,7 @@ exports.getCourseFollowUp = async (course, query, credentials) => {
     })
     .populate({
       path: 'trainees',
-      select: 'identity.firstname identity.lastname firstMobileConnection',
+      select: 'identity.firstname identity.lastname firstMobileConnection loginCode',
       populate: { path: 'company' },
     })
     .lean();
