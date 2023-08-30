@@ -13,6 +13,7 @@ const { getTokenByCredentials } = require('./helpers/authentication');
 const { companyWithoutSubscription } = require('../seed/authCompaniesSeed');
 const { noRoleNoCompany } = require('../seed/authUsersSeed');
 const QuestionnaireHistory = require('../../src/models/QuestionnaireHistory');
+const { WEBAPP } = require('../../src/helpers/constants');
 
 describe('NODE ENV', () => {
   it('should be \'test\'', () => {
@@ -299,6 +300,7 @@ describe('QUESTIONNAIRE HISTORIES ROUTES - POST /questionnairehistories', () => 
           { card: cardsList[0]._id, answerList: ['5'] },
           { card: cardsList[3]._id, answerList: ['test'] },
         ],
+        origin: WEBAPP,
       };
 
       const response = await app.inject({
