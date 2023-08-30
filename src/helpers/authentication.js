@@ -35,7 +35,7 @@ exports.authenticate = async (payload) => {
   if (payload.origin === MOBILE && !user.firstMobileConnection) {
     await User.updateOne(
       { _id: user._id, firstMobileConnection: { $exists: false } },
-      { $set: { firstMobileConnection: CompaniDate().toISO() } }
+      { $set: { firstMobileConnection: CompaniDate().toISO() }, $unset: { loginCode: '' } }
     );
   }
 
