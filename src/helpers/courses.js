@@ -668,7 +668,14 @@ exports.addTrainee = async (courseId, payload, credentials) => {
     { projection: { companies: 1, type: 1 } }
   );
 
-  const trainee = await User.findOne({ _id: payload.trainee }, { formationExpoTokenList: 1 }).lean();
+  const trainee = await User
+    .findOne({ _id: payload.trainee }, { formationExpoTokenList: 1, firstMobileConnection: 1, loginCode: 1 })
+    .lean();
+
+  if (!trainee.firstMobileConnection && !trainee.loginCode) {
+    const loginCode = String(Math.floor(Math.random() * 9000 + 1000));
+    await User.updateOne({ _id: payload.trainee }, { loginCode }, { new: true });
+  }
 
   await Promise.all([
     CourseHistoriesHelper.createHistoryOnTraineeAddition(
