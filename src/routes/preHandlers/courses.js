@@ -26,6 +26,7 @@ const {
   CONVOCATION,
   COURSE,
   TRAINEE,
+  PEDAGOGY,
 } = require('../../helpers/constants');
 const translate = require('../../helpers/translate');
 const UtilsHelper = require('../../helpers/utils');
@@ -337,15 +338,20 @@ exports.authorizeRegisterToELearning = async (req) => {
 exports.authorizeGetCourse = async (req) => {
   try {
     const credentials = get(req, 'auth.credentials');
-    const userCompany = get(credentials, 'company._id');
-    const userVendorRole = get(credentials, 'role.vendor.name');
-    const userClientRole = get(credentials, 'role.client.name');
 
     const course = await Course
       .findOne({ _id: req.params._id }, { trainer: 1, format: 1, trainees: 1, companies: 1, accessRules: 1 })
       .lean();
     if (!course) throw Boom.notFound();
 
+    if (!credentials) {
+      if ([PEDAGOGY, OPERATIONS].includes(req.query.action)) throw Boom.badRequest();
+      return null;
+    }
+
+    const userCompany = get(credentials, 'company._id');
+    const userVendorRole = get(credentials, 'role.vendor.name');
+    const userClientRole = get(credentials, 'role.client.name');
     const isAdminVendor = userVendorRole === VENDOR_ADMIN;
     const isTOM = userVendorRole === TRAINING_ORGANISATION_MANAGER;
     if (isTOM || isAdminVendor) return null;

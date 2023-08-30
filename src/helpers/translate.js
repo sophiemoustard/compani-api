@@ -370,6 +370,8 @@ module.exports = {
     questionnaireUpdated: 'questionnaire updated.',
     questionnaireHistoryCreated: 'Questionnaire history created.',
     questionnaireQRCodeGenerated: 'Questionnaire QR Code generated.',
+    /*  QuestionnaireHistories */
+    questionnaireHistoryConflict: 'A questionnaire history already exists.',
     /* PartnerOrganization */
     partnerOrganizationCreated: 'Partner organization created.',
     partnerOrganizationAlreadyExists: 'A partner organization already exists.',
@@ -790,6 +792,8 @@ module.exports = {
     questionnaireUpdated: 'Questionnaire mis à jour.',
     questionnaireHistoryCreated: 'Historique de questionnaire créé.',
     questionnaireQRCodeGenerated: 'QR Code généré.',
+    /*  QuestionnaireHistories */
+    questionnaireHistoryConflict: 'Vous avez déjà répondu à ce questionnaire.',
     /* PartnerOrganization */
     partnerOrganizationCreated: 'Structure partenaire créée.',
     partnerOrganizationAlreadyExists: 'Structure partenaire déjà existante.',

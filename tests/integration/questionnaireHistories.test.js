@@ -13,6 +13,7 @@ const { getTokenByCredentials } = require('./helpers/authentication');
 const { companyWithoutSubscription } = require('../seed/authCompaniesSeed');
 const { noRoleNoCompany } = require('../seed/authUsersSeed');
 const QuestionnaireHistory = require('../../src/models/QuestionnaireHistory');
+const { WEBAPP } = require('../../src/helpers/constants');
 
 describe('NODE ENV', () => {
   it('should be \'test\'', () => {
@@ -24,7 +25,7 @@ describe('QUESTIONNAIRE HISTORIES ROUTES - POST /questionnairehistories', () => 
   let authToken;
   beforeEach(populateDB);
 
-  describe('Logged user', () => {
+  describe('NO_ROLE_NO_COMPANY', () => {
     beforeEach(async () => {
       authToken = await getTokenByCredentials(noRoleNoCompany.local);
     });
@@ -285,6 +286,32 @@ describe('QUESTIONNAIRE HISTORIES ROUTES - POST /questionnairehistories', () => 
       });
 
       expect(response.statusCode).toBe(422);
+    });
+  });
+
+  describe('NOT LOGGED', () => {
+    it('should create questionnaireHistory', async () => {
+      const questionnaireHistoriesCountBefore = await QuestionnaireHistory.countDocuments();
+      const payload = {
+        course: coursesList[0]._id,
+        user: questionnaireHistoriesUsersList[0],
+        questionnaire: questionnairesList[0]._id,
+        questionnaireAnswersList: [
+          { card: cardsList[0]._id, answerList: ['5'] },
+          { card: cardsList[3]._id, answerList: ['test'] },
+        ],
+        origin: WEBAPP,
+      };
+
+      const response = await app.inject({
+        method: 'POST',
+        url: '/questionnairehistories',
+        payload,
+      });
+
+      expect(response.statusCode).toBe(200);
+      const questionnaireHistoriesCountAfter = await QuestionnaireHistory.countDocuments();
+      expect(questionnaireHistoriesCountAfter).toBe(questionnaireHistoriesCountBefore + 1);
     });
   });
 });

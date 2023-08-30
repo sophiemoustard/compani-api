@@ -182,6 +182,18 @@ describe('QUESTIONNAIRES ROUTES - GET /questionnaires/{_id}', () => {
     });
   });
 
+  describe('NOT LOGGED', () => {
+    it('should get questionnaire', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/questionnaires/${questionnairesList[1]._id}`,
+      });
+
+      expect(response.statusCode).toBe(200);
+      expect(response.result.data.questionnaire._id).toEqual(questionnairesList[1]._id);
+    });
+  });
+
   describe('Other roles', () => {
     it('should return 200 if questionnaire is published', async () => {
       authToken = await getTokenByCredentials(noRoleNoCompany.local);

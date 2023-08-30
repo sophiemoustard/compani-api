@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 const { validateQuery, validateAggregation, formatQuery, queryMiddlewareList } = require('./preHooks/validate');
+const { ORIGIN_OPTIONS, MOBILE } = require('../helpers/constants');
 
 const QuestionnaireHistorySchema = mongoose.Schema({
   course: { type: mongoose.Schema.Types.ObjectId, ref: 'Course', required: true },
@@ -10,6 +11,7 @@ const QuestionnaireHistorySchema = mongoose.Schema({
     answerList: { type: [String] },
   }],
   company: { type: mongoose.Schema.Types.ObjectId, ref: 'Company', required: true },
+  origin: { type: String, enum: ORIGIN_OPTIONS, required: true, immutable: true, default: MOBILE },
 }, { timestamps: true });
 
 QuestionnaireHistorySchema.pre('find', validateQuery);

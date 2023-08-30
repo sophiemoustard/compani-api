@@ -52,6 +52,8 @@ const {
   VENDOR_ROLES,
   COURSE,
   TRAINEE,
+  PEDAGOGY,
+  QUESTIONNAIRE,
 } = require('./constants');
 const CourseHistoriesHelper = require('./courseHistories');
 const NotificationHelper = require('./notifications');
@@ -379,11 +381,25 @@ const getCourseForOperations = async (courseId, credentials, origin) => {
   };
 };
 
-exports.getCourse = async (query, params, credentials) => (
-  query.action === OPERATIONS
-    ? getCourseForOperations(params._id, credentials, query.origin)
-    : _getCourseForPedagogy(params._id, credentials)
-);
+const getCourseForQuestionnaire = async courseId => Course
+  .findOne({ _id: courseId }, { subProgram: 1, type: 1, trainer: 1, trainees: 1, misc: 1 })
+  .populate({ path: 'subProgram', select: 'program', populate: [{ path: 'program', select: 'name' }] })
+  .populate({ path: 'trainer', select: 'identity.firstname identity.lastname' })
+  .populate({ path: 'trainees', select: 'identity.firstname identity.lastname local.email' })
+  .lean({ virtuals: true });
+
+exports.getCourse = async (query, params, credentials) => {
+  switch (query.action) {
+    case QUESTIONNAIRE:
+      return getCourseForQuestionnaire(params._id);
+    case OPERATIONS:
+      return getCourseForOperations(params._id, credentials, query.origin);
+    case PEDAGOGY:
+      return _getCourseForPedagogy(params._id, credentials);
+    default:
+      return null;
+  }
+};
 
 exports.selectUserHistory = (histories) => {
   const groupedHistories = Object.values(groupBy(histories, 'user'));

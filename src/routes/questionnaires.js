@@ -65,7 +65,7 @@ exports.plugin = {
         validate: {
           params: Joi.object({ _id: Joi.objectId().required() }),
         },
-        auth: { mode: 'required' },
+        auth: { mode: 'optional' },
         pre: [{ method: authorizeQuestionnaireGet }],
       },
       handler: getById,

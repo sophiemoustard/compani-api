@@ -3,6 +3,7 @@
 const Joi = require('joi');
 Joi.objectId = require('joi-objectid')(Joi);
 const { addQuestionnaireHistory } = require('../controllers/questionnaireHistoryController');
+const { WEBAPP } = require('../helpers/constants');
 const { authorizeAddQuestionnaireHistory } = require('./preHandlers/questionnaireHistories');
 
 exports.plugin = {
@@ -21,9 +22,10 @@ exports.plugin = {
               card: Joi.objectId().required(),
               answerList: Joi.array().items(Joi.string()).min(1).required(),
             })),
+            origin: Joi.string().valid(WEBAPP),
           }),
         },
-        auth: { mode: 'required' },
+        auth: { mode: 'optional' },
         pre: [{ method: authorizeAddQuestionnaireHistory }],
       },
       handler: addQuestionnaireHistory,

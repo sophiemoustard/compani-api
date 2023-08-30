@@ -922,6 +922,55 @@ describe('COURSES ROUTES - GET /courses/{_id}', () => {
     });
   });
 
+  describe('NOT LOGGED', () => {
+    it('should get intra course (for questionnaire)', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/courses/${courseFromAuthCompanyIntra._id}?action=questionnaire`,
+      });
+
+      expect(response.statusCode).toBe(200);
+      expect(response.result.data.course._id.toHexString()).toBe(courseFromAuthCompanyIntra._id.toHexString());
+    });
+
+    it('should get inter course (for questionnaire)', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/courses/${courseFromAuthCompanyInterB2b._id}?action=questionnaire`,
+      });
+
+      expect(response.statusCode).toBe(200);
+      expect(response.result.data.course._id.toHexString()).toBe(courseFromAuthCompanyInterB2b._id.toHexString());
+    });
+
+    it('should return 404 if course doesn\'t exist', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/courses/${new ObjectId()}?action=questionnaire`,
+      });
+
+      expect(response.statusCode).toBe(404);
+    });
+
+    it('should return 400 if user is not logged and action is pedagogy', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/courses/${courseFromAuthCompanyIntra._id}?action=pedagogy`,
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
+
+    it('should return 400 if user is not logged and action is operations', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/courses/${courseFromAuthCompanyIntra._id}?action=operations`,
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
+  });
+
   describe('Other roles', () => {
     const roles = [{ name: 'helper', expectedCode: 403 }, { name: 'planning_referent', expectedCode: 403 }];
 

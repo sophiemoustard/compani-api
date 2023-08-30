@@ -39,7 +39,9 @@ const create = async (req) => {
 
 const getById = async (req) => {
   try {
-    const course = await CoursesHelper.getCourse(req.query, req.params, req.auth.credentials);
+    const { query, params } = req;
+    const credentials = get(req, 'auth.credentials', null);
+    const course = await CoursesHelper.getCourse(query, params, credentials);
 
     return {
       message: translate[language].courseFound,
