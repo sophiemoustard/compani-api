@@ -1,6 +1,7 @@
 const path = require('path');
 const get = require('lodash/get');
 const has = require('lodash/has');
+const isEmpty = require('lodash/isEmpty');
 const omit = require('lodash/omit');
 const groupBy = require('lodash/groupBy');
 const keyBy = require('lodash/keyBy');
@@ -581,7 +582,7 @@ const _getCourseForPedagogy = async (courseId, credentials) => {
 
 exports.updateCourse = async (courseId, payload, credentials) => {
   let setFields = payload;
-  let unsetFields = null;
+  let unsetFields = {};
 
   if (payload.contact === '') {
     setFields = omit(setFields, 'contact');
@@ -591,7 +592,10 @@ exports.updateCourse = async (courseId, payload, credentials) => {
     setFields = omit(setFields, 'archivedAt');
     unsetFields = { ...unsetFields, archivedAt: '' };
   }
-  const params = { $set: { ...setFields }, $unset: { ...unsetFields } };
+  const params = {
+    ...(!isEmpty(setFields) && { $set: { ...setFields } }),
+    ...(!isEmpty(unsetFields) && { $unset: { ...unsetFields } }),
+  };
 
   const courseFromDb = await Course.findOneAndUpdate({ _id: courseId }, params).lean();
 
