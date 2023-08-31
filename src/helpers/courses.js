@@ -592,12 +592,12 @@ exports.updateCourse = async (courseId, payload, credentials) => {
     setFields = omit(setFields, 'archivedAt');
     unsetFields = { ...unsetFields, archivedAt: '' };
   }
-  const params = {
+  const formattedPayload = {
     ...(!isEmpty(setFields) && { $set: { ...setFields } }),
     ...(!isEmpty(unsetFields) && { $unset: { ...unsetFields } }),
   };
 
-  const courseFromDb = await Course.findOneAndUpdate({ _id: courseId }, params).lean();
+  const courseFromDb = await Course.findOneAndUpdate({ _id: courseId }, formattedPayload).lean();
 
   const estimatedStartDateUpdated = payload.estimatedStartDate && (!courseFromDb.estimatedStartDate ||
     !CompaniDate(payload.estimatedStartDate).isSame(courseFromDb.estimatedStartDate, DAY));
