@@ -21,6 +21,9 @@ const {
   TRAINEE_ADDITION,
   COMPANY_ADDITION,
   PUBLISHED,
+  ON_SITE,
+  E_LEARNING,
+  STRICTLY_E_LEARNING,
 } = require('../../../src/helpers/constants');
 const { trainerRoleId } = require('../../seed/authRolesSeed');
 const { companyWithoutSubscription, authCompany } = require('../../seed/authCompaniesSeed');
@@ -56,10 +59,10 @@ const activityList = [
 const courseTrainer = userList.find(user => user.role.vendor === trainerRoleId);
 
 const stepList = [
-  { _id: new ObjectId(), type: 'on_site', name: 'etape 1', activities: [], status: PUBLISHED, theoreticalDuration: 60 },
+  { _id: new ObjectId(), type: ON_SITE, name: 'etape 1', activities: [], status: PUBLISHED, theoreticalDuration: 60 },
   {
     _id: new ObjectId(),
-    type: 'e_learning',
+    type: E_LEARNING,
     name: 'etape 2',
     activities: [activityList[0]._id],
     status: PUBLISHED,
@@ -95,7 +98,7 @@ const coursesList = [
   },
   {
     _id: new ObjectId(),
-    format: 'strictly_e_learning',
+    format: STRICTLY_E_LEARNING,
     subProgram: subProgramsList[1]._id,
     type: INTER_B2C,
     trainees: [],

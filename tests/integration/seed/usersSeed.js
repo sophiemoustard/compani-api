@@ -28,6 +28,8 @@ const {
   BLENDED,
   STRICTLY_E_LEARNING,
   PUBLISHED,
+  E_LEARNING,
+  ON_SITE,
 } = require('../../../src/helpers/constants');
 const Helper = require('../../../src/models/Helper');
 const {
@@ -432,11 +434,11 @@ const activityList = [{
 }];
 
 const stepList = [
-  { _id: new ObjectId(), name: 'etape', type: 'on_site', status: PUBLISHED, theoreticalDuration: 60 },
+  { _id: new ObjectId(), name: 'etape', type: ON_SITE, status: PUBLISHED, theoreticalDuration: 60 },
   {
     _id: new ObjectId(),
     name: 'etape',
-    type: 'e_learning',
+    type: E_LEARNING,
     activities: [activityList[0]._id],
     status: PUBLISHED,
     theoreticalDuration: 60,

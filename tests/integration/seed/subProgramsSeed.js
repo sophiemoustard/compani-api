@@ -84,8 +84,8 @@ const stepsList = [
 ];
 
 const subProgramsList = [
-  { _id: new ObjectId(), name: 'subProgram 0', steps: [stepsList[0]._id, stepsList[1]._id] },
-  { _id: new ObjectId(), name: 'subProgram 1', steps: [stepsList[1]._id] },
+  { _id: new ObjectId(), name: 'subProgram 0', status: DRAFT, steps: [stepsList[0]._id, stepsList[1]._id] },
+  { _id: new ObjectId(), name: 'subProgram 1', status: DRAFT, steps: [stepsList[1]._id] },
   { _id: new ObjectId(), name: 'subProgram 2', status: PUBLISHED, steps: [stepsList[0]._id] },
   { _id: new ObjectId(), name: 'subProgram 3', status: DRAFT, steps: [stepsList[1]._id] },
   { _id: new ObjectId(), name: 'subProgram 4', status: PUBLISHED, steps: [stepsList[2]._id] },
@@ -95,13 +95,13 @@ const subProgramsList = [
   { // 8 on site without theoreticalDuration
     _id: new ObjectId(),
     name: 'subProgram 8',
-    status: 'draft',
+    status: DRAFT,
     steps: [stepsList[6]._id],
   },
   { // 9 eLearning without theoreticalDuration
     _id: new ObjectId(),
     name: 'subProgram 9',
-    status: 'draft',
+    status: DRAFT,
     steps: [stepsList[7]._id],
   },
 ];
