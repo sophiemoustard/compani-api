@@ -4,7 +4,6 @@ const SubProgram = require('../../models/SubProgram');
 const Program = require('../../models/Program');
 const Company = require('../../models/Company');
 const Step = require('../../models/Step');
-const CourseSlot = require('../../models/CourseSlot');
 const { PUBLISHED, DRAFT, TRAINING_ORGANISATION_MANAGER, VENDOR_ADMIN } = require('../../helpers/constants');
 const translate = require('../../helpers/translate');
 const UtilsHelper = require('../../helpers/utils');
@@ -24,10 +23,6 @@ exports.authorizeStepDetachment = async (req) => {
     .lean();
   if (!subProgram) throw Boom.notFound();
   if (subProgram.status !== DRAFT) throw Boom.forbidden();
-
-  const courseSlot = await CourseSlot
-    .countDocuments({ step: req.params.stepId, course: { $in: subProgram.courses.map(course => course._id) } });
-  if (courseSlot) throw Boom.conflict();
 
   return null;
 };
