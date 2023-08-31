@@ -1418,6 +1418,37 @@ describe('COURSES ROUTES - PUT /courses/{_id}', () => {
       expect(response.statusCode).toBe(200);
     });
 
+    it('should archive a blended course', async () => {
+      const payload = { archivedAt: CompaniDate('2020-03-25T09:00:00.000Z').toDate() };
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/courses/${coursesList[0]._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload,
+      });
+
+      expect(response.statusCode).toBe(200);
+
+      const course = await Course.countDocuments({ _id: coursesList[0]._id, archivedAt: { $exists: true } });
+
+      expect(course).toBeTruthy();
+    });
+
+    it('should unarchive an archived course', async () => {
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/courses/${coursesList[14]._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload: { archivedAt: '' },
+      });
+
+      expect(response.statusCode).toBe(200);
+
+      const course = await Course.countDocuments({ _id: coursesList[14]._id, archivedAt: { $exists: false } });
+
+      expect(course).toBeTruthy();
+    });
+
     const payloads = [
       { misc: 'new name' },
       { trainer: new ObjectId() },
@@ -1425,6 +1456,7 @@ describe('COURSES ROUTES - PUT /courses/{_id}', () => {
       { salesRepresentative: new ObjectId() },
       { maxTrainees: 15 },
       { expectedBillsCount: 10 },
+      { archivedAt: CompaniDate('2020-03-25T09:00:00.000Z').toDate() },
     ];
     payloads.forEach((payload) => {
       it(`should return 403 if course is archived (update ${Object.keys(payload)})`, async () => {
@@ -1536,73 +1568,15 @@ describe('COURSES ROUTES - PUT /courses/{_id}', () => {
       expect(response.statusCode).toBe(403);
     });
 
-    it('should return 403 if trying to archive course without trainee', async () => {
-      const payload = { archivedAt: CompaniDate('2020-03-25T09:00:00.000Z').toDate() };
+    it('should return 409 if trying to unarchive a non archived course', async () => {
       const response = await app.inject({
         method: 'PUT',
-        url: `/courses/${coursesList[13]._id}`,
+        url: `/courses/${coursesList[0]._id}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
-        payload,
+        payload: { archivedAt: '' },
       });
 
-      expect(response.statusCode).toBe(403);
-
-      const course = await Course.findById(coursesList[13]._id)
-        .populate({ path: 'slots', select: 'startDate endDate' })
-        .populate({ path: 'slotsToPlan' })
-        .lean();
-
-      expect(course.trainees.length).toBeFalsy();
-      expect(course.slots.length).toBeTruthy();
-      expect(course.slotsToPlan.length).toBe(0);
-      expect(course.format).toBe('blended');
-      expect(course.slots.every(slot => CompaniDate(slot.endDate).isBefore(payload.archivedAt))).toBeTruthy();
-    });
-
-    it('should return 403 if trying to archive course without slot', async () => {
-      const payload = { archivedAt: CompaniDate('2020-03-25T09:00:00.000Z').toDate() };
-      const response = await app.inject({
-        method: 'PUT',
-        url: `/courses/${coursesList[4]._id}`,
-        headers: { Cookie: `alenvi_token=${authToken}` },
-        payload,
-      });
-
-      expect(response.statusCode).toBe(403);
-
-      const course = await Course.findById(coursesList[4]._id)
-        .populate({ path: 'slots', select: 'startDate endDate' })
-        .populate({ path: 'slotsToPlan' })
-        .lean();
-
-      expect(course.trainees.length).toBeTruthy();
-      expect(course.slots.length).toBeFalsy();
-      expect(course.slotsToPlan.length).toBe(0);
-      expect(course.format).toBe('blended');
-      expect(course.slots.every(slot => CompaniDate(slot.endDate).isBefore(payload.archivedAt))).toBeTruthy();
-    });
-
-    it('should return 403 if trying to archive course with slot to plan', async () => {
-      const payload = { archivedAt: CompaniDate('2020-03-25T09:00:00.000Z').toDate() };
-      const response = await app.inject({
-        method: 'PUT',
-        url: `/courses/${coursesList[7]._id}`,
-        headers: { Cookie: `alenvi_token=${authToken}` },
-        payload,
-      });
-
-      expect(response.statusCode).toBe(403);
-
-      const course = await Course.findById(coursesList[7]._id)
-        .populate({ path: 'slots', select: 'startDate endDate' })
-        .populate({ path: 'slotsToPlan' })
-        .lean();
-
-      expect(course.trainees.length).toBeTruthy();
-      expect(course.slots.length).toBeTruthy();
-      expect(course.slotsToPlan.length).toBeTruthy();
-      expect(course.format).toBe('blended');
-      expect(course.slots.every(slot => CompaniDate(slot.endDate).isBefore(payload.archivedAt))).toBeTruthy();
+      expect(response.statusCode).toBe(409);
     });
 
     it('should return 403 if trying to archive a not blended course', async () => {
@@ -1623,29 +1597,6 @@ describe('COURSES ROUTES - PUT /courses/{_id}', () => {
 
       expect(course.trainees.length).toBeTruthy();
       expect(course.format).toBe('strictly_e_learning');
-    });
-
-    it('should return 403 if trying to archive a course in progress', async () => {
-      const payload = { archivedAt: CompaniDate('2020-01-10T00:00:00.000Z').toDate() };
-      const response = await app.inject({
-        method: 'PUT',
-        url: `/courses/${coursesList[5]._id}`,
-        headers: { Cookie: `alenvi_token=${authToken}` },
-        payload,
-      });
-
-      expect(response.statusCode).toBe(403);
-
-      const course = await Course.findById(coursesList[5]._id)
-        .populate({ path: 'slots', select: 'startDate endDate' })
-        .populate({ path: 'slotsToPlan' })
-        .lean();
-
-      expect(course.trainees.length).toBeTruthy();
-      expect(course.slots.length).toBeTruthy();
-      expect(course.slotsToPlan.length).toBe(0);
-      expect(course.format).toBe('blended');
-      expect(course.slots.every(slot => CompaniDate(slot.endDate).isBefore(payload.archivedAt))).toBeFalsy();
     });
 
     it('should return 403 if try to add estimated start date to course with slots', async () => {

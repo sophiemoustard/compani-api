@@ -129,7 +129,9 @@ exports.authorizeCourseEdit = async (req) => {
       .populate({ path: 'contact' })
       .lean();
     if (!course) throw Boom.notFound();
-    if (course.archivedAt) throw Boom.forbidden();
+
+    const unarchiveCourse = has(req, 'payload.archivedAt') && req.payload.archivedAt === '';
+    if (course.archivedAt && !unarchiveCourse) throw Boom.forbidden();
 
     const courseTrainerId = get(course, 'trainer') || null;
     const companies = course.type === INTRA ? course.companies : [];
@@ -180,15 +182,12 @@ exports.authorizeCourseEdit = async (req) => {
 
       if (!UtilsHelper.doesArrayIncludeId(Object.values(interlocutors), req.payload.contact)) throw Boom.forbidden();
     }
-
     const archivedAt = get(req, 'payload.archivedAt');
-    if (archivedAt) {
+    if (archivedAt || unarchiveCourse) {
       if (!isRofOrAdmin) return Boom.forbidden();
 
-      if (!course.trainees.length || !course.slots.length) return Boom.forbidden();
-      if (course.slotsToPlan.length) return Boom.forbidden();
       if (course.format !== BLENDED) return Boom.forbidden();
-      if (course.slots.some(slot => CompaniDate(slot.endDate).isAfter(archivedAt))) return Boom.forbidden();
+      if (unarchiveCourse && !course.archivedAt) throw Boom.conflict();
     }
 
     if (get(req, 'payload.estimatedStartDate') && (course.slots.length || !isRofOrAdmin)) return Boom.forbidden();

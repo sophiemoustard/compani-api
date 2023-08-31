@@ -1,6 +1,7 @@
 const path = require('path');
 const get = require('lodash/get');
 const has = require('lodash/has');
+const isEmpty = require('lodash/isEmpty');
 const omit = require('lodash/omit');
 const groupBy = require('lodash/groupBy');
 const keyBy = require('lodash/keyBy');
@@ -596,11 +597,23 @@ const _getCourseForPedagogy = async (courseId, credentials) => {
 };
 
 exports.updateCourse = async (courseId, payload, credentials) => {
-  const params = payload.contact === ''
-    ? { $set: omit(payload, 'contact'), $unset: { contact: '' } }
-    : { $set: payload };
+  let setFields = payload;
+  let unsetFields = {};
 
-  const courseFromDb = await Course.findOneAndUpdate({ _id: courseId }, params).lean();
+  if (payload.contact === '') {
+    setFields = omit(setFields, 'contact');
+    unsetFields = { contact: '' };
+  }
+  if (payload.archivedAt === '') {
+    setFields = omit(setFields, 'archivedAt');
+    unsetFields = { ...unsetFields, archivedAt: '' };
+  }
+  const formattedPayload = {
+    ...(!isEmpty(setFields) && { $set: { ...setFields } }),
+    ...(!isEmpty(unsetFields) && { $unset: { ...unsetFields } }),
+  };
+
+  const courseFromDb = await Course.findOneAndUpdate({ _id: courseId }, formattedPayload).lean();
 
   const estimatedStartDateUpdated = payload.estimatedStartDate && (!courseFromDb.estimatedStartDate ||
     !CompaniDate(payload.estimatedStartDate).isSame(courseFromDb.estimatedStartDate, DAY));
