@@ -674,7 +674,7 @@ exports.addTrainee = async (courseId, payload, credentials) => {
 
   if (!trainee.firstMobileConnection && !trainee.loginCode) {
     const loginCode = String(Math.floor(Math.random() * 9000 + 1000));
-    await User.updateOne({ _id: payload.trainee }, { loginCode }, { new: true });
+    await User.updateOne({ _id: payload.trainee }, { loginCode });
   }
 
   await Promise.all([

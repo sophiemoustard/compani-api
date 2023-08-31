@@ -2534,7 +2534,7 @@ describe('getCourseFollowUp', () => {
           query: 'populate',
           args: [{
             path: 'trainees',
-            select: 'identity.firstname identity.lastname firstMobileConnection',
+            select: 'identity.firstname identity.lastname firstMobileConnection loginCode',
             populate: { path: 'company' },
           }],
         },
@@ -2612,7 +2612,7 @@ describe('getCourseFollowUp', () => {
           query: 'populate',
           args: [{
             path: 'trainees',
-            select: 'identity.firstname identity.lastname firstMobileConnection',
+            select: 'identity.firstname identity.lastname firstMobileConnection loginCode',
             populate: { path: 'company' },
           }],
         },
@@ -2708,7 +2708,7 @@ describe('getCourseFollowUp', () => {
           query: 'populate',
           args: [{
             path: 'trainees',
-            select: 'identity.firstname identity.lastname firstMobileConnection',
+            select: 'identity.firstname identity.lastname firstMobileConnection loginCode',
             populate: { path: 'company' },
           }],
         },
@@ -2789,7 +2789,7 @@ describe('getCourseFollowUp', () => {
           query: 'populate',
           args: [{
             path: 'trainees',
-            select: 'identity.firstname identity.lastname firstMobileConnection',
+            select: 'identity.firstname identity.lastname firstMobileConnection loginCode',
             populate: { path: 'company' },
           }],
         },
