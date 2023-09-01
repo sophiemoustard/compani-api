@@ -3384,7 +3384,7 @@ describe('addTrainee', () => {
     sendBlendedCourseRegistrationNotification.restore();
   });
 
-  it('should add a course trainee using existing user (INTER) and not create loginCode in db', async () => {
+  it('should register an existing user who is connected to the mobile app (INTER course)', async () => {
     const user = {
       _id: new ObjectId(),
       formationExpoTokenList: 'ExponentPushToken[bla]',
@@ -3425,7 +3425,8 @@ describe('addTrainee', () => {
     sinon.assert.notCalled(userUpdateOne);
   });
 
-  it('should add a course trainee using existing user (INTER) and not create loginCode in db', async () => {
+  it('should register an existing user who has already registered for a course and is NOT connected to the'
+    + 'mobile app (INTER course)', async () => {
     const user = {
       _id: new ObjectId(),
       formationExpoTokenList: 'ExponentPushToken[bla]',
@@ -3466,7 +3467,7 @@ describe('addTrainee', () => {
     sinon.assert.notCalled(userUpdateOne);
   });
 
-  it('should add a course trainee using existing user (INTRA) and create loginCode in db', async () => {
+  it('should register an existing user to course (INTRA) and create loginCode in db', async () => {
     const user = { _id: new ObjectId(), formationExpoTokenList: 'ExponentPushToken[bla]' };
     const course = { _id: new ObjectId(), misc: 'Test', type: INTRA, companies: [new ObjectId()] };
     const payload = { trainee: user._id };
