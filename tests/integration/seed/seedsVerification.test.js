@@ -1994,6 +1994,13 @@ describe('SEEDS VERIFICATION', () => {
           );
           expect(doUsersHaveRoleInWrongInterface).toBeFalsy();
         });
+
+        it('should pass if every user has only one of the two fields firstMobileConnection or loginCode', () => {
+          const doUserHaveBothFirstMobileConnectionAndLoginCode = userList
+            .some(u => u.firstMobileConnection && u.loginCode);
+
+          expect(doUserHaveBothFirstMobileConnectionAndLoginCode).toBeFalsy();
+        });
       });
 
       describe('Collection UserCompany', () => {
