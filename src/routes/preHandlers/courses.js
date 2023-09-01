@@ -6,6 +6,7 @@ const Course = require('../../models/Course');
 const User = require('../../models/User');
 const CourseSlot = require('../../models/CourseSlot');
 const Company = require('../../models/Company');
+const CompanyHolding = require('../../models/CompanyHolding');
 const CourseBill = require('../../models/CourseBill');
 const AttendanceSheet = require('../../models/AttendanceSheet');
 const SubProgram = require('../../models/SubProgram');
@@ -28,6 +29,7 @@ const {
   TRAINEE,
   PEDAGOGY,
   PUBLISHED,
+  HOLDING_ADMIN,
 } = require('../../helpers/constants');
 const translate = require('../../helpers/translate');
 const UtilsHelper = require('../../helpers/utils');
@@ -122,7 +124,18 @@ exports.checkInterlocutors = async (req, courseCompanyId) => {
     if (![COACH, CLIENT_ADMIN].includes(get(companyRepresentative, 'role.client.name'))) {
       throw Boom.forbidden();
     }
-    if (!UtilsHelper.areObjectIdsEquals(companyRepresentative.company, courseCompanyId)) throw Boom.notFound();
+    if (!UtilsHelper.areObjectIdsEquals(companyRepresentative.company, courseCompanyId)) {
+      if (![HOLDING_ADMIN].includes(get(companyRepresentative, 'role.holding.name'))) throw Boom.forbidden();
+
+      const companyRepresentativeHolding = await CompanyHolding
+        .findOne({ company: companyRepresentative.company })
+        .lean();
+      const courseCompanyHolding = await CompanyHolding.findOne({ company: courseCompanyId }).lean();
+
+      if (!UtilsHelper.areObjectIdsEquals(companyRepresentativeHolding.holding, courseCompanyHolding.holding)) {
+        throw Boom.notFound();
+      }
+    }
   }
 
   return null;
