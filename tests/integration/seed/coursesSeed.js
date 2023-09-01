@@ -45,6 +45,7 @@ const {
   BLENDED,
   TRAINEE_ADDITION,
   COMPANY_ADDITION,
+  PUBLISHED,
 } = require('../../../src/helpers/constants');
 const { auxiliaryRoleId, trainerRoleId, coachRoleId, clientAdminRoleId } = require('../../seed/authRolesSeed');
 const { CompaniDate } = require('../../../src/helpers/dates/companiDates');
@@ -254,14 +255,14 @@ const userCompanies = [
 ];
 
 const cardsList = [
-  { _id: new ObjectId(), template: 'title_text' },
-  { _id: new ObjectId(), template: 'survey' },
+  { _id: new ObjectId(), template: 'title_text', title: 'title', text: 'text' },
+  { _id: new ObjectId(), template: 'survey', label: { right: 'right', left: 'left' }, question: 'question ?' },
   { _id: new ObjectId(), template: 'survey', label: { right: 'right', left: 'left' }, question: 'question ?' },
 ];
 
 const activitiesList = [
-  { _id: new ObjectId(), name: 'great activity', type: VIDEO, cards: [cardsList[0]._id] },
-  { _id: new ObjectId(), name: 'great activity', type: VIDEO, cards: [cardsList[1]._id] },
+  { _id: new ObjectId(), name: 'great activity', type: VIDEO, cards: [cardsList[0]._id], status: PUBLISHED },
+  { _id: new ObjectId(), name: 'great activity', type: VIDEO, cards: [cardsList[1]._id], status: PUBLISHED },
 ];
 const activitiesHistory = [
   { _id: new ObjectId(), user: coach._id, activity: activitiesList[0]._id },
@@ -278,21 +279,23 @@ const activitiesHistory = [
 ];
 
 const stepList = [
-  { _id: new ObjectId(), name: 'etape', type: 'on_site', activities: [] },
+  { _id: new ObjectId(), name: 'etape', type: 'on_site', activities: [], status: PUBLISHED, theoreticalDuration: 60 },
   {
     _id: new ObjectId(),
     name: 'etape',
     type: 'e_learning',
     activities: activitiesList.map(a => a._id),
     theoreticalDuration: 60,
+    status: PUBLISHED,
   },
-  { _id: new ObjectId(), name: 'etape', type: 'remote', activities: [] },
+  { _id: new ObjectId(), name: 'etape', type: 'remote', activities: [], status: PUBLISHED, theoreticalDuration: 60 },
 ];
 
 const subProgramsList = [
-  { _id: new ObjectId(), name: 'sous-programme 1', steps: [stepList[0]._id, stepList[1]._id] },
-  { _id: new ObjectId(), name: 'sous-programme 2', steps: [stepList[1]._id, stepList[2]._id] },
-  { _id: new ObjectId(), name: 'sous-programme 3', steps: [stepList[1]._id] },
+  { _id: new ObjectId(), name: 'sous-programme 1', steps: [stepList[0]._id, stepList[1]._id], status: PUBLISHED },
+  { _id: new ObjectId(), name: 'sous-programme 2', steps: [stepList[1]._id, stepList[2]._id], status: PUBLISHED },
+  { _id: new ObjectId(), name: 'sous-programme 3', steps: [stepList[1]._id], status: PUBLISHED },
+  { _id: new ObjectId(), name: 'sous-programme 4 (non publié)', steps: [stepList[1]._id, stepList[2]._id] },
 ];
 
 const programsList = [
@@ -415,7 +418,7 @@ const coursesList = [
   },
   { // 9 course with access rules and trainee that can't have access to the course but has already suscribed
     _id: new ObjectId(),
-    subProgram: subProgramsList[0]._id,
+    subProgram: subProgramsList[2]._id,
     type: INTER_B2C,
     format: STRICTLY_E_LEARNING,
     trainees: [coach._id],

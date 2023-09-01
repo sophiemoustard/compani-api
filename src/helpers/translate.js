@@ -282,7 +282,6 @@ module.exports = {
     /* Steps */
     stepUpdated: 'Step updated.',
     stepsFound: 'Steps found.',
-    stepsTheoreticalDurationsNotDefined: 'Some program steps theoretical durations are not defined.',
     /* Activities */
     activityFound: 'Activity found.',
     activityUpdated: 'Activity updated.',
@@ -704,7 +703,6 @@ module.exports = {
     /* Steps */
     stepsFound: 'Liste des étapes trouvée.',
     stepUpdated: 'Étape mise à jour.',
-    stepsTheoreticalDurationsNotDefined: 'Certaines durées théoriques des étapes du programme ne sont pas renseignées.',
     /* Activities */
     activityFound: 'Activité trouvée.',
     activityUpdated: 'Activité mise à jour.',

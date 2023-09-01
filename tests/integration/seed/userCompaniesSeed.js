@@ -20,6 +20,7 @@ const {
   TRAINEE_DELETION,
   MOBILE,
   COMPANY,
+  PUBLISHED,
 } = require('../../../src/helpers/constants');
 const { auxiliaryRoleId, coachRoleId, trainingOrganisationManagerRoleId } = require('../../seed/authRolesSeed');
 const { vendorAdmin, trainerOrganisationManager, trainer } = require('../../seed/authUsersSeed');
@@ -225,19 +226,29 @@ const userCompanies = [
   { _id: new ObjectId(), user: usersSeedList[9]._id, company: authCompany._id, startDate: '2020-11-19T23:00:00.000Z' },
 ];
 
-const cardsList = [{ _id: new ObjectId(), template: 'title_text' }, { _id: new ObjectId(), template: 'survey' }];
+const cardsList = [
+  { _id: new ObjectId(), template: 'title_text', title: 'title', text: 'text' },
+  { _id: new ObjectId(), template: 'survey', label: { right: 'right', left: 'left' }, question: 'question ?' },
+];
 
 const activitiesList = [
-  { _id: new ObjectId(), name: 'great activity', type: VIDEO, cards: [cardsList[0]._id] },
-  { _id: new ObjectId(), name: 'great activity', type: VIDEO, cards: [cardsList[1]._id] },
+  { _id: new ObjectId(), name: 'great activity', type: VIDEO, cards: [cardsList[0]._id], status: PUBLISHED },
+  { _id: new ObjectId(), name: 'great activity', type: VIDEO, cards: [cardsList[1]._id], status: PUBLISHED },
 ];
 const stepList = [
-  { _id: new ObjectId(), name: 'etape', type: 'on_site', activities: [] },
-  { _id: new ObjectId(), name: 'etape', type: 'e_learning', activities: activitiesList.map(a => a._id) },
+  { _id: new ObjectId(), name: 'etape', type: 'on_site', activities: [], status: PUBLISHED, theoreticalDuration: 60 },
+  {
+    _id: new ObjectId(),
+    name: 'etape',
+    type: 'e_learning',
+    activities: activitiesList.map(a => a._id),
+    status: PUBLISHED,
+    theoreticalDuration: 60,
+  },
 ];
 
 const subProgramsList = [
-  { _id: new ObjectId(), name: 'sous-programme 1', steps: [stepList[0]._id, stepList[1]._id] },
+  { _id: new ObjectId(), name: 'sous-programme 1', steps: [stepList[0]._id, stepList[1]._id], status: PUBLISHED },
 ];
 
 const coursesList = [

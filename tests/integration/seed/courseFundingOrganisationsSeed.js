@@ -6,7 +6,7 @@ const SubProgram = require('../../../src/models/SubProgram');
 const CourseFundingOrganisation = require('../../../src/models/CourseFundingOrganisation');
 const { deleteNonAuthenticationSeeds } = require('../helpers/db');
 const { authCompany } = require('../../seed/authCompaniesSeed');
-const { INTRA } = require('../../../src/helpers/constants');
+const { INTRA, PUBLISHED } = require('../../../src/helpers/constants');
 const { trainer, vendorAdmin, auxiliary } = require('../../seed/authUsersSeed');
 
 const courseFundingOrganisationsList = [
@@ -14,9 +14,9 @@ const courseFundingOrganisationsList = [
   { _id: new ObjectId(), name: 'APA Gironde', address: '30 cours de la Marne 33000 Bordeaux' },
 ];
 
-const steps = [{ _id: new ObjectId(), type: 'on_site', name: 'étape' }];
+const steps = [{ _id: new ObjectId(), type: 'on_site', name: 'étape', status: PUBLISHED, theoreticalDuration: 60 }];
 
-const subProgramList = [{ _id: new ObjectId(), name: 'subProgram 1', steps: [steps[0]._id] }];
+const subProgramList = [{ _id: new ObjectId(), name: 'subProgram 1', steps: [steps[0]._id], status: PUBLISHED }];
 
 const coursesList = [
   {

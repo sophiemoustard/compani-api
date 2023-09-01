@@ -1,5 +1,5 @@
 const { ObjectId } = require('mongodb');
-const { PAYMENT, DIRECT_DEBIT, INTRA } = require('../../../src/helpers/constants');
+const { PAYMENT, DIRECT_DEBIT, INTRA, PUBLISHED } = require('../../../src/helpers/constants');
 const Course = require('../../../src/models/Course');
 const CourseBill = require('../../../src/models/CourseBill');
 const CourseBillsNumber = require('../../../src/models/CourseBillsNumber');
@@ -11,9 +11,9 @@ const { authCompany } = require('../../seed/authCompaniesSeed');
 const { deleteNonAuthenticationSeeds } = require('../helpers/db');
 const { trainer, vendorAdmin, auxiliary } = require('../../seed/authUsersSeed');
 
-const steps = [{ _id: new ObjectId(), type: 'on_site', name: 'étape' }];
+const steps = [{ _id: new ObjectId(), type: 'on_site', name: 'étape', status: PUBLISHED, theoreticalDuration: 60 }];
 
-const subProgramList = [{ _id: new ObjectId(), name: 'subProgram 1', steps: [steps[0]._id] }];
+const subProgramList = [{ _id: new ObjectId(), name: 'subProgram 1', steps: [steps[0]._id], status: PUBLISHED }];
 
 const coursesList = [
   {

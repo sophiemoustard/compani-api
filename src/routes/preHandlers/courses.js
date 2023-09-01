@@ -8,6 +8,7 @@ const CourseSlot = require('../../models/CourseSlot');
 const Company = require('../../models/Company');
 const CourseBill = require('../../models/CourseBill');
 const AttendanceSheet = require('../../models/AttendanceSheet');
+const SubProgram = require('../../models/SubProgram');
 const {
   TRAINER,
   INTRA,
@@ -17,7 +18,6 @@ const {
   COACH,
   TRAINING_ORGANISATION_MANAGER,
   STRICTLY_E_LEARNING,
-  E_LEARNING,
   BLENDED,
   ON_SITE,
   MOBILE,
@@ -27,6 +27,7 @@ const {
   COURSE,
   TRAINEE,
   PEDAGOGY,
+  PUBLISHED,
 } = require('../../helpers/constants');
 const translate = require('../../helpers/translate');
 const UtilsHelper = require('../../helpers/utils');
@@ -65,6 +66,14 @@ exports.checkSalesRepresentativeExists = async (req) => {
 
 exports.authorizeCourseCreation = async (req) => {
   await this.checkSalesRepresentativeExists(req);
+
+  const subProgram = await SubProgram
+    .findOne({ _id: req.payload.subProgram })
+    .populate({ path: 'steps', select: 'type' })
+    .lean({ virtuals: true });
+
+  if (!subProgram) throw Boom.notFound();
+  if (subProgram.status !== PUBLISHED || subProgram.isStrictlyELearning) throw Boom.forbidden();
 
   if (get(req, 'payload.company')) {
     const { company } = req.payload;
@@ -550,7 +559,6 @@ exports.authorizeGenerateTrainingContract = async (req) => {
         select: 'steps',
         populate: [{ path: 'steps', select: 'theoreticalDuration type' }],
       },
-      { path: 'slotsToPlan' },
     ])
     .lean();
 
@@ -559,14 +567,6 @@ exports.authorizeGenerateTrainingContract = async (req) => {
   const company = course.companies.find(c => UtilsHelper.areObjectIdsEquals(c._id, req.payload.company));
   if (!company) throw Boom.forbidden();
   if (!company.address) throw Boom.forbidden(translate[language].courseCompanyAddressMissing);
-  if (course.slotsToPlan.length) {
-    const theoreticalDurationList = course.subProgram.steps
-      .filter(step => step.type !== E_LEARNING)
-      .map(step => step.theoreticalDuration);
-    if (theoreticalDurationList.some(duration => !duration)) {
-      throw Boom.badData(translate[language].stepsTheoreticalDurationsNotDefined);
-    }
-  }
 
   return null;
 };
