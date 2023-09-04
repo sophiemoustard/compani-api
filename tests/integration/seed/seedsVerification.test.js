@@ -1995,7 +1995,7 @@ describe('SEEDS VERIFICATION', () => {
           expect(doUsersHaveRoleInWrongInterface).toBeFalsy();
         });
 
-        it('should pass if every user has only one of the two fields firstMobileConnection or loginCode', () => {
+        it('should pass if every user has either firstMobileConnection or loginCode or none of these 2 fields', () => {
           const doUserHaveBothFirstMobileConnectionAndLoginCode = userList
             .some(u => u.firstMobileConnection && u.loginCode);
 
