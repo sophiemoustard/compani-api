@@ -236,13 +236,12 @@ const authorizeGetListForPedagogy = async (credentials, query) => {
   const isRofOrAdmin = [VENDOR_ADMIN, TRAINING_ORGANISATION_MANAGER].includes(loggedUserVendorRole);
   if (isRofOrAdmin) return null;
 
+  const hasUserAccessToCompany = UtilsHelper.hasUserAccessToCompany(credentials, trainee.company._id);
   const isAllowedToAccessQuery = query.company
-    ? UtilsHelper.areObjectIdsEquals(loggedUserCompany, query.company) &&
-      UtilsHelper.hasUserAccessToCompany(credentials, trainee.company._id)
-    : UtilsHelper.areObjectIdsEquals(loggedUserHolding, query.holding) &&
-      UtilsHelper.hasUserAccessToCompany(credentials, trainee.company._id);
-  const isClientRoleFromQuery = [COACH, CLIENT_ADMIN].includes(loggedUserClientRole) && isAllowedToAccessQuery;
-  if (!isClientRoleFromQuery) throw Boom.forbidden();
+    ? UtilsHelper.areObjectIdsEquals(loggedUserCompany, query.company)
+    : UtilsHelper.areObjectIdsEquals(loggedUserHolding, query.holding);
+  const isCoachOrAdmin = [COACH, CLIENT_ADMIN].includes(loggedUserClientRole);
+  if (!(isCoachOrAdmin && isAllowedToAccessQuery && hasUserAccessToCompany)) throw Boom.forbidden();
 
   return null;
 };
