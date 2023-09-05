@@ -248,7 +248,7 @@ const listForPedagogy = async (query, credentials) => {
     const traineeCompanies = mapValues(keyBy(companyAtCourseRegistration, 'course'), 'company');
     filteredCourses = courses
       .filter(course => course.format === STRICTLY_E_LEARNING ||
-          UtilsHelper.doesArrayIncludeId(companies, traineeCompanies[course._id]));
+        UtilsHelper.doesArrayIncludeId(companies, traineeCompanies[course._id]));
   }
 
   const shouldComputePresence = true;
