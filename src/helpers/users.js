@@ -66,9 +66,9 @@ exports.formatQueryForUsersList = async (query) => {
       .lean();
 
     if (query.includesHoldingAdmins) {
-      const { holding } = await CompanyHolding.findOne({ company: query.company }, { holding: 1 }).lean();
-      if (holding) {
-        const userHoldings = await UserHolding.find({ holding }, { user: 1 }).lean();
+      const companyHolding = await CompanyHolding.findOne({ company: query.company }, { holding: 1 }).lean();
+      if (companyHolding) {
+        const userHoldings = await UserHolding.find({ holding: companyHolding.holding }, { user: 1 }).lean();
         users.push(...userHoldings);
       }
     }

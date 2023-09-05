@@ -214,7 +214,7 @@ describe('formatQueryForUsersList', () => {
     sinon.assert.notCalled(findUserHolding);
   });
 
-  it('should return params with company (with includesHoldingAdmins)', async () => {
+  it('should return params with company (with includesHoldingAdmins and holding exists)', async () => {
     const users = [{ _id: new ObjectId(), user: new ObjectId() }];
     const holdingId = new ObjectId();
     const companyHolding = { _id: new ObjectId(), holding: holdingId };
@@ -251,6 +251,39 @@ describe('formatQueryForUsersList', () => {
       findUserHolding,
       [{ query: 'find', args: [{ holding: holdingId }, { user: 1 }] }, { query: 'lean' }]
     );
+    sinon.assert.notCalled(find);
+  });
+
+  it('should return params with company (with includesHoldingAdmins and holding doesn\'t exists)', async () => {
+    const users = [{ _id: new ObjectId(), user: new ObjectId() }];
+    const query = { company: companyId, includesHoldingAdmins: true };
+
+    findUserCompany.returns(SinonMongoose.stubChainedQueries(users, ['lean']));
+    findOneCompanyHolding.returns(SinonMongoose.stubChainedQueries(null, ['lean']));
+    const result = await UsersHelper.formatQueryForUsersList(query);
+    expect(result).toEqual({ _id: { $in: users.map(u => u.user) } });
+
+    SinonMongoose.calledOnceWithExactly(
+      findUserCompany,
+      [
+        {
+          query: 'find',
+          args: [
+            {
+              company: companyId,
+              $or: [{ endDate: { $gt: '2022-12-21T16:00:00.000Z' } }, { endDate: { $exists: false } }],
+            },
+            { user: 1 },
+          ],
+        },
+        { query: 'lean' },
+      ]
+    );
+    SinonMongoose.calledOnceWithExactly(
+      findOneCompanyHolding,
+      [{ query: 'findOne', args: [{ company: companyId }, { holding: 1 }] }, { query: 'lean' }]
+    );
+    sinon.assert.notCalled(findUserHolding);
     sinon.assert.notCalled(find);
   });
 });
