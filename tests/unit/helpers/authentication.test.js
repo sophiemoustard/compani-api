@@ -66,7 +66,7 @@ describe('authenticate', () => {
     sinon.assert.calledOnceWithExactly(
       updateOne,
       { _id: user._id, firstMobileConnection: { $exists: false } },
-      { $set: { firstMobileConnection: '2022-09-18T10:00:00.000Z' } }
+      { $set: { firstMobileConnection: '2022-09-18T10:00:00.000Z' }, $unset: { loginCode: '' } }
     );
     sinon.assert.calledOnceWithExactly(compare, payload.password, 'toto');
     sinon.assert.calledOnceWithExactly(encode, { _id: user._id.toHexString() });

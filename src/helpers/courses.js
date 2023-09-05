@@ -312,7 +312,7 @@ const getCourseForOperations = async (courseId, credentials, origin) => {
       { path: 'companies', select: 'name' },
       {
         path: 'trainees',
-        select: 'identity.firstname identity.lastname local.email contact picture.link firstMobileConnection',
+        select: 'identity.firstname identity.lastname local.email contact picture.link firstMobileConnection loginCode',
         populate: { path: 'company' },
       },
       {
@@ -459,7 +459,7 @@ exports.getCourseFollowUp = async (course, query, credentials) => {
     })
     .populate({
       path: 'trainees',
-      select: 'identity.firstname identity.lastname firstMobileConnection',
+      select: 'identity.firstname identity.lastname firstMobileConnection loginCode',
       populate: { path: 'company' },
     })
     .lean();
@@ -697,7 +697,14 @@ exports.addTrainee = async (courseId, payload, credentials) => {
     { projection: { companies: 1, type: 1 } }
   );
 
-  const trainee = await User.findOne({ _id: payload.trainee }, { formationExpoTokenList: 1 }).lean();
+  const trainee = await User
+    .findOne({ _id: payload.trainee }, { formationExpoTokenList: 1, firstMobileConnection: 1, loginCode: 1 })
+    .lean();
+
+  if (!trainee.firstMobileConnection && !trainee.loginCode) {
+    const loginCode = String(Math.floor(Math.random() * 9000 + 1000));
+    await User.updateOne({ _id: payload.trainee }, { loginCode });
+  }
 
   await Promise.all([
     CourseHistoriesHelper.createHistoryOnTraineeAddition(
