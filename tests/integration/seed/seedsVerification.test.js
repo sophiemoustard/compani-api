@@ -102,6 +102,8 @@ const coursePaymentsSeed = require('./coursePaymentsSeed');
 const coursesSeed = require('./coursesSeed');
 const courseHistoriesSeed = require('./courseHistoriesSeed');
 const courseSlotsSeed = require('./courseSlotsSeed');
+const driveSeed = require('./driveSeed');
+const emailSeed = require('./emailSeed');
 const holdingsSeed = require('./holdingsSeed');
 const programsSeed = require('./programsSeed');
 const questionnairesSeed = require('./questionnairesSeed');
@@ -131,6 +133,8 @@ const seedList = [
   { label: 'COURSEPAYMENT', value: coursePaymentsSeed },
   { label: 'COURSEHISTORY', value: courseHistoriesSeed },
   { label: 'COURSESLOT', value: courseSlotsSeed },
+  { label: 'DRIVE', value: driveSeed },
+  { label: 'EMAIL', value: emailSeed },
   { label: 'HOLDING', value: holdingsSeed },
   { label: 'PROGRAM', value: programsSeed },
   { label: 'QUESTIONNAIRE', value: questionnairesSeed },

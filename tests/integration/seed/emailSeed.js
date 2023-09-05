@@ -98,6 +98,8 @@ const userCompanies = [
     company: authCompany._id,
     startDate: CompaniDate().add('P1D').toISO(),
   },
+  { _id: new ObjectId(), user: coachFromOtherCompany._id, company: otherCompany._id },
+  { _id: new ObjectId(), user: helperFromOtherCompany._id, company: otherCompany._id },
 ];
 
 const populateDB = async () => {
