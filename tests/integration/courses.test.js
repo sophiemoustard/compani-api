@@ -709,11 +709,44 @@ describe('COURSES ROUTES - GET /courses', () => {
       expect(response.statusCode).toBe(200);
     });
 
+    it('should return 200 if holding admin and same holding (pedagogy webapp)', async () => {
+      authToken = await getTokenByCredentials(holdingAdminFromOtherCompany.local);
+      const url = `/courses?action=pedagogy&origin=webapp&trainee=${traineeFromThirdCompany._id.toHexString()}`
+        + `&holding=${otherHolding._id.toHexString()}`;
+
+      const response = await app.inject({
+        method: 'GET',
+        url,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(200);
+
+      const resultCourseIds = response.result.data.courses.map(course => course._id);
+      expect(resultCourseIds.length).toBe(1);
+      expect(UtilsHelper.doesArrayIncludeId(resultCourseIds, coursesList[20]._id)).toBeTruthy();
+    });
+
     it('should return 403 if client admin and different company (pedagogy webapp)', async () => {
       authToken = await getToken('client_admin');
       const response = await app.inject({
         method: 'GET',
-        url: `/courses?action=pedagogy&origin=webapp&trainee=${userCompanies[1].user.toHexString()}`,
+        url: `/courses?action=pedagogy&origin=webapp&trainee=${userCompanies[1].user.toHexString()}`
+        + `&company=${authCompany._id.toHexString()}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
+
+    it('should return 403 if holding admin and different holding (pedagogy webapp)', async () => {
+      authToken = await getTokenByCredentials(holdingAdminFromAuthCompany.local);
+      const url = `/courses?action=pedagogy&origin=webapp&trainee=${traineeFromThirdCompany._id.toHexString()}`
+        + `&holding=${otherHolding._id.toHexString()}`;
+
+      const response = await app.inject({
+        method: 'GET',
+        url,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -731,7 +764,7 @@ describe('COURSES ROUTES - GET /courses', () => {
       expect(response.statusCode).toBe(400);
     });
 
-    it('should return 403 if has no holding role', async () => {
+    it('should return 403 if has no holding role (ops webapp)', async () => {
       authToken = await getToken('client_admin');
       const response = await app.inject({
         method: 'GET',
@@ -742,7 +775,7 @@ describe('COURSES ROUTES - GET /courses', () => {
       expect(response.statusCode).toBe(403);
     });
 
-    it('should return 403 if not linked to good holding', async () => {
+    it('should return 403 if not linked to good holding (ops webapp)', async () => {
       authToken = await getTokenByCredentials(holdingAdminFromAuthCompany.local);
       const response = await app.inject({
         method: 'GET',

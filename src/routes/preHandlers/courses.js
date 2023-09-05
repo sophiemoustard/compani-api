@@ -226,16 +226,22 @@ const authorizeGetListForPedagogy = async (credentials, query) => {
   const loggedUserCompany = get(credentials, 'company._id');
   const loggedUserVendorRole = get(credentials, 'role.vendor.name');
   const loggedUserClientRole = get(credentials, 'role.client.name');
+  const loggedUserHolding = get(credentials, 'holding._id');
 
   if (!query.trainee) return null;
 
-  const trainee = await User.countDocuments({ _id: query.trainee });
+  const trainee = await User.findOne({ _id: query.trainee }).populate({ path: 'company' }).lean();
   if (!trainee) return Boom.notFound();
 
   const isRofOrAdmin = [VENDOR_ADMIN, TRAINING_ORGANISATION_MANAGER].includes(loggedUserVendorRole);
-  const isClientRoleFromQueryCompany = [COACH, CLIENT_ADMIN].includes(loggedUserClientRole) &&
-    UtilsHelper.areObjectIdsEquals(loggedUserCompany, query.company);
-  if (!isRofOrAdmin && !isClientRoleFromQueryCompany) throw Boom.forbidden();
+  if (isRofOrAdmin) return null;
+
+  const hasLoggedUserAccessToTrainee = UtilsHelper.hasUserAccessToCompany(credentials, trainee.company._id);
+  const isAllowedToAccessQuery = query.company
+    ? UtilsHelper.areObjectIdsEquals(loggedUserCompany, query.company)
+    : UtilsHelper.areObjectIdsEquals(loggedUserHolding, query.holding);
+  const isCoachOrAdmin = [COACH, CLIENT_ADMIN].includes(loggedUserClientRole);
+  if (!(isCoachOrAdmin && isAllowedToAccessQuery && hasLoggedUserAccessToTrainee)) throw Boom.forbidden();
 
   return null;
 };

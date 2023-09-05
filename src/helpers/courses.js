@@ -185,6 +185,10 @@ const listForOperations = async (query, origin, credentials) => {
 const listForPedagogy = async (query, credentials) => {
   const traineeId = query.trainee || get(credentials, '_id');
   const trainee = await User.findOne({ _id: traineeId }).lean();
+  const shouldQueryCompanies = !!query.holding || !!query.company;
+  const companies = [];
+  if (query.holding) companies.push(...credentials.holding.companies);
+  if (query.company) companies.push(query.company);
 
   const courses = await Course.find(
     {
@@ -192,9 +196,9 @@ const listForPedagogy = async (query, credentials) => {
       $or: [
         {
           format: STRICTLY_E_LEARNING,
-          ...(query.company && { $or: [{ accessRules: [] }, { accessRules: query.company }] }),
+          ...(shouldQueryCompanies && { $or: [{ accessRules: [] }, { accessRules: { $in: companies } }] }),
         },
-        { format: BLENDED, ...(query.company && { companies: query.company }) },
+        { format: BLENDED, ...(shouldQueryCompanies && { companies: { $in: companies } }) },
       ],
     },
     { format: 1 }
@@ -225,7 +229,7 @@ const listForPedagogy = async (query, credentials) => {
         { path: 'step', select: 'type' },
         {
           path: 'attendances',
-          match: { trainee: trainee._id, ...(query.company && { company: query.company }) },
+          match: { trainee: trainee._id, ...(shouldQueryCompanies && { company: { $in: companies } }) },
           options: {
             isVendorUser: [TRAINING_ORGANISATION_MANAGER, VENDOR_ADMIN].includes(get(credentials, 'role.vendor.name')),
             requestingOwnInfos: UtilsHelper.areObjectIdsEquals(traineeId, credentials._id),
@@ -237,14 +241,14 @@ const listForPedagogy = async (query, credentials) => {
     .lean({ autopopulate: true, virtuals: true });
 
   let filteredCourses = courses;
-  if (query.company) {
+  if (shouldQueryCompanies) {
     const companyAtCourseRegistration = await CourseHistoriesHelper.getCompanyAtCourseRegistrationList(
       { key: TRAINEE, value: traineeId }, { key: COURSE, value: courses.map(course => course._id) }
     );
     const traineeCompanies = mapValues(keyBy(companyAtCourseRegistration, 'course'), 'company');
     filteredCourses = courses
       .filter(course => course.format === STRICTLY_E_LEARNING ||
-        UtilsHelper.areObjectIdsEquals(traineeCompanies[course._id], query.company));
+        UtilsHelper.doesArrayIncludeId(companies, traineeCompanies[course._id]));
   }
 
   const shouldComputePresence = true;
