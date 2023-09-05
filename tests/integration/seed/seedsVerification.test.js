@@ -2009,6 +2009,47 @@ describe('SEEDS VERIFICATION', () => {
         });
       });
 
+      describe('Collection TrainingContract', () => {
+        let trainingContractList;
+        before(async () => {
+          trainingContractList = await TrainingContract
+            .find()
+            .populate({ path: 'course', select: '_id companies', transform })
+            .populate({ path: 'company', select: '_id', transform })
+            .setOptions({ allCompanies: true })
+            .lean();
+        });
+
+        it('should pass if every course exists', () => {
+          const coursesExist = trainingContractList.map(tc => tc.course).every(course => !!course);
+          expect(coursesExist).toBeTruthy();
+        });
+
+        it('should pass if every company exists', () => {
+          const companiesExist = trainingContractList.map(tc => tc.company).every(company => !!company);
+          expect(companiesExist).toBeTruthy();
+        });
+
+        it('should pass if every company is in course', () => {
+          const companyIsInCourse = trainingContractList
+            .every(tc => UtilsHelper.doesArrayIncludeId(tc.course.companies, tc.company._id));
+          expect(companyIsInCourse).toBeTruthy();
+        });
+
+        it('should pass if no company has two training contracts for the same course', () => {
+          const trainingContractsGroupedByCourse = groupBy(trainingContractList, 'course._id');
+          const someCompaniesHaveSeveralTrainingContracts = Object.keys(trainingContractsGroupedByCourse)
+            .some((courseId) => {
+              const trainingContractWithoutDuplicate = [
+                ...new Set(trainingContractsGroupedByCourse[courseId].map(tc => tc.company._id.toHexString())),
+              ];
+              return trainingContractsGroupedByCourse[courseId].length !== trainingContractWithoutDuplicate.length;
+            });
+
+          expect(someCompaniesHaveSeveralTrainingContracts).toBeFalsy();
+        });
+      });
+
       describe('Collection User', () => {
         let userList;
         before(async () => {
