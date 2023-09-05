@@ -29,6 +29,7 @@ const QuestionnaireHistory = require('../../../src/models/QuestionnaireHistory')
 const SectorHistory = require('../../../src/models/SectorHistory');
 const Step = require('../../../src/models/Step');
 const SubProgram = require('../../../src/models/SubProgram');
+const TrainingContract = require('../../../src/models/TrainingContract');
 const User = require('../../../src/models/User');
 const UserCompany = require('../../../src/models/UserCompany');
 const UserHolding = require('../../../src/models/UserHolding');
@@ -108,6 +109,7 @@ const questionnaireHistoriesSeed = require('./questionnaireHistoriesSeed');
 const rolesSeed = require('./rolesSeed');
 const stepsSeed = require('./stepsSeed');
 const subProgramsSeed = require('./subProgramsSeed');
+const trainingContractsSeed = require('./trainingContractsSeed');
 const userCompaniesSeed = require('./userCompaniesSeed');
 const usersSeed = require('./usersSeed');
 const vendorCompaniesSeed = require('./vendorCompaniesSeed');
@@ -136,6 +138,7 @@ const seedList = [
   { label: 'ROLE', value: rolesSeed },
   { label: 'STEP', value: stepsSeed },
   { label: 'SUBPROGRAM', value: subProgramsSeed },
+  { label: 'TRAININGCONTRACT', value: trainingContractsSeed },
   { label: 'USERCOMPANY', value: userCompaniesSeed },
   { label: 'USER', value: usersSeed },
   { label: 'VENDORCOMPANY', value: vendorCompaniesSeed },
