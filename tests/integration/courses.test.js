@@ -1465,6 +1465,21 @@ describe('COURSES ROUTES - PUT /courses/{_id}', () => {
       expect(course).toEqual(1);
     });
 
+    it('should update company representative with holding admin', async () => {
+      const payload = { companyRepresentative: holdingAdminFromOtherCompany._id };
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/courses/${coursesList[20]._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload,
+      });
+
+      expect(response.statusCode).toBe(200);
+
+      const course = await Course.countDocuments({ _id: coursesList[20]._id, ...payload }).lean();
+      expect(course).toEqual(1);
+    });
+
     it('should return 400 if try to remove estimated start date', async () => {
       const payload = { estimatedStartDate: '' };
       const response = await app.inject({
@@ -1612,9 +1627,9 @@ describe('COURSES ROUTES - PUT /courses/{_id}', () => {
       expect(response.statusCode).toBe(403);
     });
 
-    it('should return 404 if companyRepresentative has wrong company', async () => {
+    it('should return 404 if companyRepresentative has holding role but wrong company', async () => {
       const courseIdFromOtherCompany = coursesList[1]._id;
-      const payload = { companyRepresentative: coach._id };
+      const payload = { companyRepresentative: holdingAdminFromAuthCompany._id };
       const response = await app.inject({
         method: 'PUT',
         url: `/courses/${courseIdFromOtherCompany}`,
@@ -1623,6 +1638,19 @@ describe('COURSES ROUTES - PUT /courses/{_id}', () => {
       });
 
       expect(response.statusCode).toBe(404);
+    });
+
+    it('should return 403 if companyRepresentative is in holding but has no holding role', async () => {
+      const courseIdFromOtherCompany = coursesList[20]._id;
+      const payload = { companyRepresentative: coachFromOtherCompany._id };
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/courses/${courseIdFromOtherCompany}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload,
+      });
+
+      expect(response.statusCode).toBe(403);
     });
 
     it('should return 403 if maxTrainees smaller than registered trainees', async () => {
