@@ -85,6 +85,8 @@ const {
   REFUND,
   COMPANY,
   ASSOCIATION,
+  EXPECTATIONS,
+  END_OF_COURSE,
 } = require('../../../src/helpers/constants');
 const attendancesSeed = require('./attendancesSeed');
 const activitiesSeed = require('./activitiesSeed');
@@ -104,6 +106,7 @@ const courseHistoriesSeed = require('./courseHistoriesSeed');
 const courseSlotsSeed = require('./courseSlotsSeed');
 const driveSeed = require('./driveSeed');
 const emailSeed = require('./emailSeed');
+const exportsSeed = require('./exportsSeed');
 const holdingsSeed = require('./holdingsSeed');
 const programsSeed = require('./programsSeed');
 const questionnairesSeed = require('./questionnairesSeed');
@@ -135,6 +138,7 @@ const seedList = [
   { label: 'COURSESLOT', value: courseSlotsSeed },
   { label: 'DRIVE', value: driveSeed },
   { label: 'EMAIL', value: emailSeed },
+  { label: 'EXPORT', value: exportsSeed },
   { label: 'HOLDING', value: holdingsSeed },
   { label: 'PROGRAM', value: programsSeed },
   { label: 'QUESTIONNAIRE', value: questionnairesSeed },
@@ -1488,7 +1492,8 @@ describe('SEEDS VERIFICATION', () => {
 
         it('should pass if startHour is before endHour', () => {
           const everyStartDateIsBeforeEndDate = courseHistoryList
-            .every(ch => !has(ch, 'update') || CompaniDate(ch.update.startHour.to).isBefore(ch.update.endHour.to));
+            .every(ch => !(has(ch, 'update') && ch.action === SLOT_EDITION) ||
+              CompaniDate(ch.update.startHour.to).isBefore(ch.update.endHour.to));
 
           expect(everyStartDateIsBeforeEndDate).toBeTruthy();
         });
@@ -1750,7 +1755,12 @@ describe('SEEDS VERIFICATION', () => {
             .populate({ path: 'user', select: 'id', populate: { path: 'userCompanyList' } })
             .populate({ path: 'company', select: 'id' })
             .populate({ path: 'course', select: 'id' })
-            .populate({ path: 'questionnaire', select: '_id cards status', populate: { path: 'cards' }, transform })
+            .populate({
+              path: 'questionnaire',
+              select: '_id cards status type',
+              populate: { path: 'cards' },
+              transform,
+            })
             .populate({ path: 'questionnaireAnswersList.card', select: 'template', transform })
             .setOptions({ allCompanies: true })
             .lean();
@@ -1790,6 +1800,35 @@ describe('SEEDS VERIFICATION', () => {
               )
             );
           expect(everyUserIsRegisteredToCourse).toBeTruthy();
+        });
+
+        it('should pass if users only answer once to questionnaire', async () => {
+          const questionnaireHistoriesGroupedByCourse = groupBy(questionnaireHistoryList, 'course._id');
+          const someUserHaveAnsweredSeveralTimeToQuestionnaires = Object.keys(questionnaireHistoriesGroupedByCourse)
+            .some((courseId) => {
+              const expectationQuestionnaireHistoriesWithoutDuplicate = [
+                ...new Set(
+                  questionnaireHistoriesGroupedByCourse[courseId]
+                    .filter(qh => qh.questionnaire.type === EXPECTATIONS)
+                    .map(qh => qh.user._id.toHexString())
+                ),
+              ];
+
+              const endOfCourseQuestionnaireHistoriesWithoutDuplicate = [
+                ...new Set(
+                  questionnaireHistoriesGroupedByCourse[courseId]
+                    .filter(qh => qh.questionnaire.type === END_OF_COURSE)
+                    .map(qh => qh.user._id.toHexString())
+                ),
+              ];
+              const questionnairesHistoriesWithoutDuplicatesCount = expectationQuestionnaireHistoriesWithoutDuplicate
+                .length + endOfCourseQuestionnaireHistoriesWithoutDuplicate.length;
+
+              return questionnaireHistoriesGroupedByCourse[courseId].length
+                !== questionnairesHistoriesWithoutDuplicatesCount;
+            });
+
+          expect(someUserHaveAnsweredSeveralTimeToQuestionnaires).toBeFalsy();
         });
 
         it('should pass if every questionnaire exists and is published', () => {
