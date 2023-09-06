@@ -184,7 +184,7 @@ describe('formatQueryForUsersList', () => {
     sinon.assert.notCalled(findUserHolding);
   });
 
-  it('should return params with company (without includesHoldingAdmins)', async () => {
+  it('should return params with company (without includeHoldingAdmins)', async () => {
     const users = [{ _id: new ObjectId(), user: new ObjectId() }];
     const query = { company: companyId };
 
@@ -214,18 +214,18 @@ describe('formatQueryForUsersList', () => {
     sinon.assert.notCalled(findUserHolding);
   });
 
-  it('should return params with company (with includesHoldingAdmins and holding exists)', async () => {
+  it('should return params with company (with includeHoldingAdmins and holding exists)', async () => {
     const users = [{ _id: new ObjectId(), user: new ObjectId() }];
     const holdingId = new ObjectId();
     const companyHolding = { _id: new ObjectId(), holding: holdingId };
     const userHoldings = [{ _id: new ObjectId(), user: new ObjectId() }];
-    const query = { company: companyId, includesHoldingAdmins: true };
+    const query = { company: companyId, includeHoldingAdmins: true };
 
     findUserCompany.returns(SinonMongoose.stubChainedQueries(users, ['lean']));
     findOneCompanyHolding.returns(SinonMongoose.stubChainedQueries(companyHolding, ['lean']));
     findUserHolding.returns(SinonMongoose.stubChainedQueries(userHoldings, ['lean']));
     const result = await UsersHelper.formatQueryForUsersList(query);
-    expect(result).toEqual({ _id: { $in: users.map(u => u.user) } });
+    expect(result).toEqual({ _id: { $in: [...users, ...userHoldings].map(u => u.user) } });
 
     SinonMongoose.calledOnceWithExactly(
       findUserCompany,
@@ -254,9 +254,9 @@ describe('formatQueryForUsersList', () => {
     sinon.assert.notCalled(find);
   });
 
-  it('should return params with company (with includesHoldingAdmins and holding doesn\'t exists)', async () => {
+  it('should return params with company (with includeHoldingAdmins and holding doesn\'t exists)', async () => {
     const users = [{ _id: new ObjectId(), user: new ObjectId() }];
-    const query = { company: companyId, includesHoldingAdmins: true };
+    const query = { company: companyId, includeHoldingAdmins: true };
 
     findUserCompany.returns(SinonMongoose.stubChainedQueries(users, ['lean']));
     findOneCompanyHolding.returns(SinonMongoose.stubChainedQueries(null, ['lean']));

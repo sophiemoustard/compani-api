@@ -44,7 +44,7 @@ const { CompaniDate } = require('./dates/companiDates');
 const { language } = translate;
 
 exports.formatQueryForUsersList = async (query) => {
-  const formattedQuery = pickBy(omit(query, ['role', 'company', 'holding', 'includesHoldingAdmins']));
+  const formattedQuery = pickBy(omit(query, ['role', 'company', 'holding', 'includeHoldingAdmins']));
 
   if (query.role) {
     const roleNames = Array.isArray(query.role) ? query.role : [query.role];
@@ -55,7 +55,8 @@ exports.formatQueryForUsersList = async (query) => {
   }
 
   if (query.company) {
-    const users = await UserCompany
+    const userIds = [];
+    const userCompanies = await UserCompany
       .find(
         {
           company: query.company,
@@ -65,15 +66,17 @@ exports.formatQueryForUsersList = async (query) => {
       )
       .lean();
 
-    if (query.includesHoldingAdmins) {
+    userIds.push(...userCompanies.map(uc => uc.user));
+
+    if (query.includeHoldingAdmins) {
       const companyHolding = await CompanyHolding.findOne({ company: query.company }, { holding: 1 }).lean();
       if (companyHolding) {
         const userHoldings = await UserHolding.find({ holding: companyHolding.holding }, { user: 1 }).lean();
-        users.push(...userHoldings);
+        userIds.push(...userHoldings.map(uh => uh.user));
       }
     }
 
-    formattedQuery._id = { $in: users.map(u => u.user) };
+    formattedQuery._id = { $in: userIds };
   }
 
   if (query.holding) {

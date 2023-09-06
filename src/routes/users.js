@@ -116,7 +116,7 @@ exports.plugin = {
             role: [Joi.array().items(Joi.string().valid(...USER_ROLE_LIST)), Joi.string().valid(...USER_ROLE_LIST)],
             company: Joi.objectId(),
             holding: Joi.objectId(),
-            includesHoldingAdmins: Joi.when(
+            includeHoldingAdmins: Joi.when(
               'company',
               { is: Joi.exist(), then: Joi.boolean(), otherwise: Joi.forbidden() }
             ),
