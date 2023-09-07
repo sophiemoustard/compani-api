@@ -1492,7 +1492,7 @@ describe('SEEDS VERIFICATION', () => {
 
         it('should pass if startHour is before endHour', () => {
           const everyStartDateIsBeforeEndDate = courseHistoryList
-            .every(ch => !(has(ch, 'update') && ch.action === SLOT_EDITION) ||
+            .every(ch => !has(ch, 'update.startHour') ||
               CompaniDate(ch.update.startHour.to).isBefore(ch.update.endHour.to));
 
           expect(everyStartDateIsBeforeEndDate).toBeTruthy();
