@@ -29,6 +29,7 @@ const QuestionnaireHistory = require('../../../src/models/QuestionnaireHistory')
 const SectorHistory = require('../../../src/models/SectorHistory');
 const Step = require('../../../src/models/Step');
 const SubProgram = require('../../../src/models/SubProgram');
+const TrainingContract = require('../../../src/models/TrainingContract');
 const User = require('../../../src/models/User');
 const UserCompany = require('../../../src/models/UserCompany');
 const UserHolding = require('../../../src/models/UserHolding');
@@ -84,6 +85,8 @@ const {
   REFUND,
   COMPANY,
   ASSOCIATION,
+  EXPECTATIONS,
+  END_OF_COURSE,
 } = require('../../../src/helpers/constants');
 const attendancesSeed = require('./attendancesSeed');
 const activitiesSeed = require('./activitiesSeed');
@@ -101,6 +104,9 @@ const coursePaymentsSeed = require('./coursePaymentsSeed');
 const coursesSeed = require('./coursesSeed');
 const courseHistoriesSeed = require('./courseHistoriesSeed');
 const courseSlotsSeed = require('./courseSlotsSeed');
+const driveSeed = require('./driveSeed');
+const emailSeed = require('./emailSeed');
+const exportsSeed = require('./exportsSeed');
 const holdingsSeed = require('./holdingsSeed');
 const programsSeed = require('./programsSeed');
 const questionnairesSeed = require('./questionnairesSeed');
@@ -108,6 +114,7 @@ const questionnaireHistoriesSeed = require('./questionnaireHistoriesSeed');
 const rolesSeed = require('./rolesSeed');
 const stepsSeed = require('./stepsSeed');
 const subProgramsSeed = require('./subProgramsSeed');
+const trainingContractsSeed = require('./trainingContractsSeed');
 const userCompaniesSeed = require('./userCompaniesSeed');
 const usersSeed = require('./usersSeed');
 const vendorCompaniesSeed = require('./vendorCompaniesSeed');
@@ -129,6 +136,9 @@ const seedList = [
   { label: 'COURSEPAYMENT', value: coursePaymentsSeed },
   { label: 'COURSEHISTORY', value: courseHistoriesSeed },
   { label: 'COURSESLOT', value: courseSlotsSeed },
+  { label: 'DRIVE', value: driveSeed },
+  { label: 'EMAIL', value: emailSeed },
+  { label: 'EXPORT', value: exportsSeed },
   { label: 'HOLDING', value: holdingsSeed },
   { label: 'PROGRAM', value: programsSeed },
   { label: 'QUESTIONNAIRE', value: questionnairesSeed },
@@ -136,6 +146,7 @@ const seedList = [
   { label: 'ROLE', value: rolesSeed },
   { label: 'STEP', value: stepsSeed },
   { label: 'SUBPROGRAM', value: subProgramsSeed },
+  { label: 'TRAININGCONTRACT', value: trainingContractsSeed },
   { label: 'USERCOMPANY', value: userCompaniesSeed },
   { label: 'USER', value: usersSeed },
   { label: 'VENDORCOMPANY', value: vendorCompaniesSeed },
@@ -1481,7 +1492,8 @@ describe('SEEDS VERIFICATION', () => {
 
         it('should pass if startHour is before endHour', () => {
           const everyStartDateIsBeforeEndDate = courseHistoryList
-            .every(ch => !has(ch, 'update') || CompaniDate(ch.update.startHour.to).isBefore(ch.update.endHour.to));
+            .every(ch => !has(ch, 'update.startHour') ||
+              CompaniDate(ch.update.startHour.to).isBefore(ch.update.endHour.to));
 
           expect(everyStartDateIsBeforeEndDate).toBeTruthy();
         });
@@ -1743,7 +1755,12 @@ describe('SEEDS VERIFICATION', () => {
             .populate({ path: 'user', select: 'id', populate: { path: 'userCompanyList' } })
             .populate({ path: 'company', select: 'id' })
             .populate({ path: 'course', select: 'id' })
-            .populate({ path: 'questionnaire', select: '_id cards status', populate: { path: 'cards' }, transform })
+            .populate({
+              path: 'questionnaire',
+              select: '_id cards status type',
+              populate: { path: 'cards' },
+              transform,
+            })
             .populate({ path: 'questionnaireAnswersList.card', select: 'template', transform })
             .setOptions({ allCompanies: true })
             .lean();
@@ -1783,6 +1800,34 @@ describe('SEEDS VERIFICATION', () => {
               )
             );
           expect(everyUserIsRegisteredToCourse).toBeTruthy();
+        });
+
+        it('should pass if users only answer once to questionnaire', async () => {
+          const questionnaireHistoriesGroupedByCourse = groupBy(questionnaireHistoryList, 'course._id');
+          const someUserHaveAnsweredSeveralTimeToQuestionnaires = Object.keys(questionnaireHistoriesGroupedByCourse)
+            .some((courseId) => {
+              const uniqueExpectationQuestionnaireRespondants = [
+                ...new Set(
+                  questionnaireHistoriesGroupedByCourse[courseId]
+                    .filter(qh => qh.questionnaire.type === EXPECTATIONS)
+                    .map(qh => qh.user._id.toHexString())
+                ),
+              ];
+
+              const uniqueEndOfCourseQuestionnaireRespondants = [
+                ...new Set(
+                  questionnaireHistoriesGroupedByCourse[courseId]
+                    .filter(qh => qh.questionnaire.type === END_OF_COURSE)
+                    .map(qh => qh.user._id.toHexString())
+                ),
+              ];
+
+              return questionnaireHistoriesGroupedByCourse[courseId].length
+                !== (uniqueExpectationQuestionnaireRespondants.length
+                  + uniqueEndOfCourseQuestionnaireRespondants.length);
+            });
+
+          expect(someUserHaveAnsweredSeveralTimeToQuestionnaires).toBeFalsy();
         });
 
         it('should pass if every questionnaire exists and is published', () => {
@@ -2003,6 +2048,47 @@ describe('SEEDS VERIFICATION', () => {
             .every(sp => sp.status === DRAFT || sp.steps.every(step => step.status === PUBLISHED));
 
           expect(doesEveryPublishedProgramHavePublishedStep).toBeTruthy();
+        });
+      });
+
+      describe('Collection TrainingContract', () => {
+        let trainingContractList;
+        before(async () => {
+          trainingContractList = await TrainingContract
+            .find()
+            .populate({ path: 'course', select: '_id companies', transform })
+            .populate({ path: 'company', select: '_id', transform })
+            .setOptions({ allCompanies: true })
+            .lean();
+        });
+
+        it('should pass if every course exists', () => {
+          const coursesExist = trainingContractList.map(tc => tc.course).every(course => !!course);
+          expect(coursesExist).toBeTruthy();
+        });
+
+        it('should pass if every company exists', () => {
+          const companiesExist = trainingContractList.map(tc => tc.company).every(company => !!company);
+          expect(companiesExist).toBeTruthy();
+        });
+
+        it('should pass if every company is in course', () => {
+          const companyIsInCourse = trainingContractList
+            .every(tc => UtilsHelper.doesArrayIncludeId(tc.course.companies, tc.company._id));
+          expect(companyIsInCourse).toBeTruthy();
+        });
+
+        it('should pass if no company has two training contracts for the same course', () => {
+          const trainingContractsGroupedByCourse = groupBy(trainingContractList, 'course._id');
+          const someCompaniesHaveSeveralTrainingContracts = Object.keys(trainingContractsGroupedByCourse)
+            .some((courseId) => {
+              const uniqueTrainingContractCompanies = [
+                ...new Set(trainingContractsGroupedByCourse[courseId].map(tc => tc.company._id.toHexString())),
+              ];
+              return trainingContractsGroupedByCourse[courseId].length !== uniqueTrainingContractCompanies.length;
+            });
+
+          expect(someCompaniesHaveSeveralTrainingContracts).toBeFalsy();
         });
       });
 
