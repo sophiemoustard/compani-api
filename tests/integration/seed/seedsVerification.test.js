@@ -1806,7 +1806,7 @@ describe('SEEDS VERIFICATION', () => {
           const questionnaireHistoriesGroupedByCourse = groupBy(questionnaireHistoryList, 'course._id');
           const someUserHaveAnsweredSeveralTimeToQuestionnaires = Object.keys(questionnaireHistoriesGroupedByCourse)
             .some((courseId) => {
-              const expectationQuestionnaireHistoriesWithoutDuplicate = [
+              const uniqueExpectationQuestionnaireRespondants = [
                 ...new Set(
                   questionnaireHistoriesGroupedByCourse[courseId]
                     .filter(qh => qh.questionnaire.type === EXPECTATIONS)
@@ -1814,18 +1814,17 @@ describe('SEEDS VERIFICATION', () => {
                 ),
               ];
 
-              const endOfCourseQuestionnaireHistoriesWithoutDuplicate = [
+              const uniqueEndOfCourseQuestionnaireRespondants = [
                 ...new Set(
                   questionnaireHistoriesGroupedByCourse[courseId]
                     .filter(qh => qh.questionnaire.type === END_OF_COURSE)
                     .map(qh => qh.user._id.toHexString())
                 ),
               ];
-              const questionnairesHistoriesWithoutDuplicatesCount = expectationQuestionnaireHistoriesWithoutDuplicate
-                .length + endOfCourseQuestionnaireHistoriesWithoutDuplicate.length;
 
               return questionnaireHistoriesGroupedByCourse[courseId].length
-                !== questionnairesHistoriesWithoutDuplicatesCount;
+                !== (uniqueExpectationQuestionnaireRespondants.length
+                  + uniqueEndOfCourseQuestionnaireRespondants.length);
             });
 
           expect(someUserHaveAnsweredSeveralTimeToQuestionnaires).toBeFalsy();
@@ -2083,10 +2082,10 @@ describe('SEEDS VERIFICATION', () => {
           const trainingContractsGroupedByCourse = groupBy(trainingContractList, 'course._id');
           const someCompaniesHaveSeveralTrainingContracts = Object.keys(trainingContractsGroupedByCourse)
             .some((courseId) => {
-              const trainingContractWithoutDuplicate = [
+              const uniqueTrainingContractCompanies = [
                 ...new Set(trainingContractsGroupedByCourse[courseId].map(tc => tc.company._id.toHexString())),
               ];
-              return trainingContractsGroupedByCourse[courseId].length !== trainingContractWithoutDuplicate.length;
+              return trainingContractsGroupedByCourse[courseId].length !== uniqueTrainingContractCompanies.length;
             });
 
           expect(someCompaniesHaveSeveralTrainingContracts).toBeFalsy();

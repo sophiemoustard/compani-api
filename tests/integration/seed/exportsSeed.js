@@ -78,6 +78,10 @@ const {
   ESTIMATED_START_DATE_EDITION,
   TRAINEE_ADDITION,
   COMPANY_ADDITION,
+  TRANSITION,
+  OPEN_QUESTION,
+  SURVEY,
+  QUESTION_ANSWER,
 } = require('../../../src/helpers/constants');
 const {
   auxiliaryRoleId,
@@ -1017,12 +1021,12 @@ const helpersList = [
 const programIdList = [new ObjectId(), new ObjectId()];
 
 const cardList = [
-  { _id: new ObjectId(), template: 'transition', title: 'test' },
-  { _id: new ObjectId(), template: 'open_question', question: 'Où est Charlie ?' },
-  { _id: new ObjectId(), template: 'survey', question: 'Comment gagner 100 euros par heure sans travailler ?' },
+  { _id: new ObjectId(), template: TRANSITION, title: 'test' },
+  { _id: new ObjectId(), template: OPEN_QUESTION, question: 'Où est Charlie ?' },
+  { _id: new ObjectId(), template: SURVEY, question: 'Comment gagner 100 euros par heure sans travailler ?' },
   {
     _id: new ObjectId(),
-    template: 'question_answer',
+    template: QUESTION_ANSWER,
     question: 'Combien coûte une chocolatine ?',
     qcAnswers: [
       { _id: new ObjectId(), text: '15 centimes' },
