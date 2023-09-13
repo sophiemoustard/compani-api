@@ -112,7 +112,7 @@ exports.plugin = {
             email: Joi.string().email(),
             firstname: Joi.string(),
             lastname: Joi.string(),
-          }),
+          }).oxor('email', 'firstname'),
         },
         auth: false,
         pre: [{ method: checkPasswordToken, assign: 'user' }],
