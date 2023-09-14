@@ -108,11 +108,13 @@ exports.plugin = {
       options: {
         validate: {
           params: Joi.object().keys({ token: Joi.string().required() }),
-          query: Joi.object().keys({
-            email: Joi.string().email(),
-            firstname: Joi.string(),
-            lastname: Joi.string(),
-          }).oxor('email', 'firstname'),
+          query: Joi.alternatives().try(
+            Joi.object({ email: Joi.string().email() }),
+            Joi.object({
+              firstname: Joi.string().required(),
+              lastname: Joi.string().required(),
+            })
+          ),
         },
         auth: false,
         pre: [{ method: checkPasswordToken, assign: 'user' }],

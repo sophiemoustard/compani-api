@@ -23,8 +23,6 @@ exports.checkPasswordToken = async (req) => {
   }
 
   if (query.firstname) {
-    if (!query.lastname) throw Boom.badRequest();
-
     const user = await User
       .findOne({ 'identity.firstname': query.firstname, 'identity.lastname': query.lastname, loginCode: params.token })
       .collation({ locale: 'fr', strength: 1, alternate: 'shifted' });
