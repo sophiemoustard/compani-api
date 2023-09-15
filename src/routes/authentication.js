@@ -114,6 +114,7 @@ exports.plugin = {
             Joi.object({
               firstname: Joi.string().required(),
               lastname: Joi.string().required(),
+              company: Joi.string().required(),
             })
           ),
         },
