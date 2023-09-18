@@ -310,6 +310,7 @@ describe('AUTHENTICATION ROUTES - GET /users/passwordtoken/:token', () => {
   });
 
   it('should return 200 if user exists in bdd', async () => {
+    // spaces and diacritics are important to test .collation({ locale: 'fr', strength: 1, alternate: 'shifted' });
     const firstname = 'Hélper1    ';
     const { loginCode: token, identity: { lastname } } = usersSeedList[3];
 
