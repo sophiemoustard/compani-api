@@ -73,9 +73,9 @@ const forgotPassword = async (req) => {
   }
 };
 
-const checkPasswordToken = async (req, h) => {
+const sendToken = async (req, h) => {
   try {
-    const token = await AuthenticationHelper.checkPasswordToken(req.params.token, req.query.email);
+    const token = await AuthenticationHelper.sendToken(req.pre.user);
 
     return h.response({ message: translate[language].resetPasswordTokenFound, data: { ...token } })
       .state('alenvi_token', token.token);
@@ -102,6 +102,6 @@ module.exports = {
   createPasswordToken,
   refreshToken,
   forgotPassword,
-  checkPasswordToken,
+  sendToken,
   updatePassword,
 };

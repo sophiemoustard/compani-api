@@ -9,7 +9,7 @@ const User = require('../models/User');
 const { TOKEN_EXPIRE_DURATION } = require('../models/User');
 const IdentityVerification = require('../models/IdentityVerification');
 const translate = require('./translate');
-const { MOBILE, EMAIL, SECONDS_IN_AN_HOUR } = require('./constants');
+const { MOBILE, EMAIL } = require('./constants');
 const EmailHelper = require('./email');
 const SmsHelper = require('./sms');
 const { CompaniDate } = require('./dates/companiDates');
@@ -72,27 +72,6 @@ exports.sendToken = (user) => {
   const payload = pickBy({ _id: user._id, email: user.local.email });
 
   return { token: exports.encode(payload), user: payload };
-};
-
-exports.checkPasswordToken = async (token, email) => {
-  if (email) {
-    const code = await IdentityVerification.findOne({ email, code: token }).lean();
-    if (!code) throw Boom.notFound();
-
-    const timeElapsed = (Date.now() - code.updatedAt) / 1000;
-    if (timeElapsed > SECONDS_IN_AN_HOUR) throw Boom.unauthorized();
-
-    const user = await User.findOne({ 'local.email': email }).select('local.email').lean();
-    if (!user) throw Boom.notFound(translate[language].userNotFound);
-
-    return exports.sendToken(user);
-  }
-
-  const filter = { passwordToken: { token, expiresIn: { $gt: Date.now() } } };
-  const user = await User.findOne(flat(filter, { maxDepth: 2 })).select('local').lean();
-  if (!user) throw Boom.notFound(translate[language].userNotFound);
-
-  return exports.sendToken(user);
 };
 
 exports.createPasswordToken = async email => exports.generatePasswordToken(email, 24 * 3600 * 1000); // 1 day

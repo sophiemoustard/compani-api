@@ -186,6 +186,7 @@ const usersSeedList = [
     contracts: [new ObjectId()],
     passwordToken: { token: uuidv4(), expiresIn: new Date('2020-01-20').getTime() + 3600000 },
     origin: WEBAPP,
+    loginCode: '1234',
   },
   { // 4
     _id: new ObjectId(),
@@ -483,7 +484,12 @@ const activityHistoryList = [
 ];
 
 const identityVerifications = [
-  { _id: new ObjectId(), email: 'carolyn@alenvi.io', code: '3310', createdAt: new Date('2021-01-25T10:05:32.582Z') },
+  {
+    _id: new ObjectId(),
+    email: usersSeedList[3].local.email,
+    code: '3310',
+    createdAt: new Date('2021-01-25T10:05:32.582Z'),
+  },
 ];
 
 const isInList = (list, user) => list.some(i => i._id.toHexString() === user._id.toHexString());

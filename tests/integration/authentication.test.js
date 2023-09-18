@@ -258,7 +258,7 @@ describe('AUTHENTICATION ROUTES - GET /users/passwordtoken/:token', () => {
 
   it('should return a new access token after checking verification code from mobile', async () => {
     const token = '3310';
-    const email = 'carolyn@alenvi.io';
+    const { email } = usersSeedList[3].local;
     fakeDate.returns(new Date('2021-01-25T10:08:32.582Z'));
 
     const response = await app.inject({
@@ -272,8 +272,8 @@ describe('AUTHENTICATION ROUTES - GET /users/passwordtoken/:token', () => {
 
   it('should return a 404 error if verification code is wrong', async () => {
     const token = '3311';
-    const email = 'carolyn@alenvi.io';
-    fakeDate.returns(new Date('2021-01-25T10:08:32.582Z'));
+    const { email } = usersSeedList[3].local;
+    fakeDate.returns(new Date('2021-01-26T10:08:32.582Z'));
 
     const response = await app.inject({
       method: 'GET',
@@ -284,11 +284,73 @@ describe('AUTHENTICATION ROUTES - GET /users/passwordtoken/:token', () => {
   });
 
   it('should return a 404 error if token is not valid', async () => {
-    fakeDate.returns(new Date('2020-01-20'));
+    const token = '1234567890';
+    const { email } = usersSeedList[3].local;
+    fakeDate.returns(new Date('2021-01-25T10:08:32.582Z'));
 
     const response = await app.inject({
       method: 'GET',
-      url: '/users/passwordtoken/1234567890',
+      url: `/users/passwordtoken/${token}?email=${email}`,
+    });
+
+    expect(response.statusCode).toBe(404);
+  });
+
+  it('should return 401 if code is too old', async () => {
+    const token = '3310';
+    const { email } = usersSeedList[3].local;
+    fakeDate.returns(new Date('2021-01-26T10:08:32.582Z'));
+
+    const response = await app.inject({
+      method: 'GET',
+      url: `/users/passwordtoken/${token}?email=${email}`,
+    });
+
+    expect(response.statusCode).toBe(401);
+  });
+
+  it('should return 200 if user exists in bdd', async () => {
+    // spaces and diacritics are important to test .collation({ locale: 'fr', strength: 1, alternate: 'shifted' });
+    const firstname = 'Hélper1    ';
+    const { loginCode: token, identity: { lastname } } = usersSeedList[3];
+
+    const response = await app.inject({
+      method: 'GET',
+      url: `/users/passwordtoken/${token}?firstname=${firstname}&lastname=${lastname}`,
+    });
+
+    expect(response.statusCode).toBe(200);
+  });
+
+  it('should return 400 if both email and firstname are in query', async () => {
+    const { loginCode: token, local: { email }, identity: { firstname, lastname } } = usersSeedList[3];
+
+    const response = await app.inject({
+      method: 'GET',
+      url: `/users/passwordtoken/${token}?email=${email}&firstname=${firstname}&lastname=${lastname}`,
+    });
+
+    expect(response.statusCode).toBe(400);
+  });
+
+  it('should return 400 if firstname is in query but lastname isn\'t', async () => {
+    const { loginCode: token, identity: { firstname } } = usersSeedList[3];
+
+    const response = await app.inject({
+      method: 'GET',
+      url: `/users/passwordtoken/${token}?firstname=${firstname}`,
+    });
+
+    expect(response.statusCode).toBe(400);
+  });
+
+  it('should return 404 if token is not correct', async () => {
+    const token = '1294';
+    const { identity: { lastname, firstname } } = usersSeedList[3];
+
+    const response = await app.inject({
+      method: 'GET',
+      url: `/users/passwordtoken/${token}?firstname=${firstname}&lastname=${lastname}`,
     });
 
     expect(response.statusCode).toBe(404);
