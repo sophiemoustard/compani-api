@@ -251,27 +251,10 @@ describe('refreshToken', () => {
     });
     SinonMongoose.calledOnceWithExactly(
       findOne,
-      [{ query: 'findOne', args: [{ refreshToken: 'refreshToken' }] }, { query: 'lean' }]
+      [{ query: 'findOne', args: [{ refreshToken: 'refreshToken' }, { _id: 1 }] }, { query: 'lean' }]
     );
     sinon.assert.calledWithExactly(encode, { _id: user._id.toHexString() });
     sinon.assert.calledOnceWithExactly(formatMiscToCompaniDate);
-  });
-
-  it('should throw an error if user does not exist', async () => {
-    try {
-      findOne.returns(SinonMongoose.stubChainedQueries(null, ['lean']));
-
-      await AuthenticationHelper.refreshToken('refreshToken');
-    } catch (e) {
-      expect(e).toEqual(Boom.unauthorized());
-    } finally {
-      SinonMongoose.calledOnceWithExactly(
-        findOne,
-        [{ query: 'findOne', args: [{ refreshToken: 'refreshToken' }] }, { query: 'lean' }]
-      );
-      sinon.assert.notCalled(encode);
-      sinon.assert.notCalled(formatMiscToCompaniDate);
-    }
   });
 });
 

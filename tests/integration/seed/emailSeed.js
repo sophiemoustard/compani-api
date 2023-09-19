@@ -63,7 +63,7 @@ const futureTraineeFromAuthCompany = {
 
 const emailUserFromThirdCompany = {
   _id: new ObjectId(),
-  identity: { firstname: 'third', lastname: 'Trainee' },
+  identity: { firstname: 'third', lastname: 'company' },
   local: { email: 'third_trainee@alenvi.io' },
   refreshToken: uuidv4(),
   origin: WEBAPP,

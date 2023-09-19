@@ -1,5 +1,6 @@
 const Boom = require('@hapi/boom');
 const flat = require('flat');
+const { get } = require('lodash');
 const User = require('../../models/User');
 const IdentityVerification = require('../../models/IdentityVerification');
 const { SECONDS_IN_AN_HOUR } = require('../../helpers/constants');
@@ -36,4 +37,14 @@ exports.checkPasswordToken = async (req) => {
   if (!user) throw Boom.notFound(translate[language].userNotFound);
 
   return user;
+};
+
+exports.authorizeRefreshToken = async (req) => {
+  const refreshToken = get(req, 'payload.refreshToken') || get(req, 'state.refresh_token');
+  if (!refreshToken) return Boom.unauthorized();
+
+  const user = await User.countDocuments({ refreshToken });
+  if (!user) return Boom.unauthorized();
+
+  return null;
 };

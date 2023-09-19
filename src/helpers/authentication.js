@@ -48,8 +48,7 @@ exports.authenticate = async (payload) => {
 };
 
 exports.refreshToken = async (refreshToken) => {
-  const user = await User.findOne({ refreshToken }).lean();
-  if (!user) throw Boom.unauthorized();
+  const user = await User.findOne({ refreshToken }, { _id: 1 }).lean();
 
   const tokenPayload = { _id: user._id.toHexString() };
   const token = exports.encode(tokenPayload);
