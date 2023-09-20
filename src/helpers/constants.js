@@ -363,6 +363,7 @@ module.exports = {
   INTRA: 'intra',
   INTER_B2B: 'inter_b2b',
   INTER_B2C: 'inter_b2c',
+  INTRA_HOLDING: 'intra_holding',
   BLENDED: 'blended',
   STRICTLY_E_LEARNING: 'strictly_e_learning',
   CONVOCATION: 'convocation',
