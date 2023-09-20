@@ -26,11 +26,7 @@ exports.checkPasswordToken = async (req) => {
 
   if (query.firstname) {
     const user = await User
-      .findOne({
-        'identity.firstname': query.firstname,
-        'identity.lastname': query.lastname,
-        loginCode: params.token,
-      })
+      .findOne({ 'identity.firstname': query.firstname, 'identity.lastname': query.lastname, loginCode: params.token })
       .collation({ locale: 'fr', strength: 1, alternate: 'shifted' });
 
     const userCompany = await UserCompany.findOne({ user: get(user, '_id'), company: query.company });
