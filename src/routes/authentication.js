@@ -14,7 +14,7 @@ const {
 } = require('../controllers/authenticationController');
 const { WEBAPP, EMAIL, PHONE, MOBILE, ORIGIN_OPTIONS } = require('../helpers/constants');
 const { getUser, authorizeUserUpdate } = require('./preHandlers/users');
-const { checkPasswordToken } = require('./preHandlers/authentication');
+const { checkPasswordToken, authorizeRefreshToken } = require('./preHandlers/authentication');
 
 exports.plugin = {
   name: 'routes-authentication',
@@ -74,6 +74,7 @@ exports.plugin = {
       options: {
         auth: false,
         state: { parse: true, failAction: 'error' },
+        pre: [{ method: authorizeRefreshToken }],
       },
       handler: refreshToken,
     });
