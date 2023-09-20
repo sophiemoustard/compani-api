@@ -27,9 +27,10 @@ exports.checkPasswordToken = async (req) => {
   if (query.firstname) {
     const user = await User
       .findOne({ 'identity.firstname': query.firstname, 'identity.lastname': query.lastname, loginCode: params.token })
-      .collation({ locale: 'fr', strength: 1, alternate: 'shifted' });
+      .collation({ locale: 'fr', strength: 1, alternate: 'shifted' })
+      .lean();
 
-    const userCompany = await UserCompany.findOne({ user: get(user, '_id'), company: query.company });
+    const userCompany = await UserCompany.countDocuments({ user: get(user, '_id'), company: query.company });
     if (!user || !userCompany) throw Boom.notFound(translate[language].userNotFound);
 
     return user;
