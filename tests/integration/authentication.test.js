@@ -202,7 +202,7 @@ describe('AUTHENTICATION ROUTES - PUT /users/:id/password', () => {
 describe('AUTHENTICATION ROUTES - POST /users/refreshToken', () => {
   beforeEach(populateDB);
 
-  it('should return refresh token for webapp', async () => {
+  it('[WEBAPP] should return refresh token', async () => {
     const res = await app.inject({
       method: 'POST',
       url: '/users/refreshToken',
@@ -213,7 +213,7 @@ describe('AUTHENTICATION ROUTES - POST /users/refreshToken', () => {
     expect(res.result.data).toBeDefined();
   });
 
-  it('should return refresh token for mobile', async () => {
+  it('[MOBILE] should return refresh token', async () => {
     const res = await app.inject({
       method: 'POST',
       url: '/users/refreshToken',
@@ -224,7 +224,7 @@ describe('AUTHENTICATION ROUTES - POST /users/refreshToken', () => {
     expect(res.result.data).toBeDefined();
   });
 
-  it('should return a 401 error when refresh token isn\'t good', async () => {
+  it('[WEBAPP] should return a 401 error when refresh token isn\'t good', async () => {
     const res = await app.inject({
       method: 'POST',
       url: '/users/refreshToken',
@@ -234,7 +234,17 @@ describe('AUTHENTICATION ROUTES - POST /users/refreshToken', () => {
     expect(res.statusCode).toBe(401);
   });
 
-  it('should return a 401 error when refresh is missing for webapp', async () => {
+  it('[MOBILE] should return a 401 error when refresh token isn\'t good', async () => {
+    const res = await app.inject({
+      method: 'POST',
+      url: '/users/refreshToken',
+      payload: { refreshToken: 'false-refresh-token' },
+    });
+
+    expect(res.statusCode).toBe(401);
+  });
+
+  it('[WEBAPP] should return a 401 error when refresh is missing', async () => {
     const res = await app.inject({
       method: 'POST',
       url: '/users/refreshToken',
@@ -244,7 +254,7 @@ describe('AUTHENTICATION ROUTES - POST /users/refreshToken', () => {
     expect(res.statusCode).toBe(401);
   });
 
-  it('should return a 401 error when refresh is missing for mobile', async () => {
+  it('[MOBILE] should return a 401 error when refresh is missing', async () => {
     const res = await app.inject({
       method: 'POST',
       url: '/users/refreshToken',
