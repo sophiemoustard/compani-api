@@ -652,7 +652,7 @@ describe('COURSES ROUTES - GET /courses', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      expect(response.result.data.courses.length).toEqual(15);
+      expect(response.result.data.courses.length).toEqual(16);
     });
 
     it('should get blended archived courses (ops webapp)', async () => {
@@ -849,7 +849,7 @@ describe('COURSES ROUTES - GET /courses', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      expect(response.result.data.courses.length).toEqual(8);
+      expect(response.result.data.courses.length).toEqual(9);
     });
 
     it('should return 200 if coach and same company (pedagogy webapp)', async () => {
@@ -1926,6 +1926,17 @@ describe('COURSES ROUTES - PUT /courses/{_id}', () => {
       const response = await app.inject({
         method: 'PUT',
         url: `/courses/${coursesList[4]._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload: { expectedBillsCount: 14 },
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
+
+    it('should return 400 if trying to set expectedBillsCount for intra_holding course', async () => {
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/courses/${coursesList[21]._id}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
         payload: { expectedBillsCount: 14 },
       });

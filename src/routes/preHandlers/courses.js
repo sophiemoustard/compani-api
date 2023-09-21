@@ -31,6 +31,7 @@ const {
   PEDAGOGY,
   PUBLISHED,
   HOLDING_ADMIN,
+  INTRA_HOLDING,
 } = require('../../helpers/constants');
 const translate = require('../../helpers/translate');
 const UtilsHelper = require('../../helpers/utils');
@@ -48,12 +49,10 @@ exports.checkAuthorization = (credentials, courseTrainerId, companies) => {
   const isAdminVendor = userVendorRole === VENDOR_ADMIN;
   const isTOM = userVendorRole === TRAINING_ORGANISATION_MANAGER;
   const isTrainerAndAuthorized = userVendorRole === TRAINER && UtilsHelper.areObjectIdsEquals(userId, courseTrainerId);
-  const isClientOrHoldingAndAuthorized = [CLIENT_ADMIN, COACH].includes(userClientRole) &&
+  const isClientAndAuthorized = [CLIENT_ADMIN, COACH].includes(userClientRole) &&
     companies.some(company => UtilsHelper.hasUserAccessToCompany(credentials, company));
 
-  if (!isAdminVendor && !isTOM && !isTrainerAndAuthorized && !isClientOrHoldingAndAuthorized) {
-    throw Boom.forbidden();
-  }
+  if (!isAdminVendor && !isTOM && !isTrainerAndAuthorized && !isClientAndAuthorized) throw Boom.forbidden();
 };
 
 exports.checkSalesRepresentativeExists = async (req) => {
@@ -162,7 +161,7 @@ exports.authorizeCourseEdit = async (req) => {
     if (course.archivedAt && !unarchiveCourse) throw Boom.forbidden();
 
     const courseTrainerId = get(course, 'trainer') || null;
-    const companies = course.type === INTRA ? course.companies : [];
+    const companies = [INTRA, INTRA_HOLDING].includes(course.type) ? course.companies : [];
     this.checkAuthorization(credentials, courseTrainerId, companies);
 
     const userVendorRole = get(req, 'auth.credentials.role.vendor.name');
@@ -185,7 +184,7 @@ exports.authorizeCourseEdit = async (req) => {
 
     if (has(req, 'payload.expectedBillsCount')) {
       if (!isRofOrAdmin) throw Boom.forbidden();
-      if (course.type === INTER_B2B) throw Boom.badRequest();
+      if (course.type !== INTRA) throw Boom.badRequest();
 
       const courseBills = await CourseBill.find({ course: course._id }, { courseCreditNote: 1 })
         .populate({ path: 'courseCreditNote', options: { isVendorUser: true } })
