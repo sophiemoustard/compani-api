@@ -9,6 +9,7 @@ const EmailHelper = require('../../src/helpers/email');
 const SmsHelper = require('../../src/helpers/sms');
 const { MOBILE, EMAIL, PHONE } = require('../../src/helpers/constants');
 const UtilsMock = require('../utilsMock');
+const { authCompany, otherCompany } = require('../seed/authCompaniesSeed');
 
 describe('NODE ENV', () => {
   it('should be \'test\'', () => {
@@ -343,33 +344,48 @@ describe('AUTHENTICATION ROUTES - GET /users/passwordtoken/:token', () => {
   it('should return 200 if user exists in bdd', async () => {
     // spaces and diacritics are important to test .collation({ locale: 'fr', strength: 1, alternate: 'shifted' });
     const firstname = 'Hélper1    ';
+    const company = authCompany._id;
     const { loginCode: token, identity: { lastname } } = usersSeedList[3];
 
     const response = await app.inject({
       method: 'GET',
-      url: `/users/passwordtoken/${token}?firstname=${firstname}&lastname=${lastname}`,
+      url: `/users/passwordtoken/${token}?firstname=${firstname}&lastname=${lastname}&company=${company}`,
     });
 
     expect(response.statusCode).toBe(200);
   });
 
   it('should return 400 if both email and firstname are in query', async () => {
+    const company = authCompany._id;
     const { loginCode: token, local: { email }, identity: { firstname, lastname } } = usersSeedList[3];
 
     const response = await app.inject({
       method: 'GET',
-      url: `/users/passwordtoken/${token}?email=${email}&firstname=${firstname}&lastname=${lastname}`,
+      url: `/users/passwordtoken/${token}?email=${email}&firstname=${firstname}&lastname=${lastname}`
+      + `&company=${company}`,
     });
 
     expect(response.statusCode).toBe(400);
   });
 
-  it('should return 400 if firstname is in query but lastname isn\'t', async () => {
+  it('should return 400 if lastname is missing in query', async () => {
+    const company = authCompany._id;
     const { loginCode: token, identity: { firstname } } = usersSeedList[3];
 
     const response = await app.inject({
       method: 'GET',
-      url: `/users/passwordtoken/${token}?firstname=${firstname}`,
+      url: `/users/passwordtoken/${token}?firstname=${firstname}&company=${company}`,
+    });
+
+    expect(response.statusCode).toBe(400);
+  });
+
+  it('should return 400 if company is missing in query', async () => {
+    const { loginCode: token, identity: { firstname, lastname } } = usersSeedList[3];
+
+    const response = await app.inject({
+      method: 'GET',
+      url: `/users/passwordtoken/${token}?firstname=${firstname}&lastname=${lastname}`,
     });
 
     expect(response.statusCode).toBe(400);
@@ -377,11 +393,24 @@ describe('AUTHENTICATION ROUTES - GET /users/passwordtoken/:token', () => {
 
   it('should return 404 if token is not correct', async () => {
     const token = '1294';
+    const company = authCompany._id;
     const { identity: { lastname, firstname } } = usersSeedList[3];
 
     const response = await app.inject({
       method: 'GET',
-      url: `/users/passwordtoken/${token}?firstname=${firstname}&lastname=${lastname}`,
+      url: `/users/passwordtoken/${token}?firstname=${firstname}&lastname=${lastname}&company=${company}`,
+    });
+
+    expect(response.statusCode).toBe(404);
+  });
+
+  it('should return 404 if company is not correct', async () => {
+    const company = otherCompany._id;
+    const { loginCode: token, identity: { lastname, firstname } } = usersSeedList[3];
+
+    const response = await app.inject({
+      method: 'GET',
+      url: `/users/passwordtoken/${token}?firstname=${firstname}&lastname=${lastname}&company=${company}`,
     });
 
     expect(response.statusCode).toBe(404);

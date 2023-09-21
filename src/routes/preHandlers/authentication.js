@@ -1,10 +1,11 @@
 const Boom = require('@hapi/boom');
 const flat = require('flat');
-const { get } = require('lodash');
+const get = require('lodash/get');
 const User = require('../../models/User');
 const IdentityVerification = require('../../models/IdentityVerification');
 const { SECONDS_IN_AN_HOUR } = require('../../helpers/constants');
 const translate = require('../../helpers/translate');
+const UserCompany = require('../../models/UserCompany');
 
 const { language } = translate;
 
@@ -26,8 +27,11 @@ exports.checkPasswordToken = async (req) => {
   if (query.firstname) {
     const user = await User
       .findOne({ 'identity.firstname': query.firstname, 'identity.lastname': query.lastname, loginCode: params.token })
-      .collation({ locale: 'fr', strength: 1, alternate: 'shifted' });
-    if (!user) throw Boom.notFound(translate[language].userNotFound);
+      .collation({ locale: 'fr', strength: 1, alternate: 'shifted' })
+      .lean();
+
+    const userCompany = await UserCompany.countDocuments({ user: get(user, '_id'), company: query.company });
+    if (!user || !userCompany) throw Boom.notFound(translate[language].userNotFound);
 
     return user;
   }

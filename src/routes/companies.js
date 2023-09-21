@@ -132,7 +132,7 @@ exports.plugin = {
         validate: {
           query: Joi.object({ noHolding: Joi.boolean() }),
         },
-        auth: { mode: 'required' },
+        auth: { mode: 'optional' },
       },
     });
 
