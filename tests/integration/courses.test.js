@@ -93,7 +93,7 @@ describe('COURSES ROUTES - POST /courses', () => {
         salesRepresentative: vendorAdmin._id,
         estimatedStartDate: '2022-05-31T08:00:00.000Z',
       };
-      const coursesCountBefore = await Course.countDocuments({});
+      const coursesCountBefore = await Course.countDocuments();
 
       const response = await app.inject({
         method: 'POST',
@@ -105,7 +105,7 @@ describe('COURSES ROUTES - POST /courses', () => {
       const createdCourseId = response.result.data.course._id;
 
       expect(response.statusCode).toBe(200);
-      const coursesCountAfter = await Course.countDocuments({});
+      const coursesCountAfter = await Course.countDocuments();
       expect(coursesCountAfter).toEqual(coursesCountBefore + 1);
       const courseSlotsCount = await CourseSlot
         .countDocuments({ course: createdCourseId, step: { $in: subProgramsList[0].steps } });
@@ -130,7 +130,7 @@ describe('COURSES ROUTES - POST /courses', () => {
         salesRepresentative: vendorAdmin._id,
         expectedBillsCount: 2,
       };
-      const coursesCountBefore = await Course.countDocuments({});
+      const coursesCountBefore = await Course.countDocuments();
 
       const response = await app.inject({
         method: 'POST',
@@ -140,7 +140,7 @@ describe('COURSES ROUTES - POST /courses', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      const coursesCountAfter = await Course.countDocuments({});
+      const coursesCountAfter = await Course.countDocuments();
       expect(coursesCountAfter).toEqual(coursesCountBefore + 1);
       const courseSlotsCount = await CourseSlot
         .countDocuments({ course: response.result.data.course._id, step: { $in: subProgramsList[0].steps } });
@@ -156,7 +156,7 @@ describe('COURSES ROUTES - POST /courses', () => {
         subProgram: subProgramsList[0]._id,
         salesRepresentative: vendorAdmin._id,
       };
-      const coursesCountBefore = await Course.countDocuments({});
+      const coursesCountBefore = await Course.countDocuments();
 
       const response = await app.inject({
         method: 'POST',
@@ -166,7 +166,7 @@ describe('COURSES ROUTES - POST /courses', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      const coursesCountAfter = await Course.countDocuments({});
+      const coursesCountAfter = await Course.countDocuments();
       expect(coursesCountAfter).toEqual(coursesCountBefore + 1);
       const courseSlotsCount = await CourseSlot
         .countDocuments({ course: response.result.data.course._id, step: { $in: subProgramsList[0].steps } });

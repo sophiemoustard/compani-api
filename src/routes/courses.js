@@ -113,7 +113,7 @@ exports.plugin = {
               .number()
               .when(
                 'type',
-                { is: Joi.any().valid(INTRA, INTRA_HOLDING), then: Joi.required(), otherwise: Joi.forbidden() }
+                { is: Joi.valid(INTRA, INTRA_HOLDING), then: Joi.required(), otherwise: Joi.forbidden() }
               ),
             expectedBillsCount: Joi
               .number()
