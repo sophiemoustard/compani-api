@@ -10,6 +10,7 @@ const CompanyHolding = require('../../models/CompanyHolding');
 const CourseBill = require('../../models/CourseBill');
 const AttendanceSheet = require('../../models/AttendanceSheet');
 const SubProgram = require('../../models/SubProgram');
+const Holding = require('../../models/Holding');
 const {
   TRAINER,
   INTRA,
@@ -82,6 +83,11 @@ exports.authorizeCourseCreation = async (req) => {
 
     const companyExists = await Company.countDocuments({ _id: company });
     if (!companyExists) throw Boom.notFound();
+  } else if (get(req, 'payload.holding')) {
+    const { holding } = req.payload;
+
+    const holdingExists = await Holding.countDocuments({ _id: holding });
+    if (!holdingExists) throw Boom.notFound();
   }
 
   return null;

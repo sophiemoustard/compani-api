@@ -24,6 +24,7 @@ const {
   COMPANY_ADDITION,
   COMPANY_DELETION,
   ON_SITE,
+  INTRA_HOLDING,
 } = require('../../src/helpers/constants');
 const {
   populateDB,
@@ -92,7 +93,7 @@ describe('COURSES ROUTES - POST /courses', () => {
         salesRepresentative: vendorAdmin._id,
         estimatedStartDate: '2022-05-31T08:00:00.000Z',
       };
-      const coursesCountBefore = await Course.countDocuments({});
+      const coursesCountBefore = await Course.countDocuments();
 
       const response = await app.inject({
         method: 'POST',
@@ -104,7 +105,7 @@ describe('COURSES ROUTES - POST /courses', () => {
       const createdCourseId = response.result.data.course._id;
 
       expect(response.statusCode).toBe(200);
-      const coursesCountAfter = await Course.countDocuments({});
+      const coursesCountAfter = await Course.countDocuments();
       expect(coursesCountAfter).toEqual(coursesCountBefore + 1);
       const courseSlotsCount = await CourseSlot
         .countDocuments({ course: createdCourseId, step: { $in: subProgramsList[0].steps } });
@@ -129,7 +130,7 @@ describe('COURSES ROUTES - POST /courses', () => {
         salesRepresentative: vendorAdmin._id,
         expectedBillsCount: 2,
       };
-      const coursesCountBefore = await Course.countDocuments({});
+      const coursesCountBefore = await Course.countDocuments();
 
       const response = await app.inject({
         method: 'POST',
@@ -139,7 +140,33 @@ describe('COURSES ROUTES - POST /courses', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      const coursesCountAfter = await Course.countDocuments({});
+      const coursesCountAfter = await Course.countDocuments();
+      expect(coursesCountAfter).toEqual(coursesCountBefore + 1);
+      const courseSlotsCount = await CourseSlot
+        .countDocuments({ course: response.result.data.course._id, step: { $in: subProgramsList[0].steps } });
+      expect(courseSlotsCount).toEqual(1);
+    });
+
+    it('should create intra_holding course', async () => {
+      const payload = {
+        misc: 'course',
+        type: INTRA_HOLDING,
+        maxTrainees: 12,
+        holding: authHolding._id,
+        subProgram: subProgramsList[0]._id,
+        salesRepresentative: vendorAdmin._id,
+      };
+      const coursesCountBefore = await Course.countDocuments();
+
+      const response = await app.inject({
+        method: 'POST',
+        url: '/courses',
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload,
+      });
+
+      expect(response.statusCode).toBe(200);
+      const coursesCountAfter = await Course.countDocuments();
       expect(coursesCountAfter).toEqual(coursesCountBefore + 1);
       const courseSlotsCount = await CourseSlot
         .countDocuments({ course: response.result.data.course._id, step: { $in: subProgramsList[0].steps } });
@@ -193,6 +220,27 @@ describe('COURSES ROUTES - POST /courses', () => {
         salesRepresentative: vendorAdmin._id,
         expectedBillsCount: 0,
       };
+      const response = await app.inject({
+        method: 'POST',
+        url: '/courses',
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload,
+      });
+
+      expect(response.statusCode).toBe(404);
+    });
+
+    it('should return 404 if holding does not exist', async () => {
+      const payload = {
+        misc: 'course',
+        type: INTRA_HOLDING,
+        subProgram: subProgramsList[0]._id,
+        salesRepresentative: vendorAdmin._id,
+        estimatedStartDate: '2022-05-31T08:00:00.000Z',
+        holding: new ObjectId(),
+        maxTrainees: 2,
+      };
+
       const response = await app.inject({
         method: 'POST',
         url: '/courses',
@@ -301,6 +349,113 @@ describe('COURSES ROUTES - POST /courses', () => {
       expect(response.statusCode).toBe(400);
     });
 
+    it('should return 400 if intra_holding course and expectedBillsCount is in payload', async () => {
+      const payload = {
+        misc: 'course',
+        type: INTRA_HOLDING,
+        expectedBillsCount: 2,
+        subProgram: subProgramsList[0]._id,
+        salesRepresentative: vendorAdmin._id,
+        estimatedStartDate: '2022-05-31T08:00:00.000Z',
+        holding: authHolding._id,
+        maxTrainees: 2,
+      };
+
+      const response = await app.inject({
+        method: 'POST',
+        url: '/courses',
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload,
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
+
+    it('should return 400 if inter_b2b course and companies is in payload', async () => {
+      const payload = {
+        misc: 'course',
+        type: INTER_B2B,
+        companies: [authCompany._id],
+        subProgram: subProgramsList[0]._id,
+        salesRepresentative: vendorAdmin._id,
+        estimatedStartDate: '2022-05-31T08:00:00.000Z',
+      };
+
+      const response = await app.inject({
+        method: 'POST',
+        url: '/courses',
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload,
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
+
+    it('should return 400 if intra_holding course and companies is in payload', async () => {
+      const payload = {
+        misc: 'course',
+        type: INTRA_HOLDING,
+        companies: [authCompany._id],
+        subProgram: subProgramsList[0]._id,
+        salesRepresentative: vendorAdmin._id,
+        estimatedStartDate: '2022-05-31T08:00:00.000Z',
+        holding: authHolding._id,
+        maxTrainees: 2,
+      };
+
+      const response = await app.inject({
+        method: 'POST',
+        url: '/courses',
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload,
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
+
+    it('should return 400 if intra course and holding is in payload', async () => {
+      const payload = {
+        misc: 'course',
+        type: INTRA,
+        companies: [authCompany._id],
+        subProgram: subProgramsList[0]._id,
+        salesRepresentative: vendorAdmin._id,
+        estimatedStartDate: '2022-05-31T08:00:00.000Z',
+        holding: authHolding._id,
+        maxTrainees: 2,
+        expectedBillsCount: 2,
+      };
+
+      const response = await app.inject({
+        method: 'POST',
+        url: '/courses',
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload,
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
+
+    it('should return 400 if inter_b2b course and holding is in payload', async () => {
+      const payload = {
+        misc: 'course',
+        type: INTER_B2B,
+        subProgram: subProgramsList[0]._id,
+        salesRepresentative: vendorAdmin._id,
+        estimatedStartDate: '2022-05-31T08:00:00.000Z',
+        holding: authHolding._id,
+      };
+
+      const response = await app.inject({
+        method: 'POST',
+        url: '/courses',
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload,
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
+
     it('should return 400 if expectedBillsCount is lower than 0', async () => {
       const payload = {
         misc: 'course',
@@ -341,7 +496,7 @@ describe('COURSES ROUTES - POST /courses', () => {
       expect(response.statusCode).toBe(400);
     });
 
-    const payload = {
+    const intraPayload = {
       misc: 'course',
       company: authCompany._id,
       subProgram: subProgramsList[0]._id,
@@ -355,7 +510,29 @@ describe('COURSES ROUTES - POST /courses', () => {
         const response = await app.inject({
           method: 'POST',
           url: '/courses',
-          payload: omit({ ...payload }, param),
+          payload: omit({ ...intraPayload }, param),
+          headers: { Cookie: `alenvi_token=${authToken}` },
+        });
+
+        expect(response.statusCode).toBe(400);
+      });
+    });
+
+    const intraHoldingPayload = {
+      misc: 'course',
+      subProgram: subProgramsList[0]._id,
+      type: INTRA_HOLDING,
+      maxTrainees: 8,
+      salesRepresentative: vendorAdmin._id,
+      holding: authHolding._id,
+    };
+
+    ['holding', 'subProgram', 'maxTrainees'].forEach((param) => {
+      it(`should return a 400 error if course is intra_holding and '${param}' parameter is missing`, async () => {
+        const response = await app.inject({
+          method: 'POST',
+          url: '/courses',
+          payload: omit({ ...intraHoldingPayload }, param),
           headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
