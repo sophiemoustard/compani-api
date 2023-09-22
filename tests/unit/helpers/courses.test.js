@@ -436,7 +436,11 @@ describe('list', () => {
       expect(result).toMatchObject(coursesList);
       sinon.assert.calledOnceWithExactly(
         findCourseAndPopulate,
-        { format: 'blended', archivedAt: { $exists: false }, companies: { $in: credentials.holding.companies } },
+        {
+          format: 'blended',
+          archivedAt: { $exists: false },
+          $or: [{ companies: { $in: credentials.holding.companies } }, { holding: credentials.holding._id }],
+        },
         'webapp'
       );
       sinon.assert.notCalled(getTotalTheoreticalDurationSpy);

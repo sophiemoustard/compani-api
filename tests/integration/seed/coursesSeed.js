@@ -576,6 +576,19 @@ const coursesList = [
     salesRepresentative: vendorAdmin._id,
     holding: otherHolding._id,
   },
+  { // 22 intra_holding course without companies
+    _id: new ObjectId(),
+    subProgram: subProgramsList[0]._id,
+    contact: trainerAndCoach._id,
+    misc: 'team formation',
+    trainer: trainerAndCoach._id,
+    trainees: [],
+    companies: [],
+    type: INTRA_HOLDING,
+    maxTrainees: 8,
+    salesRepresentative: vendorAdmin._id,
+    holding: otherHolding._id,
+  },
 ];
 
 const courseBillsList = [

@@ -372,7 +372,10 @@ exports.authorizeGetCourse = async (req) => {
     const credentials = get(req, 'auth.credentials');
 
     const course = await Course
-      .findOne({ _id: req.params._id }, { trainer: 1, format: 1, trainees: 1, companies: 1, accessRules: 1 })
+      .findOne(
+        { _id: req.params._id },
+        { trainer: 1, format: 1, trainees: 1, companies: 1, accessRules: 1, holding: 1 }
+      )
       .lean();
     if (!course) throw Boom.notFound();
 
@@ -403,9 +406,12 @@ exports.authorizeGetCourse = async (req) => {
     if (course.format === STRICTLY_E_LEARNING && !companyHasAccess) throw Boom.forbidden();
 
     if (course.format === BLENDED) {
-      const clientUserHasAccess = course.companies
+      const clientUserHasAccessToCompanies = course.companies
         .some(company => UtilsHelper.hasUserAccessToCompany(credentials, company));
-      if (!clientUserHasAccess) throw Boom.forbidden();
+
+      const clientUserHasAccessToHolding = UtilsHelper
+        .areObjectIdsEquals(course.holding, get(credentials, 'holding._id'));
+      if (!clientUserHasAccessToCompanies && !clientUserHasAccessToHolding) throw Boom.forbidden();
     }
 
     return null;

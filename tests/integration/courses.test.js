@@ -652,7 +652,7 @@ describe('COURSES ROUTES - GET /courses', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      expect(response.result.data.courses.length).toEqual(16);
+      expect(response.result.data.courses.length).toEqual(17);
     });
 
     it('should get blended archived courses (ops webapp)', async () => {
@@ -849,7 +849,7 @@ describe('COURSES ROUTES - GET /courses', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      expect(response.result.data.courses.length).toEqual(9);
+      expect(response.result.data.courses.length).toEqual(10);
     });
 
     it('should return 200 if coach and same company (pedagogy webapp)', async () => {
@@ -1133,6 +1133,17 @@ describe('COURSES ROUTES - GET /courses/{_id}', () => {
 
       expect(response.statusCode).toBe(200);
       expect(response.result.data.course._id.toHexString()).toBe(coursesList[5]._id.toHexString());
+    });
+
+    it('should get intra_holding course from holding (without registered companies)', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/courses/${coursesList[22]._id}?action=operations&origin=webapp`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(200);
+      expect(response.result.data.course._id.toHexString()).toBe(coursesList[22]._id.toHexString());
     });
 
     it('should return 403 if course from company not in holding', async () => {

@@ -151,13 +151,7 @@ const listBlendedForCompany = async (query, origin) => {
 
   return [
     ...intraCourses,
-    ...interCourses
-      .map(course => ({
-        ...course,
-        trainees: course.trainees
-          .filter(tId => UtilsHelper.areObjectIdsEquals(traineesCompanyForCourseList[course._id][tId], query.company)),
-      })),
-    ...intraHoldingCourses
+    ...[...interCourses, ...intraHoldingCourses]
       .map(course => ({
         ...course,
         trainees: course.trainees
@@ -171,7 +165,9 @@ const formatQuery = (query, credentials) => {
 
   if (has(query, 'isArchived')) set(formattedQuery, 'archivedAt', { $exists: !!query.isArchived });
 
-  if (has(query, 'holding')) set(formattedQuery, 'companies', { $in: credentials.holding.companies });
+  if (has(query, 'holding')) {
+    set(formattedQuery, '$or', [{ companies: { $in: credentials.holding.companies } }, { holding: query.holding }]);
+  }
 
   return formattedQuery;
 };
