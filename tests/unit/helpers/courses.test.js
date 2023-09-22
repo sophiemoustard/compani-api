@@ -53,6 +53,7 @@ const {
   TRAINEE,
   HOLDING_ADMIN,
   QUESTIONNAIRE,
+  INTRA_HOLDING,
 } = require('../../../src/helpers/constants');
 const CourseRepository = require('../../../src/repositories/CourseRepository');
 const CourseHistoriesHelper = require('../../../src/helpers/courseHistories');
@@ -308,21 +309,28 @@ describe('list', () => {
     });
 
     it('should return company courses', async () => {
-      const courseIdList = [new ObjectId(), new ObjectId(), new ObjectId()];
+      const courseIdList = [new ObjectId(), new ObjectId(), new ObjectId(), new ObjectId()];
       const traineeIdList = [new ObjectId(), new ObjectId()];
       const coursesList = [
         { _id: courseIdList[0], misc: 'name', type: INTRA },
         { _id: courseIdList[1], misc: 'name2', type: INTRA },
         { _id: courseIdList[2], misc: 'program', type: INTER_B2B, trainees: [traineeIdList[0]] },
+        { _id: courseIdList[3], misc: 'program', type: INTRA_HOLDING, trainees: [traineeIdList[0]] },
       ];
       const returnedList = [
         { _id: courseIdList[0], misc: 'name', type: INTRA },
         { _id: courseIdList[1], misc: 'name2', type: INTRA },
         { _id: courseIdList[2], misc: 'program', type: INTER_B2B, trainees: traineeIdList },
+        { _id: courseIdList[3], misc: 'program', type: INTRA_HOLDING, trainees: traineeIdList },
       ];
 
       findCourseAndPopulate.returns(returnedList);
-      getCompanyAtCourseRegistrationList.returns([
+      getCompanyAtCourseRegistrationList.onCall(0).returns([
+        { trainee: traineeIdList[0], company: authCompany },
+        { trainee: traineeIdList[1], company: new ObjectId() },
+      ]);
+
+      getCompanyAtCourseRegistrationList.onCall(1).returns([
         { trainee: traineeIdList[0], company: authCompany },
         { trainee: traineeIdList[1], company: new ObjectId() },
       ]);
@@ -348,9 +356,14 @@ describe('list', () => {
       sinon.assert.notCalled(userFindOne);
       sinon.assert.notCalled(find);
       sinon.assert.notCalled(formatCourseWithProgress);
-      sinon.assert.calledOnceWithExactly(
-        getCompanyAtCourseRegistrationList,
+      sinon.assert.calledWithExactly(
+        getCompanyAtCourseRegistrationList.getCall(0),
         { key: COURSE, value: courseIdList[2] },
+        { key: TRAINEE, value: traineeIdList }
+      );
+      sinon.assert.calledWithExactly(
+        getCompanyAtCourseRegistrationList.getCall(1),
+        { key: COURSE, value: courseIdList[3] },
         { key: TRAINEE, value: traineeIdList }
       );
     });
