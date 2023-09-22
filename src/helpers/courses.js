@@ -1,6 +1,7 @@
 const path = require('path');
 const get = require('lodash/get');
 const has = require('lodash/has');
+const isEmpty = require('lodash/isEmpty');
 const omit = require('lodash/omit');
 const groupBy = require('lodash/groupBy');
 const keyBy = require('lodash/keyBy');
@@ -52,6 +53,8 @@ const {
   VENDOR_ROLES,
   COURSE,
   TRAINEE,
+  PEDAGOGY,
+  QUESTIONNAIRE,
 } = require('./constants');
 const CourseHistoriesHelper = require('./courseHistories');
 const NotificationHelper = require('./notifications');
@@ -182,6 +185,10 @@ const listForOperations = async (query, origin, credentials) => {
 const listForPedagogy = async (query, credentials) => {
   const traineeId = query.trainee || get(credentials, '_id');
   const trainee = await User.findOne({ _id: traineeId }).lean();
+  const shouldQueryCompanies = !!query.holding || !!query.company;
+  const companies = [];
+  if (query.holding) companies.push(...credentials.holding.companies);
+  if (query.company) companies.push(query.company);
 
   const courses = await Course.find(
     {
@@ -189,9 +196,9 @@ const listForPedagogy = async (query, credentials) => {
       $or: [
         {
           format: STRICTLY_E_LEARNING,
-          ...(query.company && { $or: [{ accessRules: [] }, { accessRules: query.company }] }),
+          ...(shouldQueryCompanies && { $or: [{ accessRules: [] }, { accessRules: { $in: companies } }] }),
         },
-        { format: BLENDED, ...(query.company && { companies: query.company }) },
+        { format: BLENDED, ...(shouldQueryCompanies && { companies: { $in: companies } }) },
       ],
     },
     { format: 1 }
@@ -222,7 +229,7 @@ const listForPedagogy = async (query, credentials) => {
         { path: 'step', select: 'type' },
         {
           path: 'attendances',
-          match: { trainee: trainee._id, ...(query.company && { company: query.company }) },
+          match: { trainee: trainee._id, ...(shouldQueryCompanies && { company: { $in: companies } }) },
           options: {
             isVendorUser: [TRAINING_ORGANISATION_MANAGER, VENDOR_ADMIN].includes(get(credentials, 'role.vendor.name')),
             requestingOwnInfos: UtilsHelper.areObjectIdsEquals(traineeId, credentials._id),
@@ -234,14 +241,14 @@ const listForPedagogy = async (query, credentials) => {
     .lean({ autopopulate: true, virtuals: true });
 
   let filteredCourses = courses;
-  if (query.company) {
+  if (shouldQueryCompanies) {
     const companyAtCourseRegistration = await CourseHistoriesHelper.getCompanyAtCourseRegistrationList(
       { key: TRAINEE, value: traineeId }, { key: COURSE, value: courses.map(course => course._id) }
     );
     const traineeCompanies = mapValues(keyBy(companyAtCourseRegistration, 'course'), 'company');
     filteredCourses = courses
       .filter(course => course.format === STRICTLY_E_LEARNING ||
-        UtilsHelper.areObjectIdsEquals(traineeCompanies[course._id], query.company));
+        UtilsHelper.doesArrayIncludeId(companies, traineeCompanies[course._id]));
   }
 
   const shouldComputePresence = true;
@@ -309,7 +316,7 @@ const getCourseForOperations = async (courseId, credentials, origin) => {
       { path: 'companies', select: 'name' },
       {
         path: 'trainees',
-        select: 'identity.firstname identity.lastname local.email contact picture.link firstMobileConnection',
+        select: 'identity.firstname identity.lastname local.email contact picture.link firstMobileConnection loginCode',
         populate: { path: 'company' },
       },
       {
@@ -379,11 +386,25 @@ const getCourseForOperations = async (courseId, credentials, origin) => {
   };
 };
 
-exports.getCourse = async (query, params, credentials) => (
-  query.action === OPERATIONS
-    ? getCourseForOperations(params._id, credentials, query.origin)
-    : _getCourseForPedagogy(params._id, credentials)
-);
+const getCourseForQuestionnaire = async courseId => Course
+  .findOne({ _id: courseId }, { subProgram: 1, type: 1, trainer: 1, trainees: 1, misc: 1 })
+  .populate({ path: 'subProgram', select: 'program', populate: [{ path: 'program', select: 'name' }] })
+  .populate({ path: 'trainer', select: 'identity.firstname identity.lastname' })
+  .populate({ path: 'trainees', select: 'identity.firstname identity.lastname local.email' })
+  .lean({ virtuals: true });
+
+exports.getCourse = async (query, params, credentials) => {
+  switch (query.action) {
+    case QUESTIONNAIRE:
+      return getCourseForQuestionnaire(params._id);
+    case OPERATIONS:
+      return getCourseForOperations(params._id, credentials, query.origin);
+    case PEDAGOGY:
+      return _getCourseForPedagogy(params._id, credentials);
+    default:
+      return null;
+  }
+};
 
 exports.selectUserHistory = (histories) => {
   const groupedHistories = Object.values(groupBy(histories, 'user'));
@@ -442,7 +463,7 @@ exports.getCourseFollowUp = async (course, query, credentials) => {
     })
     .populate({
       path: 'trainees',
-      select: 'identity.firstname identity.lastname firstMobileConnection',
+      select: 'identity.firstname identity.lastname firstMobileConnection loginCode',
       populate: { path: 'company' },
     })
     .lean();
@@ -580,11 +601,23 @@ const _getCourseForPedagogy = async (courseId, credentials) => {
 };
 
 exports.updateCourse = async (courseId, payload, credentials) => {
-  const params = payload.contact === ''
-    ? { $set: omit(payload, 'contact'), $unset: { contact: '' } }
-    : { $set: payload };
+  let setFields = payload;
+  let unsetFields = {};
 
-  const courseFromDb = await Course.findOneAndUpdate({ _id: courseId }, params).lean();
+  if (payload.contact === '') {
+    setFields = omit(setFields, 'contact');
+    unsetFields = { contact: '' };
+  }
+  if (payload.archivedAt === '') {
+    setFields = omit(setFields, 'archivedAt');
+    unsetFields = { ...unsetFields, archivedAt: '' };
+  }
+  const formattedPayload = {
+    ...(!isEmpty(setFields) && { $set: { ...setFields } }),
+    ...(!isEmpty(unsetFields) && { $unset: { ...unsetFields } }),
+  };
+
+  const courseFromDb = await Course.findOneAndUpdate({ _id: courseId }, formattedPayload).lean();
 
   const estimatedStartDateUpdated = payload.estimatedStartDate && (!courseFromDb.estimatedStartDate ||
     !CompaniDate(payload.estimatedStartDate).isSame(courseFromDb.estimatedStartDate, DAY));
@@ -668,7 +701,14 @@ exports.addTrainee = async (courseId, payload, credentials) => {
     { projection: { companies: 1, type: 1 } }
   );
 
-  const trainee = await User.findOne({ _id: payload.trainee }, { formationExpoTokenList: 1 }).lean();
+  const trainee = await User
+    .findOne({ _id: payload.trainee }, { formationExpoTokenList: 1, firstMobileConnection: 1, loginCode: 1 })
+    .lean();
+
+  if (!trainee.firstMobileConnection && !trainee.loginCode) {
+    const loginCode = String(Math.floor(Math.random() * 9000 + 1000));
+    await User.updateOne({ _id: payload.trainee }, { loginCode });
+  }
 
   await Promise.all([
     CourseHistoriesHelper.createHistoryOnTraineeAddition(
@@ -764,11 +804,13 @@ exports.formatInterCourseForPdf = async (course) => {
   const companiesById = mapValues(keyBy(companiesList, '_id'), 'name');
 
   return {
-    trainees: course.trainees.map(trainee => ({
-      traineeName: UtilsHelper.formatIdentity(trainee.identity, 'FL'),
-      registrationCompany: companiesById[traineesCompany[trainee._id]],
-      course: { ...courseData },
-    })),
+    trainees: course.trainees.length
+      ? course.trainees.map(trainee => ({
+        traineeName: UtilsHelper.formatIdentity(trainee.identity, 'FL'),
+        registrationCompany: companiesById[traineesCompany[trainee._id]],
+        course: { ...courseData },
+      }))
+      : [{ traineeName: '', registrationCompany: '', course: { ...courseData } }],
   };
 };
 

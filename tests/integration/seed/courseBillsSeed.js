@@ -1,6 +1,6 @@
 const { v4: uuidv4 } = require('uuid');
 const { ObjectId } = require('mongodb');
-const { INTRA, INTER_B2B, WEBAPP } = require('../../../src/helpers/constants');
+const { INTRA, INTER_B2B, WEBAPP, PUBLISHED } = require('../../../src/helpers/constants');
 const Company = require('../../../src/models/Company');
 const Course = require('../../../src/models/Course');
 const CourseBill = require('../../../src/models/CourseBill');
@@ -10,6 +10,7 @@ const CourseCreditNote = require('../../../src/models/CourseCreditNote');
 const CourseCreditNoteNumber = require('../../../src/models/CourseCreditNoteNumber');
 const CourseFundingOrganisation = require('../../../src/models/CourseFundingOrganisation');
 const Program = require('../../../src/models/Program');
+const Step = require('../../../src/models/Step');
 const SubProgram = require('../../../src/models/SubProgram');
 const VendorCompany = require('../../../src/models/VendorCompany');
 const User = require('../../../src/models/User');
@@ -19,7 +20,9 @@ const { authCompany, otherCompany, companyWithoutSubscription } = require('../..
 const { deleteNonAuthenticationSeeds } = require('../helpers/db');
 const { trainer, vendorAdmin, auxiliary } = require('../../seed/authUsersSeed');
 
-const subProgramList = [{ _id: new ObjectId(), name: 'subProgram 1', steps: [] }];
+const steps = [{ _id: new ObjectId(), type: 'on_site', name: 'étape', status: PUBLISHED, theoreticalDuration: 60 }];
+
+const subProgramList = [{ _id: new ObjectId(), name: 'subProgram 1', steps: [steps[0]._id], status: PUBLISHED }];
 
 const programList = [{ _id: new ObjectId(), name: 'Program 1', subPrograms: [subProgramList[0]._id] }];
 
@@ -38,7 +41,7 @@ const vendorCompany = {
 };
 
 const companyWithoutAddress = {
-  _id: ObjectId(),
+  _id: new ObjectId(),
   name: 'Structure sans adresse',
   prefixNumber: 45,
   folderId: '0987654321',
@@ -386,6 +389,7 @@ const populateDB = async () => {
     CourseCreditNoteNumber.create(courseCreditNoteNumber),
     CourseFundingOrganisation.create(courseFundingOrganisationList),
     Program.create(programList),
+    Step.create(steps),
     SubProgram.create(subProgramList),
     VendorCompany.create(vendorCompany),
     User.create(userList),

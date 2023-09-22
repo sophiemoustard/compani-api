@@ -3,7 +3,6 @@ const fs = require('fs');
 const path = require('path');
 const util = require('util');
 const PdfPrinter = require('pdfmake');
-const getStream = require('get-stream');
 const FileHelper = require('./file');
 
 exports.readFile = util.promisify(fs.readFile);
@@ -47,8 +46,7 @@ exports.generatePdf = async (template, images = []) => {
   const printer = new PdfPrinter(fonts());
   const doc = printer.createPdfKitDocument(template);
   doc.end();
-  const pdf = await getStream.buffer(doc);
   FileHelper.deleteImages(images);
 
-  return pdf;
+  return doc;
 };

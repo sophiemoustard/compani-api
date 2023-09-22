@@ -9,7 +9,7 @@ const Card = require('../../../src/models/Card');
 const Course = require('../../../src/models/Course');
 const { userList, vendorAdmin, coach } = require('../../seed/authUsersSeed');
 const { deleteNonAuthenticationSeeds } = require('../helpers/db');
-const { INTER_B2C } = require('../../../src/helpers/constants');
+const { INTER_B2C, PUBLISHED } = require('../../../src/helpers/constants');
 
 const cards = [
   { _id: new ObjectId(), template: 'transition', title: 'skusku' },
@@ -17,7 +17,7 @@ const cards = [
 ];
 
 const activitiesList = [
-  { _id: new ObjectId(), name: 'activité 1', type: 'sharing_experience', cards: [cards[0]._id] },
+  { _id: new ObjectId(), name: 'activité 1', type: 'sharing_experience', cards: [cards[0]._id], status: PUBLISHED },
   { _id: new ObjectId(), name: 'activité 2', type: 'quiz', cards: [cards[1]._id] },
   { _id: new ObjectId(), name: 'activité 3', type: 'quiz', cards: [] },
 ];
@@ -36,7 +36,9 @@ const stepsList = [
     _id: new ObjectId(),
     type: 'e_learning',
     name: 'étape 1',
-    activities: [activitiesList[0]._id, activitiesList[1]._id],
+    activities: [activitiesList[0]._id],
+    status: PUBLISHED,
+    theoreticalDuration: 60,
   },
   { _id: new ObjectId(), type: 'e_learning', name: 'étape 2', activities: [activitiesList[0]._id] },
   { _id: new ObjectId(), type: 'on_site', name: 'étape 3', activities: [] },
@@ -49,7 +51,7 @@ const stepsList = [
 
 const subProgramsList = [
   { _id: new ObjectId(), name: 'sous-programme 1', steps: [stepsList[2]._id] },
-  { _id: new ObjectId(), name: 'sous-programme 2', steps: [stepsList[0]._id] },
+  { _id: new ObjectId(), name: 'sous-programme 2', steps: [stepsList[0]._id], status: PUBLISHED },
   { _id: new ObjectId(), name: 'sous-programme 3', steps: [stepsList[1]._id] },
   {
     _id: new ObjectId(),

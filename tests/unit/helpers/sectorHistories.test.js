@@ -507,20 +507,20 @@ describe('updateHistoryOnContractUpdate', () => {
 
   let findOne;
   let updateOne;
-  let remove;
+  let deleteMany;
   let find;
 
   beforeEach(() => {
     findOne = sinon.stub(Contract, 'findOne');
     updateOne = sinon.stub(SectorHistory, 'updateOne');
-    remove = sinon.stub(SectorHistory, 'remove');
+    deleteMany = sinon.stub(SectorHistory, 'deleteMany');
     find = sinon.stub(SectorHistory, 'find');
   });
 
   afterEach(() => {
     findOne.restore();
     updateOne.restore();
-    remove.restore();
+    deleteMany.restore();
     find.restore();
   });
 
@@ -555,7 +555,7 @@ describe('updateHistoryOnContractUpdate', () => {
       [{ query: 'findOne', args: [{ _id: contractId, company: companyId }] }, { query: 'lean' }]
     );
     sinon.assert.calledOnceWithExactly(
-      remove,
+      deleteMany,
       { auxiliary: auxiliaryId, endDate: { $gte: '2019-01-01', $lte: newContract.startDate } }
     );
     SinonMongoose.calledOnceWithExactly(
@@ -579,23 +579,24 @@ describe('updateHistoryOnContractUpdate', () => {
 });
 
 describe('updateHistoryOnContractDeletion', () => {
-  const contract = { user: new ObjectId(), startDate: '2020-01-01' };
+  const userId = new ObjectId();
+  const contract = { user: { _id: userId }, startDate: '2020-01-01' };
   const companyId = new ObjectId();
 
   let findOne;
   let updateOne;
-  let remove;
+  let deleteMany;
 
   beforeEach(() => {
     findOne = sinon.stub(SectorHistory, 'findOne');
     updateOne = sinon.stub(SectorHistory, 'updateOne');
-    remove = sinon.stub(SectorHistory, 'remove');
+    deleteMany = sinon.stub(SectorHistory, 'deleteMany');
   });
 
   afterEach(() => {
     findOne.restore();
     updateOne.restore();
-    remove.restore();
+    deleteMany.restore();
   });
 
   it('should remove sector histories and update last one', async () => {
@@ -605,17 +606,13 @@ describe('updateHistoryOnContractDeletion', () => {
 
     SinonMongoose.calledOnceWithExactly(
       findOne,
-      [{ query: 'findOne', args: [{ auxiliary: contract.user, endDate: null }] }, { query: 'lean' }]
+      [{ query: 'findOne', args: [{ auxiliary: userId, endDate: null }] }, { query: 'lean' }]
     );
     sinon.assert.calledOnceWithExactly(
-      remove,
-      { auxiliary: contract.user, company: companyId, startDate: { $gte: contract.startDate, $lt: '2020-10-10' } }
+      deleteMany,
+      { auxiliary: userId, company: companyId, startDate: { $gte: contract.startDate, $lt: '2020-10-10' } }
     );
-    sinon.assert.calledOnceWithExactly(
-      updateOne,
-      { auxiliary: contract.user, endDate: null },
-      { $unset: { startDate: '' } }
-    );
+    sinon.assert.calledOnceWithExactly(updateOne, { auxiliary: userId, endDate: null }, { $unset: { startDate: '' } });
   });
 });
 

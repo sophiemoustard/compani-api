@@ -1,15 +1,13 @@
 const { expect } = require('expect');
 const omit = require('lodash/omit');
-const GetStream = require('get-stream');
 const path = require('path');
-const fs = require('fs');
 const sinon = require('sinon');
 const { ObjectId } = require('mongodb');
 const GDriveStorageHelper = require('../../src/helpers/gDriveStorage');
 const DriveHelper = require('../../src/helpers/drive');
 const DocxHelper = require('../../src/helpers/docx');
 const Drive = require('../../src/models/Google/Drive');
-const { generateFormData } = require('./utils');
+const { generateFormData, getStream } = require('./utils');
 const { getTokenByCredentials } = require('./helpers/authentication');
 const { noRoleNoCompany } = require('../seed/authUsersSeed');
 const { auxiliary, populateDB } = require('./seed/driveSeed');
@@ -45,7 +43,7 @@ describe('GOOGLE DRIVE ROUTES - POST /gdrive/:id/upload', () => {
 
     it('should add an absence document for an event', async () => {
       const payload = {
-        file: fs.createReadStream(path.join(__dirname, 'assets/test_esign.pdf')),
+        file: 'test',
         fileName: 'absence',
         type: 'absence',
       };
@@ -53,7 +51,7 @@ describe('GOOGLE DRIVE ROUTES - POST /gdrive/:id/upload', () => {
       const response = await app.inject({
         method: 'POST',
         url: `/gdrive/${userFolderId}/upload`,
-        payload: await GetStream(form),
+        payload: getStream(form),
         headers: { ...form.getHeaders(), Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -69,7 +67,7 @@ describe('GOOGLE DRIVE ROUTES - POST /gdrive/:id/upload', () => {
     missingParams.forEach((param) => {
       it(`should return a 400 error if '${param}' params is missing`, async () => {
         const payload = {
-          file: fs.createReadStream(path.join(__dirname, 'assets/test_esign.pdf')),
+          file: 'test',
           fileName: 'absence',
           type: 'file',
         };
@@ -77,7 +75,7 @@ describe('GOOGLE DRIVE ROUTES - POST /gdrive/:id/upload', () => {
         const response = await app.inject({
           method: 'POST',
           url: `/gdrive/${userFolderId}/upload`,
-          payload: await GetStream(form),
+          payload: getStream(form),
           headers: { ...form.getHeaders(), Cookie: `alenvi_token=${authToken}` },
         });
 

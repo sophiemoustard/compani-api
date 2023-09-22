@@ -1,5 +1,6 @@
 const { v4: uuidv4 } = require('uuid');
 const { ObjectId } = require('mongodb');
+const Card = require('../../../src/models/Card');
 const User = require('../../../src/models/User');
 const Step = require('../../../src/models/Step');
 const SubProgram = require('../../../src/models/SubProgram');
@@ -26,6 +27,9 @@ const {
   INTER_B2C,
   BLENDED,
   STRICTLY_E_LEARNING,
+  PUBLISHED,
+  E_LEARNING,
+  ON_SITE,
 } = require('../../../src/helpers/constants');
 const Helper = require('../../../src/models/Helper');
 const {
@@ -182,6 +186,7 @@ const usersSeedList = [
     contracts: [new ObjectId()],
     passwordToken: { token: uuidv4(), expiresIn: new Date('2020-01-20').getTime() + 3600000 },
     origin: WEBAPP,
+    loginCode: '1234',
   },
   { // 4
     _id: new ObjectId(),
@@ -417,12 +422,32 @@ const sectorHistories = [
   },
 ];
 
-const activityList = [{ _id: new ObjectId(), name: 'great activity', type: VIDEO, cards: [] }];
+const cardsList = [
+  { _id: new ObjectId(), template: 'transition', title: 'ceci est un titre' },
+];
 
-const stepList = [{ _id: new ObjectId(), name: 'etape', type: 'e_learning', activities: [activityList[0]._id] }];
+const activityList = [{
+  _id: new ObjectId(),
+  name: 'great activity',
+  type: VIDEO,
+  cards: [cardsList[0]._id],
+  status: PUBLISHED,
+}];
+
+const stepList = [
+  { _id: new ObjectId(), name: 'etape', type: ON_SITE, status: PUBLISHED, theoreticalDuration: 60 },
+  {
+    _id: new ObjectId(),
+    name: 'etape',
+    type: E_LEARNING,
+    activities: [activityList[0]._id],
+    status: PUBLISHED,
+    theoreticalDuration: 60,
+  },
+];
 const subProgramsList = [
-  { _id: new ObjectId(), name: 'subProgram 1' },
-  { _id: new ObjectId(), name: 'subProgram 2', steps: stepList },
+  { _id: new ObjectId(), name: 'subProgram 1', steps: [stepList[0]._id], status: PUBLISHED },
+  { _id: new ObjectId(), name: 'subProgram 2', steps: [stepList[1]._id], status: PUBLISHED },
 ];
 
 const coursesList = [
@@ -459,7 +484,12 @@ const activityHistoryList = [
 ];
 
 const identityVerifications = [
-  { _id: new ObjectId(), email: 'carolyn@alenvi.io', code: '3310', createdAt: new Date('2021-01-25T10:05:32.582Z') },
+  {
+    _id: new ObjectId(),
+    email: usersSeedList[3].local.email,
+    code: '3310',
+    createdAt: new Date('2021-01-25T10:05:32.582Z'),
+  },
 ];
 
 const isInList = (list, user) => list.some(i => i._id.toHexString() === user._id.toHexString());
@@ -470,6 +500,7 @@ const populateDB = async () => {
   await Promise.all([
     Activity.create(activityList),
     ActivityHistory.create(activityHistoryList),
+    Card.create(cardsList),
     Contract.create(contracts),
     Course.create(coursesList),
     Customer.create(customer, customerFromOtherCompany),

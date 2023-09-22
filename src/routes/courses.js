@@ -48,7 +48,16 @@ const {
   authorizeCourseCompanyDeletion,
   authorizeGenerateTrainingContract,
 } = require('./preHandlers/courses');
-const { INTRA, OPERATIONS, MOBILE, WEBAPP, PEDAGOGY, ORIGIN_OPTIONS } = require('../helpers/constants');
+const {
+  INTRA,
+  OPERATIONS,
+  MOBILE,
+  WEBAPP,
+  PEDAGOGY,
+  ORIGIN_OPTIONS,
+  QUESTIONNAIRE,
+  INTRA_HOLDING,
+} = require('../helpers/constants');
 const { dateToISOString } = require('./validations/utils');
 
 exports.plugin = {
@@ -78,10 +87,7 @@ exports.plugin = {
                 otherwise: Joi.forbidden(),
               }),
             company: Joi.objectId().when('origin', { is: MOBILE, then: Joi.forbidden() }),
-            holding: Joi.objectId().when(
-              'action',
-              { is: OPERATIONS, then: Joi.objectId(), otherwise: Joi.forbidden() }
-            ),
+            holding: Joi.objectId().when('origin', { is: MOBILE, then: Joi.forbidden() }),
             format: Joi.string().valid(...COURSE_FORMATS),
             isArchived: Joi.boolean(),
           }).oxor('company', 'holding'),
@@ -103,12 +109,20 @@ exports.plugin = {
             company: Joi.objectId().when('type', { is: INTRA, then: Joi.required(), otherwise: Joi.forbidden() }),
             salesRepresentative: Joi.objectId().required(),
             estimatedStartDate: dateToISOString,
-            maxTrainees: Joi.number().when('type', { is: INTRA, then: Joi.required(), otherwise: Joi.forbidden() }),
+            maxTrainees: Joi
+              .number()
+              .when(
+                'type',
+                { is: Joi.valid(INTRA, INTRA_HOLDING), then: Joi.required(), otherwise: Joi.forbidden() }
+              ),
             expectedBillsCount: Joi
               .number()
               .integer()
               .min(0)
               .when('type', { is: INTRA, then: Joi.required(), otherwise: Joi.forbidden() }),
+            holding: Joi
+              .objectId()
+              .when('type', { is: INTRA_HOLDING, then: Joi.required(), otherwise: Joi.forbidden() }),
           }),
         },
         auth: { scope: ['courses:create'] },
@@ -124,13 +138,13 @@ exports.plugin = {
         validate: {
           params: Joi.object({ _id: Joi.objectId().required() }),
           query: Joi.object({
-            action: Joi.string().required().valid(OPERATIONS, PEDAGOGY),
+            action: Joi.string().required().valid(OPERATIONS, PEDAGOGY, QUESTIONNAIRE),
             origin: Joi.string()
               .when('action', { is: OPERATIONS, then: Joi.required(), otherwise: Joi.forbidden() })
               .valid(...ORIGIN_OPTIONS),
           }),
         },
-        auth: { mode: 'required' },
+        auth: { mode: 'optional' },
         pre: [{ method: authorizeGetCourse }],
       },
       handler: getById,
@@ -188,7 +202,7 @@ exports.plugin = {
             contact: Joi.objectId().allow(''),
             salesRepresentative: Joi.objectId(),
             companyRepresentative: Joi.objectId(),
-            archivedAt: Joi.date(),
+            archivedAt: Joi.date().allow(''),
             estimatedStartDate: dateToISOString,
             maxTrainees: Joi.number().positive().integer(),
             expectedBillsCount: Joi.number().min(0).integer(),

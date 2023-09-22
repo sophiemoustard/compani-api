@@ -1,7 +1,6 @@
 const { expect } = require('expect');
 const sinon = require('sinon');
 const { ObjectId } = require('mongodb');
-const GetStream = require('get-stream');
 const GDriveStorageHelper = require('../../src/helpers/gDriveStorage');
 const Company = require('../../src/models/Company');
 const Drive = require('../../src/models/Google/Drive');
@@ -10,7 +9,7 @@ const { company, populateDB, usersList } = require('./seed/companiesSeed');
 const { getToken, getTokenByCredentials } = require('./helpers/authentication');
 const { authCompany, otherCompany } = require('../seed/authCompaniesSeed');
 const { noRoleNoCompany, coach } = require('../seed/authUsersSeed');
-const { generateFormData } = require('./utils');
+const { generateFormData, getStream } = require('./utils');
 
 describe('NODE ENV', () => {
   it('should be \'test\'', () => {
@@ -279,7 +278,7 @@ describe('COMPANIES ROUTES - POST /{_id}/gdrive/{driveId}/upload', () => {
       const response = await app.inject({
         method: 'POST',
         url: `/companies/${company._id}/gdrive/${fakeDriveId}/upload`,
-        payload: await GetStream(form),
+        payload: getStream(form),
         headers: { ...form.getHeaders(), Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -295,7 +294,7 @@ describe('COMPANIES ROUTES - POST /{_id}/gdrive/{driveId}/upload', () => {
       const response = await app.inject({
         method: 'POST',
         url: `/companies/${otherCompany._id}/gdrive/${fakeDriveId}/upload`,
-        payload: await GetStream(form),
+        payload: getStream(form),
         headers: { ...form.getHeaders(), Cookie: `alenvi_token=${authToken}` },
       });
       expect(response.statusCode).toBe(403);
@@ -321,7 +320,7 @@ describe('COMPANIES ROUTES - POST /{_id}/gdrive/{driveId}/upload', () => {
         const response = await app.inject({
           method: 'POST',
           url: `/companies/${company._id}/gdrive/${fakeDriveId}/upload`,
-          payload: await GetStream(form),
+          payload: getStream(form),
           headers: { ...form.getHeaders(), Cookie: `alenvi_token=${authToken}` },
         });
 

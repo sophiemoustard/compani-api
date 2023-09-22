@@ -155,7 +155,7 @@ const events = [
 
 const eventHistoryList = [
   {
-    _id: ObjectId(),
+    _id: new ObjectId(),
     company: authCompany._id,
     action: EVENT_CREATION,
     createdBy: users[2]._id,
@@ -171,7 +171,7 @@ const eventHistoryList = [
     },
   },
   { // 1
-    _id: ObjectId(),
+    _id: new ObjectId(),
     company: authCompany._id,
     action: EVENT_DELETION,
     createdBy: users[2]._id,
@@ -188,7 +188,7 @@ const eventHistoryList = [
     },
   },
   { // 2
-    _id: ObjectId(),
+    _id: new ObjectId(),
     company: authCompany._id,
     action: EVENT_UPDATE,
     createdBy: users[2]._id,
@@ -205,7 +205,7 @@ const eventHistoryList = [
     },
   },
   { // time stamping - 3
-    _id: ObjectId(),
+    _id: new ObjectId(),
     company: authCompany._id,
     action: QR_CODE_TIME_STAMPING,
     createdBy: users[2]._id,
@@ -222,7 +222,7 @@ const eventHistoryList = [
     isCancelled: false,
   },
   { // time stamping cancelled - 4
-    _id: ObjectId(),
+    _id: new ObjectId(),
     company: authCompany._id,
     action: QR_CODE_TIME_STAMPING,
     createdBy: users[2]._id,
@@ -239,7 +239,7 @@ const eventHistoryList = [
     isCancelled: true,
   },
   { // time stamping from other company - 5
-    _id: ObjectId(),
+    _id: new ObjectId(),
     company: otherCompany._id,
     action: QR_CODE_TIME_STAMPING,
     createdBy: users[2]._id,
@@ -256,7 +256,7 @@ const eventHistoryList = [
     isCancelled: false,
   },
   { // billed event - 6
-    _id: ObjectId(),
+    _id: new ObjectId(),
     company: authCompany._id,
     action: QR_CODE_TIME_STAMPING,
     createdBy: users[2]._id,

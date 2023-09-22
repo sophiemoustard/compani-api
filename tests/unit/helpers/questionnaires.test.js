@@ -55,7 +55,7 @@ describe('list', () => {
     SinonMongoose.calledOnceWithExactly(
       find,
       [
-        { query: 'find' },
+        { query: 'find', args: [{}] },
         { query: 'populate', args: [{ path: 'historiesCount', options: { isVendorUser: true } }] },
         { query: 'lean' },
       ]
@@ -752,7 +752,7 @@ describe('getFollowUp', () => {
   it('should return follow up for for all courses', async () => {
     const questionnaireId = new ObjectId();
     const cardsIds = [new ObjectId(), new ObjectId()];
-    const companyId = ObjectId();
+    const companyId = new ObjectId();
     const questionnaire = {
       _id: questionnaireId,
       type: EXPECTATIONS,

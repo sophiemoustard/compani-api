@@ -9,11 +9,12 @@ const {
   createPasswordToken,
   refreshToken,
   forgotPassword,
-  checkPasswordToken,
+  sendToken,
   updatePassword,
 } = require('../controllers/authenticationController');
 const { WEBAPP, EMAIL, PHONE, MOBILE, ORIGIN_OPTIONS } = require('../helpers/constants');
 const { getUser, authorizeUserUpdate } = require('./preHandlers/users');
+const { checkPasswordToken, authorizeRefreshToken } = require('./preHandlers/authentication');
 
 exports.plugin = {
   name: 'routes-authentication',
@@ -73,6 +74,7 @@ exports.plugin = {
       options: {
         auth: false,
         state: { parse: true, failAction: 'error' },
+        pre: [{ method: authorizeRefreshToken }],
       },
       handler: refreshToken,
     });
@@ -107,11 +109,19 @@ exports.plugin = {
       options: {
         validate: {
           params: Joi.object().keys({ token: Joi.string().required() }),
-          query: Joi.object().keys({ email: Joi.string().email() }),
+          query: Joi.alternatives().try(
+            Joi.object({ email: Joi.string().email() }),
+            Joi.object({
+              firstname: Joi.string().required(),
+              lastname: Joi.string().required(),
+              company: Joi.string().required(),
+            })
+          ),
         },
         auth: false,
+        pre: [{ method: checkPasswordToken, assign: 'user' }],
       },
-      handler: checkPasswordToken,
+      handler: sendToken,
     });
   },
 };

@@ -116,7 +116,7 @@ const getLearnersCount = async (course) => {
   const traineesCompany = mapValues(keyBy(traineesCompanyAtCourseRegistration, 'trainee'), 'company');
 
   return course.trainees
-    .filter(trainee => UtilsHelper.areObjectIdsEquals(course.companies[0]._id, traineesCompany[trainee._id])).length;
+    .filter(traineeId => UtilsHelper.areObjectIdsEquals(course.companies[0]._id, traineesCompany[traineeId])).length;
 };
 
 // make sure code is similar to front part in TrainingContractInfoModal

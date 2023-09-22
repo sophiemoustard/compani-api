@@ -1,9 +1,9 @@
 const mongoose = require('mongoose');
 const mongooseLeanVirtuals = require('mongoose-lean-virtuals');
-const { INTRA, INTER_B2B, INTER_B2C, STRICTLY_E_LEARNING, BLENDED } = require('../helpers/constants');
+const { INTRA, INTER_B2B, INTER_B2C, INTRA_HOLDING, STRICTLY_E_LEARNING, BLENDED } = require('../helpers/constants');
 const { formatQuery, queryMiddlewareList } = require('./preHooks/validate');
 
-const COURSE_TYPES = [INTRA, INTER_B2B, INTER_B2C];
+const COURSE_TYPES = [INTRA, INTER_B2B, INTER_B2C, INTRA_HOLDING];
 const COURSE_FORMATS = [STRICTLY_E_LEARNING, BLENDED];
 
 const CourseSchema = mongoose.Schema({
@@ -14,6 +14,11 @@ const CourseSchema = mongoose.Schema({
     default() { return (this.type === INTER_B2C ? undefined : []); },
     ref: 'Company',
     validate(v) { return (this.type === INTRA ? Array.isArray(v) && !!v.length : true); },
+  },
+  holding: {
+    type: mongoose.Schema.Types.ObjectId,
+    required() { return this.type === INTRA_HOLDING; },
+    ref: 'Holding',
   },
   type: { type: String, required: true, enum: COURSE_TYPES },
   format: { type: String, enum: COURSE_FORMATS, default: BLENDED },
@@ -29,7 +34,7 @@ const CourseSchema = mongoose.Schema({
   companyRepresentative: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
   estimatedStartDate: { type: Date },
   archivedAt: { type: Date },
-  maxTrainees: { type: Number, required() { return this.type === INTRA; } },
+  maxTrainees: { type: Number, required() { return [INTRA, INTRA_HOLDING].includes(this.type); } },
   expectedBillsCount: { type: Number, default() { return this.type === INTRA ? 0 : undefined; } },
 }, { timestamps: true });
 

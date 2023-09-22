@@ -1,11 +1,11 @@
 const flat = require('flat');
 const Boom = require('@hapi/boom');
-const mongoose = require('mongoose');
 const path = require('path');
 const os = require('os');
 const get = require('lodash/get');
 const pick = require('lodash/pick');
 const cloneDeep = require('lodash/cloneDeep');
+const { ObjectId } = require('mongodb');
 const moment = require('../extensions/moment');
 const Contract = require('../models/Contract');
 const User = require('../models/User');
@@ -340,7 +340,7 @@ exports.createAndSaveFile = async (version, fileInfo) => {
     { $set: flat({ 'versions.$[version]': payload }) },
     {
       new: true,
-      arrayFilters: [{ 'version._id': mongoose.Types.ObjectId(version._id) }],
+      arrayFilters: [{ 'version._id': new ObjectId(version._id) }],
     }
   );
 };

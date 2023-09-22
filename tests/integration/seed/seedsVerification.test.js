@@ -5,6 +5,7 @@ const ActivityHistory = require('../../../src/models/ActivityHistory');
 const Attendance = require('../../../src/models/Attendance');
 const AttendanceSheet = require('../../../src/models/AttendanceSheet');
 const Card = require('../../../src/models/Card');
+const Company = require('../../../src/models/Company');
 const CompanyHolding = require('../../../src/models/CompanyHolding');
 const CompanyLinkRequest = require('../../../src/models/CompanyLinkRequest');
 const Contract = require('../../../src/models/Contract');
@@ -15,18 +16,24 @@ const CourseBillsNumber = require('../../../src/models/CourseBillsNumber');
 const CourseCreditNote = require('../../../src/models/CourseCreditNote');
 const CourseCreditNoteNumber = require('../../../src/models/CourseCreditNoteNumber');
 const CourseFundingOrganisation = require('../../../src/models/CourseFundingOrganisation');
+const CoursePayment = require('../../../src/models/CoursePayment');
+const CoursePaymentNumber = require('../../../src/models/CoursePaymentNumber');
 const CourseSlot = require('../../../src/models/CourseSlot');
+const CourseSmsHistory = require('../../../src/models/CourseSmsHistory');
 const CourseHistory = require('../../../src/models/CourseHistory');
 const Helper = require('../../../src/models/Helper');
+const IdentityVerification = require('../../../src/models/IdentityVerification');
 const Program = require('../../../src/models/Program');
 const Questionnaire = require('../../../src/models/Questionnaire');
 const QuestionnaireHistory = require('../../../src/models/QuestionnaireHistory');
 const SectorHistory = require('../../../src/models/SectorHistory');
 const Step = require('../../../src/models/Step');
 const SubProgram = require('../../../src/models/SubProgram');
+const TrainingContract = require('../../../src/models/TrainingContract');
 const User = require('../../../src/models/User');
 const UserCompany = require('../../../src/models/UserCompany');
 const UserHolding = require('../../../src/models/UserHolding');
+const VendorCompany = require('../../../src/models/VendorCompany');
 const { ascendingSort } = require('../../../src/helpers/dates');
 const { CompaniDate } = require('../../../src/helpers/dates/companiDates');
 const { CompaniDuration } = require('../../../src/helpers/dates/companiDurations');
@@ -74,27 +81,43 @@ const {
   REMOTE,
   DAY,
   HOLDING_ADMIN,
+  PAYMENT,
+  REFUND,
+  COMPANY,
+  ASSOCIATION,
+  EXPECTATIONS,
+  END_OF_COURSE,
 } = require('../../../src/helpers/constants');
 const attendancesSeed = require('./attendancesSeed');
 const activitiesSeed = require('./activitiesSeed');
 const activityHistoriesSeed = require('./activityHistoriesSeed');
 const attendanceSheetsSeed = require('./attendanceSheetsSeed');
 const cardsSeed = require('./cardsSeed');
+const categoriesSeed = require('./categoriesSeed');
+const companiesSeed = require('./companiesSeed');
+const companyLinkRequestsSeed = require('./companyLinkRequestsSeed');
 const courseBillsSeed = require('./courseBillsSeed');
 const courseBillingItemsSeed = require('./courseBillingItemsSeed');
 const courseCreditNotesSeed = require('./courseCreditNotesSeed');
 const courseFundingOrganisationsSeed = require('./courseFundingOrganisationsSeed');
+const coursePaymentsSeed = require('./coursePaymentsSeed');
 const coursesSeed = require('./coursesSeed');
 const courseHistoriesSeed = require('./courseHistoriesSeed');
 const courseSlotsSeed = require('./courseSlotsSeed');
+const driveSeed = require('./driveSeed');
+const emailSeed = require('./emailSeed');
+const exportsSeed = require('./exportsSeed');
 const holdingsSeed = require('./holdingsSeed');
 const programsSeed = require('./programsSeed');
 const questionnairesSeed = require('./questionnairesSeed');
 const questionnaireHistoriesSeed = require('./questionnaireHistoriesSeed');
+const rolesSeed = require('./rolesSeed');
 const stepsSeed = require('./stepsSeed');
 const subProgramsSeed = require('./subProgramsSeed');
+const trainingContractsSeed = require('./trainingContractsSeed');
 const userCompaniesSeed = require('./userCompaniesSeed');
 const usersSeed = require('./usersSeed');
+const vendorCompaniesSeed = require('./vendorCompaniesSeed');
 
 const seedList = [
   { label: 'ACTIVITY', value: activitiesSeed },
@@ -102,21 +125,31 @@ const seedList = [
   { label: 'ATTENDANCE', value: attendancesSeed },
   { label: 'ATTENDANCESHEET', value: attendanceSheetsSeed },
   { label: 'CARD', value: cardsSeed },
+  { label: 'CATEGORY', value: categoriesSeed },
+  { label: 'COMPANY', value: companiesSeed },
+  { label: 'COMPANYLINKREQUEST', value: companyLinkRequestsSeed },
   { label: 'COURSE', value: coursesSeed },
   { label: 'COURSEBILL', value: courseBillsSeed },
   { label: 'COURSEBILLINGITEM', value: courseBillingItemsSeed },
   { label: 'COURSECREDITNOTE', value: courseCreditNotesSeed },
   { label: 'COURSEFUNDINGORGANISATION', value: courseFundingOrganisationsSeed },
+  { label: 'COURSEPAYMENT', value: coursePaymentsSeed },
   { label: 'COURSEHISTORY', value: courseHistoriesSeed },
   { label: 'COURSESLOT', value: courseSlotsSeed },
+  { label: 'DRIVE', value: driveSeed },
+  { label: 'EMAIL', value: emailSeed },
+  { label: 'EXPORT', value: exportsSeed },
   { label: 'HOLDING', value: holdingsSeed },
   { label: 'PROGRAM', value: programsSeed },
   { label: 'QUESTIONNAIRE', value: questionnairesSeed },
   { label: 'QUESTIONNAIREHISTORY', value: questionnaireHistoriesSeed },
+  { label: 'ROLE', value: rolesSeed },
   { label: 'STEP', value: stepsSeed },
   { label: 'SUBPROGRAM', value: subProgramsSeed },
+  { label: 'TRAININGCONTRACT', value: trainingContractsSeed },
   { label: 'USERCOMPANY', value: userCompaniesSeed },
   { label: 'USER', value: usersSeed },
+  { label: 'VENDORCOMPANY', value: vendorCompaniesSeed },
 ];
 
 const transform = doc => (doc || null);
@@ -186,7 +219,7 @@ describe('SEEDS VERIFICATION', () => {
           const stepList = await Step
             .find({ activities: { $in: activityHistoryList.map(ah => ah.activity._id) } })
             .lean();
-          const subProgramList = await SubProgram.find({ step: { $in: stepList.map(s => s._id) } }).lean();
+          const subProgramList = await SubProgram.find({ steps: { $in: stepList.map(s => s._id) } }).lean();
           const courseList = await Course.find({ subProgram: { $in: subProgramList.map(sp => sp._id) } }).lean();
 
           const groupedStepsByActivity = groupBy(
@@ -497,6 +530,37 @@ describe('SEEDS VERIFICATION', () => {
         });
       });
 
+      describe('Collection Company', () => {
+        let companyList;
+        before((async () => {
+          companyList = await Company
+            .find()
+            .populate({ path: 'billingRepresentative', populate: { path: 'role.client', select: 'name' } })
+            .lean();
+        }));
+
+        it('should pass if every name is unique', () => {
+          const companiesWithoutDuplicates = [...new Set(companyList.map(company => company.name))];
+          expect(companiesWithoutDuplicates.length).toEqual(companyList.length);
+        });
+
+        it('should pass if every billingRepresentative exists and has good role', () => {
+          const doesEveryUserExistAndHasGoodRole = companyList
+            .every(company => !has(company, 'billingRepresentative') ||
+              get(company.billingRepresentative, 'role.client.name') === CLIENT_ADMIN);
+          expect(doesEveryUserExistAndHasGoodRole).toBeTruthy();
+        });
+
+        it('should pass if every company has good register code type', () => {
+          const hasGoodRegisterCode = companyList.every((company) => {
+            if (company.rcs) return company.type === COMPANY;
+            if (company.rna) return company.type === ASSOCIATION;
+            return true;
+          });
+          expect(hasGoodRegisterCode).toBeTruthy();
+        });
+      });
+
       describe('Collection CompanyHolding', () => {
         let companyHoldingList;
         before(async () => {
@@ -532,7 +596,18 @@ describe('SEEDS VERIFICATION', () => {
           companyLinkRequestList = await CompanyLinkRequest
             .find()
             .populate({ path: 'user', select: '_id', populate: { path: 'userCompanyList' } })
+            .populate({ path: 'company', select: '_id', transform })
             .lean();
+        });
+
+        it('should pass if every user exists', () => {
+          const usersExist = companyLinkRequestList.map(request => request.user).every(user => !!user);
+          expect(usersExist).toBeTruthy();
+        });
+
+        it('should pass if every company exists', () => {
+          const companiesExist = companyLinkRequestList.map(request => request.company).every(company => !!company);
+          expect(companiesExist).toBeTruthy();
         });
 
         it('should pass if no user has or will have a company', () => {
@@ -589,10 +664,10 @@ describe('SEEDS VERIFICATION', () => {
             .populate({ path: 'trainer', select: '_id role.vendor' })
             .populate({ path: 'companies', select: '_id', transform })
             .populate({ path: 'accessRules', select: '_id', transform })
-            .populate({ path: 'subProgram', select: '_id' })
+            .populate({ path: 'subProgram', select: '_id status steps', populate: { path: 'steps', select: 'type' } })
             .populate({ path: 'slots', select: 'endDate' })
             .populate({ path: 'slotsToPlan' })
-            .lean();
+            .lean({ virtuals: true });
         });
 
         it('should pass if all trainees are in course companies', () => {
@@ -650,9 +725,11 @@ describe('SEEDS VERIFICATION', () => {
           expect(someAccessRulesAreDuplicated).toBeFalsy();
         });
 
-        it('should pass if every subprogram exists', () => {
-          const subProgramsExist = courseList.map(course => course.subProgram).every(subProgram => !!subProgram);
-          expect(subProgramsExist).toBeTruthy();
+        it('should pass if every subprogram exists and is published', () => {
+          const subProgramsExistAndIsPublished = courseList
+            .map(course => course.subProgram)
+            .every(subProgram => subProgram.status === PUBLISHED);
+          expect(subProgramsExistAndIsPublished).toBeTruthy();
         });
 
         it('should pass if every company exists and is not duplicated', () => {
@@ -701,6 +778,14 @@ describe('SEEDS VERIFICATION', () => {
             .every(course => [INTRA, INTER_B2B].includes(course.type));
 
           expect(everyBlendedCourseHasGoodType).toBeTruthy();
+        });
+
+        it('should pass if only strictly elearning course has strictly e_learning subProgram', () => {
+          const doCoursesHaveGoodSubProgramFormat = courseList
+            .every(course => (course.subProgram.isStrictlyELearning && course.format === STRICTLY_E_LEARNING) ||
+              course.format === BLENDED);
+
+          expect(doCoursesHaveGoodSubProgramFormat).toBeTruthy();
         });
 
         it('should pass if every strictly e-learning course is inter_b2c', () => {
@@ -1063,6 +1148,103 @@ describe('SEEDS VERIFICATION', () => {
         });
       });
 
+      describe('Collection CoursePayment', () => {
+        let coursePaymentList;
+        before(async () => {
+          coursePaymentList = await CoursePayment
+            .find()
+            .populate({ path: 'courseBill', select: 'company billedAt', transform })
+            .populate({ path: 'company', transform })
+            .setOptions({ allCompanies: true })
+            .lean();
+        });
+
+        it('should pass if every number has good format', () => {
+          const everyNumberHasGoodFormat = coursePaymentList
+            .every(creditNote => creditNote.number.match(/^(REG|REMB)-[0-9]{5}$/));
+
+          expect(everyNumberHasGoodFormat).toBeTruthy();
+        });
+
+        it('should pass if every course bill exists', () => {
+          const everyCourseBillExists = coursePaymentList.every(payment => !!payment.courseBill);
+
+          expect(everyCourseBillExists).toBeTruthy();
+        });
+
+        it('should pass if every course payment has good company', () => {
+          const everyCompanyExists = coursePaymentList.every(payment => !!payment.company);
+
+          expect(everyCompanyExists).toBeTruthy();
+
+          const everyCompanyIsInCourseBill = coursePaymentList
+            .every(payment => UtilsHelper.areObjectIdsEquals(payment.company._id, payment.courseBill.company));
+
+          expect(everyCompanyIsInCourseBill).toBeTruthy();
+        });
+
+        it('should pass if every date is after billing', () => {
+          const everyCourseBillIsBilled = coursePaymentList.every(payment => !!payment.courseBill.billedAt);
+
+          expect(everyCourseBillIsBilled).toBeTruthy();
+
+          const everyDateIsAfterBilling = coursePaymentList
+            .every(payment => CompaniDate(payment.date).isAfter(payment.courseBill.billedAt));
+
+          expect(everyDateIsAfterBilling).toBeTruthy();
+        });
+
+        it('should pass if nature is consistent with number', () => {
+          const everyNatureIsConsistent = coursePaymentList
+            .every(payment => (
+              payment.nature === PAYMENT
+                ? payment.number.match(/^REG-[0-9]{5}$/)
+                : payment.number.match(/^REMB-[0-9]{5}$/)
+            ));
+
+          expect(everyNatureIsConsistent).toBeTruthy();
+        });
+      });
+
+      describe('Collection CoursePaymentNumber', () => {
+        let coursePaymentNumberList;
+        before(async () => {
+          coursePaymentNumberList = await CoursePaymentNumber.find().lean();
+        });
+
+        it('should pass if no more thant 2 items in list and they have different nature', () => {
+          expect(coursePaymentNumberList.length).toBeLessThanOrEqual(2);
+
+          const paymentsNaturesWithoutDuplicates = [...new Set(coursePaymentNumberList.map(payment => payment.nature))];
+          expect(paymentsNaturesWithoutDuplicates.length).toEqual(coursePaymentNumberList.length);
+        });
+
+        it('should pass if value is a positive integer', () => {
+          const areCoursePaymentNumbersPositiveIntegers = coursePaymentNumberList
+            .every(number => number.seq > 0 && Number.isInteger(number.seq));
+
+          expect(areCoursePaymentNumbersPositiveIntegers).toBeTruthy();
+        });
+
+        it('should pass if course payment number has good value', async () => {
+          const coursePaymentList = await CoursePayment.find().setOptions({ allCompanies: true }).lean();
+
+          if (!coursePaymentList.length) expect(coursePaymentNumberList.length).toEqual(0);
+          else {
+            const paymentCount = coursePaymentList.filter(payment => payment.nature === PAYMENT).length;
+            const refundCount = coursePaymentList.filter(payment => payment.nature === REFUND).length;
+
+            const paymentNumber = coursePaymentNumberList.find(n => n.nature === PAYMENT);
+            if (paymentCount) expect(paymentNumber.seq).toEqual(paymentCount);
+            else expect(paymentNumber).toBeUndefined();
+
+            const refundNumber = coursePaymentNumberList.find(n => n.nature === REFUND);
+            if (refundCount) expect(refundNumber.seq).toEqual(refundCount);
+            else expect(refundNumber).toBeUndefined();
+          }
+        });
+      });
+
       describe('Collection CourseSlot', () => {
         let courseSlotList;
         before(async () => {
@@ -1108,6 +1290,76 @@ describe('SEEDS VERIFICATION', () => {
           const everyStepIsInCourse = courseSlotList
             .every(cs => cs.step && UtilsHelper.doesArrayIncludeId(cs.course.subProgram.steps, cs.step._id));
           expect(everyStepIsInCourse).toBeTruthy();
+        });
+      });
+
+      describe('Collection CourseSmsHistory', () => {
+        let courseSmsHistoryList;
+        before(async () => {
+          courseSmsHistoryList = await CourseSmsHistory
+            .find({})
+            .populate({ path: 'course', select: 'format type companies trainer' })
+            .populate({
+              path: 'sender',
+              select: 'role',
+              transform,
+              populate: [
+                { path: 'role.vendor', select: 'name' },
+                { path: 'role.client', select: 'name' },
+                { path: 'company' },
+              ],
+            })
+            .lean();
+        });
+
+        it('should pass if every course exists and is blended', () => {
+          const areCoursesBlended = courseSmsHistoryList.every(ch => ch.course.format === BLENDED);
+          expect(areCoursesBlended).toBeTruthy();
+        });
+
+        it('should pass if every sender exists and has good role', () => {
+          const haveSendersGoodRole = courseSmsHistoryList
+            .every(ch =>
+              ([CLIENT_ADMIN, COACH].includes(get(ch.sender, 'role.client.name')) && ch.course.type === INTRA) ||
+              ([VENDOR_ADMIN, TRAINING_ORGANISATION_MANAGER, TRAINER].includes(get(ch.sender, 'role.vendor.name')))
+            );
+          expect(haveSendersGoodRole).toBeTruthy();
+        });
+
+        it('should pass if every sender is allowed to access course', () => {
+          const areSendersAllowedToAccessCourse = courseSmsHistoryList
+            .every((ch) => {
+              const vendorRole = get(ch.sender, 'role.vendor.name');
+              if ([VENDOR_ADMIN, TRAINING_ORGANISATION_MANAGER].includes(vendorRole)) return true;
+
+              const { course } = ch;
+              const isCourseTrainer = vendorRole === TRAINER &&
+                UtilsHelper.areObjectIdsEquals(course.trainer, ch.sender._id);
+              if (isCourseTrainer) return true;
+
+              const clientRole = get(ch.sender, 'role.client.name');
+              const isFromCourseCompany = UtilsHelper.doesArrayIncludeId(course.companies, ch.sender.company);
+              if ([CLIENT_ADMIN, COACH].includes(clientRole) && isFromCourseCompany) return true;
+
+              return false;
+            });
+          expect(areSendersAllowedToAccessCourse).toBeTruthy();
+        });
+
+        it('should pass if every missing phone user exists and is registered to course', async () => {
+          const missingPhonesList = courseSmsHistoryList.flatMap(ch => ch.missingPhones);
+          const missingPhonesAdditionHistories = await CourseHistory
+            .find({ trainee: { $in: missingPhonesList }, action: TRAINEE_ADDITION })
+            .lean();
+          const areMissingPhonesRegisteredToCourse = courseSmsHistoryList
+            .every(ch => ch.missingPhones
+              .every(user => missingPhonesAdditionHistories
+                .find(history => UtilsHelper.areObjectIdsEquals(history.trainee, user._id) &&
+                  UtilsHelper.areObjectIdsEquals(history.course, ch.course._id)
+                )
+              )
+            );
+          expect(areMissingPhonesRegisteredToCourse).toBeTruthy();
         });
       });
 
@@ -1240,7 +1492,8 @@ describe('SEEDS VERIFICATION', () => {
 
         it('should pass if startHour is before endHour', () => {
           const everyStartDateIsBeforeEndDate = courseHistoryList
-            .every(ch => !has(ch, 'update') || CompaniDate(ch.update.startHour.to).isBefore(ch.update.endHour.to));
+            .every(ch => !has(ch, 'update.startHour') ||
+              CompaniDate(ch.update.startHour.to).isBefore(ch.update.endHour.to));
 
           expect(everyStartDateIsBeforeEndDate).toBeTruthy();
         });
@@ -1357,6 +1610,26 @@ describe('SEEDS VERIFICATION', () => {
               .some(uc => UtilsHelper.areObjectIdsEquals(uc.company, helper.company._id))
             );
           expect(areUserAndCompanyMatching).toBeTruthy();
+        });
+      });
+
+      describe('Collection IdentityVerification', () => {
+        let identityVerificationList;
+        before(async () => {
+          identityVerificationList = await IdentityVerification.find().lean();
+        });
+
+        it('should pass if no email is linked to severals codes', async () => {
+          const emailListWithoutDuplicates = [...new Set(identityVerificationList.map(iv => iv.email))];
+
+          expect(emailListWithoutDuplicates.length).toEqual(identityVerificationList.length);
+        });
+
+        it('should pass if every email match a user', async () => {
+          const emailList = identityVerificationList.map(iv => iv.email);
+          const usersCount = await User.countDocuments({ 'local.email': { $in: emailList } });
+
+          expect(emailList.length).toEqual(usersCount);
         });
       });
 
@@ -1482,7 +1755,12 @@ describe('SEEDS VERIFICATION', () => {
             .populate({ path: 'user', select: 'id', populate: { path: 'userCompanyList' } })
             .populate({ path: 'company', select: 'id' })
             .populate({ path: 'course', select: 'id' })
-            .populate({ path: 'questionnaire', select: '_id cards status', populate: { path: 'cards' }, transform })
+            .populate({
+              path: 'questionnaire',
+              select: '_id cards status type',
+              populate: { path: 'cards' },
+              transform,
+            })
             .populate({ path: 'questionnaireAnswersList.card', select: 'template', transform })
             .setOptions({ allCompanies: true })
             .lean();
@@ -1522,6 +1800,34 @@ describe('SEEDS VERIFICATION', () => {
               )
             );
           expect(everyUserIsRegisteredToCourse).toBeTruthy();
+        });
+
+        it('should pass if users only answer once to questionnaire', async () => {
+          const questionnaireHistoriesGroupedByCourse = groupBy(questionnaireHistoryList, 'course._id');
+          const someUserHaveAnsweredSeveralTimeToQuestionnaires = Object.keys(questionnaireHistoriesGroupedByCourse)
+            .some((courseId) => {
+              const uniqueExpectationQuestionnaireRespondants = [
+                ...new Set(
+                  questionnaireHistoriesGroupedByCourse[courseId]
+                    .filter(qh => qh.questionnaire.type === EXPECTATIONS)
+                    .map(qh => qh.user._id.toHexString())
+                ),
+              ];
+
+              const uniqueEndOfCourseQuestionnaireRespondants = [
+                ...new Set(
+                  questionnaireHistoriesGroupedByCourse[courseId]
+                    .filter(qh => qh.questionnaire.type === END_OF_COURSE)
+                    .map(qh => qh.user._id.toHexString())
+                ),
+              ];
+
+              return questionnaireHistoriesGroupedByCourse[courseId].length
+                !== (uniqueExpectationQuestionnaireRespondants.length
+                  + uniqueEndOfCourseQuestionnaireRespondants.length);
+            });
+
+          expect(someUserHaveAnsweredSeveralTimeToQuestionnaires).toBeFalsy();
         });
 
         it('should pass if every questionnaire exists and is published', () => {
@@ -1712,7 +2018,7 @@ describe('SEEDS VERIFICATION', () => {
         before(async () => {
           subProgramList = await SubProgram
             .find()
-            .populate({ path: 'steps', select: '_id', transform })
+            .populate({ path: 'steps', select: '_id status', transform })
             .lean();
         });
 
@@ -1735,6 +2041,54 @@ describe('SEEDS VERIFICATION', () => {
           const doesEveryPublishedProgramHaveStep = subProgramList.every(sp => sp.status === DRAFT || sp.steps.length);
 
           expect(doesEveryPublishedProgramHaveStep).toBeTruthy();
+        });
+
+        it('should pass if every published subProgram has published steps', () => {
+          const doesEveryPublishedProgramHavePublishedStep = subProgramList
+            .every(sp => sp.status === DRAFT || sp.steps.every(step => step.status === PUBLISHED));
+
+          expect(doesEveryPublishedProgramHavePublishedStep).toBeTruthy();
+        });
+      });
+
+      describe('Collection TrainingContract', () => {
+        let trainingContractList;
+        before(async () => {
+          trainingContractList = await TrainingContract
+            .find()
+            .populate({ path: 'course', select: '_id companies', transform })
+            .populate({ path: 'company', select: '_id', transform })
+            .setOptions({ allCompanies: true })
+            .lean();
+        });
+
+        it('should pass if every course exists', () => {
+          const coursesExist = trainingContractList.map(tc => tc.course).every(course => !!course);
+          expect(coursesExist).toBeTruthy();
+        });
+
+        it('should pass if every company exists', () => {
+          const companiesExist = trainingContractList.map(tc => tc.company).every(company => !!company);
+          expect(companiesExist).toBeTruthy();
+        });
+
+        it('should pass if every company is in course', () => {
+          const companyIsInCourse = trainingContractList
+            .every(tc => UtilsHelper.doesArrayIncludeId(tc.course.companies, tc.company._id));
+          expect(companyIsInCourse).toBeTruthy();
+        });
+
+        it('should pass if no company has two training contracts for the same course', () => {
+          const trainingContractsGroupedByCourse = groupBy(trainingContractList, 'course._id');
+          const someCompaniesHaveSeveralTrainingContracts = Object.keys(trainingContractsGroupedByCourse)
+            .some((courseId) => {
+              const uniqueTrainingContractCompanies = [
+                ...new Set(trainingContractsGroupedByCourse[courseId].map(tc => tc.company._id.toHexString())),
+              ];
+              return trainingContractsGroupedByCourse[courseId].length !== uniqueTrainingContractCompanies.length;
+            });
+
+          expect(someCompaniesHaveSeveralTrainingContracts).toBeFalsy();
         });
       });
 
@@ -1768,6 +2122,13 @@ describe('SEEDS VERIFICATION', () => {
             (u.role.vendor && u.role.vendor.interface !== VENDOR)
           );
           expect(doUsersHaveRoleInWrongInterface).toBeFalsy();
+        });
+
+        it('should pass if every user has either firstMobileConnection or loginCode or none of these 2 fields', () => {
+          const doUserHaveBothFirstMobileConnectionAndLoginCode = userList
+            .some(u => u.firstMobileConnection && u.loginCode);
+
+          expect(doUserHaveBothFirstMobileConnectionAndLoginCode).toBeFalsy();
         });
       });
 
@@ -1866,6 +2227,24 @@ describe('SEEDS VERIFICATION', () => {
               get(u.user, 'role.holding.name') === HOLDING_ADMIN);
 
           expect(everyUserHasGoodRoles).toBeTruthy();
+        });
+      });
+
+      describe('Collection VendorCompany', () => {
+        let vendorCompanyList;
+        before(async () => {
+          vendorCompanyList = await VendorCompany
+            .find()
+            .populate({ path: 'billingRepresentative', populate: { path: 'role.vendor', select: 'name' } })
+            .lean();
+        });
+
+        it('should pass if every billingRepresentative exists and has good role', () => {
+          const doesEveryUserExistAndHasGoodRole = vendorCompanyList
+            .every(vendorCompany => !has(vendorCompany, 'billingRepresentative') ||
+              [VENDOR_ADMIN, TRAINING_ORGANISATION_MANAGER]
+                .includes(get(vendorCompany.billingRepresentative, 'role.vendor.name')));
+          expect(doesEveryUserExistAndHasGoodRole).toBeTruthy();
         });
       });
     });

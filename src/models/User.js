@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 const Boom = require('@hapi/boom');
 const mongooseLeanVirtuals = require('mongoose-lean-virtuals');
 const autopopulate = require('mongoose-autopopulate');
-const bcrypt = require('bcrypt');
+const bcrypt = require('bcryptjs');
 const Joi = require('joi');
 const moment = require('moment');
 const get = require('lodash/get');
@@ -150,6 +150,7 @@ const UserSchema = mongoose.Schema({
   firstMobileConnection: { type: Date },
   origin: { type: String, enum: ORIGIN_OPTIONS, required: true, immutable: true },
   formationExpoTokenList: [{ type: String }],
+  loginCode: { type: String },
 }, {
   timestamps: true,
   toObject: { virtuals: true },

@@ -34,6 +34,7 @@ const activitiesList = [
     type: 'sharing_experience',
     name: 'activite',
     cards: [cardsList[0]._id, cardsList[1]._id, cardsList[2]._id],
+    status: PUBLISHED,
   },
   {
     _id: new ObjectId(),
@@ -44,7 +45,7 @@ const activitiesList = [
 ];
 
 const stepsList = [
-  { _id: new ObjectId(), name: 'step 0', type: 'on_site', theoreticalDuration: 9000 },
+  { _id: new ObjectId(), name: 'step 0', type: 'on_site', theoreticalDuration: 9000, status: PUBLISHED },
   {
     _id: new ObjectId(),
     name: 'step 1',
@@ -58,6 +59,7 @@ const stepsList = [
     type: 'e_learning',
     activities: [activitiesList[0]._id],
     theoreticalDuration: 9000,
+    status: PUBLISHED,
   },
   { _id: new ObjectId(), name: 'step 3', type: 'e_learning', theoreticalDuration: 9000 },
   {
@@ -82,10 +84,10 @@ const stepsList = [
 ];
 
 const subProgramsList = [
-  { _id: new ObjectId(), name: 'subProgram 0', steps: [stepsList[0]._id, stepsList[1]._id] },
-  { _id: new ObjectId(), name: 'subProgram 1', steps: [stepsList[1]._id] },
+  { _id: new ObjectId(), name: 'subProgram 0', status: DRAFT, steps: [stepsList[0]._id, stepsList[1]._id] },
+  { _id: new ObjectId(), name: 'subProgram 1', status: DRAFT, steps: [stepsList[1]._id] },
   { _id: new ObjectId(), name: 'subProgram 2', status: PUBLISHED, steps: [stepsList[0]._id] },
-  { _id: new ObjectId(), name: 'subProgram 3', status: DRAFT, steps: [stepsList[2]._id] },
+  { _id: new ObjectId(), name: 'subProgram 3', status: DRAFT, steps: [stepsList[1]._id] },
   { _id: new ObjectId(), name: 'subProgram 4', status: PUBLISHED, steps: [stepsList[2]._id] },
   { _id: new ObjectId(), name: 'subProgram 5', status: DRAFT, steps: [stepsList[3]._id] },
   { _id: new ObjectId(), name: 'subProgram 6', status: DRAFT, steps: [stepsList[4]._id, stepsList[5]._id] },
@@ -93,13 +95,13 @@ const subProgramsList = [
   { // 8 on site without theoreticalDuration
     _id: new ObjectId(),
     name: 'subProgram 8',
-    status: 'draft',
+    status: DRAFT,
     steps: [stepsList[6]._id],
   },
   { // 9 eLearning without theoreticalDuration
     _id: new ObjectId(),
     name: 'subProgram 9',
-    status: 'draft',
+    status: DRAFT,
     steps: [stepsList[7]._id],
   },
 ];
@@ -118,7 +120,7 @@ const programsList = [
 const coursesList = [{
   _id: new ObjectId(),
   format: 'blended',
-  subProgram: subProgramsList[7]._id,
+  subProgram: subProgramsList[2]._id,
   type: INTRA,
   maxTrainees: 8,
   trainees: [],
@@ -132,7 +134,7 @@ const courseSlotsList = [
     startDate: '2020-03-10T09:00:00.000Z',
     endDate: '2020-03-10T12:00:00.000Z',
     course: coursesList[0]._id,
-    step: stepsList[5]._id,
+    step: stepsList[0]._id,
   },
 ];
 

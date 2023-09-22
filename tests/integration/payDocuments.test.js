@@ -1,8 +1,5 @@
 const { expect } = require('expect');
 const sinon = require('sinon');
-const fs = require('fs');
-const path = require('path');
-const GetStream = require('get-stream');
 const omit = require('lodash/omit');
 const app = require('../../server');
 const Gdrive = require('../../src/models/Google/Drive');
@@ -18,7 +15,7 @@ const { getToken, getTokenByCredentials } = require('./helpers/authentication');
 const { authCompany } = require('../seed/authCompaniesSeed');
 const GDriveStorageHelper = require('../../src/helpers/gDriveStorage');
 const { PAYSLIP } = require('../../src/helpers/constants');
-const { generateFormData } = require('./utils');
+const { generateFormData, getStream } = require('./utils');
 
 describe('NODE ENV', () => {
   it('should be "test"', () => {
@@ -47,7 +44,7 @@ describe('PAY DOCUMENTS - POST /paydocuments', () => {
       const payDocumentsCountBefore = await PayDocument.countDocuments({});
 
       const docPayload = {
-        file: fs.createReadStream(path.join(__dirname, 'assets/test_esign.pdf')),
+        file: 'test',
         nature: PAYSLIP,
         date: new Date('2019-01-23').toISOString(),
         user: payDocumentUserCompanies[1].user.toHexString(),
@@ -59,7 +56,7 @@ describe('PAY DOCUMENTS - POST /paydocuments', () => {
       const response = await app.inject({
         method: 'POST',
         url: '/paydocuments',
-        payload: await GetStream(form),
+        payload: getStream(form),
         headers: { ...form.getHeaders(), Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -72,7 +69,7 @@ describe('PAY DOCUMENTS - POST /paydocuments', () => {
     ['file', 'nature', 'mimeType', 'user'].forEach((param) => {
       it(`should return a 400 error if missing '${param}' parameter`, async () => {
         const docPayload = {
-          file: fs.createReadStream(path.join(__dirname, 'assets/test_esign.pdf')),
+          file: 'test',
           nature: PAYSLIP,
           date: new Date('2019-01-23').toISOString(),
           user: payDocumentUsers[0]._id.toHexString(),
@@ -84,7 +81,7 @@ describe('PAY DOCUMENTS - POST /paydocuments', () => {
         const response = await app.inject({
           method: 'POST',
           url: '/paydocuments',
-          payload: await GetStream(form),
+          payload: getStream(form),
           headers: { ...form.getHeaders(), Cookie: `alenvi_token=${authToken}` },
         });
 
@@ -94,7 +91,7 @@ describe('PAY DOCUMENTS - POST /paydocuments', () => {
 
     it('should return a 404 if the user is not from the same company', async () => {
       const docPayload = {
-        file: fs.createReadStream(path.join(__dirname, 'assets/test_esign.pdf')),
+        file: 'test',
         nature: PAYSLIP,
         date: new Date('2019-01-23').toISOString(),
         user: userFromOtherCompany._id.toHexString(),
@@ -106,7 +103,7 @@ describe('PAY DOCUMENTS - POST /paydocuments', () => {
       const response = await app.inject({
         method: 'POST',
         url: '/paydocuments',
-        payload: await GetStream(form),
+        payload: getStream(form),
         headers: { ...form.getHeaders(), Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -140,7 +137,7 @@ describe('PAY DOCUMENTS - POST /paydocuments', () => {
       it(`should return ${role.expectedCode} as user is ${role.name}${role.erp ? '' : ' without erp'}`, async () => {
         authToken = await getToken(role.name, role.erp);
         const docPayload = {
-          file: fs.createReadStream(path.join(__dirname, 'assets/test_esign.pdf')),
+          file: 'test',
           nature: PAYSLIP,
           date: new Date('2019-01-23').toISOString(),
           user: payDocumentUsers[0]._id.toHexString(),
@@ -153,7 +150,7 @@ describe('PAY DOCUMENTS - POST /paydocuments', () => {
         const response = await app.inject({
           method: 'POST',
           url: '/paydocuments',
-          payload: await GetStream(form),
+          payload: getStream(form),
           headers: { ...form.getHeaders(), Cookie: `alenvi_token=${authToken}` },
         });
 

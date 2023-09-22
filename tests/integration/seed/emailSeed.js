@@ -63,7 +63,7 @@ const futureTraineeFromAuthCompany = {
 
 const emailUserFromThirdCompany = {
   _id: new ObjectId(),
-  identity: { firstname: 'third', lastname: 'Trainee' },
+  identity: { firstname: 'third', lastname: 'company' },
   local: { email: 'third_trainee@alenvi.io' },
   refreshToken: uuidv4(),
   origin: WEBAPP,
@@ -98,6 +98,8 @@ const userCompanies = [
     company: authCompany._id,
     startDate: CompaniDate().add('P1D').toISO(),
   },
+  { _id: new ObjectId(), user: coachFromOtherCompany._id, company: otherCompany._id },
+  { _id: new ObjectId(), user: helperFromOtherCompany._id, company: otherCompany._id },
 ];
 
 const populateDB = async () => {

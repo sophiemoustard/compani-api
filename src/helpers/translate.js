@@ -23,8 +23,6 @@ module.exports = {
     userLogout: 'User disconnected successfully.',
     userRoleConflict: 'User already has a role on this interface.',
     userDeletionForbidden: 'You can not delete your account if it is linked to a company.',
-    /* Rss feeds */
-    blogGetRssFeedsOk: 'Rss feed found.',
     /* Api */
     apiVersionUpToDate: 'api version up to date.',
     apiVersionToUpdate: 'api version must be updated.',
@@ -284,7 +282,6 @@ module.exports = {
     /* Steps */
     stepUpdated: 'Step updated.',
     stepsFound: 'Steps found.',
-    stepsTheoreticalDurationsNotDefined: 'Some program steps theoretical durations are not defined.',
     /* Activities */
     activityFound: 'Activity found.',
     activityUpdated: 'Activity updated.',
@@ -371,6 +368,9 @@ module.exports = {
     publishedQuestionnaireWithSameTypeExists: 'A questionnaire with the same type is already published.',
     questionnaireUpdated: 'questionnaire updated.',
     questionnaireHistoryCreated: 'Questionnaire history created.',
+    questionnaireQRCodeGenerated: 'Questionnaire QR Code generated.',
+    /*  QuestionnaireHistories */
+    questionnaireHistoryConflict: 'A questionnaire history already exists.',
     /* PartnerOrganization */
     partnerOrganizationCreated: 'Partner organization created.',
     partnerOrganizationAlreadyExists: 'A partner organization already exists.',
@@ -444,8 +444,6 @@ module.exports = {
     userLogout: 'Compte déconnecté avec succès.',
     userRoleConflict: 'Ce compte a déjà un rôle sur cette interface.',
     userDeletionForbidden: 'Vous ne pouvez pas supprimer votre compte s\'il est rattaché à une structure.',
-    /* Rss feeds */
-    blogGetRssFeedsOk: 'Flux Rss trouvé avec succès.',
     /* Api */
     apiVersionUpToDate: 'La version de l\'api est à jour.',
     apiVersionToUpdate: 'La version de l\'api doit être mis à jour.',
@@ -705,7 +703,6 @@ module.exports = {
     /* Steps */
     stepsFound: 'Liste des étapes trouvée.',
     stepUpdated: 'Étape mise à jour.',
-    stepsTheoreticalDurationsNotDefined: 'Certaines durées théoriques des étapes du programme ne sont pas renseignées.',
     /* Activities */
     activityFound: 'Activité trouvée.',
     activityUpdated: 'Activité mise à jour.',
@@ -792,6 +789,9 @@ module.exports = {
     publishedQuestionnaireWithSameTypeExists: 'Un questionnaire du même type est déjà publié.',
     questionnaireUpdated: 'Questionnaire mis à jour.',
     questionnaireHistoryCreated: 'Historique de questionnaire créé.',
+    questionnaireQRCodeGenerated: 'QR Code généré.',
+    /*  QuestionnaireHistories */
+    questionnaireHistoryConflict: 'Vous avez déjà répondu à ce questionnaire.',
     /* PartnerOrganization */
     partnerOrganizationCreated: 'Structure partenaire créée.',
     partnerOrganizationAlreadyExists: 'Structure partenaire déjà existante.',

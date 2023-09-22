@@ -19,7 +19,7 @@ describe('get', () => {
     const vendorCompany = {
       name: 'Company',
       billingRepresentative: {
-        _id: ObjectId(),
+        _id: new ObjectId(),
         identity: { firstname: 'toto', lastname: 'zero' },
         contact: {},
         local: { email: 'toto@zero.io' },

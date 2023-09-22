@@ -1,5 +1,4 @@
 const { expect } = require('expect');
-const GetStream = require('get-stream');
 const { ObjectId } = require('mongodb');
 const sinon = require('sinon');
 const omit = require('lodash/omit');
@@ -14,7 +13,7 @@ const {
   subProgramsList,
 } = require('./seed/programsSeed');
 const { getToken, getTokenByCredentials } = require('./helpers/authentication');
-const { generateFormData } = require('./utils');
+const { generateFormData, getStream } = require('./utils');
 const { coach, noRoleNoCompany } = require('../seed/authUsersSeed');
 
 describe('NODE ENV', () => {
@@ -478,7 +477,7 @@ describe('PROGRAMS ROUTES - POST /programs/:id/upload', () => {
       const response = await app.inject({
         method: 'POST',
         url: `/programs/${program._id}/upload`,
-        payload: await GetStream(form),
+        payload: getStream(form),
         headers: { ...form.getHeaders(), Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -495,7 +494,7 @@ describe('PROGRAMS ROUTES - POST /programs/:id/upload', () => {
       const response = await app.inject({
         method: 'POST',
         url: `/programs/${new ObjectId()}/upload`,
-        payload: await GetStream(form),
+        payload: getStream(form),
         headers: { ...form.getHeaders(), Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -508,7 +507,7 @@ describe('PROGRAMS ROUTES - POST /programs/:id/upload', () => {
         const response = await app.inject({
           method: 'POST',
           url: `/programs/${program._id}/upload`,
-          payload: await GetStream(invalidForm),
+          payload: getStream(invalidForm),
           headers: { ...invalidForm.getHeaders(), Cookie: `alenvi_token=${authToken}` },
         });
 
@@ -533,7 +532,7 @@ describe('PROGRAMS ROUTES - POST /programs/:id/upload', () => {
         const response = await app.inject({
           method: 'POST',
           url: `/programs/${program._id}/upload`,
-          payload: await GetStream(form),
+          payload: getStream(form),
           headers: { ...form.getHeaders(), Cookie: `alenvi_token=${authToken}` },
         });
 

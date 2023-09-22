@@ -24,6 +24,7 @@ const {
   COMPANY_ADDITION,
   COMPANY_DELETION,
   ON_SITE,
+  INTRA_HOLDING,
 } = require('../../src/helpers/constants');
 const {
   populateDB,
@@ -92,7 +93,7 @@ describe('COURSES ROUTES - POST /courses', () => {
         salesRepresentative: vendorAdmin._id,
         estimatedStartDate: '2022-05-31T08:00:00.000Z',
       };
-      const coursesCountBefore = await Course.countDocuments({});
+      const coursesCountBefore = await Course.countDocuments();
 
       const response = await app.inject({
         method: 'POST',
@@ -104,7 +105,7 @@ describe('COURSES ROUTES - POST /courses', () => {
       const createdCourseId = response.result.data.course._id;
 
       expect(response.statusCode).toBe(200);
-      const coursesCountAfter = await Course.countDocuments({});
+      const coursesCountAfter = await Course.countDocuments();
       expect(coursesCountAfter).toEqual(coursesCountBefore + 1);
       const courseSlotsCount = await CourseSlot
         .countDocuments({ course: createdCourseId, step: { $in: subProgramsList[0].steps } });
@@ -129,7 +130,7 @@ describe('COURSES ROUTES - POST /courses', () => {
         salesRepresentative: vendorAdmin._id,
         expectedBillsCount: 2,
       };
-      const coursesCountBefore = await Course.countDocuments({});
+      const coursesCountBefore = await Course.countDocuments();
 
       const response = await app.inject({
         method: 'POST',
@@ -139,7 +140,33 @@ describe('COURSES ROUTES - POST /courses', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      const coursesCountAfter = await Course.countDocuments({});
+      const coursesCountAfter = await Course.countDocuments();
+      expect(coursesCountAfter).toEqual(coursesCountBefore + 1);
+      const courseSlotsCount = await CourseSlot
+        .countDocuments({ course: response.result.data.course._id, step: { $in: subProgramsList[0].steps } });
+      expect(courseSlotsCount).toEqual(1);
+    });
+
+    it('should create intra_holding course', async () => {
+      const payload = {
+        misc: 'course',
+        type: INTRA_HOLDING,
+        maxTrainees: 12,
+        holding: authHolding._id,
+        subProgram: subProgramsList[0]._id,
+        salesRepresentative: vendorAdmin._id,
+      };
+      const coursesCountBefore = await Course.countDocuments();
+
+      const response = await app.inject({
+        method: 'POST',
+        url: '/courses',
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload,
+      });
+
+      expect(response.statusCode).toBe(200);
+      const coursesCountAfter = await Course.countDocuments();
       expect(coursesCountAfter).toEqual(coursesCountBefore + 1);
       const courseSlotsCount = await CourseSlot
         .countDocuments({ course: response.result.data.course._id, step: { $in: subProgramsList[0].steps } });
@@ -181,6 +208,87 @@ describe('COURSES ROUTES - POST /courses', () => {
       });
 
       expect(response.statusCode).toBe(404);
+    });
+
+    it('should return 404 if subProgram does not exist', async () => {
+      const payload = {
+        misc: 'course',
+        type: INTRA,
+        company: authCompany._id,
+        maxTrainees: 12,
+        subProgram: new ObjectId(),
+        salesRepresentative: vendorAdmin._id,
+        expectedBillsCount: 0,
+      };
+      const response = await app.inject({
+        method: 'POST',
+        url: '/courses',
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload,
+      });
+
+      expect(response.statusCode).toBe(404);
+    });
+
+    it('should return 404 if holding does not exist', async () => {
+      const payload = {
+        misc: 'course',
+        type: INTRA_HOLDING,
+        subProgram: subProgramsList[0]._id,
+        salesRepresentative: vendorAdmin._id,
+        estimatedStartDate: '2022-05-31T08:00:00.000Z',
+        holding: new ObjectId(),
+        maxTrainees: 2,
+      };
+
+      const response = await app.inject({
+        method: 'POST',
+        url: '/courses',
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload,
+      });
+
+      expect(response.statusCode).toBe(404);
+    });
+
+    it('should return 403 if subProgram is strictly e_learning', async () => {
+      const payload = {
+        misc: 'course',
+        type: INTRA,
+        company: authCompany._id,
+        maxTrainees: 12,
+        subProgram: subProgramsList[2]._id,
+        salesRepresentative: vendorAdmin._id,
+        expectedBillsCount: 0,
+      };
+      const response = await app.inject({
+        method: 'POST',
+        url: '/courses',
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload,
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
+
+    it('should return 403 if subProgram is not published', async () => {
+      const payload = {
+        misc: 'course',
+        type: INTRA,
+        company: authCompany._id,
+        maxTrainees: 12,
+        subProgram: subProgramsList[3]._id,
+        salesRepresentative: vendorAdmin._id,
+        expectedBillsCount: 0,
+      };
+      const response = await app.inject({
+        method: 'POST',
+        url: '/courses',
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload,
+      });
+
+      expect(response.statusCode).toBe(403);
     });
 
     it('should return 400 if invalid type', async () => {
@@ -241,6 +349,113 @@ describe('COURSES ROUTES - POST /courses', () => {
       expect(response.statusCode).toBe(400);
     });
 
+    it('should return 400 if intra_holding course and expectedBillsCount is in payload', async () => {
+      const payload = {
+        misc: 'course',
+        type: INTRA_HOLDING,
+        expectedBillsCount: 2,
+        subProgram: subProgramsList[0]._id,
+        salesRepresentative: vendorAdmin._id,
+        estimatedStartDate: '2022-05-31T08:00:00.000Z',
+        holding: authHolding._id,
+        maxTrainees: 2,
+      };
+
+      const response = await app.inject({
+        method: 'POST',
+        url: '/courses',
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload,
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
+
+    it('should return 400 if inter_b2b course and companies is in payload', async () => {
+      const payload = {
+        misc: 'course',
+        type: INTER_B2B,
+        companies: [authCompany._id],
+        subProgram: subProgramsList[0]._id,
+        salesRepresentative: vendorAdmin._id,
+        estimatedStartDate: '2022-05-31T08:00:00.000Z',
+      };
+
+      const response = await app.inject({
+        method: 'POST',
+        url: '/courses',
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload,
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
+
+    it('should return 400 if intra_holding course and companies is in payload', async () => {
+      const payload = {
+        misc: 'course',
+        type: INTRA_HOLDING,
+        companies: [authCompany._id],
+        subProgram: subProgramsList[0]._id,
+        salesRepresentative: vendorAdmin._id,
+        estimatedStartDate: '2022-05-31T08:00:00.000Z',
+        holding: authHolding._id,
+        maxTrainees: 2,
+      };
+
+      const response = await app.inject({
+        method: 'POST',
+        url: '/courses',
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload,
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
+
+    it('should return 400 if intra course and holding is in payload', async () => {
+      const payload = {
+        misc: 'course',
+        type: INTRA,
+        companies: [authCompany._id],
+        subProgram: subProgramsList[0]._id,
+        salesRepresentative: vendorAdmin._id,
+        estimatedStartDate: '2022-05-31T08:00:00.000Z',
+        holding: authHolding._id,
+        maxTrainees: 2,
+        expectedBillsCount: 2,
+      };
+
+      const response = await app.inject({
+        method: 'POST',
+        url: '/courses',
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload,
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
+
+    it('should return 400 if inter_b2b course and holding is in payload', async () => {
+      const payload = {
+        misc: 'course',
+        type: INTER_B2B,
+        subProgram: subProgramsList[0]._id,
+        salesRepresentative: vendorAdmin._id,
+        estimatedStartDate: '2022-05-31T08:00:00.000Z',
+        holding: authHolding._id,
+      };
+
+      const response = await app.inject({
+        method: 'POST',
+        url: '/courses',
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload,
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
+
     it('should return 400 if expectedBillsCount is lower than 0', async () => {
       const payload = {
         misc: 'course',
@@ -281,7 +496,7 @@ describe('COURSES ROUTES - POST /courses', () => {
       expect(response.statusCode).toBe(400);
     });
 
-    const payload = {
+    const intraPayload = {
       misc: 'course',
       company: authCompany._id,
       subProgram: subProgramsList[0]._id,
@@ -295,7 +510,29 @@ describe('COURSES ROUTES - POST /courses', () => {
         const response = await app.inject({
           method: 'POST',
           url: '/courses',
-          payload: omit({ ...payload }, param),
+          payload: omit({ ...intraPayload }, param),
+          headers: { Cookie: `alenvi_token=${authToken}` },
+        });
+
+        expect(response.statusCode).toBe(400);
+      });
+    });
+
+    const intraHoldingPayload = {
+      misc: 'course',
+      subProgram: subProgramsList[0]._id,
+      type: INTRA_HOLDING,
+      maxTrainees: 8,
+      salesRepresentative: vendorAdmin._id,
+      holding: authHolding._id,
+    };
+
+    ['holding', 'subProgram', 'maxTrainees'].forEach((param) => {
+      it(`should return a 400 error if course is intra_holding and '${param}' parameter is missing`, async () => {
+        const response = await app.inject({
+          method: 'POST',
+          url: '/courses',
+          payload: omit({ ...intraHoldingPayload }, param),
           headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
@@ -649,11 +886,44 @@ describe('COURSES ROUTES - GET /courses', () => {
       expect(response.statusCode).toBe(200);
     });
 
+    it('should return 200 if holding admin and same holding (pedagogy webapp)', async () => {
+      authToken = await getTokenByCredentials(holdingAdminFromOtherCompany.local);
+      const url = `/courses?action=pedagogy&origin=webapp&trainee=${traineeFromThirdCompany._id.toHexString()}`
+        + `&holding=${otherHolding._id.toHexString()}`;
+
+      const response = await app.inject({
+        method: 'GET',
+        url,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(200);
+
+      const resultCourseIds = response.result.data.courses.map(course => course._id);
+      expect(resultCourseIds.length).toBe(1);
+      expect(UtilsHelper.doesArrayIncludeId(resultCourseIds, coursesList[20]._id)).toBeTruthy();
+    });
+
     it('should return 403 if client admin and different company (pedagogy webapp)', async () => {
       authToken = await getToken('client_admin');
       const response = await app.inject({
         method: 'GET',
-        url: `/courses?action=pedagogy&origin=webapp&trainee=${userCompanies[1].user.toHexString()}`,
+        url: `/courses?action=pedagogy&origin=webapp&trainee=${userCompanies[1].user.toHexString()}`
+        + `&company=${authCompany._id.toHexString()}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
+
+    it('should return 403 if holding admin and different holding (pedagogy webapp)', async () => {
+      authToken = await getTokenByCredentials(holdingAdminFromAuthCompany.local);
+      const url = `/courses?action=pedagogy&origin=webapp&trainee=${traineeFromThirdCompany._id.toHexString()}`
+        + `&holding=${otherHolding._id.toHexString()}`;
+
+      const response = await app.inject({
+        method: 'GET',
+        url,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -671,7 +941,7 @@ describe('COURSES ROUTES - GET /courses', () => {
       expect(response.statusCode).toBe(400);
     });
 
-    it('should return 403 if has no holding role', async () => {
+    it('should return 403 if has no holding role (ops webapp)', async () => {
       authToken = await getToken('client_admin');
       const response = await app.inject({
         method: 'GET',
@@ -682,7 +952,7 @@ describe('COURSES ROUTES - GET /courses', () => {
       expect(response.statusCode).toBe(403);
     });
 
-    it('should return 403 if not linked to good holding', async () => {
+    it('should return 403 if not linked to good holding (ops webapp)', async () => {
       authToken = await getTokenByCredentials(holdingAdminFromAuthCompany.local);
       const response = await app.inject({
         method: 'GET',
@@ -919,6 +1189,55 @@ describe('COURSES ROUTES - GET /courses/{_id}', () => {
       });
 
       expect(response.statusCode).toBe(403);
+    });
+  });
+
+  describe('NOT LOGGED', () => {
+    it('should get intra course (for questionnaire)', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/courses/${courseFromAuthCompanyIntra._id}?action=questionnaire`,
+      });
+
+      expect(response.statusCode).toBe(200);
+      expect(response.result.data.course._id.toHexString()).toBe(courseFromAuthCompanyIntra._id.toHexString());
+    });
+
+    it('should get inter course (for questionnaire)', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/courses/${courseFromAuthCompanyInterB2b._id}?action=questionnaire`,
+      });
+
+      expect(response.statusCode).toBe(200);
+      expect(response.result.data.course._id.toHexString()).toBe(courseFromAuthCompanyInterB2b._id.toHexString());
+    });
+
+    it('should return 404 if course doesn\'t exist', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/courses/${new ObjectId()}?action=questionnaire`,
+      });
+
+      expect(response.statusCode).toBe(404);
+    });
+
+    it('should return 400 if user is not logged and action is pedagogy', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/courses/${courseFromAuthCompanyIntra._id}?action=pedagogy`,
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
+
+    it('should return 400 if user is not logged and action is operations', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/courses/${courseFromAuthCompanyIntra._id}?action=operations`,
+      });
+
+      expect(response.statusCode).toBe(400);
     });
   });
 
@@ -1323,6 +1642,21 @@ describe('COURSES ROUTES - PUT /courses/{_id}', () => {
       expect(course).toEqual(1);
     });
 
+    it('should update company representative with holding admin', async () => {
+      const payload = { companyRepresentative: holdingAdminFromOtherCompany._id };
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/courses/${coursesList[20]._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload,
+      });
+
+      expect(response.statusCode).toBe(200);
+
+      const course = await Course.countDocuments({ _id: coursesList[20]._id, ...payload }).lean();
+      expect(course).toEqual(1);
+    });
+
     it('should return 400 if try to remove estimated start date', async () => {
       const payload = { estimatedStartDate: '' };
       const response = await app.inject({
@@ -1369,6 +1703,37 @@ describe('COURSES ROUTES - PUT /courses/{_id}', () => {
       expect(response.statusCode).toBe(200);
     });
 
+    it('should archive a blended course', async () => {
+      const payload = { archivedAt: CompaniDate('2020-03-25T09:00:00.000Z').toDate() };
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/courses/${coursesList[0]._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload,
+      });
+
+      expect(response.statusCode).toBe(200);
+
+      const course = await Course.countDocuments({ _id: coursesList[0]._id, archivedAt: { $exists: true } });
+
+      expect(course).toBeTruthy();
+    });
+
+    it('should unarchive an archived course', async () => {
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/courses/${coursesList[14]._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload: { archivedAt: '' },
+      });
+
+      expect(response.statusCode).toBe(200);
+
+      const course = await Course.countDocuments({ _id: coursesList[14]._id, archivedAt: { $exists: false } });
+
+      expect(course).toBeTruthy();
+    });
+
     const payloads = [
       { misc: 'new name' },
       { trainer: new ObjectId() },
@@ -1376,6 +1741,7 @@ describe('COURSES ROUTES - PUT /courses/{_id}', () => {
       { salesRepresentative: new ObjectId() },
       { maxTrainees: 15 },
       { expectedBillsCount: 10 },
+      { archivedAt: CompaniDate('2020-03-25T09:00:00.000Z').toDate() },
     ];
     payloads.forEach((payload) => {
       it(`should return 403 if course is archived (update ${Object.keys(payload)})`, async () => {
@@ -1438,9 +1804,9 @@ describe('COURSES ROUTES - PUT /courses/{_id}', () => {
       expect(response.statusCode).toBe(403);
     });
 
-    it('should return 404 if companyRepresentative has wrong company', async () => {
+    it('should return 404 if companyRepresentative has holding role but wrong company', async () => {
       const courseIdFromOtherCompany = coursesList[1]._id;
-      const payload = { companyRepresentative: coach._id };
+      const payload = { companyRepresentative: holdingAdminFromAuthCompany._id };
       const response = await app.inject({
         method: 'PUT',
         url: `/courses/${courseIdFromOtherCompany}`,
@@ -1449,6 +1815,19 @@ describe('COURSES ROUTES - PUT /courses/{_id}', () => {
       });
 
       expect(response.statusCode).toBe(404);
+    });
+
+    it('should return 403 if companyRepresentative is in holding but has no holding role', async () => {
+      const courseIdFromOtherCompany = coursesList[20]._id;
+      const payload = { companyRepresentative: coachFromOtherCompany._id };
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/courses/${courseIdFromOtherCompany}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload,
+      });
+
+      expect(response.statusCode).toBe(403);
     });
 
     it('should return 403 if maxTrainees smaller than registered trainees', async () => {
@@ -1487,73 +1866,15 @@ describe('COURSES ROUTES - PUT /courses/{_id}', () => {
       expect(response.statusCode).toBe(403);
     });
 
-    it('should return 403 if trying to archive course without trainee', async () => {
-      const payload = { archivedAt: CompaniDate('2020-03-25T09:00:00.000Z').toDate() };
+    it('should return 409 if trying to unarchive a non archived course', async () => {
       const response = await app.inject({
         method: 'PUT',
-        url: `/courses/${coursesList[13]._id}`,
+        url: `/courses/${coursesList[0]._id}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
-        payload,
+        payload: { archivedAt: '' },
       });
 
-      expect(response.statusCode).toBe(403);
-
-      const course = await Course.findById(coursesList[13]._id)
-        .populate({ path: 'slots', select: 'startDate endDate' })
-        .populate({ path: 'slotsToPlan' })
-        .lean();
-
-      expect(course.trainees.length).toBeFalsy();
-      expect(course.slots.length).toBeTruthy();
-      expect(course.slotsToPlan.length).toBe(0);
-      expect(course.format).toBe('blended');
-      expect(course.slots.every(slot => CompaniDate(slot.endDate).isBefore(payload.archivedAt))).toBeTruthy();
-    });
-
-    it('should return 403 if trying to archive course without slot', async () => {
-      const payload = { archivedAt: CompaniDate('2020-03-25T09:00:00.000Z').toDate() };
-      const response = await app.inject({
-        method: 'PUT',
-        url: `/courses/${coursesList[4]._id}`,
-        headers: { Cookie: `alenvi_token=${authToken}` },
-        payload,
-      });
-
-      expect(response.statusCode).toBe(403);
-
-      const course = await Course.findById(coursesList[4]._id)
-        .populate({ path: 'slots', select: 'startDate endDate' })
-        .populate({ path: 'slotsToPlan' })
-        .lean();
-
-      expect(course.trainees.length).toBeTruthy();
-      expect(course.slots.length).toBeFalsy();
-      expect(course.slotsToPlan.length).toBe(0);
-      expect(course.format).toBe('blended');
-      expect(course.slots.every(slot => CompaniDate(slot.endDate).isBefore(payload.archivedAt))).toBeTruthy();
-    });
-
-    it('should return 403 if trying to archive course with slot to plan', async () => {
-      const payload = { archivedAt: CompaniDate('2020-03-25T09:00:00.000Z').toDate() };
-      const response = await app.inject({
-        method: 'PUT',
-        url: `/courses/${coursesList[7]._id}`,
-        headers: { Cookie: `alenvi_token=${authToken}` },
-        payload,
-      });
-
-      expect(response.statusCode).toBe(403);
-
-      const course = await Course.findById(coursesList[7]._id)
-        .populate({ path: 'slots', select: 'startDate endDate' })
-        .populate({ path: 'slotsToPlan' })
-        .lean();
-
-      expect(course.trainees.length).toBeTruthy();
-      expect(course.slots.length).toBeTruthy();
-      expect(course.slotsToPlan.length).toBeTruthy();
-      expect(course.format).toBe('blended');
-      expect(course.slots.every(slot => CompaniDate(slot.endDate).isBefore(payload.archivedAt))).toBeTruthy();
+      expect(response.statusCode).toBe(409);
     });
 
     it('should return 403 if trying to archive a not blended course', async () => {
@@ -1574,29 +1895,6 @@ describe('COURSES ROUTES - PUT /courses/{_id}', () => {
 
       expect(course.trainees.length).toBeTruthy();
       expect(course.format).toBe('strictly_e_learning');
-    });
-
-    it('should return 403 if trying to archive a course in progress', async () => {
-      const payload = { archivedAt: CompaniDate('2020-01-10T00:00:00.000Z').toDate() };
-      const response = await app.inject({
-        method: 'PUT',
-        url: `/courses/${coursesList[5]._id}`,
-        headers: { Cookie: `alenvi_token=${authToken}` },
-        payload,
-      });
-
-      expect(response.statusCode).toBe(403);
-
-      const course = await Course.findById(coursesList[5]._id)
-        .populate({ path: 'slots', select: 'startDate endDate' })
-        .populate({ path: 'slotsToPlan' })
-        .lean();
-
-      expect(course.trainees.length).toBeTruthy();
-      expect(course.slots.length).toBeTruthy();
-      expect(course.slotsToPlan.length).toBe(0);
-      expect(course.format).toBe('blended');
-      expect(course.slots.every(slot => CompaniDate(slot.endDate).isBefore(payload.archivedAt))).toBeFalsy();
     });
 
     it('should return 403 if try to add estimated start date to course with slots', async () => {
@@ -3755,18 +4053,6 @@ describe('COURSES ROUTES - POST /courses/{_id}/trainingcontracts', () => {
       });
 
       expect(response.statusCode).toBe(403);
-      expect(response.result.message).toBeDefined();
-    });
-
-    it('should return a 422 if some live steps have slots to plan and missing theoretical duration', async () => {
-      const response = await app.inject({
-        method: 'POST',
-        url: `/courses/${coursesList[2]._id}/trainingcontracts`,
-        payload: { price: 4300, company: authCompany._id },
-        headers: { Cookie: `alenvi_token=${authToken}` },
-      });
-
-      expect(response.statusCode).toBe(422);
       expect(response.result.message).toBeDefined();
     });
   });

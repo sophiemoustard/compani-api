@@ -6,8 +6,11 @@ const Course = require('../../models/Course');
 const User = require('../../models/User');
 const CourseSlot = require('../../models/CourseSlot');
 const Company = require('../../models/Company');
+const CompanyHolding = require('../../models/CompanyHolding');
 const CourseBill = require('../../models/CourseBill');
 const AttendanceSheet = require('../../models/AttendanceSheet');
+const SubProgram = require('../../models/SubProgram');
+const Holding = require('../../models/Holding');
 const {
   TRAINER,
   INTRA,
@@ -17,7 +20,6 @@ const {
   COACH,
   TRAINING_ORGANISATION_MANAGER,
   STRICTLY_E_LEARNING,
-  E_LEARNING,
   BLENDED,
   ON_SITE,
   MOBILE,
@@ -26,6 +28,9 @@ const {
   CONVOCATION,
   COURSE,
   TRAINEE,
+  PEDAGOGY,
+  PUBLISHED,
+  HOLDING_ADMIN,
 } = require('../../helpers/constants');
 const translate = require('../../helpers/translate');
 const UtilsHelper = require('../../helpers/utils');
@@ -65,11 +70,24 @@ exports.checkSalesRepresentativeExists = async (req) => {
 exports.authorizeCourseCreation = async (req) => {
   await this.checkSalesRepresentativeExists(req);
 
+  const subProgram = await SubProgram
+    .findOne({ _id: req.payload.subProgram })
+    .populate({ path: 'steps', select: 'type' })
+    .lean({ virtuals: true });
+
+  if (!subProgram) throw Boom.notFound();
+  if (subProgram.status !== PUBLISHED || subProgram.isStrictlyELearning) throw Boom.forbidden();
+
   if (get(req, 'payload.company')) {
     const { company } = req.payload;
 
     const companyExists = await Company.countDocuments({ _id: company });
     if (!companyExists) throw Boom.notFound();
+  } else if (get(req, 'payload.holding')) {
+    const { holding } = req.payload;
+
+    const holdingExists = await Holding.countDocuments({ _id: holding });
+    if (!holdingExists) throw Boom.notFound();
   }
 
   return null;
@@ -112,7 +130,18 @@ exports.checkInterlocutors = async (req, courseCompanyId) => {
     if (![COACH, CLIENT_ADMIN].includes(get(companyRepresentative, 'role.client.name'))) {
       throw Boom.forbidden();
     }
-    if (!UtilsHelper.areObjectIdsEquals(companyRepresentative.company, courseCompanyId)) throw Boom.notFound();
+    if (!UtilsHelper.areObjectIdsEquals(companyRepresentative.company, courseCompanyId)) {
+      if (![HOLDING_ADMIN].includes(get(companyRepresentative, 'role.holding.name'))) throw Boom.forbidden();
+
+      const companyRepresentativeHolding = await CompanyHolding
+        .findOne({ company: companyRepresentative.company })
+        .lean();
+      const courseCompanyHolding = await CompanyHolding.findOne({ company: courseCompanyId }).lean();
+
+      if (!UtilsHelper.areObjectIdsEquals(companyRepresentativeHolding.holding, courseCompanyHolding.holding)) {
+        throw Boom.notFound();
+      }
+    }
   }
 
   return null;
@@ -128,7 +157,9 @@ exports.authorizeCourseEdit = async (req) => {
       .populate({ path: 'contact' })
       .lean();
     if (!course) throw Boom.notFound();
-    if (course.archivedAt) throw Boom.forbidden();
+
+    const unarchiveCourse = has(req, 'payload.archivedAt') && req.payload.archivedAt === '';
+    if (course.archivedAt && !unarchiveCourse) throw Boom.forbidden();
 
     const courseTrainerId = get(course, 'trainer') || null;
     const companies = course.type === INTRA ? course.companies : [];
@@ -179,15 +210,12 @@ exports.authorizeCourseEdit = async (req) => {
 
       if (!UtilsHelper.doesArrayIncludeId(Object.values(interlocutors), req.payload.contact)) throw Boom.forbidden();
     }
-
     const archivedAt = get(req, 'payload.archivedAt');
-    if (archivedAt) {
+    if (archivedAt || unarchiveCourse) {
       if (!isRofOrAdmin) return Boom.forbidden();
 
-      if (!course.trainees.length || !course.slots.length) return Boom.forbidden();
-      if (course.slotsToPlan.length) return Boom.forbidden();
       if (course.format !== BLENDED) return Boom.forbidden();
-      if (course.slots.some(slot => CompaniDate(slot.endDate).isAfter(archivedAt))) return Boom.forbidden();
+      if (unarchiveCourse && !course.archivedAt) throw Boom.conflict();
     }
 
     if (get(req, 'payload.estimatedStartDate') && (course.slots.length || !isRofOrAdmin)) return Boom.forbidden();
@@ -217,16 +245,22 @@ const authorizeGetListForPedagogy = async (credentials, query) => {
   const loggedUserCompany = get(credentials, 'company._id');
   const loggedUserVendorRole = get(credentials, 'role.vendor.name');
   const loggedUserClientRole = get(credentials, 'role.client.name');
+  const loggedUserHolding = get(credentials, 'holding._id');
 
   if (!query.trainee) return null;
 
-  const trainee = await User.countDocuments({ _id: query.trainee });
+  const trainee = await User.findOne({ _id: query.trainee }).populate({ path: 'company' }).lean();
   if (!trainee) return Boom.notFound();
 
   const isRofOrAdmin = [VENDOR_ADMIN, TRAINING_ORGANISATION_MANAGER].includes(loggedUserVendorRole);
-  const isClientRoleFromQueryCompany = [COACH, CLIENT_ADMIN].includes(loggedUserClientRole) &&
-    UtilsHelper.areObjectIdsEquals(loggedUserCompany, query.company);
-  if (!isRofOrAdmin && !isClientRoleFromQueryCompany) throw Boom.forbidden();
+  if (isRofOrAdmin) return null;
+
+  const hasLoggedUserAccessToTrainee = UtilsHelper.hasUserAccessToCompany(credentials, trainee.company._id);
+  const isAllowedToAccessQuery = query.company
+    ? UtilsHelper.areObjectIdsEquals(loggedUserCompany, query.company)
+    : UtilsHelper.areObjectIdsEquals(loggedUserHolding, query.holding);
+  const isCoachOrAdmin = [COACH, CLIENT_ADMIN].includes(loggedUserClientRole);
+  if (!(isCoachOrAdmin && isAllowedToAccessQuery && hasLoggedUserAccessToTrainee)) throw Boom.forbidden();
 
   return null;
 };
@@ -337,15 +371,20 @@ exports.authorizeRegisterToELearning = async (req) => {
 exports.authorizeGetCourse = async (req) => {
   try {
     const credentials = get(req, 'auth.credentials');
-    const userCompany = get(credentials, 'company._id');
-    const userVendorRole = get(credentials, 'role.vendor.name');
-    const userClientRole = get(credentials, 'role.client.name');
 
     const course = await Course
       .findOne({ _id: req.params._id }, { trainer: 1, format: 1, trainees: 1, companies: 1, accessRules: 1 })
       .lean();
     if (!course) throw Boom.notFound();
 
+    if (!credentials) {
+      if ([PEDAGOGY, OPERATIONS].includes(req.query.action)) throw Boom.badRequest();
+      return null;
+    }
+
+    const userCompany = get(credentials, 'company._id');
+    const userVendorRole = get(credentials, 'role.vendor.name');
+    const userClientRole = get(credentials, 'role.client.name');
     const isAdminVendor = userVendorRole === VENDOR_ADMIN;
     const isTOM = userVendorRole === TRAINING_ORGANISATION_MANAGER;
     if (isTOM || isAdminVendor) return null;
@@ -545,7 +584,6 @@ exports.authorizeGenerateTrainingContract = async (req) => {
         select: 'steps',
         populate: [{ path: 'steps', select: 'theoreticalDuration type' }],
       },
-      { path: 'slotsToPlan' },
     ])
     .lean();
 
@@ -554,14 +592,6 @@ exports.authorizeGenerateTrainingContract = async (req) => {
   const company = course.companies.find(c => UtilsHelper.areObjectIdsEquals(c._id, req.payload.company));
   if (!company) throw Boom.forbidden();
   if (!company.address) throw Boom.forbidden(translate[language].courseCompanyAddressMissing);
-  if (course.slotsToPlan.length) {
-    const theoreticalDurationList = course.subProgram.steps
-      .filter(step => step.type !== E_LEARNING)
-      .map(step => step.theoreticalDuration);
-    if (theoreticalDurationList.some(duration => !duration)) {
-      throw Boom.badData(translate[language].stepsTheoreticalDurationsNotDefined);
-    }
-  }
 
   return null;
 };

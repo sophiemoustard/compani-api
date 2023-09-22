@@ -7,7 +7,7 @@ const CourseSlot = require('../../../src/models/CourseSlot');
 const Step = require('../../../src/models/Step');
 const SubProgram = require('../../../src/models/SubProgram');
 const { authCompany, otherCompany, companyWithoutSubscription } = require('../../seed/authCompaniesSeed');
-const { WEBAPP, INTRA, INTER_B2B, TRAINEE_ADDITION, MOBILE } = require('../../../src/helpers/constants');
+const { WEBAPP, INTRA, INTER_B2B, TRAINEE_ADDITION, MOBILE, PUBLISHED } = require('../../../src/helpers/constants');
 const { deleteNonAuthenticationSeeds } = require('../helpers/db');
 const UserCompany = require('../../../src/models/UserCompany');
 const User = require('../../../src/models/User');
@@ -67,9 +67,9 @@ const userCompaniesList = [
   { _id: new ObjectId(), user: userList[4]._id, company: companyWithoutSubscription._id },
 ];
 
-const steps = [{ _id: new ObjectId(), type: 'on_site', name: 'étape' }];
+const steps = [{ _id: new ObjectId(), type: 'on_site', name: 'étape', status: PUBLISHED, theoreticalDuration: 60 }];
 
-const subProgram = { _id: new ObjectId(), name: 'Subprogram 1', steps: [steps[0]._id] };
+const subProgram = { _id: new ObjectId(), name: 'Subprogram 1', steps: [steps[0]._id], status: PUBLISHED };
 
 const coursesList = [
   { // 0

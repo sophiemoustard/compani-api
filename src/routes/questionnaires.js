@@ -11,6 +11,7 @@ const {
   removeCard,
   getUserQuestionnaires,
   getFollowUp,
+  getQRCode,
 } = require('../controllers/questionnaireController');
 const {
   authorizeQuestionnaireGet,
@@ -19,9 +20,28 @@ const {
   authorizeCardDeletion,
   authorizeUserQuestionnairesGet,
   authorizeGetFollowUp,
+  authorizeQuestionnaireQRCodeGet,
 } = require('./preHandlers/questionnaires');
-const { CARD_TEMPLATES } = require('../models/Card');
-const { PUBLISHED } = require('../helpers/constants');
+const {
+  PUBLISHED,
+  TRANSITION,
+  TITLE_TEXT_MEDIA,
+  TITLE_TEXT,
+  TEXT_MEDIA,
+  OPEN_QUESTION,
+  SURVEY,
+  QUESTION_ANSWER,
+} = require('../helpers/constants');
+
+const QUESTIONNAIRE_CARD_TEMPLATES = [
+  TRANSITION,
+  TITLE_TEXT_MEDIA,
+  TITLE_TEXT,
+  TEXT_MEDIA,
+  OPEN_QUESTION,
+  SURVEY,
+  QUESTION_ANSWER,
+];
 
 exports.plugin = {
   name: 'routes-questionnaires',
@@ -30,7 +50,10 @@ exports.plugin = {
       method: 'GET',
       path: '/',
       options: {
-        auth: { scope: ['questionnaires:edit'] },
+        validate: {
+          query: Joi.object({ status: Joi.string().valid(PUBLISHED) }),
+        },
+        auth: { scope: ['questionnaires:read'] },
       },
       handler: list,
     });
@@ -42,7 +65,7 @@ exports.plugin = {
         validate: {
           params: Joi.object({ _id: Joi.objectId().required() }),
         },
-        auth: { mode: 'required' },
+        auth: { mode: 'optional' },
         pre: [{ method: authorizeQuestionnaireGet }],
       },
       handler: getById,
@@ -97,8 +120,7 @@ exports.plugin = {
       options: {
         validate: {
           params: Joi.object({ _id: Joi.objectId().required() }),
-          payload: Joi.object({ template: Joi.string().required().valid(...CARD_TEMPLATES) }),
-
+          payload: Joi.object({ template: Joi.string().required().valid(...QUESTIONNAIRE_CARD_TEMPLATES) }),
         },
         auth: { scope: ['questionnaires:edit'] },
         pre: [{ method: authorizeQuestionnaireEdit }],
@@ -133,6 +155,20 @@ exports.plugin = {
         pre: [{ method: authorizeQuestionnaireEdit }],
       },
       handler: update,
+    });
+
+    server.route({
+      method: 'GET',
+      path: '/{_id}/qrcode',
+      options: {
+        auth: { scope: ['questionnaires:read'] },
+        validate: {
+          params: Joi.object({ _id: Joi.objectId().required() }),
+          query: Joi.object({ course: Joi.objectId().required() }),
+        },
+        pre: [{ method: authorizeQuestionnaireGet }, { method: authorizeQuestionnaireQRCodeGet }],
+      },
+      handler: getQRCode,
     });
   },
 };

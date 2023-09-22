@@ -1951,7 +1951,7 @@ describe('list', () => {
   it('should get a list of manual bills', async () => {
     const authCompanyId = new ObjectId();
     const query = { type: 'manual' };
-    const credentials = { company: authCompanyId };
+    const credentials = { company: { _id: authCompanyId } };
     const bills = [
       { _id: new ObjectId(), type: 'manual', billingItemList: [] },
       { _id: new ObjectId(), type: 'manual', billingItemList: [] },
@@ -1976,7 +1976,7 @@ describe('list', () => {
   it('should get a list of automatic bills', async () => {
     const authCompanyId = new ObjectId();
     const query = { type: 'automatic' };
-    const credentials = { company: authCompanyId };
+    const credentials = { company: { _id: authCompanyId } };
     const bills = [
       { _id: new ObjectId(), type: 'automatic', netInclTaxes: 125.98, date: '2022-07-01T10:00:00.000Z' },
       { _id: new ObjectId(), type: 'manual', billingItemList: [] },
@@ -2001,7 +2001,7 @@ describe('list', () => {
   it('should get a list of automatic bills between two dates', async () => {
     const authCompanyId = new ObjectId();
     const query = { type: 'automatic', startDate: '2022-07-01T10:00:00.000Z', endDate: '2022-07-07T10:00:00.000Z' };
-    const credentials = { company: authCompanyId };
+    const credentials = { company: { _id: authCompanyId } };
     const bills = [
       { _id: new ObjectId(), type: 'automatic', netInclTaxes: 125.98, date: '2022-07-01T10:00:00.000Z' },
       { _id: new ObjectId(), type: 'automatic', netInclTaxes: 134, date: '2022-06-01T10:00:00.000Z' },

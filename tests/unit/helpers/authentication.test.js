@@ -2,8 +2,7 @@ const { ObjectId } = require('mongodb');
 const { expect } = require('expect');
 const sinon = require('sinon');
 const Boom = require('@hapi/boom');
-const flat = require('flat');
-const bcrypt = require('bcrypt');
+const bcrypt = require('bcryptjs');
 const SinonMongoose = require('../sinonMongoose');
 const AuthenticationHelper = require('../../../src/helpers/authentication');
 const EmailHelper = require('../../../src/helpers/email');
@@ -66,7 +65,7 @@ describe('authenticate', () => {
     sinon.assert.calledOnceWithExactly(
       updateOne,
       { _id: user._id, firstMobileConnection: { $exists: false } },
-      { $set: { firstMobileConnection: '2022-09-18T10:00:00.000Z' } }
+      { $set: { firstMobileConnection: '2022-09-18T10:00:00.000Z' }, $unset: { loginCode: '' } }
     );
     sinon.assert.calledOnceWithExactly(compare, payload.password, 'toto');
     sinon.assert.calledOnceWithExactly(encode, { _id: user._id.toHexString() });
@@ -252,27 +251,10 @@ describe('refreshToken', () => {
     });
     SinonMongoose.calledOnceWithExactly(
       findOne,
-      [{ query: 'findOne', args: [{ refreshToken: 'refreshToken' }] }, { query: 'lean' }]
+      [{ query: 'findOne', args: [{ refreshToken: 'refreshToken' }, { _id: 1 }] }, { query: 'lean' }]
     );
     sinon.assert.calledWithExactly(encode, { _id: user._id.toHexString() });
     sinon.assert.calledOnceWithExactly(formatMiscToCompaniDate);
-  });
-
-  it('should throw an error if user does not exist', async () => {
-    try {
-      findOne.returns(SinonMongoose.stubChainedQueries(null, ['lean']));
-
-      await AuthenticationHelper.refreshToken('refreshToken');
-    } catch (e) {
-      expect(e).toEqual(Boom.unauthorized());
-    } finally {
-      SinonMongoose.calledOnceWithExactly(
-        findOne,
-        [{ query: 'findOne', args: [{ refreshToken: 'refreshToken' }] }, { query: 'lean' }]
-      );
-      sinon.assert.notCalled(encode);
-      sinon.assert.notCalled(formatMiscToCompaniDate);
-    }
   });
 });
 
@@ -333,144 +315,6 @@ describe('sendToken', () => {
     const result = await AuthenticationHelper.sendToken(user);
     expect(result).toEqual({ token: '1234567890', user: userPayload });
     sinon.assert.calledWithExactly(encode, userPayload);
-  });
-});
-
-describe('checkPasswordToken', () => {
-  let userFindOne;
-  let identityVerificationFindOne;
-  let sendToken;
-  let fakeDate;
-  const date = new Date('2020-01-13');
-  beforeEach(() => {
-    userFindOne = sinon.stub(User, 'findOne');
-    identityVerificationFindOne = sinon.stub(IdentityVerification, 'findOne');
-    sendToken = sinon.stub(AuthenticationHelper, 'sendToken');
-    fakeDate = sinon.stub(Date, 'now');
-  });
-  afterEach(() => {
-    userFindOne.restore();
-    identityVerificationFindOne.restore();
-    sendToken.restore();
-    fakeDate.restore();
-  });
-
-  it('should throw an error if user does not exist (webapp)', async () => {
-    fakeDate.returns(date);
-    const filter = { passwordToken: { token: '1234567890', expiresIn: { $gt: date } } };
-
-    try {
-      userFindOne.returns(SinonMongoose.stubChainedQueries(null, ['select', 'lean']));
-
-      await AuthenticationHelper.checkPasswordToken('1234567890');
-    } catch (e) {
-      expect(e).toEqual(Boom.notFound(translate[language].userNotFound));
-    } finally {
-      SinonMongoose.calledOnceWithExactly(
-        userFindOne,
-        [
-          { query: 'findOne', args: [flat(filter, { maxDepth: 2 })] },
-          { query: 'select', args: ['local'] },
-          { query: 'lean' },
-        ]
-      );
-      sinon.assert.notCalled(sendToken);
-    }
-  });
-
-  it('(should return a token if code match (mobile)', async () => {
-    const token = '3310';
-    const email = 'carolyn@alenvi.io';
-    const user = { _id: new ObjectId(), local: { email } };
-    const userPayload = { _id: user._id, email };
-
-    userFindOne.returns(SinonMongoose.stubChainedQueries(user, ['select', 'lean']));
-    identityVerificationFindOne.returns(SinonMongoose.stubChainedQueries(
-      { code: '3310', email, updatedAt: new Date('2021-01-25T10:05:32.582Z') },
-      ['lean']));
-    fakeDate.returns(new Date('2021-01-25T10:08:32.582Z'));
-    sendToken.returns({ token: '1234567890', user: userPayload });
-
-    const result = await AuthenticationHelper.checkPasswordToken(token, email);
-    expect(result).toEqual({ token: '1234567890', user: userPayload });
-    SinonMongoose.calledOnceWithExactly(
-      identityVerificationFindOne,
-      [{ query: 'findOne', args: [{ email, code: token }] }, { query: 'lean' }]
-    );
-    SinonMongoose.calledOnceWithExactly(
-      userFindOne,
-      [
-        { query: 'findOne', args: [{ 'local.email': email }] },
-        { query: 'select', args: ['local.email'] },
-        { query: 'lean' },
-      ]
-    );
-    sinon.assert.calledWithExactly(sendToken, user);
-  });
-
-  it('should throw an error if code does not match (mobile)', async () => {
-    fakeDate.returns(new Date('2021-01-25T10:08:32.582Z'));
-    const email = 'carolyn@alenvi.io';
-    const token = '3311';
-
-    try {
-      identityVerificationFindOne.returns(SinonMongoose.stubChainedQueries(null, ['lean']));
-
-      await AuthenticationHelper.checkPasswordToken(token, email);
-    } catch (e) {
-      expect(e).toEqual(Boom.notFound());
-    } finally {
-      SinonMongoose.calledOnceWithExactly(
-        identityVerificationFindOne,
-        [{ query: 'findOne', args: [{ email, code: token }] }, { query: 'lean' }]
-      );
-      sinon.assert.notCalled(userFindOne);
-      sinon.assert.notCalled(sendToken);
-    }
-  });
-
-  it('should throw an error if code too old (mobile)', async () => {
-    fakeDate.returns(new Date('2021-01-25T10:08:32.582Z'));
-    const email = 'carolyn@alenvi.io';
-    const token = '3310';
-    identityVerificationFindOne.returns(SinonMongoose.stubChainedQueries(
-      { code: '3310', email, updatedAt: new Date('2021-01-25T09:05:32.582Z') },
-      ['lean']));
-    try {
-      await AuthenticationHelper.checkPasswordToken(token, email);
-    } catch (e) {
-      expect(e).toEqual(Boom.unauthorized());
-    } finally {
-      SinonMongoose.calledOnceWithExactly(
-        identityVerificationFindOne,
-        [{ query: 'findOne', args: [{ email, code: token }] }, { query: 'lean' }]
-      );
-      sinon.assert.notCalled(userFindOne);
-      sinon.assert.notCalled(sendToken);
-    }
-  });
-
-  it('should return a new access token after checking reset password token (webapp)', async () => {
-    fakeDate.returns(date);
-    const filter = { passwordToken: { token: '1234567890', expiresIn: { $gt: date } } };
-    const user = { _id: new ObjectId(), local: { email: 'toto@toto.com' } };
-    const userPayload = { _id: user._id, email: user.local.email };
-
-    userFindOne.returns(SinonMongoose.stubChainedQueries(user, ['select', 'lean']));
-    sendToken.returns({ token: '1234567890', user: userPayload });
-
-    const result = await AuthenticationHelper.checkPasswordToken('1234567890');
-
-    expect(result).toEqual({ token: '1234567890', user: userPayload });
-    SinonMongoose.calledOnceWithExactly(
-      userFindOne,
-      [
-        { query: 'findOne', args: [flat(filter, { maxDepth: 2 })] },
-        { query: 'select', args: ['local'] },
-        { query: 'lean' },
-      ]
-    );
-    sinon.assert.calledWithExactly(sendToken, user);
   });
 });
 

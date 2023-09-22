@@ -47,8 +47,8 @@ describe('list', () => {
       find,
       [
         { query: 'find', args: [{}] },
-        { query: 'populate', args: [{ path: 'subPrograms', select: 'name' }] },
-        { query: 'lean' },
+        { query: 'populate', args: [{ path: 'subPrograms', populate: { path: 'steps', select: 'type' } }] },
+        { query: 'lean', args: [{ virtuals: true }] },
       ]
     );
   });

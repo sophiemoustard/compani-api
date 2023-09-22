@@ -43,13 +43,15 @@ exports.findCoursesForExport = async (startDate, endDate, credentials) => {
   const isVendorUser = [TRAINING_ORGANISATION_MANAGER, VENDOR_ADMIN].includes(get(credentials, 'role.vendor.name'));
 
   return Course
-    .find({
-      $or: [
-        { _id: { $in: courseIds } },
-        { estimatedStartDate: { $lte: endDate, $gte: startDate }, archivedAt: { $exists: false } },
-      ],
-      select: '_id type misc estimatedStartDate',
-    })
+    .find(
+      {
+        $or: [
+          { _id: { $in: courseIds } },
+          { estimatedStartDate: { $lte: endDate, $gte: startDate }, archivedAt: { $exists: false } },
+        ],
+      }
+    )
+    .select('_id type misc estimatedStartDate expectedBillsCount')
     .populate({ path: 'companies', select: 'name' })
     .populate({
       path: 'subProgram',
