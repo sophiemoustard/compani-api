@@ -41,7 +41,7 @@ const UserCompaniesHelper = require('../../helpers/userCompanies');
 
 const { language } = translate;
 
-exports.checkAuthorization = (credentials, courseTrainerId, companies) => {
+exports.checkAuthorization = (credentials, courseTrainerId, companies, holding = null) => {
   const userVendorRole = get(credentials, 'role.vendor.name');
   const userClientRole = get(credentials, 'role.client.name');
   const userId = get(credentials, '_id');
@@ -49,7 +49,11 @@ exports.checkAuthorization = (credentials, courseTrainerId, companies) => {
   const isAdminVendor = userVendorRole === VENDOR_ADMIN;
   const isTOM = userVendorRole === TRAINING_ORGANISATION_MANAGER;
   const isTrainerAndAuthorized = userVendorRole === TRAINER && UtilsHelper.areObjectIdsEquals(userId, courseTrainerId);
-  const isClientAndAuthorized = [CLIENT_ADMIN, COACH].includes(userClientRole) &&
+  const isClientAndAuthorized = holding
+    ? [CLIENT_ADMIN, COACH].includes(userClientRole) &&
+    (companies.some(company => UtilsHelper.hasUserAccessToCompany(credentials, company)) ||
+      UtilsHelper.areObjectIdsEquals(holding, get(credentials, 'holding._id')))
+    : [CLIENT_ADMIN, COACH].includes(userClientRole) &&
     companies.some(company => UtilsHelper.hasUserAccessToCompany(credentials, company));
 
   if (!isAdminVendor && !isTOM && !isTrainerAndAuthorized && !isClientAndAuthorized) throw Boom.forbidden();
@@ -162,7 +166,8 @@ exports.authorizeCourseEdit = async (req) => {
 
     const courseTrainerId = get(course, 'trainer') || null;
     const companies = [INTRA, INTRA_HOLDING].includes(course.type) ? course.companies : [];
-    this.checkAuthorization(credentials, courseTrainerId, companies);
+    const holding = course.type === INTRA_HOLDING ? course.holding : null;
+    this.checkAuthorization(credentials, courseTrainerId, companies, holding);
 
     const userVendorRole = get(req, 'auth.credentials.role.vendor.name');
     const isRofOrAdmin = [TRAINING_ORGANISATION_MANAGER, VENDOR_ADMIN].includes(userVendorRole);
