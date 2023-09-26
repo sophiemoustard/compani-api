@@ -131,7 +131,11 @@ exports.getWorkingEventsForExport = async (startDate, endDate, companyId) => {
     .populate({ path: 'sector', select: 'name' })
     .populate({
       path: 'histories',
-      match: { action: { $in: TIME_STAMPING_ACTIONS }, company: companyId },
+      match: {
+        action: { $in: TIME_STAMPING_ACTIONS },
+        company: companyId,
+        $or: [{ isCancelled: false }, { isCancelled: { $exists: false } }],
+      },
       select: 'update action manualTimeStampingReason',
     })
     .lean();

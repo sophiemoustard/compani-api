@@ -82,6 +82,7 @@ const {
   OPEN_QUESTION,
   SURVEY,
   QUESTION_ANSWER,
+  TIME_STAMP_CANCELLATION,
 } = require('../../../src/helpers/constants');
 const {
   auxiliaryRoleId,
@@ -662,6 +663,7 @@ const eventList = [
   },
 ];
 
+const cancelledEventHistoryId = new ObjectId();
 const eventHistoriesList = [
   {
     _id: new ObjectId(),
@@ -670,6 +672,29 @@ const eventHistoriesList = [
     action: MANUAL_TIME_STAMPING,
     manualTimeStampingReason: QRCODE_MISSING,
     update: { startHour: { from: '2019-01-17T14:30:19.543Z', to: '2019-01-17T14:35:19.543Z' } },
+    isCancelled: true,
+  },
+  {
+    _id: new ObjectId(),
+    company: authCompany._id,
+    event: { eventId: eventList[3]._id },
+    action: TIME_STAMP_CANCELLATION,
+    manualTimeStampingReason: QRCODE_MISSING,
+    timeStampCancellationReason: 'Oups...',
+    isCancelled: false,
+    linkedEventHistory: {
+      _id: cancelledEventHistoryId,
+      update: { startHour: { from: '2019-01-17T14:30:19.543Z', to: '2019-01-17T14:35:19.543Z' } },
+    },
+  },
+  {
+    _id: new ObjectId(),
+    company: authCompany._id,
+    event: { eventId: eventList[3]._id },
+    action: MANUAL_TIME_STAMPING,
+    manualTimeStampingReason: QRCODE_MISSING,
+    update: { startHour: { from: '2019-01-17T14:35:19.543Z', to: '2019-01-17T14:37:19.543Z' } },
+    isCancelled: false,
   },
   {
     _id: new ObjectId(),
@@ -677,6 +702,7 @@ const eventHistoriesList = [
     event: { eventId: eventList[3]._id },
     action: QR_CODE_TIME_STAMPING,
     update: { endHour: { from: '2019-01-17T16:30:19.543Z', to: '2019-01-17T16:35:19.543Z' } },
+    isCancelled: false,
   },
 ];
 
