@@ -2022,6 +2022,18 @@ describe('COURSES ROUTES - PUT /courses/{_id}', () => {
       expect(response.statusCode).toBe(200);
     });
 
+    it('should return 200 as user is holding admin from course holding (intra_holding course)', async () => {
+      authToken = await getTokenByCredentials(holdingAdminFromOtherCompany.local);
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/courses/${coursesList[22]._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload: { misc: 'new name' },
+      });
+
+      expect(response.statusCode).toBe(200);
+    });
+
     it('should return 403 as user is course trainer but try to update salesRepresentative', async () => {
       authToken = await getToken('trainer');
       const response = await app.inject({
