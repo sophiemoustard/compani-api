@@ -25,6 +25,7 @@ const {
   otherCompany,
   companyWithoutSubscription: thirdCompany,
   otherHolding,
+  authHolding,
 } = require('../../seed/authCompaniesSeed');
 const { deleteNonAuthenticationSeeds } = require('../helpers/db');
 const {
@@ -569,12 +570,12 @@ const coursesList = [
     contact: trainerAndCoach._id,
     misc: 'team formation',
     trainer: trainerAndCoach._id,
-    trainees: [traineeFromThirdCompany._id],
-    companies: [thirdCompany._id, otherCompany._id],
+    trainees: [traineeFromAuthCompanyWithFormationExpoToken._id],
+    companies: [authCompany._id],
     type: INTRA_HOLDING,
     maxTrainees: 8,
     salesRepresentative: vendorAdmin._id,
-    holding: otherHolding._id,
+    holding: authHolding._id,
   },
   { // 22 intra_holding course without companies
     _id: new ObjectId(),
