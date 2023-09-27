@@ -20,7 +20,13 @@ const CourseCreditNote = require('../../../src/models/CourseCreditNote');
 const CourseCreditNoteNumber = require('../../../src/models/CourseCreditNoteNumber');
 const Attendance = require('../../../src/models/Attendance');
 const AttendanceSheet = require('../../../src/models/AttendanceSheet');
-const { authCompany, otherCompany, companyWithoutSubscription: thirdCompany } = require('../../seed/authCompaniesSeed');
+const {
+  authCompany,
+  otherCompany,
+  companyWithoutSubscription: thirdCompany,
+  otherHolding,
+  authHolding,
+} = require('../../seed/authCompaniesSeed');
 const { deleteNonAuthenticationSeeds } = require('../helpers/db');
 const {
   vendorAdmin,
@@ -46,6 +52,7 @@ const {
   TRAINEE_ADDITION,
   COMPANY_ADDITION,
   PUBLISHED,
+  INTRA_HOLDING,
 } = require('../../../src/helpers/constants');
 const { auxiliaryRoleId, trainerRoleId, coachRoleId, clientAdminRoleId } = require('../../seed/authRolesSeed');
 const { CompaniDate } = require('../../../src/helpers/dates/companiDates');
@@ -556,6 +563,32 @@ const coursesList = [
     salesRepresentative: vendorAdmin._id,
     companyRepresentative: coachFromThirdCompany._id,
     expectedBillsCount: 2,
+  },
+  { // 21 intra_holding course
+    _id: new ObjectId(),
+    subProgram: subProgramsList[0]._id,
+    contact: trainerAndCoach._id,
+    misc: 'team formation',
+    trainer: trainerAndCoach._id,
+    trainees: [traineeFromAuthCompanyWithFormationExpoToken._id],
+    companies: [authCompany._id],
+    type: INTRA_HOLDING,
+    maxTrainees: 8,
+    salesRepresentative: vendorAdmin._id,
+    holding: authHolding._id,
+  },
+  { // 22 intra_holding course without companies
+    _id: new ObjectId(),
+    subProgram: subProgramsList[0]._id,
+    contact: trainerAndCoach._id,
+    misc: 'team formation',
+    trainer: trainerAndCoach._id,
+    trainees: [],
+    companies: [],
+    type: INTRA_HOLDING,
+    maxTrainees: 8,
+    salesRepresentative: vendorAdmin._id,
+    holding: otherHolding._id,
   },
 ];
 

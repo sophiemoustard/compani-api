@@ -652,7 +652,7 @@ describe('COURSES ROUTES - GET /courses', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      expect(response.result.data.courses.length).toEqual(15);
+      expect(response.result.data.courses.length).toEqual(17);
     });
 
     it('should get blended archived courses (ops webapp)', async () => {
@@ -837,7 +837,7 @@ describe('COURSES ROUTES - GET /courses', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      expect(response.result.data.courses.length).toEqual(10);
+      expect(response.result.data.courses.length).toEqual(11);
     });
 
     it('should get courses for a specific holding (ops webapp)', async () => {
@@ -849,7 +849,7 @@ describe('COURSES ROUTES - GET /courses', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      expect(response.result.data.courses.length).toEqual(8);
+      expect(response.result.data.courses.length).toEqual(9);
     });
 
     it('should return 200 if coach and same company (pedagogy webapp)', async () => {
@@ -1133,6 +1133,17 @@ describe('COURSES ROUTES - GET /courses/{_id}', () => {
 
       expect(response.statusCode).toBe(200);
       expect(response.result.data.course._id.toHexString()).toBe(coursesList[5]._id.toHexString());
+    });
+
+    it('should get intra_holding course from holding (without registered companies)', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/courses/${coursesList[22]._id}?action=operations&origin=webapp`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(200);
+      expect(response.result.data.course._id.toHexString()).toBe(coursesList[22]._id.toHexString());
     });
 
     it('should return 403 if course from company not in holding', async () => {
@@ -1933,6 +1944,17 @@ describe('COURSES ROUTES - PUT /courses/{_id}', () => {
       expect(response.statusCode).toBe(400);
     });
 
+    it('should return 400 if trying to set expectedBillsCount for intra_holding course', async () => {
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/courses/${coursesList[21]._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload: { expectedBillsCount: 14 },
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
+
     it('should return 400 if expectedBillsCount is lower than 0', async () => {
       const response = await app.inject({
         method: 'PUT',
@@ -1998,6 +2020,30 @@ describe('COURSES ROUTES - PUT /courses/{_id}', () => {
       });
 
       expect(response.statusCode).toBe(200);
+    });
+
+    it('should return 200 as user is holding admin from course holding (intra_holding course)', async () => {
+      authToken = await getTokenByCredentials(holdingAdminFromOtherCompany.local);
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/courses/${coursesList[22]._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload: { misc: 'new name' },
+      });
+
+      expect(response.statusCode).toBe(200);
+    });
+
+    it('should return 403 as user is holding admin but not from course holding (intra_holding course)', async () => {
+      authToken = await getTokenByCredentials(holdingAdminFromOtherCompany.local);
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/courses/${coursesList[21]._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload: { misc: 'new name' },
+      });
+
+      expect(response.statusCode).toBe(403);
     });
 
     it('should return 403 as user is course trainer but try to update salesRepresentative', async () => {

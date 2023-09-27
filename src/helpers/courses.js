@@ -55,6 +55,7 @@ const {
   TRAINEE,
   PEDAGOGY,
   QUESTIONNAIRE,
+  INTRA_HOLDING,
 } = require('./constants');
 const CourseHistoriesHelper = require('./courseHistories');
 const NotificationHelper = require('./notifications');
@@ -131,12 +132,12 @@ const listBlendedForCompany = async (query, origin) => {
   const intraCourses = courses
     .filter(course => course.type === INTRA)
     .sort((a, b) => UtilsHelper.sortStrings(a._id.toHexString(), b._id.toHexString()));
-  const interCourses = courses
-    .filter(course => course.type === INTER_B2B)
+  const interOrIntraHoldingCourses = courses
+    .filter(course => [INTER_B2B, INTRA_HOLDING].includes(course.type))
     .sort((a, b) => UtilsHelper.sortStrings(a._id.toHexString(), b._id.toHexString()));
 
   const traineesCompanyForCourseList = {};
-  for (const course of interCourses) {
+  for (const course of interOrIntraHoldingCourses) {
     const traineesCompanyAtCourseRegistration = await CourseHistoriesHelper
       .getCompanyAtCourseRegistrationList({ key: COURSE, value: course._id }, { key: TRAINEE, value: course.trainees });
     const traineesCompany = mapValues(keyBy(traineesCompanyAtCourseRegistration, 'trainee'), 'company');
@@ -146,7 +147,7 @@ const listBlendedForCompany = async (query, origin) => {
 
   return [
     ...intraCourses,
-    ...interCourses
+    ...interOrIntraHoldingCourses
       .map(course => ({
         ...course,
         trainees: course.trainees
@@ -160,7 +161,9 @@ const formatQuery = (query, credentials) => {
 
   if (has(query, 'isArchived')) set(formattedQuery, 'archivedAt', { $exists: !!query.isArchived });
 
-  if (has(query, 'holding')) set(formattedQuery, 'companies', { $in: credentials.holding.companies });
+  if (has(query, 'holding')) {
+    set(formattedQuery, '$or', [{ companies: { $in: credentials.holding.companies } }, { holding: query.holding }]);
+  }
 
   return formattedQuery;
 };

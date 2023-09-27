@@ -31,6 +31,7 @@ const {
   PEDAGOGY,
   PUBLISHED,
   HOLDING_ADMIN,
+  INTRA_HOLDING,
 } = require('../../helpers/constants');
 const translate = require('../../helpers/translate');
 const UtilsHelper = require('../../helpers/utils');
@@ -40,18 +41,22 @@ const UserCompaniesHelper = require('../../helpers/userCompanies');
 
 const { language } = translate;
 
-exports.checkAuthorization = (credentials, courseTrainerId, companies) => {
+exports.checkAuthorization = (credentials, courseTrainerId, companies, holding = null) => {
   const userVendorRole = get(credentials, 'role.vendor.name');
   const userClientRole = get(credentials, 'role.client.name');
+  const userHoldingRole = get(credentials, 'role.holding.name');
   const userId = get(credentials, '_id');
 
   const isAdminVendor = userVendorRole === VENDOR_ADMIN;
   const isTOM = userVendorRole === TRAINING_ORGANISATION_MANAGER;
   const isTrainerAndAuthorized = userVendorRole === TRAINER && UtilsHelper.areObjectIdsEquals(userId, courseTrainerId);
-  const isClientOrHoldingAndAuthorized = [CLIENT_ADMIN, COACH].includes(userClientRole) &&
-    companies.some(company => UtilsHelper.hasUserAccessToCompany(credentials, company));
 
-  if (!isAdminVendor && !isTOM && !isTrainerAndAuthorized && !isClientOrHoldingAndAuthorized) {
+  const hasAccessToHolding = UtilsHelper.areObjectIdsEquals(holding, get(credentials, 'holding._id'));
+  const hasAccessToCompany = companies.some(company => UtilsHelper.hasUserAccessToCompany(credentials, company));
+  const isHoldingAndAuthorized = [HOLDING_ADMIN].includes(userHoldingRole) && hasAccessToHolding;
+  const isClientAndAuthorized = [CLIENT_ADMIN, COACH].includes(userClientRole) && hasAccessToCompany;
+
+  if (!isAdminVendor && !isTOM && !isTrainerAndAuthorized && !isClientAndAuthorized && !isHoldingAndAuthorized) {
     throw Boom.forbidden();
   }
 };
@@ -162,8 +167,9 @@ exports.authorizeCourseEdit = async (req) => {
     if (course.archivedAt && !unarchiveCourse) throw Boom.forbidden();
 
     const courseTrainerId = get(course, 'trainer') || null;
-    const companies = course.type === INTRA ? course.companies : [];
-    this.checkAuthorization(credentials, courseTrainerId, companies);
+    const companies = [INTRA, INTRA_HOLDING].includes(course.type) ? course.companies : [];
+    const holding = course.type === INTRA_HOLDING ? course.holding : null;
+    this.checkAuthorization(credentials, courseTrainerId, companies, holding);
 
     const userVendorRole = get(req, 'auth.credentials.role.vendor.name');
     const isRofOrAdmin = [TRAINING_ORGANISATION_MANAGER, VENDOR_ADMIN].includes(userVendorRole);
@@ -185,7 +191,7 @@ exports.authorizeCourseEdit = async (req) => {
 
     if (has(req, 'payload.expectedBillsCount')) {
       if (!isRofOrAdmin) throw Boom.forbidden();
-      if (course.type === INTER_B2B) throw Boom.badRequest();
+      if (course.type !== INTRA) throw Boom.badRequest();
 
       const courseBills = await CourseBill.find({ course: course._id }, { courseCreditNote: 1 })
         .populate({ path: 'courseCreditNote', options: { isVendorUser: true } })
@@ -373,7 +379,10 @@ exports.authorizeGetCourse = async (req) => {
     const credentials = get(req, 'auth.credentials');
 
     const course = await Course
-      .findOne({ _id: req.params._id }, { trainer: 1, format: 1, trainees: 1, companies: 1, accessRules: 1 })
+      .findOne(
+        { _id: req.params._id },
+        { trainer: 1, format: 1, trainees: 1, companies: 1, accessRules: 1, holding: 1 }
+      )
       .lean();
     if (!course) throw Boom.notFound();
 
@@ -404,9 +413,12 @@ exports.authorizeGetCourse = async (req) => {
     if (course.format === STRICTLY_E_LEARNING && !companyHasAccess) throw Boom.forbidden();
 
     if (course.format === BLENDED) {
-      const clientUserHasAccess = course.companies
+      const clientUserHasAccessToCompanies = course.companies
         .some(company => UtilsHelper.hasUserAccessToCompany(credentials, company));
-      if (!clientUserHasAccess) throw Boom.forbidden();
+
+      const clientUserHasAccessToHolding = UtilsHelper
+        .areObjectIdsEquals(course.holding, get(credentials, 'holding._id'));
+      if (!clientUserHasAccessToCompanies && !clientUserHasAccessToHolding) throw Boom.forbidden();
     }
 
     return null;

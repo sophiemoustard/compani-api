@@ -1272,7 +1272,6 @@ const coursesList = [
     salesRepresentative: salesRepresentative._id,
     contact: salesRepresentative._id,
     trainees: [],
-    expectedBillsCount: 0,
   },
   { // 8 intra with other Company
     _id: new ObjectId(),

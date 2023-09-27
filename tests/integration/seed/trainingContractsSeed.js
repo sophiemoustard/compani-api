@@ -71,7 +71,6 @@ const courseList = [
     companies: [authCompany._id, otherCompany._id],
     type: INTER_B2B,
     salesRepresentative: vendorAdmin._id,
-    expectedBillsCount: 2,
     archivedAt: '2023-01-03T14:00:00.000Z',
   },
 ];
