@@ -49,12 +49,11 @@ exports.checkAuthorization = (credentials, courseTrainerId, companies, holding =
   const isAdminVendor = userVendorRole === VENDOR_ADMIN;
   const isTOM = userVendorRole === TRAINING_ORGANISATION_MANAGER;
   const isTrainerAndAuthorized = userVendorRole === TRAINER && UtilsHelper.areObjectIdsEquals(userId, courseTrainerId);
-  const isClientAndAuthorized = holding
-    ? [CLIENT_ADMIN, COACH].includes(userClientRole) &&
-    (companies.some(company => UtilsHelper.hasUserAccessToCompany(credentials, company)) ||
-      UtilsHelper.areObjectIdsEquals(holding, get(credentials, 'holding._id')))
-    : [CLIENT_ADMIN, COACH].includes(userClientRole) &&
-    companies.some(company => UtilsHelper.hasUserAccessToCompany(credentials, company));
+
+  const hasAccessToHolding = UtilsHelper.areObjectIdsEquals(holding, get(credentials, 'holding._id'));
+  const hasAccessToCompany = companies.some(company => UtilsHelper.hasUserAccessToCompany(credentials, company));
+  const isClientAndAuthorized = [CLIENT_ADMIN, COACH].includes(userClientRole) &&
+    (hasAccessToHolding || hasAccessToCompany);
 
   if (!isAdminVendor && !isTOM && !isTrainerAndAuthorized && !isClientAndAuthorized) throw Boom.forbidden();
 };
