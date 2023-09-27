@@ -38,6 +38,7 @@ const {
   coach,
   trainer,
   trainerAndCoach,
+  holdingAdminFromOtherCompany,
 } = require('../../seed/authUsersSeed');
 const {
   VIDEO,
@@ -580,7 +581,7 @@ const coursesList = [
   { // 22 intra_holding course without companies
     _id: new ObjectId(),
     subProgram: subProgramsList[0]._id,
-    contact: trainerAndCoach._id,
+    contact: holdingAdminFromOtherCompany._id,
     misc: 'team formation',
     trainer: trainerAndCoach._id,
     trainees: [],
@@ -589,6 +590,7 @@ const coursesList = [
     maxTrainees: 8,
     salesRepresentative: vendorAdmin._id,
     holding: otherHolding._id,
+    companyRepresentative: holdingAdminFromOtherCompany._id,
   },
 ];
 

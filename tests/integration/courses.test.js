@@ -1841,6 +1841,28 @@ describe('COURSES ROUTES - PUT /courses/{_id}', () => {
       expect(response.statusCode).toBe(403);
     });
 
+    it('should return 403 if company representative in intra_holding course is not holdingAdmin', async () => {
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/courses/${coursesList[21]._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload: { companyRepresentative: coach._id },
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
+
+    it('should return 403 if company representative in intra_holding course is not from course holding', async () => {
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/courses/${coursesList[21]._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload: { companyRepresentative: holdingAdminFromOtherCompany._id },
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
+
     it('should return 403 if maxTrainees smaller than registered trainees', async () => {
       const payload = { maxTrainees: 4 };
       const response = await app.inject({
@@ -2034,6 +2056,18 @@ describe('COURSES ROUTES - PUT /courses/{_id}', () => {
       expect(response.statusCode).toBe(200);
     });
 
+    it('should return 200 as holding admin update company representative in intra_holding course', async () => {
+      authToken = await getTokenByCredentials(holdingAdminFromAuthCompany.local);
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/courses/${coursesList[21]._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload: { companyRepresentative: holdingAdminFromAuthCompany._id },
+      });
+
+      expect(response.statusCode).toBe(200);
+    });
+
     it('should return 403 as user is holding admin but not from course holding (intra_holding course)', async () => {
       authToken = await getTokenByCredentials(holdingAdminFromOtherCompany.local);
       const response = await app.inject({
@@ -2120,6 +2154,19 @@ describe('COURSES ROUTES - PUT /courses/{_id}', () => {
       expect(response.statusCode).toBe(403);
     });
 
+    it('should not update intra_holding course as user is coach but try to update company representative', async () => {
+      authToken = await getToken('coach');
+
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/courses/${coursesList[21]._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload: { companyRepresentative: holdingAdminFromAuthCompany._id },
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
+
     it('should return 403 as user is client_admin and try to update estimated start date', async () => {
       authToken = await getToken('client_admin');
 
@@ -2197,7 +2244,7 @@ describe('COURSES ROUTES - PUT /courses/{_id}', () => {
       expect(response.statusCode).toBe(403);
     });
 
-    it('should return 200 if holding admin updates company representative which is contact', async () => {
+    it('should return 200 if holding admin updates company representative which is contact (intra)', async () => {
       authToken = await getTokenByCredentials(holdingAdminFromOtherCompany.local);
 
       const response = await app.inject({
@@ -2208,6 +2255,32 @@ describe('COURSES ROUTES - PUT /courses/{_id}', () => {
       });
 
       expect(response.statusCode).toBe(200);
+    });
+
+    it('should return 200 if holding admin updates company rep which is contact (intra_holding)', async () => {
+      authToken = await getTokenByCredentials(holdingAdminFromOtherCompany.local);
+
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/courses/${coursesList[22]._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload: { contact: holdingAdminFromOtherCompany._id, companyRepresentative: holdingAdminFromOtherCompany._id },
+      });
+
+      expect(response.statusCode).toBe(200);
+    });
+
+    it('should return 403 if holding admin try to update contact and company rep which is not contact', async () => {
+      authToken = await getTokenByCredentials(holdingAdminFromAuthCompany.local);
+
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/courses/${coursesList[21]._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload: { contact: holdingAdminFromAuthCompany._id, companyRepresentative: holdingAdminFromAuthCompany._id },
+      });
+
+      expect(response.statusCode).toBe(403);
     });
 
     it('should return 200 if coach try to update contact and company representative which is contact', async () => {
