@@ -132,16 +132,12 @@ const listBlendedForCompany = async (query, origin) => {
   const intraCourses = courses
     .filter(course => course.type === INTRA)
     .sort((a, b) => UtilsHelper.sortStrings(a._id.toHexString(), b._id.toHexString()));
-  const interCourses = courses
-    .filter(course => course.type === INTER_B2B)
-    .sort((a, b) => UtilsHelper.sortStrings(a._id.toHexString(), b._id.toHexString()));
-
-  const intraHoldingCourses = courses
-    .filter(course => course.type === INTRA_HOLDING)
+  const interOrIntraHoldingCourses = courses
+    .filter(course => [INTER_B2B, INTRA_HOLDING].includes(course.type))
     .sort((a, b) => UtilsHelper.sortStrings(a._id.toHexString(), b._id.toHexString()));
 
   const traineesCompanyForCourseList = {};
-  for (const course of [...interCourses, ...intraHoldingCourses]) {
+  for (const course of interOrIntraHoldingCourses) {
     const traineesCompanyAtCourseRegistration = await CourseHistoriesHelper
       .getCompanyAtCourseRegistrationList({ key: COURSE, value: course._id }, { key: TRAINEE, value: course.trainees });
     const traineesCompany = mapValues(keyBy(traineesCompanyAtCourseRegistration, 'trainee'), 'company');
@@ -151,7 +147,7 @@ const listBlendedForCompany = async (query, origin) => {
 
   return [
     ...intraCourses,
-    ...[...interCourses, ...intraHoldingCourses]
+    ...interOrIntraHoldingCourses
       .map(course => ({
         ...course,
         trainees: course.trainees

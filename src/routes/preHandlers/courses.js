@@ -44,6 +44,7 @@ const { language } = translate;
 exports.checkAuthorization = (credentials, courseTrainerId, companies, holding = null) => {
   const userVendorRole = get(credentials, 'role.vendor.name');
   const userClientRole = get(credentials, 'role.client.name');
+  const userHoldingRole = get(credentials, 'role.holding.name');
   const userId = get(credentials, '_id');
 
   const isAdminVendor = userVendorRole === VENDOR_ADMIN;
@@ -52,10 +53,12 @@ exports.checkAuthorization = (credentials, courseTrainerId, companies, holding =
 
   const hasAccessToHolding = UtilsHelper.areObjectIdsEquals(holding, get(credentials, 'holding._id'));
   const hasAccessToCompany = companies.some(company => UtilsHelper.hasUserAccessToCompany(credentials, company));
-  const isClientAndAuthorized = [CLIENT_ADMIN, COACH].includes(userClientRole) &&
-    (hasAccessToHolding || hasAccessToCompany);
+  const isHoldingAndAuthorized = [HOLDING_ADMIN].includes(userHoldingRole) && hasAccessToHolding;
+  const isClientAndAuthorized = [CLIENT_ADMIN, COACH].includes(userClientRole) && hasAccessToCompany;
 
-  if (!isAdminVendor && !isTOM && !isTrainerAndAuthorized && !isClientAndAuthorized) throw Boom.forbidden();
+  if (!isAdminVendor && !isTOM && !isTrainerAndAuthorized && !isClientAndAuthorized && !isHoldingAndAuthorized) {
+    throw Boom.forbidden();
+  }
 };
 
 exports.checkSalesRepresentativeExists = async (req) => {
