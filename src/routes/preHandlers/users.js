@@ -24,6 +24,7 @@ const {
   VENDOR,
   AUXILIARY_WITHOUT_COMPANY,
   TRAINER,
+  HOLDING_ADMIN,
 } = require('../../helpers/constants');
 
 const { language } = translate;
@@ -240,22 +241,29 @@ exports.authorizeUserCreation = async (req) => {
 exports.authorizeUsersGet = async (req) => {
   const { auth, query } = req;
   const queryCompanyId = query.company;
+  const queryHoldingId = query.holding;
   const vendorRole = get(req, 'auth.credentials.role.vendor.name');
   const clientRole = get(req, 'auth.credentials.role.client.name');
+  const holdingRole = get(req, 'auth.credentials.role.holding.name');
+  const loggedUserHolding = get(req, 'auth.credentials.holding._id');
 
   if (queryCompanyId) {
     const company = await Company.countDocuments({ _id: queryCompanyId });
     if (!company) throw Boom.notFound();
   }
 
-  if (!vendorRole && !queryCompanyId) throw Boom.forbidden();
-  if (!vendorRole && !UtilsHelper.hasUserAccessToCompany(auth.credentials, queryCompanyId)) throw Boom.forbidden();
-  if (!clientRole && ![TRAINING_ORGANISATION_MANAGER, VENDOR_ADMIN].includes(vendorRole)) throw Boom.forbidden();
-  if (query.holding) {
-    if (![TRAINING_ORGANISATION_MANAGER, VENDOR_ADMIN].includes(vendorRole)) throw Boom.forbidden();
-    const holding = await Holding.countDocuments({ _id: query.holding });
+  if (queryHoldingId) {
+    const holding = await Holding.countDocuments({ _id: queryHoldingId });
     if (!holding) throw Boom.notFound();
   }
+
+  if (!vendorRole && !queryCompanyId && !queryHoldingId) throw Boom.forbidden();
+
+  if (!vendorRole && !(UtilsHelper.hasUserAccessToCompany(auth.credentials, queryCompanyId) ||
+    ([HOLDING_ADMIN].includes(holdingRole) && UtilsHelper.areObjectIdsEquals(loggedUserHolding, queryHoldingId)))) {
+    throw Boom.forbidden();
+  }
+  if (!clientRole && ![TRAINING_ORGANISATION_MANAGER, VENDOR_ADMIN].includes(vendorRole)) throw Boom.forbidden();
 
   return null;
 };
