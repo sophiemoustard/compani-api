@@ -655,7 +655,12 @@ describe('SEEDS VERIFICATION', () => {
             .populate({
               path: 'companyRepresentative',
               select: '_id',
-              populate: [{ path: 'company' }, { path: 'role.client', select: 'name' }],
+              populate: [
+                { path: 'company' },
+                { path: 'holding' },
+                { path: 'role.client', select: 'name' },
+                { path: 'role.holding', select: 'name' },
+              ],
             })
             .populate({
               path: 'salesRepresentative',
@@ -682,9 +687,10 @@ describe('SEEDS VERIFICATION', () => {
           expect(isEveryTraineeCompanyAttachedToCourse).toBeTruthy();
         });
 
-        it('should pass if companyRepresentative is defined in intra course only', () => {
+        it('should pass if companyRepresentative is defined in intra or intra_holding course only', () => {
           const isCompanyRepresentativeOnlyInIntraCourses = courseList
-            .every(c => !c.companyRepresentative || (c.companyRepresentative && c.type === INTRA));
+            .every(c => !c.companyRepresentative ||
+              (c.companyRepresentative && [INTRA, INTRA_HOLDING].includes(c.type)));
           expect(isCompanyRepresentativeOnlyInIntraCourses).toBeTruthy();
         });
 
@@ -694,11 +700,28 @@ describe('SEEDS VERIFICATION', () => {
           expect(areCompanyRepresentativesCoachOrAdmin).toBeTruthy();
         });
 
-        it('should pass if companyRepresentative is in good company', () => {
+        it('should pass if companyRepresentative is holding admin in intra holding courses', () => {
+          const areCompanyRepresentativesHoldingAdmin = courseList
+            .filter(c => c.type === INTRA_HOLDING)
+            .every(c => !c.companyRepresentative ||
+            [HOLDING_ADMIN].includes(get(c.companyRepresentative, 'role.holding.name')));
+          expect(areCompanyRepresentativesHoldingAdmin).toBeTruthy();
+        });
+
+        it('should pass if companyRepresentative is in good company (intra courses)', () => {
           const areCoursesAndCompanyRepresentativesInSameCompany = courseList
+            .filter(c => c.type === INTRA)
             .every(c => !c.companyRepresentative ||
               UtilsHelper.areObjectIdsEquals(c.companyRepresentative.company, c.companies[0]._id));
           expect(areCoursesAndCompanyRepresentativesInSameCompany).toBeTruthy();
+        });
+
+        it('should pass if companyRepresentative is in good holding (intra_holding courses)', () => {
+          const areCoursesAndCompanyRepresentativesInSameHolding = courseList
+            .filter(c => c.type === INTRA_HOLDING)
+            .every(c => !c.companyRepresentative ||
+              UtilsHelper.areObjectIdsEquals(c.companyRepresentative.holding, c.holding._id));
+          expect(areCoursesAndCompanyRepresentativesInSameHolding).toBeTruthy();
         });
 
         it('should pass if all trainees registered in restricted access courses are in good company', () => {
@@ -765,6 +788,13 @@ describe('SEEDS VERIFICATION', () => {
             .every(course => course.type === INTRA_HOLDING || !has(course, 'holding'));
 
           expect(onlyIntraHoldingCoursesHaveHolding).toBeTruthy();
+        });
+
+        it('should pass if every holding exists', () => {
+          const holdingExist = courseList
+            .every(course => course.type !== INTRA_HOLDING || course.holding);
+
+          expect(holdingExist).toBeTruthy();
         });
 
         it('should pass if companies are in intra_holding courses holding', () => {
