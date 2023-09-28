@@ -136,22 +136,21 @@ exports.checkInterlocutors = async (req, course) => {
     if (![COACH, CLIENT_ADMIN].includes(get(companyRepresentative, 'role.client.name'))) {
       throw Boom.forbidden();
     }
-    if (course.type === INTRA) {
-      if (!UtilsHelper.areObjectIdsEquals(companyRepresentative.company, course.companies[0])) {
-        if (![HOLDING_ADMIN].includes(get(companyRepresentative, 'role.holding.name'))) throw Boom.forbidden();
+    if (course.type === INTRA && !UtilsHelper.areObjectIdsEquals(companyRepresentative.company, course.companies[0])) {
+      if (![HOLDING_ADMIN].includes(get(companyRepresentative, 'role.holding.name'))) throw Boom.forbidden();
 
-        const companyRepresentativeHolding = await CompanyHolding
-          .findOne({ company: companyRepresentative.company })
-          .lean();
-        const courseCompanyHolding = await CompanyHolding.findOne({ company: course.companies[0] }).lean();
+      const companyRepresentativeHolding = await CompanyHolding
+        .findOne({ company: companyRepresentative.company })
+        .lean();
+      const courseCompanyHolding = await CompanyHolding.findOne({ company: course.companies[0] }).lean();
 
-        if (!UtilsHelper.areObjectIdsEquals(companyRepresentativeHolding.holding, courseCompanyHolding.holding)) {
-          throw Boom.notFound();
-        }
+      if (!UtilsHelper.areObjectIdsEquals(companyRepresentativeHolding.holding, courseCompanyHolding.holding)) {
+        throw Boom.notFound();
       }
     } else if (course.type === INTRA_HOLDING) {
-      if (![HOLDING_ADMIN].includes(get(companyRepresentative, 'role.holding.name'))) throw Boom.forbidden();
-      if (!UtilsHelper.areObjectIdsEquals(companyRepresentative.holding, course.holding)) throw Boom.forbidden();
+      const hasCompRepHoldingAdminRole = [HOLDING_ADMIN].includes(get(companyRepresentative, 'role.holding.name'));
+      const isCompRepFromCourseHolding = UtilsHelper.areObjectIdsEquals(companyRepresentative.holding, course.holding);
+      if (!(hasCompRepHoldingAdminRole && isCompRepFromCourseHolding)) throw Boom.forbidden();
     }
   }
 
@@ -218,17 +217,17 @@ exports.authorizeCourseEdit = async (req) => {
     await this.checkInterlocutors(req, course);
 
     if (get(req, 'payload.contact')) {
-      const isCompanyRepContactAndUpdated = !!get(req, 'payload.companyRepresentative') &&
+      const isCompanyRepContact = !!get(req, 'payload.companyRepresentative') &&
         UtilsHelper.areObjectIdsEquals(course.companyRepresentative, get(course, 'contact._id'));
       let canUserUpdateCompanyRep = false;
       if (course.type === INTRA) {
         canUserUpdateCompanyRep = companies.some(c => UtilsHelper.hasUserAccessToCompany(credentials, c));
       }
       if (course.type === INTRA_HOLDING) {
-        canUserUpdateCompanyRep = UtilsHelper
-          .areObjectIdsEquals(get(credentials, 'holding._id'), course.holding);
+        canUserUpdateCompanyRep = UtilsHelper.areObjectIdsEquals(get(credentials, 'holding._id'), course.holding) &&
+          [HOLDING_ADMIN].includes(userHoldingRole);
       }
-      if (!isRofOrAdmin && !(isCompanyRepContactAndUpdated && canUserUpdateCompanyRep)) throw Boom.forbidden();
+      if (!isRofOrAdmin && !(isCompanyRepContact && canUserUpdateCompanyRep)) throw Boom.forbidden();
 
       const payloadInterlocutors = pick(req.payload, ['salesRepresentative', 'trainer', 'companyRepresentative']);
       const courseInterlocutors = pick(course, ['salesRepresentative', 'trainer', 'companyRepresentative']);

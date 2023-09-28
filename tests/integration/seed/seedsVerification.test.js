@@ -717,11 +717,11 @@ describe('SEEDS VERIFICATION', () => {
         });
 
         it('should pass if companyRepresentative is in good holding (intra_holding courses)', () => {
-          const areCoursesAndCompanyRepresentativesInSameHolding = courseList
+          const companyRepIsInCourseHolding = courseList
             .filter(c => c.type === INTRA_HOLDING)
             .every(c => !c.companyRepresentative ||
               UtilsHelper.areObjectIdsEquals(c.companyRepresentative.holding, c.holding._id));
-          expect(areCoursesAndCompanyRepresentativesInSameHolding).toBeTruthy();
+          expect(companyRepIsInCourseHolding).toBeTruthy();
         });
 
         it('should pass if all trainees registered in restricted access courses are in good company', () => {

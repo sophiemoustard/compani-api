@@ -2154,7 +2154,7 @@ describe('COURSES ROUTES - PUT /courses/{_id}', () => {
       expect(response.statusCode).toBe(403);
     });
 
-    it('should not update intra_holding course as user is coach but try to update company representative', async () => {
+    it('should return 403 if coach try to update company representative (intra_holding course)', async () => {
       authToken = await getToken('coach');
 
       const response = await app.inject({

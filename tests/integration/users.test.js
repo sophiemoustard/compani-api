@@ -621,7 +621,7 @@ describe('USERS ROUTES - GET /users', () => {
       expect(res.result.data.users.every(u => get(u, 'role.client.name') === CLIENT_ADMIN)).toBeTruthy();
     });
 
-    it('should get 403 if no company or holding query', async () => {
+    it('should get 403 if no company or holding in query', async () => {
       const res = await app.inject({
         method: 'GET',
         url: '/users?role=client_admin',
