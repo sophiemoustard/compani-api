@@ -98,7 +98,7 @@ describe('list', () => {
     find.returns(SinonMongoose.stubChainedQueries(companyList, ['lean']));
     companyHoldingFind.returns(SinonMongoose.stubChainedQueries(companyHoldingsList, ['lean']));
 
-    const result = await CompanyHelper.list({ noHolding: true });
+    const result = await CompanyHelper.list({ withoutHoldingCompanies: true });
 
     expect(result).toEqual(companyList);
     SinonMongoose.calledOnceWithExactly(
@@ -112,6 +112,28 @@ describe('list', () => {
         { query: 'lean', args: [] },
       ]
     );
+  });
+
+  it('should return companies from specific holding', async () => {
+    const companyId = new ObjectId();
+    const holdingId = new ObjectId();
+    const companyHoldingsList = [
+      { _id: new ObjectId(), company: { _id: companyId, name: 'Alenvi' }, holding: holdingId },
+    ];
+    companyHoldingFind.returns(SinonMongoose.stubChainedQueries(companyHoldingsList));
+
+    const result = await CompanyHelper.list({ holding: holdingId });
+
+    expect(result).toEqual([{ _id: companyId, name: 'Alenvi' }]);
+    SinonMongoose.calledOnceWithExactly(
+      companyHoldingFind,
+      [
+        { query: 'find', args: [{ holding: holdingId }, { company: 1 }] },
+        { query: 'populate', args: [{ path: 'company', select: 'name' }] },
+        { query: 'lean', args: [] },
+      ]
+    );
+    sinon.assert.notCalled(find);
   });
 });
 

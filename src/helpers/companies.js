@@ -28,9 +28,16 @@ exports.createCompany = async (companyPayload) => {
 
 exports.list = async (query) => {
   let linkedCompanyList = [];
-  if (query.noHolding) {
+  if (query.withoutHoldingCompanies) {
     const companyHoldings = await CompanyHolding.find({}, { company: 1 }).lean();
-    linkedCompanyList = (companyHoldings.map(ch => ch.company));
+    linkedCompanyList = companyHoldings.map(ch => ch.company);
+  } else if (query.holding) {
+    const companyHoldingList = await CompanyHolding
+      .find({ holding: query.holding }, { company: 1 })
+      .populate({ path: 'company', select: 'name' })
+      .lean();
+
+    return companyHoldingList.map(ch => ch.company);
   }
 
   return Company.find({ _id: { $nin: linkedCompanyList.flat() } }, { name: 1 }).lean();

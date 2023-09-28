@@ -1,9 +1,10 @@
 const Boom = require('@hapi/boom');
 const get = require('lodash/get');
 const Company = require('../../models/Company');
+const Holding = require('../../models/Holding');
 const translate = require('../../helpers/translate');
 const UtilsHelper = require('../../helpers/utils');
-const { TRAINING_ORGANISATION_MANAGER, VENDOR_ADMIN, CLIENT_ADMIN } = require('../../helpers/constants');
+const { TRAINING_ORGANISATION_MANAGER, VENDOR_ADMIN, CLIENT_ADMIN, HOLDING_ADMIN } = require('../../helpers/constants');
 const User = require('../../models/User');
 
 const { language } = translate;
@@ -57,6 +58,27 @@ exports.authorizeCompanyCreation = async (req) => {
     .countDocuments({ name }, { limit: 1 })
     .collation({ locale: 'fr', strength: 1 });
   if (nameAlreadyExists) throw Boom.conflict(translate[language].companyExists);
+
+  return null;
+};
+
+exports.authorizeGetCompanies = async (req) => {
+  const { holding } = req.query;
+
+  if (holding) {
+    const holdingExist = await Holding.countDocuments({ _id: holding });
+    if (!holdingExist) throw Boom.notFound();
+
+    const vendorRole = get(req, 'auth.credentials.role.vendor.name');
+
+    if ([TRAINING_ORGANISATION_MANAGER, VENDOR_ADMIN].includes(vendorRole)) return null;
+
+    const holdingRole = get(req, 'auth.credentials.role.holding.name');
+    const userHolding = get(req, 'auth.credentials.holding._id');
+    if (!([HOLDING_ADMIN].includes(holdingRole) && UtilsHelper.areObjectIdsEquals(holding, userHolding))) {
+      throw Boom.forbidden();
+    }
+  }
 
   return null;
 };

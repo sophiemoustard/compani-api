@@ -13,7 +13,12 @@ const {
 } = require('../controllers/companyController');
 const { DOCUMENT_TYPE_LIST } = require('../helpers/constants');
 const { COMPANY_BILLING_PERIODS, COMPANY_TYPES, TRADE_NAME_REGEX, APE_CODE_REGEX } = require('../models/Company');
-const { authorizeCompanyUpdate, authorizeCompanyCreation, doesCompanyExist } = require('./preHandlers/companies');
+const {
+  authorizeCompanyUpdate,
+  authorizeCompanyCreation,
+  doesCompanyExist,
+  authorizeGetCompanies,
+} = require('./preHandlers/companies');
 const { addressValidation, formDataPayload } = require('./validations/utils');
 
 const tradeNameValidation = Joi.string().regex(TRADE_NAME_REGEX);
@@ -130,9 +135,14 @@ exports.plugin = {
       handler: list,
       options: {
         validate: {
-          query: Joi.object({ noHolding: Joi.boolean() }),
+          query: Joi.object({
+            withoutHoldingCompanies: Joi.boolean(),
+            holding: Joi.objectId(),
+          }).oxor('withoutHoldingCompanies', 'holding'),
         },
         auth: { mode: 'optional' },
+        pre: [{ method: authorizeGetCompanies }],
+
       },
     });
 

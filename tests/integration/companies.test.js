@@ -7,8 +7,8 @@ const Drive = require('../../src/models/Google/Drive');
 const app = require('../../server');
 const { company, populateDB, usersList } = require('./seed/companiesSeed');
 const { getToken, getTokenByCredentials } = require('./helpers/authentication');
-const { authCompany, otherCompany } = require('../seed/authCompaniesSeed');
-const { noRoleNoCompany, coach } = require('../seed/authUsersSeed');
+const { authCompany, otherCompany, otherHolding, authHolding } = require('../seed/authCompaniesSeed');
+const { noRoleNoCompany, coach, holdingAdminFromOtherCompany } = require('../seed/authUsersSeed');
 const { generateFormData, getStream } = require('./utils');
 
 describe('NODE ENV', () => {
@@ -494,12 +494,99 @@ describe('COMPANIES ROUTES - GET /companies', () => {
     it('should list companies not in holdings', async () => {
       const response = await app.inject({
         method: 'GET',
-        url: '/companies?noHolding=true',
+        url: '/companies?withoutHoldingCompanies=true',
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(response.statusCode).toBe(200);
       expect(response.result.data.companies.length).toEqual(1);
+    });
+  });
+
+  describe('TRAINING_ORGANISATION_MANAGER', () => {
+    beforeEach(populateDB);
+
+    it('should list company in holding', async () => {
+      authToken = await getToken('training_organisation_manager');
+
+      const response = await app.inject({
+        method: 'GET',
+        url: `/companies?holding=${otherHolding._id.toHexString()}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(200);
+      expect(response.result.data.companies.length).toEqual(2);
+    });
+
+    it('should return 404 if holding doesn\'t exists', async () => {
+      authToken = await getToken('training_organisation_manager');
+
+      const response = await app.inject({
+        method: 'GET',
+        url: `/companies?holding=${new ObjectId()}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(404);
+    });
+
+    it('should return 400 if holding and withoutHoldingCompanies in query', async () => {
+      authToken = await getToken('training_organisation_manager');
+
+      const response = await app.inject({
+        method: 'GET',
+        url: `/companies?holding=${otherHolding._id.toHexString()}&withoutHoldingCompanies=true`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
+  });
+
+  describe('Other roles', () => {
+    const roles = [
+      { name: 'helper', expectedCode: 403 },
+      { name: 'planning_referent', expectedCode: 403 },
+      { name: 'client_admin', expectedCode: 403 },
+      { name: 'trainer', expectedCode: 403 },
+    ];
+
+    roles.forEach((role) => {
+      it(`should return ${role.expectedCode} as user is ${role.name} and holding query`, async () => {
+        authToken = await getToken(role.name);
+        const response = await app.inject({
+          method: 'GET',
+          url: `/companies?holding=${otherHolding._id.toHexString()}`,
+          headers: { Cookie: `alenvi_token=${authToken}` },
+        });
+
+        expect(response.statusCode).toBe(role.expectedCode);
+      });
+
+      it('should list company in own holding', async () => {
+        authToken = await getTokenByCredentials(holdingAdminFromOtherCompany.local);
+
+        const response = await app.inject({
+          method: 'GET',
+          url: `/companies?holding=${otherHolding._id.toHexString()}`,
+          headers: { Cookie: `alenvi_token=${authToken}` },
+        });
+
+        expect(response.statusCode).toBe(200);
+      });
+
+      it('should return 403 if other holding', async () => {
+        authToken = await getTokenByCredentials(holdingAdminFromOtherCompany.local);
+
+        const response = await app.inject({
+          method: 'GET',
+          url: `/companies?holding=${authHolding._id.toHexString()}`,
+          headers: { Cookie: `alenvi_token=${authToken}` },
+        });
+
+        expect(response.statusCode).toBe(403);
+      });
     });
   });
 });
