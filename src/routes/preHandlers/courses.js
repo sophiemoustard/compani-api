@@ -174,6 +174,7 @@ exports.authorizeCourseEdit = async (req) => {
     const courseTrainerId = get(course, 'trainer') || null;
     const companies = [INTRA, INTRA_HOLDING].includes(course.type) ? course.companies : [];
     const isIntraHoldingCourse = course.type === INTRA_HOLDING;
+    const isIntraCourse = course.type === INTRA;
     const holding = isIntraHoldingCourse ? course.holding : null;
     this.checkAuthorization(credentials, courseTrainerId, companies, holding);
 
@@ -182,8 +183,10 @@ exports.authorizeCourseEdit = async (req) => {
     const isRofOrAdmin = [TRAINING_ORGANISATION_MANAGER, VENDOR_ADMIN].includes(userVendorRole);
     const isHoldingAdmin = [HOLDING_ADMIN].includes(userHoldingRole);
 
-    if (get(req, 'payload.companyRepresentative') && isIntraHoldingCourse && !(isRofOrAdmin || isHoldingAdmin)) {
-      throw Boom.forbidden();
+    if (get(req, 'payload.companyRepresentative')) {
+      const hasAccessToCompany = companies.some(c => UtilsHelper.hasUserAccessToCompany(credentials, c));
+      if (isIntraHoldingCourse && !(isRofOrAdmin || isHoldingAdmin)) throw Boom.forbidden();
+      if (isIntraCourse && !isRofOrAdmin && !hasAccessToCompany) throw Boom.forbidden();
     }
 
     if ((get(req, 'payload.salesRepresentative') || get(req, 'payload.trainer')) && !isRofOrAdmin) {
@@ -219,15 +222,7 @@ exports.authorizeCourseEdit = async (req) => {
     if (get(req, 'payload.contact')) {
       const isCompanyRepContact = !!get(req, 'payload.companyRepresentative') &&
         UtilsHelper.areObjectIdsEquals(course.companyRepresentative, get(course, 'contact._id'));
-      let canUserUpdateCompanyRep = false;
-      if (course.type === INTRA) {
-        canUserUpdateCompanyRep = companies.some(c => UtilsHelper.hasUserAccessToCompany(credentials, c));
-      }
-      if (course.type === INTRA_HOLDING) {
-        canUserUpdateCompanyRep = UtilsHelper.areObjectIdsEquals(get(credentials, 'holding._id'), course.holding) &&
-          [HOLDING_ADMIN].includes(userHoldingRole);
-      }
-      if (!isRofOrAdmin && !(isCompanyRepContact && canUserUpdateCompanyRep)) throw Boom.forbidden();
+      if (!isRofOrAdmin && !isCompanyRepContact) throw Boom.forbidden();
 
       const payloadInterlocutors = pick(req.payload, ['salesRepresentative', 'trainer', 'companyRepresentative']);
       const courseInterlocutors = pick(course, ['salesRepresentative', 'trainer', 'companyRepresentative']);
