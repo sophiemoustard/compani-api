@@ -77,8 +77,7 @@ exports.checkSalesRepresentativeExists = async (req, isRofOrAdmin) => {
 exports.checkTrainerExists = async (req, isRofOrAdmin) => {
   if (!isRofOrAdmin) throw Boom.forbidden();
 
-  const trainer = await User.findOne({ _id: req.payload.trainer }, { role: 1 })
-    .lean({ autopopulate: true });
+  const trainer = await User.findOne({ _id: req.payload.trainer }, { role: 1 }).lean({ autopopulate: true });
 
   if (![VENDOR_ADMIN, TRAINING_ORGANISATION_MANAGER, TRAINER].includes(get(trainer, 'role.vendor.name'))) {
     throw Boom.forbidden();
@@ -102,13 +101,12 @@ exports.checkCompanyRepresentativeExists = async (req, course, isRofOrAdmin) => 
     .populate({ path: 'holding' })
     .lean({ autopopulate: true });
 
-  if (![COACH, CLIENT_ADMIN].includes(get(companyRepresentative, 'role.client.name'))) {
-    throw Boom.forbidden();
-  }
-  const intraCourseCompanyRepIsNotFromCourseCompany = course.type === INTRA &&
+  if (![COACH, CLIENT_ADMIN].includes(get(companyRepresentative, 'role.client.name'))) throw Boom.forbidden();
+
+  const companyRepIsNotFromIntraCourseCompany = course.type === INTRA &&
     !UtilsHelper.areObjectIdsEquals(companyRepresentative.company, course.companies[0]);
-  if (intraCourseCompanyRepIsNotFromCourseCompany) {
-    if (![HOLDING_ADMIN].includes(get(companyRepresentative, 'role.holding.name'))) throw Boom.forbidden();
+  if (companyRepIsNotFromIntraCourseCompany) {
+    if (get(companyRepresentative, 'role.holding.name') !== HOLDING_ADMIN) throw Boom.forbidden();
 
     const companyRepresentativeHolding = await CompanyHolding
       .findOne({ company: companyRepresentative.company })
@@ -129,7 +127,7 @@ exports.checkCompanyRepresentativeExists = async (req, course, isRofOrAdmin) => 
 
 exports.checkContact = (req, course, isRofOrAdmin) => {
   const isCompanyRepContactAndUpdated = !!get(req, 'payload.companyRepresentative') &&
-        UtilsHelper.areObjectIdsEquals(course.companyRepresentative, get(course, 'contact._id'));
+    UtilsHelper.areObjectIdsEquals(course.companyRepresentative, get(course, 'contact._id'));
   if (!isRofOrAdmin && !isCompanyRepContactAndUpdated) throw Boom.forbidden();
 
   const payloadInterlocutors = pick(req.payload, ['salesRepresentative', 'trainer', 'companyRepresentative']);

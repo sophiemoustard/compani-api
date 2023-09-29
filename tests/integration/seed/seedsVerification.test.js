@@ -689,8 +689,7 @@ describe('SEEDS VERIFICATION', () => {
 
         it('should pass if companyRepresentative is defined in intra or intra_holding course only', () => {
           const isCompanyRepresentativeOnlyInIntraCourses = courseList
-            .every(c => !c.companyRepresentative ||
-              (c.companyRepresentative && [INTRA, INTRA_HOLDING].includes(c.type)));
+            .every(c => !c.companyRepresentative || [INTRA, INTRA_HOLDING].includes(c.type));
           expect(isCompanyRepresentativeOnlyInIntraCourses).toBeTruthy();
         });
 
@@ -704,7 +703,7 @@ describe('SEEDS VERIFICATION', () => {
           const areCompanyRepresentativesHoldingAdmin = courseList
             .filter(c => c.type === INTRA_HOLDING)
             .every(c => !c.companyRepresentative ||
-            [HOLDING_ADMIN].includes(get(c.companyRepresentative, 'role.holding.name')));
+              [HOLDING_ADMIN].includes(get(c.companyRepresentative, 'role.holding.name')));
           expect(areCompanyRepresentativesHoldingAdmin).toBeTruthy();
         });
 
