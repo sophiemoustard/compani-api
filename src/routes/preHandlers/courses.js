@@ -527,6 +527,9 @@ exports.authorizeSmsSending = async (req) => {
 };
 
 exports.authorizeCourseCompanyAddition = async (req) => {
+  const vendorRole = get(req, 'auth.credentials.role.vendor.name');
+  if (vendorRole === TRAINER) throw Boom.forbidden();
+
   const company = await Company.countDocuments({ _id: req.payload.company });
   if (!company) throw Boom.notFound();
 
@@ -536,10 +539,6 @@ exports.authorizeCourseCompanyAddition = async (req) => {
 
   const isAlreadyLinked = UtilsHelper.doesArrayIncludeId(course.companies, req.payload.company);
   if (isAlreadyLinked) throw Boom.conflict(translate[language].courseCompanyAlreadyExists);
-
-  const vendorRole = get(req, 'auth.credentials.role.vendor.name');
-  const isTrainer = vendorRole === TRAINER;
-  if (isTrainer) throw Boom.forbidden();
 
   if (course.type === INTRA_HOLDING) {
     const isCompanyInCourseHolding = await CompanyHolding
@@ -551,7 +550,7 @@ exports.authorizeCourseCompanyAddition = async (req) => {
 
     const holdingRole = get(req, 'auth.credentials.role.holding.name');
     const userHolding = get(req, 'auth.credentials.holding._id');
-    if (!([HOLDING_ADMIN].includes(holdingRole) && UtilsHelper.areObjectIdsEquals(course.holding, userHolding))) {
+    if (holdingRole !== HOLDING_ADMIN && UtilsHelper.areObjectIdsEquals(course.holding, userHolding)) {
       throw Boom.forbidden();
     }
   }

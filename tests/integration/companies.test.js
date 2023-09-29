@@ -505,10 +505,11 @@ describe('COMPANIES ROUTES - GET /companies', () => {
 
   describe('TRAINING_ORGANISATION_MANAGER', () => {
     beforeEach(populateDB);
+    beforeEach(async () => {
+      authToken = await getToken('training_organisation_manager');
+    });
 
     it('should list company in holding', async () => {
-      authToken = await getToken('training_organisation_manager');
-
       const response = await app.inject({
         method: 'GET',
         url: `/companies?holding=${otherHolding._id.toHexString()}`,
@@ -520,8 +521,6 @@ describe('COMPANIES ROUTES - GET /companies', () => {
     });
 
     it('should return 404 if holding doesn\'t exists', async () => {
-      authToken = await getToken('training_organisation_manager');
-
       const response = await app.inject({
         method: 'GET',
         url: `/companies?holding=${new ObjectId()}`,
@@ -532,8 +531,6 @@ describe('COMPANIES ROUTES - GET /companies', () => {
     });
 
     it('should return 400 if holding and withoutHoldingCompanies in query', async () => {
-      authToken = await getToken('training_organisation_manager');
-
       const response = await app.inject({
         method: 'GET',
         url: `/companies?holding=${otherHolding._id.toHexString()}&withoutHoldingCompanies=true`,

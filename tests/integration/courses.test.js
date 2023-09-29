@@ -3939,39 +3939,7 @@ describe('COURSES ROUTES - PUT /courses/{_id}/companies', () => {
     });
   });
 
-  describe('Other roles', () => {
-    const roles = [
-      { name: 'helper', expectedCode: 403 },
-      { name: 'planning_referent', expectedCode: 403 },
-      { name: 'client_admin', expectedCode: 403 },
-      { name: 'trainer', expectedCode: 403 },
-    ];
-    roles.forEach((role) => {
-      it(`should return ${role.expectedCode} as user is ${role.name} (inter_b2b)`, async () => {
-        authToken = await getToken(role.name);
-        const response = await app.inject({
-          method: 'PUT',
-          url: `/courses/${interb2bCourseId}/companies`,
-          headers: { Cookie: `alenvi_token=${authToken}` },
-          payload: { company: otherCompany._id },
-        });
-
-        expect(response.statusCode).toBe(role.expectedCode);
-      });
-
-      it(`should return ${role.expectedCode} as user is ${role.name} (intra_holding)`, async () => {
-        authToken = await getToken(role.name);
-        const response = await app.inject({
-          method: 'PUT',
-          url: `/courses/${coursesList[22]._id}/companies`,
-          headers: { Cookie: `alenvi_token=${authToken}` },
-          payload: { company: otherCompany._id },
-        });
-
-        expect(response.statusCode).toBe(role.expectedCode);
-      });
-    });
-
+  describe('HOLDING_ADMIN', () => {
     it('should return a 200 if holding admin try to add company to intra_holding course', async () => {
       authToken = await getTokenByCredentials(holdingAdminFromOtherCompany.local);
 
@@ -4009,6 +3977,40 @@ describe('COURSES ROUTES - PUT /courses/{_id}/companies', () => {
       });
 
       expect(response.statusCode).toBe(403);
+    });
+  });
+
+  describe('Other roles', () => {
+    const roles = [
+      { name: 'helper', expectedCode: 403 },
+      { name: 'planning_referent', expectedCode: 403 },
+      { name: 'client_admin', expectedCode: 403 },
+      { name: 'trainer', expectedCode: 403 },
+    ];
+    roles.forEach((role) => {
+      it(`should return ${role.expectedCode} as user is ${role.name} (inter_b2b)`, async () => {
+        authToken = await getToken(role.name);
+        const response = await app.inject({
+          method: 'PUT',
+          url: `/courses/${interb2bCourseId}/companies`,
+          headers: { Cookie: `alenvi_token=${authToken}` },
+          payload: { company: otherCompany._id },
+        });
+
+        expect(response.statusCode).toBe(role.expectedCode);
+      });
+
+      it(`should return ${role.expectedCode} as user is ${role.name} (intra_holding)`, async () => {
+        authToken = await getToken(role.name);
+        const response = await app.inject({
+          method: 'PUT',
+          url: `/courses/${coursesList[22]._id}/companies`,
+          headers: { Cookie: `alenvi_token=${authToken}` },
+          payload: { company: otherCompany._id },
+        });
+
+        expect(response.statusCode).toBe(role.expectedCode);
+      });
     });
   });
 });

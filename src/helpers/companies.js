@@ -31,7 +31,9 @@ exports.list = async (query) => {
   if (query.withoutHoldingCompanies) {
     const companyHoldings = await CompanyHolding.find({}, { company: 1 }).lean();
     linkedCompanyList = companyHoldings.map(ch => ch.company);
-  } else if (query.holding) {
+  }
+
+  if (query.holding) {
     const companyHoldingList = await CompanyHolding
       .find({ holding: query.holding }, { company: 1 })
       .populate({ path: 'company', select: 'name' })
