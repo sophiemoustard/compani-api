@@ -561,16 +561,6 @@ describe('USERS ROUTES - GET /users', () => {
       expect(res.statusCode).toBe(400);
     });
 
-    it('should return a 404 if company does not exist', async () => {
-      const res = await app.inject({
-        method: 'GET',
-        url: `/users?company=${new ObjectId()}`,
-        headers: { Cookie: `alenvi_token=${authToken}` },
-      });
-
-      expect(res.statusCode).toBe(404);
-    });
-
     it('should return a 403 if company is not the same and does not have a vendor role', async () => {
       const res = await app.inject({
         method: 'GET',
@@ -701,6 +691,16 @@ describe('USERS ROUTES - GET /users', () => {
       expect(res.statusCode).toBe(200);
       expect(res.result.data.users.length).toBe(1);
       expect(res.result.data.users.every(u => get(u, 'role.client.name') === COACH)).toBeTruthy();
+    });
+
+    it('should return a 404 if company does not exist', async () => {
+      const res = await app.inject({
+        method: 'GET',
+        url: `/users?company=${new ObjectId()}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(res.statusCode).toBe(404);
     });
 
     it('should return 404 if holding does not exist', async () => {
