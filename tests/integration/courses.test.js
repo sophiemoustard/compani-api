@@ -2198,6 +2198,17 @@ describe('COURSES ROUTES - PUT /courses/{_id}', () => {
       expect(response.statusCode).toBe(200);
     });
 
+    it('should return 403 if try to update inter_b2b course', async () => {
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/courses/${coursesList[4]._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload: { misc: 'test' },
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
+
     it('should return 403 if try to update trainer', async () => {
       const response = await app.inject({
         method: 'PUT',
