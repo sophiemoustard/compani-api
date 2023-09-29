@@ -3958,17 +3958,6 @@ describe('COURSES ROUTES - PUT /courses/{_id}/companies', () => {
 
         expect(response.statusCode).toBe(role.expectedCode);
       });
-      it(`should return ${role.expectedCode} as user is ${role.name} (inter_b2b)`, async () => {
-        authToken = await getToken(role.name);
-        const response = await app.inject({
-          method: 'PUT',
-          url: `/courses/${interb2bCourseId}/companies`,
-          headers: { Cookie: `alenvi_token=${authToken}` },
-          payload: { company: otherCompany._id },
-        });
-
-        expect(response.statusCode).toBe(role.expectedCode);
-      });
 
       it(`should return ${role.expectedCode} as user is ${role.name} (intra_holding)`, async () => {
         authToken = await getToken(role.name);
@@ -3983,7 +3972,7 @@ describe('COURSES ROUTES - PUT /courses/{_id}/companies', () => {
       });
     });
 
-    it('should return a 200 if intra_holding try to add company to intra_holding course', async () => {
+    it('should return a 200 if holding admin try to add company to intra_holding course', async () => {
       authToken = await getTokenByCredentials(holdingAdminFromOtherCompany.local);
 
       const response = await app.inject({
@@ -3994,6 +3983,32 @@ describe('COURSES ROUTES - PUT /courses/{_id}/companies', () => {
       });
 
       expect(response.statusCode).toBe(200);
+    });
+
+    it('should return a 403 if holding admin is not from holding (intra_holding)', async () => {
+      authToken = await getTokenByCredentials(holdingAdminFromAuthCompany.local);
+
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/courses/${coursesList[22]._id}/companies`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload: { company: thirdCompany._id },
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
+
+    it('should return a 403 if holding admin try to update inter course', async () => {
+      authToken = await getTokenByCredentials(holdingAdminFromAuthCompany.local);
+
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/courses/${coursesList[4]._id}/companies`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload: { company: thirdCompany._id },
+      });
+
+      expect(response.statusCode).toBe(403);
     });
   });
 });
