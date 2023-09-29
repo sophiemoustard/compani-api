@@ -25,6 +25,7 @@ const {
   COMPANY_TRANSPORT,
   ORIGIN_OPTIONS,
   NONE,
+  HOLDING_ADMIN,
 } = require('../helpers/constants');
 const { formatQuery, queryMiddlewareList } = require('./preHooks/validate');
 const { CompaniDate } = require('../helpers/dates/companiDates');
@@ -48,6 +49,7 @@ const USER_ROLE_LIST = [
   TRAINING_ORGANISATION_MANAGER,
   TRAINER,
   HELPER,
+  HOLDING_ADMIN,
 ];
 
 const TRANSPORT_TYPE = [PUBLIC_TRANSPORT, PRIVATE_TRANSPORT, COMPANY_TRANSPORT, NONE];

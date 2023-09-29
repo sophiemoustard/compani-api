@@ -53,7 +53,7 @@ exports.checkAuthorization = (credentials, courseTrainerId, companies, holding =
 
   const hasAccessToHolding = UtilsHelper.areObjectIdsEquals(holding, get(credentials, 'holding._id'));
   const hasAccessToCompany = companies.some(company => UtilsHelper.hasUserAccessToCompany(credentials, company));
-  const isHoldingAndAuthorized = [HOLDING_ADMIN].includes(userHoldingRole) && hasAccessToHolding;
+  const isHoldingAndAuthorized = userHoldingRole === HOLDING_ADMIN && hasAccessToHolding;
   const isClientAndAuthorized = [CLIENT_ADMIN, COACH].includes(userClientRole) && hasAccessToCompany;
 
   if (!isAdminVendor && !isTOM && !isTrainerAndAuthorized && !isClientAndAuthorized && !isHoldingAndAuthorized) {
@@ -61,7 +61,9 @@ exports.checkAuthorization = (credentials, courseTrainerId, companies, holding =
   }
 };
 
-exports.checkSalesRepresentativeExists = async (req) => {
+exports.checkSalesRepresentativeExists = async (req, isRofOrAdmin) => {
+  if (!isRofOrAdmin) throw Boom.forbidden();
+
   const salesRepresentative = await User.findOne({ _id: req.payload.salesRepresentative }, { role: 1 })
     .lean({ autopopulate: true });
 
@@ -72,8 +74,71 @@ exports.checkSalesRepresentativeExists = async (req) => {
   return null;
 };
 
+exports.checkTrainerExists = async (req, isRofOrAdmin) => {
+  if (!isRofOrAdmin) throw Boom.forbidden();
+
+  const trainer = await User.findOne({ _id: req.payload.trainer }, { role: 1 }).lean({ autopopulate: true });
+
+  if (![VENDOR_ADMIN, TRAINING_ORGANISATION_MANAGER, TRAINER].includes(get(trainer, 'role.vendor.name'))) {
+    throw Boom.forbidden();
+  }
+
+  return null;
+};
+
+exports.checkCompanyRepresentativeExists = async (req, course, isRofOrAdmin) => {
+  const { credentials } = req.auth;
+  const isIntraHoldingCourse = course.type === INTRA_HOLDING;
+  const isIntraCourse = course.type === INTRA;
+  const isHoldingAdmin = get(req, 'auth.credentials.role.holding.name') === HOLDING_ADMIN;
+  const hasAccessToCompany = course.companies.some(c => UtilsHelper.hasUserAccessToCompany(credentials, c));
+  if (isIntraHoldingCourse && !(isRofOrAdmin || isHoldingAdmin)) throw Boom.forbidden();
+  if (isIntraCourse && !isRofOrAdmin && !hasAccessToCompany) throw Boom.forbidden();
+
+  const companyRepresentative = await User
+    .findOne({ _id: req.payload.companyRepresentative }, { role: 1 })
+    .populate({ path: 'company' })
+    .populate({ path: 'holding' })
+    .lean({ autopopulate: true });
+
+  if (![COACH, CLIENT_ADMIN].includes(get(companyRepresentative, 'role.client.name'))) throw Boom.forbidden();
+
+  const companyRepIsNotFromIntraCourseCompany = course.type === INTRA &&
+    !UtilsHelper.areObjectIdsEquals(companyRepresentative.company, course.companies[0]);
+  if (companyRepIsNotFromIntraCourseCompany) {
+    if (get(companyRepresentative, 'role.holding.name') !== HOLDING_ADMIN) throw Boom.forbidden();
+
+    const companyRepresentativeHolding = await CompanyHolding
+      .findOne({ company: companyRepresentative.company })
+      .lean();
+    const courseCompanyHolding = await CompanyHolding.findOne({ company: course.companies[0] }).lean();
+
+    if (!UtilsHelper.areObjectIdsEquals(companyRepresentativeHolding.holding, courseCompanyHolding.holding)) {
+      throw Boom.notFound();
+    }
+  } else if (course.type === INTRA_HOLDING) {
+    const hasCompRepHoldingAdminRole = [HOLDING_ADMIN].includes(get(companyRepresentative, 'role.holding.name'));
+    const isCompRepFromCourseHolding = UtilsHelper.areObjectIdsEquals(companyRepresentative.holding, course.holding);
+    if (!(hasCompRepHoldingAdminRole && isCompRepFromCourseHolding)) throw Boom.forbidden();
+  }
+
+  return null;
+};
+
+exports.checkContact = (req, course, isRofOrAdmin) => {
+  const isCompanyRepContactAndUpdated = !!get(req, 'payload.companyRepresentative') &&
+    UtilsHelper.areObjectIdsEquals(course.companyRepresentative, get(course, 'contact._id'));
+  if (!isRofOrAdmin && !isCompanyRepContactAndUpdated) throw Boom.forbidden();
+
+  const payloadInterlocutors = pick(req.payload, ['salesRepresentative', 'trainer', 'companyRepresentative']);
+  const courseInterlocutors = pick(course, ['salesRepresentative', 'trainer', 'companyRepresentative']);
+  const interlocutors = { ...courseInterlocutors, ...payloadInterlocutors };
+
+  if (!UtilsHelper.doesArrayIncludeId(Object.values(interlocutors), req.payload.contact)) throw Boom.forbidden();
+};
+
 exports.authorizeCourseCreation = async (req) => {
-  await this.checkSalesRepresentativeExists(req);
+  await this.checkSalesRepresentativeExists(req, true);
 
   const subProgram = await SubProgram
     .findOne({ _id: req.payload.subProgram })
@@ -115,43 +180,6 @@ exports.authorizeGetDocumentsAndSms = async (req) => {
   return null;
 };
 
-exports.checkInterlocutors = async (req, courseCompanyId) => {
-  if (get(req, 'payload.salesRepresentative')) await this.checkSalesRepresentativeExists(req);
-
-  if (get(req, 'payload.trainer')) {
-    const trainer = await User.findOne({ _id: req.payload.trainer }, { role: 1 })
-      .lean({ autopopulate: true });
-
-    if (![VENDOR_ADMIN, TRAINING_ORGANISATION_MANAGER, TRAINER].includes(get(trainer, 'role.vendor.name'))) {
-      throw Boom.forbidden();
-    }
-  }
-  if (get(req, 'payload.companyRepresentative')) {
-    const companyRepresentative = await User
-      .findOne({ _id: req.payload.companyRepresentative }, { role: 1 })
-      .populate({ path: 'company' })
-      .lean({ autopopulate: true });
-
-    if (![COACH, CLIENT_ADMIN].includes(get(companyRepresentative, 'role.client.name'))) {
-      throw Boom.forbidden();
-    }
-    if (!UtilsHelper.areObjectIdsEquals(companyRepresentative.company, courseCompanyId)) {
-      if (![HOLDING_ADMIN].includes(get(companyRepresentative, 'role.holding.name'))) throw Boom.forbidden();
-
-      const companyRepresentativeHolding = await CompanyHolding
-        .findOne({ company: companyRepresentative.company })
-        .lean();
-      const courseCompanyHolding = await CompanyHolding.findOne({ company: courseCompanyId }).lean();
-
-      if (!UtilsHelper.areObjectIdsEquals(companyRepresentativeHolding.holding, courseCompanyHolding.holding)) {
-        throw Boom.notFound();
-      }
-    }
-  }
-
-  return null;
-};
-
 exports.authorizeCourseEdit = async (req) => {
   try {
     const { credentials } = req.auth;
@@ -173,10 +201,6 @@ exports.authorizeCourseEdit = async (req) => {
 
     const userVendorRole = get(req, 'auth.credentials.role.vendor.name');
     const isRofOrAdmin = [TRAINING_ORGANISATION_MANAGER, VENDOR_ADMIN].includes(userVendorRole);
-
-    if ((get(req, 'payload.salesRepresentative') || get(req, 'payload.trainer')) && !isRofOrAdmin) {
-      throw Boom.forbidden();
-    }
 
     const trainerIsTrainee = UtilsHelper.doesArrayIncludeId(course.trainees, get(req, 'payload.trainer'));
     if (trainerIsTrainee) throw Boom.forbidden();
@@ -202,20 +226,13 @@ exports.authorizeCourseEdit = async (req) => {
       if (courseBillsWithoutCreditNote.length > req.payload.expectedBillsCount) throw Boom.conflict();
     }
 
-    await this.checkInterlocutors(req, companies[0]);
-
-    if (get(req, 'payload.contact')) {
-      const isCompanyRepContactAndUpdated = !!get(req, 'payload.companyRepresentative') &&
-        UtilsHelper.areObjectIdsEquals(course.companyRepresentative, get(course, 'contact._id'));
-      const hasUserAccessToCourseCompany = companies.some(c => UtilsHelper.hasUserAccessToCompany(credentials, c));
-      if (!isRofOrAdmin && !(isCompanyRepContactAndUpdated && hasUserAccessToCourseCompany)) throw Boom.forbidden();
-
-      const payloadInterlocutors = pick(req.payload, ['salesRepresentative', 'trainer', 'companyRepresentative']);
-      const courseInterlocutors = pick(course, ['salesRepresentative', 'trainer', 'companyRepresentative']);
-      const interlocutors = { ...courseInterlocutors, ...payloadInterlocutors };
-
-      if (!UtilsHelper.doesArrayIncludeId(Object.values(interlocutors), req.payload.contact)) throw Boom.forbidden();
+    if (get(req, 'payload.salesRepresentative')) await this.checkSalesRepresentativeExists(req, isRofOrAdmin);
+    if (get(req, 'payload.trainer')) await this.checkTrainerExists(req, isRofOrAdmin);
+    if (get(req, 'payload.companyRepresentative')) {
+      await this.checkCompanyRepresentativeExists(req, course, isRofOrAdmin);
     }
+    if (get(req, 'payload.contact')) this.checkContact(req, course, isRofOrAdmin);
+
     const archivedAt = get(req, 'payload.archivedAt');
     if (archivedAt || unarchiveCourse) {
       if (!isRofOrAdmin) return Boom.forbidden();
