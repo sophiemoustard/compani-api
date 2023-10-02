@@ -1,5 +1,7 @@
 const { v4: uuidv4 } = require('uuid');
 const { ObjectId } = require('mongodb');
+const Company = require('../../../src/models/Company');
+const CompanyHolding = require('../../../src/models/CompanyHolding');
 const Course = require('../../../src/models/Course');
 const Program = require('../../../src/models/Program');
 const SubProgram = require('../../../src/models/SubProgram');
@@ -568,9 +570,9 @@ const coursesList = [
   { // 21 intra_holding course
     _id: new ObjectId(),
     subProgram: subProgramsList[0]._id,
-    contact: trainerAndCoach._id,
+    contact: trainer._id,
     misc: 'team formation',
-    trainer: trainerAndCoach._id,
+    trainer: trainer._id,
     trainees: [traineeFromAuthCompanyWithFormationExpoToken._id],
     companies: [authCompany._id],
     type: INTRA_HOLDING,
@@ -583,7 +585,7 @@ const coursesList = [
     subProgram: subProgramsList[0]._id,
     contact: holdingAdminFromOtherCompany._id,
     misc: 'team formation',
-    trainer: trainerAndCoach._id,
+    trainer: trainer._id,
     trainees: [],
     companies: [],
     type: INTRA_HOLDING,
@@ -1124,6 +1126,26 @@ const attendanceSheetList = [
   },
 ];
 
+const fourthCompany = {
+  _id: new ObjectId(),
+  name: '4th company',
+  tradeName: 'Fourth',
+  prefixNumber: 104,
+  iban: '1234',
+  bic: '5678',
+  ics: '9876',
+  folderId: '1234567890',
+  directDebitsFolderId: '1234567890',
+  customersFolderId: 'qwerty',
+  auxiliariesFolderId: 'asdfgh',
+  customersConfig: { billingPeriod: 'two_weeks' },
+  subscriptions: { erp: false },
+};
+
+const companyHoldingList = [
+  { _id: new ObjectId(), holding: authHolding._id, company: fourthCompany._id },
+];
+
 const populateDB = async () => {
   await deleteNonAuthenticationSeeds();
 
@@ -1133,6 +1155,8 @@ const populateDB = async () => {
     Attendance.create(attendanceList),
     AttendanceSheet.create(attendanceSheetList),
     Card.create(cardsList),
+    Company.create(fourthCompany),
+    CompanyHolding.create(companyHoldingList),
     Course.create(coursesList),
     CourseBill.create(courseBillsList),
     CourseBillsNumber.create(courseBillNumber),
@@ -1156,6 +1180,7 @@ module.exports = {
   activitiesList,
   stepList,
   coursesList,
+  fourthCompany,
   subProgramsList,
   programsList,
   traineeFromOtherCompany,

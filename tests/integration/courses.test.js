@@ -40,6 +40,7 @@ const {
   traineeFromAuthFormerlyInOther,
   clientAdminFromThirdCompany,
   traineeFromThirdCompany,
+  fourthCompany,
 } = require('./seed/coursesSeed');
 const { getToken, getTokenByCredentials } = require('./helpers/authentication');
 const {
@@ -769,7 +770,7 @@ describe('COURSES ROUTES - GET /courses', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      expect(response.result.data.courses.length).toEqual(10);
+      expect(response.result.data.courses.length).toEqual(12);
     });
 
     it('should get trainer\'s course (ops mobile)', async () => {
@@ -781,7 +782,7 @@ describe('COURSES ROUTES - GET /courses', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      expect(response.result.data.courses.length).toEqual(10);
+      expect(response.result.data.courses.length).toEqual(12);
 
       const course =
          response.result.data.courses.find(c => UtilsHelper.areObjectIdsEquals(coursesList[2]._id, c._id));
@@ -4004,9 +4005,9 @@ describe('COURSES ROUTES - PUT /courses/{_id}/companies', () => {
         authToken = await getToken(role.name);
         const response = await app.inject({
           method: 'PUT',
-          url: `/courses/${coursesList[22]._id}/companies`,
+          url: `/courses/${coursesList[21]._id}/companies`,
           headers: { Cookie: `alenvi_token=${authToken}` },
-          payload: { company: otherCompany._id },
+          payload: { company: fourthCompany._id },
         });
 
         expect(response.statusCode).toBe(role.expectedCode);

@@ -550,7 +550,7 @@ exports.authorizeCourseCompanyAddition = async (req) => {
 
     const holdingRole = get(req, 'auth.credentials.role.holding.name');
     const userHolding = get(req, 'auth.credentials.holding._id');
-    if (holdingRole !== HOLDING_ADMIN && UtilsHelper.areObjectIdsEquals(course.holding, userHolding)) {
+    if (!(holdingRole === HOLDING_ADMIN && UtilsHelper.areObjectIdsEquals(course.holding, userHolding))) {
       throw Boom.forbidden();
     }
   }
