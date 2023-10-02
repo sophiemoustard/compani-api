@@ -541,6 +541,33 @@ describe('COMPANIES ROUTES - GET /companies', () => {
     });
   });
 
+  describe('HOLDING_ADMIN', () => {
+    beforeEach(populateDB);
+    beforeEach(async () => {
+      authToken = await getTokenByCredentials(holdingAdminFromOtherCompany.local);
+    });
+
+    it('should list company in own holding', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/companies?holding=${otherHolding._id.toHexString()}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(200);
+    });
+
+    it('should return 403 if other holding', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/companies?holding=${authHolding._id.toHexString()}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
+  });
+
   describe('Other roles', () => {
     const roles = [
       { name: 'helper', expectedCode: 403 },
@@ -559,30 +586,6 @@ describe('COMPANIES ROUTES - GET /companies', () => {
         });
 
         expect(response.statusCode).toBe(role.expectedCode);
-      });
-
-      it('should list company in own holding', async () => {
-        authToken = await getTokenByCredentials(holdingAdminFromOtherCompany.local);
-
-        const response = await app.inject({
-          method: 'GET',
-          url: `/companies?holding=${otherHolding._id.toHexString()}`,
-          headers: { Cookie: `alenvi_token=${authToken}` },
-        });
-
-        expect(response.statusCode).toBe(200);
-      });
-
-      it('should return 403 if other holding', async () => {
-        authToken = await getTokenByCredentials(holdingAdminFromOtherCompany.local);
-
-        const response = await app.inject({
-          method: 'GET',
-          url: `/companies?holding=${authHolding._id.toHexString()}`,
-          headers: { Cookie: `alenvi_token=${authToken}` },
-        });
-
-        expect(response.statusCode).toBe(403);
       });
     });
   });
