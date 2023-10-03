@@ -561,11 +561,10 @@ exports.authorizeCourseCompanyAddition = async (req) => {
 
 exports.authorizeCourseCompanyDeletion = async (req) => {
   const { companyId } = req.params;
-  const isVendorUser = !!get(req, 'auth.credentials.role.vendor');
   const holdingRole = get(req, 'auth.credentials.role.holding.name');
 
   const course = await Course.findOne({ _id: req.params._id })
-    .populate({ path: 'bills', select: 'company', match: { company: companyId }, options: { isVendorUser } })
+    .populate({ path: 'bills', select: 'company', match: { company: companyId } })
     .populate({
       path: 'slots',
       select: 'attendances',
@@ -573,7 +572,6 @@ exports.authorizeCourseCompanyDeletion = async (req) => {
         path: 'attendances',
         select: 'company',
         match: { company: companyId },
-        options: { isVendorUser },
       },
     })
     .lean();
@@ -604,7 +602,6 @@ exports.authorizeCourseCompanyDeletion = async (req) => {
 
   const attendanceSheets = await AttendanceSheet
     .find({ course: course._id, company: companyId }, { company: 1 })
-    .setOptions({ isVendorUser })
     .lean();
 
   const hasAttendanceSheetsFromCompany = attendanceSheets
