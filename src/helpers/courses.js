@@ -763,8 +763,9 @@ exports.formatIntraCourseForPdf = (course) => {
   const courseData = {
     name,
     duration: UtilsHelper.getTotalDuration(course.slots),
-    company: course.companies[0].name,
+    company: course.companies.map(c => c.name).join(', '),
     trainer: course.trainer ? UtilsHelper.formatIdentity(course.trainer.identity, 'FL') : '',
+    type: course.type,
   };
 
   const filteredSlots = course.slots.filter(slot => slot.step.type === ON_SITE);
@@ -827,7 +828,7 @@ exports.generateAttendanceSheets = async (courseId) => {
     .populate({ path: 'subProgram', select: 'program', populate: { path: 'program', select: 'name' } })
     .lean();
 
-  const pdf = course.type === INTRA
+  const pdf = [INTRA, INTRA_HOLDING].includes(course.type)
     ? await IntraAttendanceSheet.getPdf(exports.formatIntraCourseForPdf(course))
     : await InterAttendanceSheet.getPdf(await exports.formatInterCourseForPdf(course));
 
