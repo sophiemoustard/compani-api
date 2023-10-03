@@ -40,6 +40,7 @@ const {
   traineeFromAuthFormerlyInOther,
   clientAdminFromThirdCompany,
   traineeFromThirdCompany,
+  fourthCompany,
 } = require('./seed/coursesSeed');
 const { getToken, getTokenByCredentials } = require('./helpers/authentication');
 const {
@@ -769,7 +770,7 @@ describe('COURSES ROUTES - GET /courses', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      expect(response.result.data.courses.length).toEqual(10);
+      expect(response.result.data.courses.length).toEqual(12);
     });
 
     it('should get trainer\'s course (ops mobile)', async () => {
@@ -781,7 +782,7 @@ describe('COURSES ROUTES - GET /courses', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      expect(response.result.data.courses.length).toEqual(10);
+      expect(response.result.data.courses.length).toEqual(12);
 
       const course =
          response.result.data.courses.find(c => UtilsHelper.areObjectIdsEquals(coursesList[2]._id, c._id));
@@ -3819,7 +3820,7 @@ describe('COURSES ROUTES - PUT /courses/{_id}/companies', () => {
       authToken = await getToken('training_organisation_manager');
     });
 
-    it('should add company to course companies', async () => {
+    it('should add company to inter course companies', async () => {
       const response = await app.inject({
         method: 'PUT',
         url: `/courses/${interb2bCourseId}/companies`,
@@ -3837,6 +3838,27 @@ describe('COURSES ROUTES - PUT /courses/{_id}/companies', () => {
       expect(courseHistory).toEqual(1);
 
       const course = await Course.countDocuments({ _id: interb2bCourseId, companies: otherCompany._id });
+      expect(course).toEqual(1);
+    });
+
+    it('should add company to intra_holding course companies', async () => {
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/courses/${coursesList[22]._id}/companies`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload: { company: otherCompany._id },
+      });
+
+      expect(response.statusCode).toBe(200);
+
+      const courseHistory = await CourseHistory.countDocuments({
+        course: coursesList[22]._id,
+        company: otherCompany._id,
+        action: COMPANY_ADDITION,
+      });
+      expect(courseHistory).toEqual(1);
+
+      const course = await Course.countDocuments({ _id: coursesList[22]._id, companies: otherCompany._id });
       expect(course).toEqual(1);
     });
 
@@ -3862,7 +3884,7 @@ describe('COURSES ROUTES - PUT /courses/{_id}/companies', () => {
       expect(response.statusCode).toBe(404);
     });
 
-    it('should return a 403 if course is not inter_b2b', async () => {
+    it('should return a 403 if course is intra', async () => {
       const response = await app.inject({
         method: 'PUT',
         url: `/courses/${intraCourseId}/companies`,
@@ -3905,6 +3927,58 @@ describe('COURSES ROUTES - PUT /courses/{_id}/companies', () => {
 
       expect(response.statusCode).toBe(400);
     });
+
+    it('should return a 404 if company is not in holding (intra_holding course)', async () => {
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/courses/${coursesList[22]._id}/companies`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload: { company: authCompany._id },
+      });
+
+      expect(response.statusCode).toBe(404);
+    });
+  });
+
+  describe('HOLDING_ADMIN', () => {
+    it('should return a 200 if holding admin add company to intra_holding course', async () => {
+      authToken = await getTokenByCredentials(holdingAdminFromOtherCompany.local);
+
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/courses/${coursesList[22]._id}/companies`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload: { company: thirdCompany._id },
+      });
+
+      expect(response.statusCode).toBe(200);
+    });
+
+    it('should return a 403 if holding admin is not from holding (intra_holding)', async () => {
+      authToken = await getTokenByCredentials(holdingAdminFromAuthCompany.local);
+
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/courses/${coursesList[22]._id}/companies`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload: { company: thirdCompany._id },
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
+
+    it('should return a 403 if holding admin try to update inter course', async () => {
+      authToken = await getTokenByCredentials(holdingAdminFromAuthCompany.local);
+
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/courses/${coursesList[4]._id}/companies`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload: { company: thirdCompany._id },
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
   });
 
   describe('Other roles', () => {
@@ -3915,13 +3989,25 @@ describe('COURSES ROUTES - PUT /courses/{_id}/companies', () => {
       { name: 'trainer', expectedCode: 403 },
     ];
     roles.forEach((role) => {
-      it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+      it(`should return ${role.expectedCode} as user is ${role.name} (inter_b2b)`, async () => {
         authToken = await getToken(role.name);
         const response = await app.inject({
           method: 'PUT',
           url: `/courses/${interb2bCourseId}/companies`,
           headers: { Cookie: `alenvi_token=${authToken}` },
           payload: { company: otherCompany._id },
+        });
+
+        expect(response.statusCode).toBe(role.expectedCode);
+      });
+
+      it(`should return ${role.expectedCode} as user is ${role.name} (intra_holding)`, async () => {
+        authToken = await getToken(role.name);
+        const response = await app.inject({
+          method: 'PUT',
+          url: `/courses/${coursesList[21]._id}/companies`,
+          headers: { Cookie: `alenvi_token=${authToken}` },
+          payload: { company: fourthCompany._id },
         });
 
         expect(response.statusCode).toBe(role.expectedCode);

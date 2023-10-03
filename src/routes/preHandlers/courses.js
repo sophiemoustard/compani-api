@@ -527,18 +527,34 @@ exports.authorizeSmsSending = async (req) => {
 };
 
 exports.authorizeCourseCompanyAddition = async (req) => {
+  const vendorRole = get(req, 'auth.credentials.role.vendor.name');
+  const holdingRole = get(req, 'auth.credentials.role.holding.name');
+
+  if (vendorRole === TRAINER && !holdingRole) throw Boom.forbidden();
+
   const company = await Company.countDocuments({ _id: req.payload.company });
   if (!company) throw Boom.notFound();
 
-  const course = await Course.findOne({ _id: req.params._id }, { type: 1, companies: 1 }).lean();
+  const course = await Course.findOne({ _id: req.params._id }, { type: 1, companies: 1, holding: 1 }).lean();
 
-  if (course.type !== INTER_B2B) throw Boom.forbidden();
+  if (course.type === INTRA) throw Boom.forbidden();
 
   const isAlreadyLinked = UtilsHelper.doesArrayIncludeId(course.companies, req.payload.company);
   if (isAlreadyLinked) throw Boom.conflict(translate[language].courseCompanyAlreadyExists);
 
-  const isTrainer = get(req, 'auth.credentials.role.vendor.name') === TRAINER;
-  if (isTrainer) throw Boom.forbidden();
+  if (course.type === INTRA_HOLDING) {
+    const isCompanyInCourseHolding = await CompanyHolding
+      .countDocuments({ company: req.payload.company, holding: course.holding });
+
+    if (!isCompanyInCourseHolding) throw Boom.notFound();
+
+    if ([TRAINING_ORGANISATION_MANAGER, VENDOR_ADMIN].includes(vendorRole)) return null;
+
+    const userHolding = get(req, 'auth.credentials.holding._id');
+    if (!(holdingRole === HOLDING_ADMIN && UtilsHelper.areObjectIdsEquals(course.holding, userHolding))) {
+      throw Boom.forbidden();
+    }
+  }
 
   return null;
 };
