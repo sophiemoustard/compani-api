@@ -562,6 +562,7 @@ exports.authorizeCourseCompanyAddition = async (req) => {
 exports.authorizeCourseCompanyDeletion = async (req) => {
   const { companyId } = req.params;
   const isVendorUser = !!get(req, 'auth.credentials.role.vendor');
+  const holdingRole = get(req, 'auth.credentials.role.holding.name');
 
   const course = await Course.findOne({ _id: req.params._id })
     .populate({ path: 'bills', select: 'company', match: { company: companyId }, options: { isVendorUser } })
@@ -577,10 +578,10 @@ exports.authorizeCourseCompanyDeletion = async (req) => {
     })
     .lean();
 
-  if (!UtilsHelper.doesArrayIncludeId(course.companies, companyId) || course.type === INTRA) throw Boom.forbidden();
+  if (course.type === INTRA || !UtilsHelper.doesArrayIncludeId(course.companies, companyId)) throw Boom.forbidden();
 
   if (course.type === INTRA_HOLDING) {
-    const isHoldingAdminFromCourse = get(req, 'auth.credentials.role.holding.name') === HOLDING_ADMIN &&
+    const isHoldingAdminFromCourse = holdingRole === HOLDING_ADMIN &&
       UtilsHelper.areObjectIdsEquals(course.holding, get(req, 'auth.credentials.holding._id'));
     const isRofOrAdmin = [TRAINING_ORGANISATION_MANAGER, VENDOR_ADMIN]
       .includes(get(req, 'auth.credentials.role.vendor.name'));
@@ -617,7 +618,7 @@ exports.authorizeCourseCompanyDeletion = async (req) => {
   }
 
   const isTrainer = get(req, 'auth.credentials.role.vendor.name') === TRAINER;
-  if (isTrainer) throw Boom.forbidden();
+  if (isTrainer && !holdingRole) throw Boom.forbidden();
 
   return null;
 };

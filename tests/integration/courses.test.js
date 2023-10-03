@@ -4029,7 +4029,7 @@ describe('COURSES ROUTES - DELETE /courses/{_id}/companies{companyId}', () => {
       authToken = await getToken('training_organisation_manager');
     });
 
-    it('should remove company from course companies', async () => {
+    it('should remove company from inter_b2b course', async () => {
       const response = await app.inject({
         method: 'DELETE',
         url: `/courses/${interb2bCourseId}/companies/${thirdCompany._id}`,
@@ -4047,6 +4047,16 @@ describe('COURSES ROUTES - DELETE /courses/{_id}/companies{companyId}', () => {
 
       const course = await Course.countDocuments({ _id: interb2bCourseId, companies: thirdCompany._id });
       expect(course).toEqual(0);
+    });
+
+    it('should remove company from intra_holding course', async () => {
+      const response = await app.inject({
+        method: 'DELETE',
+        url: `/courses/${coursesList[21]._id}/companies/${authCompany._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(200);
     });
 
     it('should return 404 if course doesn\'t exist', async () => {
@@ -4069,7 +4079,7 @@ describe('COURSES ROUTES - DELETE /courses/{_id}/companies{companyId}', () => {
       expect(response.statusCode).toBe(403);
     });
 
-    it('should return a 403 if course is not inter_b2b', async () => {
+    it('should return a 403 if course is intra', async () => {
       const response = await app.inject({
         method: 'DELETE',
         url: `/courses/${intraCourseId}/companies/${authCompany._id}`,
@@ -4164,7 +4174,7 @@ describe('COURSES ROUTES - DELETE /courses/{_id}/companies{companyId}', () => {
 
       const response = await app.inject({
         method: 'DELETE',
-        url: `/courses/${coursesList[4]._id}/companies/${authCompany._id}`,
+        url: `/courses/${interb2bCourseId}/companies/${authCompany._id}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
