@@ -3941,7 +3941,7 @@ describe('COURSES ROUTES - PUT /courses/{_id}/companies', () => {
   });
 
   describe('HOLDING_ADMIN', () => {
-    it('should return a 200 if holding admin try to add company to intra_holding course', async () => {
+    it('should return a 200 if holding admin add company to intra_holding course', async () => {
       authToken = await getTokenByCredentials(holdingAdminFromOtherCompany.local);
 
       const response = await app.inject({

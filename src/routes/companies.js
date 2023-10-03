@@ -142,7 +142,6 @@ exports.plugin = {
         },
         auth: { mode: 'optional' },
         pre: [{ method: authorizeGetCompanies }],
-
       },
     });
 

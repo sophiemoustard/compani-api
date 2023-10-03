@@ -27,12 +27,6 @@ exports.createCompany = async (companyPayload) => {
 };
 
 exports.list = async (query) => {
-  let linkedCompanyList = [];
-  if (query.withoutHoldingCompanies) {
-    const companyHoldings = await CompanyHolding.find({}, { company: 1 }).lean();
-    linkedCompanyList = companyHoldings.map(ch => ch.company);
-  }
-
   if (query.holding) {
     const companyHoldingList = await CompanyHolding
       .find({ holding: query.holding }, { company: 1 })
@@ -40,6 +34,12 @@ exports.list = async (query) => {
       .lean();
 
     return companyHoldingList.map(ch => ch.company);
+  }
+
+  let linkedCompanyList = [];
+  if (query.withoutHoldingCompanies) {
+    const companyHoldings = await CompanyHolding.find({}, { company: 1 }).lean();
+    linkedCompanyList = companyHoldings.map(ch => ch.company);
   }
 
   return Company.find({ _id: { $nin: linkedCompanyList.flat() } }, { name: 1 }).lean();
