@@ -333,7 +333,7 @@ exports.authorizeTraineeAddition = async (req) => {
     } else {
       const currentAndFuturCompanies = UserCompaniesHelper.getCurrentAndFutureCompanies(trainee.userCompanyList);
       if (!UtilsHelper.doesArrayIncludeId(currentAndFuturCompanies, payload.company)) throw Boom.notFound();
-      if (!UtilsHelper.doesArrayIncludeId(course.companies, payload.company)) throw Boom.conflict();
+      if (!UtilsHelper.doesArrayIncludeId(course.companies, payload.company)) throw Boom.forbidden();
 
       if (course.type === INTRA_HOLDING) {
         const isRofOrAdmin = [TRAINING_ORGANISATION_MANAGER, VENDOR_ADMIN]
