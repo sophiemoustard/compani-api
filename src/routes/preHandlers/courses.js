@@ -528,8 +528,12 @@ exports.authorizeSmsSending = async (req) => {
   if (!course) throw Boom.notFound();
 
   const { credentials } = req.auth;
+  const userVendorRole = get(req, 'auth.credentials.role.vendor.name');
+  const userHoldingRole = get(req, 'auth.credentials.role.holding.name');
+  if (course.type === INTRA_HOLDING && !(userVendorRole || userHoldingRole)) throw Boom.forbidden();
+
   const courseTrainerId = get(course, 'trainer') || null;
-  const companies = course.type === INTRA ? course.companies : [];
+  const companies = [INTRA, INTRA_HOLDING].includes(course.type) ? course.companies : [];
   this.checkAuthorization(credentials, courseTrainerId, companies);
 
   const isFinished = !course.slots || !course.slots.some(slot => CompaniDate().isBefore(slot.endDate));
