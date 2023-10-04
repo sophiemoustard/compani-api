@@ -962,7 +962,7 @@ describe('USERS ROUTES - GET /users/learners', () => {
       });
 
       expect(res.statusCode).toBe(200);
-      expect(res.result.data.users.length).toBe(6);
+      expect(res.result.data.users.length).toBe(7);
     });
 
     it('should return active learners from a specific company', async () => {
