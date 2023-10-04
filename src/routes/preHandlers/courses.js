@@ -334,16 +334,18 @@ exports.authorizeTraineeAddition = async (req) => {
       const currentAndFuturCompanies = UserCompaniesHelper.getCurrentAndFutureCompanies(trainee.userCompanyList);
       if (!UtilsHelper.doesArrayIncludeId(currentAndFuturCompanies, payload.company)) throw Boom.notFound();
       if (!UtilsHelper.doesArrayIncludeId(course.companies, payload.company)) throw Boom.conflict();
-    }
 
-    const isRofOrAdmin = [TRAINING_ORGANISATION_MANAGER, VENDOR_ADMIN]
-      .includes(get(req, 'auth.credentials.role.vendor.name'));
-    const loggedUserCompany = get(req, 'auth.credentials.company._id');
-    const isClientRoleWithoutVendorOrHoldingRole = [COACH, CLIENT_ADMIN].includes(clientRole) && !isRofOrAdmin &&
-      !holdingRole;
-    if (course.type === INTRA_HOLDING && isClientRoleWithoutVendorOrHoldingRole &&
-        !UtilsHelper.areObjectIdsEquals(payload.company, loggedUserCompany)) {
-      throw Boom.forbidden();
+      if (course.type === INTRA_HOLDING) {
+        const isRofOrAdmin = [TRAINING_ORGANISATION_MANAGER, VENDOR_ADMIN]
+          .includes(get(req, 'auth.credentials.role.vendor.name'));
+        const loggedUserCompany = get(req, 'auth.credentials.company._id');
+        const isClientRoleWithoutVendorOrHoldingRole = [COACH, CLIENT_ADMIN].includes(clientRole) && !isRofOrAdmin &&
+          !holdingRole;
+        if (isClientRoleWithoutVendorOrHoldingRole &&
+            !UtilsHelper.areObjectIdsEquals(payload.company, loggedUserCompany)) {
+          throw Boom.forbidden();
+        }
+      }
     }
 
     const traineeAlreadyRegistered = course.trainees.some(t => UtilsHelper.areObjectIdsEquals(t, payload.trainee));
