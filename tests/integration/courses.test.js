@@ -2188,7 +2188,7 @@ describe('COURSES ROUTES - PUT /courses/{_id}', () => {
       expect(response.statusCode).toBe(200);
     });
 
-    it('should return 200 if try to update contact and company representative which is contact (intra)', async () => {
+    it('should update contact and company representative which is contact (intra)', async () => {
       const response = await app.inject({
         method: 'PUT',
         url: `/courses/${courseIdFromAuthCompany}`,
@@ -4029,7 +4029,7 @@ describe('COURSES ROUTES - DELETE /courses/{_id}/companies{companyId}', () => {
       authToken = await getToken('training_organisation_manager');
     });
 
-    it('should remove company from course companies', async () => {
+    it('should remove company from inter_b2b course', async () => {
       const response = await app.inject({
         method: 'DELETE',
         url: `/courses/${interb2bCourseId}/companies/${thirdCompany._id}`,
@@ -4047,6 +4047,16 @@ describe('COURSES ROUTES - DELETE /courses/{_id}/companies{companyId}', () => {
 
       const course = await Course.countDocuments({ _id: interb2bCourseId, companies: thirdCompany._id });
       expect(course).toEqual(0);
+    });
+
+    it('should remove company from intra_holding course', async () => {
+      const response = await app.inject({
+        method: 'DELETE',
+        url: `/courses/${coursesList[21]._id}/companies/${authCompany._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(200);
     });
 
     it('should return 404 if course doesn\'t exist', async () => {
@@ -4069,7 +4079,7 @@ describe('COURSES ROUTES - DELETE /courses/{_id}/companies{companyId}', () => {
       expect(response.statusCode).toBe(403);
     });
 
-    it('should return a 403 if course is not inter_b2b', async () => {
+    it('should return a 403 if course is intra', async () => {
       const response = await app.inject({
         method: 'DELETE',
         url: `/courses/${intraCourseId}/companies/${authCompany._id}`,
@@ -4134,6 +4144,44 @@ describe('COURSES ROUTES - DELETE /courses/{_id}/companies{companyId}', () => {
     });
   });
 
+  describe('HOLDING_ADMIN', () => {
+    it('should remove company from intra_holding course', async () => {
+      authToken = await getTokenByCredentials(holdingAdminFromAuthCompany.local);
+
+      const response = await app.inject({
+        method: 'DELETE',
+        url: `/courses/${coursesList[21]._id}/companies/${authCompany._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(200);
+    });
+
+    it('should return a 403 if holding admin is not from holding (intra_holding)', async () => {
+      authToken = await getTokenByCredentials(holdingAdminFromOtherCompany.local);
+
+      const response = await app.inject({
+        method: 'DELETE',
+        url: `/courses/${coursesList[21]._id}/companies/${authCompany._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
+
+    it('should return a 403 if holding admin try to update inter course', async () => {
+      authToken = await getTokenByCredentials(holdingAdminFromAuthCompany.local);
+
+      const response = await app.inject({
+        method: 'DELETE',
+        url: `/courses/${interb2bCourseId}/companies/${authCompany._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
+  });
+
   describe('Other roles', () => {
     const roles = [
       { name: 'helper', expectedCode: 403 },
@@ -4142,11 +4190,22 @@ describe('COURSES ROUTES - DELETE /courses/{_id}/companies{companyId}', () => {
       { name: 'trainer', expectedCode: 403 },
     ];
     roles.forEach((role) => {
-      it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+      it(`should return ${role.expectedCode} as user is ${role.name} (inter_b2b)`, async () => {
         authToken = await getToken(role.name);
         const response = await app.inject({
           method: 'DELETE',
           url: `/courses/${interb2bCourseId}/companies/${thirdCompany._id}`,
+          headers: { Cookie: `alenvi_token=${authToken}` },
+        });
+
+        expect(response.statusCode).toBe(role.expectedCode);
+      });
+
+      it(`should return ${role.expectedCode} as user is ${role.name} (intra_holding)`, async () => {
+        authToken = await getToken(role.name);
+        const response = await app.inject({
+          method: 'DELETE',
+          url: `/courses/${coursesList[21]._id}/companies/${authCompany._id}`,
           headers: { Cookie: `alenvi_token=${authToken}` },
         });
 

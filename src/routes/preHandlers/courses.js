@@ -561,22 +561,31 @@ exports.authorizeCourseCompanyAddition = async (req) => {
 
 exports.authorizeCourseCompanyDeletion = async (req) => {
   const { companyId } = req.params;
-  const isVendorUser = !!get(req, 'auth.credentials.role.vendor');
+  const holdingRole = get(req, 'auth.credentials.role.holding.name');
 
   const course = await Course.findOne({ _id: req.params._id })
-    .populate({ path: 'bills', select: 'company', options: { isVendorUser } })
+    .populate({ path: 'bills', select: 'company', match: { company: companyId } })
     .populate({
       path: 'slots',
       select: 'attendances',
       populate: {
         path: 'attendances',
         select: 'company',
-        options: { isVendorUser },
+        match: { company: companyId },
       },
     })
     .lean();
 
-  if (!UtilsHelper.doesArrayIncludeId(course.companies, companyId) || course.type !== INTER_B2B) throw Boom.forbidden();
+  if (course.type === INTRA || !UtilsHelper.doesArrayIncludeId(course.companies, companyId)) throw Boom.forbidden();
+
+  if (course.type === INTRA_HOLDING) {
+    const isHoldingAdminFromCourse = holdingRole === HOLDING_ADMIN &&
+      UtilsHelper.areObjectIdsEquals(course.holding, get(req, 'auth.credentials.holding._id'));
+    const isRofOrAdmin = [TRAINING_ORGANISATION_MANAGER, VENDOR_ADMIN]
+      .includes(get(req, 'auth.credentials.role.vendor.name'));
+
+    if (!isRofOrAdmin && !isHoldingAdminFromCourse) throw Boom.forbidden();
+  }
 
   const traineesCompanyAtCourseRegistration = await CourseHistoriesHelper.getCompanyAtCourseRegistrationList(
     { key: COURSE, value: req.params._id }, { key: TRAINEE, value: course.trainees }
@@ -592,8 +601,7 @@ exports.authorizeCourseCompanyDeletion = async (req) => {
   if (hasAttendancesFromCompany) throw Boom.forbidden(translate[language].companyTraineeAttendedToCourse);
 
   const attendanceSheets = await AttendanceSheet
-    .find({ course: course._id }, { company: 1 })
-    .setOptions({ isVendorUser })
+    .find({ course: course._id, company: companyId }, { company: 1 })
     .lean();
 
   const hasAttendanceSheetsFromCompany = attendanceSheets
@@ -607,7 +615,7 @@ exports.authorizeCourseCompanyDeletion = async (req) => {
   }
 
   const isTrainer = get(req, 'auth.credentials.role.vendor.name') === TRAINER;
-  if (isTrainer) throw Boom.forbidden();
+  if (isTrainer && !holdingRole) throw Boom.forbidden();
 
   return null;
 };
