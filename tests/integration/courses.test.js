@@ -3577,7 +3577,7 @@ describe('COURSES ROUTES - GET /:_id/attendance-sheets', () => {
       expect(response.statusCode).toBe(403);
     });
 
-    it('should return 403 as user is client_admin and company not in course (intra_holding)', async () => {
+    it('should return 403 as user is coach and company not in course (intra_holding)', async () => {
       authToken = await getTokenByCredentials(coachFromOtherCompany.local);
       const response = await app.inject({
         method: 'GET',
