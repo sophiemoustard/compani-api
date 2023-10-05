@@ -306,16 +306,13 @@ exports.authorizeTraineeAddition = async (req) => {
       .findOne({ _id: req.params._id }, { trainees: 1, type: 1, companies: 1, maxTrainees: 1, trainer: 1 })
       .lean();
 
-    if (course.type === INTRA && !!payload.company) throw Boom.badData();
-    if (course.type === INTER_B2B && !payload.company) throw Boom.badData();
-
-    const isTrainer = get(req, 'auth.credentials.role.vendor.name') === TRAINER;
-    if (course.type === INTER_B2B && isTrainer) throw Boom.forbidden();
-
     if (course.trainees.length + 1 > course.maxTrainees) throw Boom.forbidden(translate[language].maxTraineesReached);
 
     const traineeIsTrainer = UtilsHelper.areObjectIdsEquals(course.trainer, payload.trainee);
     if (traineeIsTrainer) throw Boom.forbidden();
+
+    const traineeAlreadyRegistered = course.trainees.some(t => UtilsHelper.areObjectIdsEquals(t, payload.trainee));
+    if (traineeAlreadyRegistered) throw Boom.conflict(translate[language].courseTraineeAlreadyExists);
 
     const trainee = await User.findOne({ _id: payload.trainee }, { _id: 1 })
       .populate({ path: 'userCompanyList' })
@@ -323,17 +320,35 @@ exports.authorizeTraineeAddition = async (req) => {
     if (!trainee) throw Boom.notFound();
 
     if (course.type === INTRA) {
+      if (payload.company) throw Boom.badData();
       if (!UserCompaniesHelper.userIsOrWillBeInCompany(trainee.userCompanyList, course.companies[0])) {
         throw Boom.notFound();
       }
     } else {
+      if (!payload.company) throw Boom.badData();
+      const isTrainer = get(req, 'auth.credentials.role.vendor.name') === TRAINER;
+      const clientRole = get(req, 'auth.credentials.role.client.name');
+      const holdingRole = get(req, 'auth.credentials.role.holding.name');
+      const hasNoClientOrHoldingRoleOnIntraHolding = course.type === INTRA_HOLDING &&
+        !([COACH, CLIENT_ADMIN].includes(clientRole) || holdingRole === HOLDING_ADMIN);
+      if ((course.type === INTER_B2B || hasNoClientOrHoldingRoleOnIntraHolding) && isTrainer) throw Boom.forbidden();
+
       const currentAndFuturCompanies = UserCompaniesHelper.getCurrentAndFutureCompanies(trainee.userCompanyList);
       if (!UtilsHelper.doesArrayIncludeId(currentAndFuturCompanies, payload.company)) throw Boom.notFound();
-      if (!UtilsHelper.doesArrayIncludeId(course.companies, payload.company)) throw Boom.conflict();
-    }
+      if (!UtilsHelper.doesArrayIncludeId(course.companies, payload.company)) throw Boom.forbidden();
 
-    const traineeAlreadyRegistered = course.trainees.some(t => UtilsHelper.areObjectIdsEquals(t, payload.trainee));
-    if (traineeAlreadyRegistered) throw Boom.conflict(translate[language].courseTraineeAlreadyExists);
+      if (course.type === INTRA_HOLDING) {
+        const isRofOrAdmin = [TRAINING_ORGANISATION_MANAGER, VENDOR_ADMIN]
+          .includes(get(req, 'auth.credentials.role.vendor.name'));
+        const loggedUserCompany = get(req, 'auth.credentials.company._id');
+        const isClientRoleWithoutVendorOrHoldingRole = [COACH, CLIENT_ADMIN].includes(clientRole) && !isRofOrAdmin &&
+          !holdingRole;
+        if (isClientRoleWithoutVendorOrHoldingRole &&
+            !UtilsHelper.areObjectIdsEquals(payload.company, loggedUserCompany)) {
+          throw Boom.forbidden();
+        }
+      }
+    }
 
     return null;
   } catch (e) {
