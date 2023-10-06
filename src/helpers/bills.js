@@ -340,7 +340,7 @@ exports.getBills = async (query, credentials) => {
   return Bill.find(billsQuery).populate({ path: 'thirdPartyPayer', select: '_id name' }).lean();
 };
 
-exports.filterFundingVersion = date => ver => DatesHelper.isSameOrBefore(ver.createdAt, date);
+exports.filterFundingVersion = date => ver => DatesHelper.isSameOrBefore(ver.startDate, date);
 
 const getMatchingFunding = (bill, event) => bill.customer.fundings
   .map(fund => UtilsHelper.getMatchingVersion(bill.createdAt, fund, 'createdAt', exports.filterFundingVersion))
