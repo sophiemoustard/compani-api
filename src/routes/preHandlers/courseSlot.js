@@ -24,8 +24,7 @@ exports.authorizeCreate = async (req) => {
 
     const isStepElearning = await Step.countDocuments({ _id: stepId, type: E_LEARNING }).lean();
 
-    if (isStepElearning) throw Boom.badRequest();
-    if (!UtilsHelper.doesArrayIncludeId(course.subProgram.steps, stepId)) throw Boom.badRequest();
+    if (isStepElearning || !UtilsHelper.doesArrayIncludeId(course.subProgram.steps, stepId)) throw Boom.badRequest();
 
     return null;
   } catch (e) {
@@ -40,7 +39,7 @@ const checkPayload = async (courseSlot, payload) => {
   const hasBothDates = !!(startDate && endDate);
   const hasOneDate = !!(startDate || endDate);
 
-  if (!startDate && !endDate) {
+  if (!hasOneDate) {
     const attendances = await Attendance.countDocuments({ courseSlot: courseSlot._id });
     if (attendances) throw Boom.forbidden(translate[language].courseSlotWithAttendances);
   }
@@ -78,8 +77,8 @@ exports.authorizeUpdate = async (req) => {
     if (course.archivedAt) throw Boom.forbidden();
 
     const courseCompanies = [INTRA, INTRA_HOLDING].includes(course.type) ? course.companies : [];
-    const holding = course.type === INTRA_HOLDING ? course.holding : null;
-    checkAuthorization(req.auth.credentials, get(course, 'trainer'), courseCompanies, holding);
+    const courseHolding = course.type === INTRA_HOLDING ? course.holding : null;
+    checkAuthorization(req.auth.credentials, get(course, 'trainer'), courseCompanies, courseHolding);
     await checkPayload(courseSlot, req.payload);
 
     return null;

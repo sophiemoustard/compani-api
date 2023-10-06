@@ -147,7 +147,7 @@ describe('COURSE SLOTS ROUTES - PUT /courseslots/{_id}', () => {
       authToken = await getToken('training_organisation_manager');
     });
 
-    it('should update on site course slot', async () => {
+    it('should update on site course slot (intra)', async () => {
       const payload = {
         startDate: '2020-03-04T09:00:00',
         endDate: '2020-03-04T11:00:00',
@@ -177,7 +177,7 @@ describe('COURSE SLOTS ROUTES - PUT /courseslots/{_id}', () => {
       expect(courseHistory).toEqual(1);
     });
 
-    it('should update intra_holding course slot', async () => {
+    it('should update course slot (intra_holding)', async () => {
       const payload = {
         startDate: '2020-03-04T09:00:00',
         endDate: '2020-03-04T11:00:00',
@@ -199,7 +199,7 @@ describe('COURSE SLOTS ROUTES - PUT /courseslots/{_id}', () => {
       expect(response.statusCode).toBe(200);
     });
 
-    it('should update remote course slot', async () => {
+    it('should update remote course slot (intra)', async () => {
       const payload = {
         startDate: '2020-03-04T09:00:00',
         endDate: '2020-03-04T11:00:00',
@@ -422,7 +422,7 @@ describe('COURSE SLOTS ROUTES - PUT /courseslots/{_id}', () => {
   });
 
   describe('HOLDING_ADMIN', () => {
-    it('should update intra course slot', async () => {
+    it('should update course slot (intra)', async () => {
       authToken = await getTokenByCredentials(holdingAdminFromOtherCompany.local);
       const payload = { startDate: '2020-03-04T09:00:00.000Z', endDate: '2020-03-04T11:00:00.000Z' };
       const response = await app.inject({
@@ -435,7 +435,7 @@ describe('COURSE SLOTS ROUTES - PUT /courseslots/{_id}', () => {
       expect(response.statusCode).toBe(200);
     });
 
-    it('should update intra_holding course slot', async () => {
+    it('should update course slot (intra_holding)', async () => {
       authToken = await getTokenByCredentials(holdingAdminFromAuthCompany.local);
       const payload = {
         startDate: '2020-03-04T09:00:00',
@@ -458,7 +458,7 @@ describe('COURSE SLOTS ROUTES - PUT /courseslots/{_id}', () => {
       expect(response.statusCode).toBe(200);
     });
 
-    it('should update intra_holding course slot without companies', async () => {
+    it('should update course slot without companies (intra_holding)', async () => {
       authToken = await getTokenByCredentials(holdingAdminFromAuthCompany.local);
       const payload = {
         startDate: '2020-03-04T09:00:00',
@@ -481,7 +481,7 @@ describe('COURSE SLOTS ROUTES - PUT /courseslots/{_id}', () => {
       expect(response.statusCode).toBe(200);
     });
 
-    it('should return 403 if try to update intra course slot and company is not in holding', async () => {
+    it('should return 403 if try to update course slot and user company is not in holding (intra)', async () => {
       authToken = await getTokenByCredentials(holdingAdminFromOtherCompany.local);
       const payload = { startDate: '2020-03-04T09:00:00.000Z', endDate: '2020-03-04T11:00:00.000Z' };
       const response = await app.inject({
@@ -494,7 +494,7 @@ describe('COURSE SLOTS ROUTES - PUT /courseslots/{_id}', () => {
       expect(response.statusCode).toBe(403);
     });
 
-    it('should return 403 if try to update intra_holding course slot from other holding', async () => {
+    it('should return 403 if try to update course slot from other holding (intra_holding)', async () => {
       authToken = await getTokenByCredentials(holdingAdminFromOtherCompany.local);
       const payload = {
         startDate: '2020-03-04T09:00:00',
@@ -523,7 +523,7 @@ describe('COURSE SLOTS ROUTES - PUT /courseslots/{_id}', () => {
       authToken = await getToken('coach');
     });
 
-    it('should update intra course slot', async () => {
+    it('should update course slot (intra)', async () => {
       const payload = { startDate: '2020-03-04T09:00:00.000Z', endDate: '2020-03-04T11:00:00.000Z' };
       const response = await app.inject({
         method: 'PUT',
@@ -535,7 +535,7 @@ describe('COURSE SLOTS ROUTES - PUT /courseslots/{_id}', () => {
       expect(response.statusCode).toBe(200);
     });
 
-    it('should update intra_holding course slot', async () => {
+    it('should update course slot (intra_holding)', async () => {
       const payload = { startDate: '2020-03-04T09:00:00.000Z', endDate: '2020-03-04T11:00:00.000Z' };
       const response = await app.inject({
         method: 'PUT',
@@ -547,7 +547,7 @@ describe('COURSE SLOTS ROUTES - PUT /courseslots/{_id}', () => {
       expect(response.statusCode).toBe(200);
     });
 
-    it('should return 403 if intra course slot from other company', async () => {
+    it('should return 403 if course slot from other company (intra)', async () => {
       const payload = { startDate: '2020-03-04T09:00:00.000Z', endDate: '2020-03-04T11:00:00.000Z' };
       const response = await app.inject({
         method: 'PUT',
@@ -559,7 +559,7 @@ describe('COURSE SLOTS ROUTES - PUT /courseslots/{_id}', () => {
       expect(response.statusCode).toBe(200);
     });
 
-    it('should return 403 if intra_holding course slot with good holding but without company', async () => {
+    it('should return 403 if course slot with good holding but without company (intra_holding)', async () => {
       const payload = { startDate: '2020-03-04T09:00:00.000Z', endDate: '2020-03-04T11:00:00.000Z' };
       const response = await app.inject({
         method: 'PUT',
