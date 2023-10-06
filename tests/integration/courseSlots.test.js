@@ -458,7 +458,7 @@ describe('COURSE SLOTS ROUTES - PUT /courseslots/{_id}', () => {
       expect(response.statusCode).toBe(200);
     });
 
-    it('should update course slot without companies (intra_holding)', async () => {
+    it('should update course slot (intra_holding without companies)', async () => {
       authToken = await getTokenByCredentials(holdingAdminFromAuthCompany.local);
       const payload = {
         startDate: '2020-03-04T09:00:00',
@@ -494,7 +494,7 @@ describe('COURSE SLOTS ROUTES - PUT /courseslots/{_id}', () => {
       expect(response.statusCode).toBe(403);
     });
 
-    it('should return 403 if try to update course slot from other holding (intra_holding)', async () => {
+    it('should return 403 if user from other holding try to update course slot (intra_holding)', async () => {
       authToken = await getTokenByCredentials(holdingAdminFromOtherCompany.local);
       const payload = {
         startDate: '2020-03-04T09:00:00',
@@ -547,7 +547,7 @@ describe('COURSE SLOTS ROUTES - PUT /courseslots/{_id}', () => {
       expect(response.statusCode).toBe(200);
     });
 
-    it('should return 403 if course slot from other company (intra)', async () => {
+    it('should return 403 if user from other company try to update course slot (intra)', async () => {
       const payload = { startDate: '2020-03-04T09:00:00.000Z', endDate: '2020-03-04T11:00:00.000Z' };
       const response = await app.inject({
         method: 'PUT',
@@ -559,17 +559,18 @@ describe('COURSE SLOTS ROUTES - PUT /courseslots/{_id}', () => {
       expect(response.statusCode).toBe(200);
     });
 
-    it('should return 403 if course slot with good holding but without company (intra_holding)', async () => {
-      const payload = { startDate: '2020-03-04T09:00:00.000Z', endDate: '2020-03-04T11:00:00.000Z' };
-      const response = await app.inject({
-        method: 'PUT',
-        url: `/courseslots/${courseSlotsList[11]._id}`,
-        headers: { Cookie: `alenvi_token=${authToken}` },
-        payload,
-      });
+    it('should return 403 if user try to update slot from course with good holding but without company (intra_holding)',
+      async () => {
+        const payload = { startDate: '2020-03-04T09:00:00.000Z', endDate: '2020-03-04T11:00:00.000Z' };
+        const response = await app.inject({
+          method: 'PUT',
+          url: `/courseslots/${courseSlotsList[11]._id}`,
+          headers: { Cookie: `alenvi_token=${authToken}` },
+          payload,
+        });
 
-      expect(response.statusCode).toBe(403);
-    });
+        expect(response.statusCode).toBe(403);
+      });
   });
 
   describe('Other roles', () => {
