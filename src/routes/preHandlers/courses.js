@@ -521,7 +521,8 @@ exports.authorizeGetAttendanceSheets = async (req) => {
 };
 
 exports.authorizeSmsSending = async (req) => {
-  const course = await Course.findById(req.params._id, { slots: 1, trainees: 1, type: 1, companies: 1, trainer: 1 })
+  const course = await Course
+    .findById(req.params._id, { slots: 1, trainees: 1, type: 1, companies: 1, trainer: 1, holding: 1 })
     .populate({ path: 'slots', select: 'endDate' })
     .populate({ path: 'trainees', select: 'contact.phone' })
     .lean();
@@ -534,7 +535,8 @@ exports.authorizeSmsSending = async (req) => {
 
   const courseTrainerId = get(course, 'trainer') || null;
   const companies = [INTRA, INTRA_HOLDING].includes(course.type) ? course.companies : [];
-  this.checkAuthorization(credentials, courseTrainerId, companies);
+  const holding = course.type === INTRA_HOLDING ? course.holding : null;
+  this.checkAuthorization(credentials, courseTrainerId, companies, holding);
 
   const isFinished = !course.slots || !course.slots.some(slot => CompaniDate().isBefore(slot.endDate));
   const isStarted = course.slots && course.slots.some(slot => CompaniDate().isAfter(slot.endDate));
