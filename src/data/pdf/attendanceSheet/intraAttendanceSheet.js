@@ -1,12 +1,13 @@
 const UtilsPdfHelper = require('./utils');
 const PdfHelper = require('../../../helpers/pdf');
-const { COPPER_500 } = require('../../../helpers/constants');
+const { COPPER_500, INTRA_HOLDING } = require('../../../helpers/constants');
 
 exports.getPdfContent = async (data) => {
   const { dates } = data;
   const [conscience, compani, decision, signature] = await UtilsPdfHelper.getImages();
 
   const content = [];
+  const isIntraHoldingCourse = dates[0].course.type === INTRA_HOLDING;
   dates.forEach((date, i) => {
     const title = `Feuille d'émargement - ${date.date}`;
     const columns = [
@@ -21,12 +22,18 @@ exports.getPdfContent = async (data) => {
     ];
     const header = UtilsPdfHelper.getHeader(compani, conscience, title, columns);
 
-    const body = [[{ text: 'Prénom NOM', style: 'header' }]];
+    const body = [
+      [
+        { text: 'Prénom NOM', style: 'header' },
+        ...(isIntraHoldingCourse ? [{ text: 'Structure', style: 'header' }] : []),
+      ],
+    ];
     date.slots.forEach(slot => body[0].push({ text: `${slot.startHour} - ${slot.endHour}`, style: 'header' }));
     const numberOfRows = 11;
     for (let row = 1; row <= numberOfRows; row++) {
       body.push([]);
-      for (let column = 0; column <= date.slots.length; column++) {
+      const numberOfColumns = isIntraHoldingCourse ? date.slots.length + 1 : date.slots.length;
+      for (let column = 0; column <= numberOfColumns; column++) {
         if (row === numberOfRows && column === 0) {
           body[row].push({ text: 'Signature de l\'intervenant(e)', italics: true, margin: [0, 8, 0, 0] });
         } else body[row].push({ text: '' });
@@ -34,8 +41,11 @@ exports.getPdfContent = async (data) => {
     }
     const heights = Array(14).fill(28);
     heights[0] = 'auto';
+    const widths = body[0].length < 4 ? ['50%'] : ['40%'];
+    if (isIntraHoldingCourse) widths.push(body[0].length < 4 ? '30%' : '25%');
+    widths.push(...Array(date.slots.length).fill('*'));
     const table = [{
-      table: { body, widths: Array(body[0].length).fill('*'), heights },
+      table: { body, widths, heights },
       marginBottom: 8,
       pageBreak: i === dates.length - 1 ? 'none' : 'after',
     }];

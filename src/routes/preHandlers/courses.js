@@ -167,7 +167,7 @@ exports.authorizeGetDocumentsAndSms = async (req) => {
   const { credentials } = req.auth;
 
   const course = await Course
-    .findOne({ _id: req.params._id }, { trainees: 1, companies: 1, trainer: 1, type: 1 })
+    .findOne({ _id: req.params._id }, { trainees: 1, companies: 1, trainer: 1, type: 1, holding: 1 })
     .lean();
   if (!course) throw Boom.notFound();
 
@@ -175,7 +175,8 @@ exports.authorizeGetDocumentsAndSms = async (req) => {
   if (isTrainee && get(req, 'query.origin') === MOBILE) return null;
 
   const courseTrainerId = get(course, 'trainer') || null;
-  this.checkAuthorization(credentials, courseTrainerId, course.companies);
+  const holding = course.type === INTRA_HOLDING ? course.holding : null;
+  this.checkAuthorization(credentials, courseTrainerId, course.companies, holding);
 
   return null;
 };

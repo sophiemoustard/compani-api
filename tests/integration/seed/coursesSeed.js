@@ -1106,6 +1106,20 @@ const slots = [
     course: coursesList[19]._id,
     step: stepList[0]._id,
   },
+  { // 16
+    _id: new ObjectId(),
+    startDate: '2020-03-07T08:00:00.000Z',
+    endDate: '2020-03-07T10:00:00.000Z',
+    course: coursesList[21]._id,
+    step: stepList[0]._id,
+  },
+  { // 17
+    _id: new ObjectId(),
+    startDate: '2020-03-07T08:00:00.000Z',
+    endDate: '2020-03-07T10:00:00.000Z',
+    course: coursesList[22]._id,
+    step: stepList[0]._id,
+  },
 ];
 
 const attendanceList = [{
