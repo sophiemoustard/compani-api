@@ -44,6 +44,7 @@ const {
   authorizeGetAttendanceSheets,
   authorizeGetDocumentsAndSms,
   authorizeSmsSending,
+  authorizeSmsGet,
   authorizeCourseCompanyAddition,
   authorizeCourseCompanyDeletion,
   authorizeGenerateTrainingContract,
@@ -252,7 +253,7 @@ exports.plugin = {
         validate: {
           params: Joi.object({ _id: Joi.objectId().required() }),
         },
-        pre: [{ method: authorizeGetDocumentsAndSms }],
+        pre: [{ method: authorizeGetDocumentsAndSms }, { method: authorizeSmsGet }],
       },
       handler: getSMSHistory,
     });

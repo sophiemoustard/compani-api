@@ -2843,11 +2843,22 @@ describe('COURSES ROUTES - GET /courses/{_id}/sms', () => {
       expect(response.statusCode).toBe(200);
     });
 
-    it('should return 403 as user is client_admin requesting on an other company', async () => {
+    it('should return 403 as user is client_admin requesting on an other company (intra)', async () => {
       authToken = await getToken('client_admin');
       const response = await app.inject({
         method: 'GET',
         url: `/courses/${courseIdFromOtherCompany}/sms`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
+
+    it('should return 403 as user is client_admin requesting intra_holding course', async () => {
+      authToken = await getToken('client_admin');
+      const response = await app.inject({
+        method: 'GET',
+        url: `/courses/${coursesList[21]._id}/sms`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
