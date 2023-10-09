@@ -7,7 +7,7 @@ const { getToken, getTokenByCredentials } = require('./helpers/authentication');
 const CourseHistory = require('../../src/models/CourseHistory');
 const { SLOT_DELETION, SLOT_EDITION } = require('../../src/helpers/constants');
 const CourseSlot = require('../../src/models/CourseSlot');
-const { holdingAdminFromOtherCompany } = require('../seed/authUsersSeed');
+const { holdingAdminFromOtherCompany, holdingAdminFromAuthCompany } = require('../seed/authUsersSeed');
 
 describe('NODE ENV', () => {
   it('should be \'test\'', () => {
@@ -147,7 +147,7 @@ describe('COURSE SLOTS ROUTES - PUT /courseslots/{_id}', () => {
       authToken = await getToken('training_organisation_manager');
     });
 
-    it('should update on site course slot', async () => {
+    it('should update on site course slot (intra)', async () => {
       const payload = {
         startDate: '2020-03-04T09:00:00',
         endDate: '2020-03-04T11:00:00',
@@ -177,7 +177,29 @@ describe('COURSE SLOTS ROUTES - PUT /courseslots/{_id}', () => {
       expect(courseHistory).toEqual(1);
     });
 
-    it('should update remote course slot', async () => {
+    it('should update course slot (intra_holding)', async () => {
+      const payload = {
+        startDate: '2020-03-04T09:00:00',
+        endDate: '2020-03-04T11:00:00',
+        address: {
+          street: '39 rue de Ponthieu',
+          zipCode: '75008',
+          city: 'Paris',
+          fullAddress: '37 rue de Ponthieu 75008 Paris',
+          location: { type: 'Point', coordinates: [2.0987, 1.2345] },
+        },
+      };
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/courseslots/${courseSlotsList[10]._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload,
+      });
+
+      expect(response.statusCode).toBe(200);
+    });
+
+    it('should update remote course slot (intra)', async () => {
       const payload = {
         startDate: '2020-03-04T09:00:00',
         endDate: '2020-03-04T11:00:00',
@@ -399,6 +421,158 @@ describe('COURSE SLOTS ROUTES - PUT /courseslots/{_id}', () => {
     });
   });
 
+  describe('HOLDING_ADMIN', () => {
+    it('should update course slot (intra)', async () => {
+      authToken = await getTokenByCredentials(holdingAdminFromOtherCompany.local);
+      const payload = { startDate: '2020-03-04T09:00:00.000Z', endDate: '2020-03-04T11:00:00.000Z' };
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/courseslots/${courseSlotsList[9]._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload,
+      });
+
+      expect(response.statusCode).toBe(200);
+    });
+
+    it('should update course slot (intra_holding)', async () => {
+      authToken = await getTokenByCredentials(holdingAdminFromAuthCompany.local);
+      const payload = {
+        startDate: '2020-03-04T09:00:00',
+        endDate: '2020-03-04T11:00:00',
+        address: {
+          street: '39 rue de Ponthieu',
+          zipCode: '75008',
+          city: 'Paris',
+          fullAddress: '37 rue de Ponthieu 75008 Paris',
+          location: { type: 'Point', coordinates: [2.0987, 1.2345] },
+        },
+      };
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/courseslots/${courseSlotsList[10]._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload,
+      });
+
+      expect(response.statusCode).toBe(200);
+    });
+
+    it('should update course slot (intra_holding without companies)', async () => {
+      authToken = await getTokenByCredentials(holdingAdminFromAuthCompany.local);
+      const payload = {
+        startDate: '2020-03-04T09:00:00',
+        endDate: '2020-03-04T11:00:00',
+        address: {
+          street: '39 rue de Ponthieu',
+          zipCode: '75008',
+          city: 'Paris',
+          fullAddress: '37 rue de Ponthieu 75008 Paris',
+          location: { type: 'Point', coordinates: [2.0987, 1.2345] },
+        },
+      };
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/courseslots/${courseSlotsList[11]._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload,
+      });
+
+      expect(response.statusCode).toBe(200);
+    });
+
+    it('should return 403 if try to update course slot and user company is not in holding (intra)', async () => {
+      authToken = await getTokenByCredentials(holdingAdminFromOtherCompany.local);
+      const payload = { startDate: '2020-03-04T09:00:00.000Z', endDate: '2020-03-04T11:00:00.000Z' };
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/courseslots/${courseSlotsList[5]._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload,
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
+
+    it('should return 403 if user from other holding try to update course slot (intra_holding)', async () => {
+      authToken = await getTokenByCredentials(holdingAdminFromOtherCompany.local);
+      const payload = {
+        startDate: '2020-03-04T09:00:00',
+        endDate: '2020-03-04T11:00:00',
+        address: {
+          street: '39 rue de Ponthieu',
+          zipCode: '75008',
+          city: 'Paris',
+          fullAddress: '37 rue de Ponthieu 75008 Paris',
+          location: { type: 'Point', coordinates: [2.0987, 1.2345] },
+        },
+      };
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/courseslots/${courseSlotsList[10]._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload,
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
+  });
+
+  describe('COACH', () => {
+    beforeEach(async () => {
+      authToken = await getToken('coach');
+    });
+
+    it('should update course slot (intra)', async () => {
+      const payload = { startDate: '2020-03-04T09:00:00.000Z', endDate: '2020-03-04T11:00:00.000Z' };
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/courseslots/${courseSlotsList[0]._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload,
+      });
+
+      expect(response.statusCode).toBe(200);
+    });
+
+    it('should update course slot (intra_holding)', async () => {
+      const payload = { startDate: '2020-03-04T09:00:00.000Z', endDate: '2020-03-04T11:00:00.000Z' };
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/courseslots/${courseSlotsList[10]._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload,
+      });
+
+      expect(response.statusCode).toBe(200);
+    });
+
+    it('should return 403 if user from other company try to update course slot (intra)', async () => {
+      const payload = { startDate: '2020-03-04T09:00:00.000Z', endDate: '2020-03-04T11:00:00.000Z' };
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/courseslots/${courseSlotsList[0]._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload,
+      });
+
+      expect(response.statusCode).toBe(200);
+    });
+
+    it('should return 403 if user try to update slot from course with good holding but without company (intra_holding)',
+      async () => {
+        const payload = { startDate: '2020-03-04T09:00:00.000Z', endDate: '2020-03-04T11:00:00.000Z' };
+        const response = await app.inject({
+          method: 'PUT',
+          url: `/courseslots/${courseSlotsList[11]._id}`,
+          headers: { Cookie: `alenvi_token=${authToken}` },
+          payload,
+        });
+
+        expect(response.statusCode).toBe(403);
+      });
+  });
+
   describe('Other roles', () => {
     it('should a 200 as user is course trainer', async () => {
       authToken = await getTokenByCredentials(trainer.local);
@@ -413,49 +587,9 @@ describe('COURSE SLOTS ROUTES - PUT /courseslots/{_id}', () => {
       expect(response.statusCode).toBe(200);
     });
 
-    it('should return 200 as user is client admin from course company', async () => {
-      authToken = await getToken('client_admin');
-      const payload = { startDate: '2020-03-04T09:00:00.000Z', endDate: '2020-03-04T11:00:00.000Z' };
-      const response = await app.inject({
-        method: 'PUT',
-        url: `/courseslots/${courseSlotsList[0]._id}`,
-        headers: { Cookie: `alenvi_token=${authToken}` },
-        payload,
-      });
-
-      expect(response.statusCode).toBe(200);
-    });
-
-    it('should return 200 as user is holding admin and course company is in holding', async () => {
-      authToken = await getTokenByCredentials(holdingAdminFromOtherCompany.local);
-      const payload = { startDate: '2020-03-04T09:00:00.000Z', endDate: '2020-03-04T11:00:00.000Z' };
-      const response = await app.inject({
-        method: 'PUT',
-        url: `/courseslots/${courseSlotsList[9]._id}`,
-        headers: { Cookie: `alenvi_token=${authToken}` },
-        payload,
-      });
-
-      expect(response.statusCode).toBe(200);
-    });
-
-    it('should return 403 as user is holding admin and course company is not in holding', async () => {
-      authToken = await getTokenByCredentials(holdingAdminFromOtherCompany.local);
-      const payload = { startDate: '2020-03-04T09:00:00.000Z', endDate: '2020-03-04T11:00:00.000Z' };
-      const response = await app.inject({
-        method: 'PUT',
-        url: `/courseslots/${courseSlotsList[5]._id}`,
-        headers: { Cookie: `alenvi_token=${authToken}` },
-        payload,
-      });
-
-      expect(response.statusCode).toBe(403);
-    });
-
     const roles = [
       { name: 'helper', expectedCode: 403 },
       { name: 'planning_referent', expectedCode: 403 },
-      { name: 'client_admin', expectedCode: 403 },
       { name: 'trainer', expectedCode: 403 },
     ];
 

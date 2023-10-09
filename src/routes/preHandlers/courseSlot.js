@@ -6,27 +6,31 @@ const Step = require('../../models/Step');
 const Attendance = require('../../models/Attendance');
 const translate = require('../../helpers/translate');
 const { checkAuthorization } = require('./courses');
-const { E_LEARNING, ON_SITE, REMOTE, INTRA } = require('../../helpers/constants');
+const { E_LEARNING, ON_SITE, REMOTE, INTRA, INTRA_HOLDING } = require('../../helpers/constants');
 const UtilsHelper = require('../../helpers/utils');
 const { CompaniDate } = require('../../helpers/dates/companiDates');
 
 const { language } = translate;
 
-const canEditCourse = async (courseId) => {
-  const course = await Course.findOne({ _id: courseId }, { archivedAt: 1, trainer: 1, type: 1, companies: 1 }).lean();
-  if (!course) throw Boom.notFound();
-  if (course.archivedAt) throw Boom.forbidden();
+exports.authorizeCreate = async (req) => {
+  try {
+    const { course: courseId, step: stepId } = req.payload;
 
-  return course;
-};
+    const course = await Course.findById(courseId, { subProgram: 1, archivedAt: 1 })
+      .populate({ path: 'subProgram', select: 'steps' })
+      .lean();
+    if (!course) throw Boom.notFound();
+    if (course.archivedAt) throw Boom.forbidden();
 
-const formatAndCheckAuthorization = async (courseId, credentials) => {
-  const course = await canEditCourse(courseId);
+    const isStepElearning = await Step.countDocuments({ _id: stepId, type: E_LEARNING }).lean();
 
-  const courseTrainerId = get(course, 'trainer');
-  const courseCompanies = course.type === INTRA ? course.companies : [];
+    if (isStepElearning || !UtilsHelper.doesArrayIncludeId(course.subProgram.steps, stepId)) throw Boom.badRequest();
 
-  checkAuthorization(credentials, courseTrainerId, courseCompanies);
+    return null;
+  } catch (e) {
+    req.log('error', e);
+    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
+  }
 };
 
 const checkPayload = async (courseSlot, payload) => {
@@ -34,6 +38,12 @@ const checkPayload = async (courseSlot, payload) => {
   const { startDate, endDate } = payload;
   const hasBothDates = !!(startDate && endDate);
   const hasOneDate = !!(startDate || endDate);
+
+  if (!hasOneDate) {
+    const attendances = await Attendance.countDocuments({ courseSlot: courseSlot._id });
+    if (attendances) throw Boom.forbidden(translate[language].courseSlotWithAttendances);
+  }
+
   if (hasOneDate) {
     if (!hasBothDates) throw Boom.badRequest();
     const sameDay = CompaniDate(startDate).isSame(endDate, 'day');
@@ -52,26 +62,6 @@ const checkPayload = async (courseSlot, payload) => {
   }
 };
 
-exports.authorizeCreate = async (req) => {
-  try {
-    const { course: courseId, step: stepId } = req.payload;
-    await canEditCourse(courseId);
-
-    const course = await Course.findById(courseId, { subProgram: 1 })
-      .populate({ path: 'subProgram', select: 'steps' })
-      .lean();
-    const isStepElearning = await Step.countDocuments({ _id: stepId, type: E_LEARNING }).lean();
-
-    if (isStepElearning) throw Boom.badRequest();
-    if (!UtilsHelper.doesArrayIncludeId(course.subProgram.steps, stepId)) throw Boom.badRequest();
-
-    return null;
-  } catch (e) {
-    req.log('error', e);
-    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
-  }
-};
-
 exports.authorizeUpdate = async (req) => {
   try {
     const courseSlot = await CourseSlot
@@ -80,14 +70,15 @@ exports.authorizeUpdate = async (req) => {
       .lean();
     if (!courseSlot) throw Boom.notFound(translate[language].courseSlotNotFound);
 
-    const { startDate, endDate } = req.payload;
-    if (!startDate && !endDate) {
-      const attendances = await Attendance.countDocuments({ courseSlot: req.params._id });
-      if (attendances) throw Boom.forbidden(translate[language].courseSlotWithAttendances);
-    }
-
     const courseId = get(courseSlot, 'course') || '';
-    await formatAndCheckAuthorization(courseId, req.auth.credentials);
+    const course = await Course
+      .findOne({ _id: courseId }, { archivedAt: 1, trainer: 1, type: 1, companies: 1, holding: 1 })
+      .lean();
+    if (course.archivedAt) throw Boom.forbidden();
+
+    const courseCompanies = [INTRA, INTRA_HOLDING].includes(course.type) ? course.companies : [];
+    const courseHolding = course.type === INTRA_HOLDING ? course.holding : null;
+    checkAuthorization(req.auth.credentials, get(course, 'trainer'), courseCompanies, courseHolding);
     await checkPayload(courseSlot, req.payload);
 
     return null;
@@ -105,7 +96,8 @@ exports.authorizeDeletion = async (req) => {
       .lean();
     if (!courseSlot) throw Boom.notFound(translate[language].courseSlotNotFound);
 
-    await canEditCourse(courseSlot.course);
+    const course = await Course.findOne({ _id: courseSlot.course }, { archivedAt: 1 }).lean();
+    if (course.archivedAt) throw Boom.forbidden();
 
     const courseStepHasOtherSlots = await CourseSlot.countDocuments(
       { _id: { $nin: [courseSlot._id] }, course: courseSlot.course, step: courseSlot.step._id },
