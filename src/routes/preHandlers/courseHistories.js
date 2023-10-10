@@ -1,7 +1,7 @@
 const Boom = require('@hapi/boom');
 const get = require('lodash/get');
 const Course = require('../../models/Course');
-const { VENDOR_ADMIN, TRAINING_ORGANISATION_MANAGER, INTRA } = require('../../helpers/constants');
+const { VENDOR_ADMIN, TRAINING_ORGANISATION_MANAGER, INTRA, INTRA_HOLDING } = require('../../helpers/constants');
 
 exports.authorizeGetCourseHistories = async (req) => {
   const { credentials } = req.auth;
@@ -21,7 +21,10 @@ exports.authorizeGetCourseHistories = async (req) => {
   const isIntraAndIncludesUserCompany = await Course
     .countDocuments({ _id: courseId, type: INTRA, companies: { $in: companies } });
 
-  if (!isIntraAndIncludesUserCompany) throw Boom.forbidden();
+  const isIntraHoldingOnUserHolding = await Course
+    .countDocuments({ _id: courseId, type: INTRA_HOLDING, holding: get(credentials, 'holding._id') });
+
+  if (!(isIntraAndIncludesUserCompany || isIntraHoldingOnUserHolding)) throw Boom.forbidden();
 
   return null;
 };
