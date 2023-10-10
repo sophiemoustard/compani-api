@@ -2530,7 +2530,7 @@ describe('COURSES ROUTES - POST /courses/{_id}/sms', () => {
       SmsHelperStub.returns('SMS SENT !');
       const response = await app.inject({
         method: 'POST',
-        url: `/courses/${coursesList[21]._id}/sms`,
+        url: `/courses/${coursesList[23]._id}/sms`,
         headers: { Cookie: `alenvi_token=${authToken}` },
         payload,
       });
@@ -2654,10 +2654,10 @@ describe('COURSES ROUTES - POST /courses/{_id}/sms', () => {
   describe('HOLDING_ADMIN', () => {
     it('should return 200 if course is intra holding', async () => {
       SmsHelperStub.returns('SMS SENT !');
-      authToken = await getTokenByCredentials(holdingAdminFromAuthCompany.local);
+      authToken = await getTokenByCredentials(holdingAdminFromOtherCompany.local);
       const response = await app.inject({
         method: 'POST',
-        url: `/courses/${coursesList[21]._id}/sms`,
+        url: `/courses/${coursesList[23]._id}/sms`,
         headers: { Cookie: `alenvi_token=${authToken}` },
         payload,
       });
@@ -2666,10 +2666,10 @@ describe('COURSES ROUTES - POST /courses/{_id}/sms', () => {
     });
 
     it('should return 403 if course is intra holding from other holding', async () => {
-      authToken = await getTokenByCredentials(holdingAdminFromOtherCompany.local);
+      authToken = await getTokenByCredentials(holdingAdminFromAuthCompany.local);
       const response = await app.inject({
         method: 'POST',
-        url: `/courses/${coursesList[21]._id}/sms`,
+        url: `/courses/${coursesList[23]._id}/sms`,
         headers: { Cookie: `alenvi_token=${authToken}` },
         payload,
       });
@@ -2718,7 +2718,7 @@ describe('COURSES ROUTES - POST /courses/{_id}/sms', () => {
       authToken = await getToken('trainer');
       const response = await app.inject({
         method: 'POST',
-        url: `/courses/${coursesList[21]._id}/sms`,
+        url: `/courses/${coursesList[23]._id}/sms`,
         headers: { Cookie: `alenvi_token=${authToken}` },
         payload,
       });
@@ -2753,10 +2753,10 @@ describe('COURSES ROUTES - POST /courses/{_id}/sms', () => {
     });
 
     it('should return 403 as user is client_admin and course is intra_holding', async () => {
-      authToken = await getToken('client_admin');
+      authToken = await getTokenByCredentials(clientAdminFromThirdCompany.local);
       const response = await app.inject({
         method: 'POST',
-        url: `/courses/${coursesList[21]._id}/sms`,
+        url: `/courses/${coursesList[23]._id}/sms`,
         headers: { Cookie: `alenvi_token=${authToken}` },
         payload,
       });
