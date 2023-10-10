@@ -654,7 +654,7 @@ describe('list', () => {
               ],
             }],
           },
-          { query: 'select', args: ['_id misc'] },
+          { query: 'select', args: ['_id misc type'] },
           { query: 'lean', args: [{ autopopulate: true, virtuals: true }] },
         ]
       );
@@ -912,7 +912,7 @@ describe('list', () => {
               ],
             }],
           },
-          { query: 'select', args: ['_id misc'] },
+          { query: 'select', args: ['_id misc type'] },
           { query: 'lean', args: [{ autopopulate: true, virtuals: true }] },
         ]
       );
@@ -1174,7 +1174,7 @@ describe('list', () => {
               ],
             }],
           },
-          { query: 'select', args: ['_id misc'] },
+          { query: 'select', args: ['_id misc type'] },
           { query: 'lean', args: [{ autopopulate: true, virtuals: true }] },
         ]
       );
@@ -1390,7 +1390,7 @@ describe('list', () => {
               ],
             }],
           },
-          { query: 'select', args: ['_id misc'] },
+          { query: 'select', args: ['_id misc type'] },
           { query: 'lean', args: [{ autopopulate: true, virtuals: true }] },
         ]
       );

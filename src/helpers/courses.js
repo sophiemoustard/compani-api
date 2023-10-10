@@ -240,7 +240,7 @@ const listForPedagogy = async (query, credentials) => {
         },
       ],
     })
-    .select('_id misc')
+    .select('_id misc type')
     .lean({ autopopulate: true, virtuals: true });
 
   let filteredCourses = courses;
