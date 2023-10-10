@@ -2526,6 +2526,18 @@ describe('COURSES ROUTES - POST /courses/{_id}/sms', () => {
       );
     });
 
+    it('should return 200 if course is intra holding', async () => {
+      SmsHelperStub.returns('SMS SENT !');
+      const response = await app.inject({
+        method: 'POST',
+        url: `/courses/${coursesList[21]._id}/sms`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload,
+      });
+
+      expect(response.statusCode).toBe(200);
+    });
+
     it('should return a 400 error if type is invalid', async () => {
       const response = await app.inject({
         method: 'POST',
@@ -2639,6 +2651,34 @@ describe('COURSES ROUTES - POST /courses/{_id}/sms', () => {
     });
   });
 
+  describe('HOLDING_ADMIN', () => {
+    it('should return 200 if course is intra holding', async () => {
+      SmsHelperStub.returns('SMS SENT !');
+      authToken = await getTokenByCredentials(holdingAdminFromAuthCompany.local);
+      const response = await app.inject({
+        method: 'POST',
+        url: `/courses/${coursesList[21]._id}/sms`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload,
+      });
+
+      expect(response.statusCode).toBe(200);
+    });
+
+    it('should return 403 if course is intra holding from other holding', async () => {
+      authToken = await getTokenByCredentials(holdingAdminFromOtherCompany.local);
+      const response = await app.inject({
+        method: 'POST',
+        url: `/courses/${coursesList[21]._id}/sms`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload,
+      });
+
+      expect(response.statusCode).toBe(403);
+      sinon.assert.notCalled(SmsHelperStub);
+    });
+  });
+
   describe('OTHER ROLES', () => {
     const roles = [
       { name: 'helper', expectedCode: 403 },
@@ -2673,6 +2713,19 @@ describe('COURSES ROUTES - POST /courses/{_id}/sms', () => {
       expect(response.statusCode).toBe(200);
     });
 
+    it('should return 200 as user is intra_holding course trainer', async () => {
+      SmsHelperStub.returns('SMS SENT !');
+      authToken = await getToken('trainer');
+      const response = await app.inject({
+        method: 'POST',
+        url: `/courses/${coursesList[21]._id}/sms`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload,
+      });
+
+      expect(response.statusCode).toBe(200);
+    });
+
     it('should return 403 as user is trainer if not one of his courses', async () => {
       SmsHelperStub.returns('SMS SENT !');
       authToken = await getToken('trainer');
@@ -2697,6 +2750,19 @@ describe('COURSES ROUTES - POST /courses/{_id}/sms', () => {
       });
 
       expect(response.statusCode).toBe(403);
+    });
+
+    it('should return 403 as user is client_admin and course is intra_holding', async () => {
+      authToken = await getToken('client_admin');
+      const response = await app.inject({
+        method: 'POST',
+        url: `/courses/${coursesList[21]._id}/sms`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload,
+      });
+
+      expect(response.statusCode).toBe(403);
+      sinon.assert.notCalled(SmsHelperStub);
     });
   });
 });
@@ -2741,6 +2807,7 @@ describe('COURSES ROUTES - GET /courses/{_id}/sms', () => {
       { name: 'helper', expectedCode: 403 },
       { name: 'planning_referent', expectedCode: 403 },
       { name: 'coach', expectedCode: 200 },
+      { name: 'trainer', expectedCode: 200 },
     ];
     roles.forEach((role) => {
       it(`should return ${role.expectedCode} as user is ${role.name}, requesting on his company`, async () => {
@@ -2766,22 +2833,22 @@ describe('COURSES ROUTES - GET /courses/{_id}/sms', () => {
       expect(response.statusCode).toBe(403);
     });
 
-    it('should return a 200 as user is course trainer', async () => {
-      authToken = await getTokenByCredentials(trainer.local);
-      const response = await app.inject({
-        method: 'GET',
-        url: `/courses/${courseIdFromAuthCompany}/sms`,
-        headers: { Cookie: `alenvi_token=${authToken}` },
-      });
-
-      expect(response.statusCode).toBe(200);
-    });
-
-    it('should return 403 as user is client_admin requesting on an other company', async () => {
+    it('should return 403 as user is client_admin requesting on an other company (intra)', async () => {
       authToken = await getToken('client_admin');
       const response = await app.inject({
         method: 'GET',
         url: `/courses/${courseIdFromOtherCompany}/sms`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
+
+    it('should return 403 as user is client_admin requesting intra_holding course', async () => {
+      authToken = await getToken('client_admin');
+      const response = await app.inject({
+        method: 'GET',
+        url: `/courses/${coursesList[21]._id}/sms`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 

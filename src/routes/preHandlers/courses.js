@@ -163,7 +163,7 @@ exports.authorizeCourseCreation = async (req) => {
   return null;
 };
 
-exports.authorizeGetDocumentsAndSms = async (req) => {
+exports.authorizeGetDocuments = async (req) => {
   const { credentials } = req.auth;
 
   const course = await Course
@@ -520,17 +520,28 @@ exports.authorizeGetAttendanceSheets = async (req) => {
   return null;
 };
 
+const canAccessSms = (course, credentials) => {
+  const userVendorRole = get(credentials, 'role.vendor.name');
+  const userHoldingRole = get(credentials, 'role.holding.name');
+  if (course.type === INTRA_HOLDING && !(userVendorRole || userHoldingRole)) throw Boom.forbidden();
+
+  const courseTrainerId = get(course, 'trainer') || null;
+  const companies = [INTRA, INTRA_HOLDING].includes(course.type) ? course.companies : [];
+  const holding = course.type === INTRA_HOLDING ? course.holding : null;
+  this.checkAuthorization(credentials, courseTrainerId, companies, holding);
+
+  return null;
+};
+
 exports.authorizeSmsSending = async (req) => {
-  const course = await Course.findById(req.params._id, { slots: 1, trainees: 1, type: 1, companies: 1, trainer: 1 })
+  const course = await Course
+    .findById(req.params._id, { slots: 1, trainees: 1, type: 1, companies: 1, trainer: 1, holding: 1 })
     .populate({ path: 'slots', select: 'endDate' })
     .populate({ path: 'trainees', select: 'contact.phone' })
     .lean();
   if (!course) throw Boom.notFound();
 
-  const { credentials } = req.auth;
-  const courseTrainerId = get(course, 'trainer') || null;
-  const companies = course.type === INTRA ? course.companies : [];
-  this.checkAuthorization(credentials, courseTrainerId, companies);
+  canAccessSms(course, req.auth.credentials);
 
   const isFinished = !course.slots || !course.slots.some(slot => CompaniDate().isBefore(slot.endDate));
   const isStarted = course.slots && course.slots.some(slot => CompaniDate().isAfter(slot.endDate));
@@ -540,6 +551,15 @@ exports.authorizeSmsSending = async (req) => {
   }
 
   return null;
+};
+
+exports.authorizeSmsGet = async (req) => {
+  const course = await Course
+    .findById(req.params._id, { type: 1, companies: 1, trainer: 1, holding: 1 })
+    .lean();
+  if (!course) throw Boom.notFound();
+
+  return canAccessSms(course, req.auth.credentials);
 };
 
 exports.authorizeCourseCompanyAddition = async (req) => {
