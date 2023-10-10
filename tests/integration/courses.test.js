@@ -2807,6 +2807,7 @@ describe('COURSES ROUTES - GET /courses/{_id}/sms', () => {
       { name: 'helper', expectedCode: 403 },
       { name: 'planning_referent', expectedCode: 403 },
       { name: 'coach', expectedCode: 200 },
+      { name: 'trainer', expectedCode: 200 },
     ];
     roles.forEach((role) => {
       it(`should return ${role.expectedCode} as user is ${role.name}, requesting on his company`, async () => {
@@ -2830,17 +2831,6 @@ describe('COURSES ROUTES - GET /courses/{_id}/sms', () => {
       });
 
       expect(response.statusCode).toBe(403);
-    });
-
-    it('should return a 200 as user is course trainer', async () => {
-      authToken = await getTokenByCredentials(trainer.local);
-      const response = await app.inject({
-        method: 'GET',
-        url: `/courses/${courseIdFromAuthCompany}/sms`,
-        headers: { Cookie: `alenvi_token=${authToken}` },
-      });
-
-      expect(response.statusCode).toBe(200);
     });
 
     it('should return 403 as user is client_admin requesting on an other company (intra)', async () => {

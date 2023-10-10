@@ -42,7 +42,7 @@ const {
   authorizeCourseCreation,
   authorizeGetQuestionnaires,
   authorizeGetAttendanceSheets,
-  authorizeGetDocumentsAndSms,
+  authorizeGetDocuments,
   authorizeSmsSending,
   authorizeSmsGet,
   authorizeCourseCompanyAddition,
@@ -253,7 +253,7 @@ exports.plugin = {
         validate: {
           params: Joi.object({ _id: Joi.objectId().required() }),
         },
-        pre: [{ method: authorizeGetDocumentsAndSms }, { method: authorizeSmsGet }],
+        pre: [{ method: authorizeSmsGet }],
       },
       handler: getSMSHistory,
     });
@@ -304,7 +304,7 @@ exports.plugin = {
         validate: {
           params: Joi.object({ _id: Joi.objectId().required() }),
         },
-        pre: [{ method: authorizeGetDocumentsAndSms }, { method: authorizeGetAttendanceSheets }],
+        pre: [{ method: authorizeGetDocuments }, { method: authorizeGetAttendanceSheets }],
       },
       handler: downloadAttendanceSheets,
     });
@@ -318,7 +318,7 @@ exports.plugin = {
           params: Joi.object({ _id: Joi.objectId().required() }),
           query: Joi.object({ origin: Joi.string().valid(...ORIGIN_OPTIONS) }),
         },
-        pre: [{ method: authorizeGetDocumentsAndSms }],
+        pre: [{ method: authorizeGetDocuments }],
       },
       handler: downloadCompletionCertificates,
     });

@@ -163,7 +163,7 @@ exports.authorizeCourseCreation = async (req) => {
   return null;
 };
 
-exports.authorizeGetDocumentsAndSms = async (req) => {
+exports.authorizeGetDocuments = async (req) => {
   const { credentials } = req.auth;
 
   const course = await Course
@@ -541,9 +541,7 @@ exports.authorizeSmsSending = async (req) => {
     .lean();
   if (!course) throw Boom.notFound();
 
-  const { credentials } = req.auth;
-
-  canAccessSms(course, credentials);
+  canAccessSms(course, req.auth.credentials);
 
   const isFinished = !course.slots || !course.slots.some(slot => CompaniDate().isBefore(slot.endDate));
   const isStarted = course.slots && course.slots.some(slot => CompaniDate().isAfter(slot.endDate));
@@ -561,9 +559,7 @@ exports.authorizeSmsGet = async (req) => {
     .lean();
   if (!course) throw Boom.notFound();
 
-  const { credentials } = req.auth;
-
-  return canAccessSms(course, credentials);
+  return canAccessSms(course, req.auth.credentials);
 };
 
 exports.authorizeCourseCompanyAddition = async (req) => {
