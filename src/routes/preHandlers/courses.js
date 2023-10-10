@@ -359,17 +359,17 @@ exports.authorizeTraineeAddition = async (req) => {
 };
 
 exports.authorizeTraineeDeletion = async (req) => {
+  const vendorRole = get(req, 'auth.credentials.role.vendor.name');
   const course = await Course.findOne({ _id: req.params._id }, { type: 1, trainees: 1 }).lean();
 
-  const isRofOrAdmin = [TRAINING_ORGANISATION_MANAGER, VENDOR_ADMIN]
-    .includes(get(req, 'auth.credentials.role.vendor.name'));
+  if (!UtilsHelper.doesArrayIncludeId(course.trainees, req.params.traineeId)) throw Boom.forbidden();
+
+  const isRofOrAdmin = [TRAINING_ORGANISATION_MANAGER, VENDOR_ADMIN].includes(vendorRole);
   if (course.type === INTER_B2B && !isRofOrAdmin) throw Boom.forbidden();
   if (course.type === INTRA_HOLDING) {
-    const hasClientRole = [COACH, CLIENT_ADMIN].includes(get(req, 'auth.credentials.role.client.name'));
+    const isCoachOrAdmin = [COACH, CLIENT_ADMIN].includes(get(req, 'auth.credentials.role.client.name'));
     const hasHoldingRole = get(req, 'auth.credentials.role.holding.name') === HOLDING_ADMIN;
-    const isTrainerOnly = get(req, 'auth.credentials.role.vendor.name') === TRAINER &&
-      !(hasClientRole || hasHoldingRole);
-    if (isTrainerOnly) throw Boom.forbidden();
+    if (vendorRole === TRAINER && !(isCoachOrAdmin || hasHoldingRole)) throw Boom.forbidden();
 
     const traineesCompanyAtCourseRegistration = await CourseHistoriesHelper.getCompanyAtCourseRegistrationList(
       { key: COURSE, value: req.params._id }, { key: TRAINEE, value: [req.params.traineeId] }
@@ -377,9 +377,8 @@ exports.authorizeTraineeDeletion = async (req) => {
     const companiesAtRegistration = traineesCompanyAtCourseRegistration[0].company;
     const isTraineeFromCompany = UtilsHelper
       .areObjectIdsEquals(get(req, 'auth.credentials.company._id'), companiesAtRegistration);
-    if (hasClientRole && !isTraineeFromCompany && !(isRofOrAdmin || hasHoldingRole)) throw Boom.notFound();
+    if (isCoachOrAdmin && !isTraineeFromCompany && !(isRofOrAdmin || hasHoldingRole)) throw Boom.notFound();
   }
-  if (!UtilsHelper.doesArrayIncludeId(course.trainees, req.params.traineeId)) throw Boom.forbidden();
 
   return null;
 };

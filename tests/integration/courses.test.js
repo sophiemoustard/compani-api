@@ -3371,7 +3371,7 @@ describe('COURSES ROUTES - DELETE /courses/{_id}/trainees/{traineeId}', () => {
     it('should delete course trainee (intra_holding)', async () => {
       const response = await app.inject({
         method: 'DELETE',
-        url: `/courses/${coursesList[23]._id.toHexString()}/trainees/${traineeFromOtherCompany._id.toHexString()}`,
+        url: `/courses/${coursesList[23]._id}/trainees/${traineeFromOtherCompany._id}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -3413,22 +3413,22 @@ describe('COURSES ROUTES - DELETE /courses/{_id}/trainees/{traineeId}', () => {
   });
 
   describe('HOLDING_ADMIN', () => {
-    it('should return 200 if holding admin delete learner (intra)', async () => {
+    it('should delete course trainee (intra)', async () => {
       authToken = await getTokenByCredentials(holdingAdminFromOtherCompany.local);
       const res = await app.inject({
         method: 'DELETE',
-        url: `/courses/${coursesList[20]._id.toHexString()}/trainees/${traineeFromThirdCompany._id.toHexString()}`,
+        url: `/courses/${coursesList[20]._id}/trainees/${traineeFromThirdCompany._id}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(res.statusCode).toBe(200);
     });
 
-    it('should return 200 if holding admin delete learner (intra_holding)', async () => {
+    it('should delete course trainee (intra_holding)', async () => {
       authToken = await getTokenByCredentials(holdingAdminFromOtherCompany.local);
       const res = await app.inject({
         method: 'DELETE',
-        url: `/courses/${coursesList[23]._id.toHexString()}/trainees/${traineeFromThirdCompany._id.toHexString()}`,
+        url: `/courses/${coursesList[23]._id}/trainees/${traineeFromThirdCompany._id}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -3439,7 +3439,7 @@ describe('COURSES ROUTES - DELETE /courses/{_id}/trainees/{traineeId}', () => {
       authToken = await getTokenByCredentials(holdingAdminFromOtherCompany.local);
       const res = await app.inject({
         method: 'DELETE',
-        url: `/courses/${courseIdFromAuthCompany.toHexString()}/trainees/${traineeId.toHexString()}`,
+        url: `/courses/${courseIdFromAuthCompany}/trainees/${traineeId}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -3466,11 +3466,11 @@ describe('COURSES ROUTES - DELETE /courses/{_id}/trainees/{traineeId}', () => {
       });
     });
 
-    it('should return 403 as user is trainer if not one of his courses', async () => {
+    it('should return 403 as user is trainer but this is not one of his courses', async () => {
       authToken = await getToken('trainer');
       const response = await app.inject({
         method: 'DELETE',
-        url: `/courses/${coursesList[1]._id}/trainees/${traineeFromOtherCompany._id.toHexString()}`,
+        url: `/courses/${coursesList[1]._id}/trainees/${traineeFromOtherCompany._id}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -3481,7 +3481,7 @@ describe('COURSES ROUTES - DELETE /courses/{_id}/trainees/{traineeId}', () => {
       authToken = await getToken('trainer');
       const response = await app.inject({
         method: 'DELETE',
-        url: `/courses/${coursesList[4]._id}/trainees/${traineeId.toHexString()}`,
+        url: `/courses/${coursesList[4]._id}/trainees/${traineeId}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -3500,11 +3500,11 @@ describe('COURSES ROUTES - DELETE /courses/{_id}/trainees/{traineeId}', () => {
       expect(response.statusCode).toBe(403);
     });
 
-    it('should return 200 as user is coach requesting on an his company (intra_holding)', async () => {
+    it('should return 200 as user is coach requesting on his company (intra_holding)', async () => {
       authToken = await getTokenByCredentials(coachFromOtherCompany.local);
       const response = await app.inject({
         method: 'DELETE',
-        url: `/courses/${coursesList[23]._id.toHexString()}/trainees/${traineeFromOtherCompany._id.toHexString()}`,
+        url: `/courses/${coursesList[23]._id}/trainees/${traineeFromOtherCompany._id}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -3515,7 +3515,7 @@ describe('COURSES ROUTES - DELETE /courses/{_id}/trainees/{traineeId}', () => {
       authToken = await getToken('trainer');
       const response = await app.inject({
         method: 'DELETE',
-        url: `/courses/${courseIdFromAuthCompany.toHexString()}/trainees/${traineeId.toHexString()}`,
+        url: `/courses/${courseIdFromAuthCompany}/trainees/${traineeId}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -3526,7 +3526,7 @@ describe('COURSES ROUTES - DELETE /courses/{_id}/trainees/{traineeId}', () => {
       authToken = await getToken('client_admin');
       const response = await app.inject({
         method: 'DELETE',
-        url: `/courses/${courseIdFromOtherCompany.toHexString()}/trainees/${traineeId.toHexString()}`,
+        url: `/courses/${courseIdFromOtherCompany}/trainees/${traineeId}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -3534,10 +3534,10 @@ describe('COURSES ROUTES - DELETE /courses/{_id}/trainees/{traineeId}', () => {
     });
 
     it('should return 404 as user is coach requesting on an other company (intra_holding)', async () => {
-      authToken = await getTokenByCredentials(coachFromOtherCompany.local);
+      authToken = await getTokenByCredentials(clientAdminFromThirdCompany.local);
       const response = await app.inject({
         method: 'DELETE',
-        url: `/courses/${coursesList[23]._id.toHexString()}/trainees/${traineeFromThirdCompany._id.toHexString()}`,
+        url: `/courses/${coursesList[23]._id}/trainees/${traineeFromOtherCompany._id}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
