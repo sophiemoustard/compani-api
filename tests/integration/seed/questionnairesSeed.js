@@ -58,7 +58,7 @@ const questionnairesList = [
     name: 'test',
     status: PUBLISHED,
     type: END_OF_COURSE,
-    cards: [cardsList[0]._id, cardsList[1]._id],
+    cards: [cardsList[2]._id, cardsList[3]._id],
   },
 ];
 
@@ -82,7 +82,7 @@ const stepList = [
 ];
 
 const subProgramsList = [
-  { _id: new ObjectId(), name: 'sous-programme 1', steps: [stepList[0]._id], status: PUBLISHED },
+  { _id: new ObjectId(), name: 'sous-programme 1', steps: [stepList[0]._id, stepList[2]._id], status: PUBLISHED },
   { _id: new ObjectId(), name: 'sous-programme 2', steps: [stepList[1]._id], status: PUBLISHED },
 ];
 

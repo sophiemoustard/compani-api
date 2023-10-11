@@ -55,7 +55,8 @@ exports.getUserQuestionnaires = async (courseId, credentials) => {
 
   const middleCourseSlotIndex = Math.ceil(sortedCourseSlots.length / 2) - 1;
 
-  const isBeforeMiddleCourse = CompaniDate().isBefore(sortedCourseSlots[middleCourseSlotIndex].endDate);
+  const isBeforeMiddleCourse = !sortedCourseSlots.length ||
+    CompaniDate().isBefore(sortedCourseSlots[middleCourseSlotIndex].endDate);
   if (isBeforeMiddleCourse) {
     const questionnaire = await this.findQuestionnaire(course, credentials, EXPECTATIONS);
 

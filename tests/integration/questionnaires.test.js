@@ -36,7 +36,7 @@ describe('QUESTIONNAIRES ROUTES - POST /questionnaires', () => {
 
       expect(response.statusCode).toBe(200);
       const questionnairesCount = await Questionnaire.countDocuments();
-      expect(questionnairesCount).toBe(3);
+      expect(questionnairesCount).toBe(questionnairesList.length + 1);
     });
 
     it('should return 400 if no name', async () => {
@@ -125,7 +125,7 @@ describe('QUESTIONNAIRES ROUTES - GET /questionnaires', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      expect(response.result.data.questionnaires.length).toEqual(1);
+      expect(response.result.data.questionnaires.length).toEqual(2);
     });
   });
 
