@@ -3447,23 +3447,20 @@ describe('COURSES ROUTES - DELETE /courses/{_id}/trainees/{traineeId}', () => {
     });
   });
 
-  describe('Other roles', () => {
-    const roles = [
-      { name: 'helper', expectedCode: 403 },
-      { name: 'planning_referent', expectedCode: 403 },
-      { name: 'coach', expectedCode: 200 },
-    ];
-    roles.forEach((role) => {
-      it(`should return ${role.expectedCode} as user is ${role.name}, requesting on his company`, async () => {
-        authToken = await getToken(role.name);
-        const response = await app.inject({
-          method: 'DELETE',
-          url: `/courses/${courseIdFromAuthCompany.toHexString()}/trainees/${traineeId.toHexString()}`,
-          headers: { Cookie: `alenvi_token=${authToken}` },
-        });
+  describe('TRAINER', () => {
+    beforeEach(async () => {
+      authToken = await getToken('trainer');
+    });
 
-        expect(response.statusCode).toBe(role.expectedCode);
+    it('should return 200 as user is the intra course trainer', async () => {
+      authToken = await getToken('trainer');
+      const response = await app.inject({
+        method: 'DELETE',
+        url: `/courses/${courseIdFromAuthCompany}/trainees/${traineeId}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
+
+      expect(response.statusCode).toBe(200);
     });
 
     it('should return 403 as user is trainer but this is not one of his courses', async () => {
@@ -3499,23 +3496,14 @@ describe('COURSES ROUTES - DELETE /courses/{_id}/trainees/{traineeId}', () => {
 
       expect(response.statusCode).toBe(403);
     });
+  });
 
+  describe('CLIENT_ADMIN/COACH', () => {
     it('should return 200 as user is coach requesting on his company (intra_holding)', async () => {
       authToken = await getTokenByCredentials(coachFromOtherCompany.local);
       const response = await app.inject({
         method: 'DELETE',
         url: `/courses/${coursesList[23]._id}/trainees/${traineeFromOtherCompany._id}`,
-        headers: { Cookie: `alenvi_token=${authToken}` },
-      });
-
-      expect(response.statusCode).toBe(200);
-    });
-
-    it('should return 200 as user is the intra course trainer', async () => {
-      authToken = await getToken('trainer');
-      const response = await app.inject({
-        method: 'DELETE',
-        url: `/courses/${courseIdFromAuthCompany}/trainees/${traineeId}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -3533,7 +3521,7 @@ describe('COURSES ROUTES - DELETE /courses/{_id}/trainees/{traineeId}', () => {
       expect(response.statusCode).toBe(403);
     });
 
-    it('should return 404 as user is coach requesting on an other company (intra_holding)', async () => {
+    it('should return 404 as user is client_admin requesting on an other company (intra_holding)', async () => {
       authToken = await getTokenByCredentials(clientAdminFromThirdCompany.local);
       const response = await app.inject({
         method: 'DELETE',
@@ -3542,6 +3530,26 @@ describe('COURSES ROUTES - DELETE /courses/{_id}/trainees/{traineeId}', () => {
       });
 
       expect(response.statusCode).toBe(404);
+    });
+  });
+
+  describe('Other roles', () => {
+    const roles = [
+      { name: 'helper', expectedCode: 403 },
+      { name: 'planning_referent', expectedCode: 403 },
+      { name: 'coach', expectedCode: 200 },
+    ];
+    roles.forEach((role) => {
+      it(`should return ${role.expectedCode} as user is ${role.name}, requesting on his company`, async () => {
+        authToken = await getToken(role.name);
+        const response = await app.inject({
+          method: 'DELETE',
+          url: `/courses/${courseIdFromAuthCompany.toHexString()}/trainees/${traineeId.toHexString()}`,
+          headers: { Cookie: `alenvi_token=${authToken}` },
+        });
+
+        expect(response.statusCode).toBe(role.expectedCode);
+      });
     });
   });
 });

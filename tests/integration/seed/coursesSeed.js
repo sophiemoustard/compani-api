@@ -567,7 +567,7 @@ const coursesList = [
     companyRepresentative: coachFromThirdCompany._id,
     expectedBillsCount: 2,
   },
-  { // 21 intra_holding course
+  { // 21 intra_holding course with companies, without trainees
     _id: new ObjectId(),
     subProgram: subProgramsList[0]._id,
     contact: trainer._id,
@@ -594,7 +594,7 @@ const coursesList = [
     holding: otherHolding._id,
     companyRepresentative: holdingAdminFromOtherCompany._id,
   },
-  { // 23 intra_holding course without companies
+  { // 23 intra_holding course with companies and trainees
     _id: new ObjectId(),
     subProgram: subProgramsList[0]._id,
     contact: holdingAdminFromOtherCompany._id,
