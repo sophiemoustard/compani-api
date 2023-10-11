@@ -359,11 +359,26 @@ exports.authorizeTraineeAddition = async (req) => {
 };
 
 exports.authorizeTraineeDeletion = async (req) => {
+  const vendorRole = get(req, 'auth.credentials.role.vendor.name');
   const course = await Course.findOne({ _id: req.params._id }, { type: 1, trainees: 1 }).lean();
 
-  const isTrainer = get(req, 'auth.credentials.role.vendor.name') === TRAINER;
-  if (course.type === INTER_B2B && isTrainer) throw Boom.forbidden();
   if (!UtilsHelper.doesArrayIncludeId(course.trainees, req.params.traineeId)) throw Boom.forbidden();
+
+  const isRofOrAdmin = [TRAINING_ORGANISATION_MANAGER, VENDOR_ADMIN].includes(vendorRole);
+  if (course.type === INTER_B2B && !isRofOrAdmin) throw Boom.forbidden();
+  if (course.type === INTRA_HOLDING) {
+    const isCoachOrAdmin = [COACH, CLIENT_ADMIN].includes(get(req, 'auth.credentials.role.client.name'));
+    const hasHoldingRole = get(req, 'auth.credentials.role.holding.name') === HOLDING_ADMIN;
+    if (vendorRole === TRAINER && !(isCoachOrAdmin || hasHoldingRole)) throw Boom.forbidden();
+
+    const traineesCompanyAtCourseRegistration = await CourseHistoriesHelper.getCompanyAtCourseRegistrationList(
+      { key: COURSE, value: req.params._id }, { key: TRAINEE, value: [req.params.traineeId] }
+    );
+    const companiesAtRegistration = traineesCompanyAtCourseRegistration[0].company;
+    const isTraineeFromCompany = UtilsHelper
+      .areObjectIdsEquals(get(req, 'auth.credentials.company._id'), companiesAtRegistration);
+    if (isCoachOrAdmin && !isTraineeFromCompany && !(isRofOrAdmin || hasHoldingRole)) throw Boom.notFound();
+  }
 
   return null;
 };

@@ -567,13 +567,13 @@ const coursesList = [
     companyRepresentative: coachFromThirdCompany._id,
     expectedBillsCount: 2,
   },
-  { // 21 intra_holding course
+  { // 21 intra_holding course with companies, without trainees
     _id: new ObjectId(),
     subProgram: subProgramsList[0]._id,
     contact: trainer._id,
     misc: 'team formation',
     trainer: trainer._id,
-    trainees: [traineeFromAuthCompanyWithFormationExpoToken._id],
+    trainees: [],
     companies: [authCompany._id],
     type: INTRA_HOLDING,
     maxTrainees: 8,
@@ -588,6 +588,20 @@ const coursesList = [
     trainer: trainer._id,
     trainees: [],
     companies: [],
+    type: INTRA_HOLDING,
+    maxTrainees: 8,
+    salesRepresentative: vendorAdmin._id,
+    holding: otherHolding._id,
+    companyRepresentative: holdingAdminFromOtherCompany._id,
+  },
+  { // 23 intra_holding course with companies and trainees
+    _id: new ObjectId(),
+    subProgram: subProgramsList[0]._id,
+    contact: holdingAdminFromOtherCompany._id,
+    misc: 'team formation',
+    trainer: trainer._id,
+    trainees: [traineeFromThirdCompany._id, traineeFromOtherCompany._id],
+    companies: [otherCompany._id, thirdCompany._id],
     type: INTRA_HOLDING,
     maxTrainees: 8,
     salesRepresentative: vendorAdmin._id,
@@ -1001,6 +1015,22 @@ const courseHistories = [
     createdBy: trainerOrganisationManager._id,
     createdAt: '2020-01-03T14:00:00.000Z',
   },
+  {
+    action: TRAINEE_ADDITION,
+    course: coursesList[23]._id,
+    trainee: traineeFromOtherCompany._id,
+    company: otherCompany._id,
+    createdBy: trainerOrganisationManager._id,
+    createdAt: '2020-01-03T14:00:00.000Z',
+  },
+  {
+    action: TRAINEE_ADDITION,
+    course: coursesList[23]._id,
+    trainee: traineeFromThirdCompany._id,
+    company: thirdCompany._id,
+    createdBy: trainerOrganisationManager._id,
+    createdAt: '2020-01-03T14:00:00.000Z',
+  },
 ];
 
 const slots = [
@@ -1118,6 +1148,13 @@ const slots = [
     startDate: '2020-03-07T08:00:00.000Z',
     endDate: '2020-03-07T10:00:00.000Z',
     course: coursesList[22]._id,
+    step: stepList[0]._id,
+  },
+  { // 18
+    _id: new ObjectId(),
+    startDate: '2020-03-07T08:00:00.000Z',
+    endDate: '2020-03-07T10:00:00.000Z',
+    course: coursesList[23]._id,
     step: stepList[0]._id,
   },
 ];
