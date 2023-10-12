@@ -52,8 +52,12 @@ exports.getUserQuestionnaires = async (courseId, credentials) => {
   if (course.format === STRICTLY_E_LEARNING) return [];
 
   const sortedCourseSlots = course.slots.sort(DatesUtilsHelper.ascendingSortBy('startDate'));
-  const isCourseStarted = sortedCourseSlots.length && CompaniDate().isAfter(sortedCourseSlots[0].startDate);
-  if (!isCourseStarted) {
+
+  const middleCourseSlotIndex = Math.ceil(sortedCourseSlots.length / 2) - 1;
+
+  const isBeforeMiddleCourse = !sortedCourseSlots.length ||
+    CompaniDate().isBefore(sortedCourseSlots[middleCourseSlotIndex].endDate);
+  if (isBeforeMiddleCourse) {
     const questionnaire = await this.findQuestionnaire(course, credentials, EXPECTATIONS);
 
     return !questionnaire || questionnaire.histories.length ? [] : [questionnaire];

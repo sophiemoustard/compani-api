@@ -8,7 +8,7 @@ const UtilsHelper = require('../../src/helpers/utils');
 const { populateDB, questionnairesList, cardsList, coursesList } = require('./seed/questionnairesSeed');
 const { getToken, getTokenByCredentials } = require('./helpers/authentication');
 const { noRoleNoCompany } = require('../seed/authUsersSeed');
-const { SURVEY, PUBLISHED, DRAFT, FLASHCARD } = require('../../src/helpers/constants');
+const { SURVEY, PUBLISHED, DRAFT, FLASHCARD, EXPECTATIONS, END_OF_COURSE } = require('../../src/helpers/constants');
 const { companyWithoutSubscription, authCompany } = require('../seed/authCompaniesSeed');
 
 describe('NODE ENV', () => {
@@ -36,7 +36,7 @@ describe('QUESTIONNAIRES ROUTES - POST /questionnaires', () => {
 
       expect(response.statusCode).toBe(200);
       const questionnairesCount = await Questionnaire.countDocuments();
-      expect(questionnairesCount).toBe(3);
+      expect(questionnairesCount).toBe(questionnairesList.length + 1);
     });
 
     it('should return 400 if no name', async () => {
@@ -125,7 +125,7 @@ describe('QUESTIONNAIRES ROUTES - GET /questionnaires', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      expect(response.result.data.questionnaires.length).toEqual(1);
+      expect(response.result.data.questionnaires.length).toEqual(2);
     });
   });
 
@@ -242,8 +242,8 @@ describe('QUESTIONNAIRES ROUTES - GET /questionnaires/user', () => {
       nowStub.restore();
     });
 
-    it('should get questionnaires', async () => {
-      nowStub.returns(new Date('2021-04-13T15:00:00'));
+    it('should get expectations questionnaire', async () => {
+      nowStub.returns(new Date('2021-04-20T10:00:00.000Z'));
 
       const response = await app.inject({
         method: 'GET',
@@ -252,6 +252,21 @@ describe('QUESTIONNAIRES ROUTES - GET /questionnaires/user', () => {
       });
 
       expect(response.statusCode).toBe(200);
+      expect(response.result.data.questionnaires[0].type).toBe(EXPECTATIONS);
+      expect(response.result.data.questionnaires.length).toBe(1);
+    });
+
+    it('should get end_of_course questionnaire', async () => {
+      nowStub.returns(new Date('2021-04-22T16:05:00.000Z'));
+
+      const response = await app.inject({
+        method: 'GET',
+        url: `/questionnaires/user?course=${coursesList[0]._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(200);
+      expect(response.result.data.questionnaires[0].type).toBe(END_OF_COURSE);
       expect(response.result.data.questionnaires.length).toBe(1);
     });
 
