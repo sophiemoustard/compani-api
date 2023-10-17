@@ -937,7 +937,7 @@ const userList = [
   },
   { // 7
     _id: new ObjectId(),
-    identity: { firstname: 'HelperForCustomerToDelete', lastname: 'TheEtMoselle' },
+    identity: { firstname: 'HelperForCustomerToDelete', lastname: 'Gence' },
     local: { email: 'helper_for_customer_to_delete@alenvi.io' },
     refreshToken: uuidv4(),
     role: { client: helperRoleId },

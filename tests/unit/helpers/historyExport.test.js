@@ -173,7 +173,11 @@ describe('getWorkingEventsForExport', () => {
           query: 'populate',
           args: [{
             path: 'histories',
-            match: { action: { $in: TIME_STAMPING_ACTIONS }, company: companyId },
+            match: {
+              action: { $in: TIME_STAMPING_ACTIONS },
+              company: companyId,
+              $or: [{ isCancelled: false }, { isCancelled: { $exists: false } }],
+            },
             select: 'update action manualTimeStampingReason',
           }],
         },

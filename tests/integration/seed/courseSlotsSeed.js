@@ -10,9 +10,9 @@ const User = require('../../../src/models/User');
 const Step = require('../../../src/models/Step');
 const SubProgram = require('../../../src/models/SubProgram');
 const Attendance = require('../../../src/models/Attendance');
-const { authCompany, otherCompany, companyWithoutSubscription } = require('../../seed/authCompaniesSeed');
+const { authCompany, otherCompany, companyWithoutSubscription, authHolding } = require('../../seed/authCompaniesSeed');
 const { vendorAdmin } = require('../../seed/authUsersSeed');
-const { WEBAPP, INTRA, PUBLISHED, LESSON } = require('../../../src/helpers/constants');
+const { WEBAPP, INTRA, PUBLISHED, LESSON, INTRA_HOLDING } = require('../../../src/helpers/constants');
 const { deleteNonAuthenticationSeeds } = require('../helpers/db');
 const { trainerRoleId, auxiliaryRoleId } = require('../../seed/authRolesSeed');
 
@@ -92,7 +92,7 @@ const programsList = [
 ];
 
 const coursesList = [
-  {
+  { // 0
     _id: new ObjectId(),
     subProgram: subProgramsList[0]._id,
     trainees: [],
@@ -103,7 +103,7 @@ const coursesList = [
     trainer: trainer._id,
     salesRepresentative: vendorAdmin._id,
   },
-  {
+  { // 1
     _id: new ObjectId(),
     subProgram: subProgramsList[0]._id,
     trainees: [traineeFromOtherCompany._id],
@@ -114,7 +114,7 @@ const coursesList = [
     trainer: trainer._id,
     salesRepresentative: vendorAdmin._id,
   },
-  {
+  { // 2
     _id: new ObjectId(),
     subProgram: subProgramsList[0]._id,
     trainees: [],
@@ -126,7 +126,7 @@ const coursesList = [
     salesRepresentative: vendorAdmin._id,
     archivedAt: '2021-11-15T09:00:00',
   },
-  {
+  { // 3
     _id: new ObjectId(),
     subProgram: subProgramsList[0]._id,
     trainees: [],
@@ -137,10 +137,34 @@ const coursesList = [
     trainer: trainer._id,
     salesRepresentative: vendorAdmin._id,
   },
+  { // 4
+    _id: new ObjectId(),
+    subProgram: subProgramsList[0]._id,
+    misc: 'team formation',
+    trainer: trainer._id,
+    trainees: [],
+    companies: [authCompany._id],
+    type: INTRA_HOLDING,
+    maxTrainees: 8,
+    salesRepresentative: vendorAdmin._id,
+    holding: authHolding._id,
+  },
+  { // 5 without companies
+    _id: new ObjectId(),
+    subProgram: subProgramsList[0]._id,
+    misc: 'team formation',
+    trainer: trainer._id,
+    trainees: [],
+    companies: [],
+    type: INTRA_HOLDING,
+    maxTrainees: 8,
+    salesRepresentative: vendorAdmin._id,
+    holding: authHolding._id,
+  },
 ];
 
 const courseSlotsList = [
-  {
+  { // 0
     _id: new ObjectId(),
     startDate: '2020-03-10T09:00:00',
     endDate: '2020-03-10T12:00:00',
@@ -154,54 +178,54 @@ const courseSlotsList = [
       location: { type: 'Point', coordinates: [2.0987, 1.2345] },
     },
   },
-  {
+  { // 1
     _id: new ObjectId(),
     startDate: '2020-04-10T09:00:00',
     endDate: '2020-04-10T12:00:00',
     course: coursesList[0]._id,
     step: stepsList[0]._id,
   },
-  {
+  { // 2
     _id: new ObjectId(),
     startDate: '2020-03-10T09:00:00',
     endDate: '2020-03-10T12:00:00',
     course: coursesList[1]._id,
     step: stepsList[0]._id,
   },
-  {
+  { // 3
     _id: new ObjectId(),
     startDate: '2020-04-10T09:00:00',
     endDate: '2020-04-10T12:00:00',
     course: coursesList[1]._id,
     step: stepsList[0]._id,
   },
-  { // slot with attendance
+  { // 4 slot with attendance
     _id: new ObjectId(),
     startDate: '2020-05-10T09:00:00',
     endDate: '2020-05-10T12:00:00',
     course: coursesList[1]._id,
     step: stepsList[0]._id,
   },
-  { // old session slot
+  { // 5 old session slot
     _id: new ObjectId(),
     startDate: '2020-05-10T09:00:00',
     endDate: '2020-05-10T12:00:00',
     course: coursesList[2]._id,
     step: stepsList[0]._id,
   },
-  { // slot to plan
+  { // 6 slot to plan
     _id: new ObjectId(),
     course: coursesList[1]._id,
     step: stepsList[0]._id,
   },
-  {
+  { // 7
     _id: new ObjectId(),
     startDate: '2020-05-10T09:00:00',
     endDate: '2020-05-10T12:00:00',
     course: coursesList[0]._id,
     step: stepsList[1]._id,
   },
-  { // remote slot with meetingLink
+  { // 8 remote slot with meetingLink
     _id: new ObjectId(),
     startDate: '2020-12-10T09:00:00',
     endDate: '2020-12-10T12:00:00',
@@ -209,11 +233,25 @@ const courseSlotsList = [
     step: stepsList[4]._id,
     meetingLink: 'https://meet.google.com',
   },
-  {
+  { // 9
     _id: new ObjectId(),
     startDate: '2020-04-10T09:00:00',
     endDate: '2020-04-10T12:00:00',
     course: coursesList[3]._id,
+    step: stepsList[0]._id,
+  },
+  { // 10
+    _id: new ObjectId(),
+    startDate: '2020-04-10T09:00:00',
+    endDate: '2020-04-10T12:00:00',
+    course: coursesList[4]._id,
+    step: stepsList[0]._id,
+  },
+  { // 11
+    _id: new ObjectId(),
+    startDate: '2020-04-10T09:00:00',
+    endDate: '2020-04-10T12:00:00',
+    course: coursesList[5]._id,
     step: stepsList[0]._id,
   },
 ];

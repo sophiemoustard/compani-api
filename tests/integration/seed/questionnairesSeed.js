@@ -24,6 +24,9 @@ const {
   ON_SITE,
   E_LEARNING,
   STRICTLY_E_LEARNING,
+  END_OF_COURSE,
+  EXPECTATIONS,
+  DRAFT,
 } = require('../../../src/helpers/constants');
 const { trainerRoleId } = require('../../seed/authRolesSeed');
 const { companyWithoutSubscription, authCompany } = require('../../seed/authCompaniesSeed');
@@ -39,15 +42,22 @@ const questionnairesList = [
   {
     _id: new ObjectId(),
     name: 'test',
-    status: 'draft',
-    type: 'expectations',
+    status: DRAFT,
+    type: EXPECTATIONS,
     cards: [cardsList[0]._id, cardsList[1]._id],
   },
   {
     _id: new ObjectId(),
     name: 'test',
-    status: 'published',
-    type: 'expectations',
+    status: PUBLISHED,
+    type: EXPECTATIONS,
+    cards: [cardsList[2]._id, cardsList[3]._id],
+  },
+  {
+    _id: new ObjectId(),
+    name: 'test',
+    status: PUBLISHED,
+    type: END_OF_COURSE,
     cards: [cardsList[2]._id, cardsList[3]._id],
   },
 ];
@@ -68,10 +78,11 @@ const stepList = [
     status: PUBLISHED,
     theoreticalDuration: 60,
   },
+  { _id: new ObjectId(), type: ON_SITE, name: 'etape 3', activities: [], status: PUBLISHED, theoreticalDuration: 240 },
 ];
 
 const subProgramsList = [
-  { _id: new ObjectId(), name: 'sous-programme 1', steps: [stepList[0]._id], status: PUBLISHED },
+  { _id: new ObjectId(), name: 'sous-programme 1', steps: [stepList[0]._id, stepList[2]._id], status: PUBLISHED },
   { _id: new ObjectId(), name: 'sous-programme 2', steps: [stepList[1]._id], status: PUBLISHED },
 ];
 
@@ -160,12 +171,20 @@ const traineeCompanyList = [
   { _id: new ObjectId(), user: traineeList[0]._id, company: authCompany._id },
 ];
 
-const slots = [{
-  startDate: new Date('2021-04-20T09:00:00'),
-  endDate: new Date('2021-04-20T11:00:00'),
-  course: coursesList[0]._id,
-  step: stepList[0]._id,
-}];
+const slots = [
+  {
+    startDate: '2021-04-20T09:00:00.000Z',
+    endDate: '2021-04-20T11:00:00.000Z',
+    course: coursesList[0]._id,
+    step: stepList[0]._id,
+  },
+  {
+    startDate: '2021-04-22T14:00:00.000Z',
+    endDate: '2021-04-22T18:00:00.000Z',
+    course: coursesList[0]._id,
+    step: stepList[2]._id,
+  },
+];
 
 const questionnaireHistories = [
   {

@@ -1,5 +1,7 @@
 const { v4: uuidv4 } = require('uuid');
 const { ObjectId } = require('mongodb');
+const Company = require('../../../src/models/Company');
+const CompanyHolding = require('../../../src/models/CompanyHolding');
 const Course = require('../../../src/models/Course');
 const Program = require('../../../src/models/Program');
 const SubProgram = require('../../../src/models/SubProgram');
@@ -20,7 +22,13 @@ const CourseCreditNote = require('../../../src/models/CourseCreditNote');
 const CourseCreditNoteNumber = require('../../../src/models/CourseCreditNoteNumber');
 const Attendance = require('../../../src/models/Attendance');
 const AttendanceSheet = require('../../../src/models/AttendanceSheet');
-const { authCompany, otherCompany, companyWithoutSubscription: thirdCompany } = require('../../seed/authCompaniesSeed');
+const {
+  authCompany,
+  otherCompany,
+  companyWithoutSubscription: thirdCompany,
+  otherHolding,
+  authHolding,
+} = require('../../seed/authCompaniesSeed');
 const { deleteNonAuthenticationSeeds } = require('../helpers/db');
 const {
   vendorAdmin,
@@ -32,6 +40,7 @@ const {
   coach,
   trainer,
   trainerAndCoach,
+  holdingAdminFromOtherCompany,
 } = require('../../seed/authUsersSeed');
 const {
   VIDEO,
@@ -46,6 +55,7 @@ const {
   TRAINEE_ADDITION,
   COMPANY_ADDITION,
   PUBLISHED,
+  INTRA_HOLDING,
 } = require('../../../src/helpers/constants');
 const { auxiliaryRoleId, trainerRoleId, coachRoleId, clientAdminRoleId } = require('../../seed/authRolesSeed');
 const { CompaniDate } = require('../../../src/helpers/dates/companiDates');
@@ -557,6 +567,47 @@ const coursesList = [
     companyRepresentative: coachFromThirdCompany._id,
     expectedBillsCount: 2,
   },
+  { // 21 intra_holding course with companies, without trainees
+    _id: new ObjectId(),
+    subProgram: subProgramsList[0]._id,
+    contact: trainer._id,
+    misc: 'team formation',
+    trainer: trainer._id,
+    trainees: [],
+    companies: [authCompany._id],
+    type: INTRA_HOLDING,
+    maxTrainees: 8,
+    salesRepresentative: vendorAdmin._id,
+    holding: authHolding._id,
+  },
+  { // 22 intra_holding course without companies
+    _id: new ObjectId(),
+    subProgram: subProgramsList[0]._id,
+    contact: holdingAdminFromOtherCompany._id,
+    misc: 'team formation',
+    trainer: trainer._id,
+    trainees: [],
+    companies: [],
+    type: INTRA_HOLDING,
+    maxTrainees: 8,
+    salesRepresentative: vendorAdmin._id,
+    holding: otherHolding._id,
+    companyRepresentative: holdingAdminFromOtherCompany._id,
+  },
+  { // 23 intra_holding course with companies and trainees
+    _id: new ObjectId(),
+    subProgram: subProgramsList[0]._id,
+    contact: holdingAdminFromOtherCompany._id,
+    misc: 'team formation',
+    trainer: trainer._id,
+    trainees: [traineeFromThirdCompany._id, traineeFromOtherCompany._id],
+    companies: [otherCompany._id, thirdCompany._id],
+    type: INTRA_HOLDING,
+    maxTrainees: 8,
+    salesRepresentative: vendorAdmin._id,
+    holding: otherHolding._id,
+    companyRepresentative: holdingAdminFromOtherCompany._id,
+  },
 ];
 
 const courseBillsList = [
@@ -964,6 +1015,22 @@ const courseHistories = [
     createdBy: trainerOrganisationManager._id,
     createdAt: '2020-01-03T14:00:00.000Z',
   },
+  {
+    action: TRAINEE_ADDITION,
+    course: coursesList[23]._id,
+    trainee: traineeFromOtherCompany._id,
+    company: otherCompany._id,
+    createdBy: trainerOrganisationManager._id,
+    createdAt: '2020-01-03T14:00:00.000Z',
+  },
+  {
+    action: TRAINEE_ADDITION,
+    course: coursesList[23]._id,
+    trainee: traineeFromThirdCompany._id,
+    company: thirdCompany._id,
+    createdBy: trainerOrganisationManager._id,
+    createdAt: '2020-01-03T14:00:00.000Z',
+  },
 ];
 
 const slots = [
@@ -1069,6 +1136,27 @@ const slots = [
     course: coursesList[19]._id,
     step: stepList[0]._id,
   },
+  { // 16
+    _id: new ObjectId(),
+    startDate: '2020-03-07T08:00:00.000Z',
+    endDate: '2020-03-07T10:00:00.000Z',
+    course: coursesList[21]._id,
+    step: stepList[0]._id,
+  },
+  { // 17
+    _id: new ObjectId(),
+    startDate: '2020-03-07T08:00:00.000Z',
+    endDate: '2020-03-07T10:00:00.000Z',
+    course: coursesList[22]._id,
+    step: stepList[0]._id,
+  },
+  { // 18
+    _id: new ObjectId(),
+    startDate: '2020-03-07T08:00:00.000Z',
+    endDate: '2020-03-07T10:00:00.000Z',
+    course: coursesList[23]._id,
+    step: stepList[0]._id,
+  },
 ];
 
 const attendanceList = [{
@@ -1089,6 +1177,26 @@ const attendanceSheetList = [
   },
 ];
 
+const fourthCompany = {
+  _id: new ObjectId(),
+  name: '4th company',
+  tradeName: 'Fourth',
+  prefixNumber: 104,
+  iban: '1234',
+  bic: '5678',
+  ics: '9876',
+  folderId: '1234567890',
+  directDebitsFolderId: '1234567890',
+  customersFolderId: 'qwerty',
+  auxiliariesFolderId: 'asdfgh',
+  customersConfig: { billingPeriod: 'two_weeks' },
+  subscriptions: { erp: false },
+};
+
+const companyHoldingList = [
+  { _id: new ObjectId(), holding: authHolding._id, company: fourthCompany._id },
+];
+
 const populateDB = async () => {
   await deleteNonAuthenticationSeeds();
 
@@ -1098,6 +1206,8 @@ const populateDB = async () => {
     Attendance.create(attendanceList),
     AttendanceSheet.create(attendanceSheetList),
     Card.create(cardsList),
+    Company.create(fourthCompany),
+    CompanyHolding.create(companyHoldingList),
     Course.create(coursesList),
     CourseBill.create(courseBillsList),
     CourseBillsNumber.create(courseBillNumber),
@@ -1121,6 +1231,7 @@ module.exports = {
   activitiesList,
   stepList,
   coursesList,
+  fourthCompany,
   subProgramsList,
   programsList,
   traineeFromOtherCompany,

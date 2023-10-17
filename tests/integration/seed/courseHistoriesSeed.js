@@ -5,9 +5,9 @@ const CourseHistory = require('../../../src/models/CourseHistory');
 const Step = require('../../../src/models/Step');
 const SubProgram = require('../../../src/models/SubProgram');
 const User = require('../../../src/models/User');
-const { authCompany, companyWithoutSubscription } = require('../../seed/authCompaniesSeed');
+const { authCompany, companyWithoutSubscription, authHolding } = require('../../seed/authCompaniesSeed');
 const { trainerOrganisationManager } = require('../../seed/authUsersSeed');
-const { SLOT_CREATION, WEBAPP, INTRA, INTER_B2B, PUBLISHED } = require('../../../src/helpers/constants');
+const { SLOT_CREATION, WEBAPP, INTRA, INTER_B2B, PUBLISHED, INTRA_HOLDING } = require('../../../src/helpers/constants');
 const { deleteNonAuthenticationSeeds } = require('../helpers/db');
 const { vendorAdminRoleId, trainerRoleId } = require('../../seed/authRolesSeed');
 
@@ -34,39 +34,54 @@ const steps = [{ _id: new ObjectId(), type: 'on_site', name: 'étape', status: P
 
 const subProgramsList = [{ _id: new ObjectId(), name: 'sous-programme A', steps: [steps[0]._id], status: PUBLISHED }];
 
-const coursesList = [{
-  _id: new ObjectId(),
-  subProgram: subProgramsList[0]._id,
-  misc: 'first session',
-  type: INTRA,
-  maxTrainees: 8,
-  trainer: userList[0]._id,
-  trainees: [],
-  companies: [authCompany._id],
-  salesRepresentative: userList[1]._id,
-},
-{
-  _id: new ObjectId(),
-  subProgram: subProgramsList[0]._id,
-  misc: 'first session',
-  type: INTRA,
-  maxTrainees: 8,
-  trainer: userList[0]._id,
-  trainees: [],
-  companies: [companyWithoutSubscription._id],
-  salesRepresentative: userList[1]._id,
-},
-{
-  _id: new ObjectId(),
-  subProgram: subProgramsList[0]._id,
-  misc: 'inter b2b session',
-  type: INTER_B2B,
-  format: 'blended',
-  trainer: userList[0]._id,
-  trainees: [],
-  companies: [],
-  salesRepresentative: userList[1]._id,
-}];
+const coursesList = [
+  {
+    _id: new ObjectId(),
+    subProgram: subProgramsList[0]._id,
+    misc: 'first session',
+    type: INTRA,
+    maxTrainees: 8,
+    trainer: userList[0]._id,
+    trainees: [],
+    companies: [authCompany._id],
+    salesRepresentative: userList[1]._id,
+  },
+  {
+    _id: new ObjectId(),
+    subProgram: subProgramsList[0]._id,
+    misc: 'first session',
+    type: INTRA,
+    maxTrainees: 8,
+    trainer: userList[0]._id,
+    trainees: [],
+    companies: [companyWithoutSubscription._id],
+    salesRepresentative: userList[1]._id,
+  },
+  {
+    _id: new ObjectId(),
+    subProgram: subProgramsList[0]._id,
+    misc: 'inter b2b session',
+    type: INTER_B2B,
+    format: 'blended',
+    trainer: userList[0]._id,
+    trainees: [],
+    companies: [],
+    salesRepresentative: userList[1]._id,
+  },
+  {
+    _id: new ObjectId(),
+    subProgram: subProgramsList[0]._id,
+    misc: 'intra holding session',
+    type: INTRA_HOLDING,
+    format: 'blended',
+    trainer: userList[0]._id,
+    trainees: [],
+    companies: [authCompany._id],
+    holding: authHolding._id,
+    maxTrainees: 8,
+    salesRepresentative: userList[1]._id,
+  },
+];
 
 const courseHistoriesList = [{
   createdBy: trainerOrganisationManager._id,
