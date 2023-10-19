@@ -294,7 +294,7 @@ describe('ATTENDANCES ROUTES - GET /attendances', () => {
   });
 
   describe('HOLDING_ADMIN', () => {
-    it('should get course attendances filtered by holding for inter course', async () => {
+    it('should get attendances of trainees belonging to user\'s holding', async () => {
       authToken = await getTokenByCredentials(holdingAdminFromOtherCompany.local);
       const response = await app.inject({
         method: 'GET',
@@ -305,7 +305,7 @@ describe('ATTENDANCES ROUTES - GET /attendances', () => {
       expect(response.statusCode).toBe(200);
     });
 
-    it('should get course attendances if course holding is user holding (intra_holding)', async () => {
+    it('should get attendances if course holding is user holding (intra_holding)', async () => {
       authToken = await getTokenByCredentials(holdingAdminFromAuthCompany.local);
       const response = await app.inject({
         method: 'GET',
