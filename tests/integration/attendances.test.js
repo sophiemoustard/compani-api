@@ -339,6 +339,43 @@ describe('ATTENDANCES ROUTES - GET /attendances', () => {
     });
   });
 
+  describe('COACH', () => {
+    beforeEach(async () => {
+      authToken = await getToken('coach');
+    });
+
+    it('should get course attendances filtered by company for inter course', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/attendances?course=${coursesList[3]._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(200);
+      expect(response.result.data.attendances.length).toEqual(1);
+    });
+
+    it('should return 403 if course is intra and not from coach company', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/attendances?courseSlot=${slotsList[2]._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
+
+    it('should return 403 if course is intra_holding from holding but not coach company', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/attendances?course=${coursesList[8]._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
+  });
+
   describe('Other roles', () => {
     it('should return 200 if courseSlot is from trainer\'s courses', async () => {
       authToken = await getTokenByCredentials(userList[0].local);
@@ -360,40 +397,6 @@ describe('ATTENDANCES ROUTES - GET /attendances', () => {
       });
 
       expect(response.statusCode).toBe(403);
-    });
-
-    it('should return 403 if user is coach and course is intra and not from user company', async () => {
-      authToken = await getToken('coach');
-      const response = await app.inject({
-        method: 'GET',
-        url: `/attendances?courseSlot=${slotsList[2]._id}`,
-        headers: { Cookie: `alenvi_token=${authToken}` },
-      });
-
-      expect(response.statusCode).toBe(403);
-    });
-
-    it('should return 403 if user is coach and course is intra_holding from holding but not company', async () => {
-      authToken = await getToken('coach');
-      const response = await app.inject({
-        method: 'GET',
-        url: `/attendances?course=${coursesList[8]._id}`,
-        headers: { Cookie: `alenvi_token=${authToken}` },
-      });
-
-      expect(response.statusCode).toBe(403);
-    });
-
-    it('should get course attendances filtered by company for inter course', async () => {
-      authToken = await getToken('coach');
-      const response = await app.inject({
-        method: 'GET',
-        url: `/attendances?course=${coursesList[3]._id}`,
-        headers: { Cookie: `alenvi_token=${authToken}` },
-      });
-
-      expect(response.statusCode).toBe(200);
-      expect(response.result.data.attendances.length).toEqual(1);
     });
 
     const roles = [{ name: 'helper', expectedCode: 403 }, { name: 'planning_referent', expectedCode: 403 }];

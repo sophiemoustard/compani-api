@@ -280,7 +280,7 @@ const slotsList = [
     course: coursesList[7],
     step: steps[0]._id,
   },
-  { // 7 - slot for coursesList[8]
+  { // 8 - slot for coursesList[8]
     _id: new ObjectId(),
     startDate: '2020-01-25T10:00:00.000Z',
     endDate: '2020-01-25T14:00:00.000Z',
