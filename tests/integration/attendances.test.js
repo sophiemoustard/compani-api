@@ -56,16 +56,18 @@ describe('ATTENDANCES ROUTES - POST /attendances', () => {
       expect(courseSlotAttendancesAfter).toBe(courseSlotAttendancesBefore + 1);
     });
 
-    it('should create attendance event if no company linked to the course (intra_holding)', async () => {
-      const response = await app.inject({
-        method: 'POST',
-        url: '/attendances',
-        headers: { Cookie: `alenvi_token=${authToken}` },
-        payload: { courseSlot: slotsList[8]._id, trainee: traineeList[0]._id },
-      });
+    it(
+      'should create attendance if no company linked to the course but trainee belongs to holding (intra_holding)',
+      async () => {
+        const response = await app.inject({
+          method: 'POST',
+          url: '/attendances',
+          headers: { Cookie: `alenvi_token=${authToken}` },
+          payload: { courseSlot: slotsList[8]._id, trainee: traineeList[0]._id },
+        });
 
-      expect(response.statusCode).toBe(200);
-    });
+        expect(response.statusCode).toBe(200);
+      });
 
     it('should add attendances for all trainee without attendance for this courseSlot', async () => {
       const courseSlotAttendancesBefore = await Attendance.countDocuments({
