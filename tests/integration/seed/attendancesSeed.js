@@ -8,8 +8,15 @@ const Step = require('../../../src/models/Step');
 const SubProgram = require('../../../src/models/SubProgram');
 const User = require('../../../src/models/User');
 const UserCompany = require('../../../src/models/UserCompany');
-const { otherCompany, authCompany, companyWithoutSubscription } = require('../../seed/authCompaniesSeed');
-const { WEBAPP, INTRA, INTER_B2B, TRAINEE_ADDITION, PUBLISHED } = require('../../../src/helpers/constants');
+const { otherCompany, authCompany, companyWithoutSubscription, authHolding } = require('../../seed/authCompaniesSeed');
+const {
+  WEBAPP,
+  INTRA,
+  INTER_B2B,
+  TRAINEE_ADDITION,
+  PUBLISHED,
+  INTRA_HOLDING,
+} = require('../../../src/helpers/constants');
 const { deleteNonAuthenticationSeeds } = require('../helpers/db');
 const { trainerRoleId, vendorAdminRoleId } = require('../../seed/authRolesSeed');
 const { trainer } = require('../../seed/authUsersSeed');
@@ -203,6 +210,17 @@ const coursesList = [
     trainer: trainer._id,
     salesRepresentative: userList[2]._id,
   },
+  { // 8 intra_holding no company
+    _id: new ObjectId(),
+    subProgram: subProgramList[0],
+    type: INTRA_HOLDING,
+    trainees: [],
+    companies: [],
+    holding: authHolding._id,
+    maxTrainees: 9,
+    trainer: trainer._id,
+    salesRepresentative: userList[2]._id,
+  },
 ];
 
 const slotsList = [
@@ -260,6 +278,13 @@ const slotsList = [
     startDate: '2020-01-25T10:00:00.000Z',
     endDate: '2020-01-25T14:00:00.000Z',
     course: coursesList[7],
+    step: steps[0]._id,
+  },
+  { // 8 - slot for coursesList[8]
+    _id: new ObjectId(),
+    startDate: '2020-01-25T10:00:00.000Z',
+    endDate: '2020-01-25T14:00:00.000Z',
+    course: coursesList[8],
     step: steps[0]._id,
   },
 ];
