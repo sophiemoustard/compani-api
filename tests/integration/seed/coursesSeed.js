@@ -1159,12 +1159,20 @@ const slots = [
   },
 ];
 
-const attendanceList = [{
-  _id: new ObjectId(),
-  trainee: traineeFromThirdCompany._id,
-  courseSlot: slots[14]._id,
-  company: thirdCompany._id,
-}];
+const attendanceList = [
+  {
+    _id: new ObjectId(),
+    trainee: traineeFromThirdCompany._id,
+    courseSlot: slots[14]._id,
+    company: thirdCompany._id,
+  },
+  {
+    _id: new ObjectId(),
+    trainee: traineeFromAuthCompanyWithFormationExpoToken._id,
+    courseSlot: slots[16]._id,
+    company: authCompany._id,
+  },
+];
 
 const attendanceSheetList = [
   {
