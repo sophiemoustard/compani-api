@@ -13,9 +13,13 @@ const {
   CLIENT_ADMIN,
   COACH,
   INTRA_HOLDING,
+  BLENDED,
 } = require('../../helpers/constants');
 const UtilsHelper = require('../../helpers/utils');
+const translate = require('../../helpers/translate');
 const { CompaniDate } = require('../../helpers/dates/companiDates');
+
+const { language } = translate;
 
 const isTrainerAuthorized = (loggedUserId, trainer) => {
   if (!UtilsHelper.areObjectIdsEquals(loggedUserId, trainer)) throw Boom.forbidden();
@@ -96,8 +100,11 @@ exports.authorizeAttendanceCreation = async (req) => {
   const courseSlot = await CourseSlot.findOne({ _id: req.payload.courseSlot }, { course: 1 })
     .populate({
       path: 'course',
-      select: 'trainer companies archivedAt trainees type holding',
-      populate: { path: 'holding', populate: { path: 'companies' } },
+      select: 'trainer companies archivedAt trainees type holding subProgram',
+      populate: [
+        { path: 'holding', populate: { path: 'companies' } },
+        { path: 'subProgram', select: 'program', populate: { path: 'program', select: 'subPrograms' } },
+      ],
     })
     .lean();
   if (!courseSlot) throw Boom.notFound();
@@ -123,6 +130,16 @@ exports.authorizeAttendanceCreation = async (req) => {
       startDate: { $lte: CompaniDate().toISO() },
       $or: [{ endDate: { $exists: false } }, { endDate: { $gte: CompaniDate().toISO() } }],
     });
+
+    if (course.type === INTRA_HOLDING && !isTraineeRegistered) {
+      const coursesWithSameProgram = await Course
+        .find({ format: BLENDED, subProgram: { $in: get(course, 'subProgram.program.subPrograms') } })
+        .lean();
+
+      if (!coursesWithSameProgram.some(c => UtilsHelper.doesArrayIncludeId(c.trainees, req.payload.trainee))) {
+        throw Boom.forbidden(translate[language].traineeMustBeRegisteredInAnotherGroup);
+      }
+    }
 
     if (!isTraineeRegistered && !doesTraineeBelongToCompanies) throw Boom.forbidden();
   }

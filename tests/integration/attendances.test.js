@@ -56,18 +56,18 @@ describe('ATTENDANCES ROUTES - POST /attendances', () => {
       expect(courseSlotAttendancesAfter).toBe(courseSlotAttendancesBefore + 1);
     });
 
-    it(
-      'should create attendance if no company linked to the course but trainee belongs to holding (intra_holding)',
-      async () => {
-        const response = await app.inject({
-          method: 'POST',
-          url: '/attendances',
-          headers: { Cookie: `alenvi_token=${authToken}` },
-          payload: { courseSlot: slotsList[8]._id, trainee: traineeList[0]._id },
-        });
-
-        expect(response.statusCode).toBe(200);
+    it('should create attendance if no company linked to the course but trainee belongs to holding and registered in'
+      + ' another group (intra_holding)',
+    async () => {
+      const response = await app.inject({
+        method: 'POST',
+        url: '/attendances',
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload: { courseSlot: slotsList[8]._id, trainee: traineeList[0]._id },
       });
+
+      expect(response.statusCode).toBe(200);
+    });
 
     it('should add attendances for all trainee without attendance for this courseSlot', async () => {
       const courseSlotAttendancesBefore = await Attendance.countDocuments({
@@ -175,6 +175,30 @@ describe('ATTENDANCES ROUTES - POST /attendances', () => {
 
       expect(response.statusCode).toBe(403);
     });
+
+    it('should return 403 if trainee from holding but not registered in another group (intra_holding)',
+      async () => {
+        const response = await app.inject({
+          method: 'POST',
+          url: '/attendances',
+          headers: { Cookie: `alenvi_token=${authToken}` },
+          payload: { courseSlot: slotsList[8]._id, trainee: trainerAndCoach._id },
+        });
+
+        expect(response.statusCode).toBe(403);
+      });
+
+    it('should return 403 if trainee registered in another group but not from holding (intra_holding)',
+      async () => {
+        const response = await app.inject({
+          method: 'POST',
+          url: '/attendances',
+          headers: { Cookie: `alenvi_token=${authToken}` },
+          payload: { courseSlot: slotsList[8]._id, trainee: traineeList[2]._id },
+        });
+
+        expect(response.statusCode).toBe(403);
+      });
   });
 
   describe('Other roles', () => {

@@ -320,6 +320,7 @@ module.exports = {
     courseAccessRuleDeleted: 'Access rule deleted.',
     courseQuestionnairesFound: 'Questionnaires found.',
     courseAttendanceNotGenerated: 'Failed to download attendance sheet, no on-site slot.',
+    traineeMustBeRegisteredInAnotherGroup: 'Trainee must be registered in another group.',
     /* Course bill */
     courseBillsFound: 'Course bills found.',
     courseBillsNotFound: 'Course bills not found.',
@@ -741,6 +742,7 @@ module.exports = {
     courseAccessRuleDeleted: 'Règle d\'accès supprimée.',
     courseQuestionnairesFound: 'Questionnaires trouvés.',
     courseAttendanceNotGenerated: 'Erreur lors du téléchargement, la formation ne contient pas de créneau présentiel.',
+    traineeMustBeRegisteredInAnotherGroup: 'L\'apprenant doit être inscrit dans un autre groupe de cette formation.',
     /* Course bill */
     courseBillsFound: 'Factures de la formation trouvées.',
     courseBillsNotFound: 'Factures de la formation non trouvées.',
