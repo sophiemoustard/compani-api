@@ -4339,7 +4339,7 @@ describe('COURSES ROUTES - DELETE /courses/{_id}/companies{companyId}', () => {
       expect(course).toEqual(0);
     });
 
-    it('should remove company from intra_holding course event if has attendances', async () => {
+    it('should remove company from intra_holding course even if has attendances', async () => {
       const response = await app.inject({
         method: 'DELETE',
         url: `/courses/${coursesList[21]._id}/companies/${authCompany._id}`,

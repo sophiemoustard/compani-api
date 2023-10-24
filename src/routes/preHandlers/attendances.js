@@ -131,17 +131,17 @@ exports.authorizeAttendanceCreation = async (req) => {
       $or: [{ endDate: { $exists: false } }, { endDate: { $gte: CompaniDate().toISO() } }],
     });
 
-    if (course.type === INTRA_HOLDING && !isTraineeRegistered) {
-      const coursesWithSameProgram = await Course
-        .find({ format: BLENDED, subProgram: { $in: get(course, 'subProgram.program.subPrograms') } })
-        .lean();
-
-      if (!coursesWithSameProgram.some(c => UtilsHelper.doesArrayIncludeId(c.trainees, req.payload.trainee))) {
-        throw Boom.forbidden(translate[language].traineeMustBeRegisteredInAnotherGroup);
-      }
-    }
-
     if (!isTraineeRegistered && !doesTraineeBelongToCompanies) throw Boom.forbidden();
+    if (course.type === INTRA_HOLDING && !isTraineeRegistered) {
+      const coursesWithTraineeCount = await Course
+        .countDocuments({
+          format: BLENDED,
+          trainees: req.payload.trainee,
+          subProgram: { $in: get(course, 'subProgram.program.subPrograms') },
+        });
+
+      if (!coursesWithTraineeCount) throw Boom.forbidden(translate[language].traineeMustBeRegisteredInAnotherGroup);
+    }
   }
 
   return null;
