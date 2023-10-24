@@ -12,9 +12,14 @@ const {
   VENDOR_ADMIN,
   CLIENT_ADMIN,
   COACH,
+  INTRA_HOLDING,
+  BLENDED,
 } = require('../../helpers/constants');
 const UtilsHelper = require('../../helpers/utils');
+const translate = require('../../helpers/translate');
 const { CompaniDate } = require('../../helpers/dates/companiDates');
+
+const { language } = translate;
 
 const isTrainerAuthorized = (loggedUserId, trainer) => {
   if (!UtilsHelper.areObjectIdsEquals(loggedUserId, trainer)) throw Boom.forbidden();
@@ -93,7 +98,14 @@ exports.authorizeUnsubscribedAttendancesGet = async (req) => {
 
 exports.authorizeAttendanceCreation = async (req) => {
   const courseSlot = await CourseSlot.findOne({ _id: req.payload.courseSlot }, { course: 1 })
-    .populate({ path: 'course', select: 'trainer companies archivedAt trainees' })
+    .populate({
+      path: 'course',
+      select: 'trainer companies archivedAt trainees type holding subProgram',
+      populate: [
+        { path: 'holding', populate: { path: 'companies' } },
+        { path: 'subProgram', select: 'program', populate: { path: 'program', select: 'subPrograms' } },
+      ],
+    })
     .lean();
   if (!courseSlot) throw Boom.notFound();
 
@@ -102,7 +114,9 @@ exports.authorizeAttendanceCreation = async (req) => {
 
   const { course } = courseSlot;
   if (course.archivedAt) throw Boom.forbidden();
-  if (!course.companies.length) throw Boom.badData();
+
+  const companies = course.type === INTRA_HOLDING ? course.holding.companies : course.companies;
+  if (!companies.length) throw Boom.badData();
 
   if (req.payload.trainee) {
     const attendance = await Attendance.countDocuments(req.payload);
@@ -110,14 +124,24 @@ exports.authorizeAttendanceCreation = async (req) => {
 
     const isTraineeRegistered = UtilsHelper.doesArrayIncludeId(course.trainees, req.payload.trainee);
 
-    const doesTraineeBelongToCompany = await UserCompany.countDocuments({
+    const doesTraineeBelongToCompanies = await UserCompany.countDocuments({
       user: req.payload.trainee,
-      company: { $in: course.companies },
+      company: { $in: companies },
       startDate: { $lte: CompaniDate().toISO() },
       $or: [{ endDate: { $exists: false } }, { endDate: { $gte: CompaniDate().toISO() } }],
     });
 
-    if (!isTraineeRegistered && !doesTraineeBelongToCompany) throw Boom.forbidden();
+    if (!isTraineeRegistered && !doesTraineeBelongToCompanies) throw Boom.forbidden();
+    if (course.type === INTRA_HOLDING && !isTraineeRegistered) {
+      const coursesWithTraineeCount = await Course
+        .countDocuments({
+          format: BLENDED,
+          trainees: req.payload.trainee,
+          subProgram: { $in: get(course, 'subProgram.program.subPrograms') },
+        });
+
+      if (!coursesWithTraineeCount) throw Boom.forbidden(translate[language].traineeMustBeRegisteredInAnotherGroup);
+    }
   }
 
   return null;

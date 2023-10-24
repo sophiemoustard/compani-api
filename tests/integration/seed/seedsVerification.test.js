@@ -315,7 +315,11 @@ describe('SEEDS VERIFICATION', () => {
           attendanceList = await Attendance
             .find()
             .populate({ path: 'trainee', select: 'id', populate: { path: 'userCompanyList' } })
-            .populate({ path: 'courseSlot', select: '_id course', populate: { path: 'course', select: 'companies' } })
+            .populate({
+              path: 'courseSlot',
+              select: '_id course',
+              populate: { path: 'course', select: 'companies type' },
+            })
             .populate({ path: 'company', select: '_id' })
             .setOptions({ allCompanies: true })
             .lean();
@@ -347,9 +351,10 @@ describe('SEEDS VERIFICATION', () => {
           expect(everyCompanyExists).toBeTruthy();
         });
 
-        it('should pass if every company is rattached to course', () => {
+        it('should pass if every company is rattached to course on intra/inter b2b', () => {
           const everyCompanyIsInCourse = attendanceList
-            .every(a => UtilsHelper.doesArrayIncludeId(a.courseSlot.course.companies, a.company._id));
+            .every(a => a.courseSlot.course.type === INTRA_HOLDING ||
+              UtilsHelper.doesArrayIncludeId(a.courseSlot.course.companies, a.company._id));
 
           expect(everyCompanyIsInCourse).toBeTruthy();
         });

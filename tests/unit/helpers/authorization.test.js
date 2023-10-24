@@ -394,6 +394,7 @@ describe('validate', () => {
           'users:exist',
           'users:list',
           'attendances:edit',
+          'holdings:read',
           'questionnaires:read',
         ],
         role: { client: { name: 'coach' }, vendor: { name: 'trainer' } },
