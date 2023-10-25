@@ -28,6 +28,7 @@ describe('list', () => {
       course: courseId,
       file: { publicId: 'mon premier upload', link: 'www.test.com' },
       date: '2020-04-03T10:00:00.000Z',
+      companies: [new ObjectId()],
     }];
 
     find.returns(SinonMongoose.stubChainedQueries(attendanceSheets, ['populate', 'setOptions', 'lean']));
@@ -56,11 +57,14 @@ describe('list', () => {
         course: courseId,
         file: { publicId: 'mon upload avec un trainne de authCompany', link: 'www.test.com' },
         trainee: { _id: new ObjectId(), identity: { firstname: 'Helo', name: 'World' } },
+        companies: [authCompanyId],
+
       },
       {
         course: courseId,
         file: { publicId: 'mon upload avec un trainne de otherCompany', link: 'www.test.com' },
         trainee: { _id: new ObjectId(), identity: { firstname: 'Aline', name: 'Opiné' } },
+        companies: [authCompanyId],
       },
     ];
 
@@ -72,7 +76,7 @@ describe('list', () => {
     SinonMongoose.calledOnceWithExactly(
       find,
       [
-        { query: 'find', args: [{ course: courseId, company: { $in: [authCompanyId] } }] },
+        { query: 'find', args: [{ course: courseId, companies: { $in: [authCompanyId] } }] },
         { query: 'populate', args: [{ path: 'trainee', select: 'identity' }] },
         { query: 'setOptions', args: [{ isVendorUser: !!get(credentials, 'role.vendor') }] },
         { query: 'lean' },
@@ -96,11 +100,13 @@ describe('list', () => {
         course: courseId,
         file: { publicId: 'mon upload avec un trainne de authCompany', link: 'www.test.com' },
         trainee: { _id: new ObjectId(), identity: { firstname: 'Helo', name: 'World' } },
+        companies: [authCompanyId],
       },
       {
         course: courseId,
         file: { publicId: 'mon upload avec un trainne de otherCompany', link: 'www.test.com' },
         trainee: { _id: new ObjectId(), identity: { firstname: 'Aline', name: 'Opiné' } },
+        companies: [otherCompanyId],
       },
     ];
 
@@ -112,7 +118,7 @@ describe('list', () => {
     SinonMongoose.calledOnceWithExactly(
       find,
       [
-        { query: 'find', args: [{ course: courseId, company: { $in: [authCompanyId, otherCompanyId] } }] },
+        { query: 'find', args: [{ course: courseId, companies: { $in: [authCompanyId, otherCompanyId] } }] },
         { query: 'populate', args: [{ path: 'trainee', select: 'identity' }] },
         { query: 'setOptions', args: [{ isVendorUser: !!get(credentials, 'role.vendor') }] },
         { query: 'lean' },
@@ -168,7 +174,7 @@ describe('create', () => {
         course: courseId,
         date: '2020-04-03T10:00:00.000Z',
         file: { publicId: 'yo', link: 'yo' },
-        company: course.companies[0],
+        companies: course.companies,
       }
     );
     SinonMongoose.calledOnceWithExactly(
@@ -229,7 +235,7 @@ describe('create', () => {
         course: courseId,
         trainee: traineeId,
         file: { publicId: 'yo', link: 'yo' },
-        company: companyId,
+        companies: [companyId],
       }
     );
     sinon.assert.calledOnceWithExactly(

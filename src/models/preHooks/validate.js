@@ -30,12 +30,11 @@ module.exports = {
   validateQuery(next) {
     const query = this.getQuery();
     const isPopulate = get(query, '_id.$in', null);
-    const hasCompany = (query.$and && query.$and.some(q => !!q.company)) ||
-      (query.$or && query.$or.every(q => !!q.company)) ||
-      query.company;
+    const hasCompanies = (query.$and && query.$and.some(q => !!q.company || !!query.companies)) ||
+      (query.$or && query.$or.every(q => !!q.company || !!query.companies)) || query.company || query.companies;
     const { isVendorUser, requestingOwnInfos, allCompanies } = this.getOptions();
 
-    if (!hasCompany && !isPopulate && !isVendorUser && !requestingOwnInfos && !allCompanies) next(Boom.badRequest());
+    if (!hasCompanies && !isPopulate && !isVendorUser && !requestingOwnInfos && !allCompanies) next(Boom.badRequest());
     next();
   },
   formatQuery(next) {

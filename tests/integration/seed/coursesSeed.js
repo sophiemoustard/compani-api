@@ -1180,7 +1180,7 @@ const attendanceSheetList = [
     trainee: traineeFromAuthFormerlyInOther._id,
     course: coursesList[12]._id,
     file: { publicId: 'publicId', link: 'https://link.com' },
-    company: authCompany._id,
+    companies: [authCompany._id],
     origin: WEBAPP,
   },
 ];

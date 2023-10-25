@@ -654,11 +654,11 @@ exports.authorizeCourseCompanyDeletion = async (req) => {
   }
 
   const attendanceSheets = await AttendanceSheet
-    .find({ course: course._id, company: companyId }, { company: 1 })
+    .find({ course: course._id, companies: companyId }, { companies: 1 })
     .lean();
 
   const hasAttendanceSheetsFromCompany = attendanceSheets
-    .some(sheet => UtilsHelper.areObjectIdsEquals(companyId, sheet.company));
+    .some(sheet => UtilsHelper.doesArrayIncludeId(sheet.companies, companyId));
   if (hasAttendanceSheetsFromCompany) {
     throw Boom.forbidden(translate[language].CompanyTraineeHasAttendanceSheetForCourse);
   }

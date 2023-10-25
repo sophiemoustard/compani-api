@@ -1625,7 +1625,7 @@ const attendanceSheetList = [
     course: coursesList[0]._id,
     date: '2021-04-30T22:00:00.000Z',
     file: { link: 'link', publicId: '123' },
-    company: authCompany._id,
+    companies: [authCompany._id],
     origin: WEBAPP,
   },
 ];
