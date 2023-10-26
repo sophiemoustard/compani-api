@@ -8,7 +8,7 @@ const { getToken, getTokenByCredentials } = require('./helpers/authentication');
 const { generateFormData, getStream } = require('./utils');
 const { WEBAPP, MOBILE } = require('../../src/helpers/constants');
 const AttendanceSheet = require('../../src/models/AttendanceSheet');
-const { holdingAdminFromOtherCompany } = require('../seed/authUsersSeed');
+const { holdingAdminFromOtherCompany, trainerAndCoach } = require('../seed/authUsersSeed');
 const { authCompany, otherCompany, otherHolding, authHolding } = require('../seed/authCompaniesSeed');
 
 describe('NODE ENV', () => {
@@ -409,6 +409,19 @@ describe('ATTENDANCE SHEETS ROUTES - GET /attendancesheets', () => {
 
         expect(response.statusCode).toBe(200);
         expect(response.result.data.attendanceSheets.length).toEqual(1);
+      });
+
+    it('should get attendance sheets if user is trainer but not course trainer but is coach from course company',
+      async () => {
+        authToken = await getTokenByCredentials(trainerAndCoach.local);
+
+        const response = await app.inject({
+          method: 'GET',
+          url: `/attendancesheets?course=${coursesList[1]._id}&company=${authCompany._id}`,
+          headers: { Cookie: `alenvi_token=${authToken}` },
+        });
+
+        expect(response.statusCode).toBe(200);
       });
 
     it('should return a 403 if company is not in course', async () => {

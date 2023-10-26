@@ -405,7 +405,7 @@ describe('SEEDS VERIFICATION', () => {
           expect(someIntraOrIntraHoldingAttendanceSheetHasTrainee).toBeFalsy();
         });
 
-        it('should pass if only intra_holding courses have several companies in attendance sheet #tag', () => {
+        it('should pass if only intra_holding courses have several companies in attendance sheet', () => {
           const doSheetsHaveGoodCompaniesNumber = attendanceSheetList
             .every(a => a.companies.length === 1 || a.course.type === INTRA_HOLDING);
 
