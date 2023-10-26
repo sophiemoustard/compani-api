@@ -17,7 +17,9 @@ const isTrainerAuthorized = (courseTrainer, credentials) => {
 };
 
 exports.authorizeAttendanceSheetsGet = async (req) => {
-  const course = await Course.findOne({ _id: req.query.course }, { type: 1, companies: 1, trainer: 1 }).lean();
+  const course = await Course
+    .findOne({ _id: req.query.course }, { type: 1, companies: 1, trainer: 1, holding: 1 })
+    .lean();
   if (!course) throw Boom.notFound();
 
   const { credentials } = req.auth;
@@ -37,7 +39,8 @@ exports.authorizeAttendanceSheetsGet = async (req) => {
     const isLoggedUserInHolding = UtilsHelper
       .areObjectIdsEquals(get(req.query, 'holding'), get(credentials, 'holding._id'));
     const hasHoldingAccessToCourse = course.companies
-      .some(company => UtilsHelper.doesArrayIncludeId(get(credentials, 'holding.companies') || [], company));
+      .some(company => UtilsHelper.doesArrayIncludeId(get(credentials, 'holding.companies') || [], company)) ||
+      UtilsHelper.areObjectIdsEquals(course.holding, get(credentials, 'holding._id'));
     if (!hasHoldingRole || !isLoggedUserInHolding || !hasHoldingAccessToCourse) throw Boom.forbidden();
   }
 

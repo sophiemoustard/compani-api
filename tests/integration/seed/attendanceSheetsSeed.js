@@ -140,6 +140,16 @@ const coursesList = [
     trainer: trainer._id,
     salesRepresentative: userList[0]._id,
   },
+  { // 6
+    _id: new ObjectId(),
+    subProgram: subProgram._id,
+    type: INTRA_HOLDING,
+    maxTrainees: 8,
+    trainees: [],
+    companies: [],
+    holding: otherHolding._id,
+    salesRepresentative: userList[0]._id,
+  },
 ];
 
 const courseHistoriesList = [

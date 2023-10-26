@@ -405,6 +405,13 @@ describe('SEEDS VERIFICATION', () => {
           expect(someIntraOrIntraHoldingAttendanceSheetHasTrainee).toBeFalsy();
         });
 
+        it('should pass if only intra_holding courses have several companies in attendance sheet #tag', () => {
+          const doSheetsHaveGoodCompaniesNumber = attendanceSheetList
+            .every(a => a.companies.length === 1 || a.course.type === INTRA_HOLDING);
+
+          expect(doSheetsHaveGoodCompaniesNumber).toBeTruthy();
+        });
+
         it('should pass if attendance sheet dates are course slots dates', () => {
           const everySheetDateIsSlotDate = attendanceSheetList
             .filter(a => [INTRA, INTRA_HOLDING].includes(a.course.type))
