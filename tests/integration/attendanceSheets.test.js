@@ -110,11 +110,57 @@ describe('ATTENDANCE SHEETS ROUTES - POST /attendancesheets', () => {
       sinon.assert.calledOnce(uploadCourseFile);
     });
 
+    it('should upload attendance sheet to intra_holding course', async () => {
+      const formData = {
+        course: coursesList[5]._id.toHexString(),
+        file: 'test',
+        date: new Date('2020-01-25').toISOString(),
+        origin: WEBAPP,
+      };
+
+      const form = generateFormData(formData);
+      const attendanceSheetsLengthBefore = await AttendanceSheet
+        .countDocuments({ course: coursesList[5]._id, origin: WEBAPP });
+      uploadCourseFile.returns({ publicId: '1234567890', link: 'https://test.com/file.pdf' });
+
+      const response = await app.inject({
+        method: 'POST',
+        url: '/attendancesheets',
+        payload: getStream(form),
+        headers: { ...form.getHeaders(), Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(200);
+      const attendanceSheetsLengthAfter = await AttendanceSheet
+        .countDocuments({ course: coursesList[5]._id, origin: WEBAPP });
+      expect(attendanceSheetsLengthAfter).toBe(attendanceSheetsLengthBefore + 1);
+      sinon.assert.calledOnce(uploadCourseFile);
+    });
+
     it('should return 400 trying to pass trainee for intra course', async () => {
       const formData = {
         course: coursesList[0]._id.toHexString(),
         file: 'test',
         trainee: coursesList[0].trainees[0]._id.toHexString(),
+      };
+
+      const form = generateFormData(formData);
+
+      const response = await app.inject({
+        method: 'POST',
+        url: '/attendancesheets',
+        payload: getStream(form),
+        headers: { ...form.getHeaders(), Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
+
+    it('should return 400 trying to pass trainee for intra_holding course', async () => {
+      const formData = {
+        course: coursesList[5]._id.toHexString(),
+        file: 'test',
+        trainee: coursesList[5].trainees[0]._id.toHexString(),
       };
 
       const form = generateFormData(formData);
