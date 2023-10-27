@@ -12,6 +12,9 @@ const {
   VENDOR_ADMIN,
   TRAINING_ORGANISATION_MANAGER,
 } = require('../../helpers/constants');
+const translate = require('../../helpers/translate');
+
+const { language } = translate;
 
 const isVendorAndAuthorized = (courseTrainer, credentials) => {
   const loggedUserId = get(credentials, '_id');
@@ -47,7 +50,7 @@ exports.authorizeAttendanceSheetsGet = async (req) => {
       .areObjectIdsEquals(get(req.query, 'holding'), get(credentials, 'holding._id'));
     const hasHoldingAccessToCourse = course.companies
       .some(company => UtilsHelper.doesArrayIncludeId(get(credentials, 'holding.companies') || [], company)) ||
-      UtilsHelper.areObjectIdsEquals(course.holding, get(credentials, 'holding._id'));
+        UtilsHelper.areObjectIdsEquals(course.holding, get(credentials, 'holding._id'));
     if (!hasHoldingRole || !isLoggedUserInHolding || !hasHoldingAccessToCourse) throw Boom.forbidden();
   }
 
@@ -56,10 +59,11 @@ exports.authorizeAttendanceSheetsGet = async (req) => {
 
 exports.authorizeAttendanceSheetCreation = async (req) => {
   const course = await Course
-    .findOne({ _id: req.payload.course }, { archivedAt: 1, type: 1, slots: 1, trainees: 1, trainer: 1 })
+    .findOne({ _id: req.payload.course }, { archivedAt: 1, type: 1, slots: 1, trainees: 1, trainer: 1, companies: 1 })
     .populate('slots')
     .lean();
   if (course.archivedAt) throw Boom.forbidden();
+  if (!course.companies.length) throw Boom.forbidden(translate[language].atLeastOneCompanyMustBeLinkedToCourse);
 
   const { credentials } = req.auth;
   if (!isVendorAndAuthorized(course.trainer, credentials)) throw Boom.forbidden();

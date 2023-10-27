@@ -308,6 +308,25 @@ describe('ATTENDANCE SHEETS ROUTES - POST /attendancesheets', () => {
 
       expect(response.statusCode).toBe(403);
     });
+
+    it('should return 403 if course has no companies', async () => {
+      const formData = {
+        course: coursesList[6]._id.toHexString(),
+        file: 'test',
+        date: new Date('2020-01-25').toISOString(),
+      };
+
+      const form = generateFormData(formData);
+
+      const response = await app.inject({
+        method: 'POST',
+        url: '/attendancesheets',
+        payload: getStream(form),
+        headers: { ...form.getHeaders(), Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
   });
 
   describe('Other roles', () => {

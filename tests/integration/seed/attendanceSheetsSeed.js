@@ -252,6 +252,12 @@ const slotsList = [
     course: coursesList[5]._id,
     step: steps[0]._id,
   },
+  {
+    startDate: '2020-01-25T09:00:00.000Z',
+    endDate: '2020-01-25T11:00:00.000Z',
+    course: coursesList[6]._id,
+    step: steps[0]._id,
+  },
 ];
 
 const populateDB = async () => {
