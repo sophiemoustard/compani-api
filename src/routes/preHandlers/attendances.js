@@ -124,15 +124,19 @@ exports.authorizeAttendanceCreation = async (req) => {
 
     const isTraineeRegistered = UtilsHelper.doesArrayIncludeId(course.trainees, req.payload.trainee);
 
-    const doesTraineeBelongToCompanies = await UserCompany.countDocuments({
-      user: req.payload.trainee,
-      company: { $in: companies },
-      startDate: { $lte: CompaniDate().toISO() },
-      $or: [{ endDate: { $exists: false } }, { endDate: { $gte: CompaniDate().toISO() } }],
-    });
+    const doesTraineeBelongToCompanies = await UserCompany
+      .findOne({
+        user: req.payload.trainee,
+        company: { $in: companies },
+        startDate: { $lte: CompaniDate().toISO() },
+        $or: [{ endDate: { $exists: false } }, { endDate: { $gte: CompaniDate().toISO() } }],
+      })
+      .lean();
+    const isTraineeCompanyInCourse = doesTraineeBelongToCompanies && UtilsHelper
+      .doesArrayIncludeId(course.companies, doesTraineeBelongToCompanies.company);
 
     if (!isTraineeRegistered && !doesTraineeBelongToCompanies) throw Boom.forbidden();
-    if (course.type === INTRA_HOLDING && !isTraineeRegistered) {
+    if (course.type === INTRA_HOLDING && !isTraineeRegistered && !isTraineeCompanyInCourse) {
       const coursesWithTraineeCount = await Course
         .countDocuments({
           format: BLENDED,

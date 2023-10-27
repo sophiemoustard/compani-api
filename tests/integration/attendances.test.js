@@ -69,6 +69,18 @@ describe('ATTENDANCES ROUTES - POST /attendances', () => {
       expect(response.statusCode).toBe(200);
     });
 
+    it('should create attendance if trainee not registered or in another group but company in course (intra_holding)',
+      async () => {
+        const response = await app.inject({
+          method: 'POST',
+          url: '/attendances',
+          headers: { Cookie: `alenvi_token=${authToken}` },
+          payload: { courseSlot: slotsList[9]._id, trainee: trainerAndCoach._id },
+        });
+
+        expect(response.statusCode).toBe(200);
+      });
+
     it('should add attendances for all trainee without attendance for this courseSlot', async () => {
       const courseSlotAttendancesBefore = await Attendance.countDocuments({
         courseSlot: slotsList[0]._id,
@@ -176,17 +188,18 @@ describe('ATTENDANCES ROUTES - POST /attendances', () => {
       expect(response.statusCode).toBe(403);
     });
 
-    it('should return 403 if trainee from holding but not registered in another group (intra_holding)',
-      async () => {
-        const response = await app.inject({
-          method: 'POST',
-          url: '/attendances',
-          headers: { Cookie: `alenvi_token=${authToken}` },
-          payload: { courseSlot: slotsList[8]._id, trainee: trainerAndCoach._id },
-        });
-
-        expect(response.statusCode).toBe(403);
+    it('should return 403 if trainee from holding but not registered in another group and company not in course'
+    + '(intra_holding)',
+    async () => {
+      const response = await app.inject({
+        method: 'POST',
+        url: '/attendances',
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload: { courseSlot: slotsList[8]._id, trainee: trainerAndCoach._id },
       });
+
+      expect(response.statusCode).toBe(403);
+    });
 
     it('should return 403 if trainee registered in another group but not from holding (intra_holding)',
       async () => {

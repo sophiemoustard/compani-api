@@ -221,6 +221,17 @@ const coursesList = [
     trainer: trainer._id,
     salesRepresentative: userList[2]._id,
   },
+  { // 9 intra_holding with companies
+    _id: new ObjectId(),
+    subProgram: subProgramList[0],
+    type: INTRA_HOLDING,
+    trainees: [],
+    companies: [authCompany._id],
+    holding: authHolding._id,
+    maxTrainees: 9,
+    trainer: trainer._id,
+    salesRepresentative: userList[2]._id,
+  },
 ];
 
 const slotsList = [
@@ -285,6 +296,13 @@ const slotsList = [
     startDate: '2020-01-25T10:00:00.000Z',
     endDate: '2020-01-25T14:00:00.000Z',
     course: coursesList[8],
+    step: steps[0]._id,
+  },
+  { // 9 - slot for coursesList[9]
+    _id: new ObjectId(),
+    startDate: '2020-01-25T10:00:00.000Z',
+    endDate: '2020-01-25T14:00:00.000Z',
+    course: coursesList[9],
     step: steps[0]._id,
   },
 ];
