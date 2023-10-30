@@ -140,6 +140,16 @@ const coursesList = [
     trainer: trainer._id,
     salesRepresentative: userList[0]._id,
   },
+  { // 6
+    _id: new ObjectId(),
+    subProgram: subProgram._id,
+    type: INTRA_HOLDING,
+    maxTrainees: 8,
+    trainees: [],
+    companies: [],
+    holding: otherHolding._id,
+    salesRepresentative: userList[0]._id,
+  },
 ];
 
 const courseHistoriesList = [
@@ -240,6 +250,12 @@ const slotsList = [
     startDate: '2020-01-25T09:00:00.000Z',
     endDate: '2020-01-25T11:00:00.000Z',
     course: coursesList[5]._id,
+    step: steps[0]._id,
+  },
+  {
+    startDate: '2020-01-25T09:00:00.000Z',
+    endDate: '2020-01-25T11:00:00.000Z',
+    course: coursesList[6]._id,
     step: steps[0]._id,
   },
 ];
