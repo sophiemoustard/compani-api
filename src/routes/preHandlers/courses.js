@@ -659,9 +659,7 @@ exports.authorizeCourseCompanyDeletion = async (req) => {
 
   const hasAttendanceSheetsFromCompany = attendanceSheets
     .some(sheet => UtilsHelper.doesArrayIncludeId(sheet.companies, companyId));
-  if (hasAttendanceSheetsFromCompany) {
-    throw Boom.forbidden(translate[language].CompanyTraineeHasAttendanceSheetForCourse);
-  }
+  if (hasAttendanceSheetsFromCompany) throw Boom.forbidden(translate[language].companyHasAttendanceSheetForCourse);
 
   if (course.bills.some(bill => UtilsHelper.areObjectIdsEquals(companyId, bill.company))) {
     throw Boom.forbidden(translate[language].companyHasCourseBill);
