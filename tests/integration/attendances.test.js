@@ -69,7 +69,7 @@ describe('ATTENDANCES ROUTES - POST /attendances', () => {
       expect(response.statusCode).toBe(200);
     });
 
-    it('should create attendance if trainee not registered or in another group but company in course (intra_holding)',
+    it('should create attendance if trainee not registered or in another group and company in course (intra_holding)',
       async () => {
         const response = await app.inject({
           method: 'POST',
