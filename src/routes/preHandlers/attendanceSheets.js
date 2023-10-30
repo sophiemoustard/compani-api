@@ -12,9 +12,6 @@ const {
   VENDOR_ADMIN,
   TRAINING_ORGANISATION_MANAGER,
 } = require('../../helpers/constants');
-const translate = require('../../helpers/translate');
-
-const { language } = translate;
 
 const isVendorAndAuthorized = (courseTrainer, credentials) => {
   const loggedUserId = get(credentials, '_id');
@@ -63,7 +60,7 @@ exports.authorizeAttendanceSheetCreation = async (req) => {
     .populate('slots')
     .lean();
   if (course.archivedAt) throw Boom.forbidden();
-  if (!course.companies.length) throw Boom.forbidden(translate[language].atLeastOneCompanyMustBeLinkedToCourse);
+  if (!course.companies.length) throw Boom.forbidden();
 
   const { credentials } = req.auth;
   if (!isVendorAndAuthorized(course.trainer, credentials)) throw Boom.forbidden();
@@ -89,9 +86,9 @@ exports.authorizeAttendanceSheetDeletion = async (req) => {
     .populate({ path: 'course', select: 'archivedAt trainer' })
     .setOptions({ isVendorUser: !!get(credentials, 'role.vendor') })
     .lean();
-  if (get(attendanceSheet, 'course.archivedAt')) throw Boom.forbidden();
-
   if (!attendanceSheet) throw Boom.notFound();
+
+  if (get(attendanceSheet, 'course.archivedAt')) throw Boom.forbidden();
 
   if (!isVendorAndAuthorized(get(attendanceSheet, 'course.trainer'), credentials)) throw Boom.forbidden();
 
