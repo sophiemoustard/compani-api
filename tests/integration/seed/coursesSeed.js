@@ -1159,12 +1159,20 @@ const slots = [
   },
 ];
 
-const attendanceList = [{
-  _id: new ObjectId(),
-  trainee: traineeFromThirdCompany._id,
-  courseSlot: slots[14]._id,
-  company: thirdCompany._id,
-}];
+const attendanceList = [
+  {
+    _id: new ObjectId(),
+    trainee: traineeFromThirdCompany._id,
+    courseSlot: slots[14]._id,
+    company: thirdCompany._id,
+  },
+  {
+    _id: new ObjectId(),
+    trainee: traineeFromAuthCompanyWithFormationExpoToken._id,
+    courseSlot: slots[16]._id,
+    company: authCompany._id,
+  },
+];
 
 const attendanceSheetList = [
   {
@@ -1172,7 +1180,7 @@ const attendanceSheetList = [
     trainee: traineeFromAuthFormerlyInOther._id,
     course: coursesList[12]._id,
     file: { publicId: 'publicId', link: 'https://link.com' },
-    company: authCompany._id,
+    companies: [authCompany._id],
     origin: WEBAPP,
   },
 ];

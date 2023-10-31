@@ -649,17 +649,17 @@ exports.authorizeCourseCompanyDeletion = async (req) => {
 
   const hasAttendancesFromCompany = course.slots.some(slot =>
     slot.attendances.some(attendance => UtilsHelper.areObjectIdsEquals(companyId, attendance.company)));
-  if (hasAttendancesFromCompany) throw Boom.forbidden(translate[language].companyTraineeAttendedToCourse);
+  if (course.type !== INTRA_HOLDING && hasAttendancesFromCompany) {
+    throw Boom.forbidden(translate[language].companyTraineeAttendedToCourse);
+  }
 
   const attendanceSheets = await AttendanceSheet
-    .find({ course: course._id, company: companyId }, { company: 1 })
+    .find({ course: course._id, companies: companyId }, { companies: 1 })
     .lean();
 
   const hasAttendanceSheetsFromCompany = attendanceSheets
-    .some(sheet => UtilsHelper.areObjectIdsEquals(companyId, sheet.company));
-  if (hasAttendanceSheetsFromCompany) {
-    throw Boom.forbidden(translate[language].CompanyTraineeHasAttendanceSheetForCourse);
-  }
+    .some(sheet => UtilsHelper.doesArrayIncludeId(sheet.companies, companyId));
+  if (hasAttendanceSheetsFromCompany) throw Boom.forbidden(translate[language].companyHasAttendanceSheetForCourse);
 
   if (course.bills.some(bill => UtilsHelper.areObjectIdsEquals(companyId, bill.company))) {
     throw Boom.forbidden(translate[language].companyHasCourseBill);

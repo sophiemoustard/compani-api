@@ -309,7 +309,7 @@ module.exports = {
     courseCompanyRemoved: 'Course company removed.',
     companyTraineeRegisteredToCourse: 'Company trainee registered to course.',
     companyTraineeAttendedToCourse: 'Company trainee attended to course.',
-    CompanyTraineeHasAttendanceSheetForCourse: 'Company trainee has attendance sheet for course.',
+    companyHasAttendanceSheetForCourse: 'Company has attendance sheet for course.',
     companyHasCourseBill: 'Company has a bill for this course.',
     courseTraineeAlreadyExists: 'Course trainee already added to course.',
     courseCompanyAlreadyExists: 'Course company already added to course.',
@@ -320,6 +320,7 @@ module.exports = {
     courseAccessRuleDeleted: 'Access rule deleted.',
     courseQuestionnairesFound: 'Questionnaires found.',
     courseAttendanceNotGenerated: 'Failed to download attendance sheet, no on-site slot.',
+    traineeMustBeRegisteredInAnotherGroup: 'Trainee must be registered in another group.',
     /* Course bill */
     courseBillsFound: 'Course bills found.',
     courseBillsNotFound: 'Course bills not found.',
@@ -730,7 +731,7 @@ module.exports = {
     courseCompanyRemoved: 'Structure détachée de la formation.',
     companyTraineeRegisteredToCourse: 'Un(e) apprenant(e) de la structure est inscrit(e) à la formation.',
     companyTraineeAttendedToCourse: 'Un(e) apprenant(e) de la structure a émargé à la formation.',
-    CompanyTraineeHasAttendanceSheetForCourse: 'Il existe une feuille d\'émargement pour un stagiaire de la structure.',
+    companyHasAttendanceSheetForCourse: 'Il existe une feuille d\'émargement rattachée à cette structure.',
     companyHasCourseBill: 'La structure a été facturée pour cette formation.',
     courseTraineeAlreadyExists: 'Stagiaire déjà ajouté(e) à la formation.',
     courseCompanyAlreadyExists: 'Structure déjà rattachée à la formation.',
@@ -741,6 +742,7 @@ module.exports = {
     courseAccessRuleDeleted: 'Règle d\'accès supprimée.',
     courseQuestionnairesFound: 'Questionnaires trouvés.',
     courseAttendanceNotGenerated: 'Erreur lors du téléchargement, la formation ne contient pas de créneau présentiel.',
+    traineeMustBeRegisteredInAnotherGroup: 'L\'apprenant doit être inscrit dans un autre groupe de cette formation.',
     /* Course bill */
     courseBillsFound: 'Factures de la formation trouvées.',
     courseBillsNotFound: 'Factures de la formation non trouvées.',

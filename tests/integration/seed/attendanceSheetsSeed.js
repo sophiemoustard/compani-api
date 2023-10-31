@@ -6,13 +6,21 @@ const CourseHistory = require('../../../src/models/CourseHistory');
 const CourseSlot = require('../../../src/models/CourseSlot');
 const Step = require('../../../src/models/Step');
 const SubProgram = require('../../../src/models/SubProgram');
-const { authCompany, otherCompany, companyWithoutSubscription } = require('../../seed/authCompaniesSeed');
-const { WEBAPP, INTRA, INTER_B2B, TRAINEE_ADDITION, MOBILE, PUBLISHED } = require('../../../src/helpers/constants');
+const { authCompany, otherCompany, companyWithoutSubscription, otherHolding } = require('../../seed/authCompaniesSeed');
+const {
+  WEBAPP,
+  INTRA,
+  INTER_B2B,
+  TRAINEE_ADDITION,
+  MOBILE,
+  PUBLISHED,
+  INTRA_HOLDING,
+} = require('../../../src/helpers/constants');
 const { deleteNonAuthenticationSeeds } = require('../helpers/db');
 const UserCompany = require('../../../src/models/UserCompany');
 const User = require('../../../src/models/User');
 const { vendorAdminRoleId, trainerRoleId } = require('../../seed/authRolesSeed');
-const { trainerOrganisationManager } = require('../../seed/authUsersSeed');
+const { trainerOrganisationManager, trainer } = require('../../seed/authUsersSeed');
 
 const userList = [
   {
@@ -80,6 +88,7 @@ const coursesList = [
     trainees: [userList[1]._id],
     companies: [authCompany._id],
     salesRepresentative: userList[0]._id,
+    trainer: trainer._id,
   },
   { // 1
     _id: new ObjectId(),
@@ -88,6 +97,7 @@ const coursesList = [
     trainees: [userList[1]._id, userList[2]._id, userList[4]._id],
     companies: [authCompany._id, otherCompany._id, companyWithoutSubscription._id],
     salesRepresentative: userList[0]._id,
+    trainer: trainer._id,
   },
   { // 2
     _id: new ObjectId(),
@@ -107,6 +117,7 @@ const coursesList = [
     trainees: [userList[1]._id],
     companies: [authCompany._id],
     salesRepresentative: userList[0]._id,
+    trainer: trainer._id,
   },
   { // 4
     _id: new ObjectId(),
@@ -116,6 +127,27 @@ const coursesList = [
     trainees: [userList[2]._id],
     companies: [otherCompany._id],
     trainer: userList[3]._id,
+    salesRepresentative: userList[0]._id,
+  },
+  { // 5
+    _id: new ObjectId(),
+    subProgram: subProgram._id,
+    type: INTRA_HOLDING,
+    maxTrainees: 8,
+    trainees: [userList[2]._id],
+    companies: [otherCompany._id],
+    holding: otherHolding._id,
+    trainer: trainer._id,
+    salesRepresentative: userList[0]._id,
+  },
+  { // 6
+    _id: new ObjectId(),
+    subProgram: subProgram._id,
+    type: INTRA_HOLDING,
+    maxTrainees: 8,
+    trainees: [],
+    companies: [],
+    holding: otherHolding._id,
     salesRepresentative: userList[0]._id,
   },
 ];
@@ -164,7 +196,7 @@ const attendanceSheetList = [
     course: coursesList[0],
     file: { publicId: 'mon upload', link: 'www.test.com' },
     date: '2020-01-23T09:00:00.000Z',
-    company: authCompany._id,
+    companies: [authCompany._id],
     origin: WEBAPP,
   },
   {
@@ -172,7 +204,7 @@ const attendanceSheetList = [
     course: coursesList[1],
     file: { publicId: 'mon upload', link: 'www.test.com' },
     trainee: userList[1]._id,
-    company: authCompany._id,
+    companies: [authCompany._id],
     origin: WEBAPP,
   },
   {
@@ -180,7 +212,7 @@ const attendanceSheetList = [
     course: coursesList[3],
     file: { publicId: 'mon upload', link: 'www.test.com' },
     trainee: userList[1]._id,
-    company: authCompany._id,
+    companies: [authCompany._id],
     origin: MOBILE,
   },
   {
@@ -188,7 +220,7 @@ const attendanceSheetList = [
     course: coursesList[2],
     file: { publicId: 'fromOtherCompany', link: 'www.test.com' },
     date: '2020-01-25T09:00:00.000Z',
-    company: authCompany._id,
+    companies: [authCompany._id],
     origin: MOBILE,
   },
   {
@@ -196,7 +228,7 @@ const attendanceSheetList = [
     course: coursesList[1],
     file: { publicId: 'fromThirdCompany', link: 'www.test.com' },
     trainee: userList[4]._id,
-    company: companyWithoutSubscription._id,
+    companies: [companyWithoutSubscription._id],
     origin: MOBILE,
   },
 ];
@@ -205,13 +237,25 @@ const slotsList = [
   {
     startDate: '2020-01-23T09:00:00.000Z',
     endDate: '2020-01-23T11:00:00.000Z',
-    course: coursesList[0],
+    course: coursesList[0]._id,
     step: steps[0]._id,
   },
   {
     startDate: '2020-01-25T09:00:00.000Z',
     endDate: '2020-01-25T11:00:00.000Z',
-    course: coursesList[2],
+    course: coursesList[2]._id,
+    step: steps[0]._id,
+  },
+  {
+    startDate: '2020-01-25T09:00:00.000Z',
+    endDate: '2020-01-25T11:00:00.000Z',
+    course: coursesList[5]._id,
+    step: steps[0]._id,
+  },
+  {
+    startDate: '2020-01-25T09:00:00.000Z',
+    endDate: '2020-01-25T11:00:00.000Z',
+    course: coursesList[6]._id,
     step: steps[0]._id,
   },
 ];

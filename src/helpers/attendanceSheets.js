@@ -11,13 +11,13 @@ const { DAY_MONTH_YEAR, COURSE, TRAINEE } = require('./constants');
 
 exports.create = async (payload) => {
   let fileName;
-  let company;
+  let companies;
 
   const course = await Course.findOne({ _id: payload.course }, { companies: 1 }).lean();
 
   if (payload.date) {
     fileName = CompaniDate(payload.date).format(DAY_MONTH_YEAR);
-    [company] = course.companies;
+    companies = course.companies;
   } else {
     const { identity } = await User.findOne({ _id: payload.trainee }, { identity: 1 }).lean();
     fileName = UtilsHelper.formatIdentity(identity, 'FL');
@@ -26,7 +26,7 @@ exports.create = async (payload) => {
       .getCompanyAtCourseRegistrationList(
         { key: COURSE, value: payload.course }, { key: TRAINEE, value: [payload.trainee] }
       );
-    company = get(traineeCompanyAtCourseRegistration[0], 'company');
+    companies = [get(traineeCompanyAtCourseRegistration[0], 'company')];
   }
 
   const fileUploaded = await GCloudStorageHelper.uploadCourseFile({
@@ -34,7 +34,7 @@ exports.create = async (payload) => {
     file: payload.file,
   });
 
-  await AttendanceSheet.create({ ...omit(payload, 'file'), company, file: fileUploaded });
+  await AttendanceSheet.create({ ...omit(payload, 'file'), companies, file: fileUploaded });
 };
 
 exports.list = async (query, credentials) => {
@@ -44,7 +44,7 @@ exports.list = async (query, credentials) => {
   if (query.company) companies.push(query.company);
 
   const attendanceSheets = await AttendanceSheet
-    .find({ course: query.course, ...(companies.length && { company: { $in: companies } }) })
+    .find({ course: query.course, ...(companies.length && { companies: { $in: companies } }) })
     .populate({ path: 'trainee', select: 'identity' })
     .setOptions({ isVendorUser })
     .lean();

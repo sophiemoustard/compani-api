@@ -124,7 +124,7 @@ describe('HOLDINGS ROUTES - GET /holdings', () => {
       { name: 'helper', expectedCode: 403 },
       { name: 'planning_referent', expectedCode: 403 },
       { name: 'client_admin', expectedCode: 403 },
-      { name: 'trainer', expectedCode: 403 },
+      { name: 'trainer', expectedCode: 200 },
     ];
     roles.forEach((role) => {
       it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
@@ -267,7 +267,7 @@ describe('HOLDINGS ROUTES - GET /holdings/{_id}', () => {
       { name: 'helper', expectedCode: 403 },
       { name: 'planning_referent', expectedCode: 403 },
       { name: 'client_admin', expectedCode: 403 },
-      { name: 'trainer', expectedCode: 403 },
+      { name: 'trainer', expectedCode: 200 },
     ];
     roles.forEach((role) => {
       it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {

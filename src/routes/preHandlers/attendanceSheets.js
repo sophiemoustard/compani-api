@@ -4,27 +4,36 @@ const { CompaniDate } = require('../../helpers/dates/companiDates');
 const UtilsHelper = require('../../helpers/utils');
 const Course = require('../../models/Course');
 const AttendanceSheet = require('../../models/AttendanceSheet');
-const { INTRA, TRAINER, DAY } = require('../../helpers/constants');
+const {
+  INTRA,
+  TRAINER,
+  DAY,
+  INTRA_HOLDING,
+  VENDOR_ADMIN,
+  TRAINING_ORGANISATION_MANAGER,
+} = require('../../helpers/constants');
 
-const isTrainerAuthorized = (courseTrainer, credentials) => {
+const isVendorAndAuthorized = (courseTrainer, credentials) => {
   const loggedUserId = get(credentials, '_id');
   const vendorRole = get(credentials, 'role.vendor');
-  const loggedUserIsNotCourseTrainer = courseTrainer && !UtilsHelper.areObjectIdsEquals(loggedUserId, courseTrainer);
 
-  if (get(vendorRole, 'name') === TRAINER && loggedUserIsNotCourseTrainer) throw Boom.forbidden();
+  const isRofOrAdmin = [VENDOR_ADMIN, TRAINING_ORGANISATION_MANAGER].includes(get(vendorRole, 'name'));
+  if (isRofOrAdmin) return true;
 
-  return null;
+  const loggedUserIsCourseTrainer = courseTrainer && UtilsHelper.areObjectIdsEquals(loggedUserId, courseTrainer);
+
+  return get(vendorRole, 'name') === TRAINER && loggedUserIsCourseTrainer;
 };
 
 exports.authorizeAttendanceSheetsGet = async (req) => {
-  const course = await Course.findOne({ _id: req.query.course }, { type: 1, companies: 1, trainer: 1 }).lean();
+  const course = await Course
+    .findOne({ _id: req.query.course }, { type: 1, companies: 1, trainer: 1, holding: 1 })
+    .lean();
   if (!course) throw Boom.notFound();
 
   const { credentials } = req.auth;
-  isTrainerAuthorized(course.trainer, credentials);
 
-  const loggedUserHasVendorRole = get(credentials, 'role.vendor');
-  if (loggedUserHasVendorRole) return null;
+  if (isVendorAndAuthorized(course.trainer, credentials)) return null;
 
   if (get(req.query, 'company')) {
     const loggedUserCompany = get(credentials, 'company._id');
@@ -37,7 +46,8 @@ exports.authorizeAttendanceSheetsGet = async (req) => {
     const isLoggedUserInHolding = UtilsHelper
       .areObjectIdsEquals(get(req.query, 'holding'), get(credentials, 'holding._id'));
     const hasHoldingAccessToCourse = course.companies
-      .some(company => UtilsHelper.doesArrayIncludeId(get(credentials, 'holding.companies') || [], company));
+      .some(company => UtilsHelper.doesArrayIncludeId(get(credentials, 'holding.companies') || [], company)) ||
+        UtilsHelper.areObjectIdsEquals(course.holding, get(credentials, 'holding._id'));
     if (!hasHoldingRole || !isLoggedUserInHolding || !hasHoldingAccessToCourse) throw Boom.forbidden();
   }
 
@@ -46,15 +56,16 @@ exports.authorizeAttendanceSheetsGet = async (req) => {
 
 exports.authorizeAttendanceSheetCreation = async (req) => {
   const course = await Course
-    .findOne({ _id: req.payload.course }, { archivedAt: 1, type: 1, slots: 1, trainees: 1, trainer: 1 })
+    .findOne({ _id: req.payload.course }, { archivedAt: 1, type: 1, slots: 1, trainees: 1, trainer: 1, companies: 1 })
     .populate('slots')
     .lean();
   if (course.archivedAt) throw Boom.forbidden();
+  if (!course.companies.length) throw Boom.forbidden();
 
   const { credentials } = req.auth;
-  isTrainerAuthorized(course.trainer, credentials);
+  if (!isVendorAndAuthorized(course.trainer, credentials)) throw Boom.forbidden();
 
-  if (course.type === INTRA) {
+  if ([INTRA, INTRA_HOLDING].includes(course.type)) {
     if (req.payload.trainee) throw Boom.badRequest();
     const isCourseSlotDate = course.slots.some(slot => CompaniDate(slot.startDate).isSame(req.payload.date, DAY));
     if (!isCourseSlotDate) throw Boom.forbidden();
@@ -75,9 +86,11 @@ exports.authorizeAttendanceSheetDeletion = async (req) => {
     .populate({ path: 'course', select: 'archivedAt trainer' })
     .setOptions({ isVendorUser: !!get(credentials, 'role.vendor') })
     .lean();
+  if (!attendanceSheet) throw Boom.notFound();
+
   if (get(attendanceSheet, 'course.archivedAt')) throw Boom.forbidden();
 
-  isTrainerAuthorized(get(attendanceSheet, 'course.trainer'), credentials);
+  if (!isVendorAndAuthorized(get(attendanceSheet, 'course.trainer'), credentials)) throw Boom.forbidden();
 
-  return attendanceSheet || Boom.notFound();
+  return attendanceSheet;
 };
