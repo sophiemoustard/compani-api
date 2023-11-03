@@ -916,7 +916,7 @@ const generateCompletionCertificateAllPdf = async (courseData, attendances, trai
   const promises = traineeList
     .map(trainee => generateCompletionCertificatePdf(courseData, attendances, trainee));
 
-  return ZipHelper.generateZip('attestations.zip', await Promise.all(promises));
+  return ZipHelper.generateZip('attestations_pdf.zip', await Promise.all(promises));
 };
 
 exports.generateCompletionCertificates = async (courseId, credentials, query) => {
@@ -936,9 +936,16 @@ exports.generateCompletionCertificates = async (courseId, credentials, query) =>
 
   const courseData = exports.formatCourseForDocuments(course);
 
-  const traineeList = await getTraineeList(course, credentials);
-  if (format === ALL_PDF) return generateCompletionCertificateAllPdf(courseData, attendances, traineeList);
-  if (format === ALL_WORD) return generateCompletionCertificateAllWord(courseData, attendances, traineeList);
+  if (format === ALL_PDF) {
+    const traineeList = await getTraineeList(course, credentials);
+
+    return generateCompletionCertificateAllPdf(courseData, attendances, traineeList);
+  }
+  if (format === ALL_WORD) {
+    const traineeList = await getTraineeList(course, credentials);
+
+    return generateCompletionCertificateAllWord(courseData, attendances, traineeList);
+  }
 
   const trainee = course.trainees.find(t => UtilsHelper.areObjectIdsEquals(t._id, credentials._id));
   return generateCompletionCertificatePdf(courseData, attendances, trainee);

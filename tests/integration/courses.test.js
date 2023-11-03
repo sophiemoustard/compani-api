@@ -2,7 +2,6 @@ const { expect } = require('expect');
 const sinon = require('sinon');
 const path = require('path');
 const { ObjectId } = require('mongodb');
-const os = require('os');
 const omit = require('lodash/omit');
 const pick = require('lodash/pick');
 const get = require('lodash/get');
