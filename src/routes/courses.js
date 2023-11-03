@@ -48,6 +48,7 @@ const {
   authorizeCourseCompanyAddition,
   authorizeCourseCompanyDeletion,
   authorizeGenerateTrainingContract,
+  authorizeGetCompletionCertificates,
 } = require('./preHandlers/courses');
 const {
   INTRA,
@@ -322,7 +323,7 @@ exports.plugin = {
             format: Joi.string().valid(...FORMAT_OPTIONS), // #TODO - rendre ce champ requis une fois la MEP faite
           }),
         },
-        pre: [{ method: authorizeGetDocuments }],
+        pre: [{ method: authorizeGetDocuments }, { method: authorizeGetCompletionCertificates }],
       },
       handler: downloadCompletionCertificates,
     });

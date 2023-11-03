@@ -32,6 +32,8 @@ const {
   PUBLISHED,
   HOLDING_ADMIN,
   INTRA_HOLDING,
+  ALL_WORD,
+  PDF,
 } = require('../../helpers/constants');
 const translate = require('../../helpers/translate');
 const UtilsHelper = require('../../helpers/utils');
@@ -172,11 +174,22 @@ exports.authorizeGetDocuments = async (req) => {
   if (!course) throw Boom.notFound();
 
   const isTrainee = UtilsHelper.doesArrayIncludeId(course.trainees, get(credentials, '_id'));
-  if (isTrainee && get(req, 'query.origin') === MOBILE) return null;
+  if (isTrainee && (get(req, 'query.origin') === MOBILE || get(req, 'query.format') === PDF)) return null;
 
   const courseTrainerId = get(course, 'trainer') || null;
   const holding = course.type === INTRA_HOLDING ? course.holding : null;
   this.checkAuthorization(credentials, courseTrainerId, course.companies, holding);
+
+  return null;
+};
+
+exports.authorizeGetCompletionCertificates = async (req) => {
+  const { auth, query: { format } } = req;
+
+  const userVendorRole = get(auth, 'credentials.role.vendor.name');
+  const isRofOrAdmin = [TRAINING_ORGANISATION_MANAGER, VENDOR_ADMIN].includes(userVendorRole);
+
+  if (!isRofOrAdmin && format === ALL_WORD) throw Boom.forbidden();
 
   return null;
 };
