@@ -1,6 +1,5 @@
 const Boom = require('@hapi/boom');
 const { get } = require('lodash');
-const { MOBILE } = require('../helpers/constants');
 const CoursesHelper = require('../helpers/courses');
 const translate = require('../helpers/translate');
 
@@ -189,18 +188,17 @@ const downloadCompletionCertificates = async (req, h) => {
     req.log('courseController - downloadCompletionCertificates - params', req.params);
     req.log('courseController - downloadCompletionCertificates - company', get(req, 'auth.credentials.company._id'));
 
-    const data = await CoursesHelper
-      .generateCompletionCertificates(req.params._id, req.auth.credentials, req.query.origin);
+    const data = await CoursesHelper.generateCompletionCertificates(req.params._id, req.auth.credentials, req.query);
 
-    if (get(req, 'query.origin') === MOBILE) {
-      return h.response(data.pdf)
-        .header('content-disposition', `inline; filename=${data.name}.pdf`)
-        .type('application/pdf');
+    if (data.zipPath) {
+      return h.file(data.zipPath, { confine: false })
+        .header('content-disposition', `attachment; filename=${data.zipName}`)
+        .type('application/zip');
     }
 
-    return h.file(data.zipPath, { confine: false })
-      .header('content-disposition', `attachment; filename=${data.zipName}`)
-      .type('application/zip');
+    return h.response(data.file)
+      .header('content-disposition', `inline; filename=${data.name}.pdf`)
+      .type('application/pdf');
   } catch (e) {
     req.log('error', e);
     return Boom.isBoom(e) ? e : Boom.badImplementation(e);

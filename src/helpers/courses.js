@@ -38,7 +38,6 @@ const {
   REJECTED,
   ON_SITE,
   E_LEARNING,
-  MOBILE,
   WEBAPP,
   VENDOR_ADMIN,
   TRAINING_ORGANISATION_MANAGER,
@@ -56,6 +55,8 @@ const {
   PEDAGOGY,
   QUESTIONNAIRE,
   INTRA_HOLDING,
+  ALL_PDF,
+  ALL_WORD,
 } = require('./constants');
 const CourseHistoriesHelper = require('./courseHistories');
 const NotificationHelper = require('./notifications');
@@ -866,7 +867,7 @@ const generateCompletionCertificatePdf = async (courseData, courseAttendances, t
     date: CompaniDate().format(DD_MM_YYYY),
   });
 
-  return { pdf, name: `Attestation - ${traineeIdentity}.pdf` };
+  return { file: pdf, name: `Attestation - ${traineeIdentity}.pdf` };
 };
 
 const generateCompletionCertificateWord = async (courseData, courseAttendances, trainee, templatePath) => {
@@ -899,7 +900,28 @@ const getTraineeList = async (course, credentials) => {
     .filter(trainee => UtilsHelper.hasUserAccessToCompany(credentials, traineesCompany[trainee._id]));
 };
 
-exports.generateCompletionCertificates = async (courseId, credentials, origin = null) => {
+const generateCompletionCertificateAllWord = async (courseData, attendances, traineeList) => {
+  const templatePath = path.join(os.tmpdir(), 'certificate_template.docx');
+  await drive.downloadFileById({
+    fileId: process.env.GOOGLE_DRIVE_TRAINING_CERTIFICATE_TEMPLATE_ID,
+    tmpFilePath: templatePath,
+  });
+  const promises = traineeList
+    .map(trainee => generateCompletionCertificateWord(courseData, attendances, trainee, templatePath));
+
+  return ZipHelper.generateZip('attestations_word.zip', await Promise.all(promises));
+};
+
+const generateCompletionCertificateAllPdf = async (courseData, attendances, traineeList) => {
+  const promises = traineeList
+    .map(trainee => generateCompletionCertificatePdf(courseData, attendances, trainee));
+
+  return ZipHelper.generateZip('attestations.zip', await Promise.all(promises));
+};
+
+exports.generateCompletionCertificates = async (courseId, credentials, query) => {
+  const { format } = query;
+
   const course = await Course.findOne({ _id: courseId })
     .populate({ path: 'slots', select: 'startDate endDate' })
     .populate({ path: 'trainees', select: 'identity' })
@@ -914,21 +936,12 @@ exports.generateCompletionCertificates = async (courseId, credentials, origin = 
 
   const courseData = exports.formatCourseForDocuments(course);
 
-  if (origin === MOBILE) {
-    const trainee = course.trainees.find(t => UtilsHelper.areObjectIdsEquals(t._id, credentials._id));
-    return generateCompletionCertificatePdf(courseData, attendances, trainee);
-  }
-
-  const templatePath = path.join(os.tmpdir(), 'certificate_template.docx');
-  await drive.downloadFileById({
-    fileId: process.env.GOOGLE_DRIVE_TRAINING_CERTIFICATE_TEMPLATE_ID,
-    tmpFilePath: templatePath,
-  });
   const traineeList = await getTraineeList(course, credentials);
-  const promises = traineeList
-    .map(trainee => generateCompletionCertificateWord(courseData, attendances, trainee, templatePath));
+  if (format === ALL_PDF) return generateCompletionCertificateAllPdf(courseData, attendances, traineeList);
+  if (format === ALL_WORD) return generateCompletionCertificateAllWord(courseData, attendances, traineeList);
 
-  return ZipHelper.generateZip('attestations.zip', await Promise.all(promises));
+  const trainee = course.trainees.find(t => UtilsHelper.areObjectIdsEquals(t._id, credentials._id));
+  return generateCompletionCertificatePdf(courseData, attendances, trainee);
 };
 
 exports.addAccessRule = async (courseId, payload) => Course.updateOne(
