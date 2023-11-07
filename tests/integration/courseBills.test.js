@@ -457,22 +457,11 @@ describe('COURSE BILL ROUTES - POST /coursebills', () => {
       });
     });
 
-    it('should return 404 as company is not registered to course (intra)', async () => {
+    it('should return 404 as company is not registered to course', async () => {
       const response = await app.inject({
         method: 'POST',
         url: '/coursebills',
         payload: { ...payload, course: coursesList[0]._id },
-        headers: { 'x-access-token': authToken },
-      });
-
-      expect(response.statusCode).toBe(404);
-    });
-
-    it('should return 404 as company is not registered to course (inter)', async () => {
-      const response = await app.inject({
-        method: 'POST',
-        url: '/coursebills',
-        payload: { ...payload, course: coursesList[9]._id, companies: [authCompany._id] },
         headers: { 'x-access-token': authToken },
       });
 
