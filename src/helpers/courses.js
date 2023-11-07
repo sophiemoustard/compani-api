@@ -55,8 +55,8 @@ const {
   PEDAGOGY,
   QUESTIONNAIRE,
   INTRA_HOLDING,
-  ALL_PDF,
   ALL_WORD,
+  PDF,
 } = require('./constants');
 const CourseHistoriesHelper = require('./courseHistories');
 const NotificationHelper = require('./notifications');
@@ -901,22 +901,11 @@ const getTraineeList = async (course, credentials) => {
 };
 
 const generateCompletionCertificateAllWord = async (courseData, attendances, traineeList) => {
-  const templatePath = path.join(os.tmpdir(), 'certificate_template.docx');
-  await drive.downloadFileById({
-    fileId: process.env.GOOGLE_DRIVE_TRAINING_CERTIFICATE_TEMPLATE_ID,
-    tmpFilePath: templatePath,
-  });
-  const promises = traineeList
-    .map(trainee => generateCompletionCertificateWord(courseData, attendances, trainee, templatePath));
+  const tmpFilePath = path.join(os.tmpdir(), 'certificate_template.docx');
+  await drive.downloadFileById({ fileId: process.env.GOOGLE_DRIVE_TRAINING_CERTIFICATE_TEMPLATE_ID, tmpFilePath });
 
+  const promises = traineeList.map(t => generateCompletionCertificateWord(courseData, attendances, t, tmpFilePath));
   return ZipHelper.generateZip('attestations_word.zip', await Promise.all(promises));
-};
-
-const generateCompletionCertificateAllPdf = async (courseData, attendances, traineeList) => {
-  const promises = traineeList
-    .map(trainee => generateCompletionCertificatePdf(courseData, attendances, trainee));
-
-  return ZipHelper.generateZip('attestations_pdf.zip', await Promise.all(promises));
 };
 
 exports.generateCompletionCertificates = async (courseId, credentials, query) => {
@@ -936,19 +925,17 @@ exports.generateCompletionCertificates = async (courseId, credentials, query) =>
 
   const courseData = exports.formatCourseForDocuments(course);
 
-  if (format === ALL_PDF) {
-    const traineeList = await getTraineeList(course, credentials);
+  if (format === PDF) {
+    const trainee = course.trainees.find(t => UtilsHelper.areObjectIdsEquals(t._id, credentials._id));
 
-    return generateCompletionCertificateAllPdf(courseData, attendances, traineeList);
-  }
-  if (format === ALL_WORD) {
-    const traineeList = await getTraineeList(course, credentials);
-
-    return generateCompletionCertificateAllWord(courseData, attendances, traineeList);
+    return generateCompletionCertificatePdf(courseData, attendances, trainee);
   }
 
-  const trainee = course.trainees.find(t => UtilsHelper.areObjectIdsEquals(t._id, credentials._id));
-  return generateCompletionCertificatePdf(courseData, attendances, trainee);
+  const traineeList = await getTraineeList(course, credentials);
+  if (format === ALL_WORD) return generateCompletionCertificateAllWord(courseData, attendances, traineeList);
+
+  const promises = traineeList.map(t => generateCompletionCertificatePdf(courseData, attendances, t));
+  return ZipHelper.generateZip('attestations_pdf.zip', await Promise.all(promises));
 };
 
 exports.addAccessRule = async (courseId, payload) => Course.updateOne(

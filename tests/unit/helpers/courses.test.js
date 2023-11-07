@@ -56,6 +56,7 @@ const {
   INTRA_HOLDING,
   ALL_PDF,
   ALL_WORD,
+  PDF,
 } = require('../../../src/helpers/constants');
 const CourseRepository = require('../../../src/repositories/CourseRepository');
 const CourseHistoriesHelper = require('../../../src/helpers/courseHistories');
@@ -4813,7 +4814,7 @@ describe('generateCompletionCertificates', () => {
     getTotalDuration.onCall(0).returns('4h30');
     getPdf.returns('pdf');
 
-    const result = await CourseHelper.generateCompletionCertificates(courseId, credentials, MOBILE);
+    const result = await CourseHelper.generateCompletionCertificates(courseId, credentials, { format: PDF });
 
     expect(result).toEqual({ file: 'pdf', name: 'Attestation - trainee 1.pdf' });
     sinon.assert.calledOnceWithExactly(formatCourseForDocuments, course);
