@@ -9,7 +9,7 @@ const CourseBillSchema = mongoose.Schema({
     count: { type: Number, required: true },
     description: { type: String },
   },
-  company: { type: mongoose.Schema.Types.ObjectId, ref: 'Company', required: true },
+  companies: { type: [mongoose.Schema.Types.ObjectId], ref: 'Company', required: true },
   payer: {
     type: mongoose.Schema({
       fundingOrganisation: { type: mongoose.Schema.Types.ObjectId, ref: 'CourseFundingOrganisation' },

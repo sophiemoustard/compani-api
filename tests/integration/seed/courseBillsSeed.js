@@ -246,7 +246,7 @@ const courseBillsList = [
   { // 0
     _id: new ObjectId(),
     course: coursesList[0]._id,
-    company: authCompany._id,
+    companies: [authCompany._id],
     mainFee: { price: 120, count: 1 },
     payer: { company: authCompany._id },
     billingPurchaseList: [
@@ -257,14 +257,14 @@ const courseBillsList = [
   { // 1 - with funder and mainFee description
     _id: new ObjectId(),
     course: coursesList[1]._id,
-    company: authCompany._id,
+    companies: [authCompany._id],
     mainFee: { price: 120, count: 1, description: 'Lorem ipsum' },
     payer: { fundingOrganisation: courseFundingOrganisationList[0]._id },
   },
   { // 2 - already billed without funder
     _id: new ObjectId(),
     course: coursesList[3]._id,
-    company: authCompany._id,
+    companies: [authCompany._id],
     payer: { company: authCompany._id },
     mainFee: { price: 120, count: 1, description: 'Lorem ipsum' },
     billedAt: '2022-03-07T00:00:00.000Z',
@@ -276,7 +276,7 @@ const courseBillsList = [
   { // 3 - purchase with description
     _id: new ObjectId(),
     course: coursesList[4]._id,
-    company: authCompany._id,
+    companies: [authCompany._id],
     payer: { company: authCompany._id },
     mainFee: { price: 10, count: 1 },
     billingPurchaseList: [
@@ -286,7 +286,7 @@ const courseBillsList = [
   { // 4 - already billed with funder
     _id: new ObjectId(),
     course: coursesList[5]._id,
-    company: authCompany._id,
+    companies: [authCompany._id],
     mainFee: { price: 200, count: 2, description: 'Salut' },
     billedAt: '2022-04-07T00:00:00.000Z',
     number: 'FACT-00002',
@@ -298,7 +298,7 @@ const courseBillsList = [
   { // 5 - client company without address
     _id: new ObjectId(),
     course: coursesList[6]._id,
-    company: companyWithoutAddress._id,
+    companies: [companyWithoutAddress._id],
     payer: { company: companyWithoutAddress._id },
     mainFee: { price: 200, count: 2, description: 'yoyo' },
     billingPurchaseList: [
@@ -308,7 +308,7 @@ const courseBillsList = [
   { // 6 - payer is other company
     _id: new ObjectId(),
     course: coursesList[7]._id,
-    company: otherCompany._id,
+    companies: [otherCompany._id],
     payer: { company: authCompany._id },
     mainFee: { price: 200, count: 2, description: 'yoyo' },
     billingPurchaseList: [
@@ -320,7 +320,7 @@ const courseBillsList = [
   { // 7 - payer and company is other company
     _id: new ObjectId(),
     course: coursesList[8]._id,
-    company: otherCompany._id,
+    companies: [otherCompany._id],
     payer: { company: otherCompany._id },
     mainFee: { price: 200, count: 2, description: 'yoyo' },
     billingPurchaseList: [
@@ -332,7 +332,7 @@ const courseBillsList = [
   { // 8
     _id: new ObjectId(),
     course: coursesList[1]._id,
-    company: authCompany._id,
+    companies: [authCompany._id],
     payer: { company: authCompany._id },
     mainFee: { price: 200, count: 2, description: 'yoyo' },
     billingPurchaseList: [
@@ -344,7 +344,7 @@ const courseBillsList = [
   { // 9
     _id: new ObjectId(),
     course: coursesList[0]._id,
-    company: authCompany._id,
+    companies: [authCompany._id],
     payer: { company: authCompany._id },
     mainFee: { price: 200, count: 2, description: 'yoyo' },
     billingPurchaseList: [

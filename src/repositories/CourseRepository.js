@@ -77,12 +77,12 @@ exports.findCoursesForExport = async (startDate, endDate, credentials) => {
     .populate({ path: 'trainees', select: 'firstMobileConnection' })
     .populate({
       path: 'bills',
-      select: 'payer company billedAt mainFee billingPurchaseList',
+      select: 'payer companies billedAt mainFee billingPurchaseList',
       options: { isVendorUser },
       populate: [
         { path: 'payer.fundingOrganisation', select: 'name' },
         { path: 'payer.company', select: 'name' },
-        { path: 'company', select: 'name' },
+        { path: 'companies', select: 'name' },
         { path: 'courseCreditNote', options: { isVendorUser }, select: '_id' },
         { path: 'coursePayments', options: { isVendorUser }, select: 'netInclTaxes nature' },
       ],
