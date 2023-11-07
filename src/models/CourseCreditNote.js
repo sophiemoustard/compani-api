@@ -6,7 +6,7 @@ const CourseCreditNoteSchema = mongoose.Schema({
   courseBill: { type: mongoose.Schema.Types.ObjectId, ref: 'CourseBill', required: true, immutable: true },
   misc: { type: String },
   date: { type: Date, required: true },
-  company: { type: mongoose.Schema.Types.ObjectId, ref: 'Company', required: true, immutable: true },
+  companies: { type: [mongoose.Schema.Types.ObjectId], ref: 'Company', required: true, immutable: true },
 }, { timestamps: true });
 
 CourseCreditNoteSchema.pre('find', validateQuery);

@@ -8,11 +8,11 @@ const UtilsHelper = require('../../helpers/utils');
 const { TRAINING_ORGANISATION_MANAGER, VENDOR_ADMIN } = require('../../helpers/constants');
 
 exports.authorizeCourseCreditNoteCreation = async (req) => {
-  const { company: companyId, courseBill: courseBillId, date } = req.payload;
+  const { companies: companiesIds, courseBill: courseBillId, date } = req.payload;
   const { credentials } = req.auth;
 
-  const companyExist = await Company.countDocuments({ _id: companyId });
-  if (!companyExist) throw Boom.notFound();
+  const companiesCount = await Company.countDocuments({ _id: { $in: companiesIds } });
+  if (companiesCount !== companiesIds.length) throw Boom.notFound();
 
   const courseBill = await CourseBill
     .findOne({ _id: courseBillId })

@@ -115,7 +115,7 @@ const courseCreditNote = [
     courseBill: courseBillsList[2]._id,
     date: '2022-06-08T10:00:00.000Z',
     misc: 'wesh',
-    company: authCompany._id,
+    companies: [authCompany._id],
   },
   {
     _id: new ObjectId(),
@@ -123,7 +123,7 @@ const courseCreditNote = [
     courseBill: courseBillsList[3]._id,
     date: '2022-06-08T10:00:00.000Z',
     misc: 'wesh',
-    company: otherCompany._id,
+    companies: [otherCompany._id],
   },
   {
     _id: new ObjectId(),
@@ -131,7 +131,7 @@ const courseCreditNote = [
     courseBill: courseBillsList[4]._id,
     date: '2022-06-08T10:00:00.000Z',
     misc: 'wesh',
-    company: otherCompany._id,
+    companies: [otherCompany._id],
   },
 ];
 
