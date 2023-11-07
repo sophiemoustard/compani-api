@@ -51,7 +51,7 @@ exports.formatCourseBill = (courseBill) => {
 
 const balance = async (company, credentials) => {
   const courseBills = await CourseBill
-    .find({ $or: [{ company }, { 'payer.company': company }], billedAt: { $exists: true, $type: 'date' } })
+    .find({ $or: [{ companies: company }, { 'payer.company': company }], billedAt: { $exists: true, $type: 'date' } })
     .populate({
       path: 'course',
       select: 'misc slots slotsToPlan subProgram companies',
@@ -90,7 +90,7 @@ exports.list = async (query, credentials) => {
   if (query.action === LIST) {
     const courseBills = await CourseBill
       .find({ course: query.course })
-      .populate({ path: 'company', select: 'name' })
+      .populate({ path: 'companies', select: 'name' })
       .populate({ path: 'payer.fundingOrganisation', select: 'name' })
       .populate({ path: 'payer.company', select: 'name' })
       .populate({ path: 'courseCreditNote', options: { isVendorUser: !!get(credentials, 'role.vendor') } })

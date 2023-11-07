@@ -64,7 +64,7 @@ const courseBillsList = [
   { // 0 valid bill
     _id: new ObjectId(),
     course: coursesList[1]._id,
-    company: authCompany._id,
+    companies: [authCompany._id],
     payer: { company: authCompany._id },
     mainFee: { price: 44.88, count: 2 },
     billedAt: '2022-04-07T00:00:00.000Z',
@@ -73,14 +73,14 @@ const courseBillsList = [
   { // 1 draft bill
     _id: new ObjectId(),
     course: coursesList[1]._id,
-    company: authCompany._id,
+    companies: [authCompany._id],
     payer: { company: authCompany._id },
     mainFee: { price: 65, count: 3, description: 'Salut à toi' },
   },
   { // 2 bill cancelled by credit note
     _id: new ObjectId(),
     course: coursesList[0]._id,
-    company: authCompany._id,
+    companies: [authCompany._id],
     payer: { company: authCompany._id },
     mainFee: { price: 73, count: 1 },
     billedAt: '2022-05-30T10:00:00.000Z',
@@ -89,7 +89,7 @@ const courseBillsList = [
   { // 3 bill cancelled by credit note (otherCompany but autCompany as payer)
     _id: new ObjectId(),
     course: coursesList[0]._id,
-    company: otherCompany._id,
+    companies: [otherCompany._id],
     payer: { company: authCompany._id },
     mainFee: { price: 73, count: 1 },
     billedAt: '2022-05-30T10:00:00.000Z',
@@ -98,7 +98,7 @@ const courseBillsList = [
   { // 4 bill cancelled by credit note (otherCompany)
     _id: new ObjectId(),
     course: coursesList[0]._id,
-    company: otherCompany._id,
+    companies: [otherCompany._id],
     payer: { company: otherCompany._id },
     mainFee: { price: 73, count: 1 },
     billedAt: '2022-05-30T10:00:00.000Z',

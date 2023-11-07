@@ -84,7 +84,7 @@ describe('list', () => {
       find,
       [
         { query: 'find', args: [{ course: courseId }] },
-        { query: 'populate', args: [{ path: 'company', select: 'name' }] },
+        { query: 'populate', args: [{ path: 'companies', select: 'name' }] },
         { query: 'populate', args: [{ path: 'payer.fundingOrganisation', select: 'name' }] },
         { query: 'populate', args: [{ path: 'payer.company', select: 'name' }] },
         { query: 'populate', args: [{ path: 'courseCreditNote', options: { isVendorUser: true } }] },
@@ -130,7 +130,7 @@ describe('list', () => {
       find,
       [
         { query: 'find', args: [{ course: courseId }] },
-        { query: 'populate', args: [{ path: 'company', select: 'name' }] },
+        { query: 'populate', args: [{ path: 'companies', select: 'name' }] },
         { query: 'populate', args: [{ path: 'payer.fundingOrganisation', select: 'name' }] },
         { query: 'populate', args: [{ path: 'payer.company', select: 'name' }] },
         { query: 'populate', args: [{ path: 'courseCreditNote', options: { isVendorUser: true } }] },
@@ -208,7 +208,7 @@ describe('list', () => {
         {
           query: 'find',
           args: [{
-            $or: [{ company: companyId }, { 'payer.company': companyId }],
+            $or: [{ companies: companyId }, { 'payer.company': companyId }],
             billedAt: { $exists: true, $type: 'date' },
           }],
         },
@@ -328,7 +328,7 @@ describe('list', () => {
         {
           query: 'find',
           args: [{
-            $or: [{ company: companyId }, { 'payer.company': companyId }],
+            $or: [{ companies: companyId }, { 'payer.company': companyId }],
             billedAt: { $exists: true, $type: 'date' },
           }],
         },

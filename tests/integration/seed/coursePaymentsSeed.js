@@ -35,7 +35,7 @@ const courseBillsList = [
   { // 0
     _id: new ObjectId(),
     course: coursesList[0]._id,
-    company: authCompany._id,
+    companies: [authCompany._id],
     mainFee: { price: 1200.20, count: 1 },
     billedAt: '2022-03-06T00:00:00.000Z',
     number: 'FACT-00001',
@@ -44,7 +44,7 @@ const courseBillsList = [
   { // 1
     _id: new ObjectId(),
     course: coursesList[0]._id,
-    company: authCompany._id,
+    companies: [authCompany._id],
     mainFee: { price: 1200, count: 1, description: 'Lorem ipsum' },
     payer: { company: authCompany._id },
   },

@@ -12,12 +12,11 @@ const { TRAINING_ORGANISATION_MANAGER, VENDOR_ADMIN, BALANCE, INTRA } = require(
 const { language } = translate;
 
 exports.authorizeCourseBillCreation = async (req) => {
-  const { course: courseId, company: companyId, payer } = req.payload;
+  const { course: courseId, companies: companiesIds, payer } = req.payload;
 
-  const course = await Course
-    .findOne({ _id: courseId, companies: companyId }, { type: 1, expectedBillsCount: 1 })
-    .lean();
+  const course = await Course.findOne({ _id: courseId }, { type: 1, expectedBillsCount: 1, companies: 1 }).lean();
   if (!course) throw Boom.notFound();
+  if (companiesIds.some(c => !UtilsHelper.doesArrayIncludeId(course.companies, c))) throw Boom.notFound();
 
   if (course.type === INTRA) {
     if (!course.expectedBillsCount) throw Boom.conflict();
