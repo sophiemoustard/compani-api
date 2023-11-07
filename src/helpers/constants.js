@@ -467,6 +467,11 @@ module.exports = {
   MOBILE: 'mobile',
   WEBAPP: 'webapp',
   get ORIGIN_OPTIONS() { return [this.WEBAPP, this.MOBILE]; },
+  // FORMAT
+  PDF: 'pdf',
+  ALL_WORD: 'all_word',
+  ALL_PDF: 'all_pdf',
+  get FORMAT_OPTIONS() { return [this.PDF, this.ALL_PDF, this.ALL_WORD]; },
   // Email
   TRAINEE: 'trainee',
   // Type

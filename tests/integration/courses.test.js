@@ -2,7 +2,6 @@ const { expect } = require('expect');
 const sinon = require('sinon');
 const path = require('path');
 const { ObjectId } = require('mongodb');
-const os = require('os');
 const omit = require('lodash/omit');
 const pick = require('lodash/pick');
 const get = require('lodash/get');
@@ -25,6 +24,9 @@ const {
   COMPANY_DELETION,
   ON_SITE,
   INTRA_HOLDING,
+  ALL_PDF,
+  ALL_WORD,
+  PDF,
 } = require('../../src/helpers/constants');
 const {
   populateDB,
@@ -3761,7 +3763,7 @@ describe('COURSES ROUTES - GET /{_id}/completion-certificates', () => {
     it('should return 200', async () => {
       const response = await app.inject({
         method: 'GET',
-        url: `/courses/${courseIdFromAuthCompany}/completion-certificates`,
+        url: `/courses/${courseIdFromAuthCompany}/completion-certificates?format=${ALL_PDF}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -3772,7 +3774,7 @@ describe('COURSES ROUTES - GET /{_id}/completion-certificates', () => {
       const invalidId = (new ObjectId()).toHexString();
       const response = await app.inject({
         method: 'GET',
-        url: `/courses/${invalidId}/completion-certificates`,
+        url: `/courses/${invalidId}/completion-certificates?format=${ALL_PDF}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -3789,7 +3791,7 @@ describe('COURSES ROUTES - GET /{_id}/completion-certificates', () => {
     it('should return 200 if user is course trainee', async () => {
       const response = await app.inject({
         method: 'GET',
-        url: `/courses/${coursesList[5]._id}/completion-certificates?origin=mobile`,
+        url: `/courses/${coursesList[5]._id}/completion-certificates?format=${PDF}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -3799,17 +3801,17 @@ describe('COURSES ROUTES - GET /{_id}/completion-certificates', () => {
     it('should return a 403 if user is not course trainee', async () => {
       const response = await app.inject({
         method: 'GET',
-        url: `/courses/${courseIdFromAuthCompany}/completion-certificates?origin=mobile`,
+        url: `/courses/${courseIdFromAuthCompany}/completion-certificates?format=${PDF}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(response.statusCode).toBe(403);
     });
 
-    it('should return 403 if user is not accessing certificate from mobile app', async () => {
+    it('should return 403 if user is accessing certificate with an other format than PDF', async () => {
       const response = await app.inject({
         method: 'GET',
-        url: `/courses/${coursesList[5]._id}/completion-certificates`,
+        url: `/courses/${coursesList[5]._id}/completion-certificates?format=${ALL_WORD}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -3847,7 +3849,7 @@ describe('COURSES ROUTES - GET /{_id}/completion-certificates', () => {
         authToken = await getToken(role.name);
         const response = await app.inject({
           method: 'GET',
-          url: `/courses/${courseIdFromAuthCompany}/completion-certificates`,
+          url: `/courses/${courseIdFromAuthCompany}/completion-certificates?format=${ALL_PDF}`,
           headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
@@ -3859,44 +3861,18 @@ describe('COURSES ROUTES - GET /{_id}/completion-certificates', () => {
       authToken = await getToken('coach');
       const response = await app.inject({
         method: 'GET',
-        url: `/courses/${coursesList[7]._id}/completion-certificates`,
+        url: `/courses/${coursesList[7]._id}/completion-certificates?format=${ALL_PDF}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(response.statusCode).toBe(200);
-      sinon.assert.calledWithExactly(
-        createDocxStub.getCall(0),
-        `${os.tmpdir()}/certificate_template.docx`,
-        {
-          duration: '2h',
-          learningGoals: 'on est là',
-          programName: 'PROGRAM',
-          startDate: '07/03/2020',
-          endDate: '07/03/2020',
-          trainee: { identity: 'Auxiliary OLAIT', attendanceDuration: '0h' },
-          date: '24/01/2019',
-        }
-      );
-      sinon.assert.calledWithExactly(
-        createDocxStub.getCall(1),
-        `${os.tmpdir()}/certificate_template.docx`,
-        {
-          duration: '2h',
-          learningGoals: 'on est là',
-          programName: 'PROGRAM',
-          startDate: '07/03/2020',
-          endDate: '07/03/2020',
-          trainee: { identity: 'Michel DRUCKER', attendanceDuration: '0h' },
-          date: '24/01/2019',
-        }
-      );
     });
 
     it('should return 403 as user is trainer if not one of his courses', async () => {
       authToken = await getToken('trainer');
       const response = await app.inject({
         method: 'GET',
-        url: `/courses/${coursesList[1]._id}/completion-certificates`,
+        url: `/courses/${coursesList[1]._id}/completion-certificates?format=${ALL_PDF}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -3907,7 +3883,7 @@ describe('COURSES ROUTES - GET /{_id}/completion-certificates', () => {
       authToken = await getTokenByCredentials(trainer.local);
       const response = await app.inject({
         method: 'GET',
-        url: `/courses/${courseIdFromAuthCompany}/completion-certificates`,
+        url: `/courses/${courseIdFromAuthCompany}/completion-certificates?format=${ALL_PDF}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -3919,6 +3895,28 @@ describe('COURSES ROUTES - GET /{_id}/completion-certificates', () => {
       const response = await app.inject({
         method: 'GET',
         url: `/courses/${courseIdFromOtherCompany}/completion-certificates`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
+
+    it('should return 403 as user is the course trainer and access ALL_WORD', async () => {
+      authToken = await getTokenByCredentials(trainer.local);
+      const response = await app.inject({
+        method: 'GET',
+        url: `/courses/${courseIdFromAuthCompany}/completion-certificates?format=${ALL_WORD}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
+
+    it('should return 403 as user is coach and access ALL_WORD', async () => {
+      authToken = await getTokenByCredentials(coach.local);
+      const response = await app.inject({
+        method: 'GET',
+        url: `/courses/${courseIdFromAuthCompany}/completion-certificates?format=${ALL_WORD}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
