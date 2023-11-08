@@ -1476,7 +1476,7 @@ const courseCreditNotesList = [
     courseBill: courseBillList[1]._id,
     misc: 'annulé',
     date: '2022-03-09T00:00:00.000Z',
-    company: authCompany._id,
+    companies: [authCompany._id],
   },
   {
     _id: new ObjectId(),
@@ -1484,7 +1484,7 @@ const courseCreditNotesList = [
     courseBill: courseBillList[7]._id,
     misc: 'annulé',
     date: '2022-07-09T00:00:00.000Z',
-    company: authCompany._id,
+    companies: [authCompany._id],
   },
 ];
 
