@@ -1126,8 +1126,8 @@ describe('SEEDS VERIFICATION', () => {
         before(async () => {
           courseCreditNoteList = await CourseCreditNote
             .find()
-            .populate({ path: 'courseBill', select: 'company billedAt', transform })
-            .populate({ path: 'company', transform })
+            .populate({ path: 'courseBill', select: 'companies billedAt', transform })
+            .populate({ path: 'companies', transform })
             .setOptions({ allCompanies: true })
             .lean();
         });
@@ -1145,16 +1145,16 @@ describe('SEEDS VERIFICATION', () => {
           expect(everyCourseBillExists).toBeTruthy();
         });
 
-        // it('should pass if every course credit note has good company', () => {
-        //   const everyCompanyExists = courseCreditNoteList.every(creditNote => !!creditNote.company);
+        it('should pass if every course credit note has good company', () => {
+          const everyCompanyExists = courseCreditNoteList.every(creditNote => creditNote.companies.every(c => !!c));
 
-        //   expect(everyCompanyExists).toBeTruthy();
+          expect(everyCompanyExists).toBeTruthy();
+          const everyCompanyIsInCourseBill = courseCreditNoteList
+            .every(cn => cn.companies.every(c => UtilsHelper.doesArrayIncludeId(cn.courseBill.companies, c._id)) &&
+              cn.companies.length === cn.courseBill.companies.length);
 
-        //   const everyCompanyIsInCourseBill = courseCreditNoteList
-        //     .every(cn => UtilsHelper.areObjectIdsEquals(cn.company._id, cn.courseBill.company));
-
-        //   expect(everyCompanyIsInCourseBill).toBeTruthy();
-        // });
+          expect(everyCompanyIsInCourseBill).toBeTruthy();
+        });
 
         it('should pass if every date is after billing', () => {
           const everyCourseBillIsBilled = courseCreditNoteList.every(creditNote => !!creditNote.courseBill.billedAt);
