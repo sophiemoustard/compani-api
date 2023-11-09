@@ -61,6 +61,8 @@ const {
   INTRA_HOLDING,
   FORMAT_OPTIONS,
   PDF,
+  CUSTOM,
+  TYPE_OPTIONS,
 } = require('../helpers/constants');
 const { dateToISOString } = require('./validations/utils');
 
@@ -322,6 +324,7 @@ exports.plugin = {
           query: Joi.object({
             origin: Joi.string().valid(...ORIGIN_OPTIONS), // #TODO - champ a retirer (apres la MEP)
             format: Joi.string().valid(...FORMAT_OPTIONS).default(PDF), // #TODO - rendre ce champ requis (apres la MEP)
+            type: Joi.string().valid(...TYPE_OPTIONS).default(CUSTOM),
           }),
         },
         pre: [{ method: authorizeGetDocuments }, { method: authorizeGetCompletionCertificates }],
