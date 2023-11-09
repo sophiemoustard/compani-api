@@ -57,6 +57,7 @@ const {
   ALL_PDF,
   ALL_WORD,
   PDF,
+  CUSTOM,
 } = require('../../../src/helpers/constants');
 const CourseRepository = require('../../../src/repositories/CourseRepository');
 const CourseHistoriesHelper = require('../../../src/helpers/courseHistories');
@@ -4501,6 +4502,8 @@ describe('generateCompletionCertificates', () => {
 
   it('should download completion certificates from webapp (vendor)', async () => {
     const companyId = new ObjectId();
+    const otherCompanyId = new ObjectId();
+
     const credentials = {
       _id: new ObjectId(),
       role: { vendor: { name: 'vendor_admin' } },
@@ -4522,7 +4525,7 @@ describe('generateCompletionCertificates', () => {
       misc: 'Bonjour je suis une formation',
       slots: [{ _id: new ObjectId() }, { _id: new ObjectId() }],
       trainer: new ObjectId(),
-      companies: [companyId],
+      companies: [companyId, otherCompanyId],
     };
     const attendances = [
       {
@@ -4538,7 +4541,7 @@ describe('generateCompletionCertificates', () => {
         courseSlot: { startDate: '2022-01-18T07:00:00.000Z', endDate: '2022-01-18T10:00:00.000Z' },
       },
     ];
-    const query = { format: ALL_WORD };
+    const query = { format: ALL_WORD, type: CUSTOM };
 
     attendanceFind.returns(SinonMongoose.stubChainedQueries(attendances, ['populate', 'setOptions', 'lean']));
     courseFindOne.returns(SinonMongoose.stubChainedQueries(course));
@@ -4555,6 +4558,11 @@ describe('generateCompletionCertificates', () => {
     getTotalDuration.onCall(0).returns('4h30');
     getTotalDuration.onCall(1).returns('3h');
     getTotalDuration.onCall(2).returns('0h');
+    getCompanyAtCourseRegistrationList.returns([
+      { trainee: traineeId1, company: companyId },
+      { trainee: traineeId2, company: companyId },
+      { trainee: traineeId3, company: otherCompanyId },
+    ]);
     createReadStream.onCall(0).returns(readable1);
     createReadStream.onCall(1).returns(readable2);
     createReadStream.onCall(2).returns(readable3);
@@ -4572,12 +4580,17 @@ describe('generateCompletionCertificates', () => {
     sinon.assert.calledWithExactly(getTotalDuration.getCall(1), [attendances[2].courseSlot]);
     sinon.assert.calledWithExactly(getTotalDuration.getCall(2), []);
     sinon.assert.calledWithExactly(
+      getCompanyAtCourseRegistrationList,
+      { key: COURSE, value: courseId },
+      { key: TRAINEE, value: [traineeId1, traineeId2, traineeId3] }
+    );
+    sinon.assert.calledWithExactly(
       createDocx.getCall(0),
       '/path/certificate_template.docx',
       {
         program: { learningGoals: 'Apprendre', name: 'nom du programme' },
         courseDuration: '8h',
-        trainee: { identity: 'trainee 1', attendanceDuration: '4h30' },
+        trainee: { identity: 'trainee 1', attendanceDuration: '4h30', company: companyId },
         date: '20/01/2020',
       }
     );
@@ -4587,7 +4600,7 @@ describe('generateCompletionCertificates', () => {
       {
         program: { learningGoals: 'Apprendre', name: 'nom du programme' },
         courseDuration: '8h',
-        trainee: { identity: 'trainee 2', attendanceDuration: '3h' },
+        trainee: { identity: 'trainee 2', attendanceDuration: '3h', company: companyId },
         date: '20/01/2020',
       }
     );
@@ -4597,7 +4610,7 @@ describe('generateCompletionCertificates', () => {
       {
         program: { learningGoals: 'Apprendre', name: 'nom du programme' },
         courseDuration: '8h',
-        trainee: { identity: 'trainee 3', attendanceDuration: '0h' },
+        trainee: { identity: 'trainee 3', attendanceDuration: '0h', company: otherCompanyId },
         date: '20/01/2020',
       }
     );
@@ -4643,7 +4656,6 @@ describe('generateCompletionCertificates', () => {
         { query: 'lean' },
       ]);
     sinon.assert.notCalled(getPdf);
-    sinon.assert.notCalled(getCompanyAtCourseRegistrationList);
   });
 
   it('should download completion certificates from webapp (client)', async () => {
