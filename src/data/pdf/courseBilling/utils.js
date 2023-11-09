@@ -17,7 +17,10 @@ exports.getHeader = async (data, isBill = false) => {
   const [compani] = await getImages();
 
   const billRecipientSection = {
-    stack: [{ text: 'Formation pour le compte de' }, { text: get(data, 'company.name'), bold: true }],
+    stack: [
+      { text: 'Formation pour le compte de' },
+      { text: get(data, 'companies').map(c => c.name).join(', '), bold: true },
+    ],
     alignment: 'right',
   };
 

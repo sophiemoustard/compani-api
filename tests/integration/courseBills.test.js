@@ -204,104 +204,104 @@ describe('COURSE BILL ROUTES - GET /coursebills', () => {
   });
 });
 
-// describe('COURSE BILL ROUTES - GET /coursebills/{_id}/pdfs', () => {
-//   let authToken;
-//   beforeEach(populateDB);
+describe('COURSE BILL ROUTES - GET /coursebills/{_id}/pdfs', () => {
+  let authToken;
+  beforeEach(populateDB);
 
-//   describe('TRAINING_ORGANISATION_MANAGER', () => {
-//     beforeEach(async () => {
-//       authToken = await getToken('training_organisation_manager');
-//     });
+  describe('TRAINING_ORGANISATION_MANAGER', () => {
+    beforeEach(async () => {
+      authToken = await getToken('training_organisation_manager');
+    });
 
-//     it('should download course bill for intra course', async () => {
-//       const response = await app.inject({
-//         method: 'GET',
-//         url: `/coursebills/${courseBillsList[2]._id}/pdfs`,
-//         headers: { Cookie: `alenvi_token=${authToken}` },
-//       });
+    it('should download course bill for intra course', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/coursebills/${courseBillsList[2]._id}/pdfs`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
 
-//       expect(response.statusCode).toBe(200);
-//     });
+      expect(response.statusCode).toBe(200);
+    });
 
-//     it('should return 404 if bill doesn\'t exist', async () => {
-//       const response = await app.inject({
-//         method: 'GET',
-//         url: `/coursebills/${new ObjectId()}/pdfs`,
-//         headers: { Cookie: `alenvi_token=${authToken}` },
-//       });
+    it('should return 404 if bill doesn\'t exist', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/coursebills/${new ObjectId()}/pdfs`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
 
-//       expect(response.statusCode).toBe(404);
-//     });
+      expect(response.statusCode).toBe(404);
+    });
 
-//     it('should return 404 if bill is not validated', async () => {
-//       const response = await app.inject({
-//         method: 'GET',
-//         url: `/coursebills/${courseBillsList[0]._id}/pdfs`,
-//         headers: { Cookie: `alenvi_token=${authToken}` },
-//       });
+    it('should return 404 if bill is not validated', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/coursebills/${courseBillsList[0]._id}/pdfs`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
 
-//       expect(response.statusCode).toBe(404);
-//     });
-//   });
+      expect(response.statusCode).toBe(404);
+    });
+  });
 
-//   describe('CLIENT_ADMIN', () => {
-//     beforeEach(async () => {
-//       authToken = await getToken('client_admin');
-//     });
+  describe('CLIENT_ADMIN', () => {
+    beforeEach(async () => {
+      authToken = await getToken('client_admin');
+    });
 
-//     it('should download own course bill for intra course', async () => {
-//       const response = await app.inject({
-//         method: 'GET',
-//         url: `/coursebills/${courseBillsList[2]._id}/pdfs`,
-//         headers: { Cookie: `alenvi_token=${authToken}` },
-//       });
+    it('should download own course bill for intra course', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/coursebills/${courseBillsList[2]._id}/pdfs`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
 
-//       expect(response.statusCode).toBe(200);
-//     });
+      expect(response.statusCode).toBe(200);
+    });
 
-//     it('should download course bill for intra course (as payer)', async () => {
-//       const response = await app.inject({
-//         method: 'GET',
-//         url: `/coursebills/${courseBillsList[6]._id}/pdfs`,
-//         headers: { Cookie: `alenvi_token=${authToken}` },
-//       });
+    it('should download course bill for intra course (as payer)', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/coursebills/${courseBillsList[6]._id}/pdfs`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
 
-//       expect(response.statusCode).toBe(200);
-//     });
+      expect(response.statusCode).toBe(200);
+    });
 
-//     it('should return 404 if bill has wrong company', async () => {
-//       const response = await app.inject({
-//         method: 'GET',
-//         url: `/coursebills/${courseBillsList[7]._id}/pdfs`,
-//         headers: { Cookie: `alenvi_token=${authToken}` },
-//       });
+    it('should return 404 if bill has wrong company', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/coursebills/${courseBillsList[7]._id}/pdfs`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
 
-//       expect(response.statusCode).toBe(404);
-//     });
-//   });
+      expect(response.statusCode).toBe(404);
+    });
+  });
 
-//   describe('Other roles', () => {
-//     const roles = [
-//       { name: 'helper', expectedCode: 403 },
-//       { name: 'planning_referent', expectedCode: 403 },
-//       { name: 'coach', expectedCode: 403 },
-//       { name: 'trainer', expectedCode: 403 },
-//     ];
+  describe('Other roles', () => {
+    const roles = [
+      { name: 'helper', expectedCode: 403 },
+      { name: 'planning_referent', expectedCode: 403 },
+      { name: 'coach', expectedCode: 403 },
+      { name: 'trainer', expectedCode: 403 },
+    ];
 
-//     roles.forEach((role) => {
-//       it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
-//         authToken = await getToken(role.name);
-//         const response = await app.inject({
-//           method: 'GET',
-//           url: `/coursebills/${coursesList[2]._id}/pdfs`,
-//           headers: { Cookie: `alenvi_token=${authToken}` },
-//         });
+    roles.forEach((role) => {
+      it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+        authToken = await getToken(role.name);
+        const response = await app.inject({
+          method: 'GET',
+          url: `/coursebills/${coursesList[2]._id}/pdfs`,
+          headers: { Cookie: `alenvi_token=${authToken}` },
+        });
 
-//         expect(response.statusCode).toBe(role.expectedCode);
-//       });
-//     });
-//   });
-// });
+        expect(response.statusCode).toBe(role.expectedCode);
+      });
+    });
+  });
+});
 
 describe('COURSE BILL ROUTES - POST /coursebills', () => {
   let authToken;

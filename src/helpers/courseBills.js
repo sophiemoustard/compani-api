@@ -165,17 +165,17 @@ exports.generateBillPdf = async (billId) => {
       populate: { path: 'subProgram', select: 'program', populate: [{ path: 'program', select: 'name' }] },
     })
     .populate({ path: 'billingPurchaseList', select: 'billingItem', populate: { path: 'billingItem', select: 'name' } })
-    .populate({ path: 'company', select: 'name address' })
+    .populate({ path: 'companies', select: 'name address' })
     .populate({ path: 'payer.fundingOrganisation', select: 'name address' })
     .populate({ path: 'payer.company', select: 'name address' })
     .lean();
 
-  const { number, billedAt, company, payer, course, mainFee, billingPurchaseList } = bill;
+  const { number, billedAt, companies, payer, course, mainFee, billingPurchaseList } = bill;
   const data = {
     number,
     date: CompaniDate(billedAt).format(DD_MM_YYYY),
     vendorCompany,
-    company,
+    companies,
     payer: { name: payer.name, address: get(payer, 'address.fullAddress') || payer.address },
     course,
     mainFee,
