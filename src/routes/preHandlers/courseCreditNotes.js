@@ -1,7 +1,6 @@
 const Boom = require('@hapi/boom');
 const get = require('lodash/get');
 const CourseBill = require('../../models/CourseBill');
-const Company = require('../../models/Company');
 const { CompaniDate } = require('../../helpers/dates/companiDates');
 const CourseCreditNote = require('../../models/CourseCreditNote');
 const UtilsHelper = require('../../helpers/utils');
@@ -11,11 +10,8 @@ exports.authorizeCourseCreditNoteCreation = async (req) => {
   const { companies: companiesIds, courseBill: courseBillId, date } = req.payload;
   const { credentials } = req.auth;
 
-  const companiesCount = await Company.countDocuments({ _id: { $in: companiesIds } });
-  if (companiesCount !== companiesIds.length) throw Boom.notFound();
-
   const courseBill = await CourseBill
-    .findOne({ _id: courseBillId })
+    .findOne({ _id: courseBillId, companies: companiesIds })
     .populate({ path: 'courseCreditNote', options: { isVendorUser: get(credentials, 'role.vendor') } })
     .lean();
   if (!courseBill) throw Boom.notFound();
