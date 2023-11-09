@@ -69,7 +69,7 @@ describe('COURSE CREDIT NOTES ROUTES - POST /coursecreditnotes', () => {
       });
     });
 
-    it('should return a 404 if company doesn\'t exist', async () => {
+    it('should return a 404 if wrong company', async () => {
       const response = await app.inject({
         method: 'POST',
         url: '/coursecreditnotes',
