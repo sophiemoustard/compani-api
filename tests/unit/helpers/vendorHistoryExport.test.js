@@ -471,12 +471,12 @@ describe('exportCourseHistory', () => {
           query: 'populate',
           args: [{
             path: 'bills',
-            select: 'payer companies billedAt mainFee billingPurchaseList',
+            select: 'payer company billedAt mainFee billingPurchaseList',
             options: { isVendorUser: has(credentials, 'role.vendor') },
             populate: [
               { path: 'payer.fundingOrganisation', select: 'name' },
               { path: 'payer.company', select: 'name' },
-              { path: 'companies', select: 'name' },
+              { path: 'company', select: 'name' },
               { path: 'courseCreditNote', options: { isVendorUser: !!get(credentials, 'role.vendor') }, select: '_id' },
               {
                 path: 'coursePayments',
@@ -841,12 +841,12 @@ describe('exportCourseHistory', () => {
           query: 'populate',
           args: [{
             path: 'bills',
-            select: 'payer companies billedAt mainFee billingPurchaseList',
+            select: 'payer company billedAt mainFee billingPurchaseList',
             options: { isVendorUser: has(credentials, 'role.vendor') },
             populate: [
               { path: 'payer.fundingOrganisation', select: 'name' },
               { path: 'payer.company', select: 'name' },
-              { path: 'companies', select: 'name' },
+              { path: 'company', select: 'name' },
               { path: 'courseCreditNote', options: { isVendorUser: !!get(credentials, 'role.vendor') }, select: '_id' },
               {
                 path: 'coursePayments',
