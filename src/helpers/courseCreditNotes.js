@@ -1,4 +1,5 @@
 const get = require('lodash/get');
+const CourseBill = require('../models/CourseBill');
 const CourseCreditNote = require('../models/CourseCreditNote');
 const CourseCreditNoteNumber = require('../models/CourseCreditNoteNumber');
 const VendorCompaniesHelper = require('./vendorCompanies');
@@ -11,8 +12,11 @@ exports.createCourseCreditNote = async (payload) => {
     .findOneAndUpdate({}, { $inc: { seq: 1 } }, { new: true, upsert: true, setDefaultsOnInsert: true })
     .lean();
 
+  const courseBill = await CourseBill.findOne({ _id: payload.courseBill }, { companies: 1 }).lean();
+
   const formattedPayload = {
     ...payload,
+    companies: courseBill.companies,
     number: `AV-${lastCreditNoteNumber.seq.toString().padStart(5, '0')}`,
   };
 
