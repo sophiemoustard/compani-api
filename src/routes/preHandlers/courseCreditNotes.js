@@ -7,11 +7,11 @@ const UtilsHelper = require('../../helpers/utils');
 const { TRAINING_ORGANISATION_MANAGER, VENDOR_ADMIN } = require('../../helpers/constants');
 
 exports.authorizeCourseCreditNoteCreation = async (req) => {
-  const { companies: companiesIds, courseBill: courseBillId, date } = req.payload;
+  const { courseBill: courseBillId, date } = req.payload;
   const { credentials } = req.auth;
 
   const courseBill = await CourseBill
-    .findOne({ _id: courseBillId, companies: companiesIds })
+    .findOne({ _id: courseBillId })
     .populate({ path: 'courseCreditNote', options: { isVendorUser: get(credentials, 'role.vendor') } })
     .lean();
   if (!courseBill) throw Boom.notFound();

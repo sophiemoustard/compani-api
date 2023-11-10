@@ -4,7 +4,6 @@ const { ObjectId } = require('mongodb');
 const app = require('../../server');
 const { courseBillsList, populateDB } = require('./seed/courseCreditNotesSeed');
 const { getToken } = require('./helpers/authentication');
-const { authCompany } = require('../seed/authCompaniesSeed');
 const CourseCreditNote = require('../../src/models/CourseCreditNote');
 const CourseCourseCreditNoteNumber = require('../../src/models/CourseCreditNoteNumber');
 
@@ -20,7 +19,6 @@ describe('COURSE CREDIT NOTES ROUTES - POST /coursecreditnotes', () => {
   const payload = {
     date: '2022-04-07T00:00:00.000Z',
     courseBill: courseBillsList[0]._id,
-    companies: [authCompany._id],
     misc: 'un commentaire',
   };
 
@@ -56,7 +54,7 @@ describe('COURSE CREDIT NOTES ROUTES - POST /coursecreditnotes', () => {
       expect(response.statusCode).toBe(200);
     });
 
-    const missingParams = ['date', 'courseBill', 'companies'];
+    const missingParams = ['date', 'courseBill'];
     missingParams.forEach((param) => {
       it(`should return a 400 error if '${param}' param is missing`, async () => {
         const res = await app.inject({
@@ -67,17 +65,6 @@ describe('COURSE CREDIT NOTES ROUTES - POST /coursecreditnotes', () => {
         });
         expect(res.statusCode).toBe(400);
       });
-    });
-
-    it('should return a 404 if wrong company', async () => {
-      const response = await app.inject({
-        method: 'POST',
-        url: '/coursecreditnotes',
-        payload: { ...payload, companies: [new ObjectId()] },
-        headers: { Cookie: `alenvi_token=${authToken}` },
-      });
-
-      expect(response.statusCode).toBe(404);
     });
 
     it('should return a 404 if course bill doesn\'t exist', async () => {
