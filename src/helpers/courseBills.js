@@ -1,6 +1,7 @@
 const get = require('lodash/get');
 const flat = require('flat');
 const omit = require('lodash/omit');
+const pick = require('lodash/pick');
 const NumbersHelper = require('./numbers');
 const CourseBill = require('../models/CourseBill');
 const CourseBillsNumber = require('../models/CourseBillsNumber');
@@ -170,16 +171,12 @@ exports.generateBillPdf = async (billId) => {
     .populate({ path: 'payer.company', select: 'name address' })
     .lean();
 
-  const { number, billedAt, companies, payer, course, mainFee, billingPurchaseList } = bill;
+  const { billedAt, payer } = bill;
   const data = {
-    number,
+    ...pick(bill, ['number', 'companies', 'course', 'mainFee', 'billingPurchaseList']),
     date: CompaniDate(billedAt).format(DD_MM_YYYY),
     vendorCompany,
-    companies,
     payer: { name: payer.name, address: get(payer, 'address.fullAddress') || payer.address },
-    course,
-    mainFee,
-    billingPurchaseList,
   };
 
   const pdf = await CourseBillPdf.getPdf(data);
