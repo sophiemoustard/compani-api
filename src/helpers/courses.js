@@ -873,19 +873,20 @@ const generateCompletionCertificatePdf = async (courseData, courseAttendances, t
   return { file: pdf, name: `Attestation - ${traineeIdentity}.pdf` };
 };
 
-const generateCompletionCertificateWord = async (courseData, courseAttendances, trainee, templatePath, companyName = null) => {
-  const { traineeIdentity, attendanceDuration } = getTraineeInformations(trainee, courseAttendances);
+const generateCompletionCertificateWord = async (course, attendances, trainee, templatePath, companyName = null) => {
+  const { traineeIdentity, attendanceDuration } = getTraineeInformations(trainee, attendances);
 
   const filePath = await DocxHelper.createDocx(
     templatePath,
     {
-      ...omit(courseData, 'companies'),
+      ...omit(course, 'companies'),
       trainee: { identity: traineeIdentity, attendanceDuration, ...(companyName && { companyName }) },
       date: CompaniDate().format(DD_MM_YYYY),
     }
   );
 
-  return { name: `Attestation - ${traineeIdentity}.docx`, file: fs.createReadStream(filePath) };
+  const docType = companyName ? 'Certificat' : 'Attestation';
+  return { name: `${docType} - ${traineeIdentity}.docx`, file: fs.createReadStream(filePath) };
 };
 
 const getTraineeList = async (course, credentials) => {
