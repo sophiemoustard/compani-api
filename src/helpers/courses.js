@@ -846,6 +846,7 @@ exports.formatCourseForDocuments = (course) => {
     programName: get(course, 'subProgram.program.name').toUpperCase() || '',
     startDate: CompaniDate(sortedCourseSlots[0].startDate).format(DD_MM_YYYY),
     endDate: CompaniDate(sortedCourseSlots[sortedCourseSlots.length - 1].endDate).format(DD_MM_YYYY),
+    companiesName: mapValues(keyBy(course.companies, '_id'), 'name'),
   };
 };
 
@@ -863,7 +864,7 @@ const generateCompletionCertificatePdf = async (courseData, courseAttendances, t
   const { traineeIdentity, attendanceDuration } = getTraineeInformations(trainee, courseAttendances);
 
   const pdf = await CompletionCertificate.getPdf({
-    ...courseData,
+    ...omit(courseData, 'companiesName'),
     trainee: { identity: traineeIdentity, attendanceDuration },
     date: CompaniDate().format(DD_MM_YYYY),
   });
@@ -877,7 +878,7 @@ const generateCompletionCertificateWord = async (courseData, courseAttendances, 
   const filePath = await DocxHelper.createDocx(
     templatePath,
     {
-      ...courseData,
+      ...omit(courseData, 'companiesName'),
       trainee: { identity: traineeIdentity, attendanceDuration, company: tCompany },
       date: CompaniDate().format(DD_MM_YYYY),
     }
@@ -914,8 +915,14 @@ const generateCompletionCertificateAllWord = async (courseData, attendances, tra
   const traineesCompanyAtCourseRegistration = await CourseHistoriesHelper
     .getCompanyAtCourseRegistrationList({ key: COURSE, value: courseId }, { key: TRAINEE, value: traineeIds });
   const traineesCompany = mapValues(keyBy(traineesCompanyAtCourseRegistration, 'trainee'), 'company');
+  const traineesCompanyNames = courseData.companiesName;
+
   const promises = traineeList
-    .map(t => generateCompletionCertificateWord(courseData, attendances, t, tmpFilePath, traineesCompany[t._id]));
+    .map((t) => {
+      const tCompany = traineesCompany[t._id];
+
+      return generateCompletionCertificateWord(courseData, attendances, t, tmpFilePath, traineesCompanyNames[tCompany]);
+    });
 
   const fileName = type === CUSTOM ? 'attestations_word.zip' : 'certificats_word.zip';
   return ZipHelper.generateZip(fileName, await Promise.all(promises));
@@ -928,6 +935,7 @@ exports.generateCompletionCertificates = async (courseId, credentials, query) =>
     .populate({ path: 'slots', select: 'startDate endDate' })
     .populate({ path: 'trainees', select: 'identity' })
     .populate({ path: 'subProgram', select: 'program', populate: { path: 'program', select: 'name learningGoals' } })
+    .populate({ path: 'companies', select: 'name' })
     .lean();
 
   const attendances = await Attendance
