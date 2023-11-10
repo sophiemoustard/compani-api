@@ -100,16 +100,7 @@ describe('generateCreditNotePdf', () => {
       misc: 'motif',
       number: 'AV-00001',
       date: '2022-03-09T00:00:00.000Z',
-      companies: [{
-        name: 'test',
-        address: {
-          fullAddress: '24 Avenue Daumesnil 75012 Paris',
-          street: '24 Avenue Daumesnil',
-          city: 'Paris',
-          zipCode: '75012',
-          location: { type: 'Point', coordinates: [2.37345, 48.848024] },
-        },
-      }],
+      companies: [new ObjectId()],
       courseBill: {
         _id: new ObjectId(),
         course: {
@@ -123,16 +114,6 @@ describe('generateCreditNotePdf', () => {
         ],
         number: 'FACT-00001',
         billedAt: '2022-03-08T00:00:00.000Z',
-        companies: [{
-          name: 'test',
-          address: {
-            fullAddress: '24 Avenue Daumesnil 75012 Paris',
-            street: '24 Avenue Daumesnil',
-            city: 'Paris',
-            zipCode: '75012',
-            location: { type: 'Point', coordinates: [2.37345, 48.848024] },
-          },
-        }],
         payer: {
           name: 'test',
           address: {
@@ -160,7 +141,6 @@ describe('generateCreditNotePdf', () => {
         misc: 'motif',
         courseBill: { number: 'FACT-00001', date: '08/03/2022' },
         vendorCompany,
-        companies: creditNote.companies,
         payer: { name: 'test', address: '24 Avenue Daumesnil 75012 Paris' },
         course: creditNote.courseBill.course,
         mainFee: creditNote.courseBill.mainFee,
@@ -193,7 +173,6 @@ describe('generateCreditNotePdf', () => {
             },
           ],
         },
-        { query: 'populate', args: [{ path: 'companies', select: 'name address' }] },
         { query: 'lean' },
       ]);
   });
