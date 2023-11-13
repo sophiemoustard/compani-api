@@ -838,7 +838,7 @@ exports.generateAttendanceSheets = async (courseId) => {
   return { fileName: 'emargement.pdf', pdf };
 };
 
-exports.formatCourseForDocuments = (course, type = null) => {
+exports.formatCourseForDocuments = (course, type) => {
   const sortedCourseSlots = course.slots.sort(DatesUtilsHelper.ascendingSortBy('startDate'));
 
   return {
@@ -952,8 +952,7 @@ exports.generateCompletionCertificates = async (courseId, credentials, query) =>
     .setOptions({ isVendorUser: VENDOR_ROLES.includes(get(credentials, 'role.vendor.name')) })
     .lean();
 
-  const courseData = type ? exports.formatCourseForDocuments(course, type) : exports.formatCourseForDocuments(course);
-
+  const courseData = exports.formatCourseForDocuments(course, type);
   if (format === PDF) {
     const trainee = course.trainees.find(t => UtilsHelper.areObjectIdsEquals(t._id, credentials._id));
 

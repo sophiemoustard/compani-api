@@ -5016,10 +5016,11 @@ describe('generateCompletionCertificates', () => {
     getTotalDuration.onCall(0).returns('4h30');
     getPdf.returns('pdf');
 
-    const result = await CourseHelper.generateCompletionCertificates(courseId, credentials, { format: PDF });
+    const params = { format: PDF, type: CUSTOM };
+    const result = await CourseHelper.generateCompletionCertificates(courseId, credentials, params);
 
     expect(result).toEqual({ file: 'pdf', name: 'Attestation - trainee 1.pdf' });
-    sinon.assert.calledOnceWithExactly(formatCourseForDocuments, course);
+    sinon.assert.calledOnceWithExactly(formatCourseForDocuments, course, CUSTOM);
     sinon.assert.calledOnceWithExactly(formatIdentity, { lastname: 'trainee 1' }, 'FL');
     sinon.assert.calledOnceWithExactly(getTotalDuration, [attendances[0].courseSlot, attendances[1].courseSlot]);
     sinon.assert.calledOnceWithExactly(getPdf, {
