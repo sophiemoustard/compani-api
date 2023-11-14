@@ -30,6 +30,7 @@ const getHeader = (thumb, compani) => [
 exports.getPdfContent = async (data) => {
   const [thumb, compani, lighted, emoji, signature] = await getImages();
   const { trainee, programName, duration, startDate, endDate, learningGoals, date } = data;
+  const isLargeProgramName = programName.length > 80;
 
   const header = getHeader(thumb, compani);
 
@@ -53,7 +54,7 @@ exports.getPdfContent = async (data) => {
       marginBottom: 16,
     },
     {
-      canvas: [{ type: 'rect', x: 0, y: 0, w: 515, h: 24, r: 0, color: COPPER_50 }],
+      canvas: [{ type: 'rect', x: 0, y: 0, w: 515, h: isLargeProgramName ? 32 : 24, r: 0, color: COPPER_50 }],
       absolutePosition: { x: 40, y: 264 },
       marginBottom: 8,
     },
