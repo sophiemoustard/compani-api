@@ -766,7 +766,7 @@ exports.formatIntraCourseForPdf = (course) => {
   const courseData = {
     name,
     duration: UtilsHelper.getTotalDuration(course.slots),
-    company: course.companies.map(c => c.name).join(', '),
+    company: UtilsHelper.formatName(course.companies),
     trainer: course.trainer ? UtilsHelper.formatIdentity(course.trainer.identity, 'FL') : '',
     type: course.type,
   };
