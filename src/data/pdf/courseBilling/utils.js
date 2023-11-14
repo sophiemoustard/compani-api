@@ -19,7 +19,7 @@ exports.getHeader = async (data, isBill = false) => {
   const billRecipientSection = {
     stack: [
       { text: 'Formation pour le compte de' },
-      { text: get(data, 'companies').map(c => c.name).join(', '), bold: true },
+      { text: UtilsHelper.formatName(get(data, 'companies')), bold: true },
     ],
     alignment: 'right',
   };
