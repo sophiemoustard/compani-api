@@ -224,6 +224,7 @@ describe('list', () => {
             ],
           }],
         },
+        { query: 'populate', args: [{ path: 'companies', select: 'name' }] },
         { query: 'populate', args: [{ path: 'payer.company', select: 'name' }] },
         { query: 'populate', args: [{ path: 'payer.fundingOrganisation', select: 'name' }] },
         {
@@ -344,6 +345,7 @@ describe('list', () => {
             ],
           }],
         },
+        { query: 'populate', args: [{ path: 'companies', select: 'name' }] },
         { query: 'populate', args: [{ path: 'payer.company', select: 'name' }] },
         { query: 'populate', args: [{ path: 'payer.fundingOrganisation', select: 'name' }] },
         {
