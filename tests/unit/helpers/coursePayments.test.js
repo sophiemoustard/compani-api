@@ -2,39 +2,55 @@ const sinon = require('sinon');
 const { ObjectId } = require('mongodb');
 const CoursePaymentsHelper = require('../../../src/helpers/coursePayments');
 const { PAYMENT, DIRECT_DEBIT } = require('../../../src/helpers/constants');
+const CourseBill = require('../../../src/models/CourseBill');
 const CoursePaymentNumber = require('../../../src/models/CoursePaymentNumber');
 const CoursePayment = require('../../../src/models/CoursePayment');
 const SinonMongoose = require('../sinonMongoose');
 
 describe('createCoursePayment', () => {
   let create;
+  let findOneCourseBill;
   let findOneAndUpdateCoursePaymentsNumber;
 
   beforeEach(() => {
     create = sinon.stub(CoursePayment, 'create');
+    findOneCourseBill = sinon.stub(CourseBill, 'findOne');
     findOneAndUpdateCoursePaymentsNumber = sinon.stub(CoursePaymentNumber, 'findOneAndUpdate');
   });
 
   afterEach(() => {
     create.restore();
+    findOneCourseBill.restore();
     findOneAndUpdateCoursePaymentsNumber.restore();
   });
 
   it('should create a payment', async () => {
+    const companyId = new ObjectId();
+    const courseBillId = new ObjectId();
     const payload = {
       date: '2022-03-08T00:00:00.000Z',
-      company: new ObjectId(),
-      customerBill: new ObjectId(),
+      courseBill: courseBillId,
       netInclTaxes: 190,
       nature: PAYMENT,
       type: DIRECT_DEBIT,
     };
+    const courseBill = { _id: courseBillId, companies: [companyId] };
     const lastPaymentNumber = { seq: 1 };
 
     findOneAndUpdateCoursePaymentsNumber.returns(SinonMongoose.stubChainedQueries(lastPaymentNumber, ['lean']));
+    findOneCourseBill.returns(SinonMongoose.stubChainedQueries(courseBill, ['lean']));
 
     await CoursePaymentsHelper.createCoursePayment(payload);
-    sinon.assert.calledOnceWithExactly(create, { ...payload, number: 'REG-00001' });
+    sinon.assert.calledOnceWithExactly(create, { ...payload, number: 'REG-00001', companies: [companyId] });
+    SinonMongoose.calledOnceWithExactly(
+      findOneCourseBill,
+      [
+        {
+          query: 'findOne',
+          args: [{ _id: courseBillId }, { companies: 1 }],
+        },
+        { query: 'lean' },
+      ]);
     SinonMongoose.calledOnceWithExactly(
       findOneAndUpdateCoursePaymentsNumber,
       [

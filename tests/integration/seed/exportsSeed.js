@@ -1380,7 +1380,7 @@ const coursePaymentList = [
   {
     number: 'REG-00001',
     date: '2022-03-09T00:00:00.000Z',
-    company: authCompany._id,
+    companies: [authCompany._id],
     courseBill: courseBillList[0]._id,
     netInclTaxes: 1100,
     nature: PAYMENT,
@@ -1389,7 +1389,7 @@ const coursePaymentList = [
   {
     number: 'REG-00002',
     date: '2022-06-09T00:00:00.000Z',
-    company: authCompany._id,
+    companies: [authCompany._id],
     courseBill: courseBillList[3]._id,
     netInclTaxes: 400,
     nature: PAYMENT,
@@ -1398,7 +1398,7 @@ const coursePaymentList = [
   {
     number: 'REG-00003',
     date: '2022-03-09T00:00:00.000Z',
-    company: otherCompany._id,
+    companies: [otherCompany._id],
     courseBill: courseBillList[4]._id,
     netInclTaxes: 300,
     nature: PAYMENT,
@@ -1407,7 +1407,7 @@ const coursePaymentList = [
   {
     number: 'REMB-00001',
     date: '2022-03-11T00:00:00.000Z',
-    company: otherCompany._id,
+    companies: [otherCompany._id],
     courseBill: courseBillList[4]._id,
     netInclTaxes: 200,
     nature: REFUND,
@@ -1416,7 +1416,7 @@ const coursePaymentList = [
   {
     number: 'REMB-00002',
     date: '2023-03-11T00:00:00.000Z',
-    company: otherCompany._id,
+    companies: [otherCompany._id],
     courseBill: courseBillList[4]._id,
     netInclTaxes: 200,
     nature: REFUND,
@@ -1425,7 +1425,7 @@ const coursePaymentList = [
   {
     number: 'REG-00004',
     date: '2023-03-11T00:00:00.000Z',
-    company: authCompany._id,
+    companies: [authCompany._id],
     courseBill: courseBillList[5]._id,
     netInclTaxes: 200,
     nature: PAYMENT,
@@ -1434,7 +1434,7 @@ const coursePaymentList = [
   {
     number: 'REMB-00003',
     date: '2023-03-11T00:00:00.000Z',
-    company: authCompany._id,
+    companies: [authCompany._id],
     courseBill: courseBillList[5]._id,
     netInclTaxes: 50,
     nature: REFUND,
@@ -1443,7 +1443,7 @@ const coursePaymentList = [
   {
     number: 'REG-00005',
     date: '2023-03-11T00:00:00.000Z',
-    company: authCompany._id,
+    companies: [authCompany._id],
     courseBill: courseBillList[6]._id,
     netInclTaxes: 150,
     nature: PAYMENT,
@@ -1452,7 +1452,7 @@ const coursePaymentList = [
   {
     number: 'REMB-00004',
     date: '2023-03-11T00:00:00.000Z',
-    company: authCompany._id,
+    companies: [authCompany._id],
     courseBill: courseBillList[6]._id,
     netInclTaxes: 100,
     nature: REFUND,
@@ -1461,7 +1461,7 @@ const coursePaymentList = [
   {
     number: 'REG-00006',
     date: '2022-04-01T00:00:00.000Z',
-    company: authCompany._id,
+    companies: [authCompany._id],
     courseBill: courseBillList[0]._id,
     netInclTaxes: 50,
     nature: PAYMENT,
