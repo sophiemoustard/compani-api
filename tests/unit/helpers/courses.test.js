@@ -4454,6 +4454,7 @@ describe('formatCourseForDocuments', () => {
       ]
     );
   });
+
   it('should format course for docx (official certificate)', () => {
     const companyId = new ObjectId();
     const otherCompanyId = new ObjectId();

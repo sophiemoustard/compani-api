@@ -873,7 +873,7 @@ const generateCompletionCertificatePdf = async (courseData, courseAttendances, t
   return { file: pdf, name: `Attestation - ${identity}.pdf` };
 };
 
-const generateCompletionCertificateWord = async (course, attendances, trainee, templatePath) => {
+const generateCompletionCertificateWord = async (course, attendances, trainee, templatePath, type) => {
   const {
     identity,
     attendanceDuration,
@@ -889,7 +889,7 @@ const generateCompletionCertificateWord = async (course, attendances, trainee, t
     }
   );
 
-  const docType = companyName ? 'Certificat' : 'Attestation';
+  const docType = type === OFFICIAL ? 'Certificat' : 'Attestation';
   return { name: `${docType} - ${identity}.docx`, file: fs.createReadStream(filePath) };
 };
 
@@ -917,7 +917,8 @@ const generateCompletionCertificateAllWord = async (courseData, attendances, tra
     : process.env.GOOGLE_DRIVE_OFFICIAL_TRAINING_CERTIFICATE_TEMPLATE_ID;
   await drive.downloadFileById({ fileId, tmpFilePath });
 
-  const promises = traineeList.map(t => generateCompletionCertificateWord(courseData, attendances, t, tmpFilePath));
+  const promises = traineeList
+    .map(t => generateCompletionCertificateWord(courseData, attendances, t, tmpFilePath, type));
 
   const fileName = type === CUSTOM ? 'attestations_word.zip' : 'certificats_word.zip';
   return ZipHelper.generateZip(fileName, await Promise.all(promises));
