@@ -847,46 +847,50 @@ exports.formatCourseForDocuments = (course, type) => {
     programName: get(course, 'subProgram.program.name').toUpperCase() || '',
     startDate: CompaniDate(sortedCourseSlots[0].startDate).format(DD_MM_YYYY),
     endDate: CompaniDate(sortedCourseSlots[sortedCourseSlots.length - 1].endDate).format(DD_MM_YYYY),
-    ...(type === OFFICIAL && { companies: mapValues(keyBy(course.companies, '_id'), 'name') }),
+    ...(type === OFFICIAL && { companyNamesById: mapValues(keyBy(course.companies, '_id'), 'name') }),
   };
 };
 
-const getTraineeInformations = (trainee, courseAttendances) => {
-  const traineeIdentity = UtilsHelper.formatIdentity(trainee.identity, 'FL');
+const getTraineeInformations = (trainee, courseAttendances, companiesNames = null) => {
+  const identity = UtilsHelper.formatIdentity(trainee.identity, 'FL');
   const traineeSlots = courseAttendances
     .filter(a => UtilsHelper.areObjectIdsEquals(trainee._id, a.trainee))
     .map(a => a.courseSlot);
   const attendanceDuration = UtilsHelper.getTotalDuration(traineeSlots);
 
-  return { traineeIdentity, attendanceDuration };
+  return { identity, attendanceDuration, ...(companiesNames && { companyName: companiesNames[trainee.company] }) };
 };
 
 const generateCompletionCertificatePdf = async (courseData, courseAttendances, trainee) => {
-  const { traineeIdentity, attendanceDuration } = getTraineeInformations(trainee, courseAttendances);
+  const { identity, attendanceDuration } = getTraineeInformations(trainee, courseAttendances);
 
   const pdf = await CompletionCertificate.getPdf({
-    ...omit(courseData, 'companies'),
-    trainee: { identity: traineeIdentity, attendanceDuration },
+    ...omit(courseData, 'companyNamesById'),
+    trainee: { identity, attendanceDuration },
     date: CompaniDate().format(DD_MM_YYYY),
   });
 
-  return { file: pdf, name: `Attestation - ${traineeIdentity}.pdf` };
+  return { file: pdf, name: `Attestation - ${identity}.pdf` };
 };
 
-const generateCompletionCertificateWord = async (course, attendances, trainee, templatePath, companyName = null) => {
-  const { traineeIdentity, attendanceDuration } = getTraineeInformations(trainee, attendances);
+const generateCompletionCertificateWord = async (course, attendances, trainee, templatePath) => {
+  const {
+    identity,
+    attendanceDuration,
+    companyName,
+  } = getTraineeInformations(trainee, attendances, course.companyNamesById);
 
   const filePath = await DocxHelper.createDocx(
     templatePath,
     {
-      ...omit(course, 'companies'),
-      trainee: { identity: traineeIdentity, attendanceDuration, ...(companyName && { companyName }) },
+      ...omit(course, 'companyNamesById'),
+      trainee: { identity, attendanceDuration, ...(companyName && { companyName }) },
       date: CompaniDate().format(DD_MM_YYYY),
     }
   );
 
   const docType = companyName ? 'Certificat' : 'Attestation';
-  return { name: `${docType} - ${traineeIdentity}.docx`, file: fs.createReadStream(filePath) };
+  return { name: `${docType} - ${identity}.docx`, file: fs.createReadStream(filePath) };
 };
 
 const getTraineeList = async (course, credentials) => {
@@ -905,7 +909,7 @@ const getTraineeList = async (course, credentials) => {
     .filter(trainee => UtilsHelper.hasUserAccessToCompany(credentials, traineesCompany[trainee._id]));
 };
 
-const generateCompletionCertificateAllWord = async (courseData, attendances, traineeList, type, courseId) => {
+const generateCompletionCertificateAllWord = async (courseData, attendances, traineeList, type) => {
   const tmpFilePath = path.join(os.tmpdir(), 'certificate_template.docx');
 
   const fileId = type === CUSTOM
@@ -913,24 +917,7 @@ const generateCompletionCertificateAllWord = async (courseData, attendances, tra
     : process.env.GOOGLE_DRIVE_OFFICIAL_TRAINING_CERTIFICATE_TEMPLATE_ID;
   await drive.downloadFileById({ fileId, tmpFilePath });
 
-  let promises = [];
-  if (type === OFFICIAL) {
-    const traineeIds = traineeList.map(t => t._id);
-    const traineesCompanyAtCourseRegistration = await CourseHistoriesHelper
-      .getCompanyAtCourseRegistrationList({ key: COURSE, value: courseId }, { key: TRAINEE, value: traineeIds });
-    const traineesCompany = mapValues(keyBy(traineesCompanyAtCourseRegistration, 'trainee'), 'company');
-
-    const traineesCompanyNames = courseData.companies;
-    promises = traineeList
-      .map((t) => {
-        const tCompanyId = traineesCompany[t._id];
-        const companyName = traineesCompanyNames[tCompanyId];
-
-        return generateCompletionCertificateWord(courseData, attendances, t, tmpFilePath, companyName);
-      });
-  } else {
-    promises = traineeList.map(t => generateCompletionCertificateWord(courseData, attendances, t, tmpFilePath));
-  }
+  const promises = traineeList.map(t => generateCompletionCertificateWord(courseData, attendances, t, tmpFilePath));
 
   const fileName = type === CUSTOM ? 'attestations_word.zip' : 'certificats_word.zip';
   return ZipHelper.generateZip(fileName, await Promise.all(promises));
@@ -941,7 +928,7 @@ exports.generateCompletionCertificates = async (courseId, credentials, query) =>
 
   const course = await Course.findOne({ _id: courseId })
     .populate({ path: 'slots', select: 'startDate endDate' })
-    .populate({ path: 'trainees', select: 'identity' })
+    .populate({ path: 'trainees', select: 'identity', populate: { path: 'company' } })
     .populate({ path: 'subProgram', select: 'program', populate: { path: 'program', select: 'name learningGoals' } })
     .populate({ path: 'companies', select: 'name' })
     .lean();
