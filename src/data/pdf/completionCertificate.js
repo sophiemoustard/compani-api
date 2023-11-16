@@ -142,6 +142,23 @@ exports.getPdfContent = async (data) => {
   };
 };
 
+const defineCheckbox = (xPos, yPos, label, isChecked = false) => [
+  {
+    canvas: [{ type: 'rect', x: 0, y: 0, w: 8, h: 8, r: 0 }],
+    absolutePosition: { x: xPos, y: yPos },
+  },
+  {
+    text: [
+      { text: `${isChecked ? '√' : ' '}`, position: { x: xPos, y: yPos } },
+      {
+        text: [{ text: label }, { text: `${isChecked ? '1' : ''}`, fontSize: 8, bold: true }],
+      },
+    ],
+    marginBottom: 4,
+    marginLeft: 18,
+  },
+];
+
 exports.getOfficialPdfContent = async (data) => {
   const { trainee, programName, startDate, endDate, date } = data;
 
@@ -169,27 +186,38 @@ exports.getOfficialPdfContent = async (data) => {
       ],
     },
     { text: 'atteste que :', bold: true, marginTop: 4, marginBottom: 8 },
-    { text: [{ text: 'Mme/M. ' }, { text: `${trainee.identity}`, italics: true }], marginLeft: 4, marginBottom: 8 },
-    {
-      text: [{ text: 'salarié(e) de l’entreprise ' }, { text: `${trainee.companyName}`, italics: true }],
-      marginLeft: 4,
-      marginBottom: 8,
-    },
-    {
-      text: [{ text: 'a suivi l\'action ' }, { text: `${programName}`, italics: true }],
-      marginLeft: 4,
-      marginBottom: 8,
-    },
-    {
-      text: [{ text: 'Nature de l’action concourant au développement des compétences : #TODO', bold: true }],
-      marginLeft: 4,
-      marginBottom: 8,
-    },
     {
       text: [
-        { text: 'qui s’est déroulée du ' },
+        { text: 'Mme/M. ', bold: true },
+        { text: `${trainee.identity}`, italics: true },
+      ],
+      marginLeft: 4,
+      marginBottom: 8,
+    },
+    {
+      text: [{ text: 'salarié(e) de l’entreprise ', bold: true }, { text: `${trainee.companyName}`, italics: true }],
+      marginLeft: 4,
+      marginBottom: 8,
+    },
+    {
+      text: [{ text: 'a suivi l\'action ', bold: true }, { text: `${programName}`, italics: true }],
+      marginLeft: 4,
+      marginBottom: 8,
+    },
+    {
+      text: [{ text: 'Nature de l’action concourant au développement des compétences :', bold: true }],
+      marginLeft: 4,
+      marginBottom: 4,
+    },
+    defineCheckbox(57, 281, ' action de formation', true).flat(),
+    defineCheckbox(57, 299, '    bilan de compétences').flat(),
+    defineCheckbox(57, 318, '    action de VAE').flat(),
+    defineCheckbox(57, 336, '    action de formation par apprentissage').flat(),
+    {
+      text: [
+        { text: 'qui s’est déroulée du ', bold: true },
         { text: `${startDate} `, italics: true },
-        { text: 'au ' },
+        { text: 'au ', bold: true },
         { text: `${endDate}`, italics: true },
       ],
       marginLeft: 4,
@@ -197,7 +225,11 @@ exports.getOfficialPdfContent = async (data) => {
     },
     {
       text: [
-        { text: [{ text: 'pour une durée de ' }, { text: `${trainee.attendanceDuration} .`, italics: true }] },
+        {
+          text: [
+            { text: 'pour une durée de ', bold: true },
+            { text: `${trainee.attendanceDuration} .`, italics: true }],
+        },
         { text: '2', fontSize: 8, bold: true },
       ],
       marginBottom: 8,
@@ -209,6 +241,7 @@ exports.getOfficialPdfContent = async (data) => {
       + 'durée de 3 ans à compter de la fin de l’année du dernier paiement. En cas de cofinancement des fonds européens'
       + 'la durée de conservation est étendue conformément aux obligations conventionnelles spécifiques.',
       alignment: 'justify',
+      bold: true,
     },
   ];
 
