@@ -1490,8 +1490,8 @@ describe('exportCourseBillAndCreditNoteHistory', () => {
     {
       number: 'AV-00001',
       date: '2022-03-09T00:00:00.000Z',
-      companies,
       courseBill: {
+        companies,
         course: courseList[0],
         mainFee: { price: 120, count: 1 },
         payer: { name: 'APA Paris' },
@@ -1562,12 +1562,12 @@ describe('exportCourseBillAndCreditNoteHistory', () => {
           query: 'find',
           args: [{ date: { $lte: '2022-01-20T22:59:59.000Z', $gte: '2021-01-14T23:00:00.000Z' } }],
         },
-        { query: 'populate', args: [{ path: 'companies', select: 'name' }] },
         {
           query: 'populate',
           args: [{
             path: 'courseBill',
             populate: [
+              { path: 'companies', select: 'name' },
               { path: 'payer.company', select: 'name' },
               { path: 'payer.fundingOrganisation', select: 'name' },
               { path: 'coursePayments', select: 'netInclTaxes nature', options: { isVendorUser } },
@@ -1740,12 +1740,12 @@ describe('exportCourseBillAndCreditNoteHistory', () => {
           query: 'find',
           args: [{ date: { $lte: '2022-01-20T22:59:59.000Z', $gte: '2021-01-14T23:00:00.000Z' } }],
         },
-        { query: 'populate', args: [{ path: 'companies', select: 'name' }] },
         {
           query: 'populate',
           args: [{
             path: 'courseBill',
             populate: [
+              { path: 'companies', select: 'name' },
               { path: 'payer.company', select: 'name' },
               { path: 'payer.fundingOrganisation', select: 'name' },
               { path: 'coursePayments', select: 'netInclTaxes nature', options: { isVendorUser } },

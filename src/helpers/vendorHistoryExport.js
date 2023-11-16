@@ -362,6 +362,20 @@ exports.exportEndOfCourseQuestionnaireHistory = async (startDate, endDate, crede
   return rows.length ? [Object.keys(rows[0]), ...rows.map(d => Object.values(d))] : [[NO_DATA]];
 };
 
+const formatCommonInfos = (bill, netInclTaxes) => {
+  const companyName = bill.course.type === INTRA ? `${bill.companies[0].name} - ` : '';
+  const misc = bill.course.misc ? ` - ${bill.course.misc}` : '';
+  const courseName = `${companyName}${bill.course.subProgram.program.name}${misc}`;
+
+  return {
+    'Id formation': bill.course._id,
+    Formation: courseName,
+    Structure: bill.companies.map(c => c.name).join(', '),
+    Payeur: bill.payer.name,
+    'Montant TTC': UtilsHelper.formatFloatForExport(netInclTaxes),
+  };
+};
+
 exports.exportCourseBillAndCreditNoteHistory = async (startDate, endDate, credentials) => {
   const isVendorUser = [TRAINING_ORGANISATION_MANAGER, VENDOR_ADMIN].includes(get(credentials, 'role.vendor.name'));
   const courseBills = await CourseBill
@@ -387,10 +401,10 @@ exports.exportCourseBillAndCreditNoteHistory = async (startDate, endDate, creden
 
   const courseCreditNotes = await CourseCreditNote
     .find({ date: { $lte: endDate, $gte: startDate } })
-    .populate({ path: 'companies', select: 'name' })
     .populate({
       path: 'courseBill',
       populate: [
+        { path: 'companies', select: 'name' },
         { path: 'payer.company', select: 'name' },
         { path: 'payer.fundingOrganisation', select: 'name' },
         { path: 'coursePayments', select: 'netInclTaxes nature', options: { isVendorUser } },
@@ -415,16 +429,7 @@ exports.exportCourseBillAndCreditNoteHistory = async (startDate, endDate, creden
     const middleCourseSlot = middleIndex < sortedCourseSlots.length && sortedCourseSlots[middleIndex];
     const endCourseSlot = sortedCourseSlots.length && !bill.course.slotsToPlan.length &&
       sortedCourseSlots[sortedCourseSlots.length - 1];
-    const companyName = bill.course.type === INTRA ? `${bill.companies[0].name} - ` : '';
-    const misc = bill.course.misc ? ` - ${bill.course.misc}` : '';
-    const courseName = `${companyName}${bill.course.subProgram.program.name}${misc}`;
-    const commonInfos = {
-      'Id formation': bill.course._id,
-      Formation: courseName,
-      Structure: bill.companies.map(c => c.name).join(', '),
-      Payeur: bill.payer.name,
-      'Montant TTC': UtilsHelper.formatFloatForExport(netInclTaxes),
-    };
+    const commonInfos = formatCommonInfos(bill, netInclTaxes);
 
     const formattedBill = {
       Nature: BILLING_DOCUMENTS[BILL],
@@ -449,16 +454,8 @@ exports.exportCourseBillAndCreditNoteHistory = async (startDate, endDate, creden
   for (const creditNote of courseCreditNotes) {
     const { netInclTaxes } = CourseBillHelper
       .computeAmounts({ ...creditNote.courseBill, courseCreditNote: { _id: creditNote._id } });
-    const companyName = creditNote.courseBill.course.type === INTRA ? `${creditNote.companies[0].name} - ` : '';
-    const misc = creditNote.courseBill.course.misc ? ` - ${creditNote.courseBill.course.misc}` : '';
-    const courseName = `${companyName}${creditNote.courseBill.course.subProgram.program.name}${misc}`;
-    const commonInfos = {
-      'Id formation': creditNote.courseBill.course._id,
-      Formation: courseName,
-      Structure: creditNote.companies.map(c => c.name).join(', '),
-      Payeur: creditNote.courseBill.payer.name,
-      'Montant TTC': UtilsHelper.formatFloatForExport(netInclTaxes),
-    };
+    const commonInfos = formatCommonInfos(creditNote.courseBill, netInclTaxes);
+
     const formattedCreditNote = {
       Nature: BILLING_DOCUMENTS[CREDIT_NOTE],
       Identifiant: creditNote.number,
