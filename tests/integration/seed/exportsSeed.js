@@ -1371,7 +1371,7 @@ const courseBillList = [
     mainFee: { price: 240, count: 1 },
     companies: [authCompany._id],
     payer: { company: authCompany._id },
-    billedAt: '2022-06-08T00:10:00.000Z',
+    billedAt: '2021-06-08T00:10:00.000Z',
     number: 'FACT-00008',
   },
 ];
@@ -1475,7 +1475,7 @@ const courseCreditNotesList = [
     number: 'AV-00001',
     courseBill: courseBillList[1]._id,
     misc: 'annulé',
-    date: '2022-03-09T00:00:00.000Z',
+    date: '2022-05-09T00:00:00.000Z',
     companies: [authCompany._id],
   },
   {
@@ -1483,7 +1483,7 @@ const courseCreditNotesList = [
     number: 'AV-00002',
     courseBill: courseBillList[7]._id,
     misc: 'annulé',
-    date: '2022-07-09T00:00:00.000Z',
+    date: '2022-03-09T00:00:00.000Z',
     companies: [authCompany._id],
   },
 ];
