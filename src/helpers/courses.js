@@ -899,14 +899,14 @@ const getTraineeList = async (course, credentials) => {
     UtilsHelper.areObjectIdsEquals(credentials._id, course.trainer);
   const canAccessAllTrainees = isRofOrAdmin || isCourseTrainer;
 
-  if (canAccessAllTrainees) return course.trainees;
-
   const traineesCompanyAtCourseRegistration = await CourseHistoriesHelper
     .getCompanyAtCourseRegistrationList({ key: COURSE, value: course._id }, { key: TRAINEE, value: course.trainees });
   const traineesCompany = mapValues(keyBy(traineesCompanyAtCourseRegistration, 'trainee'), 'company');
 
-  return course.trainees
-    .filter(trainee => UtilsHelper.hasUserAccessToCompany(credentials, traineesCompany[trainee._id]));
+  const traineeList = course.trainees.map(t => ({ ...t, company: traineesCompany[t._id] }));
+  if (canAccessAllTrainees) return traineeList;
+
+  return traineeList.filter(trainee => UtilsHelper.hasUserAccessToCompany(credentials, trainee.company));
 };
 
 const generateCompletionCertificateAllWord = async (courseData, attendances, traineeList, type) => {
@@ -929,7 +929,7 @@ exports.generateCompletionCertificates = async (courseId, credentials, query) =>
 
   const course = await Course.findOne({ _id: courseId })
     .populate({ path: 'slots', select: 'startDate endDate' })
-    .populate({ path: 'trainees', select: 'identity', populate: { path: 'company' } })
+    .populate({ path: 'trainees', select: 'identity' })
     .populate({ path: 'subProgram', select: 'program', populate: { path: 'program', select: 'name learningGoals' } })
     .populate({ path: 'companies', select: 'name' })
     .lean();

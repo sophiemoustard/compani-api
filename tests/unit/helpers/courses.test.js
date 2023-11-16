@@ -4582,6 +4582,11 @@ describe('generateCompletionCertificates', () => {
 
     attendanceFind.returns(SinonMongoose.stubChainedQueries(attendances, ['populate', 'setOptions', 'lean']));
     courseFindOne.returns(SinonMongoose.stubChainedQueries(course));
+    getCompanyAtCourseRegistrationList.returns([
+      { trainee: traineeId1, company: companyId },
+      { trainee: traineeId2, company: companyId },
+      { trainee: traineeId3, company: otherCompanyId },
+    ]);
     formatCourseForDocuments.returns({
       program: { learningGoals: 'Apprendre', name: 'nom du programme' },
       courseDuration: '8h',
@@ -4663,7 +4668,7 @@ describe('generateCompletionCertificates', () => {
     SinonMongoose.calledOnceWithExactly(courseFindOne, [
       { query: 'findOne', args: [{ _id: courseId }] },
       { query: 'populate', args: [{ path: 'slots', select: 'startDate endDate' }] },
-      { query: 'populate', args: [{ path: 'trainees', select: 'identity', populate: { path: 'company' } }] },
+      { query: 'populate', args: [{ path: 'trainees', select: 'identity' }] },
       {
         query: 'populate',
         args: [{
@@ -4683,8 +4688,19 @@ describe('generateCompletionCertificates', () => {
         { query: 'setOptions', args: [{ isVendorUser: VENDOR_ROLES.includes(get(credentials, 'role.vendor.name')) }] },
         { query: 'lean' },
       ]);
+    sinon.assert.calledOnceWithExactly(
+      getCompanyAtCourseRegistrationList,
+      { key: COURSE, value: course._id },
+      {
+        key: TRAINEE,
+        value: [
+          { _id: traineeId1, identity: { lastname: 'trainee 1' } },
+          { _id: traineeId2, identity: { lastname: 'trainee 2' } },
+          { _id: traineeId3, identity: { lastname: 'trainee 3' } },
+        ],
+      }
+    );
     sinon.assert.notCalled(getPdf);
-    sinon.assert.notCalled(getCompanyAtCourseRegistrationList);
   });
 
   it('should download official completion certificates from webapp (word)', async () => {
@@ -4706,9 +4722,9 @@ describe('generateCompletionCertificates', () => {
     const traineeId3 = new ObjectId();
     const course = {
       trainees: [
-        { _id: traineeId1, identity: { lastname: 'trainee 1' }, company: companyId },
-        { _id: traineeId2, identity: { lastname: 'trainee 2' }, company: companyId },
-        { _id: traineeId3, identity: { lastname: 'trainee 3' }, company: otherCompanyId },
+        { _id: traineeId1, identity: { lastname: 'trainee 1' } },
+        { _id: traineeId2, identity: { lastname: 'trainee 2' } },
+        { _id: traineeId3, identity: { lastname: 'trainee 3' } },
       ],
       misc: 'Bonjour je suis une formation',
       slots: [{ _id: new ObjectId() }, { _id: new ObjectId() }],
@@ -4733,6 +4749,11 @@ describe('generateCompletionCertificates', () => {
 
     attendanceFind.returns(SinonMongoose.stubChainedQueries(attendances, ['populate', 'setOptions', 'lean']));
     courseFindOne.returns(SinonMongoose.stubChainedQueries(course));
+    getCompanyAtCourseRegistrationList.returns([
+      { trainee: traineeId1, company: companyId },
+      { trainee: traineeId2, company: companyId },
+      { trainee: traineeId3, company: otherCompanyId },
+    ]);
     formatCourseForDocuments.returns({
       program: { learningGoals: 'Apprendre', name: 'nom du programme' },
       courseDuration: '8h',
@@ -4815,7 +4836,7 @@ describe('generateCompletionCertificates', () => {
     SinonMongoose.calledOnceWithExactly(courseFindOne, [
       { query: 'findOne', args: [{ _id: courseId }] },
       { query: 'populate', args: [{ path: 'slots', select: 'startDate endDate' }] },
-      { query: 'populate', args: [{ path: 'trainees', select: 'identity', populate: { path: 'company' } }] },
+      { query: 'populate', args: [{ path: 'trainees', select: 'identity' }] },
       {
         query: 'populate',
         args: [{
@@ -4835,8 +4856,19 @@ describe('generateCompletionCertificates', () => {
         { query: 'setOptions', args: [{ isVendorUser: VENDOR_ROLES.includes(get(credentials, 'role.vendor.name')) }] },
         { query: 'lean' },
       ]);
+    sinon.assert.calledOnceWithExactly(
+      getCompanyAtCourseRegistrationList,
+      { key: COURSE, value: course._id },
+      {
+        key: TRAINEE,
+        value: [
+          { _id: traineeId1, identity: { lastname: 'trainee 1' } },
+          { _id: traineeId2, identity: { lastname: 'trainee 2' } },
+          { _id: traineeId3, identity: { lastname: 'trainee 3' } },
+        ],
+      }
+    );
     sinon.assert.notCalled(getPdf);
-    sinon.assert.notCalled(getCompanyAtCourseRegistrationList);
   });
 
   it('should download completion certificates from webapp (client)', async () => {
@@ -4933,7 +4965,7 @@ describe('generateCompletionCertificates', () => {
     SinonMongoose.calledOnceWithExactly(courseFindOne, [
       { query: 'findOne', args: [{ _id: courseId }] },
       { query: 'populate', args: [{ path: 'slots', select: 'startDate endDate' }] },
-      { query: 'populate', args: [{ path: 'trainees', select: 'identity', populate: { path: 'company' } }] },
+      { query: 'populate', args: [{ path: 'trainees', select: 'identity' }] },
       {
         query: 'populate',
         args: [{
@@ -5023,7 +5055,7 @@ describe('generateCompletionCertificates', () => {
     SinonMongoose.calledOnceWithExactly(courseFindOne, [
       { query: 'findOne', args: [{ _id: courseId }] },
       { query: 'populate', args: [{ path: 'slots', select: 'startDate endDate' }] },
-      { query: 'populate', args: [{ path: 'trainees', select: 'identity', populate: { path: 'company' } }] },
+      { query: 'populate', args: [{ path: 'trainees', select: 'identity' }] },
       {
         query: 'populate',
         args: [{
