@@ -57,6 +57,8 @@ const {
   INTRA_HOLDING,
   ALL_WORD,
   PDF,
+  CUSTOM,
+  OFFICIAL,
 } = require('./constants');
 const CourseHistoriesHelper = require('./courseHistories');
 const NotificationHelper = require('./notifications');
@@ -836,7 +838,7 @@ exports.generateAttendanceSheets = async (courseId) => {
   return { fileName: 'emargement.pdf', pdf };
 };
 
-exports.formatCourseForDocuments = (course) => {
+exports.formatCourseForDocuments = (course, type) => {
   const sortedCourseSlots = course.slots.sort(DatesUtilsHelper.ascendingSortBy('startDate'));
 
   return {
@@ -845,43 +847,50 @@ exports.formatCourseForDocuments = (course) => {
     programName: get(course, 'subProgram.program.name').toUpperCase() || '',
     startDate: CompaniDate(sortedCourseSlots[0].startDate).format(DD_MM_YYYY),
     endDate: CompaniDate(sortedCourseSlots[sortedCourseSlots.length - 1].endDate).format(DD_MM_YYYY),
+    ...(type === OFFICIAL && { companyNamesById: mapValues(keyBy(course.companies, '_id'), 'name') }),
   };
 };
 
-const getTraineeInformations = (trainee, courseAttendances) => {
-  const traineeIdentity = UtilsHelper.formatIdentity(trainee.identity, 'FL');
+const getTraineeInformations = (trainee, courseAttendances, companiesNames = null) => {
+  const identity = UtilsHelper.formatIdentity(trainee.identity, 'FL');
   const traineeSlots = courseAttendances
     .filter(a => UtilsHelper.areObjectIdsEquals(trainee._id, a.trainee))
     .map(a => a.courseSlot);
   const attendanceDuration = UtilsHelper.getTotalDuration(traineeSlots);
 
-  return { traineeIdentity, attendanceDuration };
+  return { identity, attendanceDuration, ...(companiesNames && { companyName: companiesNames[trainee.company] }) };
 };
 
 const generateCompletionCertificatePdf = async (courseData, courseAttendances, trainee) => {
-  const { traineeIdentity, attendanceDuration } = getTraineeInformations(trainee, courseAttendances);
+  const { identity, attendanceDuration } = getTraineeInformations(trainee, courseAttendances);
 
   const pdf = await CompletionCertificate.getPdf({
-    ...courseData,
-    trainee: { identity: traineeIdentity, attendanceDuration },
+    ...omit(courseData, 'companyNamesById'),
+    trainee: { identity, attendanceDuration },
     date: CompaniDate().format(DD_MM_YYYY),
   });
 
-  return { file: pdf, name: `Attestation - ${traineeIdentity}.pdf` };
+  return { file: pdf, name: `Attestation - ${identity}.pdf` };
 };
 
-const generateCompletionCertificateWord = async (courseData, courseAttendances, trainee, templatePath) => {
-  const { traineeIdentity, attendanceDuration } = getTraineeInformations(trainee, courseAttendances);
+const generateCompletionCertificateWord = async (course, attendances, trainee, templatePath, type) => {
+  const {
+    identity,
+    attendanceDuration,
+    companyName,
+  } = getTraineeInformations(trainee, attendances, course.companyNamesById);
+
   const filePath = await DocxHelper.createDocx(
     templatePath,
     {
-      ...courseData,
-      trainee: { identity: traineeIdentity, attendanceDuration },
+      ...omit(course, 'companyNamesById'),
+      trainee: { identity, attendanceDuration, ...(companyName && { companyName }) },
       date: CompaniDate().format(DD_MM_YYYY),
     }
   );
 
-  return { name: `Attestation - ${traineeIdentity}.docx`, file: fs.createReadStream(filePath) };
+  const docType = type === OFFICIAL ? 'Certificat' : 'Attestation';
+  return { name: `${docType} - ${identity}.docx`, file: fs.createReadStream(filePath) };
 };
 
 const getTraineeList = async (course, credentials) => {
@@ -890,31 +899,39 @@ const getTraineeList = async (course, credentials) => {
     UtilsHelper.areObjectIdsEquals(credentials._id, course.trainer);
   const canAccessAllTrainees = isRofOrAdmin || isCourseTrainer;
 
-  if (canAccessAllTrainees) return course.trainees;
-
   const traineesCompanyAtCourseRegistration = await CourseHistoriesHelper
     .getCompanyAtCourseRegistrationList({ key: COURSE, value: course._id }, { key: TRAINEE, value: course.trainees });
   const traineesCompany = mapValues(keyBy(traineesCompanyAtCourseRegistration, 'trainee'), 'company');
 
-  return course.trainees
-    .filter(trainee => UtilsHelper.hasUserAccessToCompany(credentials, traineesCompany[trainee._id]));
+  const traineeList = course.trainees.map(t => ({ ...t, company: traineesCompany[t._id] }));
+  if (canAccessAllTrainees) return traineeList;
+
+  return traineeList.filter(trainee => UtilsHelper.hasUserAccessToCompany(credentials, trainee.company));
 };
 
-const generateCompletionCertificateAllWord = async (courseData, attendances, traineeList) => {
+const generateCompletionCertificateAllWord = async (courseData, attendances, traineeList, type) => {
   const tmpFilePath = path.join(os.tmpdir(), 'certificate_template.docx');
-  await drive.downloadFileById({ fileId: process.env.GOOGLE_DRIVE_TRAINING_CERTIFICATE_TEMPLATE_ID, tmpFilePath });
 
-  const promises = traineeList.map(t => generateCompletionCertificateWord(courseData, attendances, t, tmpFilePath));
-  return ZipHelper.generateZip('attestations_word.zip', await Promise.all(promises));
+  const fileId = type === CUSTOM
+    ? process.env.GOOGLE_DRIVE_TRAINING_CERTIFICATE_TEMPLATE_ID
+    : process.env.GOOGLE_DRIVE_OFFICIAL_TRAINING_CERTIFICATE_TEMPLATE_ID;
+  await drive.downloadFileById({ fileId, tmpFilePath });
+
+  const promises = traineeList
+    .map(t => generateCompletionCertificateWord(courseData, attendances, t, tmpFilePath, type));
+
+  const fileName = type === CUSTOM ? 'attestations_word.zip' : 'certificats_word.zip';
+  return ZipHelper.generateZip(fileName, await Promise.all(promises));
 };
 
 exports.generateCompletionCertificates = async (courseId, credentials, query) => {
-  const { format } = query;
+  const { format, type } = query;
 
   const course = await Course.findOne({ _id: courseId })
     .populate({ path: 'slots', select: 'startDate endDate' })
     .populate({ path: 'trainees', select: 'identity' })
     .populate({ path: 'subProgram', select: 'program', populate: { path: 'program', select: 'name learningGoals' } })
+    .populate({ path: 'companies', select: 'name' })
     .lean();
 
   const attendances = await Attendance
@@ -923,8 +940,7 @@ exports.generateCompletionCertificates = async (courseId, credentials, query) =>
     .setOptions({ isVendorUser: VENDOR_ROLES.includes(get(credentials, 'role.vendor.name')) })
     .lean();
 
-  const courseData = exports.formatCourseForDocuments(course);
-
+  const courseData = exports.formatCourseForDocuments(course, type);
   if (format === PDF) {
     const trainee = course.trainees.find(t => UtilsHelper.areObjectIdsEquals(t._id, credentials._id));
 
@@ -932,7 +948,9 @@ exports.generateCompletionCertificates = async (courseId, credentials, query) =>
   }
 
   const traineeList = await getTraineeList(course, credentials);
-  if (format === ALL_WORD) return generateCompletionCertificateAllWord(courseData, attendances, traineeList);
+  if (format === ALL_WORD) {
+    return generateCompletionCertificateAllWord(courseData, attendances, traineeList, type, courseId);
+  }
 
   const promises = traineeList.map(t => generateCompletionCertificatePdf(courseData, attendances, t));
   return ZipHelper.generateZip('attestations_pdf.zip', await Promise.all(promises));
