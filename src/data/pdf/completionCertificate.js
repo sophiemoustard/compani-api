@@ -145,11 +145,15 @@ exports.getPdfContent = async (data) => {
 exports.getOfficialPdfContent = async (data) => {
   const { trainee, programName, startDate, endDate, date } = data;
 
-  const imageList = [{ url: 'https://storage.googleapis.com/compani-main/tsb_signature.png', name: 'signature.png' }];
-  const [signature] = await FileHelper.downloadImages(imageList);
+  const imageList = [
+    { url: 'https://storage.googleapis.com/compani-main/tsb_signature.png', name: 'signature.png' },
+    { url: 'https://storage.googleapis.com/compani-main/icons/compani_texte_bleu.png', name: 'compani.png' },
+  ];
+  const [signature, compani] = await FileHelper.downloadImages(imageList);
 
   const header = [
-    { columns: [{ text: 'CERTIFICAT DE REALISATION', style: 'title', alignment: 'center' }], marginBottom: 24 },
+    { columns: [{ image: compani, width: 130 }, {}, { image: compani, width: 130 }], marginBottom: 24 },
+    { text: 'CERTIFICAT DE REALISATION', style: 'title', alignment: 'center', marginBottom: 24 },
   ];
 
   const body = [
@@ -279,7 +283,7 @@ exports.getOfficialPdfContent = async (data) => {
       pageMargins: [40, 40, 40, 40],
       styles: { title: { fontSize: 24, bold: true, color: '#0404B4' } },
     },
-    images: [signature],
+    images: [signature, compani],
   };
 };
 
