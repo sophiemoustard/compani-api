@@ -44,13 +44,8 @@ describe('createCourseCreditNote', () => {
     sinon.assert.calledOnceWithExactly(create, { ...payload, number: 'AV-00001', companies: [companyId] });
     SinonMongoose.calledOnceWithExactly(
       findOneCourseBill,
-      [
-        {
-          query: 'findOne',
-          args: [{ _id: courseBillId }, { companies: 1 }],
-        },
-        { query: 'lean' },
-      ]);
+      [{ query: 'findOne', args: [{ _id: courseBillId }, { companies: 1 }] }, { query: 'lean' }]
+    );
     SinonMongoose.calledOnceWithExactly(
       findOneAndUpdateCourseCreditNoteNumber,
       [
