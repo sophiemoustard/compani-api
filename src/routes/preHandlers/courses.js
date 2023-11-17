@@ -34,6 +34,7 @@ const {
   INTRA_HOLDING,
   ALL_WORD,
   PDF,
+  OFFICIAL,
 } = require('../../helpers/constants');
 const translate = require('../../helpers/translate');
 const UtilsHelper = require('../../helpers/utils');
@@ -184,12 +185,16 @@ exports.authorizeGetDocuments = async (req) => {
 };
 
 exports.authorizeGetCompletionCertificates = async (req) => {
-  const { auth, query: { format } } = req;
+  const { auth, query: { format, type } } = req;
 
   const userVendorRole = get(auth, 'credentials.role.vendor.name');
   const isRofOrAdmin = [TRAINING_ORGANISATION_MANAGER, VENDOR_ADMIN].includes(userVendorRole);
 
-  if (!isRofOrAdmin && format === ALL_WORD) throw Boom.forbidden();
+  const userClientRole = get(auth, 'credentials.role.client.name');
+  const isCoachOrAdmin = [COACH, CLIENT_ADMIN].includes(userClientRole);
+
+  if (format === ALL_WORD && !isRofOrAdmin) throw Boom.forbidden();
+  if (type === OFFICIAL && !isRofOrAdmin && !isCoachOrAdmin) throw Boom.forbidden('ici');
 
   return null;
 };
