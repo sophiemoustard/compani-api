@@ -142,28 +142,33 @@ exports.getPdfContent = async (data) => {
   };
 };
 
-const defineCheckbox = (xPos, yPos, label, isChecked = false) => [
-  {
-    canvas: [{ type: 'rect', x: 0, y: 0, w: 8, h: 8, r: 0 }],
-    absolutePosition: { x: xPos, y: yPos },
-  },
-  {
-    text: [
-      { text: isChecked ? '√' : '', position: { x: xPos, y: yPos }, marginRight: 4 },
-      {
-        text: [
-          { text: label },
-          { text: isChecked ? ' 1' : '', fontSize: 8, bold: true },
-        ],
-      },
-    ],
-    marginBottom: 4,
-    marginLeft: isChecked ? 20 : 32,
-  },
-];
+const defineCheckbox = (xPos, yPos, label, isLargeProgramName, isChecked = false) => {
+  const yPosition = isLargeProgramName ? yPos + 14 : yPos;
+
+  return [
+    {
+      canvas: [{ type: 'rect', x: 0, y: 0, w: 8, h: 8, r: 0 }],
+      absolutePosition: { x: xPos, y: yPosition },
+    },
+    {
+      text: [
+        { text: isChecked ? '√' : '', position: { x: xPos, y: yPosition }, marginRight: 4 },
+        {
+          text: [
+            { text: label },
+            { text: isChecked ? ' 1' : '', fontSize: 8, bold: true },
+          ],
+        },
+      ],
+      marginBottom: 4,
+      marginLeft: isChecked ? 20 : 32,
+    },
+  ];
+};
 
 exports.getOfficialPdfContent = async (data) => {
   const { trainee, programName, startDate, endDate, date } = data;
+  const isLargeProgramName = programName.length > 60;
 
   const imageList = [
     { url: 'https://storage.googleapis.com/compani-main/tsb_signature.png', name: 'signature.png' },
@@ -213,10 +218,10 @@ exports.getOfficialPdfContent = async (data) => {
       marginLeft: 4,
       marginBottom: 4,
     },
-    defineCheckbox(59, 306, ' action de formation', true).flat(),
-    defineCheckbox(59, 324, ' bilan de compétences').flat(),
-    defineCheckbox(59, 343, ' action de VAE').flat(),
-    defineCheckbox(59, 361, ' action de formation par apprentissage').flat(),
+    defineCheckbox(59, 306, ' action de formation', isLargeProgramName, true).flat(),
+    defineCheckbox(59, 324, ' bilan de compétences', isLargeProgramName).flat(),
+    defineCheckbox(59, 343, ' action de VAE', isLargeProgramName).flat(),
+    defineCheckbox(59, 361, ' action de formation par apprentissage', isLargeProgramName).flat(),
     {
       text: [
         { text: 'qui s’est déroulée du ', bold: true },
