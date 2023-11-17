@@ -149,13 +149,16 @@ const defineCheckbox = (xPos, yPos, label, isChecked = false) => [
   },
   {
     text: [
-      { text: `${isChecked ? '√' : ' '}`, position: { x: xPos, y: yPos } },
+      { text: isChecked ? '√' : '', position: { x: xPos, y: yPos }, marginRight: 4 },
       {
-        text: [{ text: label }, { text: `${isChecked ? '1' : ''}`, fontSize: 8, bold: true }],
+        text: [
+          { text: label },
+          { text: isChecked ? ' 1' : '', fontSize: 8, bold: true },
+        ],
       },
     ],
     marginBottom: 4,
-    marginLeft: 18,
+    marginLeft: isChecked ? 20 : 32,
   },
 ];
 
@@ -165,11 +168,12 @@ exports.getOfficialPdfContent = async (data) => {
   const imageList = [
     { url: 'https://storage.googleapis.com/compani-main/tsb_signature.png', name: 'signature.png' },
     { url: 'https://storage.googleapis.com/compani-main/icons/compani_texte_bleu.png', name: 'compani.png' },
+    { url: 'https://storage.googleapis.com/compani-main/logo_ministere_travail.png', name: 'ministere_travail.png' },
   ];
-  const [signature, compani] = await FileHelper.downloadImages(imageList);
+  const [signature, compani, logo] = await FileHelper.downloadImages(imageList);
 
   const header = [
-    { columns: [{ image: compani, width: 130 }, {}, { image: compani, width: 130 }], marginBottom: 24 },
+    { columns: [{ image: logo, width: 60 }, {}, { image: compani, width: 130 }], marginBottom: 24 },
     { text: 'CERTIFICAT DE REALISATION', style: 'title', alignment: 'center', marginBottom: 24 },
   ];
 
@@ -209,10 +213,10 @@ exports.getOfficialPdfContent = async (data) => {
       marginLeft: 4,
       marginBottom: 4,
     },
-    defineCheckbox(57, 281, ' action de formation', true).flat(),
-    defineCheckbox(57, 299, '    bilan de compétences').flat(),
-    defineCheckbox(57, 318, '    action de VAE').flat(),
-    defineCheckbox(57, 336, '    action de formation par apprentissage').flat(),
+    defineCheckbox(59, 306, ' action de formation', true).flat(),
+    defineCheckbox(59, 324, ' bilan de compétences').flat(),
+    defineCheckbox(59, 343, ' action de VAE').flat(),
+    defineCheckbox(59, 361, ' action de formation par apprentissage').flat(),
     {
       text: [
         { text: 'qui s’est déroulée du ', bold: true },
@@ -222,6 +226,7 @@ exports.getOfficialPdfContent = async (data) => {
       ],
       marginLeft: 4,
       marginBottom: 8,
+      marginTop: 4,
     },
     {
       text: [
@@ -250,20 +255,20 @@ exports.getOfficialPdfContent = async (data) => {
       columns: [
         [
           {
-            text: [{ text: 'Fait à : ' }, { text: 'Paris', italics: true }],
-            absolutePosition: { x: 35, y: 500 },
+            text: [{ text: 'Fait à : ', bold: true }, { text: 'Paris', italics: true }],
+            absolutePosition: { x: 35, y: 510 },
             marginLeft: 46,
           },
           {
-            text: [{ text: 'Le : ' }, { text: `${date}`, italics: true }],
-            absolutePosition: { x: 35, y: 520 },
+            text: [{ text: 'Le : ', bold: true }, { text: `${date}`, italics: true }],
+            absolutePosition: { x: 35, y: 530 },
             marginLeft: 46,
           },
         ],
         [
           {
             canvas: [{ type: 'rect', x: 0, y: 0, w: 260, h: 180, r: 0 }],
-            absolutePosition: { y: 500 },
+            absolutePosition: { y: 515 },
             alignment: 'right',
           },
           {
@@ -278,13 +283,13 @@ exports.getOfficialPdfContent = async (data) => {
             alignment: 'center',
             fontSize: 12,
           },
-          { image: signature, width: 130, absolutePosition: { x: 380, y: 560 } },
+          { image: signature, width: 130, absolutePosition: { x: 380, y: 575 } },
         ],
       ],
       marginLeft: 40,
       marginRight: 40,
-      marginTop: 8,
-      absolutePosition: { x: 35, y: 500 },
+      marginTop: 16,
+      absolutePosition: { x: 35, y: 515 },
     },
     {
       text: [
@@ -299,8 +304,7 @@ exports.getOfficialPdfContent = async (data) => {
               + 'et le temps estimé pour les réaliser.',
         },
       ],
-
-      absolutePosition: { x: 35, y: 710 },
+      absolutePosition: { x: 35, y: 725 },
       marginLeft: 40,
       marginRight: 40,
       marginTop: 8,
@@ -316,7 +320,7 @@ exports.getOfficialPdfContent = async (data) => {
       pageMargins: [40, 40, 40, 40],
       styles: { title: { fontSize: 24, bold: true, color: '#0404B4' } },
     },
-    images: [signature, compani],
+    images: [signature, compani, logo],
   };
 };
 
