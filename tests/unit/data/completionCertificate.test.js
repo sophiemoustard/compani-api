@@ -202,7 +202,7 @@ describe('getOfficialPdfContent', () => {
 
     const header = [
       { columns: [{ image: paths[2], width: 60 }, {}, { image: paths[1], width: 130 }], marginBottom: 24 },
-      { text: 'CERTIFICAT DE REALISATION', style: 'title', alignment: 'center', marginBottom: 24 },
+      { text: 'CERTIFICAT DE RÉALISATION', style: 'title', alignment: 'center', marginBottom: 24 },
     ];
 
     const checkBoxSection = [
@@ -254,7 +254,7 @@ describe('getOfficialPdfContent', () => {
           { text: 'Je soussigné ', bold: true },
           { text: 'Thibault de Saint Blancard ', italics: true },
           {
-            text: 'représentant légal du dispensateur de l’action concourant au développement des compétences ',
+            text: 'représentant légal du dispensateur de l\'action concourant au développement des compétences ',
             bold: true,
           },
           { text: 'COMPANI', italics: true },
@@ -267,7 +267,7 @@ describe('getOfficialPdfContent', () => {
         marginBottom: 8,
       },
       {
-        text: [{ text: 'salarié(e) de l’entreprise ', bold: true }, { text: 'structure', italics: true }],
+        text: [{ text: 'salarié(e) de l\'entreprise ', bold: true }, { text: 'structure', italics: true }],
         marginLeft: 4,
         marginBottom: 8,
       },
@@ -277,14 +277,14 @@ describe('getOfficialPdfContent', () => {
         marginBottom: 8,
       },
       {
-        text: [{ text: 'Nature de l’action concourant au développement des compétences :', bold: true }],
+        text: [{ text: 'Nature de l\'action concourant au développement des compétences :', bold: true }],
         marginLeft: 4,
         marginBottom: 4,
       },
       ...checkBoxSection,
       {
         text: [
-          { text: 'qui s’est déroulée du ', bold: true },
+          { text: 'qui s\'est déroulée du ', bold: true },
           { text: '25/12/2021 ', italics: true },
           { text: 'au ', bold: true },
           { text: '25/02/2022', italics: true },
@@ -306,9 +306,9 @@ describe('getOfficialPdfContent', () => {
         marginLeft: 4,
       },
       {
-        text: 'Sans préjudice des délais imposés par les règles fiscales, comptables ou commerciales, je m’engage à '
-        + 'conserver l’ensemble des pièces justificatives qui ont permis d’établir le présent certificat pendant une '
-        + 'durée de 3 ans à compter de la fin de l’année du dernier paiement. En cas de cofinancement des fonds '
+        text: 'Sans préjudice des délais imposés par les règles fiscales, comptables ou commerciales, je m\'engage à '
+        + 'conserver l\'ensemble des pièces justificatives qui ont permis d\'établir le présent certificat pendant une '
+        + 'durée de 3 ans à compter de la fin de l\'année du dernier paiement. En cas de cofinancement des fonds '
         + 'européens la durée de conservation est étendue conformément aux obligations conventionnelles spécifiques.',
         alignment: 'justify',
         bold: true,
@@ -360,7 +360,7 @@ describe('getOfficialPdfContent', () => {
         text: [
           { text: '1 ', fontSize: 8 },
           {
-            text: 'Lorsque l’action est mise en œuvre dans le cadre d’un projet de transition professionnelle, '
+            text: 'Lorsque l\'action est mise en œuvre dans le cadre d\'un projet de transition professionnelle, '
               + 'le certificat de réalisation doit être transmis mensuellement. \n',
           },
           { text: '2 ', fontSize: 8 },

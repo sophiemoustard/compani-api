@@ -194,7 +194,7 @@ exports.authorizeGetCompletionCertificates = async (req) => {
   const isCoachOrAdmin = [COACH, CLIENT_ADMIN].includes(userClientRole);
 
   if (format === ALL_WORD && !isRofOrAdmin) throw Boom.forbidden();
-  if (type === OFFICIAL && !isRofOrAdmin && !isCoachOrAdmin) throw Boom.forbidden('ici');
+  if (type === OFFICIAL && !isRofOrAdmin && !isCoachOrAdmin) throw Boom.forbidden();
 
   return null;
 };
