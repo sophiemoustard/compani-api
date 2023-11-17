@@ -27,7 +27,7 @@ const getHeader = (thumb, compani) => [
   },
 ];
 
-exports.getPdfContent = async (data) => {
+exports.getCustomPdfContent = async (data) => {
   const [thumb, compani, lighted, emoji, signature] = await getImages();
   const { trainee, programName, duration, startDate, endDate, learningGoals, date } = data;
   const isLargeProgramName = programName.length > 80;
@@ -320,7 +320,7 @@ exports.getOfficialPdfContent = async (data) => {
 
 exports.getPdf = async (data, type = CUSTOM) => {
   const { template, images } = type === CUSTOM
-    ? await exports.getPdfContent(data)
+    ? await exports.getCustomPdfContent(data)
     : await exports.getOfficialPdfContent(data);
 
   return PdfHelper.generatePdf(template, images);

@@ -5,7 +5,7 @@ const PdfHelper = require('../../../src/helpers/pdf');
 const CompletionCertificate = require('../../../src/data/pdf/completionCertificate');
 const { COPPER_50, COPPER_500, ORANGE_500, OFFICIAL } = require('../../../src/helpers/constants');
 
-describe('getPdfContent', () => {
+describe('getCustomPdfContent', () => {
   let downloadImages;
 
   beforeEach(() => {
@@ -16,7 +16,7 @@ describe('getPdfContent', () => {
     downloadImages.restore();
   });
 
-  it('it should format and return pdf content', async () => {
+  it('it should format and return custom pdf content', async () => {
     const paths = [
       'src/data/pdf/tmp/aux-pouce.png',
       'src/data/pdf/tmp/compani.png',
@@ -36,7 +36,7 @@ describe('getPdfContent', () => {
       date: '22/03/2022',
     };
 
-    const result = await CompletionCertificate.getPdfContent(data);
+    const result = await CompletionCertificate.getCustomPdfContent(data);
 
     const header = {
       columns: [
@@ -392,18 +392,18 @@ describe('getOfficialPdfContent', () => {
 });
 
 describe('getPdf', () => {
-  let getPdfContent;
+  let getCustomPdfContent;
   let getOfficialPdfContent;
   let generatePdf;
 
   beforeEach(() => {
-    getPdfContent = sinon.stub(CompletionCertificate, 'getPdfContent');
+    getCustomPdfContent = sinon.stub(CompletionCertificate, 'getCustomPdfContent');
     getOfficialPdfContent = sinon.stub(CompletionCertificate, 'getOfficialPdfContent');
     generatePdf = sinon.stub(PdfHelper, 'generatePdf');
   });
 
   afterEach(() => {
-    getPdfContent.restore();
+    getCustomPdfContent.restore();
     getOfficialPdfContent.restore();
     generatePdf.restore();
   });
@@ -439,13 +439,13 @@ describe('getPdf', () => {
       },
     };
     const images = [{ url: 'https://storage.googleapis.com/compani-main/aux-pouce.png', name: 'logo.png' }];
-    getPdfContent.returns({ template, images });
+    getCustomPdfContent.returns({ template, images });
     generatePdf.returns('pdf');
 
     const result = await CompletionCertificate.getPdf(data);
 
     expect(result).toEqual('pdf');
-    sinon.assert.calledOnceWithExactly(getPdfContent, data);
+    sinon.assert.calledOnceWithExactly(getCustomPdfContent, data);
     sinon.assert.calledOnceWithExactly(generatePdf, template, images);
   });
 
