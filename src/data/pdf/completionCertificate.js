@@ -146,19 +146,11 @@ const defineCheckbox = (xPos, yPos, label, isLargeProgramName, isChecked = false
   const yPosition = isLargeProgramName ? yPos + 14 : yPos;
 
   return [
-    {
-      canvas: [{ type: 'rect', x: 0, y: 0, w: 8, h: 8, r: 0 }],
-      absolutePosition: { x: xPos, y: yPosition },
-    },
+    { canvas: [{ type: 'rect', x: 0, y: 0, w: 8, h: 8, r: 0 }], absolutePosition: { x: xPos, y: yPosition } },
     {
       text: [
         { text: isChecked ? '√' : '', position: { x: xPos, y: yPosition }, marginRight: 4 },
-        {
-          text: [
-            { text: label },
-            { text: isChecked ? ' 1' : '', fontSize: 8, bold: true },
-          ],
-        },
+        { text: [{ text: label }, { text: isChecked ? ' 1' : '', fontSize: 8, bold: true }] },
       ],
       marginBottom: 4,
       marginLeft: isChecked ? 20 : 32,
@@ -196,10 +188,7 @@ exports.getOfficialPdfContent = async (data) => {
     },
     { text: 'atteste que :', bold: true, marginTop: 4, marginBottom: 8 },
     {
-      text: [
-        { text: 'Mme/M. ', bold: true },
-        { text: `${trainee.identity}`, italics: true },
-      ],
+      text: [{ text: 'Mme/M. ', bold: true }, { text: `${trainee.identity}`, italics: true }],
       marginLeft: 4,
       marginBottom: 8,
     },
@@ -218,10 +207,10 @@ exports.getOfficialPdfContent = async (data) => {
       marginLeft: 4,
       marginBottom: 4,
     },
-    defineCheckbox(59, 306, ' action de formation', isLargeProgramName, true).flat(),
-    defineCheckbox(59, 324, ' bilan de compétences', isLargeProgramName).flat(),
-    defineCheckbox(59, 343, ' action de VAE', isLargeProgramName).flat(),
-    defineCheckbox(59, 361, ' action de formation par apprentissage', isLargeProgramName).flat(),
+    ...defineCheckbox(59, 306, ' action de formation', isLargeProgramName, true),
+    ...defineCheckbox(59, 324, ' bilan de compétences', isLargeProgramName),
+    ...defineCheckbox(59, 343, ' action de VAE', isLargeProgramName),
+    ...defineCheckbox(59, 361, ' action de formation par apprentissage', isLargeProgramName),
     {
       text: [
         { text: 'qui s’est déroulée du ', bold: true },
@@ -246,10 +235,10 @@ exports.getOfficialPdfContent = async (data) => {
       marginLeft: 4,
     },
     {
-      text: 'Sans préjudice des délais imposés par les règles fiscales, comptables ou commerciales, je m’engage à'
-      + 'conserver l’ensemble des pièces justificatives qui ont permis d’établir le présent certificat pendant une'
-      + 'durée de 3 ans à compter de la fin de l’année du dernier paiement. En cas de cofinancement des fonds européens'
-      + 'la durée de conservation est étendue conformément aux obligations conventionnelles spécifiques.',
+      text: 'Sans préjudice des délais imposés par les règles fiscales, comptables ou commerciales, je m’engage à '
+      + 'conserver l’ensemble des pièces justificatives qui ont permis d’établir le présent certificat pendant une '
+      + 'durée de 3 ans à compter de la fin de l’année du dernier paiement. En cas de cofinancement des fonds '
+      + 'européens la durée de conservation est étendue conformément aux obligations conventionnelles spécifiques.',
       alignment: 'justify',
       bold: true,
     },
@@ -261,19 +250,19 @@ exports.getOfficialPdfContent = async (data) => {
         [
           {
             text: [{ text: 'Fait à : ', bold: true }, { text: 'Paris', italics: true }],
-            absolutePosition: { x: 35, y: 510 },
+            absolutePosition: { x: 35, y: 520 },
             marginLeft: 46,
           },
           {
             text: [{ text: 'Le : ', bold: true }, { text: `${date}`, italics: true }],
-            absolutePosition: { x: 35, y: 530 },
+            absolutePosition: { x: 35, y: 540 },
             marginLeft: 46,
           },
         ],
         [
           {
             canvas: [{ type: 'rect', x: 0, y: 0, w: 260, h: 180, r: 0 }],
-            absolutePosition: { y: 515 },
+            absolutePosition: { y: 525 },
             alignment: 'right',
           },
           {
@@ -288,13 +277,13 @@ exports.getOfficialPdfContent = async (data) => {
             alignment: 'center',
             fontSize: 12,
           },
-          { image: signature, width: 130, absolutePosition: { x: 380, y: 575 } },
+          { image: signature, width: 130, absolutePosition: { x: 380, y: 585 } },
         ],
       ],
       marginLeft: 40,
       marginRight: 40,
       marginTop: 16,
-      absolutePosition: { x: 35, y: 515 },
+      absolutePosition: { x: 35, y: 525 },
     },
     {
       text: [
@@ -309,7 +298,7 @@ exports.getOfficialPdfContent = async (data) => {
               + 'et le temps estimé pour les réaliser.',
         },
       ],
-      absolutePosition: { x: 35, y: 725 },
+      absolutePosition: { x: 35, y: 735 },
       marginLeft: 40,
       marginRight: 40,
       marginTop: 8,

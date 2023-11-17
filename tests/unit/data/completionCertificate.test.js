@@ -3,7 +3,7 @@ const { expect } = require('expect');
 const FileHelper = require('../../../src/helpers/file');
 const PdfHelper = require('../../../src/helpers/pdf');
 const CompletionCertificate = require('../../../src/data/pdf/completionCertificate');
-const { COPPER_50, COPPER_500, ORANGE_500 } = require('../../../src/helpers/constants');
+const { COPPER_50, COPPER_500, ORANGE_500, OFFICIAL } = require('../../../src/helpers/constants');
 
 describe('getPdfContent', () => {
   let downloadImages;
@@ -166,21 +166,249 @@ describe('getPdfContent', () => {
   });
 });
 
+describe('getOfficialPdfContent', () => {
+  let downloadImages;
+
+  beforeEach(() => {
+    downloadImages = sinon.stub(FileHelper, 'downloadImages');
+  });
+
+  afterEach(() => downloadImages.restore());
+
+  it('should format and return official pdf content', async () => {
+    const data = {
+      duration: '15h',
+      programName: 'Programme',
+      startDate: '25/12/2021',
+      endDate: '25/02/2022',
+      trainee: { identity: 'Jean PHILIPPE', attendanceDuration: '14h', companyName: 'structure' },
+      date: '22/03/2022',
+    };
+
+    const imageList = [
+      { url: 'https://storage.googleapis.com/compani-main/tsb_signature.png', name: 'signature.png' },
+      { url: 'https://storage.googleapis.com/compani-main/icons/compani_texte_bleu.png', name: 'compani.png' },
+      { url: 'https://storage.googleapis.com/compani-main/logo_ministere_travail.png', name: 'ministere_travail.png' },
+    ];
+
+    const paths = [
+      'src/data/pdf/tmp/signature.png',
+      'src/data/pdf/tmp/compani.png',
+      'src/data/pdf/tmp/ministere_travail.png',
+    ];
+    downloadImages.returns(paths);
+
+    const result = await CompletionCertificate.getOfficialPdfContent(data);
+
+    const header = [
+      { columns: [{ image: paths[2], width: 60 }, {}, { image: paths[1], width: 130 }], marginBottom: 24 },
+      { text: 'CERTIFICAT DE REALISATION', style: 'title', alignment: 'center', marginBottom: 24 },
+    ];
+
+    const checkBoxSection = [
+      // Checkbox 1
+      { canvas: [{ type: 'rect', x: 0, y: 0, w: 8, h: 8, r: 0 }], absolutePosition: { x: 59, y: 306 } },
+      {
+        text: [
+          { text: '√', position: { x: 59, y: 306 }, marginRight: 4 },
+          { text: [{ text: ' action de formation' }, { text: ' 1', fontSize: 8, bold: true }] },
+        ],
+        marginBottom: 4,
+        marginLeft: 20,
+      },
+      // Checkbox 2
+      { canvas: [{ type: 'rect', x: 0, y: 0, w: 8, h: 8, r: 0 }], absolutePosition: { x: 59, y: 324 } },
+      {
+        text: [
+          { text: '', position: { x: 59, y: 324 }, marginRight: 4 },
+          { text: [{ text: ' bilan de compétences' }, { text: '', fontSize: 8, bold: true }] },
+        ],
+        marginBottom: 4,
+        marginLeft: 32,
+      },
+      // Checkbox 3
+      { canvas: [{ type: 'rect', x: 0, y: 0, w: 8, h: 8, r: 0 }], absolutePosition: { x: 59, y: 343 } },
+      {
+        text: [
+          { text: '', position: { x: 59, y: 343 }, marginRight: 4 },
+          { text: [{ text: ' action de VAE' }, { text: '', fontSize: 8, bold: true }] },
+        ],
+        marginBottom: 4,
+        marginLeft: 32,
+      },
+      // Checkbox 4
+      { canvas: [{ type: 'rect', x: 0, y: 0, w: 8, h: 8, r: 0 }], absolutePosition: { x: 59, y: 361 } },
+      {
+        text: [
+          { text: '', position: { x: 59, y: 361 }, marginRight: 4 },
+          { text: [{ text: ' action de formation par apprentissage' }, { text: '', fontSize: 8, bold: true }] },
+        ],
+        marginBottom: 4,
+        marginLeft: 32,
+      },
+    ];
+
+    const body = [
+      {
+        text: [
+          { text: 'Je soussigné ', bold: true },
+          { text: 'Thibault de Saint Blancard ', italics: true },
+          {
+            text: 'représentant légal du dispensateur de l’action concourant au développement des compétences ',
+            bold: true,
+          },
+          { text: 'COMPANI', italics: true },
+        ],
+      },
+      { text: 'atteste que :', bold: true, marginTop: 4, marginBottom: 8 },
+      {
+        text: [{ text: 'Mme/M. ', bold: true }, { text: 'Jean PHILIPPE', italics: true }],
+        marginLeft: 4,
+        marginBottom: 8,
+      },
+      {
+        text: [{ text: 'salarié(e) de l’entreprise ', bold: true }, { text: 'structure', italics: true }],
+        marginLeft: 4,
+        marginBottom: 8,
+      },
+      {
+        text: [{ text: 'a suivi l\'action ', bold: true }, { text: 'Programme', italics: true }],
+        marginLeft: 4,
+        marginBottom: 8,
+      },
+      {
+        text: [{ text: 'Nature de l’action concourant au développement des compétences :', bold: true }],
+        marginLeft: 4,
+        marginBottom: 4,
+      },
+      ...checkBoxSection,
+      {
+        text: [
+          { text: 'qui s’est déroulée du ', bold: true },
+          { text: '25/12/2021 ', italics: true },
+          { text: 'au ', bold: true },
+          { text: '25/02/2022', italics: true },
+        ],
+        marginLeft: 4,
+        marginBottom: 8,
+        marginTop: 4,
+      },
+      {
+        text: [
+          {
+            text: [
+              { text: 'pour une durée de ', bold: true },
+              { text: '14h .', italics: true }],
+          },
+          { text: '2', fontSize: 8, bold: true },
+        ],
+        marginBottom: 8,
+        marginLeft: 4,
+      },
+      {
+        text: 'Sans préjudice des délais imposés par les règles fiscales, comptables ou commerciales, je m’engage à '
+        + 'conserver l’ensemble des pièces justificatives qui ont permis d’établir le présent certificat pendant une '
+        + 'durée de 3 ans à compter de la fin de l’année du dernier paiement. En cas de cofinancement des fonds '
+        + 'européens la durée de conservation est étendue conformément aux obligations conventionnelles spécifiques.',
+        alignment: 'justify',
+        bold: true,
+      },
+    ];
+
+    const footer = [
+      {
+        columns: [
+          [
+            {
+              text: [{ text: 'Fait à : ', bold: true }, { text: 'Paris', italics: true }],
+              absolutePosition: { x: 35, y: 520 },
+              marginLeft: 46,
+            },
+            {
+              text: [{ text: 'Le : ', bold: true }, { text: '22/03/2022', italics: true }],
+              absolutePosition: { x: 35, y: 540 },
+              marginLeft: 46,
+            },
+          ],
+          [
+            {
+              canvas: [{ type: 'rect', x: 0, y: 0, w: 260, h: 180, r: 0 }],
+              absolutePosition: { y: 525 },
+              alignment: 'right',
+            },
+            {
+              text: 'Cachet et signature du responsable du \n dispensateur de formation',
+              marginTop: 6,
+              alignment: 'center',
+            },
+            {
+              text: 'Thibault de Saint Blancard, Directeur Compani',
+              bold: true,
+              marginTop: 6,
+              alignment: 'center',
+              fontSize: 12,
+            },
+            { image: paths[0], width: 130, absolutePosition: { x: 380, y: 585 } },
+          ],
+        ],
+        marginLeft: 40,
+        marginRight: 40,
+        marginTop: 16,
+        absolutePosition: { x: 35, y: 525 },
+      },
+      {
+        text: [
+          { text: '1 ', fontSize: 8 },
+          {
+            text: 'Lorsque l’action est mise en œuvre dans le cadre d’un projet de transition professionnelle, '
+              + 'le certificat de réalisation doit être transmis mensuellement. \n',
+          },
+          { text: '2 ', fontSize: 8 },
+          {
+            text: 'Dans le cadre des formations à distance prendre en compte la réalisation des activités pédagogiques'
+                + 'et le temps estimé pour les réaliser.',
+          },
+        ],
+        absolutePosition: { x: 35, y: 735 },
+        marginLeft: 40,
+        marginRight: 40,
+        marginTop: 8,
+        fontSize: 12,
+        bold: true,
+      },
+    ];
+
+    const pdf = {
+      content: [header, body, footer].flat(),
+      defaultStyle: { font: 'Calibri', fontSize: 14 },
+      pageMargins: [40, 40, 40, 40],
+      styles: { title: { fontSize: 24, bold: true, color: '#0404B4' } },
+    };
+    expect(JSON.stringify(result.template)).toEqual(JSON.stringify(pdf));
+    expect(result.images).toEqual(paths);
+
+    sinon.assert.calledOnceWithExactly(downloadImages, imageList);
+  });
+});
+
 describe('getPdf', () => {
   let getPdfContent;
+  let getOfficialPdfContent;
   let generatePdf;
 
   beforeEach(() => {
     getPdfContent = sinon.stub(CompletionCertificate, 'getPdfContent');
+    getOfficialPdfContent = sinon.stub(CompletionCertificate, 'getOfficialPdfContent');
     generatePdf = sinon.stub(PdfHelper, 'generatePdf');
   });
 
   afterEach(() => {
     getPdfContent.restore();
+    getOfficialPdfContent.restore();
     generatePdf.restore();
   });
 
-  it('should get pdf', async () => {
+  it('should get pdf (CUSTOM)', async () => {
     const data = {
       duration: '15h',
       learningGoals: '- but',
@@ -218,6 +446,45 @@ describe('getPdf', () => {
 
     expect(result).toEqual('pdf');
     sinon.assert.calledOnceWithExactly(getPdfContent, data);
+    sinon.assert.calledOnceWithExactly(generatePdf, template, images);
+  });
+
+  it('should get pdf (OFFICIAL)', async () => {
+    const data = {
+      duration: '15h',
+      programName: 'Programme',
+      startDate: '25/12/2021',
+      endDate: '25/02/2022',
+      trainee: { identity: 'Jean PIERRE', attendanceDuration: '14h' },
+      date: '22/03/2022',
+    };
+    const template = {
+      content: [
+        {
+          columns: [
+            { image: 'https://storage.googleapis.com/compani-main/logo_ministere_travail.png', width: 60 },
+            {},
+            { image: 'https://storage.googleapis.com/compani-main/icons/compani_texte_bleu.png', width: 130 },
+          ],
+          marginBottom: 24,
+        },
+        { text: 'CERTIFICAT DE REALISATION', style: 'title', alignment: 'center', marginBottom: 24 },
+      ],
+      defaultStyle: { font: 'Calibri', fontSize: 14 },
+      pageMargins: [40, 40, 40, 40],
+      styles: { title: { fontSize: 24, bold: true, color: '#0404B4' } },
+    };
+    const images = [
+      { url: 'https://storage.googleapis.com/compani-main/icons/compani_texte_bleu.png', name: 'compani.png' },
+      { url: 'https://storage.googleapis.com/compani-main/logo_ministere_travail.png', name: 'ministere_travail.png' },
+    ];
+    getOfficialPdfContent.returns({ template, images });
+    generatePdf.returns('pdf');
+
+    const result = await CompletionCertificate.getPdf(data, OFFICIAL);
+
+    expect(result).toEqual('pdf');
+    sinon.assert.calledOnceWithExactly(getOfficialPdfContent, data);
     sinon.assert.calledOnceWithExactly(generatePdf, template, images);
   });
 });
