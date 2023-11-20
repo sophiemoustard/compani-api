@@ -227,7 +227,8 @@ exports.getOfficialPdfContent = async (data) => {
         {
           text: [
             { text: 'pour une durée de ', bold: true },
-            { text: `${trainee.attendanceDuration} .`, italics: true }],
+            { text: `${trainee.attendanceDuration} .`, italics: true },
+          ],
         },
         { text: '2', fontSize: 8, bold: true },
       ],
@@ -294,7 +295,7 @@ exports.getOfficialPdfContent = async (data) => {
         },
         { text: '2 ', fontSize: 8 },
         {
-          text: 'Dans le cadre des formations à distance prendre en compte la réalisation des activités pédagogiques'
+          text: 'Dans le cadre des formations à distance prendre en compte la réalisation des activités pédagogiques '
               + 'et le temps estimé pour les réaliser.',
         },
       ],

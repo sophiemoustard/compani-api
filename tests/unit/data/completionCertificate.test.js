@@ -365,7 +365,7 @@ describe('getOfficialPdfContent', () => {
           },
           { text: '2 ', fontSize: 8 },
           {
-            text: 'Dans le cadre des formations à distance prendre en compte la réalisation des activités pédagogiques'
+            text: 'Dans le cadre des formations à distance prendre en compte la réalisation des activités pédagogiques '
                 + 'et le temps estimé pour les réaliser.',
           },
         ],
