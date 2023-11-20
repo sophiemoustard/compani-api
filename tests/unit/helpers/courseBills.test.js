@@ -84,7 +84,7 @@ describe('list', () => {
       find,
       [
         { query: 'find', args: [{ course: courseId }] },
-        { query: 'populate', args: [{ path: 'company', select: 'name' }] },
+        { query: 'populate', args: [{ path: 'companies', select: 'name' }] },
         { query: 'populate', args: [{ path: 'payer.fundingOrganisation', select: 'name' }] },
         { query: 'populate', args: [{ path: 'payer.company', select: 'name' }] },
         { query: 'populate', args: [{ path: 'courseCreditNote', options: { isVendorUser: true } }] },
@@ -130,7 +130,7 @@ describe('list', () => {
       find,
       [
         { query: 'find', args: [{ course: courseId }] },
-        { query: 'populate', args: [{ path: 'company', select: 'name' }] },
+        { query: 'populate', args: [{ path: 'companies', select: 'name' }] },
         { query: 'populate', args: [{ path: 'payer.fundingOrganisation', select: 'name' }] },
         { query: 'populate', args: [{ path: 'payer.company', select: 'name' }] },
         { query: 'populate', args: [{ path: 'courseCreditNote', options: { isVendorUser: true } }] },
@@ -208,7 +208,7 @@ describe('list', () => {
         {
           query: 'find',
           args: [{
-            $or: [{ company: companyId }, { 'payer.company': companyId }],
+            $or: [{ companies: companyId }, { 'payer.company': companyId }],
             billedAt: { $exists: true, $type: 'date' },
           }],
         },
@@ -224,6 +224,7 @@ describe('list', () => {
             ],
           }],
         },
+        { query: 'populate', args: [{ path: 'companies', select: 'name' }] },
         { query: 'populate', args: [{ path: 'payer.company', select: 'name' }] },
         { query: 'populate', args: [{ path: 'payer.fundingOrganisation', select: 'name' }] },
         {
@@ -328,7 +329,7 @@ describe('list', () => {
         {
           query: 'find',
           args: [{
-            $or: [{ company: companyId }, { 'payer.company': companyId }],
+            $or: [{ companies: companyId }, { 'payer.company': companyId }],
             billedAt: { $exists: true, $type: 'date' },
           }],
         },
@@ -344,6 +345,7 @@ describe('list', () => {
             ],
           }],
         },
+        { query: 'populate', args: [{ path: 'companies', select: 'name' }] },
         { query: 'populate', args: [{ path: 'payer.company', select: 'name' }] },
         { query: 'populate', args: [{ path: 'payer.fundingOrganisation', select: 'name' }] },
         {
@@ -641,7 +643,7 @@ describe('generateBillPdf', () => {
       ],
       number: 'FACT-00001',
       billedAt: '2022-03-08T00:00:00.000Z',
-      company: {
+      companies: [{
         name: 'test',
         address: {
           fullAddress: '24 Avenue Daumesnil 75012 Paris',
@@ -650,7 +652,7 @@ describe('generateBillPdf', () => {
           zipCode: '75012',
           location: { type: 'Point', coordinates: [2.37345, 48.848024] },
         },
-      },
+      }],
       payer: {
         name: 'test',
         address: {
@@ -675,7 +677,7 @@ describe('generateBillPdf', () => {
         number: 'FACT-00001',
         date: '08/03/2022',
         vendorCompany,
-        company: bill.company,
+        companies: bill.companies,
         payer: { name: 'test', address: '24 Avenue Daumesnil 75012 Paris' },
         course: bill.course,
         mainFee: bill.mainFee,
@@ -699,7 +701,7 @@ describe('generateBillPdf', () => {
             path: 'billingPurchaseList', select: 'billingItem', populate: { path: 'billingItem', select: 'name' },
           }],
         },
-        { query: 'populate', args: [{ path: 'company', select: 'name address' }] },
+        { query: 'populate', args: [{ path: 'companies', select: 'name address' }] },
         { query: 'populate', args: [{ path: 'payer.fundingOrganisation', select: 'name address' }] },
         { query: 'populate', args: [{ path: 'payer.company', select: 'name address' }] },
         { query: 'lean' },

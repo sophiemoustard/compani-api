@@ -37,7 +37,7 @@ describe('getPdfContent', () => {
         },
         siret: '27272727274124',
       },
-      company: { name: 'Test structure' },
+      companies: [{ name: 'Test structure' }],
       payer: {
         name: 'payeur',
         address: '24 Avenue Daumesnil 75012 Paris',
@@ -210,7 +210,7 @@ describe('getPdfContent', () => {
         },
         siret: '27272727274124',
       },
-      company: { name: 'Test structure' },
+      companies: [{ name: 'Test structure' }],
       payer: {
         name: 'payeur',
         address: '24 Avenue Daumesnil 75012 Paris',
@@ -353,7 +353,7 @@ describe('getPdf', () => {
     const data = {
       number: 'FACT-000045',
       date: '18/08/1998',
-      company: { name: 'Test structure' },
+      companies: [{ name: 'Test structure' }],
       course: { subProgram: { program: { name: 'Test' } } },
       mainFee: { price: 1000, count: 1, description: 'description' },
     };

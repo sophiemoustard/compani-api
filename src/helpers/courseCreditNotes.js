@@ -1,4 +1,5 @@
 const get = require('lodash/get');
+const CourseBill = require('../models/CourseBill');
 const CourseCreditNote = require('../models/CourseCreditNote');
 const CourseCreditNoteNumber = require('../models/CourseCreditNoteNumber');
 const VendorCompaniesHelper = require('./vendorCompanies');
@@ -11,8 +12,11 @@ exports.createCourseCreditNote = async (payload) => {
     .findOneAndUpdate({}, { $inc: { seq: 1 } }, { new: true, upsert: true, setDefaultsOnInsert: true })
     .lean();
 
+  const courseBill = await CourseBill.findOne({ _id: payload.courseBill }, { companies: 1 }).lean();
+
   const formattedPayload = {
     ...payload,
+    companies: courseBill.companies,
     number: `AV-${lastCreditNoteNumber.seq.toString().padStart(5, '0')}`,
   };
 
@@ -36,7 +40,6 @@ exports.generateCreditNotePdf = async (creditNoteId) => {
         { path: 'billingPurchaseList', select: 'billingItem', populate: { path: 'billingItem', select: 'name' } },
       ],
     })
-    .populate({ path: 'company', select: 'name address' })
     .lean();
 
   const payer = get(creditNote, 'courseBill.payer');
@@ -45,7 +48,6 @@ exports.generateCreditNotePdf = async (creditNoteId) => {
     date: CompaniDate(creditNote.date).format(DD_MM_YYYY),
     misc: creditNote.misc,
     vendorCompany,
-    company: creditNote.company,
     courseBill: {
       number: creditNote.courseBill.number,
       date: CompaniDate(creditNote.courseBill.billedAt).format(DD_MM_YYYY),

@@ -281,3 +281,5 @@ exports.hasUserAccessToCompany = (credentials, company) => {
 
   return exports.doesArrayIncludeId(holdingCompanies, company);
 };
+
+exports.formatName = list => list.map(item => item.name).join(', ');

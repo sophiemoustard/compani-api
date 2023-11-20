@@ -38,7 +38,6 @@ describe('getPdfContent', () => {
         },
         siret: '27272727274124',
       },
-      company: { name: 'Test structure' },
       courseBill: { number: 'FACT-000045', date: '18/08/1998' },
       payer: {
         name: 'payeur',
@@ -211,7 +210,6 @@ describe('getPdfContent', () => {
         },
         siret: '27272727274124',
       },
-      company: { name: 'Test structure' },
       courseBill: { number: 'FACT-000045', date: '18/08/1998' },
       payer: {
         name: 'payeur',
@@ -354,7 +352,6 @@ describe('getPdf', () => {
       number: 'AV-000045',
       date: '21/08/1998',
       misc: 'motif',
-      company: { name: 'Test structure' },
       courseBill: { number: 'FACT-000045', date: '18/08/1998' },
       course: { subProgram: { program: { name: 'Test' } } },
       mainFee: { price: 1000, count: 1, description: 'description' },

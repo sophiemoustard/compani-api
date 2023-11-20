@@ -12,12 +12,12 @@ const { TRAINING_ORGANISATION_MANAGER, VENDOR_ADMIN, BALANCE, INTRA } = require(
 const { language } = translate;
 
 exports.authorizeCourseBillCreation = async (req) => {
-  const { course: courseId, company: companyId, payer } = req.payload;
+  const { course: courseId, companies: companiesIds, payer } = req.payload;
 
-  const course = await Course
-    .findOne({ _id: courseId, companies: companyId }, { type: 1, expectedBillsCount: 1 })
-    .lean();
-  if (!course) throw Boom.notFound();
+  const course = await Course.findOne({ _id: courseId }, { type: 1, expectedBillsCount: 1, companies: 1 }).lean();
+  const everyCompanyBelongsToCourse = course &&
+    companiesIds.every(c => UtilsHelper.doesArrayIncludeId(course.companies, c));
+  if (!everyCompanyBelongsToCourse) throw Boom.notFound();
 
   if (course.type === INTRA) {
     if (!course.expectedBillsCount) throw Boom.conflict();
@@ -164,13 +164,13 @@ exports.authorizeBillPdfGet = async (req) => {
   const isAdminVendor = [TRAINING_ORGANISATION_MANAGER, VENDOR_ADMIN].includes(userVendorRole);
 
   const bill = await CourseBill
-    .findOne({ _id: req.params._id, billedAt: { $exists: true, $type: 'date' } }, { company: 1, payer: 1 }).lean();
+    .findOne({ _id: req.params._id, billedAt: { $exists: true, $type: 'date' } }, { companies: 1, payer: 1 }).lean();
   if (!bill) throw Boom.notFound();
 
   if (!isAdminVendor) {
-    const companyId = get(credentials, 'company._id');
-    const hasSameCompany = UtilsHelper.areObjectIdsEquals(bill.company, companyId);
-    const isPayer = UtilsHelper.areObjectIdsEquals(bill.payer, companyId);
+    const loggedUserCompanyId = get(credentials, 'company._id');
+    const hasSameCompany = UtilsHelper.doesArrayIncludeId(bill.companies, loggedUserCompanyId);
+    const isPayer = UtilsHelper.areObjectIdsEquals(bill.payer, loggedUserCompanyId);
     if (!hasSameCompany && !isPayer) throw Boom.notFound();
   }
 

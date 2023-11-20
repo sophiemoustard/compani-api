@@ -1,3 +1,4 @@
+const CourseBill = require('../models/CourseBill');
 const CoursePayment = require('../models/CoursePayment');
 const CoursePaymentNumber = require('../models/CoursePaymentNumber');
 const { PAYMENT } = require('./constants');
@@ -11,8 +12,11 @@ exports.createCoursePayment = async (payload) => {
     )
     .lean();
 
+  const courseBill = await CourseBill.findOne({ _id: payload.courseBill }, { companies: 1 }).lean();
+
   const formattedPayload = {
     ...payload,
+    companies: courseBill.companies,
     number: `${payload.nature === PAYMENT ? 'REG' : 'REMB'}-${lastPaymentNumber.seq.toString().padStart(5, '0')}`,
   };
 

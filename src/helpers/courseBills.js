@@ -1,6 +1,7 @@
 const get = require('lodash/get');
 const flat = require('flat');
 const omit = require('lodash/omit');
+const pick = require('lodash/pick');
 const NumbersHelper = require('./numbers');
 const CourseBill = require('../models/CourseBill');
 const CourseBillsNumber = require('../models/CourseBillsNumber');
@@ -51,7 +52,7 @@ exports.formatCourseBill = (courseBill) => {
 
 const balance = async (company, credentials) => {
   const courseBills = await CourseBill
-    .find({ $or: [{ company }, { 'payer.company': company }], billedAt: { $exists: true, $type: 'date' } })
+    .find({ $or: [{ companies: company }, { 'payer.company': company }], billedAt: { $exists: true, $type: 'date' } })
     .populate({
       path: 'course',
       select: 'misc slots slotsToPlan subProgram companies',
@@ -61,6 +62,7 @@ const balance = async (company, credentials) => {
         { path: 'subProgram', select: 'program', populate: { path: 'program', select: 'name' } },
       ],
     })
+    .populate({ path: 'companies', select: 'name' })
     .populate({ path: 'payer.company', select: 'name' })
     .populate({ path: 'payer.fundingOrganisation', select: 'name' })
     .populate({
@@ -90,7 +92,7 @@ exports.list = async (query, credentials) => {
   if (query.action === LIST) {
     const courseBills = await CourseBill
       .find({ course: query.course })
-      .populate({ path: 'company', select: 'name' })
+      .populate({ path: 'companies', select: 'name' })
       .populate({ path: 'payer.fundingOrganisation', select: 'name' })
       .populate({ path: 'payer.company', select: 'name' })
       .populate({ path: 'courseCreditNote', options: { isVendorUser: !!get(credentials, 'role.vendor') } })
@@ -165,21 +167,17 @@ exports.generateBillPdf = async (billId) => {
       populate: { path: 'subProgram', select: 'program', populate: [{ path: 'program', select: 'name' }] },
     })
     .populate({ path: 'billingPurchaseList', select: 'billingItem', populate: { path: 'billingItem', select: 'name' } })
-    .populate({ path: 'company', select: 'name address' })
+    .populate({ path: 'companies', select: 'name address' })
     .populate({ path: 'payer.fundingOrganisation', select: 'name address' })
     .populate({ path: 'payer.company', select: 'name address' })
     .lean();
 
-  const { number, billedAt, company, payer, course, mainFee, billingPurchaseList } = bill;
+  const { billedAt, payer } = bill;
   const data = {
-    number,
+    ...pick(bill, ['number', 'companies', 'course', 'mainFee', 'billingPurchaseList']),
     date: CompaniDate(billedAt).format(DD_MM_YYYY),
     vendorCompany,
-    company,
     payer: { name: payer.name, address: get(payer, 'address.fullAddress') || payer.address },
-    course,
-    mainFee,
-    billingPurchaseList,
   };
 
   const pdf = await CourseBillPdf.getPdf(data);

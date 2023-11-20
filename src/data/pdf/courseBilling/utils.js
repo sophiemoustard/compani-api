@@ -16,24 +16,27 @@ const getImages = async () => {
 exports.getHeader = async (data, isBill = false) => {
   const [compani] = await getImages();
 
-  const billRecipientSection = {
-    stack: [{ text: 'Formation pour le compte de' }, { text: get(data, 'company.name'), bold: true }],
-    alignment: 'right',
-  };
-
-  const affiliateBillSection = {
-    stack: [
-      {
-        text: [
-          'Avoir sur la facture ',
-          { text: get(data, 'courseBill.number'), bold: true },
-          { text: ` du ${get(data, 'courseBill.date')}` },
-        ],
-      },
-      { text: data.misc ? `Motif de l'avoir : ${data.misc}` : '' },
-    ],
-    alignment: 'right',
-  };
+  const additionalInfosSection = isBill
+    ? {
+      stack: [
+        { text: 'Formation pour le compte de' },
+        { text: UtilsHelper.formatName(get(data, 'companies')), bold: true },
+      ],
+      alignment: 'right',
+    }
+    : {
+      stack: [
+        {
+          text: [
+            'Avoir sur la facture ',
+            { text: get(data, 'courseBill.number'), bold: true },
+            { text: ` du ${get(data, 'courseBill.date')}` },
+          ],
+        },
+        { text: data.misc ? `Motif de l'avoir : ${data.misc}` : '' },
+      ],
+      alignment: 'right',
+    };
 
   const header = [
     {
@@ -74,7 +77,7 @@ exports.getHeader = async (data, isBill = false) => {
             { text: get(data, 'payer.address') || '' },
           ],
         },
-        isBill ? billRecipientSection : affiliateBillSection,
+        additionalInfosSection,
       ],
     },
   ];

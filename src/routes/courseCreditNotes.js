@@ -20,7 +20,6 @@ exports.plugin = {
             courseBill: Joi.objectId().required(),
             misc: Joi.string().allow('', null),
             date: requiredDateToISOString,
-            company: Joi.objectId().required(),
           }),
         },
         pre: [{ method: authorizeCourseCreditNoteCreation }],

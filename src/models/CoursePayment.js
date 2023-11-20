@@ -8,7 +8,7 @@ const COURSE_PAYMENT_TYPES = PAYMENT_TYPES.filter(type => type !== CESU);
 const CoursePaymentSchema = mongoose.Schema({
   number: { type: String, unique: true, immutable: true },
   date: { type: Date, default: Date.now },
-  company: { type: mongoose.Schema.Types.ObjectId, ref: 'Company', required: true, immutable: true },
+  companies: { type: [mongoose.Schema.Types.ObjectId], ref: 'Company', required: true, immutable: true },
   courseBill: { type: mongoose.Schema.Types.ObjectId, ref: 'CourseBill' },
   netInclTaxes: { type: Number },
   nature: { type: String, enum: PAYMENT_NATURES, immutable: true },

@@ -21,7 +21,6 @@ exports.plugin = {
           payload: Joi.object({
             date: requiredDateToISOString.required(),
             courseBill: Joi.objectId().required(),
-            company: Joi.objectId().required(),
             netInclTaxes: Joi.number().min(0).required(),
             nature: Joi.string().valid(...PAYMENT_NATURES).required(),
             type: Joi.string().valid(...COURSE_PAYMENT_TYPES).required(),

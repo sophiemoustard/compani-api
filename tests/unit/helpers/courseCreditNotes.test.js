@@ -3,6 +3,7 @@ const { ObjectId } = require('mongodb');
 const sinon = require('sinon');
 const SinonMongoose = require('../sinonMongoose');
 const CourseCreditNoteHelper = require('../../../src/helpers/courseCreditNotes');
+const CourseBill = require('../../../src/models/CourseBill');
 const CourseCreditNote = require('../../../src/models/CourseCreditNote');
 const CourseCreditNoteNumber = require('../../../src/models/CourseCreditNoteNumber');
 const CourseCreditNotePdf = require('../../../src/data/pdf/courseBilling/courseCreditNote');
@@ -10,31 +11,41 @@ const VendorCompaniesHelper = require('../../../src/helpers/vendorCompanies');
 
 describe('createCourseCreditNote', () => {
   let create;
+  let findOneCourseBill;
   let findOneAndUpdateCourseCreditNoteNumber;
 
   beforeEach(() => {
     create = sinon.stub(CourseCreditNote, 'create');
+    findOneCourseBill = sinon.stub(CourseBill, 'findOne');
     findOneAndUpdateCourseCreditNoteNumber = sinon.stub(CourseCreditNoteNumber, 'findOneAndUpdate');
   });
 
   afterEach(() => {
     create.restore();
+    findOneCourseBill.restore();
     findOneAndUpdateCourseCreditNoteNumber.restore();
   });
 
   it('should create a credit note', async () => {
+    const companyId = new ObjectId();
+    const courseBillId = new ObjectId();
     const payload = {
       date: '2022-03-08T00:00:00.000Z',
-      company: new ObjectId(),
-      customerBill: new ObjectId(),
+      courseBill: courseBillId,
       misc: 'salut',
     };
+    const courseBill = { _id: courseBillId, companies: [companyId] };
     const lastPaymentNumber = { seq: 1 };
 
     findOneAndUpdateCourseCreditNoteNumber.returns(SinonMongoose.stubChainedQueries(lastPaymentNumber, ['lean']));
+    findOneCourseBill.returns(SinonMongoose.stubChainedQueries(courseBill, ['lean']));
 
     await CourseCreditNoteHelper.createCourseCreditNote(payload);
-    sinon.assert.calledOnceWithExactly(create, { ...payload, number: 'AV-00001' });
+    sinon.assert.calledOnceWithExactly(create, { ...payload, number: 'AV-00001', companies: [companyId] });
+    SinonMongoose.calledOnceWithExactly(
+      findOneCourseBill,
+      [{ query: 'findOne', args: [{ _id: courseBillId }, { companies: 1 }] }, { query: 'lean' }]
+    );
     SinonMongoose.calledOnceWithExactly(
       findOneAndUpdateCourseCreditNoteNumber,
       [
@@ -84,16 +95,7 @@ describe('generateCreditNotePdf', () => {
       misc: 'motif',
       number: 'AV-00001',
       date: '2022-03-09T00:00:00.000Z',
-      company: {
-        name: 'test',
-        address: {
-          fullAddress: '24 Avenue Daumesnil 75012 Paris',
-          street: '24 Avenue Daumesnil',
-          city: 'Paris',
-          zipCode: '75012',
-          location: { type: 'Point', coordinates: [2.37345, 48.848024] },
-        },
-      },
+      companies: [new ObjectId()],
       courseBill: {
         _id: new ObjectId(),
         course: {
@@ -107,16 +109,6 @@ describe('generateCreditNotePdf', () => {
         ],
         number: 'FACT-00001',
         billedAt: '2022-03-08T00:00:00.000Z',
-        company: {
-          name: 'test',
-          address: {
-            fullAddress: '24 Avenue Daumesnil 75012 Paris',
-            street: '24 Avenue Daumesnil',
-            city: 'Paris',
-            zipCode: '75012',
-            location: { type: 'Point', coordinates: [2.37345, 48.848024] },
-          },
-        },
         payer: {
           name: 'test',
           address: {
@@ -144,7 +136,6 @@ describe('generateCreditNotePdf', () => {
         misc: 'motif',
         courseBill: { number: 'FACT-00001', date: '08/03/2022' },
         vendorCompany,
-        company: creditNote.company,
         payer: { name: 'test', address: '24 Avenue Daumesnil 75012 Paris' },
         course: creditNote.courseBill.course,
         mainFee: creditNote.courseBill.mainFee,
@@ -177,7 +168,6 @@ describe('generateCreditNotePdf', () => {
             },
           ],
         },
-        { query: 'populate', args: [{ path: 'company', select: 'name address' }] },
         { query: 'lean' },
       ]);
   });
