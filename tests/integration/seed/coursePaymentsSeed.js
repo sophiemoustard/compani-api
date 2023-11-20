@@ -63,7 +63,7 @@ const coursePaymentsList = [
     _id: new ObjectId(),
     number: 'REG-00001',
     date: '2022-03-07T00:00:00.000Z',
-    company: authCompany._id,
+    companies: [authCompany._id],
     courseBill: courseBillsList[0]._id,
     netInclTaxes: 1200,
     nature: PAYMENT,

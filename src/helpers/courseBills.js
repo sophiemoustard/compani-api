@@ -62,6 +62,7 @@ const balance = async (company, credentials) => {
         { path: 'subProgram', select: 'program', populate: { path: 'program', select: 'name' } },
       ],
     })
+    .populate({ path: 'companies', select: 'name' })
     .populate({ path: 'payer.company', select: 'name' })
     .populate({ path: 'payer.fundingOrganisation', select: 'name' })
     .populate({
