@@ -873,6 +873,25 @@ const generateCompletionCertificatePdf = async (courseData, courseAttendances, t
   return { file: pdf, name: `Attestation - ${identity}.pdf` };
 };
 
+const generateOfficialCompletionCertificatePdf = async (courseData, courseAttendances, trainee) => {
+  const {
+    identity,
+    attendanceDuration,
+    companyName,
+  } = getTraineeInformations(trainee, courseAttendances, courseData.companyNamesById);
+
+  const pdf = await CompletionCertificate.getPdf(
+    {
+      ...omit(courseData, 'companyNamesById'),
+      trainee: { identity, attendanceDuration, companyName },
+      date: CompaniDate().format(DD_MM_YYYY),
+    },
+    OFFICIAL
+  );
+
+  return { file: pdf, name: `Certificat - ${identity}.pdf` };
+};
+
 const generateCompletionCertificateWord = async (course, attendances, trainee, templatePath, type) => {
   const {
     identity,
@@ -950,6 +969,11 @@ exports.generateCompletionCertificates = async (courseId, credentials, query) =>
   const traineeList = await getTraineeList(course, credentials);
   if (format === ALL_WORD) {
     return generateCompletionCertificateAllWord(courseData, attendances, traineeList, type, courseId);
+  }
+
+  if (type === OFFICIAL) {
+    const promises = traineeList.map(t => generateOfficialCompletionCertificatePdf(courseData, attendances, t));
+    return ZipHelper.generateZip('certificats_pdf.zip', await Promise.all(promises));
   }
 
   const promises = traineeList.map(t => generateCompletionCertificatePdf(courseData, attendances, t));
