@@ -42,7 +42,7 @@ describe('COURSE BILL ROUTES - GET /coursebills', () => {
       expect(response.result.data.courseBills).toEqual(expect.arrayContaining([
         expect.objectContaining({
           course: coursesList[0]._id,
-          company: pick(authCompany, ['_id', 'name']),
+          companies: [pick(authCompany, ['_id', 'name'])],
           payer: pick(authCompany, ['_id', 'name']),
           mainFee: { price: 120, count: 1 },
           billingPurchaseList: expect.arrayContaining([
@@ -53,7 +53,7 @@ describe('COURSE BILL ROUTES - GET /coursebills', () => {
         }),
         expect.objectContaining({
           course: coursesList[0]._id,
-          company: pick(authCompany, ['_id', 'name']),
+          companies: [pick(authCompany, ['_id', 'name'])],
           payer: pick(authCompany, ['_id', 'name']),
           mainFee: { price: 200, count: 2, description: 'yoyo' },
           billingPurchaseList: [expect.objectContaining({ billingItem: billingItemList[0]._id, price: 9, count: 1 })],
@@ -76,14 +76,14 @@ describe('COURSE BILL ROUTES - GET /coursebills', () => {
       expect(response.result.data.courseBills).toEqual(expect.arrayContaining([
         expect.objectContaining({
           course: coursesList[1]._id,
-          company: pick(authCompany, ['_id', 'name']),
+          companies: [pick(authCompany, ['_id', 'name'])],
           mainFee: { price: 120, count: 1, description: 'Lorem ipsum' },
           netInclTaxes: 120,
           payer: pick(courseFundingOrganisationList[0], ['_id', 'name']),
         }),
         expect.objectContaining({
           course: coursesList[1]._id,
-          company: pick(authCompany, ['_id', 'name']),
+          companies: [pick(authCompany, ['_id', 'name'])],
           mainFee: { price: 200, count: 2, description: 'yoyo' },
           netInclTaxes: 409,
           billingPurchaseList: [expect.objectContaining({ billingItem: billingItemList[0]._id, price: 9, count: 1 })],
@@ -308,7 +308,7 @@ describe('COURSE BILL ROUTES - POST /coursebills', () => {
   beforeEach(populateDB);
   const payload = {
     course: coursesList[2]._id,
-    company: otherCompany._id,
+    companies: [otherCompany._id],
     mainFee: { price: 120, count: 1 },
     payer: { fundingOrganisation: courseFundingOrganisationList[0]._id },
   };
@@ -365,13 +365,13 @@ describe('COURSE BILL ROUTES - POST /coursebills', () => {
         method: 'POST',
         url: '/coursebills',
         headers: { Cookie: `alenvi_token=${authToken}` },
-        payload: { ...payload, course: coursesList[1]._id, company: authCompany._id },
+        payload: { ...payload, course: coursesList[1]._id, companies: [authCompany._id] },
       });
 
       expect(response.statusCode).toBe(200);
     });
 
-    const missingParams = ['course', 'company', 'mainFee', 'mainFee.price', 'mainFee.count', 'payer'];
+    const missingParams = ['course', 'companies', 'mainFee', 'mainFee.price', 'mainFee.count', 'payer'];
     missingParams.forEach((param) => {
       it(`should return 400 as ${param} is missing`, async () => {
         const response = await app.inject({
@@ -421,18 +421,26 @@ describe('COURSE BILL ROUTES - POST /coursebills', () => {
       expect(response.statusCode).toBe(400);
     });
 
-    const wrongParams = ['course', 'company'];
-    wrongParams.forEach((param) => {
-      it(`should return 404 as ${param} doesn't exists`, async () => {
-        const response = await app.inject({
-          method: 'POST',
-          url: '/coursebills',
-          payload: { ...payload, [param]: new ObjectId() },
-          headers: { 'x-access-token': authToken },
-        });
-
-        expect(response.statusCode).toBe(404);
+    it('should return 404 as course doesn\'t exist', async () => {
+      const response = await app.inject({
+        method: 'POST',
+        url: '/coursebills',
+        payload: { ...payload, course: new ObjectId() },
+        headers: { 'x-access-token': authToken },
       });
+
+      expect(response.statusCode).toBe(404);
+    });
+
+    it('should return 404 as companies don\'t exist', async () => {
+      const response = await app.inject({
+        method: 'POST',
+        url: '/coursebills',
+        payload: { ...payload, companies: [new ObjectId()] },
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(404);
     });
 
     const wrongPayers = ['company', 'fundingOrganisation'];
@@ -449,22 +457,11 @@ describe('COURSE BILL ROUTES - POST /coursebills', () => {
       });
     });
 
-    it('should return 404 as company is not registered to course (intra)', async () => {
+    it('should return 404 as company is not registered to course', async () => {
       const response = await app.inject({
         method: 'POST',
         url: '/coursebills',
         payload: { ...payload, course: coursesList[0]._id },
-        headers: { 'x-access-token': authToken },
-      });
-
-      expect(response.statusCode).toBe(404);
-    });
-
-    it('should return 404 as company is not registered to course (inter)', async () => {
-      const response = await app.inject({
-        method: 'POST',
-        url: '/coursebills',
-        payload: { ...payload, course: coursesList[9]._id, company: authCompany._id },
         headers: { 'x-access-token': authToken },
       });
 
@@ -487,7 +484,7 @@ describe('COURSE BILL ROUTES - POST /coursebills', () => {
         method: 'POST',
         url: '/coursebills',
         headers: { Cookie: `alenvi_token=${authToken}` },
-        payload: { ...payload, course: coursesList[0]._id, company: authCompany._id },
+        payload: { ...payload, course: coursesList[0]._id, companies: [authCompany._id] },
       });
 
       expect(response.statusCode).toBe(409);

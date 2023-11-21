@@ -979,7 +979,7 @@ describe('SEEDS VERIFICATION', () => {
           courseBillList = await CourseBill
             .find()
             .populate({ path: 'course', select: 'format companies type expectedBillsCount', transform })
-            .populate({ path: 'company', transform })
+            .populate({ path: 'companies', transform })
             .populate({ path: 'payer.company', transform })
             .populate({ path: 'payer.fundingOrganisation', transform })
             .populate({
@@ -1012,14 +1012,14 @@ describe('SEEDS VERIFICATION', () => {
         });
 
         it('should pass if every company exists', () => {
-          const everyCompanyExists = courseBillList.every(bill => !!bill.company);
+          const everyCompanyExists = courseBillList.every(bill => bill.companies.every(c => !!c));
 
           expect(everyCompanyExists).toBeTruthy();
         });
 
         it('should pass if every company is linked to course', () => {
           const everyCompanyIsLinkedToCourse = courseBillList
-            .every(bill => UtilsHelper.doesArrayIncludeId(bill.course.companies, bill.company._id));
+            .every(bill => bill.companies.every(c => UtilsHelper.doesArrayIncludeId(bill.course.companies, c._id)));
 
           expect(everyCompanyIsLinkedToCourse).toBeTruthy();
         });
@@ -1126,8 +1126,8 @@ describe('SEEDS VERIFICATION', () => {
         before(async () => {
           courseCreditNoteList = await CourseCreditNote
             .find()
-            .populate({ path: 'courseBill', select: 'company billedAt', transform })
-            .populate({ path: 'company', transform })
+            .populate({ path: 'courseBill', select: 'companies billedAt', transform })
+            .populate({ path: 'companies', transform })
             .setOptions({ allCompanies: true })
             .lean();
         });
@@ -1146,12 +1146,12 @@ describe('SEEDS VERIFICATION', () => {
         });
 
         it('should pass if every course credit note has good company', () => {
-          const everyCompanyExists = courseCreditNoteList.every(creditNote => !!creditNote.company);
+          const everyCompanyExists = courseCreditNoteList.every(creditNote => creditNote.companies.every(c => !!c));
 
           expect(everyCompanyExists).toBeTruthy();
-
           const everyCompanyIsInCourseBill = courseCreditNoteList
-            .every(creditNote => UtilsHelper.areObjectIdsEquals(creditNote.company._id, creditNote.courseBill.company));
+            .every(cn => cn.companies.every(c => UtilsHelper.doesArrayIncludeId(cn.courseBill.companies, c._id)) &&
+              cn.companies.length === cn.courseBill.companies.length);
 
           expect(everyCompanyIsInCourseBill).toBeTruthy();
         });
@@ -1212,8 +1212,8 @@ describe('SEEDS VERIFICATION', () => {
         before(async () => {
           coursePaymentList = await CoursePayment
             .find()
-            .populate({ path: 'courseBill', select: 'company billedAt', transform })
-            .populate({ path: 'company', transform })
+            .populate({ path: 'courseBill', select: 'companies billedAt', transform })
+            .populate({ path: 'companies', transform })
             .setOptions({ allCompanies: true })
             .lean();
         });
@@ -1232,12 +1232,14 @@ describe('SEEDS VERIFICATION', () => {
         });
 
         it('should pass if every course payment has good company', () => {
-          const everyCompanyExists = coursePaymentList.every(payment => !!payment.company);
+          const everyCompanyExists = coursePaymentList.every(payment => payment.companies.every(c => !!c));
 
           expect(everyCompanyExists).toBeTruthy();
 
           const everyCompanyIsInCourseBill = coursePaymentList
-            .every(payment => UtilsHelper.areObjectIdsEquals(payment.company._id, payment.courseBill.company));
+            .every(payment => payment.companies.length === payment.courseBill.companies.length &&
+              payment.companies.every(c => UtilsHelper.doesArrayIncludeId(payment.courseBill.companies, c._id))
+            );
 
           expect(everyCompanyIsInCourseBill).toBeTruthy();
         });

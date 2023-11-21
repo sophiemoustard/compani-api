@@ -32,6 +32,9 @@ const {
   PUBLISHED,
   HOLDING_ADMIN,
   INTRA_HOLDING,
+  ALL_WORD,
+  PDF,
+  OFFICIAL,
 } = require('../../helpers/constants');
 const translate = require('../../helpers/translate');
 const UtilsHelper = require('../../helpers/utils');
@@ -172,11 +175,26 @@ exports.authorizeGetDocuments = async (req) => {
   if (!course) throw Boom.notFound();
 
   const isTrainee = UtilsHelper.doesArrayIncludeId(course.trainees, get(credentials, '_id'));
-  if (isTrainee && get(req, 'query.origin') === MOBILE) return null;
+  if (isTrainee && (get(req, 'query.origin') === MOBILE || get(req, 'query.format') === PDF)) return null;
 
   const courseTrainerId = get(course, 'trainer') || null;
   const holding = course.type === INTRA_HOLDING ? course.holding : null;
   this.checkAuthorization(credentials, courseTrainerId, course.companies, holding);
+
+  return null;
+};
+
+exports.authorizeGetCompletionCertificates = async (req) => {
+  const { auth, query: { format, type } } = req;
+
+  const userVendorRole = get(auth, 'credentials.role.vendor.name');
+  const isRofOrAdmin = [TRAINING_ORGANISATION_MANAGER, VENDOR_ADMIN].includes(userVendorRole);
+
+  const userClientRole = get(auth, 'credentials.role.client.name');
+  const isCoachOrAdmin = [COACH, CLIENT_ADMIN].includes(userClientRole);
+
+  if (format === ALL_WORD && !isRofOrAdmin) throw Boom.forbidden();
+  if (type === OFFICIAL && !isRofOrAdmin && !isCoachOrAdmin) throw Boom.forbidden();
 
   return null;
 };
@@ -615,7 +633,7 @@ exports.authorizeCourseCompanyDeletion = async (req) => {
   const holdingRole = get(req, 'auth.credentials.role.holding.name');
 
   const course = await Course.findOne({ _id: req.params._id })
-    .populate({ path: 'bills', select: 'company', match: { company: companyId } })
+    .populate({ path: 'bills', select: 'companies', match: { companies: companyId } })
     .populate({
       path: 'slots',
       select: 'attendances',
@@ -661,7 +679,7 @@ exports.authorizeCourseCompanyDeletion = async (req) => {
     .some(sheet => UtilsHelper.doesArrayIncludeId(sheet.companies, companyId));
   if (hasAttendanceSheetsFromCompany) throw Boom.forbidden(translate[language].companyHasAttendanceSheetForCourse);
 
-  if (course.bills.some(bill => UtilsHelper.areObjectIdsEquals(companyId, bill.company))) {
+  if (course.bills.some(bill => UtilsHelper.doesArrayIncludeId(bill.companies, companyId))) {
     throw Boom.forbidden(translate[language].companyHasCourseBill);
   }
 

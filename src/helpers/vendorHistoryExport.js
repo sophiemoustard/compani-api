@@ -34,6 +34,7 @@ const AttendanceSheet = require('../models/AttendanceSheet');
 const CourseSmsHistory = require('../models/CourseSmsHistory');
 const CourseSlot = require('../models/CourseSlot');
 const CourseBill = require('../models/CourseBill');
+const CourseCreditNote = require('../models/CourseCreditNote');
 const CourseRepository = require('../repositories/CourseRepository');
 const QuestionnaireHistory = require('../models/QuestionnaireHistory');
 const CourseHistory = require('../models/CourseHistory');
@@ -361,6 +362,20 @@ exports.exportEndOfCourseQuestionnaireHistory = async (startDate, endDate, crede
   return rows.length ? [Object.keys(rows[0]), ...rows.map(d => Object.values(d))] : [[NO_DATA]];
 };
 
+const formatCommonInfos = (bill, netInclTaxes) => {
+  const companyName = bill.course.type === INTRA ? `${bill.companies[0].name} - ` : '';
+  const misc = bill.course.misc ? ` - ${bill.course.misc}` : '';
+  const courseName = `${companyName}${bill.course.subProgram.program.name}${misc}`;
+
+  return {
+    'Id formation': bill.course._id,
+    Formation: courseName,
+    Structure: bill.companies.map(c => c.name).join(', '),
+    Payeur: bill.payer.name,
+    'Montant TTC': UtilsHelper.formatFloatForExport(netInclTaxes),
+  };
+};
+
 exports.exportCourseBillAndCreditNoteHistory = async (startDate, endDate, credentials) => {
   const isVendorUser = [TRAINING_ORGANISATION_MANAGER, VENDOR_ADMIN].includes(get(credentials, 'role.vendor.name'));
   const courseBills = await CourseBill
@@ -376,11 +391,30 @@ exports.exportCourseBillAndCreditNoteHistory = async (startDate, endDate, creden
         ],
       }
     )
-    .populate({ path: 'company', select: 'name' })
+    .populate({ path: 'companies', select: 'name' })
     .populate({ path: 'payer.company', select: 'name' })
     .populate({ path: 'payer.fundingOrganisation', select: 'name' })
-    .populate({ path: 'courseCreditNote', select: 'number date', options: { isVendorUser } })
+    .populate({ path: 'courseCreditNote', select: 'number', options: { isVendorUser } })
     .populate({ path: 'coursePayments', select: 'netInclTaxes nature', options: { isVendorUser } })
+    .setOptions({ isVendorUser })
+    .lean();
+
+  const courseCreditNotes = await CourseCreditNote
+    .find({ date: { $lte: endDate, $gte: startDate } })
+    .populate({
+      path: 'courseBill',
+      populate: [
+        { path: 'companies', select: 'name' },
+        { path: 'payer.company', select: 'name' },
+        { path: 'payer.fundingOrganisation', select: 'name' },
+        { path: 'coursePayments', select: 'netInclTaxes nature', options: { isVendorUser } },
+        {
+          path: 'course',
+          select: 'subProgram misc type',
+          populate: { path: 'subProgram', select: 'program', populate: { path: 'program', select: 'name' } },
+        },
+      ],
+    })
     .setOptions({ isVendorUser })
     .lean();
 
@@ -395,16 +429,7 @@ exports.exportCourseBillAndCreditNoteHistory = async (startDate, endDate, creden
     const middleCourseSlot = middleIndex < sortedCourseSlots.length && sortedCourseSlots[middleIndex];
     const endCourseSlot = sortedCourseSlots.length && !bill.course.slotsToPlan.length &&
       sortedCourseSlots[sortedCourseSlots.length - 1];
-    const companyName = bill.course.type === INTRA ? `${bill.company.name} - ` : '';
-    const misc = bill.course.misc ? ` - ${bill.course.misc}` : '';
-    const courseName = `${companyName}${bill.course.subProgram.program.name}${misc}`;
-    const commonInfos = {
-      'Id formation': bill.course._id,
-      Formation: courseName,
-      Structure: bill.company.name,
-      Payeur: bill.payer.name,
-      'Montant TTC': UtilsHelper.formatFloatForExport(netInclTaxes),
-    };
+    const commonInfos = formatCommonInfos(bill, netInclTaxes);
 
     const formattedBill = {
       Nature: BILLING_DOCUMENTS[BILL],
@@ -414,7 +439,7 @@ exports.exportCourseBillAndCreditNoteHistory = async (startDate, endDate, creden
       'Montant réglé': bill.courseCreditNote
         ? UtilsHelper.formatFloatForExport(NumbersHelper.subtract(paid, netInclTaxes))
         : UtilsHelper.formatFloatForExport(paid),
-      Avoir: get(bill, 'courseCreditNote.number') || '',
+      'Document lié': get(bill, 'courseCreditNote.number') || '',
       'Montant soldé': bill.courseCreditNote ? UtilsHelper.formatFloatForExport(netInclTaxes) : '',
       Solde: UtilsHelper.formatFloatForExport(total),
       Avancement: getProgress(pastSlots, bill.course),
@@ -424,25 +449,29 @@ exports.exportCourseBillAndCreditNoteHistory = async (startDate, endDate, creden
     };
 
     rows.push(formattedBill);
+  }
 
-    if (bill.courseCreditNote) {
-      const formattedCreditNote = {
-        Nature: BILLING_DOCUMENTS[CREDIT_NOTE],
-        Identifiant: bill.courseCreditNote.number,
-        Date: CompaniDate(bill.courseCreditNote.date).format(DD_MM_YYYY),
-        ...commonInfos,
-        'Montant réglé': '',
-        Avoir: '',
-        'Montant soldé': '',
-        Solde: '',
-        Avancement: '',
-        'Début de la formation': '',
-        'Milieu de la formation': '',
-        'Fin de la formation': '',
-      };
+  for (const creditNote of courseCreditNotes) {
+    const { netInclTaxes } = CourseBillHelper
+      .computeAmounts({ ...creditNote.courseBill, courseCreditNote: { _id: creditNote._id } });
+    const commonInfos = formatCommonInfos(creditNote.courseBill, netInclTaxes);
 
-      rows.push(formattedCreditNote);
-    }
+    const formattedCreditNote = {
+      Nature: BILLING_DOCUMENTS[CREDIT_NOTE],
+      Identifiant: creditNote.number,
+      Date: CompaniDate(creditNote.date).format(DD_MM_YYYY),
+      ...commonInfos,
+      'Montant réglé': '',
+      'Document lié': creditNote.courseBill.number,
+      'Montant soldé': '',
+      Solde: '',
+      Avancement: '',
+      'Début de la formation': '',
+      'Milieu de la formation': '',
+      'Fin de la formation': '',
+    };
+
+    rows.push(formattedCreditNote);
   }
 
   return rows.length ? [Object.keys(rows[0]), ...rows.map(d => Object.values(d))] : [[NO_DATA]];

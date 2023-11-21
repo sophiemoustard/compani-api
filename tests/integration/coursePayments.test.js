@@ -22,7 +22,6 @@ describe('COURSE PAYMENTS ROUTES - POST /coursepayments', () => {
   const payload = {
     date: '2022-03-08T00:00:00.000Z',
     courseBill: courseBillsList[0]._id,
-    company: authCompany._id,
     netInclTaxes: 1200.20,
     nature: PAYMENT,
     type: DIRECT_DEBIT,
@@ -43,7 +42,8 @@ describe('COURSE PAYMENTS ROUTES - POST /coursepayments', () => {
 
       expect(paymentResponse.statusCode).toBe(200);
 
-      const newPayment = await CoursePayment.countDocuments({ ...payload, number: 'REG-00002' });
+      const newPayment = await CoursePayment
+        .countDocuments({ ...payload, number: 'REG-00002', companies: [authCompany._id] });
       const paymentNumber = await CoursePaymentNumber.findOne({ nature: PAYMENT }).lean();
       expect(newPayment).toBeTruthy();
       expect(paymentNumber.seq).toBe(2);
@@ -57,13 +57,14 @@ describe('COURSE PAYMENTS ROUTES - POST /coursepayments', () => {
 
       expect(refundResponse.statusCode).toBe(200);
 
-      const newRefund = await CoursePayment.countDocuments({ ...payload, nature: REFUND, number: 'REMB-00001' });
+      const newRefund = await CoursePayment
+        .countDocuments({ ...payload, nature: REFUND, number: 'REMB-00001', companies: [authCompany._id] });
       const refundNumber = await CoursePaymentNumber.findOne({ nature: REFUND }).lean();
       expect(newRefund).toBeTruthy();
       expect(refundNumber.seq).toBe(1);
     });
 
-    const missingParams = ['date', 'courseBill', 'company', 'netInclTaxes', 'nature', 'type'];
+    const missingParams = ['date', 'courseBill', 'netInclTaxes', 'nature', 'type'];
     missingParams.forEach((param) => {
       it(`should return a 400 error if '${param}' param is missing`, async () => {
         const res = await app.inject({
@@ -92,17 +93,6 @@ describe('COURSE PAYMENTS ROUTES - POST /coursepayments', () => {
         });
         expect(res.statusCode).toBe(400);
       });
-    });
-
-    it('should return a 404 if company doesn\'t exist', async () => {
-      const response = await app.inject({
-        method: 'POST',
-        url: '/coursepayments',
-        payload: { ...payload, company: new ObjectId() },
-        headers: { Cookie: `alenvi_token=${authToken}` },
-      });
-
-      expect(response.statusCode).toBe(404);
     });
 
     it('should return a 404 if course bill doesn\'t exist', async () => {

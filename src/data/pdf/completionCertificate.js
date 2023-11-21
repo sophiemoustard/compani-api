@@ -1,6 +1,6 @@
 const FileHelper = require('../../helpers/file');
 const PdfHelper = require('../../helpers/pdf');
-const { COPPER_500, ORANGE_500, COPPER_50 } = require('../../helpers/constants');
+const { COPPER_500, ORANGE_500, COPPER_50, CUSTOM } = require('../../helpers/constants');
 
 const getImages = async () => {
   const imageList = [
@@ -27,9 +27,10 @@ const getHeader = (thumb, compani) => [
   },
 ];
 
-exports.getPdfContent = async (data) => {
+exports.getCustomPdfContent = async (data) => {
   const [thumb, compani, lighted, emoji, signature] = await getImages();
   const { trainee, programName, duration, startDate, endDate, learningGoals, date } = data;
+  const isLargeProgramName = programName.length > 80;
 
   const header = getHeader(thumb, compani);
 
@@ -53,7 +54,7 @@ exports.getPdfContent = async (data) => {
       marginBottom: 16,
     },
     {
-      canvas: [{ type: 'rect', x: 0, y: 0, w: 515, h: 24, r: 0, color: COPPER_50 }],
+      canvas: [{ type: 'rect', x: 0, y: 0, w: 515, h: isLargeProgramName ? 32 : 24, r: 0, color: COPPER_50 }],
       absolutePosition: { x: 40, y: 264 },
       marginBottom: 8,
     },
@@ -141,8 +142,187 @@ exports.getPdfContent = async (data) => {
   };
 };
 
-exports.getPdf = async (data) => {
-  const { template, images } = await exports.getPdfContent(data);
+const defineCheckbox = (xPos, yPos, label, isLargeProgramName, isChecked = false) => {
+  const yPosition = isLargeProgramName ? yPos + 14 : yPos;
+
+  return [
+    { canvas: [{ type: 'rect', x: 0, y: 0, w: 8, h: 8, r: 0 }], absolutePosition: { x: xPos, y: yPosition } },
+    {
+      text: [
+        { text: isChecked ? '√' : '', position: { x: xPos, y: yPosition }, marginRight: 4 },
+        { text: [{ text: label }, { text: isChecked ? ' 1' : '', fontSize: 8, bold: true }] },
+      ],
+      marginBottom: 4,
+      marginLeft: isChecked ? 20 : 32,
+    },
+  ];
+};
+
+exports.getOfficialPdfContent = async (data) => {
+  const { trainee, programName, startDate, endDate, date } = data;
+  const isLargeProgramName = programName.length > 60;
+
+  const imageList = [
+    { url: 'https://storage.googleapis.com/compani-main/tsb_signature.png', name: 'signature.png' },
+    { url: 'https://storage.googleapis.com/compani-main/icons/compani_texte_bleu.png', name: 'compani.png' },
+    { url: 'https://storage.googleapis.com/compani-main/logo_ministere_travail.png', name: 'ministere_travail.png' },
+  ];
+  const [signature, compani, logo] = await FileHelper.downloadImages(imageList);
+
+  const header = [
+    { columns: [{ image: logo, width: 60 }, {}, { image: compani, width: 130 }], marginBottom: 24 },
+    { text: 'CERTIFICAT DE RÉALISATION', style: 'title', alignment: 'center', marginBottom: 24 },
+  ];
+
+  const body = [
+    {
+      text: [
+        { text: 'Je soussigné ', bold: true },
+        { text: 'Thibault de Saint Blancard ', italics: true },
+        {
+          text: 'représentant légal du dispensateur de l\'action concourant au développement des compétences ',
+          bold: true,
+        },
+        { text: 'COMPANI', italics: true },
+      ],
+    },
+    { text: 'atteste que :', bold: true, marginTop: 4, marginBottom: 8 },
+    {
+      text: [{ text: 'Mme/M. ', bold: true }, { text: `${trainee.identity}`, italics: true }],
+      marginLeft: 4,
+      marginBottom: 8,
+    },
+    {
+      text: [{ text: 'salarié(e) de l\'entreprise ', bold: true }, { text: `${trainee.companyName}`, italics: true }],
+      marginLeft: 4,
+      marginBottom: 8,
+    },
+    {
+      text: [{ text: 'a suivi l\'action ', bold: true }, { text: `${programName}`, italics: true }],
+      marginLeft: 4,
+      marginBottom: 8,
+    },
+    {
+      text: [{ text: 'Nature de l\'action concourant au développement des compétences :', bold: true }],
+      marginLeft: 4,
+      marginBottom: 4,
+    },
+    ...defineCheckbox(59, 306, ' action de formation', isLargeProgramName, true),
+    ...defineCheckbox(59, 324, ' bilan de compétences', isLargeProgramName),
+    ...defineCheckbox(59, 343, ' action de VAE', isLargeProgramName),
+    ...defineCheckbox(59, 361, ' action de formation par apprentissage', isLargeProgramName),
+    {
+      text: [
+        { text: 'qui s\'est déroulée du ', bold: true },
+        { text: `${startDate} `, italics: true },
+        { text: 'au ', bold: true },
+        { text: `${endDate}`, italics: true },
+      ],
+      marginLeft: 4,
+      marginBottom: 8,
+      marginTop: 4,
+    },
+    {
+      text: [
+        {
+          text: [
+            { text: 'pour une durée de ', bold: true },
+            { text: `${trainee.attendanceDuration} .`, italics: true },
+          ],
+        },
+        { text: '2', fontSize: 8, bold: true },
+      ],
+      marginBottom: 8,
+      marginLeft: 4,
+    },
+    {
+      text: 'Sans préjudice des délais imposés par les règles fiscales, comptables ou commerciales, je m\'engage à '
+      + 'conserver l\'ensemble des pièces justificatives qui ont permis d\'établir le présent certificat pendant une '
+      + 'durée de 3 ans à compter de la fin de l\'année du dernier paiement. En cas de cofinancement des fonds '
+      + 'européens la durée de conservation est étendue conformément aux obligations conventionnelles spécifiques.',
+      alignment: 'justify',
+      bold: true,
+    },
+  ];
+
+  const footer = [
+    {
+      columns: [
+        [
+          {
+            text: [{ text: 'Fait à : ', bold: true }, { text: 'Paris', italics: true }],
+            absolutePosition: { x: 35, y: 520 },
+            marginLeft: 46,
+          },
+          {
+            text: [{ text: 'Le : ', bold: true }, { text: `${date}`, italics: true }],
+            absolutePosition: { x: 35, y: 540 },
+            marginLeft: 46,
+          },
+        ],
+        [
+          {
+            canvas: [{ type: 'rect', x: 0, y: 0, w: 260, h: 180, r: 0 }],
+            absolutePosition: { y: 525 },
+            alignment: 'right',
+          },
+          {
+            text: 'Cachet et signature du responsable du \n dispensateur de formation',
+            marginTop: 6,
+            alignment: 'center',
+          },
+          {
+            text: 'Thibault de Saint Blancard, Directeur Compani',
+            bold: true,
+            marginTop: 6,
+            alignment: 'center',
+            fontSize: 12,
+          },
+          { image: signature, width: 130, absolutePosition: { x: 380, y: 585 } },
+        ],
+      ],
+      marginLeft: 40,
+      marginRight: 40,
+      marginTop: 16,
+      absolutePosition: { x: 35, y: 525 },
+    },
+    {
+      text: [
+        { text: '1 ', fontSize: 8 },
+        {
+          text: 'Lorsque l\'action est mise en œuvre dans le cadre d\'un projet de transition professionnelle, '
+            + 'le certificat de réalisation doit être transmis mensuellement. \n',
+        },
+        { text: '2 ', fontSize: 8 },
+        {
+          text: 'Dans le cadre des formations à distance prendre en compte la réalisation des activités pédagogiques '
+              + 'et le temps estimé pour les réaliser.',
+        },
+      ],
+      absolutePosition: { x: 35, y: 735 },
+      marginLeft: 40,
+      marginRight: 40,
+      marginTop: 8,
+      fontSize: 12,
+      bold: true,
+    },
+  ];
+
+  return {
+    template: {
+      content: [header, body, footer].flat(),
+      defaultStyle: { font: 'Calibri', fontSize: 14 },
+      pageMargins: [40, 40, 40, 40],
+      styles: { title: { fontSize: 24, bold: true, color: '#0404B4' } },
+    },
+    images: [signature, compani, logo],
+  };
+};
+
+exports.getPdf = async (data, type = CUSTOM) => {
+  const { template, images } = type === CUSTOM
+    ? await exports.getCustomPdfContent(data)
+    : await exports.getOfficialPdfContent(data);
 
   return PdfHelper.generatePdf(template, images);
 };

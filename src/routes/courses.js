@@ -48,6 +48,7 @@ const {
   authorizeCourseCompanyAddition,
   authorizeCourseCompanyDeletion,
   authorizeGenerateTrainingContract,
+  authorizeGetCompletionCertificates,
 } = require('./preHandlers/courses');
 const {
   INTRA,
@@ -58,6 +59,10 @@ const {
   ORIGIN_OPTIONS,
   QUESTIONNAIRE,
   INTRA_HOLDING,
+  FORMAT_OPTIONS,
+  PDF,
+  CUSTOM,
+  TYPE_OPTIONS,
 } = require('../helpers/constants');
 const { dateToISOString } = require('./validations/utils');
 
@@ -316,9 +321,13 @@ exports.plugin = {
         auth: { mode: 'required' },
         validate: {
           params: Joi.object({ _id: Joi.objectId().required() }),
-          query: Joi.object({ origin: Joi.string().valid(...ORIGIN_OPTIONS) }),
+          query: Joi.object({
+            origin: Joi.string().valid(...ORIGIN_OPTIONS), // #TODO - champ a retirer (apres la MEP)
+            format: Joi.string().valid(...FORMAT_OPTIONS).default(PDF), // #TODO - rendre ce champ requis (apres la MEP)
+            type: Joi.string().valid(...TYPE_OPTIONS).default(CUSTOM),
+          }),
         },
-        pre: [{ method: authorizeGetDocuments }],
+        pre: [{ method: authorizeGetDocuments }, { method: authorizeGetCompletionCertificates }],
       },
       handler: downloadCompletionCertificates,
     });
