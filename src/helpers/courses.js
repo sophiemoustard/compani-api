@@ -936,9 +936,17 @@ const getTraineeList = async (course, credentials) => {
 const generateCompletionCertificateAllWord = async (courseData, attendances, traineeList, type) => {
   const tmpFilePath = path.join(os.tmpdir(), 'certificate_template.docx');
 
-  const fileId = type === CUSTOM
-    ? process.env.GOOGLE_DRIVE_TRAINING_CERTIFICATE_TEMPLATE_ID
-    : process.env.GOOGLE_DRIVE_OFFICIAL_TRAINING_CERTIFICATE_TEMPLATE_ID;
+  let fileId;
+  if (type === CUSTOM) {
+    fileId = courseData.duration.eLearning === '0h'
+      ? process.env.GOOGLE_DRIVE_TRAINING_CERTIFICATE_TEMPLATE_ID
+      : process.env.GOOGLE_DRIVE_TRAINING_CERTIFICATE_TEMPLATE_WITH_ELEARNING_ID;
+  } else {
+    fileId = courseData.duration.eLearning === '0h'
+      ? process.env.GOOGLE_DRIVE_OFFICIAL_TRAINING_CERTIFICATE_TEMPLATE_ID
+      : process.env.GOOGLE_DRIVE_OFFICIAL_TRAINING_CERTIFICATE_TEMPLATE_WITH_ELEARNING_ID;
+  }
+
   await drive.downloadFileById({ fileId, tmpFilePath });
 
   const promises = traineeList
