@@ -887,7 +887,7 @@ const getELearningDuration = (steps, traineeId) => {
   return eLearningDuration;
 };
 
-const getTraineeInformations = (trainee, courseAttendances, companiesNames = null, steps = []) => {
+const getTraineeInformations = (trainee, courseAttendances, steps, companiesNames = null) => {
   const identity = UtilsHelper.formatIdentity(trainee.identity, 'FL');
   const traineeSlots = courseAttendances
     .filter(a => UtilsHelper.areObjectIdsEquals(trainee._id, a.trainee))
@@ -903,11 +903,15 @@ const getTraineeInformations = (trainee, courseAttendances, companiesNames = nul
 };
 
 const generateCompletionCertificatePdf = async (courseData, courseAttendances, trainee) => {
-  const { identity, attendanceDuration } = getTraineeInformations(trainee, courseAttendances);
+  const {
+    identity,
+    attendanceDuration,
+    eLearningDuration,
+  } = getTraineeInformations(trainee, courseAttendances, courseData.steps);
 
   const pdf = await CompletionCertificate.getPdf({
     ...omit(courseData, ['companyNamesById', 'steps']),
-    trainee: { identity, attendanceDuration },
+    trainee: { identity, attendanceDuration, eLearningDuration },
     date: CompaniDate().format(DD_MM_YYYY),
   });
 
@@ -919,12 +923,13 @@ const generateOfficialCompletionCertificatePdf = async (courseData, courseAttend
     identity,
     attendanceDuration,
     companyName,
-  } = getTraineeInformations(trainee, courseAttendances, courseData.companyNamesById);
+    eLearningDuration,
+  } = getTraineeInformations(trainee, courseAttendances, courseData.steps, courseData.companyNamesById);
 
   const pdf = await CompletionCertificate.getPdf(
     {
       ...omit(courseData, ['companyNamesById', 'steps']),
-      trainee: { identity, attendanceDuration, companyName },
+      trainee: { identity, attendanceDuration, companyName, eLearningDuration },
       date: CompaniDate().format(DD_MM_YYYY),
     },
     OFFICIAL
@@ -939,7 +944,7 @@ const generateCompletionCertificateWord = async (course, attendances, trainee, t
     attendanceDuration,
     companyName,
     eLearningDuration,
-  } = getTraineeInformations(trainee, attendances, course.companyNamesById, course.steps);
+  } = getTraineeInformations(trainee, attendances, course.steps, course.companyNamesById);
 
   const filePath = await DocxHelper.createDocx(
     templatePath,

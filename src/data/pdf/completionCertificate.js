@@ -31,6 +31,7 @@ exports.getCustomPdfContent = async (data) => {
   const [thumb, compani, lighted, emoji, signature] = await getImages();
   const { trainee, programName, duration, startDate, endDate, learningGoals, date } = data;
   const isLargeProgramName = programName.length > 80;
+  const hasELearningStep = duration.eLearning !== '0h';
 
   const header = getHeader(thumb, compani);
 
@@ -62,7 +63,7 @@ exports.getCustomPdfContent = async (data) => {
     {
       text: [
         { text: 'Durée', decoration: 'underline' },
-        ` : ${duration} de formation en présentiel du `,
+        ` : ${duration.onSite} de formation en présentiel du `,
         { text: `${startDate} au ${endDate}`, color: COPPER_500 },
       ],
     },
@@ -77,13 +78,38 @@ exports.getCustomPdfContent = async (data) => {
       table: {
         body: [
           [{ text: 'Assiduité du stagiaire :', style: 'subTitle' }],
-          [{
-            text: [
-              { text: trainee.identity, italics: true },
-              ' a été présent(e) à ',
-              { text: `${trainee.attendanceDuration} de formation sur les ${duration} prévues.`, bold: true },
-            ],
-          }],
+          ...(hasELearningStep
+            ? [[{
+              text: [
+                { text: trainee.identity, italics: true },
+                ' a été présent(e) à ',
+                {
+                  text: `${trainee.attendanceDuration} de formation présentielle (ou distancielle) sur`
+                    + `les ${duration.onSite} prévues.`,
+                  bold: true,
+                },
+              ],
+            }],
+            [{
+              text: [
+                { text: trainee.identity, italics: true },
+                ' a réalisé ',
+                {
+                  text: `${trainee.eLearningDuration} de formation eLearning sur les ${duration.eLearning} prévues.`,
+                  bold: true,
+                },
+              ],
+            }]]
+            : [[{
+              text: [
+                { text: trainee.identity, italics: true },
+                ' a été présent(e) à ',
+                {
+                  text: `${trainee.attendanceDuration} de formation sur les ${duration.onSite} prévues.`,
+                  bold: true,
+                },
+              ],
+            }]]),
           [{ text: 'Objectifs pédagogiques :', style: 'subTitle' }],
           [{
             text: [
@@ -159,8 +185,9 @@ const defineCheckbox = (xPos, yPos, label, isLargeProgramName, isChecked = false
 };
 
 exports.getOfficialPdfContent = async (data) => {
-  const { trainee, programName, startDate, endDate, date } = data;
+  const { trainee, programName, startDate, endDate, date, duration } = data;
   const isLargeProgramName = programName.length > 60;
+  const hasELearningStep = duration.eLearning !== '0h';
 
   const imageList = [
     { url: 'https://storage.googleapis.com/compani-main/tsb_signature.png', name: 'signature.png' },
@@ -227,7 +254,13 @@ exports.getOfficialPdfContent = async (data) => {
         {
           text: [
             { text: 'pour une durée de ', bold: true },
-            { text: `${trainee.attendanceDuration} .`, italics: true },
+            (!hasELearningStep
+              ? { text: `${trainee.attendanceDuration} .`, italics: true }
+              : {
+                text: `${trainee.attendanceDuration} en formation présentielle (ou distancielle) et `
+                + `de ${trainee.eLearningDuration} en formation eLearning.`,
+                italics: true,
+              }),
           ],
         },
         { text: '2', fontSize: 8, bold: true },
