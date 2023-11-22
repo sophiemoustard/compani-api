@@ -397,13 +397,13 @@ describe('create', () => {
   it('should create a course bill', async () => {
     const payload = {
       course: new ObjectId(),
-      company: new ObjectId(),
+      companies: ['321', '123'],
       mainFee: { price: 120, count: 1 },
       payer: { fundingOrganisation: new ObjectId() },
     };
     await CourseBillHelper.create(payload);
 
-    sinon.assert.calledOnceWithExactly(create, payload);
+    sinon.assert.calledOnceWithExactly(create, { ...payload, companies: ['123', '321'] });
   });
 });
 
