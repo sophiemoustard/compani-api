@@ -59,6 +59,7 @@ const {
   PDF,
   CUSTOM,
   OFFICIAL,
+  SHORT_DURATION_H_MM,
 } = require('./constants');
 const CourseHistoriesHelper = require('./courseHistories');
 const NotificationHelper = require('./notifications');
@@ -841,8 +842,12 @@ exports.generateAttendanceSheets = async (courseId) => {
 exports.formatCourseForDocuments = (course, type) => {
   const sortedCourseSlots = course.slots.sort(DatesUtilsHelper.ascendingSortBy('startDate'));
 
+  const theoreticalDuration = course.subProgram.steps
+    .reduce((acc, step) => acc.add(step.theoreticalDuration), CompaniDuration())
+    .format(SHORT_DURATION_H_MM);
+
   return {
-    duration: UtilsHelper.getTotalDuration(course.slots),
+    duration: { onSite: UtilsHelper.getTotalDuration(course.slots), eLearning: theoreticalDuration },
     learningGoals: get(course, 'subProgram.program.learningGoals') || '',
     programName: get(course, 'subProgram.program.name').toUpperCase() || '',
     startDate: CompaniDate(sortedCourseSlots[0].startDate).format(DD_MM_YYYY),
@@ -949,7 +954,19 @@ exports.generateCompletionCertificates = async (courseId, credentials, query) =>
   const course = await Course.findOne({ _id: courseId })
     .populate({ path: 'slots', select: 'startDate endDate' })
     .populate({ path: 'trainees', select: 'identity' })
-    .populate({ path: 'subProgram', select: 'program', populate: { path: 'program', select: 'name learningGoals' } })
+    .populate(
+      {
+        path: 'subProgram',
+        select: 'program steps',
+        populate: [
+          { path: 'program', select: 'name learningGoals' },
+          {
+            path: 'steps',
+            select: 'type theoreticalDuration',
+            match: { type: E_LEARNING },
+          },
+        ],
+      })
     .populate({ path: 'companies', select: 'name' })
     .lean();
 
