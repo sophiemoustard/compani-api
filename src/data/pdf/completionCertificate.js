@@ -84,7 +84,7 @@ exports.getCustomPdfContent = async (data) => {
                 { text: trainee.identity, italics: true },
                 ' a été présent(e) à ',
                 {
-                  text: `${trainee.attendanceDuration} de formation présentielle (ou distancielle) sur`
+                  text: `${trainee.attendanceDuration} de formation présentielle (ou distancielle) sur `
                     + `les ${duration.onSite} prévues.`,
                   bold: true,
                 },
