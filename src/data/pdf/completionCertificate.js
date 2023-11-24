@@ -254,13 +254,13 @@ exports.getOfficialPdfContent = async (data) => {
         {
           text: [
             { text: 'pour une durée de ', bold: true },
-            (!hasELearningStep
-              ? { text: `${trainee.attendanceDuration} .`, italics: true }
-              : {
+            (hasELearningStep
+              ? {
                 text: `${trainee.attendanceDuration} en formation présentielle (ou distancielle) et `
                 + `de ${trainee.eLearningDuration} en formation eLearning.`,
                 italics: true,
-              }),
+              }
+              : { text: `${trainee.attendanceDuration} .`, italics: true }),
           ],
         },
         { text: '2', fontSize: 8, bold: true },

@@ -843,11 +843,20 @@ exports.formatCourseForDocuments = (course, type) => {
   const sortedCourseSlots = course.slots.sort(DatesUtilsHelper.ascendingSortBy('startDate'));
 
   const theoreticalDuration = course.subProgram.steps
-    .reduce((acc, step) => acc.add(step.theoreticalDuration), CompaniDuration())
+    .reduce((acc, step) => acc.add(step.theoreticalDuration), CompaniDuration());
+
+  const onSiteDuration = UtilsHelper.getTotalDuration(course.slots, false);
+
+  const totalDuration = CompaniDuration(onSiteDuration)
+    .add(CompaniDuration(theoreticalDuration))
     .format(SHORT_DURATION_H_MM);
 
   return {
-    duration: { onSite: UtilsHelper.getTotalDuration(course.slots), eLearning: theoreticalDuration },
+    duration: {
+      onSite: CompaniDuration(onSiteDuration).format(SHORT_DURATION_H_MM),
+      eLearning: CompaniDuration(theoreticalDuration).format(SHORT_DURATION_H_MM),
+      total: totalDuration,
+    },
     learningGoals: get(course, 'subProgram.program.learningGoals') || '',
     programName: get(course, 'subProgram.program.name').toUpperCase() || '',
     startDate: CompaniDate(sortedCourseSlots[0].startDate).format(DD_MM_YYYY),
@@ -862,7 +871,7 @@ const getELearningStepInfos = (step) => {
   const maxProgress = step.activities.length;
   const stepProgress = maxProgress ? progress / maxProgress : 0;
 
-  return { _id: step._id, progress: stepProgress, stepDuration: step.theoreticalDuration };
+  return { progress: stepProgress };
 };
 
 const getELearningDuration = (steps, traineeId) => {
@@ -878,27 +887,35 @@ const getELearningDuration = (steps, traineeId) => {
     });
 
   const eLearningDuration = formattedSteps.map((step) => {
-    const { progress, stepDuration } = getELearningStepInfos(step);
+    const { progress } = getELearningStepInfos(step);
 
-    return progress ? progress * CompaniDuration(stepDuration).asSeconds() : 0;
-  }).reduce((acc, val) => acc.add(CompaniDuration({ seconds: val })), CompaniDuration())
-    .format(SHORT_DURATION_H_MM);
+    return progress ? progress * CompaniDuration(step.theoreticalDuration).asSeconds() : 0;
+  }).reduce((acc, val) => acc.add(CompaniDuration({ seconds: val })), CompaniDuration());
 
   return eLearningDuration;
 };
 
 const getTraineeInformations = (trainee, courseAttendances, steps, companiesNames = null) => {
   const identity = UtilsHelper.formatIdentity(trainee.identity, 'FL');
+
   const traineeSlots = courseAttendances
     .filter(a => UtilsHelper.areObjectIdsEquals(trainee._id, a.trainee))
     .map(a => a.courseSlot);
-  const attendanceDuration = UtilsHelper.getTotalDuration(traineeSlots);
+
+  const attendanceDuration = UtilsHelper.getTotalDuration(traineeSlots, false);
+
+  const eLearningDuration = getELearningDuration(steps, trainee._id);
+
+  const totalDuration = CompaniDuration(attendanceDuration)
+    .add(CompaniDuration(eLearningDuration))
+    .format(SHORT_DURATION_H_MM);
 
   return {
     identity,
-    attendanceDuration,
+    attendanceDuration: CompaniDuration(attendanceDuration).format(SHORT_DURATION_H_MM),
     ...(companiesNames && { companyName: companiesNames[trainee.company] }),
-    eLearningDuration: getELearningDuration(steps, trainee._id),
+    eLearningDuration: CompaniDuration(eLearningDuration).format(SHORT_DURATION_H_MM),
+    totalDuration,
   };
 };
 
@@ -907,11 +924,12 @@ const generateCompletionCertificatePdf = async (courseData, courseAttendances, t
     identity,
     attendanceDuration,
     eLearningDuration,
+    totalDuration,
   } = getTraineeInformations(trainee, courseAttendances, courseData.steps);
 
   const pdf = await CompletionCertificate.getPdf({
     ...omit(courseData, ['companyNamesById', 'steps']),
-    trainee: { identity, attendanceDuration, eLearningDuration },
+    trainee: { identity, attendanceDuration, eLearningDuration, totalDuration },
     date: CompaniDate().format(DD_MM_YYYY),
   });
 
@@ -924,12 +942,13 @@ const generateOfficialCompletionCertificatePdf = async (courseData, courseAttend
     attendanceDuration,
     companyName,
     eLearningDuration,
+    totalDuration,
   } = getTraineeInformations(trainee, courseAttendances, courseData.steps, courseData.companyNamesById);
 
   const pdf = await CompletionCertificate.getPdf(
     {
       ...omit(courseData, ['companyNamesById', 'steps']),
-      trainee: { identity, attendanceDuration, companyName, eLearningDuration },
+      trainee: { identity, attendanceDuration, companyName, eLearningDuration, totalDuration },
       date: CompaniDate().format(DD_MM_YYYY),
     },
     OFFICIAL
@@ -944,13 +963,14 @@ const generateCompletionCertificateWord = async (course, attendances, trainee, t
     attendanceDuration,
     companyName,
     eLearningDuration,
+    totalDuration,
   } = getTraineeInformations(trainee, attendances, course.steps, course.companyNamesById);
 
   const filePath = await DocxHelper.createDocx(
     templatePath,
     {
       ...omit(course, ['companyNamesById', 'steps']),
-      trainee: { identity, attendanceDuration, ...(companyName && { companyName }), eLearningDuration },
+      trainee: { identity, attendanceDuration, ...(companyName && { companyName }), eLearningDuration, totalDuration },
       date: CompaniDate().format(DD_MM_YYYY),
     }
   );

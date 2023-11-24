@@ -219,13 +219,13 @@ exports.computeExclTaxesWithDiscount = (inclTaxes, discount, vat) => {
   return exports.getExclTaxes(inclTaxesWithDiscount, vat);
 };
 
-exports.getTotalDuration = (timePeriods) => {
+exports.getTotalDuration = (timePeriods, isResFormatted = true) => {
   const totalDuration = timePeriods.reduce(
     (acc, tp) => acc.add(CompaniDate(tp.endDate).diff(tp.startDate, 'minutes')),
     CompaniDuration()
   );
 
-  return totalDuration.format(SHORT_DURATION_H_MM);
+  return isResFormatted ? totalDuration.format(SHORT_DURATION_H_MM) : totalDuration;
 };
 
 exports.getTotalDurationForExport = (timePeriods) => {
