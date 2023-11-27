@@ -105,10 +105,7 @@ exports.list = async (query, credentials) => {
   return balance(query.company, credentials);
 };
 
-exports.create = async (payload) => {
-  const companies = payload.companies.sort();
-  await CourseBill.create({ ...payload, companies });
-};
+exports.create = async payload => CourseBill.create(payload);
 
 exports.updateCourseBill = async (courseBillId, payload) => {
   let formattedPayload = {};
