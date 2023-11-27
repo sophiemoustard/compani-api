@@ -63,7 +63,7 @@ exports.getCustomPdfContent = async (data) => {
     {
       text: [
         { text: 'Durée', decoration: 'underline' },
-        ` : ${duration.onSite} de formation en présentiel du `,
+        ` : ${duration.total} de formation ${hasELearningStep ? '' : 'en présentiel '}du `,
         { text: `${startDate} au ${endDate}`, color: COPPER_500 },
       ],
     },
@@ -78,36 +78,27 @@ exports.getCustomPdfContent = async (data) => {
       table: {
         body: [
           [{ text: 'Assiduité du stagiaire :', style: 'subTitle' }],
-          ...(hasELearningStep
-            ? [[{
+          ...([hasELearningStep
+            ? [{
               text: [
                 { text: trainee.identity, italics: true },
                 ' a été présent(e) à ',
-                {
-                  text: `${trainee.attendanceDuration} de formation présentielle (ou distancielle) sur `
-                    + `les ${duration.onSite} prévues.`,
-                  bold: true,
-                },
+                { text: trainee.totalDuration, bold: true },
+                ' de formation (dont ',
+                { text: `${trainee.attendanceDuration} en présentiel `, bold: true },
+                'et ',
+                { text: `${trainee.eLearningDuration} en e-learning) `, bold: true },
+                'sur les ',
+                { text: `${duration.total} prévues.`, bold: true },
               ],
-            }],
-            [{
-              text: [
-                { text: trainee.identity, italics: true },
-                ' a réalisé ',
-                {
-                  text: `${trainee.eLearningDuration} de formation eLearning sur les ${duration.eLearning} prévues.`,
-                  bold: true,
-                },
-              ],
-            }]]
-            : [[{
+            }]
+            : [{
               text: [
                 { text: trainee.identity, italics: true },
                 ' a été présent(e) à ',
-                {
-                  text: `${trainee.attendanceDuration} de formation sur les ${duration.onSite} prévues.`,
-                  bold: true,
-                },
+                { text: trainee.attendanceDuration, bold: true },
+                ' de formation en présentiel sur les ',
+                { text: `${duration.onSite} prévues.`, bold: true },
               ],
             }]]),
           [{ text: 'Objectifs pédagogiques :', style: 'subTitle' }],
@@ -256,11 +247,14 @@ exports.getOfficialPdfContent = async (data) => {
             { text: 'pour une durée de ', bold: true },
             (hasELearningStep
               ? {
-                text: `${trainee.attendanceDuration} en formation présentielle (ou distancielle) et `
-                + `de ${trainee.eLearningDuration} en formation eLearning.`,
+                text: `${trainee.totalDuration} en formation (dont ${trainee.attendanceDuration} en présentiel et `
+                + `${trainee.eLearningDuration} en e-learning) sur ${duration.total} prévues. `,
                 italics: true,
               }
-              : { text: `${trainee.attendanceDuration} .`, italics: true }),
+              : {
+                text: `${trainee.attendanceDuration} en formation présentielle sur ${duration.total} prévues. `,
+                italics: true,
+              }),
           ],
         },
         { text: '2', fontSize: 8, bold: true },

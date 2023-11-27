@@ -27,12 +27,12 @@ describe('getCustomPdfContent', () => {
     downloadImages.returns(paths);
 
     const data = {
-      duration: { onSite: '15h', eLearning: '3h' },
+      duration: { onSite: '15h', eLearning: '3h', total: '18h' },
       learningGoals: '- but',
       programName: 'Programme',
       startDate: '25/12/2021',
       endDate: '25/02/2022',
-      trainee: { identity: 'Jean ALAIN', attendanceDuration: '14h', eLearningDuration: '1h' },
+      trainee: { identity: 'Jean ALAIN', attendanceDuration: '14h', eLearningDuration: '1h', totalDuration: '15h' },
       date: '22/03/2022',
     };
 
@@ -77,7 +77,7 @@ describe('getCustomPdfContent', () => {
       {
         text: [
           { text: 'Durée', decoration: 'underline' },
-          ' : 15h de formation en présentiel du ',
+          ' : 18h de formation du ',
           { text: '25/12/2021 au 25/02/2022', color: COPPER_500 },
         ],
       },
@@ -96,14 +96,13 @@ describe('getCustomPdfContent', () => {
               text: [
                 { text: 'Jean ALAIN', italics: true },
                 ' a été présent(e) à ',
-                { text: '14h de formation présentielle (ou distancielle) sur les 15h prévues.', bold: true },
-              ],
-            }],
-            [{
-              text: [
-                { text: 'Jean ALAIN', italics: true },
-                ' a réalisé ',
-                { text: '1h de formation eLearning sur les 3h prévues.', bold: true },
+                { text: '15h', bold: true },
+                ' de formation (dont ',
+                { text: '14h en présentiel ', bold: true },
+                'et ',
+                { text: '1h en e-learning) ', bold: true },
+                'sur les ',
+                { text: '18h prévues.', bold: true },
               ],
             }],
             [{ text: 'Objectifs pédagogiques :', style: 'subTitle' }],
@@ -183,12 +182,12 @@ describe('getCustomPdfContent', () => {
     downloadImages.returns(paths);
 
     const data = {
-      duration: { onSite: '15h', eLearning: '0h' },
+      duration: { onSite: '15h', eLearning: '0h', total: '15h' },
       learningGoals: '- but',
       programName: 'Programme',
       startDate: '25/12/2021',
       endDate: '25/02/2022',
-      trainee: { identity: 'Jean ALAIN', attendanceDuration: '14h', eLearningDuration: '0h' },
+      trainee: { identity: 'Jean ALAIN', attendanceDuration: '14h', eLearningDuration: '0h', totalDuration: '14h' },
       date: '22/03/2022',
     };
 
@@ -252,7 +251,9 @@ describe('getCustomPdfContent', () => {
               text: [
                 { text: 'Jean ALAIN', italics: true },
                 ' a été présent(e) à ',
-                { text: '14h de formation sur les 15h prévues.', bold: true },
+                { text: '14h', bold: true },
+                ' de formation en présentiel sur les ',
+                { text: '15h prévues.', bold: true },
               ],
             }],
             [{ text: 'Objectifs pédagogiques :', style: 'subTitle' }],
@@ -333,7 +334,7 @@ describe('getOfficialPdfContent', () => {
 
   it('should format and return official pdf content with eLearning steps', async () => {
     const data = {
-      duration: { onSite: '15h', eLearning: '5h' },
+      duration: { onSite: '15h', eLearning: '5h', total: '20h' },
       programName: 'Programme',
       startDate: '25/12/2021',
       endDate: '25/02/2022',
@@ -342,6 +343,7 @@ describe('getOfficialPdfContent', () => {
         attendanceDuration: '14h',
         companyName: 'structure',
         eLearningDuration: '2h',
+        totalDuration: '16h',
       },
       date: '22/03/2022',
     };
@@ -460,7 +462,7 @@ describe('getOfficialPdfContent', () => {
             text: [
               { text: 'pour une durée de ', bold: true },
               {
-                text: '14h en formation présentielle (ou distancielle) et de 2h en formation eLearning.',
+                text: '16h en formation (dont 14h en présentiel et 2h en e-learning) sur 20h prévues. ',
                 italics: true,
               },
             ],
@@ -557,7 +559,7 @@ describe('getOfficialPdfContent', () => {
 
   it('should format and return official pdf content without eLearning steps', async () => {
     const data = {
-      duration: { onSite: '15h', eLearning: '0h' },
+      duration: { onSite: '15h', eLearning: '0h', total: '15h' },
       programName: 'Programme',
       startDate: '25/12/2021',
       endDate: '25/02/2022',
@@ -683,7 +685,7 @@ describe('getOfficialPdfContent', () => {
           {
             text: [
               { text: 'pour une durée de ', bold: true },
-              { text: '14h .', italics: true },
+              { text: '14h en formation présentielle sur 15h prévues. ', italics: true },
             ],
           },
           { text: '2', fontSize: 8, bold: true },
