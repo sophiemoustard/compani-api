@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 const get = require('lodash/get');
+const { GROUP, TRAINEE } = require('../helpers/constants');
 const { validateQuery, validateAggregation, formatQuery, queryMiddlewareList } = require('./preHooks/validate');
 
 const CourseBillSchema = mongoose.Schema({
@@ -7,6 +8,7 @@ const CourseBillSchema = mongoose.Schema({
   mainFee: {
     price: { type: Number, required: true },
     count: { type: Number, required: true },
+    countUnit: { type: String, enum: [GROUP, TRAINEE], required: true },
     description: { type: String },
   },
   companies: { type: [mongoose.Schema.Types.ObjectId], ref: 'Company', required: true },

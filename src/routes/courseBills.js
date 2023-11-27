@@ -11,7 +11,7 @@ const {
   deleteBillingPurchase,
   generateBillPdf,
 } = require('../controllers/courseBillController');
-const { LIST, BALANCE } = require('../helpers/constants');
+const { LIST, BALANCE, GROUP, TRAINEE } = require('../helpers/constants');
 const {
   authorizeCourseBillCreation,
   authorizeCourseBillGet,
@@ -54,6 +54,7 @@ exports.plugin = {
             mainFee: Joi.object({
               price: Joi.number().positive().required(),
               count: Joi.number().positive().integer().required(),
+              countUnit: Joi.string().required().valid(GROUP, TRAINEE),
             }).required(),
             companies: Joi.array().items(Joi.objectId()).required().min(1),
             payer: Joi.object({
@@ -83,6 +84,7 @@ exports.plugin = {
               mainFee: Joi.object({
                 price: Joi.number().positive(),
                 count: Joi.number().positive().integer(),
+                countUnit: Joi.string().valid(GROUP, TRAINEE),
                 description: Joi.string().allow(''),
               }),
             }),

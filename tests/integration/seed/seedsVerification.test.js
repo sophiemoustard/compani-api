@@ -88,6 +88,7 @@ const {
   EXPECTATIONS,
   END_OF_COURSE,
   INTRA_HOLDING,
+  GROUP,
 } = require('../../../src/helpers/constants');
 const attendancesSeed = require('./attendancesSeed');
 const activitiesSeed = require('./activitiesSeed');
@@ -978,7 +979,7 @@ describe('SEEDS VERIFICATION', () => {
         before(async () => {
           courseBillList = await CourseBill
             .find()
-            .populate({ path: 'course', select: 'format companies type expectedBillsCount', transform })
+            .populate({ path: 'course', select: 'type format companies type expectedBillsCount', transform })
             .populate({ path: 'companies', transform })
             .populate({ path: 'payer.company', transform })
             .populate({ path: 'payer.fundingOrganisation', transform })
@@ -1009,6 +1010,13 @@ describe('SEEDS VERIFICATION', () => {
             .every(bill => bill.mainFee.count > 0 && Number.isInteger(bill.mainFee.count));
 
           expect(everyCountIsAValidInteger).toBeTruthy();
+        });
+
+        it('should pass if every countUnit is group for intra course', () => {
+          const everyCountUnitIsValid = courseBillList
+            .every(bill => bill.course.type !== INTRA || bill.mainFee.countUnit === GROUP);
+
+          expect(everyCountUnitIsValid).toBeTruthy();
         });
 
         it('should pass if every company exists', () => {

@@ -56,6 +56,8 @@ const {
   COMPANY_ADDITION,
   PUBLISHED,
   INTRA_HOLDING,
+  GROUP,
+  TRAINEE,
 } = require('../../../src/helpers/constants');
 const { auxiliaryRoleId, trainerRoleId, coachRoleId, clientAdminRoleId } = require('../../seed/authRolesSeed');
 const { CompaniDate } = require('../../../src/helpers/dates/companiDates');
@@ -614,7 +616,7 @@ const courseBillsList = [
   {
     _id: new ObjectId(),
     course: coursesList[15]._id,
-    mainFee: { price: 1000, count: 1, description: 'Bonjour' },
+    mainFee: { price: 1000, count: 1, description: 'Bonjour', countUnit: GROUP },
     companies: [authCompany._id],
     billingPurchaseList: [],
     billedAt: '2022-04-12T09:00:00.000Z',
@@ -624,7 +626,7 @@ const courseBillsList = [
   {
     _id: new ObjectId(),
     course: coursesList[0]._id,
-    mainFee: { price: 1000, count: 1, description: 'Bonjour' },
+    mainFee: { price: 1000, count: 1, description: 'Bonjour', countUnit: GROUP },
     companies: [authCompany._id],
     billingPurchaseList: [],
     billedAt: '2022-04-12T09:00:00.000Z',
@@ -634,7 +636,7 @@ const courseBillsList = [
   {
     _id: new ObjectId(),
     course: coursesList[0]._id,
-    mainFee: { price: 1300, count: 1, description: 'Bonjour' },
+    mainFee: { price: 1300, count: 1, description: 'Bonjour', countUnit: GROUP },
     companies: [authCompany._id],
     billingPurchaseList: [],
     billedAt: '2022-04-16T09:00:00.000Z',
@@ -644,7 +646,7 @@ const courseBillsList = [
   {
     _id: new ObjectId(),
     course: coursesList[0]._id,
-    mainFee: { price: 1500, count: 1, description: 'Bonjour' },
+    mainFee: { price: 1500, count: 1, description: 'Bonjour', countUnit: GROUP },
     companies: [authCompany._id],
     billingPurchaseList: [],
     billedAt: '2022-04-20T09:00:00.000Z',
@@ -654,7 +656,7 @@ const courseBillsList = [
   {
     _id: new ObjectId(),
     course: coursesList[0]._id,
-    mainFee: { price: 1500, count: 1, description: 'Bonjour' },
+    mainFee: { price: 1500, count: 1, description: 'Bonjour', countUnit: GROUP },
     companies: [authCompany._id],
     billingPurchaseList: [],
     billedAt: '2022-04-21T09:00:00.000Z',
@@ -664,7 +666,7 @@ const courseBillsList = [
   {
     _id: new ObjectId(),
     course: coursesList[0]._id,
-    mainFee: { price: 1600, count: 1, description: 'Bonjour' },
+    mainFee: { price: 1600, count: 1, description: 'Bonjour', countUnit: GROUP },
     companies: [authCompany._id],
     billingPurchaseList: [],
     billedAt: '2022-04-23T09:00:00.000Z',
@@ -674,7 +676,7 @@ const courseBillsList = [
   {
     _id: new ObjectId(),
     course: coursesList[19]._id,
-    mainFee: { price: 1600, count: 1, description: 'Bonjour' },
+    mainFee: { price: 1600, count: 1, description: 'Bonjour', countUnit: TRAINEE },
     companies: [authCompany._id],
     billingPurchaseList: [],
     billedAt: '2022-04-20T09:00:00.000Z',

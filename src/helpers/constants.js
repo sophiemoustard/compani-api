@@ -620,6 +620,13 @@ module.exports = {
   // COURSE BILLING
   LIST: 'list',
   BALANCE: 'balance',
+  GROUP: 'group',
+  get COUNT_UNIT() {
+    return {
+      [this.GROUP]: 'groupe',
+      [this.TRAINEE]: 'stagiaires',
+    };
+  },
   // LEARNERS
   DIRECTORY: 'directory',
 };
