@@ -42,7 +42,7 @@ exports.getCustomPdfContent = async (data) => {
         { text: 'COMPANI est ravi de vous avoir accompagné et d\'avoir partagé ces moments ensemble', width: 'auto' },
         { image: emoji, width: 10, height: 10, marginLeft: 2 },
       ],
-      marginBottom: 16,
+      marginBottom: 8,
     },
     {
       text: [
@@ -56,7 +56,7 @@ exports.getCustomPdfContent = async (data) => {
     },
     {
       canvas: [{ type: 'rect', x: 0, y: 0, w: 515, h: isLargeProgramName ? 32 : 24, r: 0, color: COPPER_50 }],
-      absolutePosition: { x: 40, y: 264 },
+      absolutePosition: { x: 40, y: 248 },
       marginBottom: 8,
     },
     { text: programName, style: 'programName' },

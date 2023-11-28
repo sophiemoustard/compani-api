@@ -56,7 +56,7 @@ describe('getCustomPdfContent', () => {
           { text: 'COMPANI est ravi de vous avoir accompagné et d\'avoir partagé ces moments ensemble', width: 'auto' },
           { image: paths[3], width: 10, height: 10, marginLeft: 2 },
         ],
-        marginBottom: 16,
+        marginBottom: 8,
       },
       {
         text: [
@@ -70,7 +70,7 @@ describe('getCustomPdfContent', () => {
       },
       {
         canvas: [{ type: 'rect', x: 0, y: 0, w: 515, h: 24, r: 0, color: COPPER_50 }],
-        absolutePosition: { x: 40, y: 264 },
+        absolutePosition: { x: 40, y: 248 },
         marginBottom: 8,
       },
       { text: 'Programme', style: 'programName' },
@@ -211,7 +211,7 @@ describe('getCustomPdfContent', () => {
           { text: 'COMPANI est ravi de vous avoir accompagné et d\'avoir partagé ces moments ensemble', width: 'auto' },
           { image: paths[3], width: 10, height: 10, marginLeft: 2 },
         ],
-        marginBottom: 16,
+        marginBottom: 8,
       },
       {
         text: [
@@ -225,7 +225,7 @@ describe('getCustomPdfContent', () => {
       },
       {
         canvas: [{ type: 'rect', x: 0, y: 0, w: 515, h: 24, r: 0, color: COPPER_50 }],
-        absolutePosition: { x: 40, y: 264 },
+        absolutePosition: { x: 40, y: 248 },
         marginBottom: 8,
       },
       { text: 'Programme', style: 'programName' },
