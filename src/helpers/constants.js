@@ -624,7 +624,7 @@ module.exports = {
   get COUNT_UNIT() {
     return {
       [this.GROUP]: 'groupe',
-      [this.TRAINEE]: 'stagiaires',
+      [this.TRAINEE]: 'stagiaire',
     };
   },
   // LEARNERS

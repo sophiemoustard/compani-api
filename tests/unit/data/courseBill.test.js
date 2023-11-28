@@ -4,7 +4,7 @@ const FileHelper = require('../../../src/helpers/file');
 const PdfHelper = require('../../../src/helpers/pdf');
 const UtilsHelper = require('../../../src/helpers/utils');
 const CourseBill = require('../../../src/data/pdf/courseBilling/courseBill');
-const { COPPER_GREY_200, COPPER_600, GROUP } = require('../../../src/helpers/constants');
+const { COPPER_GREY_200, COPPER_600, GROUP, TRAINEE } = require('../../../src/helpers/constants');
 
 describe('getPdfContent', () => {
   let downloadImages;
@@ -216,7 +216,7 @@ describe('getPdfContent', () => {
         address: '24 Avenue Daumesnil 75012 Paris',
       },
       course: { subProgram: { program: { name: 'Test' } } },
-      mainFee: { price: 1000, count: 1, description: 'description', countUnit: GROUP },
+      mainFee: { price: 1000, count: 1, description: 'description', countUnit: TRAINEE },
     };
 
     const pdf = {
@@ -269,7 +269,7 @@ describe('getPdfContent', () => {
               [
                 { text: '#', style: 'header', alignment: 'left' },
                 { text: 'Article & description', style: 'header', alignment: 'left' },
-                { text: 'Quantité (groupe)', style: 'header', alignment: 'center' },
+                { text: 'Quantité (stagiaire)', style: 'header', alignment: 'center' },
                 { text: 'Prix unitaire', style: 'header', alignment: 'center' },
                 { text: 'Coût', alignment: 'right', style: 'header' },
               ],
