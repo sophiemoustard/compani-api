@@ -421,6 +421,17 @@ describe('COURSE BILL ROUTES - POST /coursebills', () => {
       expect(response.statusCode).toBe(400);
     });
 
+    it('should return 400 if no company', async () => {
+      const response = await app.inject({
+        method: 'POST',
+        url: '/coursebills',
+        payload: { ...payload, companies: [] },
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
+
     it('should return 404 as course doesn\'t exist', async () => {
       const response = await app.inject({
         method: 'POST',

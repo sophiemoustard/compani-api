@@ -55,7 +55,7 @@ exports.plugin = {
               price: Joi.number().positive().required(),
               count: Joi.number().positive().integer().required(),
             }).required(),
-            companies: Joi.array().items(Joi.objectId()).required(),
+            companies: Joi.array().items(Joi.objectId()).required().min(1),
             payer: Joi.object({
               company: Joi.objectId(),
               fundingOrganisation: Joi.objectId(),

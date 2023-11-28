@@ -397,7 +397,7 @@ describe('create', () => {
   it('should create a course bill', async () => {
     const payload = {
       course: new ObjectId(),
-      company: new ObjectId(),
+      companies: [new ObjectId(), new ObjectId()],
       mainFee: { price: 120, count: 1 },
       payer: { fundingOrganisation: new ObjectId() },
     };
