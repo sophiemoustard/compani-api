@@ -18,10 +18,14 @@ exports.getHeader = async (data, isBill = false) => {
 
   const additionalInfosSection = isBill
     ? {
-      stack: [
-        { text: 'Formation pour le compte de' },
-        { text: UtilsHelper.formatName(get(data, 'companies')), bold: true },
-      ],
+      ...!data.isPayerCompany
+        ? {
+          stack: [
+            { text: 'Formation pour le compte de' },
+            { text: UtilsHelper.formatName(get(data, 'companies')), bold: true },
+          ],
+        }
+        : { stack: [{ text: '' }] },
       alignment: 'right',
     }
     : {

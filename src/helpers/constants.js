@@ -627,6 +627,7 @@ module.exports = {
       [this.TRAINEE]: 'stagiaires',
     };
   },
+  FUNDING_ORGANISATION: 'funding_organisation',
   // LEARNERS
   DIRECTORY: 'directory',
 };

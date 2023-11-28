@@ -17,6 +17,7 @@ const {
   REFUND,
   TRAINING_ORGANISATION_MANAGER,
   VENDOR_ADMIN,
+  COMPANY,
 } = require('../../../src/helpers/constants');
 
 describe('getNetInclTaxes', () => {
@@ -663,6 +664,7 @@ describe('generateBillPdf', () => {
           location: { type: 'Point', coordinates: [2.37345, 48.848024] },
         },
       },
+      payerType: COMPANY,
     };
 
     getVendorCompany.returns(vendorCompany);
@@ -679,6 +681,7 @@ describe('generateBillPdf', () => {
         vendorCompany,
         companies: bill.companies,
         payer: { name: 'test', address: '24 Avenue Daumesnil 75012 Paris' },
+        isPayerCompany: true,
         course: bill.course,
         mainFee: bill.mainFee,
         billingPurchaseList: bill.billingPurchaseList,
