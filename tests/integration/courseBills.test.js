@@ -56,7 +56,7 @@ describe('COURSE BILL ROUTES - GET /coursebills', () => {
           course: coursesList[0]._id,
           companies: [pick(authCompany, ['_id', 'name'])],
           payer: pick(authCompany, ['_id', 'name']),
-          mainFee: { price: 200, count: 2, description: 'yoyo', countUnit: TRAINEE },
+          mainFee: { price: 200, count: 2, description: 'yoyo', countUnit: GROUP },
           billingPurchaseList: [expect.objectContaining({ billingItem: billingItemList[0]._id, price: 9, count: 1 })],
           netInclTaxes: 409,
           billedAt: new Date('2022-04-07T00:00:00.000Z'),
@@ -85,7 +85,7 @@ describe('COURSE BILL ROUTES - GET /coursebills', () => {
         expect.objectContaining({
           course: coursesList[1]._id,
           companies: [pick(authCompany, ['_id', 'name'])],
-          mainFee: { price: 200, count: 2, description: 'yoyo', countUnit: TRAINEE },
+          mainFee: { price: 200, count: 2, description: 'yoyo', countUnit: GROUP },
           netInclTaxes: 409,
           billingPurchaseList: [expect.objectContaining({ billingItem: billingItemList[0]._id, price: 9, count: 1 })],
           payer: pick(authCompany, ['_id', 'name']),
