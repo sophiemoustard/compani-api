@@ -40,7 +40,7 @@ describe('getCustomPdfContent', () => {
 
     const header = {
       columns: [
-        { image: paths[0], width: 64, marginTop: 8 },
+        { image: paths[0], width: 64 },
         [
           { image: paths[1], width: 200, height: 42, alignment: 'right' },
           { text: 'Attestation individuelle de formation', style: 'title' },
@@ -195,7 +195,7 @@ describe('getCustomPdfContent', () => {
 
     const header = {
       columns: [
-        { image: paths[0], width: 64, marginTop: 8 },
+        { image: paths[0], width: 64 },
         [
           { image: paths[1], width: 200, height: 42, alignment: 'right' },
           { text: 'Attestation individuelle de formation', style: 'title' },
@@ -488,19 +488,19 @@ describe('getOfficialPdfContent', () => {
           [
             {
               text: [{ text: 'Fait à : ', bold: true }, { text: 'Paris', italics: true }],
-              absolutePosition: { x: 35, y: 520 },
+              absolutePosition: { x: 35, y: 530 },
               marginLeft: 46,
             },
             {
               text: [{ text: 'Le : ', bold: true }, { text: '22/03/2022', italics: true }],
-              absolutePosition: { x: 35, y: 540 },
+              absolutePosition: { x: 35, y: 550 },
               marginLeft: 46,
             },
           ],
           [
             {
               canvas: [{ type: 'rect', x: 0, y: 0, w: 260, h: 180, r: 0 }],
-              absolutePosition: { y: 525 },
+              absolutePosition: { y: 535 },
               alignment: 'right',
             },
             {
@@ -515,13 +515,12 @@ describe('getOfficialPdfContent', () => {
               alignment: 'center',
               fontSize: 12,
             },
-            { image: paths[0], width: 130, absolutePosition: { x: 380, y: 585 } },
+            { image: paths[0], width: 130, absolutePosition: { x: 380, y: 595 } },
           ],
         ],
         marginLeft: 40,
         marginRight: 40,
-        marginTop: 16,
-        absolutePosition: { x: 35, y: 525 },
+        absolutePosition: { x: 35, y: 535 },
       },
       {
         text: [
@@ -536,7 +535,7 @@ describe('getOfficialPdfContent', () => {
                 + 'et le temps estimé pour les réaliser.',
           },
         ],
-        absolutePosition: { x: 35, y: 735 },
+        absolutePosition: { x: 35, y: 745 },
         marginLeft: 40,
         marginRight: 40,
         marginTop: 8,
@@ -709,19 +708,19 @@ describe('getOfficialPdfContent', () => {
           [
             {
               text: [{ text: 'Fait à : ', bold: true }, { text: 'Paris', italics: true }],
-              absolutePosition: { x: 35, y: 520 },
+              absolutePosition: { x: 35, y: 530 },
               marginLeft: 46,
             },
             {
               text: [{ text: 'Le : ', bold: true }, { text: '22/03/2022', italics: true }],
-              absolutePosition: { x: 35, y: 540 },
+              absolutePosition: { x: 35, y: 550 },
               marginLeft: 46,
             },
           ],
           [
             {
               canvas: [{ type: 'rect', x: 0, y: 0, w: 260, h: 180, r: 0 }],
-              absolutePosition: { y: 525 },
+              absolutePosition: { y: 535 },
               alignment: 'right',
             },
             {
@@ -736,13 +735,12 @@ describe('getOfficialPdfContent', () => {
               alignment: 'center',
               fontSize: 12,
             },
-            { image: paths[0], width: 130, absolutePosition: { x: 380, y: 585 } },
+            { image: paths[0], width: 130, absolutePosition: { x: 380, y: 595 } },
           ],
         ],
         marginLeft: 40,
         marginRight: 40,
-        marginTop: 16,
-        absolutePosition: { x: 35, y: 525 },
+        absolutePosition: { x: 35, y: 535 },
       },
       {
         text: [
@@ -757,7 +755,7 @@ describe('getOfficialPdfContent', () => {
                 + 'et le temps estimé pour les réaliser.',
           },
         ],
-        absolutePosition: { x: 35, y: 735 },
+        absolutePosition: { x: 35, y: 745 },
         marginLeft: 40,
         marginRight: 40,
         marginTop: 8,

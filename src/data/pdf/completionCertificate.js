@@ -17,7 +17,7 @@ const getImages = async () => {
 const getHeader = (thumb, compani) => [
   {
     columns: [
-      { image: thumb, width: 64, marginTop: 8 },
+      { image: thumb, width: 64 },
       [
         { image: compani, width: 200, height: 42, alignment: 'right' },
         { text: 'Attestation individuelle de formation', style: 'title' },
@@ -98,7 +98,7 @@ exports.getCustomPdfContent = async (data) => {
                 ' a été présent(e) à ',
                 { text: trainee.attendanceDuration, bold: true },
                 ' de formation en présentiel sur les ',
-                { text: `${duration.onSite} prévues.`, bold: true },
+                { text: `${duration.total} prévues.`, bold: true },
               ],
             }]]),
           [{ text: 'Objectifs pédagogiques :', style: 'subTitle' }],
@@ -278,19 +278,19 @@ exports.getOfficialPdfContent = async (data) => {
         [
           {
             text: [{ text: 'Fait à : ', bold: true }, { text: 'Paris', italics: true }],
-            absolutePosition: { x: 35, y: 520 },
+            absolutePosition: { x: 35, y: 530 },
             marginLeft: 46,
           },
           {
             text: [{ text: 'Le : ', bold: true }, { text: `${date}`, italics: true }],
-            absolutePosition: { x: 35, y: 540 },
+            absolutePosition: { x: 35, y: 550 },
             marginLeft: 46,
           },
         ],
         [
           {
             canvas: [{ type: 'rect', x: 0, y: 0, w: 260, h: 180, r: 0 }],
-            absolutePosition: { y: 525 },
+            absolutePosition: { y: 535 },
             alignment: 'right',
           },
           {
@@ -305,13 +305,12 @@ exports.getOfficialPdfContent = async (data) => {
             alignment: 'center',
             fontSize: 12,
           },
-          { image: signature, width: 130, absolutePosition: { x: 380, y: 585 } },
+          { image: signature, width: 130, absolutePosition: { x: 380, y: 595 } },
         ],
       ],
       marginLeft: 40,
       marginRight: 40,
-      marginTop: 16,
-      absolutePosition: { x: 35, y: 525 },
+      absolutePosition: { x: 35, y: 535 },
     },
     {
       text: [
@@ -326,7 +325,7 @@ exports.getOfficialPdfContent = async (data) => {
               + 'et le temps estimé pour les réaliser.',
         },
       ],
-      absolutePosition: { x: 35, y: 735 },
+      absolutePosition: { x: 35, y: 745 },
       marginLeft: 40,
       marginRight: 40,
       marginTop: 8,
