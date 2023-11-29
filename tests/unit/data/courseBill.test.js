@@ -259,10 +259,7 @@ describe('getPdfContent', () => {
                 { text: '24 Avenue Daumesnil 75012 Paris' },
               ],
             },
-            {
-              stack: [{ text: '' }],
-              alignment: 'right',
-            },
+            {},
           ],
         },
         {
