@@ -4,7 +4,7 @@ const FileHelper = require('../../../src/helpers/file');
 const PdfHelper = require('../../../src/helpers/pdf');
 const UtilsHelper = require('../../../src/helpers/utils');
 const CourseCreditNote = require('../../../src/data/pdf/courseBilling/courseCreditNote');
-const { COPPER_GREY_200, ORANGE_600 } = require('../../../src/helpers/constants');
+const { COPPER_GREY_200, ORANGE_600, GROUP } = require('../../../src/helpers/constants');
 
 describe('getPdfContent', () => {
   let downloadImages;
@@ -44,7 +44,7 @@ describe('getPdfContent', () => {
         address: '24 Avenue Daumesnil 75012 Paris',
       },
       course: { subProgram: { program: { name: 'Test' } } },
-      mainFee: { price: 1000, count: 1, description: 'description' },
+      mainFee: { price: 1000, count: 1, description: 'description', countUnit: GROUP },
       billingPurchaseList: [
         { billingItem: { name: 'article 1' }, price: 10, count: 10 },
         { billingItem: { name: 'article 2' }, price: 20, count: 10, description: 'article cool' },
@@ -104,7 +104,7 @@ describe('getPdfContent', () => {
               [
                 { text: '#', style: 'header', alignment: 'left' },
                 { text: 'Article & description', style: 'header', alignment: 'left' },
-                { text: 'Quantité', style: 'header', alignment: 'center' },
+                { text: 'Quantité (groupe)', style: 'header', alignment: 'center' },
                 { text: 'Prix unitaire', style: 'header', alignment: 'center' },
                 { text: 'Coût', alignment: 'right', style: 'header' },
               ],
@@ -216,7 +216,7 @@ describe('getPdfContent', () => {
         address: '24 Avenue Daumesnil 75012 Paris',
       },
       course: { subProgram: { program: { name: 'Test' } } },
-      mainFee: { price: 1000, count: 1, description: 'description' },
+      mainFee: { price: 1000, count: 1, description: 'description', countUnit: GROUP },
     };
 
     const pdf = {
@@ -272,7 +272,7 @@ describe('getPdfContent', () => {
               [
                 { text: '#', style: 'header', alignment: 'left' },
                 { text: 'Article & description', style: 'header', alignment: 'left' },
-                { text: 'Quantité', style: 'header', alignment: 'center' },
+                { text: 'Quantité (groupe)', style: 'header', alignment: 'center' },
                 { text: 'Prix unitaire', style: 'header', alignment: 'center' },
                 { text: 'Coût', alignment: 'right', style: 'header' },
               ],
@@ -354,7 +354,7 @@ describe('getPdf', () => {
       misc: 'motif',
       courseBill: { number: 'FACT-000045', date: '18/08/1998' },
       course: { subProgram: { program: { name: 'Test' } } },
-      mainFee: { price: 1000, count: 1, description: 'description' },
+      mainFee: { price: 1000, count: 1, description: 'description', countUnit: GROUP },
     };
     const template = {
       content: [

@@ -7,12 +7,19 @@ const CourseBillingItem = require('../../models/CourseBillingItem');
 const CourseFundingOrganisation = require('../../models/CourseFundingOrganisation');
 const UtilsHelper = require('../../helpers/utils');
 const translate = require('../../helpers/translate');
-const { TRAINING_ORGANISATION_MANAGER, VENDOR_ADMIN, BALANCE, INTRA } = require('../../helpers/constants');
+const {
+  TRAINING_ORGANISATION_MANAGER,
+  VENDOR_ADMIN,
+  BALANCE,
+  INTRA,
+  GROUP,
+  TRAINEE,
+} = require('../../helpers/constants');
 
 const { language } = translate;
 
 exports.authorizeCourseBillCreation = async (req) => {
-  const { course: courseId, companies: companiesIds, payer } = req.payload;
+  const { course: courseId, companies: companiesIds, payer, mainFee } = req.payload;
 
   const course = await Course.findOne({ _id: courseId }, { type: 1, expectedBillsCount: 1, companies: 1 }).lean();
   const everyCompanyBelongsToCourse = course &&
@@ -21,6 +28,7 @@ exports.authorizeCourseBillCreation = async (req) => {
 
   if (course.type === INTRA) {
     if (!course.expectedBillsCount) throw Boom.conflict();
+    if (mainFee.countUnit !== GROUP) throw Boom.badRequest();
 
     const courseBills = await CourseBill.find({ course: course._id }, { courseCreditNote: 1 })
       .populate({ path: 'courseCreditNote', options: { isVendorUser: true } })
@@ -74,8 +82,10 @@ exports.authorizeCourseBillUpdate = async (req) => {
     .findOne({ _id: req.params._id })
     .populate({ path: 'payer.company', select: 'address' })
     .populate({ path: 'payer.fundingOrganisation', select: 'address' })
+    .populate({ path: 'course', select: 'type' })
     .lean();
   if (!courseBill) throw Boom.notFound();
+  if (courseBill.course.type === INTRA && get(req.payload, 'mainFee.countUnit') === TRAINEE) throw Boom.badRequest();
   if (req.payload.payer) {
     if (req.payload.payer.fundingOrganisation) {
       const courseFundingOrganisationExists = await CourseFundingOrganisation

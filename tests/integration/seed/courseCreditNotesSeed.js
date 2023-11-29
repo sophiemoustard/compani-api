@@ -1,5 +1,5 @@
 const { ObjectId } = require('mongodb');
-const { INTRA, INTER_B2B, PUBLISHED } = require('../../../src/helpers/constants');
+const { INTRA, INTER_B2B, PUBLISHED, TRAINEE, GROUP } = require('../../../src/helpers/constants');
 const CourseBill = require('../../../src/models/CourseBill');
 const CourseBillsNumber = require('../../../src/models/CourseBillsNumber');
 const Course = require('../../../src/models/Course');
@@ -66,7 +66,7 @@ const courseBillsList = [
     course: coursesList[1]._id,
     companies: [authCompany._id],
     payer: { company: authCompany._id },
-    mainFee: { price: 44.88, count: 2 },
+    mainFee: { price: 44.88, count: 2, countUnit: GROUP },
     billedAt: '2022-04-07T00:00:00.000Z',
     number: 'FACT-00001',
   },
@@ -75,14 +75,14 @@ const courseBillsList = [
     course: coursesList[1]._id,
     companies: [authCompany._id],
     payer: { company: authCompany._id },
-    mainFee: { price: 65, count: 3, description: 'Salut à toi' },
+    mainFee: { price: 65, count: 3, description: 'Salut à toi', countUnit: GROUP },
   },
   { // 2 bill cancelled by credit note
     _id: new ObjectId(),
     course: coursesList[0]._id,
     companies: [authCompany._id],
     payer: { company: authCompany._id },
-    mainFee: { price: 73, count: 1 },
+    mainFee: { price: 73, count: 1, countUnit: TRAINEE },
     billedAt: '2022-05-30T10:00:00.000Z',
     number: 'FACT-00002',
   },
@@ -91,7 +91,7 @@ const courseBillsList = [
     course: coursesList[0]._id,
     companies: [otherCompany._id],
     payer: { company: authCompany._id },
-    mainFee: { price: 73, count: 1 },
+    mainFee: { price: 73, count: 1, countUnit: TRAINEE },
     billedAt: '2022-05-30T10:00:00.000Z',
     number: 'FACT-00003',
   },
@@ -100,7 +100,7 @@ const courseBillsList = [
     course: coursesList[0]._id,
     companies: [otherCompany._id],
     payer: { company: otherCompany._id },
-    mainFee: { price: 73, count: 1 },
+    mainFee: { price: 73, count: 1, countUnit: TRAINEE },
     billedAt: '2022-05-30T10:00:00.000Z',
     number: 'FACT-00004',
   },

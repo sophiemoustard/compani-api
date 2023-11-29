@@ -3,7 +3,7 @@ const UtilsHelper = require('../../../helpers/utils');
 const NumbersHelper = require('../../../helpers/numbers');
 const FileHelper = require('../../../helpers/file');
 const CourseBillHelper = require('../../../helpers/courseBills');
-const { COPPER_GREY_200 } = require('../../../helpers/constants');
+const { COPPER_GREY_200, COUNT_UNIT } = require('../../../helpers/constants');
 
 const getImages = async () => {
   const imageList = [
@@ -90,7 +90,7 @@ exports.getFeeTable = (data) => {
     [
       { text: '#', style: 'header', alignment: 'left' },
       { text: 'Article & description', style: 'header', alignment: 'left' },
-      { text: 'Quantité', style: 'header', alignment: 'center' },
+      { text: `Quantité (${COUNT_UNIT[data.mainFee.countUnit]})`, style: 'header', alignment: 'center' },
       { text: 'Prix unitaire', style: 'header', alignment: 'center' },
       { text: 'Coût', alignment: 'right', style: 'header' },
     ],

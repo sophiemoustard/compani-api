@@ -83,6 +83,8 @@ const {
   SURVEY,
   QUESTION_ANSWER,
   TIME_STAMP_CANCELLATION,
+  GROUP,
+  TRAINEE,
 } = require('../../../src/helpers/constants');
 const {
   auxiliaryRoleId,
@@ -1305,7 +1307,7 @@ const courseBillList = [
   { // 0
     _id: new ObjectId(),
     course: coursesList[0]._id,
-    mainFee: { price: 1200, count: 1 },
+    mainFee: { price: 1200, count: 1, countUnit: GROUP },
     companies: [authCompany._id],
     payer: { fundingOrganisation: courseFundingOrganisation._id },
     billedAt: '2022-03-08T00:00:00.000Z',
@@ -1314,7 +1316,7 @@ const courseBillList = [
   { // 1 cancelled with creditNote
     _id: new ObjectId(),
     course: coursesList[3]._id,
-    mainFee: { price: 1200, count: 1 },
+    mainFee: { price: 1200, count: 1, countUnit: GROUP },
     companies: [authCompany._id],
     payer: { fundingOrganisation: courseFundingOrganisation._id },
     billedAt: '2022-03-08T00:00:00.000Z',
@@ -1323,7 +1325,7 @@ const courseBillList = [
   { // 2
     _id: new ObjectId(),
     course: coursesList[4]._id,
-    mainFee: { price: 1200, count: 1 },
+    mainFee: { price: 1200, count: 1, countUnit: GROUP },
     companies: [authCompany._id],
     payer: { fundingOrganisation: courseFundingOrganisation._id },
     billedAt: '2022-06-08T00:00:00.000Z',
@@ -1332,7 +1334,7 @@ const courseBillList = [
   { // 3
     _id: new ObjectId(),
     course: coursesList[1]._id,
-    mainFee: { price: 400, count: 1 },
+    mainFee: { price: 400, count: 1, countUnit: TRAINEE },
     companies: [authCompany._id],
     payer: { fundingOrganisation: courseFundingOrganisation._id },
     billedAt: '2022-06-08T00:10:00.000Z',
@@ -1341,7 +1343,7 @@ const courseBillList = [
   { // 4
     _id: new ObjectId(),
     course: coursesList[1]._id,
-    mainFee: { price: 400, count: 1 },
+    mainFee: { price: 400, count: 1, countUnit: TRAINEE },
     companies: [otherCompany._id],
     payer: { fundingOrganisation: courseFundingOrganisation._id },
     billedAt: '2022-03-08T00:10:00.000Z',
@@ -1350,7 +1352,7 @@ const courseBillList = [
   { // 5
     _id: new ObjectId(),
     course: coursesList[5]._id,
-    mainFee: { price: 400, count: 1 },
+    mainFee: { price: 400, count: 1, countUnit: GROUP },
     companies: [authCompany._id],
     payer: { fundingOrganisation: courseFundingOrganisation._id },
     billedAt: '2022-06-08T00:10:00.000Z',
@@ -1359,7 +1361,7 @@ const courseBillList = [
   { // 6
     _id: new ObjectId(),
     course: coursesList[5]._id,
-    mainFee: { price: 240, count: 2 },
+    mainFee: { price: 240, count: 2, countUnit: GROUP },
     companies: [authCompany._id],
     payer: { company: authCompany._id },
     billedAt: '2022-06-08T00:10:00.000Z',
@@ -1368,7 +1370,7 @@ const courseBillList = [
   { // 7 cancelled with creditNote
     _id: new ObjectId(),
     course: coursesList[5]._id,
-    mainFee: { price: 240, count: 1 },
+    mainFee: { price: 240, count: 1, countUnit: GROUP },
     companies: [authCompany._id],
     payer: { company: authCompany._id },
     billedAt: '2021-06-08T00:10:00.000Z',
