@@ -17,7 +17,6 @@ const {
   REFUND,
   TRAINING_ORGANISATION_MANAGER,
   VENDOR_ADMIN,
-  COMPANY,
 } = require('../../../src/helpers/constants');
 
 describe('getNetInclTaxes', () => {
@@ -664,7 +663,7 @@ describe('generateBillPdf', () => {
           location: { type: 'Point', coordinates: [2.37345, 48.848024] },
         },
       },
-      payerType: COMPANY,
+      isPayerCompany: true,
     };
 
     getVendorCompany.returns(vendorCompany);
