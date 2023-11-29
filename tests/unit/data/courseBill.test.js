@@ -42,6 +42,7 @@ describe('getPdfContent', () => {
         name: 'payeur',
         address: '24 Avenue Daumesnil 75012 Paris',
       },
+      isPayerCompany: false,
       course: { subProgram: { program: { name: 'Test' } } },
       mainFee: { price: 1000, count: 1, description: 'description', countUnit: GROUP },
       billingPurchaseList: [
@@ -215,6 +216,7 @@ describe('getPdfContent', () => {
         name: 'payeur',
         address: '24 Avenue Daumesnil 75012 Paris',
       },
+      isPayerCompany: true,
       course: { subProgram: { program: { name: 'Test' } } },
       mainFee: { price: 1000, count: 1, description: 'description', countUnit: TRAINEE },
     };
@@ -257,10 +259,7 @@ describe('getPdfContent', () => {
                 { text: '24 Avenue Daumesnil 75012 Paris' },
               ],
             },
-            {
-              stack: [{ text: 'Formation pour le compte de' }, { text: 'Test structure', bold: true }],
-              alignment: 'right',
-            },
+            {},
           ],
         },
         {
