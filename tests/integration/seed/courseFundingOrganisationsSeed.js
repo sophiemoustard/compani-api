@@ -6,7 +6,7 @@ const SubProgram = require('../../../src/models/SubProgram');
 const CourseFundingOrganisation = require('../../../src/models/CourseFundingOrganisation');
 const { deleteNonAuthenticationSeeds } = require('../helpers/db');
 const { authCompany } = require('../../seed/authCompaniesSeed');
-const { INTRA, PUBLISHED } = require('../../../src/helpers/constants');
+const { INTRA, PUBLISHED, GROUP } = require('../../../src/helpers/constants');
 const { trainer, vendorAdmin, auxiliary } = require('../../seed/authUsersSeed');
 
 const courseFundingOrganisationsList = [
@@ -37,7 +37,7 @@ const courseBills = [
   {
     _id: new ObjectId(),
     course: coursesList[0]._id,
-    mainFee: { price: 1000, count: 1 },
+    mainFee: { price: 1000, count: 1, countUnit: GROUP },
     companies: [authCompany._id],
     payer: { fundingOrganisation: courseFundingOrganisationsList[1]._id },
     billingPurchaseList: [],

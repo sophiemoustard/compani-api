@@ -397,7 +397,7 @@ describe('create', () => {
   it('should create a course bill', async () => {
     const payload = {
       course: new ObjectId(),
-      company: new ObjectId(),
+      companies: [new ObjectId(), new ObjectId()],
       mainFee: { price: 120, count: 1 },
       payer: { fundingOrganisation: new ObjectId() },
     };
@@ -663,6 +663,7 @@ describe('generateBillPdf', () => {
           location: { type: 'Point', coordinates: [2.37345, 48.848024] },
         },
       },
+      isPayerCompany: true,
     };
 
     getVendorCompany.returns(vendorCompany);
@@ -679,6 +680,7 @@ describe('generateBillPdf', () => {
         vendorCompany,
         companies: bill.companies,
         payer: { name: 'test', address: '24 Avenue Daumesnil 75012 Paris' },
+        isPayerCompany: true,
         course: bill.course,
         mainFee: bill.mainFee,
         billingPurchaseList: bill.billingPurchaseList,

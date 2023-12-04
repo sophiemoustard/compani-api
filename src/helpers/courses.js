@@ -59,6 +59,7 @@ const {
   PDF,
   CUSTOM,
   OFFICIAL,
+  SHORT_DURATION_H_MM,
 } = require('./constants');
 const CourseHistoriesHelper = require('./courseHistories');
 const NotificationHelper = require('./notifications');
@@ -841,32 +842,94 @@ exports.generateAttendanceSheets = async (courseId) => {
 exports.formatCourseForDocuments = (course, type) => {
   const sortedCourseSlots = course.slots.sort(DatesUtilsHelper.ascendingSortBy('startDate'));
 
+  const theoreticalDuration = course.subProgram.steps
+    .reduce((acc, step) => acc.add(step.theoreticalDuration), CompaniDuration());
+
+  const onSiteDuration = UtilsHelper.getTotalDuration(course.slots, false);
+
+  const totalDuration = CompaniDuration(onSiteDuration)
+    .add(CompaniDuration(theoreticalDuration))
+    .format(SHORT_DURATION_H_MM);
+
   return {
-    duration: UtilsHelper.getTotalDuration(course.slots),
+    duration: {
+      onSite: CompaniDuration(onSiteDuration).format(SHORT_DURATION_H_MM),
+      eLearning: CompaniDuration(theoreticalDuration).format(SHORT_DURATION_H_MM),
+      total: totalDuration,
+    },
     learningGoals: get(course, 'subProgram.program.learningGoals') || '',
     programName: get(course, 'subProgram.program.name').toUpperCase() || '',
     startDate: CompaniDate(sortedCourseSlots[0].startDate).format(DD_MM_YYYY),
     endDate: CompaniDate(sortedCourseSlots[sortedCourseSlots.length - 1].endDate).format(DD_MM_YYYY),
     ...(type === OFFICIAL && { companyNamesById: mapValues(keyBy(course.companies, '_id'), 'name') }),
+    steps: get(course, 'subProgram.steps'),
   };
 };
 
-const getTraineeInformations = (trainee, courseAttendances, companiesNames = null) => {
+const getELearningStepInfos = (step) => {
+  const progress = step.activities.filter(activity => activity.activityHistories.length > 0).length;
+  const maxProgress = step.activities.length;
+  const stepProgress = maxProgress ? progress / maxProgress : 0;
+
+  return { progress: stepProgress };
+};
+
+const getELearningDuration = (steps, traineeId) => {
+  const formattedSteps = steps
+    .map((step) => {
+      const activities = step.activities
+        .map(a => ({
+          ...a,
+          activityHistories: a.activityHistories.filter(aH => UtilsHelper.areObjectIdsEquals(aH.user, traineeId)),
+        }));
+
+      return { theoreticalDuration: step.theoreticalDuration, activities };
+    });
+
+  const eLearningDuration = formattedSteps.map((step) => {
+    const { progress } = getELearningStepInfos(step);
+
+    return progress ? progress * CompaniDuration(step.theoreticalDuration).asSeconds() : 0;
+  }).reduce((acc, val) => acc.add(CompaniDuration({ seconds: val })), CompaniDuration());
+
+  return eLearningDuration;
+};
+
+const getTraineeInformations = (trainee, courseAttendances, steps, companiesNames = null) => {
   const identity = UtilsHelper.formatIdentity(trainee.identity, 'FL');
+
   const traineeSlots = courseAttendances
     .filter(a => UtilsHelper.areObjectIdsEquals(trainee._id, a.trainee))
     .map(a => a.courseSlot);
-  const attendanceDuration = UtilsHelper.getTotalDuration(traineeSlots);
 
-  return { identity, attendanceDuration, ...(companiesNames && { companyName: companiesNames[trainee.company] }) };
+  const attendanceDuration = UtilsHelper.getTotalDuration(traineeSlots, false);
+
+  const eLearningDuration = getELearningDuration(steps, trainee._id);
+
+  const totalDuration = CompaniDuration(attendanceDuration)
+    .add(CompaniDuration(eLearningDuration))
+    .format(SHORT_DURATION_H_MM);
+
+  return {
+    identity,
+    attendanceDuration: CompaniDuration(attendanceDuration).format(SHORT_DURATION_H_MM),
+    ...(companiesNames && { companyName: companiesNames[trainee.company] }),
+    eLearningDuration: CompaniDuration(eLearningDuration).format(SHORT_DURATION_H_MM),
+    totalDuration,
+  };
 };
 
 const generateCompletionCertificatePdf = async (courseData, courseAttendances, trainee) => {
-  const { identity, attendanceDuration } = getTraineeInformations(trainee, courseAttendances);
+  const {
+    identity,
+    attendanceDuration,
+    eLearningDuration,
+    totalDuration,
+  } = getTraineeInformations(trainee, courseAttendances, courseData.steps);
 
   const pdf = await CompletionCertificate.getPdf({
-    ...omit(courseData, 'companyNamesById'),
-    trainee: { identity, attendanceDuration },
+    ...omit(courseData, ['companyNamesById', 'steps']),
+    trainee: { identity, attendanceDuration, eLearningDuration, totalDuration },
     date: CompaniDate().format(DD_MM_YYYY),
   });
 
@@ -878,12 +941,14 @@ const generateOfficialCompletionCertificatePdf = async (courseData, courseAttend
     identity,
     attendanceDuration,
     companyName,
-  } = getTraineeInformations(trainee, courseAttendances, courseData.companyNamesById);
+    eLearningDuration,
+    totalDuration,
+  } = getTraineeInformations(trainee, courseAttendances, courseData.steps, courseData.companyNamesById);
 
   const pdf = await CompletionCertificate.getPdf(
     {
-      ...omit(courseData, 'companyNamesById'),
-      trainee: { identity, attendanceDuration, companyName },
+      ...omit(courseData, ['companyNamesById', 'steps']),
+      trainee: { identity, attendanceDuration, companyName, eLearningDuration, totalDuration },
       date: CompaniDate().format(DD_MM_YYYY),
     },
     OFFICIAL
@@ -897,13 +962,15 @@ const generateCompletionCertificateWord = async (course, attendances, trainee, t
     identity,
     attendanceDuration,
     companyName,
-  } = getTraineeInformations(trainee, attendances, course.companyNamesById);
+    eLearningDuration,
+    totalDuration,
+  } = getTraineeInformations(trainee, attendances, course.steps, course.companyNamesById);
 
   const filePath = await DocxHelper.createDocx(
     templatePath,
     {
-      ...omit(course, 'companyNamesById'),
-      trainee: { identity, attendanceDuration, ...(companyName && { companyName }) },
+      ...omit(course, ['companyNamesById', 'steps']),
+      trainee: { identity, attendanceDuration, ...(companyName && { companyName }), eLearningDuration, totalDuration },
       date: CompaniDate().format(DD_MM_YYYY),
     }
   );
@@ -931,9 +998,17 @@ const getTraineeList = async (course, credentials) => {
 const generateCompletionCertificateAllWord = async (courseData, attendances, traineeList, type) => {
   const tmpFilePath = path.join(os.tmpdir(), 'certificate_template.docx');
 
-  const fileId = type === CUSTOM
-    ? process.env.GOOGLE_DRIVE_TRAINING_CERTIFICATE_TEMPLATE_ID
-    : process.env.GOOGLE_DRIVE_OFFICIAL_TRAINING_CERTIFICATE_TEMPLATE_ID;
+  let fileId;
+  if (type === CUSTOM) {
+    fileId = courseData.duration.eLearning === '0h'
+      ? process.env.GOOGLE_DRIVE_TRAINING_CERTIFICATE_TEMPLATE_ID
+      : process.env.GOOGLE_DRIVE_TRAINING_CERTIFICATE_TEMPLATE_WITH_ELEARNING_ID;
+  } else {
+    fileId = courseData.duration.eLearning === '0h'
+      ? process.env.GOOGLE_DRIVE_OFFICIAL_TRAINING_CERTIFICATE_TEMPLATE_ID
+      : process.env.GOOGLE_DRIVE_OFFICIAL_TRAINING_CERTIFICATE_TEMPLATE_WITH_ELEARNING_ID;
+  }
+
   await drive.downloadFileById({ fileId, tmpFilePath });
 
   const promises = traineeList
@@ -946,10 +1021,28 @@ const generateCompletionCertificateAllWord = async (courseData, attendances, tra
 exports.generateCompletionCertificates = async (courseId, credentials, query) => {
   const { format, type } = query;
 
+  const courseTrainees = await Course.findOne({ _id: courseId }, { trainees: 1 }).lean();
+
   const course = await Course.findOne({ _id: courseId })
     .populate({ path: 'slots', select: 'startDate endDate' })
     .populate({ path: 'trainees', select: 'identity' })
-    .populate({ path: 'subProgram', select: 'program', populate: { path: 'program', select: 'name learningGoals' } })
+    .populate(
+      {
+        path: 'subProgram',
+        select: 'program steps',
+        populate: [
+          { path: 'program', select: 'name learningGoals' },
+          {
+            path: 'steps',
+            select: 'type theoreticalDuration',
+            match: { type: E_LEARNING },
+            populate: {
+              path: 'activities',
+              populate: { path: 'activityHistories', match: { user: { $in: courseTrainees.trainees } } },
+            },
+          },
+        ],
+      })
     .populate({ path: 'companies', select: 'name' })
     .lean();
 

@@ -174,7 +174,7 @@ exports.generateBillPdf = async (billId) => {
 
   const { billedAt, payer } = bill;
   const data = {
-    ...pick(bill, ['number', 'companies', 'course', 'mainFee', 'billingPurchaseList']),
+    ...pick(bill, ['number', 'companies', 'course', 'mainFee', 'billingPurchaseList', 'isPayerCompany']),
     date: CompaniDate(billedAt).format(DD_MM_YYYY),
     vendorCompany,
     payer: { name: payer.name, address: get(payer, 'address.fullAddress') || payer.address },

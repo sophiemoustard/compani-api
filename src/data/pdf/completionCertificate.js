@@ -17,7 +17,7 @@ const getImages = async () => {
 const getHeader = (thumb, compani) => [
   {
     columns: [
-      { image: thumb, width: 64, marginTop: 8 },
+      { image: thumb, width: 64 },
       [
         { image: compani, width: 200, height: 42, alignment: 'right' },
         { text: 'Attestation individuelle de formation', style: 'title' },
@@ -31,6 +31,7 @@ exports.getCustomPdfContent = async (data) => {
   const [thumb, compani, lighted, emoji, signature] = await getImages();
   const { trainee, programName, duration, startDate, endDate, learningGoals, date } = data;
   const isLargeProgramName = programName.length > 80;
+  const hasELearningStep = duration.eLearning !== '0h';
 
   const header = getHeader(thumb, compani);
 
@@ -41,7 +42,7 @@ exports.getCustomPdfContent = async (data) => {
         { text: 'COMPANI est ravi de vous avoir accompagné et d\'avoir partagé ces moments ensemble', width: 'auto' },
         { image: emoji, width: 10, height: 10, marginLeft: 2 },
       ],
-      marginBottom: 16,
+      marginBottom: 8,
     },
     {
       text: [
@@ -55,14 +56,14 @@ exports.getCustomPdfContent = async (data) => {
     },
     {
       canvas: [{ type: 'rect', x: 0, y: 0, w: 515, h: isLargeProgramName ? 32 : 24, r: 0, color: COPPER_50 }],
-      absolutePosition: { x: 40, y: 264 },
+      absolutePosition: { x: 40, y: 248 },
       marginBottom: 8,
     },
     { text: programName, style: 'programName' },
     {
       text: [
         { text: 'Durée', decoration: 'underline' },
-        ` : ${duration} de formation en présentiel du `,
+        ` : ${duration.total} de formation ${hasELearningStep ? '' : 'en présentiel '}du `,
         { text: `${startDate} au ${endDate}`, color: COPPER_500 },
       ],
     },
@@ -77,13 +78,29 @@ exports.getCustomPdfContent = async (data) => {
       table: {
         body: [
           [{ text: 'Assiduité du stagiaire :', style: 'subTitle' }],
-          [{
-            text: [
-              { text: trainee.identity, italics: true },
-              ' a été présent(e) à ',
-              { text: `${trainee.attendanceDuration} de formation sur les ${duration} prévues.`, bold: true },
-            ],
-          }],
+          ...([hasELearningStep
+            ? [{
+              text: [
+                { text: trainee.identity, italics: true },
+                ' a été présent(e) à ',
+                { text: trainee.totalDuration, bold: true },
+                ' de formation (dont ',
+                { text: `${trainee.attendanceDuration} en présentiel `, bold: true },
+                'et ',
+                { text: `${trainee.eLearningDuration} en e-learning) `, bold: true },
+                'sur les ',
+                { text: `${duration.total} prévues.`, bold: true },
+              ],
+            }]
+            : [{
+              text: [
+                { text: trainee.identity, italics: true },
+                ' a été présent(e) à ',
+                { text: trainee.attendanceDuration, bold: true },
+                ' de formation en présentiel sur les ',
+                { text: `${duration.total} prévues.`, bold: true },
+              ],
+            }]]),
           [{ text: 'Objectifs pédagogiques :', style: 'subTitle' }],
           [{
             text: [
@@ -159,8 +176,9 @@ const defineCheckbox = (xPos, yPos, label, isLargeProgramName, isChecked = false
 };
 
 exports.getOfficialPdfContent = async (data) => {
-  const { trainee, programName, startDate, endDate, date } = data;
+  const { trainee, programName, startDate, endDate, date, duration } = data;
   const isLargeProgramName = programName.length > 60;
+  const hasELearningStep = duration.eLearning !== '0h';
 
   const imageList = [
     { url: 'https://storage.googleapis.com/compani-main/tsb_signature.png', name: 'signature.png' },
@@ -227,7 +245,16 @@ exports.getOfficialPdfContent = async (data) => {
         {
           text: [
             { text: 'pour une durée de ', bold: true },
-            { text: `${trainee.attendanceDuration} .`, italics: true },
+            (hasELearningStep
+              ? {
+                text: `${trainee.totalDuration} en formation (dont ${trainee.attendanceDuration} en présentiel et `
+                + `${trainee.eLearningDuration} en e-learning) sur ${duration.total} prévues. `,
+                italics: true,
+              }
+              : {
+                text: `${trainee.attendanceDuration} en formation présentielle sur ${duration.total} prévues. `,
+                italics: true,
+              }),
           ],
         },
         { text: '2', fontSize: 8, bold: true },
@@ -251,19 +278,19 @@ exports.getOfficialPdfContent = async (data) => {
         [
           {
             text: [{ text: 'Fait à : ', bold: true }, { text: 'Paris', italics: true }],
-            absolutePosition: { x: 35, y: 520 },
+            absolutePosition: { x: 35, y: 530 },
             marginLeft: 46,
           },
           {
             text: [{ text: 'Le : ', bold: true }, { text: `${date}`, italics: true }],
-            absolutePosition: { x: 35, y: 540 },
+            absolutePosition: { x: 35, y: 550 },
             marginLeft: 46,
           },
         ],
         [
           {
             canvas: [{ type: 'rect', x: 0, y: 0, w: 260, h: 180, r: 0 }],
-            absolutePosition: { y: 525 },
+            absolutePosition: { y: 535 },
             alignment: 'right',
           },
           {
@@ -278,13 +305,12 @@ exports.getOfficialPdfContent = async (data) => {
             alignment: 'center',
             fontSize: 12,
           },
-          { image: signature, width: 130, absolutePosition: { x: 380, y: 585 } },
+          { image: signature, width: 130, absolutePosition: { x: 380, y: 595 } },
         ],
       ],
       marginLeft: 40,
       marginRight: 40,
-      marginTop: 16,
-      absolutePosition: { x: 35, y: 525 },
+      absolutePosition: { x: 35, y: 535 },
     },
     {
       text: [
@@ -299,7 +325,7 @@ exports.getOfficialPdfContent = async (data) => {
               + 'et le temps estimé pour les réaliser.',
         },
       ],
-      absolutePosition: { x: 35, y: 735 },
+      absolutePosition: { x: 35, y: 745 },
       marginLeft: 40,
       marginRight: 40,
       marginTop: 8,

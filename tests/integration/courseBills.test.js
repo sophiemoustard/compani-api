@@ -14,6 +14,7 @@ const {
 const { authCompany, otherCompany } = require('../seed/authCompaniesSeed');
 
 const { getToken } = require('./helpers/authentication');
+const { GROUP, TRAINEE } = require('../../src/helpers/constants');
 
 describe('NODE ENV', () => {
   it('should be \'test\'', () => {
@@ -44,7 +45,7 @@ describe('COURSE BILL ROUTES - GET /coursebills', () => {
           course: coursesList[0]._id,
           companies: [pick(authCompany, ['_id', 'name'])],
           payer: pick(authCompany, ['_id', 'name']),
-          mainFee: { price: 120, count: 1 },
+          mainFee: { price: 120, count: 1, countUnit: GROUP },
           billingPurchaseList: expect.arrayContaining([
             expect.objectContaining({ billingItem: billingItemList[0]._id, price: 90, count: 1 }),
             expect.objectContaining({ billingItem: billingItemList[1]._id, price: 400, count: 1 }),
@@ -55,7 +56,7 @@ describe('COURSE BILL ROUTES - GET /coursebills', () => {
           course: coursesList[0]._id,
           companies: [pick(authCompany, ['_id', 'name'])],
           payer: pick(authCompany, ['_id', 'name']),
-          mainFee: { price: 200, count: 2, description: 'yoyo' },
+          mainFee: { price: 200, count: 2, description: 'yoyo', countUnit: GROUP },
           billingPurchaseList: [expect.objectContaining({ billingItem: billingItemList[0]._id, price: 9, count: 1 })],
           netInclTaxes: 409,
           billedAt: new Date('2022-04-07T00:00:00.000Z'),
@@ -77,14 +78,14 @@ describe('COURSE BILL ROUTES - GET /coursebills', () => {
         expect.objectContaining({
           course: coursesList[1]._id,
           companies: [pick(authCompany, ['_id', 'name'])],
-          mainFee: { price: 120, count: 1, description: 'Lorem ipsum' },
+          mainFee: { price: 120, count: 1, description: 'Lorem ipsum', countUnit: GROUP },
           netInclTaxes: 120,
           payer: pick(courseFundingOrganisationList[0], ['_id', 'name']),
         }),
         expect.objectContaining({
           course: coursesList[1]._id,
           companies: [pick(authCompany, ['_id', 'name'])],
-          mainFee: { price: 200, count: 2, description: 'yoyo' },
+          mainFee: { price: 200, count: 2, description: 'yoyo', countUnit: GROUP },
           netInclTaxes: 409,
           billingPurchaseList: [expect.objectContaining({ billingItem: billingItemList[0]._id, price: 9, count: 1 })],
           payer: pick(authCompany, ['_id', 'name']),
@@ -309,7 +310,7 @@ describe('COURSE BILL ROUTES - POST /coursebills', () => {
   const payload = {
     course: coursesList[2]._id,
     companies: [otherCompany._id],
-    mainFee: { price: 120, count: 1 },
+    mainFee: { price: 120, count: 1, countUnit: GROUP },
     payer: { fundingOrganisation: courseFundingOrganisationList[0]._id },
   };
 
@@ -371,7 +372,15 @@ describe('COURSE BILL ROUTES - POST /coursebills', () => {
       expect(response.statusCode).toBe(200);
     });
 
-    const missingParams = ['course', 'companies', 'mainFee', 'mainFee.price', 'mainFee.count', 'payer'];
+    const missingParams = [
+      'course',
+      'companies',
+      'mainFee',
+      'mainFee.price',
+      'mainFee.count',
+      'payer',
+      'mainFee.countUnit',
+    ];
     missingParams.forEach((param) => {
       it(`should return 400 as ${param} is missing`, async () => {
         const response = await app.inject({
@@ -393,6 +402,7 @@ describe('COURSE BILL ROUTES - POST /coursebills', () => {
       { key: 'count', value: 0 },
       { key: 'count', value: 1.23 },
       { key: 'count', value: '1x' },
+      { key: 'countUnit', value: 'learner' },
     ];
     wrongValues.forEach((param) => {
       it(`should return 400 as ${param.key} has wrong value : ${param.value}`, async () => {
@@ -415,6 +425,28 @@ describe('COURSE BILL ROUTES - POST /coursebills', () => {
           ...payload,
           payer: { fundingOrganisation: courseFundingOrganisationList[0]._id, company: otherCompany._id },
         },
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
+
+    it('should return 400 if course is INTRA and count unit is trainee', async () => {
+      const response = await app.inject({
+        method: 'POST',
+        url: '/coursebills',
+        payload: { ...payload, mainFee: { price: 120, count: 1, countUnit: TRAINEE } },
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
+
+    it('should return 400 if no company', async () => {
+      const response = await app.inject({
+        method: 'POST',
+        url: '/coursebills',
+        payload: { ...payload, companies: [] },
         headers: { 'x-access-token': authToken },
       });
 
@@ -596,21 +628,21 @@ describe('COURSE BILL ROUTES - PUT /coursebills/{_id}', () => {
     it('should update main fee on course bill', async () => {
       const countBefore = await CourseBill.countDocuments({
         _id: courseBillsList[0]._id,
-        mainFee: { price: 120, count: 1 },
+        mainFee: { price: 120, count: 1, countUnit: GROUP },
       });
 
       const response = await app.inject({
         method: 'PUT',
         url: `/coursebills/${courseBillsList[0]._id}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
-        payload: { mainFee: { price: 130, count: 1 } },
+        payload: { mainFee: { price: 130, count: 1, countUnit: GROUP } },
       });
 
       expect(response.statusCode).toBe(200);
 
       const countAfter = await CourseBill.countDocuments({
         _id: courseBillsList[0]._id,
-        mainFee: { price: 130, count: 1 },
+        mainFee: { price: 130, count: 1, countUnit: GROUP },
       });
       expect(countBefore).toBeTruthy();
       expect(countAfter).toBeTruthy();
@@ -731,6 +763,7 @@ describe('COURSE BILL ROUTES - PUT /coursebills/{_id}', () => {
       { key: 'count', value: 0 },
       { key: 'count', value: 1.23 },
       { key: 'count', value: '1x' },
+      { key: 'countUnit', value: '' },
     ];
     wrongValues.forEach((param) => {
       it(`should return 400 as ${param.key} has wrong value : ${param.value}`, async () => {
@@ -750,6 +783,17 @@ describe('COURSE BILL ROUTES - PUT /coursebills/{_id}', () => {
         method: 'PUT',
         url: `/coursebills/${courseBillsList[0]._id}`,
         payload: { payer: { fundingOrganisation: courseFundingOrganisationList[0]._id, company: authCompany._id } },
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
+
+    it('should return 400 if course is intra and count unit is trainee', async () => {
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/coursebills/${courseBillsList[0]._id}`,
+        payload: { countUnit: TRAINEE },
         headers: { 'x-access-token': authToken },
       });
 

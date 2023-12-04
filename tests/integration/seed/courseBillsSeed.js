@@ -1,6 +1,6 @@
 const { v4: uuidv4 } = require('uuid');
 const { ObjectId } = require('mongodb');
-const { INTRA, INTER_B2B, WEBAPP, PUBLISHED } = require('../../../src/helpers/constants');
+const { INTRA, INTER_B2B, WEBAPP, PUBLISHED, GROUP } = require('../../../src/helpers/constants');
 const Company = require('../../../src/models/Company');
 const Course = require('../../../src/models/Course');
 const CourseBill = require('../../../src/models/CourseBill');
@@ -247,7 +247,7 @@ const courseBillsList = [
     _id: new ObjectId(),
     course: coursesList[0]._id,
     companies: [authCompany._id],
-    mainFee: { price: 120, count: 1 },
+    mainFee: { price: 120, count: 1, countUnit: GROUP },
     payer: { company: authCompany._id },
     billingPurchaseList: [
       { _id: new ObjectId(), billingItem: billingItemList[0]._id, price: 90, count: 1 },
@@ -258,7 +258,7 @@ const courseBillsList = [
     _id: new ObjectId(),
     course: coursesList[1]._id,
     companies: [authCompany._id],
-    mainFee: { price: 120, count: 1, description: 'Lorem ipsum' },
+    mainFee: { price: 120, count: 1, description: 'Lorem ipsum', countUnit: GROUP },
     payer: { fundingOrganisation: courseFundingOrganisationList[0]._id },
   },
   { // 2 - already billed without funder
@@ -266,7 +266,7 @@ const courseBillsList = [
     course: coursesList[3]._id,
     companies: [authCompany._id],
     payer: { company: authCompany._id },
-    mainFee: { price: 120, count: 1, description: 'Lorem ipsum' },
+    mainFee: { price: 120, count: 1, description: 'Lorem ipsum', countUnit: GROUP },
     billedAt: '2022-03-07T00:00:00.000Z',
     number: 'FACT-00001',
     billingPurchaseList: [
@@ -278,7 +278,7 @@ const courseBillsList = [
     course: coursesList[4]._id,
     companies: [authCompany._id],
     payer: { company: authCompany._id },
-    mainFee: { price: 10, count: 1 },
+    mainFee: { price: 10, count: 1, countUnit: GROUP },
     billingPurchaseList: [
       { _id: new ObjectId(), billingItem: billingItemList[0]._id, price: 12, count: 7, description: 'soupe du soir' },
     ],
@@ -287,7 +287,7 @@ const courseBillsList = [
     _id: new ObjectId(),
     course: coursesList[5]._id,
     companies: [authCompany._id],
-    mainFee: { price: 200, count: 2, description: 'Salut' },
+    mainFee: { price: 200, count: 2, description: 'Salut', countUnit: GROUP },
     billedAt: '2022-04-07T00:00:00.000Z',
     number: 'FACT-00002',
     payer: { fundingOrganisation: courseFundingOrganisationList[0]._id },
@@ -300,7 +300,7 @@ const courseBillsList = [
     course: coursesList[6]._id,
     companies: [companyWithoutAddress._id],
     payer: { company: companyWithoutAddress._id },
-    mainFee: { price: 200, count: 2, description: 'yoyo' },
+    mainFee: { price: 200, count: 2, description: 'yoyo', countUnit: GROUP },
     billingPurchaseList: [
       { _id: new ObjectId(), billingItem: billingItemList[0]._id, price: 9, count: 1 },
     ],
@@ -310,7 +310,7 @@ const courseBillsList = [
     course: coursesList[7]._id,
     companies: [otherCompany._id],
     payer: { company: authCompany._id },
-    mainFee: { price: 200, count: 2, description: 'yoyo' },
+    mainFee: { price: 200, count: 2, description: 'yoyo', countUnit: GROUP },
     billingPurchaseList: [
       { _id: new ObjectId(), billingItem: billingItemList[0]._id, price: 9, count: 1 },
     ],
@@ -322,7 +322,7 @@ const courseBillsList = [
     course: coursesList[8]._id,
     companies: [otherCompany._id],
     payer: { company: otherCompany._id },
-    mainFee: { price: 200, count: 2, description: 'yoyo' },
+    mainFee: { price: 200, count: 2, description: 'yoyo', countUnit: GROUP },
     billingPurchaseList: [
       { _id: new ObjectId(), billingItem: billingItemList[0]._id, price: 9, count: 1 },
     ],
@@ -334,7 +334,7 @@ const courseBillsList = [
     course: coursesList[1]._id,
     companies: [authCompany._id],
     payer: { company: authCompany._id },
-    mainFee: { price: 200, count: 2, description: 'yoyo' },
+    mainFee: { price: 200, count: 2, description: 'yoyo', countUnit: GROUP },
     billingPurchaseList: [
       { _id: new ObjectId(), billingItem: billingItemList[0]._id, price: 9, count: 1 },
     ],
@@ -346,7 +346,7 @@ const courseBillsList = [
     course: coursesList[0]._id,
     companies: [authCompany._id],
     payer: { company: authCompany._id },
-    mainFee: { price: 200, count: 2, description: 'yoyo' },
+    mainFee: { price: 200, count: 2, description: 'yoyo', countUnit: GROUP },
     billingPurchaseList: [
       { _id: new ObjectId(), billingItem: billingItemList[0]._id, price: 9, count: 1 },
     ],

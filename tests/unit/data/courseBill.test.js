@@ -4,7 +4,7 @@ const FileHelper = require('../../../src/helpers/file');
 const PdfHelper = require('../../../src/helpers/pdf');
 const UtilsHelper = require('../../../src/helpers/utils');
 const CourseBill = require('../../../src/data/pdf/courseBilling/courseBill');
-const { COPPER_GREY_200, COPPER_600 } = require('../../../src/helpers/constants');
+const { COPPER_GREY_200, COPPER_600, GROUP, TRAINEE } = require('../../../src/helpers/constants');
 
 describe('getPdfContent', () => {
   let downloadImages;
@@ -42,8 +42,9 @@ describe('getPdfContent', () => {
         name: 'payeur',
         address: '24 Avenue Daumesnil 75012 Paris',
       },
+      isPayerCompany: false,
       course: { subProgram: { program: { name: 'Test' } } },
-      mainFee: { price: 1000, count: 1, description: 'description' },
+      mainFee: { price: 1000, count: 1, description: 'description', countUnit: GROUP },
       billingPurchaseList: [
         { billingItem: { name: 'article 1' }, price: 10, count: 10 },
         { billingItem: { name: 'article 2' }, price: 20, count: 10, description: 'article cool' },
@@ -100,7 +101,7 @@ describe('getPdfContent', () => {
               [
                 { text: '#', style: 'header', alignment: 'left' },
                 { text: 'Article & description', style: 'header', alignment: 'left' },
-                { text: 'Quantité', style: 'header', alignment: 'center' },
+                { text: 'Quantité (groupe)', style: 'header', alignment: 'center' },
                 { text: 'Prix unitaire', style: 'header', alignment: 'center' },
                 { text: 'Coût', alignment: 'right', style: 'header' },
               ],
@@ -215,8 +216,9 @@ describe('getPdfContent', () => {
         name: 'payeur',
         address: '24 Avenue Daumesnil 75012 Paris',
       },
+      isPayerCompany: true,
       course: { subProgram: { program: { name: 'Test' } } },
-      mainFee: { price: 1000, count: 1, description: 'description' },
+      mainFee: { price: 1000, count: 1, description: 'description', countUnit: TRAINEE },
     };
 
     const pdf = {
@@ -257,10 +259,7 @@ describe('getPdfContent', () => {
                 { text: '24 Avenue Daumesnil 75012 Paris' },
               ],
             },
-            {
-              stack: [{ text: 'Formation pour le compte de' }, { text: 'Test structure', bold: true }],
-              alignment: 'right',
-            },
+            {},
           ],
         },
         {
@@ -269,7 +268,7 @@ describe('getPdfContent', () => {
               [
                 { text: '#', style: 'header', alignment: 'left' },
                 { text: 'Article & description', style: 'header', alignment: 'left' },
-                { text: 'Quantité', style: 'header', alignment: 'center' },
+                { text: 'Quantité (stagiaire)', style: 'header', alignment: 'center' },
                 { text: 'Prix unitaire', style: 'header', alignment: 'center' },
                 { text: 'Coût', alignment: 'right', style: 'header' },
               ],
@@ -355,7 +354,7 @@ describe('getPdf', () => {
       date: '18/08/1998',
       companies: [{ name: 'Test structure' }],
       course: { subProgram: { program: { name: 'Test' } } },
-      mainFee: { price: 1000, count: 1, description: 'description' },
+      mainFee: { price: 1000, count: 1, description: 'description', countUnit: GROUP },
     };
 
     const template = {

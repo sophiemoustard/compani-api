@@ -1,5 +1,5 @@
 const { ObjectId } = require('mongodb');
-const { PAYMENT, DIRECT_DEBIT, INTRA, PUBLISHED } = require('../../../src/helpers/constants');
+const { PAYMENT, DIRECT_DEBIT, INTRA, PUBLISHED, GROUP } = require('../../../src/helpers/constants');
 const Course = require('../../../src/models/Course');
 const CourseBill = require('../../../src/models/CourseBill');
 const CourseBillsNumber = require('../../../src/models/CourseBillsNumber');
@@ -36,7 +36,7 @@ const courseBillsList = [
     _id: new ObjectId(),
     course: coursesList[0]._id,
     companies: [authCompany._id],
-    mainFee: { price: 1200.20, count: 1 },
+    mainFee: { price: 1200.20, count: 1, countUnit: GROUP },
     billedAt: '2022-03-06T00:00:00.000Z',
     number: 'FACT-00001',
     payer: { company: authCompany._id },
@@ -45,7 +45,7 @@ const courseBillsList = [
     _id: new ObjectId(),
     course: coursesList[0]._id,
     companies: [authCompany._id],
-    mainFee: { price: 1200, count: 1, description: 'Lorem ipsum' },
+    mainFee: { price: 1200, count: 1, description: 'Lorem ipsum', countUnit: GROUP },
     payer: { company: authCompany._id },
   },
 ];
