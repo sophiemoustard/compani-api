@@ -2,7 +2,7 @@ const get = require('lodash/get');
 const PdfHelper = require('../../helpers/pdf');
 const FileHelper = require('../../helpers/file');
 const UtilsHelper = require('../../helpers/utils');
-const { COPPER_600, COPPER_100, INTRA, INTER_B2B } = require('../../helpers/constants');
+const { COPPER_600, COPPER_100, INTER_B2B } = require('../../helpers/constants');
 
 const getImages = async () => {
   const imageList = [
@@ -73,7 +73,7 @@ exports.getPdfContent = async (data) => {
   const header = getHeader(data, compani);
 
   const learnersCount = UtilsHelper.formatQuantity('stagiaire', data.learnersCount);
-  const totalPrice = data.type === INTRA ? data.price : data.learnersCount * data.price;
+  const totalPrice = data.type === INTER_B2B ? data.learnersCount * data.price : data.price;
 
   const body = [
     [
@@ -91,7 +91,7 @@ exports.getPdfContent = async (data) => {
               + `${data.eLearningDuration ? ` (+ ${data.eLearningDuration} de e-learning)` : ''}`,
           },
           {
-            text: `Effectif formé : ${data.misc ? `${data.misc}, ` : ''}${data.type === INTRA ? 'jusqu\'à ' : ''}`
+            text: `Effectif formé : ${data.misc ? `${data.misc}, ` : ''}${data.type !== INTER_B2B ? 'jusqu\'à ' : ''}`
             + `${learnersCount}`,
           },
           { text: `Dates : ${data.dates.join(' - ')}` },
