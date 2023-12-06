@@ -23,7 +23,7 @@ exports.create = async (payload) => {
     .lean();
 
   const programName = course.subProgram.program.name;
-  const companyName = course.companies[0].name;
+  const companyName = course.companies.find(c => UtilsHelper.areObjectIdsEquals(c._id, payload.company)).name;
 
   const fileName = `convention_${programName}_${companyName}`;
   const fileUploaded = await GCloudStorageHelper.uploadCourseFile({
