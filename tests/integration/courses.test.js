@@ -3981,7 +3981,7 @@ describe('COURSES ROUTES - GET /{_id}/completion-certificates', () => {
       authToken = await getToken('client_admin');
       const response = await app.inject({
         method: 'GET',
-        url: `/courses/${courseIdFromOtherCompany}/completion-certificates`,
+        url: `/courses/${courseIdFromOtherCompany}/completion-certificates?format=${ALL_PDF}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
