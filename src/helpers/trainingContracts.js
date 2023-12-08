@@ -6,7 +6,7 @@ const mapValues = require('lodash/mapValues');
 const GCloudStorageHelper = require('./gCloudStorage');
 const DatesUtilsHelper = require('./dates/utils');
 const UtilsHelper = require('./utils');
-const { E_LEARNING, SHORT_DURATION_H_MM, DD_MM_YYYY, REMOTE, INTRA, COURSE, TRAINEE } = require('./constants');
+const { E_LEARNING, SHORT_DURATION_H_MM, DD_MM_YYYY, REMOTE, COURSE, TRAINEE, INTER_B2B } = require('./constants');
 const { CompaniDate } = require('./dates/companiDates');
 const { CompaniDuration } = require('./dates/companiDurations');
 const Course = require('../models/Course');
@@ -108,7 +108,7 @@ const getAddressList = (slots, steps) => {
 };
 
 const getLearnersCount = async (course) => {
-  if (course.type === INTRA) return course.maxTrainees;
+  if (course.type !== INTER_B2B) return course.maxTrainees;
 
   const traineesCompanyAtCourseRegistration = await CourseHistoriesHelper
     .getCompanyAtCourseRegistrationList({ key: COURSE, value: course._id }, { key: TRAINEE, value: course.trainees });
