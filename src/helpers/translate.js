@@ -421,6 +421,8 @@ module.exports = {
     trainingContractsNotFound: 'Training contracts not found',
     trainingContractDeleted: 'Training contract deleted',
     trainingContractAlreadyExists: 'Training contract already exists for this course and company.',
+    /* TrainerMissions */
+    trainerMissionCreated: 'Trainer mission created',
   },
   'fr-FR': {
     /* Global errors */
@@ -844,5 +846,7 @@ module.exports = {
     trainingContractDeleted: 'Convention de formation supprimée',
     trainingContractAlreadyExists: 'Une convention associée à cette formation existe déjà pour cette '
       + 'structure.',
+    /* TrainerMissions */
+    trainerMissionCreated: 'Ordre de mission créé',
   },
 };
