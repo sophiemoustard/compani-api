@@ -283,5 +283,3 @@ exports.hasUserAccessToCompany = (credentials, company) => {
 };
 
 exports.formatName = list => list.map(item => item.name).join(', ');
-
-exports.formatFileName = name => name.replaceAll(/ - | |'/g, '_');

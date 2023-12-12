@@ -23,7 +23,7 @@ describe('create', () => {
     courseFindOne.restore();
   });
 
-  it('should create a trainer mission', async () => {
+  it('should create a trainer mission for a single course', async () => {
     const credentials = { _id: new ObjectId() };
     const courseId = new ObjectId();
     const trainerId = new ObjectId();
@@ -33,7 +33,7 @@ describe('create', () => {
       subProgram: { program: { name: 'program' } },
     };
     const payload = {
-      courses: [courseId],
+      courses: courseId,
       file: 'test.pdf',
       fee: 1200,
       trainer: trainerId,
@@ -47,7 +47,7 @@ describe('create', () => {
 
     sinon.assert.calledOnceWithExactly(
       uploadCourseFile,
-      { fileName: 'ordre_mission_program_Matrice_FOR', file: 'test.pdf' }
+      { fileName: 'ordre mission program Matrice FOR', file: 'test.pdf' }
     );
     sinon.assert.calledOnceWithExactly(
       create,
@@ -64,6 +64,59 @@ describe('create', () => {
       courseFindOne,
       [
         { query: 'findOne', args: [{ _id: courseId }, { trainer: 1, subProgram: 1 }] },
+        {
+          query: 'populate',
+          args: [[
+            { path: 'trainer', select: 'identity' },
+            { path: 'subProgram', select: 'program', populate: [{ path: 'program', select: 'name' }] },
+          ]],
+        },
+        { query: 'lean' },
+      ]
+    );
+  });
+
+  it('should create a trainer mission for several courses', async () => {
+    const credentials = { _id: new ObjectId() };
+    const courseIds = [new ObjectId(), new ObjectId()];
+    const trainerId = new ObjectId();
+    const course = {
+      _id: courseIds[0],
+      trainer: { _id: trainerId, identity: { lastname: 'For', firstname: 'Matrice' } },
+      subProgram: { program: { name: 'program' } },
+    };
+    const payload = {
+      courses: courseIds,
+      file: 'test.pdf',
+      fee: 1200,
+      trainer: trainerId,
+      date: '2023-12-10T22:00:00.000Z',
+    };
+
+    uploadCourseFile.returns({ publicId: 'yo', link: 'yo' });
+    courseFindOne.returns(SinonMongoose.stubChainedQueries(course));
+
+    await trainerMissionsHelper.create(payload, credentials);
+
+    sinon.assert.calledOnceWithExactly(
+      uploadCourseFile,
+      { fileName: 'ordre mission program Matrice FOR', file: 'test.pdf' }
+    );
+    sinon.assert.calledOnceWithExactly(
+      create,
+      {
+        courses: courseIds,
+        fee: 1200,
+        trainer: trainerId,
+        date: '2023-12-10T22:00:00.000Z',
+        file: { publicId: 'yo', link: 'yo' },
+        createdBy: credentials._id,
+      }
+    );
+    SinonMongoose.calledOnceWithExactly(
+      courseFindOne,
+      [
+        { query: 'findOne', args: [{ _id: courseIds[0] }, { trainer: 1, subProgram: 1 }] },
         {
           query: 'populate',
           args: [[

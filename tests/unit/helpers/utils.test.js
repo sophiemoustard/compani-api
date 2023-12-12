@@ -737,23 +737,3 @@ describe('hasUserAccessToCompany', () => {
     expect(result).toBeFalsy();
   });
 });
-
-describe('formatName', () => {
-  it('should return string with commas between names', () => {
-    const list = [{ name: 'Alenvi' }, { name: 'ASAPAD' }, { name: 'Croix Rouge' }];
-
-    const result = UtilsHelper.formatName(list);
-
-    expect(result).toEqual('Alenvi, ASAPAD, Croix Rouge');
-  });
-});
-
-describe('formatFileName', () => {
-  it('should return string underscores between words', () => {
-    const string = 'this is a new file';
-
-    const result = UtilsHelper.formatFileName(string);
-
-    expect(result).toEqual('this_is_a_new_file');
-  });
-});

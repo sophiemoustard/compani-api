@@ -16,7 +16,7 @@ exports.plugin = {
         validate: {
           payload: Joi.object({
             trainer: Joi.objectId().required(),
-            courses: Joi.array().items(Joi.objectId()).required().min(1),
+            courses: Joi.alternatives().try(Joi.array().items(Joi.objectId()).min(1), Joi.objectId()).required(),
             date: requiredDateToISOString,
             file: Joi.any().required(),
             fee: Joi.number().positive().required(),

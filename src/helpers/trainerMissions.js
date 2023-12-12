@@ -5,8 +5,9 @@ const Course = require('../models/Course');
 const TrainerMission = require('../models/TrainerMission');
 
 exports.create = async (payload, credentials) => {
+  const courseIds = Array.isArray(payload.courses) ? payload.courses : [payload.courses];
   const course = await Course
-    .findOne({ _id: payload.courses[0] }, { trainer: 1, subProgram: 1 })
+    .findOne({ _id: courseIds[0] }, { trainer: 1, subProgram: 1 })
     .populate([
       { path: 'trainer', select: 'identity' },
       { path: 'subProgram', select: 'program', populate: [{ path: 'program', select: 'name' }] },
@@ -16,8 +17,13 @@ exports.create = async (payload, credentials) => {
   const programName = course.subProgram.program.name;
   const trainerName = UtilsHelper.formatIdentity(course.trainer.identity, 'FL');
 
-  const fileName = UtilsHelper.formatFileName(`ordre_mission ${programName} ${trainerName}`);
+  const fileName = `ordre mission ${programName} ${trainerName}`;
   const fileUploaded = await GCloudStorageHelper.uploadCourseFile({ fileName, file: payload.file });
 
-  await TrainerMission.create({ ...omit(payload, 'file'), file: fileUploaded, createdBy: credentials._id });
+  await TrainerMission.create({
+    ...omit(payload, 'file'),
+    courses: courseIds,
+    file: fileUploaded,
+    createdBy: credentials._id,
+  });
 };
