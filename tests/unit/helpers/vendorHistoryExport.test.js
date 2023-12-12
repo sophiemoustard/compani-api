@@ -560,7 +560,7 @@ describe('exportCourseHistory', () => {
         'Sous-Programme',
         'Infos complémentaires',
         'Formateur',
-        'Référent Compani',
+        'Chargé des opérations',
         'Contact pour la formation',
         'Nombre d\'inscrits',
         'Nombre de dates',
