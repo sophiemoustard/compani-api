@@ -95,7 +95,7 @@ describe('COURSES ROUTES - POST /courses', () => {
         misc: 'course',
         type: INTER_B2B,
         subProgram: subProgramsList[0]._id,
-        salesRepresentative: vendorAdmin._id,
+        operationsRepresentative: vendorAdmin._id,
         estimatedStartDate: '2022-05-31T08:00:00.000Z',
       };
       const coursesCountBefore = await Course.countDocuments();
@@ -132,7 +132,7 @@ describe('COURSES ROUTES - POST /courses', () => {
         maxTrainees: 12,
         company: authCompany._id,
         subProgram: subProgramsList[0]._id,
-        salesRepresentative: vendorAdmin._id,
+        operationsRepresentative: vendorAdmin._id,
         expectedBillsCount: 2,
       };
       const coursesCountBefore = await Course.countDocuments();
@@ -159,7 +159,7 @@ describe('COURSES ROUTES - POST /courses', () => {
         maxTrainees: 12,
         holding: authHolding._id,
         subProgram: subProgramsList[0]._id,
-        salesRepresentative: vendorAdmin._id,
+        operationsRepresentative: vendorAdmin._id,
       };
       const coursesCountBefore = await Course.countDocuments();
 
@@ -178,12 +178,12 @@ describe('COURSES ROUTES - POST /courses', () => {
       expect(courseSlotsCount).toEqual(1);
     });
 
-    it('should return 403 if invalid salesRepresentative', async () => {
+    it('should return 403 if invalid operationsRepresentative', async () => {
       const payload = {
         misc: 'course',
         type: INTER_B2B,
         subProgram: subProgramsList[0]._id,
-        salesRepresentative: clientAdmin._id,
+        operationsRepresentative: clientAdmin._id,
       };
       const response = await app.inject({
         method: 'POST',
@@ -202,7 +202,7 @@ describe('COURSES ROUTES - POST /courses', () => {
         company: new ObjectId(),
         maxTrainees: 12,
         subProgram: subProgramsList[0]._id,
-        salesRepresentative: vendorAdmin._id,
+        operationsRepresentative: vendorAdmin._id,
         expectedBillsCount: 0,
       };
       const response = await app.inject({
@@ -222,7 +222,7 @@ describe('COURSES ROUTES - POST /courses', () => {
         company: authCompany._id,
         maxTrainees: 12,
         subProgram: new ObjectId(),
-        salesRepresentative: vendorAdmin._id,
+        operationsRepresentative: vendorAdmin._id,
         expectedBillsCount: 0,
       };
       const response = await app.inject({
@@ -240,7 +240,7 @@ describe('COURSES ROUTES - POST /courses', () => {
         misc: 'course',
         type: INTRA_HOLDING,
         subProgram: subProgramsList[0]._id,
-        salesRepresentative: vendorAdmin._id,
+        operationsRepresentative: vendorAdmin._id,
         estimatedStartDate: '2022-05-31T08:00:00.000Z',
         holding: new ObjectId(),
         maxTrainees: 2,
@@ -263,7 +263,7 @@ describe('COURSES ROUTES - POST /courses', () => {
         company: authCompany._id,
         maxTrainees: 12,
         subProgram: subProgramsList[2]._id,
-        salesRepresentative: vendorAdmin._id,
+        operationsRepresentative: vendorAdmin._id,
         expectedBillsCount: 0,
       };
       const response = await app.inject({
@@ -283,7 +283,7 @@ describe('COURSES ROUTES - POST /courses', () => {
         company: authCompany._id,
         maxTrainees: 12,
         subProgram: subProgramsList[3]._id,
-        salesRepresentative: vendorAdmin._id,
+        operationsRepresentative: vendorAdmin._id,
         expectedBillsCount: 0,
       };
       const response = await app.inject({
@@ -301,7 +301,7 @@ describe('COURSES ROUTES - POST /courses', () => {
         misc: 'course',
         type: 'invalid type',
         subProgram: subProgramsList[0]._id,
-        salesRepresentative: vendorAdmin._id,
+        operationsRepresentative: vendorAdmin._id,
       };
 
       const response = await app.inject({
@@ -320,7 +320,7 @@ describe('COURSES ROUTES - POST /courses', () => {
         type: INTER_B2B,
         maxTrainees: 10,
         subProgram: subProgramsList[0]._id,
-        salesRepresentative: vendorAdmin._id,
+        operationsRepresentative: vendorAdmin._id,
         estimatedStartDate: '2022-05-31T08:00:00.000Z',
       };
 
@@ -340,7 +340,7 @@ describe('COURSES ROUTES - POST /courses', () => {
         type: INTER_B2B,
         expectedBillsCount: 2,
         subProgram: subProgramsList[0]._id,
-        salesRepresentative: vendorAdmin._id,
+        operationsRepresentative: vendorAdmin._id,
         estimatedStartDate: '2022-05-31T08:00:00.000Z',
       };
 
@@ -360,7 +360,7 @@ describe('COURSES ROUTES - POST /courses', () => {
         type: INTRA_HOLDING,
         expectedBillsCount: 2,
         subProgram: subProgramsList[0]._id,
-        salesRepresentative: vendorAdmin._id,
+        operationsRepresentative: vendorAdmin._id,
         estimatedStartDate: '2022-05-31T08:00:00.000Z',
         holding: authHolding._id,
         maxTrainees: 2,
@@ -382,7 +382,7 @@ describe('COURSES ROUTES - POST /courses', () => {
         type: INTER_B2B,
         companies: [authCompany._id],
         subProgram: subProgramsList[0]._id,
-        salesRepresentative: vendorAdmin._id,
+        operationsRepresentative: vendorAdmin._id,
         estimatedStartDate: '2022-05-31T08:00:00.000Z',
       };
 
@@ -402,7 +402,7 @@ describe('COURSES ROUTES - POST /courses', () => {
         type: INTRA_HOLDING,
         companies: [authCompany._id],
         subProgram: subProgramsList[0]._id,
-        salesRepresentative: vendorAdmin._id,
+        operationsRepresentative: vendorAdmin._id,
         estimatedStartDate: '2022-05-31T08:00:00.000Z',
         holding: authHolding._id,
         maxTrainees: 2,
@@ -424,7 +424,7 @@ describe('COURSES ROUTES - POST /courses', () => {
         type: INTRA,
         companies: [authCompany._id],
         subProgram: subProgramsList[0]._id,
-        salesRepresentative: vendorAdmin._id,
+        operationsRepresentative: vendorAdmin._id,
         estimatedStartDate: '2022-05-31T08:00:00.000Z',
         holding: authHolding._id,
         maxTrainees: 2,
@@ -446,7 +446,7 @@ describe('COURSES ROUTES - POST /courses', () => {
         misc: 'course',
         type: INTER_B2B,
         subProgram: subProgramsList[0]._id,
-        salesRepresentative: vendorAdmin._id,
+        operationsRepresentative: vendorAdmin._id,
         estimatedStartDate: '2022-05-31T08:00:00.000Z',
         holding: authHolding._id,
       };
@@ -467,7 +467,7 @@ describe('COURSES ROUTES - POST /courses', () => {
         type: INTRA,
         expectedBillsCount: -3,
         subProgram: subProgramsList[0]._id,
-        salesRepresentative: vendorAdmin._id,
+        operationsRepresentative: vendorAdmin._id,
         estimatedStartDate: '2022-05-31T08:00:00.000Z',
       };
 
@@ -487,7 +487,7 @@ describe('COURSES ROUTES - POST /courses', () => {
         type: INTRA,
         expectedBillsCount: 3.2,
         subProgram: subProgramsList[0]._id,
-        salesRepresentative: vendorAdmin._id,
+        operationsRepresentative: vendorAdmin._id,
         estimatedStartDate: '2022-05-31T08:00:00.000Z',
       };
 
@@ -507,7 +507,7 @@ describe('COURSES ROUTES - POST /courses', () => {
       subProgram: subProgramsList[0]._id,
       type: INTRA,
       maxTrainees: 8,
-      salesRepresentative: vendorAdmin._id,
+      operationsRepresentative: vendorAdmin._id,
       expectedBillsCount: 0,
     };
     ['company', 'subProgram', 'maxTrainees', 'expectedBillsCount'].forEach((param) => {
@@ -528,7 +528,7 @@ describe('COURSES ROUTES - POST /courses', () => {
       subProgram: subProgramsList[0]._id,
       type: INTRA_HOLDING,
       maxTrainees: 8,
-      salesRepresentative: vendorAdmin._id,
+      operationsRepresentative: vendorAdmin._id,
       holding: authHolding._id,
     };
 
@@ -561,7 +561,7 @@ describe('COURSES ROUTES - POST /courses', () => {
           maxTrainees: 8,
           company: authCompany._id,
           subProgram: subProgramsList[0]._id,
-          salesRepresentative: vendorAdmin._id,
+          operationsRepresentative: vendorAdmin._id,
           expectedBillsCount: 2,
         };
         authToken = await getToken(role.name);
@@ -1754,7 +1754,7 @@ describe('COURSES ROUTES - PUT /courses/{_id}', () => {
       { misc: 'new name' },
       { trainer: new ObjectId() },
       { contact: vendorAdmin._id },
-      { salesRepresentative: new ObjectId() },
+      { operationsRepresentative: new ObjectId() },
       { maxTrainees: 15 },
       { expectedBillsCount: 10 },
       { archivedAt: CompaniDate('2020-03-25T09:00:00.000Z').toDate() },
@@ -1772,8 +1772,8 @@ describe('COURSES ROUTES - PUT /courses/{_id}', () => {
       });
     });
 
-    it('should return 403 if invalid salesRepresentative', async () => {
-      const payload = { salesRepresentative: clientAdmin._id };
+    it('should return 403 if invalid operationsRepresentative', async () => {
+      const payload = { operationsRepresentative: clientAdmin._id };
       const response = await app.inject({
         method: 'PUT',
         url: `/courses/${courseIdFromAuthCompany}`,
@@ -2032,12 +2032,12 @@ describe('COURSES ROUTES - PUT /courses/{_id}', () => {
       expect(response.statusCode).toBe(200);
     });
 
-    it('should return 403 if try to update salesRepresentative', async () => {
+    it('should return 403 if try to update operationsRepresentative', async () => {
       const response = await app.inject({
         method: 'PUT',
         url: `/courses/${courseIdFromAuthCompany}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
-        payload: { salesRepresentative: vendorAdmin._id },
+        payload: { operationsRepresentative: vendorAdmin._id },
       });
 
       expect(response.statusCode).toBe(403);

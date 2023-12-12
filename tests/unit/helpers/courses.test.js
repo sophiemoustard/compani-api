@@ -105,7 +105,7 @@ describe('createCourse', () => {
       subProgram: subProgram._id,
       type: INTRA,
       maxTrainees: 12,
-      salesRepresentative: new ObjectId(),
+      operationsRepresentative: new ObjectId(),
     };
 
     findOneSubProgram.returns(SinonMongoose.stubChainedQueries(subProgram));
@@ -120,7 +120,7 @@ describe('createCourse', () => {
     expect(result.companies).toContain(payload.company);
     expect(result.format).toEqual('blended');
     expect(result.type).toEqual(INTRA);
-    expect(result.salesRepresentative).toEqual(payload.salesRepresentative);
+    expect(result.operationsRepresentative).toEqual(payload.operationsRepresentative);
     sinon.assert.notCalled(createHistoryOnEstimatedStartDateEdition);
     sinon.assert.calledOnceWithExactly(create, { ...omit(payload, 'company'), companies: [payload.company] });
     sinon.assert.calledOnceWithExactly(insertManyCourseSlot, slots);
@@ -140,7 +140,7 @@ describe('createCourse', () => {
       misc: 'name',
       subProgram: subProgram._id,
       type: INTER_B2B,
-      salesRepresentative: new ObjectId(),
+      operationsRepresentative: new ObjectId(),
     };
 
     findOneSubProgram.returns(SinonMongoose.stubChainedQueries(subProgram));
@@ -152,7 +152,7 @@ describe('createCourse', () => {
     expect(result.subProgram).toEqual(payload.subProgram);
     expect(result.format).toEqual('blended');
     expect(result.type).toEqual(INTER_B2B);
-    expect(result.salesRepresentative).toEqual(payload.salesRepresentative);
+    expect(result.operationsRepresentative).toEqual(payload.operationsRepresentative);
     sinon.assert.notCalled(createHistoryOnEstimatedStartDateEdition);
     sinon.assert.calledOnceWithExactly(create, payload);
     sinon.assert.notCalled(insertManyCourseSlot);
@@ -173,7 +173,7 @@ describe('createCourse', () => {
       company: new ObjectId(),
       subProgram: subProgram._id,
       type: INTRA,
-      salesRepresentative: new ObjectId(),
+      operationsRepresentative: new ObjectId(),
       estimatedStartDate: '2022-12-10T12:00:00.000Z',
     };
     const createdCourse = { ...payload, _id: new ObjectId(), format: 'blended', companies: [] };

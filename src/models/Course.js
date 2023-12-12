@@ -26,7 +26,7 @@ const CourseSchema = mongoose.Schema({
   trainees: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
   contact: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
   accessRules: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Company' }],
-  salesRepresentative: {
+  operationsRepresentative: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
     required() { return this.format === BLENDED; },
