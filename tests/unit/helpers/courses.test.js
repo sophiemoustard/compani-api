@@ -1772,7 +1772,7 @@ describe('getCourse', () => {
               },
               { path: 'accessRules', select: 'name' },
               {
-                path: 'salesRepresentative',
+                path: 'operationsRepresentative',
                 select: 'identity.firstname identity.lastname contact.phone local.email picture.link',
               },
               { path: 'contact', select: 'identity.firstname identity.lastname contact.phone' },
@@ -1862,7 +1862,7 @@ describe('getCourse', () => {
                 },
                 { path: 'accessRules', select: 'name' },
                 {
-                  path: 'salesRepresentative',
+                  path: 'operationsRepresentative',
                   select: 'identity.firstname identity.lastname contact.phone local.email picture.link',
                 },
                 { path: 'contact', select: 'identity.firstname identity.lastname contact.phone' },
@@ -1952,7 +1952,7 @@ describe('getCourse', () => {
                 },
                 { path: 'accessRules', select: 'name' },
                 {
-                  path: 'salesRepresentative',
+                  path: 'operationsRepresentative',
                   select: 'identity.firstname identity.lastname contact.phone local.email picture.link',
                 },
                 { path: 'contact', select: 'identity.firstname identity.lastname contact.phone' },
@@ -2108,7 +2108,7 @@ describe('getCourse', () => {
               },
               { path: 'accessRules', select: 'name' },
               {
-                path: 'salesRepresentative',
+                path: 'operationsRepresentative',
                 select: 'identity.firstname identity.lastname contact.phone local.email picture.link',
               },
               { path: 'contact', select: 'identity.firstname identity.lastname contact.phone' },
@@ -3433,9 +3433,9 @@ describe('updateCourse', () => {
 
   it('should remove contact field in intra course', async () => {
     const courseId = new ObjectId();
-    const salesRepresentativeId = new ObjectId();
-    const payload = { contact: '', salesRepresentative: salesRepresentativeId };
-    const courseFromDb = { _id: courseId, contact: salesRepresentativeId, salesRepresentative: salesRepresentativeId };
+    const operationsRepresentative = new ObjectId();
+    const payload = { contact: '', operationsRepresentative };
+    const courseFromDb = { _id: courseId, contact: operationsRepresentative, operationsRepresentative };
 
     courseFindOneAndUpdate.returns(SinonMongoose.stubChainedQueries(courseFromDb, ['lean']));
 
@@ -3447,7 +3447,7 @@ describe('updateCourse', () => {
       [
         {
           query: 'findOneAndUpdate',
-          args: [{ _id: courseId }, { $set: { salesRepresentative: salesRepresentativeId }, $unset: { contact: '' } }],
+          args: [{ _id: courseId }, { $set: { operationsRepresentative }, $unset: { contact: '' } }],
         },
         { query: 'lean' },
       ]
