@@ -820,7 +820,7 @@ describe('COURSES ROUTES - GET /courses', () => {
       }));
       expect(course.trainer).toBeUndefined();
       expect(course.trainees).toBeUndefined();
-      expect(course.salesRepresentative).toBeUndefined();
+      expect(course.operationsRepresentative).toBeUndefined();
     });
 
     it('should return 400 if no trainer (ops mobile)', async () => {
