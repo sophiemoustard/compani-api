@@ -220,7 +220,7 @@ exports.plugin = {
             picture: Joi.object().keys({ link: Joi.string().allow(null), publicId: Joi.string().allow(null) }),
             mentor: Joi.string().allow('', null),
             identity: Joi.object().keys({
-              title: Joi.string(),
+              title: Joi.string().valid(...CIVILITY_OPTIONS),
               firstname: Joi.string().allow('', null),
               lastname: Joi.string(),
               nationality: Joi.string(),
