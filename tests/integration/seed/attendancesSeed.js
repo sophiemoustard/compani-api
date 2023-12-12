@@ -141,7 +141,7 @@ const coursesList = [
     trainees: [traineeList[0]._id, traineeList[3]._id, traineeList[8]._id],
     companies: [authCompany._id],
     trainer: userList[0]._id,
-    salesRepresentative: userList[2]._id,
+    operationsRepresentative: userList[2]._id,
   },
   { // 1
     _id: new ObjectId(),
@@ -151,7 +151,7 @@ const coursesList = [
     trainees: [traineeList[0]._id],
     companies: [authCompany._id],
     trainer: userList[0]._id,
-    salesRepresentative: userList[2]._id,
+    operationsRepresentative: userList[2]._id,
   },
   { // 2
     _id: new ObjectId(),
@@ -161,7 +161,7 @@ const coursesList = [
     trainees: [traineeList[9]._id, traineeList[2]._id],
     companies: [otherCompany._id],
     trainer: userList[0]._id,
-    salesRepresentative: userList[2]._id,
+    operationsRepresentative: userList[2]._id,
   },
   { // 3 interb2b
     _id: new ObjectId(),
@@ -170,7 +170,7 @@ const coursesList = [
     trainees: [traineeList[2]._id, traineeList[3]._id],
     companies: [otherCompany._id, authCompany._id],
     trainer: userList[0]._id,
-    salesRepresentative: userList[2]._id,
+    operationsRepresentative: userList[2]._id,
   },
   { // 4 interb2b with only trainees from otherCompany
     _id: new ObjectId(),
@@ -179,7 +179,7 @@ const coursesList = [
     trainees: [traineeList[4]._id],
     companies: [otherCompany._id],
     trainer: userList[0]._id,
-    salesRepresentative: userList[2]._id,
+    operationsRepresentative: userList[2]._id,
   },
   { // 5 archived
     _id: new ObjectId(),
@@ -189,7 +189,7 @@ const coursesList = [
     trainees: [traineeList[0]._id, traineeList[8]._id],
     companies: [authCompany._id],
     trainer: userList[0]._id,
-    salesRepresentative: userList[2]._id,
+    operationsRepresentative: userList[2]._id,
     archivedAt: '2021-11-17T23:00:00.000Z',
   },
   { // 6 trainer is authTrainer
@@ -199,7 +199,7 @@ const coursesList = [
     trainees: [traineeList[5]._id, traineeList[0]._id],
     companies: [authCompany._id, companyWithoutSubscription._id],
     trainer: trainer._id,
-    salesRepresentative: userList[2]._id,
+    operationsRepresentative: userList[2]._id,
   },
   { // 7 no company linked
     _id: new ObjectId(),
@@ -208,7 +208,7 @@ const coursesList = [
     trainees: [],
     companies: [],
     trainer: trainer._id,
-    salesRepresentative: userList[2]._id,
+    operationsRepresentative: userList[2]._id,
   },
   { // 8 intra_holding no company
     _id: new ObjectId(),
@@ -219,7 +219,7 @@ const coursesList = [
     holding: authHolding._id,
     maxTrainees: 9,
     trainer: trainer._id,
-    salesRepresentative: userList[2]._id,
+    operationsRepresentative: userList[2]._id,
   },
   { // 9 intra_holding with companies
     _id: new ObjectId(),
@@ -230,7 +230,7 @@ const coursesList = [
     holding: authHolding._id,
     maxTrainees: 9,
     trainer: trainer._id,
-    salesRepresentative: userList[2]._id,
+    operationsRepresentative: userList[2]._id,
   },
 ];
 

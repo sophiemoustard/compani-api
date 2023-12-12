@@ -125,7 +125,7 @@ const coursesList = [{
   maxTrainees: 8,
   trainees: [],
   companies: [authCompany._id],
-  salesRepresentative: vendorAdmin._id,
+  operationsRepresentative: vendorAdmin._id,
 }];
 
 const courseSlotsList = [

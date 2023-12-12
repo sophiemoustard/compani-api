@@ -101,7 +101,7 @@ const coursesList = [
     type: INTRA,
     maxTrainees: 8,
     trainer: trainer._id,
-    salesRepresentative: vendorAdmin._id,
+    operationsRepresentative: vendorAdmin._id,
   },
   { // 1
     _id: new ObjectId(),
@@ -112,7 +112,7 @@ const coursesList = [
     type: INTRA,
     maxTrainees: 8,
     trainer: trainer._id,
-    salesRepresentative: vendorAdmin._id,
+    operationsRepresentative: vendorAdmin._id,
   },
   { // 2
     _id: new ObjectId(),
@@ -123,7 +123,7 @@ const coursesList = [
     type: INTRA,
     maxTrainees: 8,
     trainer: trainer._id,
-    salesRepresentative: vendorAdmin._id,
+    operationsRepresentative: vendorAdmin._id,
     archivedAt: '2021-11-15T09:00:00',
   },
   { // 3
@@ -135,7 +135,7 @@ const coursesList = [
     type: INTRA,
     maxTrainees: 8,
     trainer: trainer._id,
-    salesRepresentative: vendorAdmin._id,
+    operationsRepresentative: vendorAdmin._id,
   },
   { // 4
     _id: new ObjectId(),
@@ -146,7 +146,7 @@ const coursesList = [
     companies: [authCompany._id],
     type: INTRA_HOLDING,
     maxTrainees: 8,
-    salesRepresentative: vendorAdmin._id,
+    operationsRepresentative: vendorAdmin._id,
     holding: authHolding._id,
   },
   { // 5 without companies
@@ -158,7 +158,7 @@ const coursesList = [
     companies: [],
     type: INTRA_HOLDING,
     maxTrainees: 8,
-    salesRepresentative: vendorAdmin._id,
+    operationsRepresentative: vendorAdmin._id,
     holding: authHolding._id,
   },
 ];
