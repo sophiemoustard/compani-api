@@ -676,7 +676,7 @@ describe('SEEDS VERIFICATION', () => {
               ],
             })
             .populate({
-              path: 'salesRepresentative',
+              path: 'operationsRepresentative',
               select: '_id',
               populate: [{ path: 'role.vendor', select: 'name' }],
             })
@@ -888,7 +888,7 @@ describe('SEEDS VERIFICATION', () => {
             .filter(c => has(c, 'contact'))
             .every((c) => {
               const acceptedUsers = compact([
-                get(c, 'salesRepresentative._id'),
+                get(c, 'operationsRepresentative._id'),
                 get(c, 'trainer._id'),
                 get(c, 'companyRepresentative._id'),
               ]);
@@ -906,16 +906,16 @@ describe('SEEDS VERIFICATION', () => {
         it('should pass if only blended courses have interlocutors', () => {
           const doELearningCoursesHaveInterlocutors = courseList
             .some(c => c.format === STRICTLY_E_LEARNING &&
-              (c.salesRepresentative || c.trainer || c.companyRepresentative));
+              (c.operationsRepresentative || c.trainer || c.companyRepresentative));
           expect(doELearningCoursesHaveInterlocutors).toBeFalsy();
         });
 
         it('should pass if all sales representative are rof or vendor admin', () => {
-          const doAllSalesRepresentativeHaveGoodRole = courseList
-            .filter(c => c.salesRepresentative)
+          const doAllOperationsRepresentativeHaveGoodRole = courseList
+            .filter(c => c.operationsRepresentative)
             .every(c => [TRAINING_ORGANISATION_MANAGER, VENDOR_ADMIN]
-              .includes(get(c.salesRepresentative, 'role.vendor.name')));
-          expect(doAllSalesRepresentativeHaveGoodRole).toBeTruthy();
+              .includes(get(c.operationsRepresentative, 'role.vendor.name')));
+          expect(doAllOperationsRepresentativeHaveGoodRole).toBeTruthy();
         });
 
         it('should pass if estimated start date is defined for blended courses only', () => {
@@ -963,7 +963,7 @@ describe('SEEDS VERIFICATION', () => {
           const everyUserExists = courseList.every((c) => {
             const userList = [
               ...(has(c, 'companyRepresentative') ? [c.companyRepresentative] : []),
-              ...(has(c, 'salesRepresentative') ? [c.salesRepresentative] : []),
+              ...(has(c, 'operationsRepresentative') ? [c.operationsRepresentative] : []),
               ...(has(c, 'trainer') ? [c.trainer] : []),
             ];
 
