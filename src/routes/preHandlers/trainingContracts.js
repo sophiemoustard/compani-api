@@ -40,7 +40,8 @@ exports.authorizeTrainingContractGet = async (req) => {
     const hasHoldingRole = !!get(credentials, 'role.holding');
     const isLoggedUserInHolding = UtilsHelper.areObjectIdsEquals(holding, get(credentials, 'holding._id'));
     const hasHoldingAccessToCourse = course.companies
-      .some(c => UtilsHelper.doesArrayIncludeId(get(credentials, 'holding.companies') || [], c));
+      .some(c => UtilsHelper.doesArrayIncludeId(get(credentials, 'holding.companies') || [], c)) ||
+      UtilsHelper.areObjectIdsEquals(course.holding, get(credentials, 'holding._id'));
     if (!hasHoldingRole || !isLoggedUserInHolding || !hasHoldingAccessToCourse) throw Boom.forbidden();
   }
 

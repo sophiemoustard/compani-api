@@ -4,10 +4,10 @@ const Program = require('../../../src/models/Program');
 const Step = require('../../../src/models/Step');
 const SubProgram = require('../../../src/models/SubProgram');
 const TrainingContract = require('../../../src/models/TrainingContract');
-const { authCompany, otherCompany, companyWithoutSubscription } = require('../../seed/authCompaniesSeed');
+const { authCompany, otherCompany, companyWithoutSubscription, otherHolding } = require('../../seed/authCompaniesSeed');
 const { deleteNonAuthenticationSeeds } = require('../helpers/db');
 const { vendorAdmin, helper, clientAdmin, coach, trainer, trainerAndCoach } = require('../../seed/authUsersSeed');
-const { INTRA, INTER_B2B, PUBLISHED } = require('../../../src/helpers/constants');
+const { INTRA, INTER_B2B, PUBLISHED, INTRA_HOLDING } = require('../../../src/helpers/constants');
 
 const steps = [{ _id: new ObjectId(), type: 'on_site', name: 'étape', status: PUBLISHED, theoreticalDuration: 60 }];
 
@@ -70,6 +70,19 @@ const courseList = [
     trainees: [coach._id],
     companies: [authCompany._id, otherCompany._id],
     type: INTER_B2B,
+    salesRepresentative: vendorAdmin._id,
+    archivedAt: '2023-01-03T14:00:00.000Z',
+  },
+  { // 4 intra_holding course
+    _id: new ObjectId(),
+    subProgram: subProgram._id,
+    misc: 'fifth session',
+    trainer: trainer._id,
+    trainees: [],
+    companies: [],
+    type: INTRA_HOLDING,
+    maxTrainees: 8,
+    holding: otherHolding._id,
     salesRepresentative: vendorAdmin._id,
     archivedAt: '2023-01-03T14:00:00.000Z',
   },

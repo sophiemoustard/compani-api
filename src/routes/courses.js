@@ -60,7 +60,6 @@ const {
   QUESTIONNAIRE,
   INTRA_HOLDING,
   FORMAT_OPTIONS,
-  PDF,
   CUSTOM,
   TYPE_OPTIONS,
 } = require('../helpers/constants');
@@ -322,8 +321,7 @@ exports.plugin = {
         validate: {
           params: Joi.object({ _id: Joi.objectId().required() }),
           query: Joi.object({
-            origin: Joi.string().valid(...ORIGIN_OPTIONS), // #TODO - champ a retirer (apres la MEP)
-            format: Joi.string().valid(...FORMAT_OPTIONS).default(PDF), // #TODO - rendre ce champ requis (apres la MEP)
+            format: Joi.string().valid(...FORMAT_OPTIONS).required(),
             type: Joi.string().valid(...TYPE_OPTIONS).default(CUSTOM),
           }),
         },

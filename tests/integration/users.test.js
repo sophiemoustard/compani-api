@@ -1619,6 +1619,17 @@ describe('USERS ROUTES - PUT /users/:id', () => {
       expect(response.statusCode).toBe(400);
     });
 
+    it('should not update a user if title is not correct', async () => {
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/users/${usersSeedList[0]._id}`,
+        payload: { identity: { title: 'monsieur' } },
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
+
     it('should not update a user if trying to update password', async () => {
       const response = await app.inject({
         method: 'PUT',

@@ -225,6 +225,16 @@ describe('TRAINING CONTRACTS ROUTES - GET /trainingcontracts', () => {
       expect(response.statusCode).toBe(200);
     });
 
+    it('should get course\'s training contract if course holding is user holding', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/trainingcontracts?course=${courseList[4]._id}&holding=${otherHolding._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(200);
+    });
+
     it('should return 403 if course company is not in user holding', async () => {
       const response = await app.inject({
         method: 'GET',
