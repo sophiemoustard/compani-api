@@ -22,9 +22,9 @@ const userList = [
   },
   {
     _id: new ObjectId(),
-    identity: { firstname: 'salesrep', lastname: 'noCourse' },
+    identity: { firstname: 'operationsrep', lastname: 'noCourse' },
     refreshToken: uuidv4(),
-    local: { email: 'salerep@compani.fr' },
+    local: { email: 'operationsrep@compani.fr' },
     role: { vendor: vendorAdminRoleId },
     origin: WEBAPP,
   },

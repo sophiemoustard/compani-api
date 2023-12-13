@@ -883,7 +883,7 @@ describe('SEEDS VERIFICATION', () => {
           expect(haveTrainersVendorRole).toBeTruthy();
         });
 
-        it('should pass if contact is trainer, company representative or sales representative', () => {
+        it('should pass if contact is trainer, company representative or operations representative', () => {
           const isContactGoodUser = courseList
             .filter(c => has(c, 'contact'))
             .every((c) => {
@@ -910,7 +910,7 @@ describe('SEEDS VERIFICATION', () => {
           expect(doELearningCoursesHaveInterlocutors).toBeFalsy();
         });
 
-        it('should pass if all sales representative are rof or vendor admin', () => {
+        it('should pass if all operations representative are rof or vendor admin', () => {
           const doAllOperationsRepresentativeHaveGoodRole = courseList
             .filter(c => c.operationsRepresentative)
             .every(c => [TRAINING_ORGANISATION_MANAGER, VENDOR_ADMIN]

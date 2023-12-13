@@ -25,9 +25,9 @@ const { trainerOrganisationManager, trainer } = require('../../seed/authUsersSee
 const userList = [
   {
     _id: new ObjectId(),
-    identity: { firstname: 'sales', lastname: 'representative' },
+    identity: { firstname: 'operations', lastname: 'representative' },
     refreshToken: uuidv4(),
-    local: { email: 'salesrep@compani.fr' },
+    local: { email: 'operationsrep@compani.fr' },
     role: { vendor: vendorAdminRoleId },
     origin: WEBAPP,
   },
