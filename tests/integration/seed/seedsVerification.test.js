@@ -29,6 +29,7 @@ const QuestionnaireHistory = require('../../../src/models/QuestionnaireHistory')
 const SectorHistory = require('../../../src/models/SectorHistory');
 const Step = require('../../../src/models/Step');
 const SubProgram = require('../../../src/models/SubProgram');
+const TrainerMission = require('../../../src/models/TrainerMission');
 const TrainingContract = require('../../../src/models/TrainingContract');
 const User = require('../../../src/models/User');
 const UserCompany = require('../../../src/models/UserCompany');
@@ -116,6 +117,7 @@ const questionnaireHistoriesSeed = require('./questionnaireHistoriesSeed');
 const rolesSeed = require('./rolesSeed');
 const stepsSeed = require('./stepsSeed');
 const subProgramsSeed = require('./subProgramsSeed');
+const trainerMissionsSeed = require('./trainerMissionsSeed');
 const trainingContractsSeed = require('./trainingContractsSeed');
 const userCompaniesSeed = require('./userCompaniesSeed');
 const usersSeed = require('./usersSeed');
@@ -148,6 +150,7 @@ const seedList = [
   { label: 'ROLE', value: rolesSeed },
   { label: 'STEP', value: stepsSeed },
   { label: 'SUBPROGRAM', value: subProgramsSeed },
+  { label: 'TRAINERMISSION', value: trainerMissionsSeed },
   { label: 'TRAININGCONTRACT', value: trainingContractsSeed },
   { label: 'USERCOMPANY', value: userCompaniesSeed },
   { label: 'USER', value: usersSeed },
@@ -2117,6 +2120,54 @@ describe('SEEDS VERIFICATION', () => {
             .every(sp => sp.status === DRAFT || sp.steps.every(step => step.status === PUBLISHED));
 
           expect(doesEveryPublishedProgramHavePublishedStep).toBeTruthy();
+        });
+      });
+
+      describe('Collection TrainerMission', () => {
+        let trainerMissionList;
+        before(async () => {
+          trainerMissionList = await TrainerMission
+            .find()
+            .populate({
+              path: 'trainer',
+              select: 'role',
+              populate: [{ path: 'role.vendor', select: 'name' }],
+              transform,
+            })
+            .populate({
+              path: 'createdBy',
+              select: 'role',
+              populate: [{ path: 'role.vendor', select: 'name' }],
+              transform,
+            })
+            .populate({ path: 'courses', select: 'trainer', transform })
+            .lean();
+        });
+
+        it('should pass if every trainer exists and has good role', () => {
+          const doesTrainerExistWithGoodRole = trainerMissionList
+            .map(tm => tm.trainer).every(trainer => has(trainer, 'role.vendor'));
+          expect(doesTrainerExistWithGoodRole).toBeTruthy();
+        });
+
+        it('should pass if every trainer is course trainer', () => {
+          const hasEveryCourseGoodTrainer = trainerMissionList
+            .every(tm => tm.courses.every(course => UtilsHelper.areObjectIdsEquals(course.trainer, tm.trainer._id)));
+          expect(hasEveryCourseGoodTrainer).toBeTruthy();
+        });
+
+        it('should pass if every creator exists and has good role', () => {
+          const doesCreatorExistWithGoodRole = trainerMissionList
+            .map(tm => tm.createdBy)
+            .every(creator => [TRAINING_ORGANISATION_MANAGER, VENDOR_ADMIN].includes(creator.role.vendor.name));
+          expect(doesCreatorExistWithGoodRole).toBeTruthy();
+        });
+
+        it('should pass if none course is in both trainer mission #tag', () => {
+          const coursesInMission = trainerMissionList
+            .map(tm => tm.courses.map(course => course._id.toHexString())).flat();
+
+          expect(coursesInMission.length).toBe([...new Set(coursesInMission)].length);
         });
       });
 

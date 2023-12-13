@@ -1,6 +1,6 @@
 const Joi = require('joi');
 Joi.objectId = require('joi-objectid')(Joi);
-const { create } = require('../controllers/TrainerMissionController');
+const { create } = require('../controllers/trainerMissionController');
 const { authorizeTrainerMissionUpload } = require('./preHandlers/trainerMissions');
 const { formDataPayload, requiredDateToISOString } = require('./validations/utils');
 

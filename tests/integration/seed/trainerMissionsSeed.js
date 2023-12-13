@@ -58,7 +58,7 @@ const courseList = [
     salesRepresentative: vendorAdmin._id,
     expectedBillsCount: 2,
   },
-  { // 3 archived course
+  { // 3
     _id: new ObjectId(),
     subProgram: subProgram._id,
     misc: 'fourth session',
