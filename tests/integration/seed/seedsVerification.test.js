@@ -2163,7 +2163,7 @@ describe('SEEDS VERIFICATION', () => {
           expect(doesCreatorExistWithGoodRole).toBeTruthy();
         });
 
-        it('should pass if none course is in both trainer mission #tag', () => {
+        it('should pass if none course is in several trainer missions', () => {
           const coursesInMission = trainerMissionList
             .map(tm => tm.courses.map(course => course._id.toHexString())).flat();
 

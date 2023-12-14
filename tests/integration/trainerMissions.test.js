@@ -6,7 +6,9 @@ const TrainerMission = require('../../src/models/TrainerMission');
 const { populateDB, courseList } = require('./seed/trainerMissionsSeed');
 const { getToken } = require('./helpers/authentication');
 const { generateFormData, getStream } = require('./utils');
+const { CompaniDate } = require('../../src/helpers/dates/companiDates');
 const GCloudStorageHelper = require('../../src/helpers/gCloudStorage');
+const { DAY } = require('../../src/helpers/constants');
 const { trainer } = require('../seed/authUsersSeed');
 
 describe('NODE ENV', () => {
@@ -36,7 +38,6 @@ describe('TRAINING CONTRACTS ROUTES - POST /trainermissions', () => {
     it('should upload trainer mission for a single course', async () => {
       const formData = {
         courses: courseList[0]._id.toHexString(),
-        date: '2023-12-10T22:00:00.000Z',
         trainer: trainer._id.toHexString(),
         file: 'test',
         fee: 1200,
@@ -55,7 +56,7 @@ describe('TRAINING CONTRACTS ROUTES - POST /trainermissions', () => {
       expect(response.statusCode).toBe(200);
       const trainerMission = await TrainerMission.countDocuments({
         courses: [courseList[0]._id],
-        date: '2023-12-10T22:00:00.000Z',
+        date: CompaniDate().startOf(DAY).toISO(),
         trainer: trainer._id,
         fee: 1200,
         file: { publicId: '1234567890', link: 'ceciestunautrelien' },
@@ -66,7 +67,6 @@ describe('TRAINING CONTRACTS ROUTES - POST /trainermissions', () => {
     it('should upload trainer mission for several courses', async () => {
       const courses = [courseList[0]._id.toHexString(), courseList[1]._id.toHexString()];
       const formData = {
-        date: '2023-12-10T22:00:00.000Z',
         trainer: trainer._id.toHexString(),
         file: 'test',
         fee: 1200,
@@ -86,7 +86,7 @@ describe('TRAINING CONTRACTS ROUTES - POST /trainermissions', () => {
       expect(response.statusCode).toBe(200);
       const trainerMission = await TrainerMission.countDocuments({
         courses: [courseList[0]._id, courseList[1]],
-        date: '2023-12-10T22:00:00.000Z',
+        date: CompaniDate().startOf(DAY).toISO(),
         trainer: trainer._id,
         fee: 1200,
         file: { publicId: '1234567890', link: 'ceciestunautrelien' },
@@ -97,7 +97,6 @@ describe('TRAINING CONTRACTS ROUTES - POST /trainermissions', () => {
     it('should return 400 if course is string', async () => {
       const formData = {
         courses: '12345',
-        date: '2023-12-10T22:00:00.000Z',
         trainer: trainer._id.toHexString(),
         file: 'test',
         fee: 1200,
@@ -120,7 +119,6 @@ describe('TRAINING CONTRACTS ROUTES - POST /trainermissions', () => {
       const courses = [];
       const formData = {
         courses: '12345',
-        date: '2023-12-10T22:00:00.000Z',
         trainer: trainer._id.toHexString(),
         file: 'test',
         fee: 1200,
@@ -143,7 +141,6 @@ describe('TRAINING CONTRACTS ROUTES - POST /trainermissions', () => {
     it('should return 404 if course not found', async () => {
       const courses = [courseList[0]._id.toHexString(), courseList[1]._id.toHexString(), new ObjectId().toHexString()];
       const formData = {
-        date: '2023-12-10T22:00:00.000Z',
         trainer: trainer._id.toHexString(),
         file: 'test',
         fee: 1200,
@@ -166,7 +163,6 @@ describe('TRAINING CONTRACTS ROUTES - POST /trainermissions', () => {
     it('should return 404 if wrong trainer', async () => {
       const courses = [courseList[0]._id.toHexString(), courseList[2]._id.toHexString()];
       const formData = {
-        date: '2023-12-10T22:00:00.000Z',
         trainer: trainer._id.toHexString(),
         file: 'test',
         fee: 1200,
@@ -189,7 +185,6 @@ describe('TRAINING CONTRACTS ROUTES - POST /trainermissions', () => {
     it('should return 409 if course already have a trainer mission', async () => {
       const courses = [courseList[0]._id.toHexString(), courseList[3]._id.toHexString()];
       const formData = {
-        date: '2023-12-10T22:00:00.000Z',
         trainer: trainer._id.toHexString(),
         file: 'test',
         fee: 1200,
@@ -223,7 +218,6 @@ describe('TRAINING CONTRACTS ROUTES - POST /trainermissions', () => {
 
         const courses = [courseList[0]._id.toHexString(), courseList[1]._id.toHexString()];
         const formData = {
-          date: '2023-12-10T22:00:00.000Z',
           trainer: trainer._id.toHexString(),
           file: 'test',
           fee: 1200,

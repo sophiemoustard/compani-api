@@ -2,7 +2,7 @@ const Joi = require('joi');
 Joi.objectId = require('joi-objectid')(Joi);
 const { create } = require('../controllers/trainerMissionController');
 const { authorizeTrainerMissionUpload } = require('./preHandlers/trainerMissions');
-const { formDataPayload, requiredDateToISOString } = require('./validations/utils');
+const { formDataPayload } = require('./validations/utils');
 
 exports.plugin = {
   name: 'routes-trainermissions',
@@ -17,7 +17,6 @@ exports.plugin = {
           payload: Joi.object({
             trainer: Joi.objectId().required(),
             courses: Joi.alternatives().try(Joi.array().items(Joi.objectId()).min(1), Joi.objectId()).required(),
-            date: requiredDateToISOString,
             file: Joi.any().required(),
             fee: Joi.number().positive().required(),
           }),

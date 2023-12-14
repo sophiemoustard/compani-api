@@ -75,7 +75,7 @@ const trainerMissionList = [
     _id: new ObjectId(),
     courses: [courseList[3]._id],
     trainer: trainer._id,
-    date: '2023-01-03T14:00:00.000Z',
+    date: '2023-01-02T23:00:00.000Z',
     fee: 1200,
     createdBy: vendorAdmin._id,
     file: { publicId: '123test', link: 'ceciestunlien' },

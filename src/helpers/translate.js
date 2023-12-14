@@ -423,6 +423,7 @@ module.exports = {
     trainingContractAlreadyExists: 'Training contract already exists for this course and company.',
     /* TrainerMissions */
     trainerMissionCreated: 'Trainer mission created',
+    trainerMissionAlreadyExist: 'Trainer mission already exists.',
   },
   'fr-FR': {
     /* Global errors */
@@ -848,5 +849,6 @@ module.exports = {
       + 'structure.',
     /* TrainerMissions */
     trainerMissionCreated: 'Ordre de mission créé',
+    trainerMissionAlreadyExist: 'Il existe déjà un ordre de mission pour une des formations.',
   },
 };

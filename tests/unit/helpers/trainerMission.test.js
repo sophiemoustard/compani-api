@@ -32,13 +32,7 @@ describe('create', () => {
       trainer: { _id: trainerId, identity: { lastname: 'For', firstname: 'Matrice' } },
       subProgram: { program: { name: 'program' } },
     };
-    const payload = {
-      courses: courseId,
-      file: 'test.pdf',
-      fee: 1200,
-      trainer: trainerId,
-      date: '2023-12-10T22:00:00.000Z',
-    };
+    const payload = { courses: courseId, file: 'test.pdf', fee: 1200, trainer: trainerId };
 
     uploadCourseFile.returns({ publicId: 'yo', link: 'yo' });
     courseFindOne.returns(SinonMongoose.stubChainedQueries(course));
@@ -55,7 +49,6 @@ describe('create', () => {
         courses: [courseId],
         fee: 1200,
         trainer: trainerId,
-        date: '2023-12-10T22:00:00.000Z',
         file: { publicId: 'yo', link: 'yo' },
         createdBy: credentials._id,
       }
@@ -85,13 +78,7 @@ describe('create', () => {
       trainer: { _id: trainerId, identity: { lastname: 'For', firstname: 'Matrice' } },
       subProgram: { program: { name: 'program' } },
     };
-    const payload = {
-      courses: courseIds,
-      file: 'test.pdf',
-      fee: 1200,
-      trainer: trainerId,
-      date: '2023-12-10T22:00:00.000Z',
-    };
+    const payload = { courses: courseIds, file: 'test.pdf', fee: 1200, trainer: trainerId };
 
     uploadCourseFile.returns({ publicId: 'yo', link: 'yo' });
     courseFindOne.returns(SinonMongoose.stubChainedQueries(course));
@@ -108,7 +95,6 @@ describe('create', () => {
         courses: courseIds,
         fee: 1200,
         trainer: trainerId,
-        date: '2023-12-10T22:00:00.000Z',
         file: { publicId: 'yo', link: 'yo' },
         createdBy: credentials._id,
       }
