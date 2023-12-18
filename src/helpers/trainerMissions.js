@@ -4,7 +4,7 @@ const UtilsHelper = require('./utils');
 const Course = require('../models/Course');
 const TrainerMission = require('../models/TrainerMission');
 
-exports.create = async (payload, credentials) => {
+exports.uploadTrainerMission = async (payload, credentials) => {
   const courseIds = Array.isArray(payload.courses) ? payload.courses : [payload.courses];
   const course = await Course
     .findOne({ _id: courseIds[0] }, { trainer: 1, subProgram: 1 })
