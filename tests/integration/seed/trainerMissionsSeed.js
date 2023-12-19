@@ -9,9 +9,9 @@ const { deleteNonAuthenticationSeeds } = require('../helpers/db');
 const { vendorAdmin, trainer, trainerAndCoach } = require('../../seed/authUsersSeed');
 const { INTRA, INTER_B2B, PUBLISHED } = require('../../../src/helpers/constants');
 
-const steps = [{ _id: new ObjectId(), type: 'on_site', name: 'étape', status: PUBLISHED, theoreticalDuration: 60 }];
+const step = { _id: new ObjectId(), type: 'on_site', name: 'étape', status: PUBLISHED, theoreticalDuration: 60 };
 
-const subProgram = { _id: new ObjectId(), name: 'sous-programme 1', status: PUBLISHED, steps: [steps[0]._id] };
+const subProgram = { _id: new ObjectId(), name: 'sous-programme 1', status: PUBLISHED, steps: [step._id] };
 
 const program = {
   _id: new ObjectId(),
@@ -31,7 +31,7 @@ const courseList = [
     companies: [authCompany._id],
     type: INTRA,
     maxTrainees: 8,
-    salesRepresentative: vendorAdmin._id,
+    operationsRepresentative: vendorAdmin._id,
     expectedBillsCount: 2,
   },
   { // 1
@@ -43,7 +43,7 @@ const courseList = [
     companies: [authCompany._id],
     type: INTRA,
     maxTrainees: 8,
-    salesRepresentative: vendorAdmin._id,
+    operationsRepresentative: vendorAdmin._id,
     expectedBillsCount: 2,
   },
   { // 2
@@ -55,7 +55,7 @@ const courseList = [
     companies: [companyWithoutSubscription._id],
     type: INTRA,
     maxTrainees: 8,
-    salesRepresentative: vendorAdmin._id,
+    operationsRepresentative: vendorAdmin._id,
     expectedBillsCount: 2,
   },
   { // 3
@@ -66,7 +66,7 @@ const courseList = [
     trainees: [],
     companies: [authCompany._id, otherCompany._id],
     type: INTER_B2B,
-    salesRepresentative: vendorAdmin._id,
+    operationsRepresentative: vendorAdmin._id,
   },
 ];
 
@@ -89,7 +89,7 @@ const populateDB = async () => {
     SubProgram.create(subProgram),
     Program.create(program),
     Course.create(courseList),
-    Step.create(steps),
+    Step.create(step),
     TrainerMission.create(trainerMissionList),
   ]);
 };

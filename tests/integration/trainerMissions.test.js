@@ -54,14 +54,14 @@ describe('TRAINING CONTRACTS ROUTES - POST /trainermissions', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      const trainerMission = await TrainerMission.countDocuments({
+      const trainerMissionCount = await TrainerMission.countDocuments({
         courses: [courseList[0]._id],
         date: CompaniDate().startOf(DAY).toISO(),
         trainer: trainer._id,
         fee: 1200,
         file: { publicId: '1234567890', link: 'ceciestunautrelien' },
       });
-      expect(trainerMission).toBe(1);
+      expect(trainerMissionCount).toBe(1);
     });
 
     it('should upload trainer mission for several courses', async () => {
@@ -84,14 +84,14 @@ describe('TRAINING CONTRACTS ROUTES - POST /trainermissions', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      const trainerMission = await TrainerMission.countDocuments({
+      const trainerMissionCount = await TrainerMission.countDocuments({
         courses: [courseList[0]._id, courseList[1]],
         date: CompaniDate().startOf(DAY).toISO(),
         trainer: trainer._id,
         fee: 1200,
         file: { publicId: '1234567890', link: 'ceciestunautrelien' },
       });
-      expect(trainerMission).toBe(1);
+      expect(trainerMissionCount).toBe(1);
     });
 
     it('should return 400 if course is string', async () => {
@@ -118,7 +118,6 @@ describe('TRAINING CONTRACTS ROUTES - POST /trainermissions', () => {
     it('should return 400 if course is empty array', async () => {
       const courses = [];
       const formData = {
-        courses: '12345',
         trainer: trainer._id.toHexString(),
         file: 'test',
         fee: 1200,

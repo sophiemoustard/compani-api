@@ -6,7 +6,7 @@ const trainerMissionsHelper = require('../../../src/helpers/trainerMissions');
 const SinonMongoose = require('../sinonMongoose');
 const GCloudStorageHelper = require('../../../src/helpers/gCloudStorage');
 
-describe('uploadTrainerMission', () => {
+describe('upload', () => {
   let uploadCourseFile;
   let courseFindOne;
   let create;
@@ -37,7 +37,7 @@ describe('uploadTrainerMission', () => {
     uploadCourseFile.returns({ publicId: 'yo', link: 'yo' });
     courseFindOne.returns(SinonMongoose.stubChainedQueries(course));
 
-    await trainerMissionsHelper.uploadTrainerMission(payload, credentials);
+    await trainerMissionsHelper.upload(payload, credentials);
 
     sinon.assert.calledOnceWithExactly(
       uploadCourseFile,
@@ -83,7 +83,7 @@ describe('uploadTrainerMission', () => {
     uploadCourseFile.returns({ publicId: 'yo', link: 'yo' });
     courseFindOne.returns(SinonMongoose.stubChainedQueries(course));
 
-    await trainerMissionsHelper.uploadTrainerMission(payload, credentials);
+    await trainerMissionsHelper.upload(payload, credentials);
 
     sinon.assert.calledOnceWithExactly(
       uploadCourseFile,

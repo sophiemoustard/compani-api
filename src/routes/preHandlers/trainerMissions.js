@@ -5,9 +5,10 @@ const translate = require('../../helpers/translate');
 
 const { language } = translate;
 
-exports.authorizeTrainerMissionUpload = async (req) => {
+exports.authorizeTrainerMissionCreation = async (req) => {
   const { trainer, courses } = req.payload;
   const coursesId = Array.isArray(courses) ? courses : [courses];
+
   const coursesCount = await Course.countDocuments({ _id: { $in: coursesId }, trainer });
   if (coursesCount !== coursesId.length) throw Boom.notFound();
 

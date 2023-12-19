@@ -1,7 +1,7 @@
 const Joi = require('joi');
 Joi.objectId = require('joi-objectid')(Joi);
 const { create } = require('../controllers/trainerMissionController');
-const { authorizeTrainerMissionUpload } = require('./preHandlers/trainerMissions');
+const { authorizeTrainerMissionCreation } = require('./preHandlers/trainerMissions');
 const { formDataPayload } = require('./validations/utils');
 
 exports.plugin = {
@@ -21,7 +21,7 @@ exports.plugin = {
             fee: Joi.number().positive().required(),
           }),
         },
-        pre: [{ method: authorizeTrainerMissionUpload }],
+        pre: [{ method: authorizeTrainerMissionCreation }],
       },
       handler: create,
     });
