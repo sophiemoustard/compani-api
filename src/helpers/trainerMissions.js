@@ -1,6 +1,8 @@
+const get = require('lodash/get');
 const omit = require('lodash/omit');
 const GCloudStorageHelper = require('./gCloudStorage');
 const UtilsHelper = require('./utils');
+const { TRAINING_ORGANISATION_MANAGER, VENDOR_ADMIN } = require('./constants');
 const Course = require('../models/Course');
 const TrainerMission = require('../models/TrainerMission');
 
@@ -26,4 +28,22 @@ exports.upload = async (payload, credentials) => {
     file: fileUploaded,
     createdBy: credentials._id,
   });
+};
+
+exports.list = async (query, credentials) => {
+  const { trainer } = query;
+  const isRofOrAdmin = [VENDOR_ADMIN, TRAINING_ORGANISATION_MANAGER].includes(get(credentials, 'role.vendor.name'));
+
+  return TrainerMission
+    .find({ trainer })
+    .populate({
+      path: 'courses',
+      select: 'misc type companies subProgram',
+      populate: [
+        { path: 'subProgram', select: 'program', populate: { path: 'program', select: 'name' } },
+        { path: 'companies', select: 'name' },
+      ],
+    })
+    .setOptions({ isVendorUser: isRofOrAdmin })
+    .lean();
 };

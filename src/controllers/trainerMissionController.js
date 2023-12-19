@@ -15,4 +15,20 @@ const create = async (req) => {
   }
 };
 
-module.exports = { create };
+const list = async (req) => {
+  try {
+    const trainerMissions = await TrainerMissionsHelper.list(req.query, req.auth.credentials);
+
+    return {
+      message: trainerMissions.length
+        ? translate[language].trainerMissionsFound
+        : translate[language].trainerMissionsNotFound,
+      data: { trainerMissions },
+    };
+  } catch (e) {
+    req.log('error', e);
+    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
+  }
+};
+
+module.exports = { create, list };
