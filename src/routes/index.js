@@ -60,6 +60,7 @@ exports.routes = [
   { plugin: require('./taxCertificates'), routes: { prefix: '/taxcertificates' } },
   { plugin: require('./teletransmission'), routes: { prefix: '/teletransmission' } },
   { plugin: require('./thirdPartyPayers'), routes: { prefix: '/thirdpartypayers' } },
+  { plugin: require('./trainerMissions'), routes: { prefix: '/trainermissions' } },
   { plugin: require('./trainingContracts'), routes: { prefix: '/trainingcontracts' } },
   { plugin: require('./users'), routes: { prefix: '/users' } },
   { plugin: require('./userCompanies'), routes: { prefix: '/usercompanies' } },

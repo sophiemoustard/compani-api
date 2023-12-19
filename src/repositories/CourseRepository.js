@@ -7,6 +7,7 @@ exports.findCourseAndPopulate = (query, origin, populateVirtual = false) => Cour
   .find(query, origin === WEBAPP ? 'misc type archivedAt estimatedStartDate createdAt maxTrainees trainees' : 'misc')
   .populate([
     { path: 'companies', select: 'name' },
+    { path: 'holding', select: 'name' },
     {
       path: 'subProgram',
       select: 'program',
