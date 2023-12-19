@@ -261,7 +261,7 @@ const coursesList = [
     companies: [company._id],
     type: INTRA,
     maxTrainees: 8,
-    salesRepresentative: vendorAdmin._id,
+    operationsRepresentative: vendorAdmin._id,
     companyRepresentative: usersSeedList[1]._id,
     contact: trainer._id,
     expectedBillsCount: 2,

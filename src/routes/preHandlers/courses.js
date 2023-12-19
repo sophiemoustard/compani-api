@@ -64,13 +64,13 @@ exports.checkAuthorization = (credentials, courseTrainerId, companies, holding =
   }
 };
 
-exports.checkSalesRepresentativeExists = async (req, isRofOrAdmin) => {
+exports.checkOperationsRepresentativeExists = async (req, isRofOrAdmin) => {
   if (!isRofOrAdmin) throw Boom.forbidden();
 
-  const salesRepresentative = await User.findOne({ _id: req.payload.salesRepresentative }, { role: 1 })
+  const operationsRepresentative = await User.findOne({ _id: req.payload.operationsRepresentative }, { role: 1 })
     .lean({ autopopulate: true });
 
-  if (![VENDOR_ADMIN, TRAINING_ORGANISATION_MANAGER].includes(get(salesRepresentative, 'role.vendor.name'))) {
+  if (![VENDOR_ADMIN, TRAINING_ORGANISATION_MANAGER].includes(get(operationsRepresentative, 'role.vendor.name'))) {
     throw Boom.forbidden();
   }
 
@@ -133,15 +133,15 @@ exports.checkContact = (req, course, isRofOrAdmin) => {
     UtilsHelper.areObjectIdsEquals(course.companyRepresentative, get(course, 'contact._id'));
   if (!isRofOrAdmin && !isCompanyRepContactAndUpdated) throw Boom.forbidden();
 
-  const payloadInterlocutors = pick(req.payload, ['salesRepresentative', 'trainer', 'companyRepresentative']);
-  const courseInterlocutors = pick(course, ['salesRepresentative', 'trainer', 'companyRepresentative']);
+  const payloadInterlocutors = pick(req.payload, ['operationsRepresentative', 'trainer', 'companyRepresentative']);
+  const courseInterlocutors = pick(course, ['operationsRepresentative', 'trainer', 'companyRepresentative']);
   const interlocutors = { ...courseInterlocutors, ...payloadInterlocutors };
 
   if (!UtilsHelper.doesArrayIncludeId(Object.values(interlocutors), req.payload.contact)) throw Boom.forbidden();
 };
 
 exports.authorizeCourseCreation = async (req) => {
-  await this.checkSalesRepresentativeExists(req, true);
+  await this.checkOperationsRepresentativeExists(req, true);
 
   const subProgram = await SubProgram
     .findOne({ _id: req.payload.subProgram })
@@ -245,7 +245,7 @@ exports.authorizeCourseEdit = async (req) => {
       if (courseBillsWithoutCreditNote.length > req.payload.expectedBillsCount) throw Boom.conflict();
     }
 
-    if (get(req, 'payload.salesRepresentative')) await this.checkSalesRepresentativeExists(req, isRofOrAdmin);
+    if (get(req, 'payload.operationsRepresentative')) await this.checkOperationsRepresentativeExists(req, isRofOrAdmin);
     if (get(req, 'payload.trainer')) await this.checkTrainerExists(req, isRofOrAdmin);
     if (get(req, 'payload.companyRepresentative')) {
       await this.checkCompanyRepresentativeExists(req, course, isRofOrAdmin);

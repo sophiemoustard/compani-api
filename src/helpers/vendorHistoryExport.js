@@ -190,7 +190,7 @@ exports.exportCourseHistory = async (startDate, endDate, credentials) => {
       'Sous-Programme': get(course, 'subProgram.name') || '',
       'Infos complémentaires': course.misc,
       Formateur: UtilsHelper.formatIdentity(get(course, 'trainer.identity') || '', 'FL'),
-      'Référent Compani': UtilsHelper.formatIdentity(get(course, 'salesRepresentative.identity') || '', 'FL'),
+      'Chargé des opérations': UtilsHelper.formatIdentity(get(course, 'operationsRepresentative.identity') || '', 'FL'),
       'Contact pour la formation': UtilsHelper.formatIdentity(get(course, 'contact.identity') || '', 'FL'),
       'Nombre d\'inscrits': get(course, 'trainees.length'),
       'Nombre de dates': slotsGroupedByDate.length,

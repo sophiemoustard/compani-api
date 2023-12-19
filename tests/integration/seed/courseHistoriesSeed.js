@@ -22,9 +22,9 @@ const userList = [
   },
   {
     _id: new ObjectId(),
-    identity: { firstname: 'salesrep', lastname: 'noCourse' },
+    identity: { firstname: 'operationsrep', lastname: 'noCourse' },
     refreshToken: uuidv4(),
-    local: { email: 'salerep@compani.fr' },
+    local: { email: 'operationsrep@compani.fr' },
     role: { vendor: vendorAdminRoleId },
     origin: WEBAPP,
   },
@@ -44,7 +44,7 @@ const coursesList = [
     trainer: userList[0]._id,
     trainees: [],
     companies: [authCompany._id],
-    salesRepresentative: userList[1]._id,
+    operationsRepresentative: userList[1]._id,
   },
   {
     _id: new ObjectId(),
@@ -55,7 +55,7 @@ const coursesList = [
     trainer: userList[0]._id,
     trainees: [],
     companies: [companyWithoutSubscription._id],
-    salesRepresentative: userList[1]._id,
+    operationsRepresentative: userList[1]._id,
   },
   {
     _id: new ObjectId(),
@@ -66,7 +66,7 @@ const coursesList = [
     trainer: userList[0]._id,
     trainees: [],
     companies: [],
-    salesRepresentative: userList[1]._id,
+    operationsRepresentative: userList[1]._id,
   },
   {
     _id: new ObjectId(),
@@ -79,7 +79,7 @@ const coursesList = [
     companies: [authCompany._id],
     holding: authHolding._id,
     maxTrainees: 8,
-    salesRepresentative: userList[1]._id,
+    operationsRepresentative: userList[1]._id,
   },
 ];
 

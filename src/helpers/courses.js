@@ -359,7 +359,7 @@ const getCourseForOperations = async (courseId, credentials, origin) => {
           },
           { path: 'accessRules', select: 'name' },
           {
-            path: 'salesRepresentative',
+            path: 'operationsRepresentative',
             select: 'identity.firstname identity.lastname contact.phone local.email picture.link',
           },
           { path: 'contact', select: 'identity.firstname identity.lastname contact.phone' },

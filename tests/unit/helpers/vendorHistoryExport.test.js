@@ -99,7 +99,7 @@ describe('exportCourseHistory', () => {
     },
   ];
   const trainer = { _id: new ObjectId(), identity: { firstname: 'Gilles', lastname: 'Formateur' } };
-  const salesRepresentative = { _id: new ObjectId(), identity: { firstname: 'Aline', lastname: 'Contact-Com' } };
+  const operationsRepresentative = { _id: new ObjectId(), identity: { firstname: 'Aline', lastname: 'Contact-Com' } };
 
   const courseIdList = [new ObjectId(), new ObjectId(), new ObjectId(), new ObjectId(), new ObjectId()];
 
@@ -155,8 +155,8 @@ describe('exportCourseHistory', () => {
       subProgram: subProgramList[0],
       misc: 'group 1',
       trainer,
-      salesRepresentative,
-      contact: salesRepresentative,
+      operationsRepresentative,
+      contact: operationsRepresentative,
       trainees: [traineeList[0], traineeList[1], traineeList[2]],
       slotsToPlan: [],
       slots: [courseSlotList[0], courseSlotList[1]],
@@ -192,8 +192,8 @@ describe('exportCourseHistory', () => {
       misc: 'group 2',
       estimatedStartDate: '2019-01-01T08:00:00',
       trainer,
-      salesRepresentative,
-      contact: salesRepresentative,
+      operationsRepresentative,
+      contact: operationsRepresentative,
       trainees: [traineeList[3], traineeList[4]],
       slotsToPlan: [courseSlotList[4]],
       slots: [courseSlotList[2], courseSlotList[3]],
@@ -238,8 +238,8 @@ describe('exportCourseHistory', () => {
       misc: 'group 3',
       estimatedStartDate: '2022-01-01T08:00:00',
       trainer,
-      salesRepresentative,
-      contact: salesRepresentative,
+      operationsRepresentative,
+      contact: operationsRepresentative,
       trainees: [],
       slotsToPlan: [],
       slots: [],
@@ -252,8 +252,8 @@ describe('exportCourseHistory', () => {
       subProgram: subProgramList[0],
       misc: 'group 1',
       trainer,
-      salesRepresentative,
-      contact: salesRepresentative,
+      operationsRepresentative,
+      contact: operationsRepresentative,
       trainees: [traineeList[0], traineeList[1], traineeList[2]],
       slotsToPlan: [],
       slots: [],
@@ -316,8 +316,8 @@ describe('exportCourseHistory', () => {
       subProgram: subProgramList[0],
       misc: 'group 1',
       trainer,
-      salesRepresentative,
-      contact: salesRepresentative,
+      operationsRepresentative,
+      contact: operationsRepresentative,
       trainees: [traineeList[0], traineeList[1]],
       slotsToPlan: [],
       slots: [courseSlotList[5]],
@@ -450,7 +450,7 @@ describe('exportCourseHistory', () => {
             }],
         },
         { query: 'populate', args: [{ path: 'trainer', select: 'identity' }] },
-        { query: 'populate', args: [{ path: 'salesRepresentative', select: 'identity' }] },
+        { query: 'populate', args: [{ path: 'operationsRepresentative', select: 'identity' }] },
         { query: 'populate', args: [{ path: 'contact', select: 'identity' }] },
         {
           query: 'populate',
@@ -560,7 +560,7 @@ describe('exportCourseHistory', () => {
         'Sous-Programme',
         'Infos complémentaires',
         'Formateur',
-        'Référent Compani',
+        'Chargé des opérations',
         'Contact pour la formation',
         'Nombre d\'inscrits',
         'Nombre de dates',
@@ -819,7 +819,7 @@ describe('exportCourseHistory', () => {
             }],
         },
         { query: 'populate', args: [{ path: 'trainer', select: 'identity' }] },
-        { query: 'populate', args: [{ path: 'salesRepresentative', select: 'identity' }] },
+        { query: 'populate', args: [{ path: 'operationsRepresentative', select: 'identity' }] },
         { query: 'populate', args: [{ path: 'contact', select: 'identity' }] },
         {
           query: 'populate',
