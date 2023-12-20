@@ -32,7 +32,7 @@ exports.plugin = {
       options: {
         auth: { scope: ['trainermissions:read'] },
         validate: {
-          query: Joi.object({ trainer: Joi.objectId().required() }).oxor('company', 'holding'),
+          query: Joi.object({ trainer: Joi.objectId().required() }),
         },
         pre: [{ method: authorizeTrainerMissionGet }],
       },
