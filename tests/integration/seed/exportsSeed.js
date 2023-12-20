@@ -85,6 +85,7 @@ const {
   TIME_STAMP_CANCELLATION,
   GROUP,
   TRAINEE,
+  MOBILE,
 } = require('../../../src/helpers/constants');
 const {
   auxiliaryRoleId,
@@ -1679,6 +1680,7 @@ const questionnaireHistoriesList = [
       answerList: [cardList[3].qcAnswers[1]._id.toHexString()],
     }],
     company: authCompany._id,
+    origin: WEBAPP,
   },
   { // 1 end of course questionnaire all questions answered
     _id: new ObjectId(),
@@ -1690,6 +1692,7 @@ const questionnaireHistoriesList = [
       { card: cardList[2]._id, answerList: ['3'] },
       { card: cardList[3]._id, answerList: [cardList[3].qcAnswers[1]._id.toHexString()] },
     ],
+    origin: WEBAPP,
     createdAt: '2021-01-20T10:31:37.000Z',
     company: authCompany._id,
   },
@@ -1702,6 +1705,7 @@ const questionnaireHistoriesList = [
       card: cardList[3]._id,
       answerList: [cardList[3].qcAnswers[0]._id.toHexString(), cardList[3].qcAnswers[1]._id.toHexString()],
     }],
+    origin: MOBILE,
     createdAt: '2021-01-27T20:31:04.000Z',
     company: otherCompany._id,
   },
@@ -1715,6 +1719,7 @@ const questionnaireHistoriesList = [
       answerList: [cardList[3].qcAnswers[1]._id.toHexString()],
     }],
     company: authCompany._id,
+    origin: WEBAPP,
   },
   { // 4
     _id: new ObjectId(),
@@ -1726,6 +1731,7 @@ const questionnaireHistoriesList = [
       answerList: [cardList[3].qcAnswers[1]._id.toHexString()],
     }],
     company: authCompany._id,
+    origin: WEBAPP,
   },
   { // 5
     _id: new ObjectId(),
@@ -1737,6 +1743,7 @@ const questionnaireHistoriesList = [
       answerList: [cardList[3].qcAnswers[1]._id.toHexString()],
     }],
     company: authCompany._id,
+    origin: MOBILE,
   },
   { // 6 questionnaire histories for old user company
     _id: new ObjectId(),
@@ -1749,6 +1756,7 @@ const questionnaireHistoriesList = [
     }],
     createdAt: '2021-12-10T20:30:04.000Z',
     company: companyWithoutSubscription._id,
+    origin: MOBILE,
   },
 ];
 

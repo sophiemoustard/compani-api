@@ -350,6 +350,7 @@ exports.exportEndOfCourseQuestionnaireHistory = async (startDate, endDate, crede
       'Prénom Nom intervenant(e)': UtilsHelper.formatIdentity(get(qHistory, 'course.trainer.identity') || '', 'FL'),
       Structure: get(qHistory, 'company.name'),
       'Date de réponse': CompaniDate(qHistory.createdAt).format(`${DD_MM_YYYY} ${HH_MM_SS}`),
+      'Origine de réponse': qHistory.origin,
       'Prénom Nom répondant(e)': UtilsHelper.formatIdentity(get(qHistory, 'user.identity') || '', 'FL'),
       'Mail répondant(e)': get(qHistory, 'user.local.email'),
       'Numéro de tél répondant(e)': get(qHistory, 'user.contact.phone') || '',
