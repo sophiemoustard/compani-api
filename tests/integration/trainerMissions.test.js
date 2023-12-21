@@ -3,13 +3,13 @@ const sinon = require('sinon');
 const { ObjectId } = require('mongodb');
 const app = require('../../server');
 const TrainerMission = require('../../src/models/TrainerMission');
+const { trainer, coach } = require('../seed/authUsersSeed');
 const { populateDB, courseList } = require('./seed/trainerMissionsSeed');
 const { getToken } = require('./helpers/authentication');
 const { generateFormData, getStream } = require('./utils');
 const { CompaniDate } = require('../../src/helpers/dates/companiDates');
 const GCloudStorageHelper = require('../../src/helpers/gCloudStorage');
 const { DAY } = require('../../src/helpers/constants');
-const { trainer } = require('../seed/authUsersSeed');
 
 describe('NODE ENV', () => {
   it('should be \'test\'', () => {
@@ -232,6 +232,63 @@ describe('TRAINING CONTRACTS ROUTES - POST /trainermissions', () => {
           url: '/trainermissions',
           headers: { ...form.getHeaders(), Cookie: `alenvi_token=${authToken}` },
           payload: getStream(form),
+        });
+
+        expect(response.statusCode).toBe(role.expectedCode);
+      });
+    });
+  });
+});
+
+describe('TRAINING CONTRACTS ROUTES - GET /trainermissions', () => {
+  let authToken;
+
+  beforeEach(async () => {
+    await populateDB();
+  });
+
+  describe('TRAINING_ORGANISATION_MANAGER', () => {
+    beforeEach(async () => {
+      authToken = await getToken('training_organisation_manager');
+    });
+
+    it('should get trainer missions for a trainer', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/trainermissions?trainer=${trainer._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(200);
+      expect(response.result.data.trainerMissions.length).toEqual(1);
+    });
+
+    it('should return 404 if user doesn\'t exist as trainer', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/trainermissions?trainer=${coach._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(404);
+    });
+  });
+
+  describe('Other roles', () => {
+    const roles = [
+      { name: 'helper', expectedCode: 403 },
+      { name: 'planning_referent', expectedCode: 403 },
+      { name: 'client_admin', expectedCode: 403 },
+      { name: 'trainer', expectedCode: 403 },
+    ];
+    roles.forEach((role) => {
+      it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+        authToken = await getToken(role.name);
+
+        const response = await app.inject({
+          method: 'GET',
+          url: `/trainermissions?trainer=${trainer._id}`,
+          headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
         expect(response.statusCode).toBe(role.expectedCode);

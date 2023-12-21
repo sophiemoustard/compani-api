@@ -1,7 +1,7 @@
 const Joi = require('joi');
 Joi.objectId = require('joi-objectid')(Joi);
-const { create } = require('../controllers/trainerMissionController');
-const { authorizeTrainerMissionCreation } = require('./preHandlers/trainerMissions');
+const { create, list } = require('../controllers/trainerMissionController');
+const { authorizeTrainerMissionCreation, authorizeTrainerMissionGet } = require('./preHandlers/trainerMissions');
 const { formDataPayload } = require('./validations/utils');
 
 exports.plugin = {
@@ -24,6 +24,19 @@ exports.plugin = {
         pre: [{ method: authorizeTrainerMissionCreation }],
       },
       handler: create,
+    });
+
+    server.route({
+      method: 'GET',
+      path: '/',
+      options: {
+        auth: { scope: ['trainermissions:read'] },
+        validate: {
+          query: Joi.object({ trainer: Joi.objectId().required() }),
+        },
+        pre: [{ method: authorizeTrainerMissionGet }],
+      },
+      handler: list,
     });
   },
 };

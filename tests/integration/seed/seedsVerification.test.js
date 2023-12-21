@@ -2141,6 +2141,7 @@ describe('SEEDS VERIFICATION', () => {
               transform,
             })
             .populate({ path: 'courses', select: 'trainer', transform })
+            .setOptions({ isVendorUser: true })
             .lean();
         });
 
