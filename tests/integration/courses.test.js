@@ -97,6 +97,7 @@ describe('COURSES ROUTES - POST /courses', () => {
         subProgram: subProgramsList[0]._id,
         operationsRepresentative: vendorAdmin._id,
         estimatedStartDate: '2022-05-31T08:00:00.000Z',
+        hasCertifyingTest: false,
       };
       const coursesCountBefore = await Course.countDocuments();
 
@@ -134,6 +135,7 @@ describe('COURSES ROUTES - POST /courses', () => {
         subProgram: subProgramsList[0]._id,
         operationsRepresentative: vendorAdmin._id,
         expectedBillsCount: 2,
+        hasCertifyingTest: false,
       };
       const coursesCountBefore = await Course.countDocuments();
 
@@ -160,6 +162,7 @@ describe('COURSES ROUTES - POST /courses', () => {
         holding: authHolding._id,
         subProgram: subProgramsList[0]._id,
         operationsRepresentative: vendorAdmin._id,
+        hasCertifyingTest: false,
       };
       const coursesCountBefore = await Course.countDocuments();
 
@@ -184,6 +187,7 @@ describe('COURSES ROUTES - POST /courses', () => {
         type: INTER_B2B,
         subProgram: subProgramsList[0]._id,
         operationsRepresentative: clientAdmin._id,
+        hasCertifyingTest: false,
       };
       const response = await app.inject({
         method: 'POST',
@@ -204,6 +208,7 @@ describe('COURSES ROUTES - POST /courses', () => {
         subProgram: subProgramsList[0]._id,
         operationsRepresentative: vendorAdmin._id,
         expectedBillsCount: 0,
+        hasCertifyingTest: false,
       };
       const response = await app.inject({
         method: 'POST',
@@ -224,6 +229,7 @@ describe('COURSES ROUTES - POST /courses', () => {
         subProgram: new ObjectId(),
         operationsRepresentative: vendorAdmin._id,
         expectedBillsCount: 0,
+        hasCertifyingTest: false,
       };
       const response = await app.inject({
         method: 'POST',
@@ -244,6 +250,7 @@ describe('COURSES ROUTES - POST /courses', () => {
         estimatedStartDate: '2022-05-31T08:00:00.000Z',
         holding: new ObjectId(),
         maxTrainees: 2,
+        hasCertifyingTest: false,
       };
 
       const response = await app.inject({
@@ -265,6 +272,7 @@ describe('COURSES ROUTES - POST /courses', () => {
         subProgram: subProgramsList[2]._id,
         operationsRepresentative: vendorAdmin._id,
         expectedBillsCount: 0,
+        hasCertifyingTest: false,
       };
       const response = await app.inject({
         method: 'POST',
@@ -285,6 +293,7 @@ describe('COURSES ROUTES - POST /courses', () => {
         subProgram: subProgramsList[3]._id,
         operationsRepresentative: vendorAdmin._id,
         expectedBillsCount: 0,
+        hasCertifyingTest: false,
       };
       const response = await app.inject({
         method: 'POST',
@@ -302,6 +311,7 @@ describe('COURSES ROUTES - POST /courses', () => {
         type: 'invalid type',
         subProgram: subProgramsList[0]._id,
         operationsRepresentative: vendorAdmin._id,
+        hasCertifyingTest: false,
       };
 
       const response = await app.inject({
@@ -322,6 +332,7 @@ describe('COURSES ROUTES - POST /courses', () => {
         subProgram: subProgramsList[0]._id,
         operationsRepresentative: vendorAdmin._id,
         estimatedStartDate: '2022-05-31T08:00:00.000Z',
+        hasCertifyingTest: false,
       };
 
       const response = await app.inject({
@@ -342,6 +353,7 @@ describe('COURSES ROUTES - POST /courses', () => {
         subProgram: subProgramsList[0]._id,
         operationsRepresentative: vendorAdmin._id,
         estimatedStartDate: '2022-05-31T08:00:00.000Z',
+        hasCertifyingTest: false,
       };
 
       const response = await app.inject({
@@ -364,6 +376,7 @@ describe('COURSES ROUTES - POST /courses', () => {
         estimatedStartDate: '2022-05-31T08:00:00.000Z',
         holding: authHolding._id,
         maxTrainees: 2,
+        hasCertifyingTest: false,
       };
 
       const response = await app.inject({
@@ -384,6 +397,7 @@ describe('COURSES ROUTES - POST /courses', () => {
         subProgram: subProgramsList[0]._id,
         operationsRepresentative: vendorAdmin._id,
         estimatedStartDate: '2022-05-31T08:00:00.000Z',
+        hasCertifyingTest: false,
       };
 
       const response = await app.inject({
@@ -406,6 +420,7 @@ describe('COURSES ROUTES - POST /courses', () => {
         estimatedStartDate: '2022-05-31T08:00:00.000Z',
         holding: authHolding._id,
         maxTrainees: 2,
+        hasCertifyingTest: false,
       };
 
       const response = await app.inject({
@@ -429,6 +444,7 @@ describe('COURSES ROUTES - POST /courses', () => {
         holding: authHolding._id,
         maxTrainees: 2,
         expectedBillsCount: 2,
+        hasCertifyingTest: false,
       };
 
       const response = await app.inject({
@@ -449,6 +465,7 @@ describe('COURSES ROUTES - POST /courses', () => {
         operationsRepresentative: vendorAdmin._id,
         estimatedStartDate: '2022-05-31T08:00:00.000Z',
         holding: authHolding._id,
+        hasCertifyingTest: false,
       };
 
       const response = await app.inject({
@@ -469,6 +486,7 @@ describe('COURSES ROUTES - POST /courses', () => {
         subProgram: subProgramsList[0]._id,
         operationsRepresentative: vendorAdmin._id,
         estimatedStartDate: '2022-05-31T08:00:00.000Z',
+        hasCertifyingTest: false,
       };
 
       const response = await app.inject({
@@ -489,6 +507,7 @@ describe('COURSES ROUTES - POST /courses', () => {
         subProgram: subProgramsList[0]._id,
         operationsRepresentative: vendorAdmin._id,
         estimatedStartDate: '2022-05-31T08:00:00.000Z',
+        hasCertifyingTest: false,
       };
 
       const response = await app.inject({
@@ -509,6 +528,7 @@ describe('COURSES ROUTES - POST /courses', () => {
       maxTrainees: 8,
       operationsRepresentative: vendorAdmin._id,
       expectedBillsCount: 0,
+      hasCertifyingTest: false,
     };
     ['company', 'subProgram', 'maxTrainees', 'expectedBillsCount'].forEach((param) => {
       it(`should return a 400 error if course is intra and '${param}' parameter is missing`, async () => {
@@ -530,6 +550,7 @@ describe('COURSES ROUTES - POST /courses', () => {
       maxTrainees: 8,
       operationsRepresentative: vendorAdmin._id,
       holding: authHolding._id,
+      hasCertifyingTest: false,
     };
 
     ['holding', 'subProgram', 'maxTrainees'].forEach((param) => {
@@ -563,6 +584,7 @@ describe('COURSES ROUTES - POST /courses', () => {
           subProgram: subProgramsList[0]._id,
           operationsRepresentative: vendorAdmin._id,
           expectedBillsCount: 2,
+          hasCertifyingTest: false,
         };
         authToken = await getToken(role.name);
         const response = await app.inject({
@@ -1621,6 +1643,7 @@ describe('COURSES ROUTES - PUT /courses/{_id}', () => {
         estimatedStartDate: '2022-05-31T08:00:00.000Z',
         maxTrainees: 12,
         expectedBillsCount: 3,
+        hasCertifyingTest: true,
       };
 
       const response = await app.inject({
@@ -2253,6 +2276,17 @@ describe('COURSES ROUTES - PUT /courses/{_id}', () => {
         url: `/courses/${courseIdFromAuthCompany}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
         payload: { maxTrainees: 9 },
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
+
+    it('should return 403 if try to update hasCertifyingTest', async () => {
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/courses/${courseIdFromAuthCompany}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload: { hasCertifyingTest: true },
       });
 
       expect(response.statusCode).toBe(403);

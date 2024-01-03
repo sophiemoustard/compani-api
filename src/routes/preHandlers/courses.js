@@ -224,6 +224,8 @@ exports.authorizeCourseEdit = async (req) => {
     const trainerIsTrainee = UtilsHelper.doesArrayIncludeId(course.trainees, get(req, 'payload.trainer'));
     if (trainerIsTrainee) throw Boom.forbidden();
 
+    if (get(req, 'payload.hasCertifyingTest') && !isRofOrAdmin) throw Boom.forbidden();
+
     if (get(req, 'payload.maxTrainees')) {
       if (!isRofOrAdmin) throw Boom.forbidden();
       if (course.type === INTER_B2B) throw Boom.badRequest();

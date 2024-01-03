@@ -128,6 +128,7 @@ exports.plugin = {
             holding: Joi
               .objectId()
               .when('type', { is: INTRA_HOLDING, then: Joi.required(), otherwise: Joi.forbidden() }),
+            hasCertifyingTest: Joi.boolean().required(),
           }),
         },
         auth: { scope: ['courses:create'] },
@@ -211,6 +212,7 @@ exports.plugin = {
             estimatedStartDate: dateToISOString,
             maxTrainees: Joi.number().positive().integer(),
             expectedBillsCount: Joi.number().min(0).integer(),
+            hasCertifyingTest: Joi.boolean(),
           }),
         },
         pre: [{ method: authorizeCourseEdit }],
