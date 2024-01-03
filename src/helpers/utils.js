@@ -150,7 +150,8 @@ exports.getDaysRatioBetweenTwoDates = (start, end, shouldPayHolidays) => {
   const range = Array.from(moment().range(start, end).by('days'));
   for (const day of range) {
     // startOf('day') is necessery to check fr holidays in business day
-    if (shouldPayHolidays && day.startOf('d').isHoliday() && day.day() !== 0) holidays += 1;
+    const isHoliday = CompaniDate(day.toISOString()).startOf('day').isHoliday();
+    if (shouldPayHolidays && isHoliday && day.day() !== 0) holidays += 1;
     else if (day.day() !== 0) businessDays += 1;
     else sundays += 1;
   }

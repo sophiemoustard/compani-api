@@ -12,6 +12,7 @@ const {
   SUNDAY_LETTER,
 } = require('./constants');
 const Surcharge = require('../models/Surcharge');
+const { CompaniDate } = require('./dates/companiDates');
 
 exports.list = async credentials => Surcharge.find({ company: get(credentials, 'company._id') }).lean();
 
@@ -94,7 +95,7 @@ const holidaySurchargeConditionList = [
   { key: FIRST_OF_JANUARY, condition: start => start.format('DD/MM') === '01/01', name: SURCHARGES[FIRST_OF_JANUARY] },
   {
     key: PUBLIC_HOLIDAY,
-    condition: start => moment(start).startOf('d').isHoliday(),
+    condition: start => CompaniDate(start.toISOString()).startOf('day').isHoliday(),
     name: SURCHARGES[PUBLIC_HOLIDAY],
   },
 ];

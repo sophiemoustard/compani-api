@@ -101,7 +101,7 @@ exports.getSurchargeSplit = (event, surcharge, surchargeDetails, paidTransport) 
     return exports.applySurcharge(paidHours, surcharge, 'firstOfMay', surchargeDetails);
   } if (firstOfJanuary && firstOfJanuary > 0 && moment(event.startDate).format('DD/MM') === '01/01') {
     return exports.applySurcharge(paidHours, surcharge, 'firstOfJanuary', surchargeDetails);
-  } if (publicHoliday && publicHoliday > 0 && moment(event.startDate).startOf('d').isHoliday()) {
+  } if (publicHoliday && publicHoliday > 0 && CompaniDate(event.startDate).startOf('day').isHoliday()) {
     return exports.applySurcharge(paidHours, surcharge, 'publicHoliday', surchargeDetails);
   } if (saturday && saturday > 0 && moment(event.startDate).isoWeekday() === 6) {
     return exports.applySurcharge(paidHours, surcharge, 'saturday', surchargeDetails);
