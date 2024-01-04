@@ -405,7 +405,7 @@ describe('getDailySurcharge', () => {
     { key: 'twentyFifthOfDecember', date: '2019-12-25', label: '25th of december', name: '25 Décembre' },
     { key: 'firstOfMay', date: '2019-05-01', label: '1st of May', name: '1er Mai' },
     { key: 'firstOfJanuary', date: '2019-01-01', label: '1st of January', name: '1er Janvier' },
-    { key: 'publicHoliday', date: '2022-07-14', label: 'holiday', name: 'Jours fériés' },
+    { key: 'publicHoliday', date: '2023-07-14', label: 'holiday', name: 'Jours fériés' },
     { key: 'saturday', date: '2019-08-17', label: 'saturday', name: 'Samedi' },
     { key: 'sunday', date: '2019-08-18', label: 'sunday', name: 'Dimanche' },
   ];
