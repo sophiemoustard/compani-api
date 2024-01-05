@@ -25,7 +25,7 @@ describe('FINAL PAY ROUTES - GET /finalpay/draft', () => {
     it('should compute draft final pay', async () => {
       const response = await app.inject({
         method: 'GET',
-        url: '/finalpay/draft?startDate=2022-04-30T22:00:00.000Z&endDate=2022-05-31T21:59:59.999Z',
+        url: '/finalpay/draft?startDate=2024-07-31T22:00:00.000Z&endDate=2024-08-31T21:59:59.999Z',
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -35,8 +35,8 @@ describe('FINAL PAY ROUTES - GET /finalpay/draft', () => {
         overtimeHours: 0,
         additionalHours: 0,
         bonus: 0,
-        endDate: new Date('2022-05-28T23:59:59.000Z'),
-        month: '05-2022',
+        endDate: new Date('2024-08-28T21:59:59.000Z'),
+        month: '08-2024',
         contractHours: 39,
         holidaysHours: 1.5,
         absencesHours: 1,
@@ -57,7 +57,7 @@ describe('FINAL PAY ROUTES - GET /finalpay/draft', () => {
         hoursBalance: -27.5,
         transport: 0,
         phoneFees: 18,
-        startDate: new Date('2022-04-30T22:00:00.000Z'),
+        startDate: new Date('2024-07-31T22:00:00.000Z'),
         hoursCounter: -17.5,
         mutual: true,
         diff: {
@@ -75,7 +75,7 @@ describe('FINAL PAY ROUTES - GET /finalpay/draft', () => {
         },
         previousMonthHoursCounter: 0,
         endReason: 'mutation',
-        endNotificationDate: new Date('2022-03-28T00:00:00.000Z'),
+        endNotificationDate: new Date('2024-08-27T22:00:00.000Z'),
         compensation: 0,
       });
     });

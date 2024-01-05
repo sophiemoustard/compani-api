@@ -273,7 +273,7 @@ describe('getSurchargeSplit', () => {
   });
 
   it('should apply holiday surcharge', () => {
-    const event = { startDate: '2022-05-08T09:00:00', endDate: '2022-05-08T11:00:00' };
+    const event = { startDate: '2023-05-08T09:00:00', endDate: '2023-05-08T11:00:00' };
     const surcharge = { publicHoliday: 20 };
     const paidTransport = { duration: 30, distance: 10 };
     const details = { planId: { 10: { hours: 3 } } };
