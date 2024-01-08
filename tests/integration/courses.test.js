@@ -97,7 +97,7 @@ describe('COURSES ROUTES - POST /courses', () => {
         subProgram: subProgramsList[0]._id,
         operationsRepresentative: vendorAdmin._id,
         estimatedStartDate: '2022-05-31T08:00:00.000Z',
-        hasCertifyingTest: false,
+        hasCertifyingTest: true,
       };
       const coursesCountBefore = await Course.countDocuments();
 
@@ -2281,17 +2281,6 @@ describe('COURSES ROUTES - PUT /courses/{_id}', () => {
       expect(response.statusCode).toBe(403);
     });
 
-    it('should return 403 if try to update hasCertifyingTest', async () => {
-      const response = await app.inject({
-        method: 'PUT',
-        url: `/courses/${courseIdFromAuthCompany}`,
-        headers: { Cookie: `alenvi_token=${authToken}` },
-        payload: { hasCertifyingTest: true },
-      });
-
-      expect(response.statusCode).toBe(403);
-    });
-
     it('should return 403 as user is coach but not in the company of the course (intra)', async () => {
       const response = await app.inject({
         method: 'PUT',
@@ -2355,6 +2344,20 @@ describe('COURSES ROUTES - PUT /courses/{_id}', () => {
         });
 
         expect(response.statusCode).toBe(role.expectedCode);
+      });
+    });
+
+    ['client_admin', 'trainer'].forEach((role) => {
+      it(`should return 403 if try to update hasCertifyingTest and user is ${role}`, async () => {
+        authToken = await getToken(role);
+        const response = await app.inject({
+          method: 'PUT',
+          url: `/courses/${courseIdFromAuthCompany}`,
+          headers: { Cookie: `alenvi_token=${authToken}` },
+          payload: { hasCertifyingTest: true },
+        });
+
+        expect(response.statusCode).toBe(403);
       });
     });
   });
