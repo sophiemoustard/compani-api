@@ -21,21 +21,27 @@ exports.encode = payload => jwt
   .sign(payload, process.env.TOKEN_SECRET, { expiresIn: CompaniDuration(TOKEN_EXPIRE_DURATION).asSeconds() });
 
 exports.authenticate = async (payload) => {
+  const { email, origin, password, firstMobileConnectionMode } = payload;
+
   const user = await User
-    .findOne({ 'local.email': payload.email.toLowerCase() })
+    .findOne({ 'local.email': email.toLowerCase() })
     .select('local refreshToken')
     .lean();
+
   const correctPassword = get(user, 'local.password') || '';
-  const isCorrect = await bcrypt.compare(payload.password, correctPassword);
+  const isCorrect = await bcrypt.compare(password, correctPassword);
   if (!user || !user.refreshToken || !correctPassword || !isCorrect) throw Boom.unauthorized();
 
   const tokenPayload = { _id: user._id.toHexString() };
   const token = exports.encode(tokenPayload);
 
-  if (payload.origin === MOBILE && !user.firstMobileConnectionDate) {
+  if (origin === MOBILE && !user.firstMobileConnectionDate) {
     await User.updateOne(
       { _id: user._id, firstMobileConnectionDate: { $exists: false } },
-      { $set: { firstMobileConnectionDate: CompaniDate().toISO() }, $unset: { loginCode: '' } }
+      {
+        $set: { firstMobileConnectionDate: CompaniDate().toISO(), firstMobileConnectionMode },
+        $unset: { loginCode: '' },
+      }
     );
   }
 

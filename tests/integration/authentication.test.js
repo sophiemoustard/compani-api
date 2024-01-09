@@ -7,7 +7,7 @@ const { getToken, getTokenByCredentials } = require('./helpers/authentication');
 const { noRoleNoCompany } = require('../seed/authUsersSeed');
 const EmailHelper = require('../../src/helpers/email');
 const SmsHelper = require('../../src/helpers/sms');
-const { MOBILE, EMAIL, PHONE } = require('../../src/helpers/constants');
+const { MOBILE, EMAIL, PHONE, AUTHENTICATION } = require('../../src/helpers/constants');
 const UtilsMock = require('../utilsMock');
 const { authCompany, otherCompany } = require('../seed/authCompaniesSeed');
 
@@ -33,24 +33,42 @@ describe('AUTHENTICATION ROUTES - POST /users/authenticate', () => {
 
   it('should authenticate a user and set firstMobileConnection info', async () => {
     UtilsMock.mockCurrentDate('2020-12-08T13:45:25.437Z');
+    const payload = {
+      email: 'norole.nocompany@userseed.fr',
+      password: 'fdsf5P56D',
+      origin: 'mobile',
+      firstMobileConnectionMode: AUTHENTICATION,
+    };
 
     const response = await app.inject({
       method: 'POST',
       url: '/users/authenticate',
-      payload: { email: 'norole.nocompany@userseed.fr', password: 'fdsf5P56D', origin: 'mobile' },
+      payload,
     });
 
     expect(response.statusCode).toBe(200);
     const user = await User.findOne({ _id: response.result.data.user._id }).lean();
     expect(user.firstMobileConnectionDate).toEqual(new Date('2020-12-08T13:45:25.437Z'));
+    expect(user.firstMobileConnectionMode).toEqual(AUTHENTICATION);
     UtilsMock.unmockCurrentDate();
   });
 
-  it('should not authenticate a user if missing parameter', async () => {
+  it('should not authenticate a user if missing password', async () => {
     const res = await app.inject({
       method: 'POST',
       url: '/users/authenticate',
       payload: { email: 'black@alenvi.io' },
+    });
+    expect(res.statusCode).toBe(400);
+  });
+
+  it('should not authenticate a user if origin is Mobile and firstMobileConnectionMode is missing', async () => {
+    const payload = { email: 'norole.nocompany@userseed.fr', password: 'fdsf5P56D', origin: 'mobile' };
+
+    const res = await app.inject({
+      method: 'POST',
+      url: '/users/authenticate',
+      payload,
     });
     expect(res.statusCode).toBe(400);
   });

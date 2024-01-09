@@ -8,7 +8,7 @@ const AuthenticationHelper = require('../../../src/helpers/authentication');
 const EmailHelper = require('../../../src/helpers/email');
 const SmsHelper = require('../../../src/helpers/sms');
 const translate = require('../../../src/helpers/translate');
-const { MOBILE, EMAIL, PHONE } = require('../../../src/helpers/constants');
+const { MOBILE, EMAIL, PHONE, AUTHENTICATION, LOGIN_CODE } = require('../../../src/helpers/constants');
 const CompaniDatesHelper = require('../../../src/helpers/dates/companiDates');
 const User = require('../../../src/models/User');
 const IdentityVerification = require('../../../src/models/IdentityVerification');
@@ -40,7 +40,12 @@ describe('authenticate', () => {
   });
 
   it('should authenticate user and set firstMobileConnection info', async () => {
-    const payload = { email: 'toto@email.com', password: 'toto', origin: 'mobile' };
+    const payload = {
+      email: 'toto@email.com',
+      password: 'toto',
+      origin: 'mobile',
+      firstMobileConnectionMode: AUTHENTICATION,
+    };
     const user = { _id: new ObjectId(), refreshToken: 'refreshToken', local: { password: 'toto' } };
     findOne.returns(SinonMongoose.stubChainedQueries(user, ['select', 'lean']));
     compare.returns(true);
@@ -65,7 +70,10 @@ describe('authenticate', () => {
     sinon.assert.calledOnceWithExactly(
       updateOne,
       { _id: user._id, firstMobileConnectionDate: { $exists: false } },
-      { $set: { firstMobileConnectionDate: '2022-09-18T10:00:00.000Z' }, $unset: { loginCode: '' } }
+      {
+        $set: { firstMobileConnectionDate: '2022-09-18T10:00:00.000Z', firstMobileConnectionMode: AUTHENTICATION },
+        $unset: { loginCode: '' },
+      }
     );
     sinon.assert.calledOnceWithExactly(compare, payload.password, 'toto');
     sinon.assert.calledOnceWithExactly(encode, { _id: user._id.toHexString() });
@@ -111,6 +119,7 @@ describe('authenticate', () => {
       refreshToken: 'refreshToken',
       local: { password: 'toto' },
       firstMobileConnectionDate: '2020-12-08T13:45:25.437Z',
+      firstMobileConnectionMode: LOGIN_CODE,
     };
 
     findOne.returns(SinonMongoose.stubChainedQueries(user, ['select', 'lean']));
