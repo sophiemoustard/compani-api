@@ -3454,6 +3454,28 @@ describe('updateCourse', () => {
     );
   });
 
+  it('should remove certification', async () => {
+    const courseId = new ObjectId();
+    const payload = { hasCertifyingTest: false };
+    const courseFromDb = { _id: courseId, hasCertifyingTest: true, certifiedTrainees: [new ObjectId()] };
+
+    courseFindOneAndUpdate.returns(SinonMongoose.stubChainedQueries(courseFromDb, ['lean']));
+
+    await CourseHelper.updateCourse(courseId, payload, credentials);
+
+    sinon.assert.notCalled(createHistoryOnEstimatedStartDateEdition);
+    SinonMongoose.calledOnceWithExactly(
+      courseFindOneAndUpdate,
+      [
+        {
+          query: 'findOneAndUpdate',
+          args: [{ _id: courseId }, { $set: { hasCertifyingTest: false }, $unset: { certifiedTrainees: '' } }],
+        },
+        { query: 'lean' },
+      ]
+    );
+  });
+
   it('should unarchive course', async () => {
     const courseId = new ObjectId();
     const payload = { archivedAt: '' };

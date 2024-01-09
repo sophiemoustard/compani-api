@@ -615,6 +615,7 @@ exports.updateCourse = async (courseId, payload, credentials) => {
     setFields = omit(setFields, 'contact');
     unsetFields = { contact: '' };
   }
+  if (payload.hasCertifyingTest === false) unsetFields = { certifiedTrainees: '' };
   if (payload.archivedAt === '') {
     setFields = omit(setFields, 'archivedAt');
     unsetFields = { ...unsetFields, archivedAt: '' };
