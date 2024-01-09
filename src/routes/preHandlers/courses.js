@@ -235,9 +235,8 @@ exports.authorizeCourseEdit = async (req) => {
       const areEveryTraineeInCourse = req.payload.certifiedTrainees
         .every(trainee => UtilsHelper.doesArrayIncludeId(course.trainees, trainee));
       if (!areEveryTraineeInCourse) throw Boom.notFound();
-      const doesCourseHaveNoCertification = course.hasCertifyingTest === false ||
-        (has(req, 'payload.hasCertifyingTest') && req.payload.hasCertifyingTest === false);
-      if (doesCourseHaveNoCertification) throw Boom.conflict();
+      const doesCourseHaveCertification = course.hasCertifyingTest || req.payload.hasCertifyingTest;
+      if (!doesCourseHaveCertification) throw Boom.conflict();
     }
 
     if (get(req, 'payload.maxTrainees')) {
