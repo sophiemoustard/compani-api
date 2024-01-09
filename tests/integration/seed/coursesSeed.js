@@ -336,6 +336,7 @@ const coursesList = [
     companyRepresentative: trainerAndCoach._id,
     contact: trainerAndCoach._id,
     expectedBillsCount: 3,
+    hasCertifyingTest: true,
   },
   { // 1
     _id: new ObjectId(),
@@ -390,6 +391,8 @@ const coursesList = [
     format: BLENDED,
     trainer: trainer._id,
     operationsRepresentative: vendorAdmin._id,
+    hasCertifyingTest: true,
+    certifiedTrainees: [traineeFromOtherCompany._id],
   },
   { // 5 course with slots
     _id: new ObjectId(),

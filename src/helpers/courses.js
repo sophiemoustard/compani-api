@@ -704,7 +704,7 @@ exports.getSMSHistory = async courseId => CourseSmsHistory.find({ course: course
 exports.addTrainee = async (courseId, payload, credentials) => {
   const course = await Course.findOneAndUpdate(
     { _id: courseId },
-    { $addToSet: { trainees: payload.trainee } },
+    { $addToSet: { trainees: payload.trainee, ...(payload.isCertified && { certifiedTrainees: payload.trainee }) } },
     { projection: { companies: 1, type: 1 } }
   );
 
@@ -735,7 +735,7 @@ exports.registerToELearningCourse = async (courseId, credentials) =>
 
 exports.removeCourseTrainee = async (courseId, traineeId, user) => Promise.all([
   CourseHistoriesHelper.createHistoryOnTraineeDeletion({ course: courseId, traineeId }, user._id),
-  Course.updateOne({ _id: courseId }, { $pull: { trainees: traineeId } }),
+  Course.updateOne({ _id: courseId }, { $pull: { trainees: traineeId, certifiedTrainees: traineeId } }),
 ]);
 
 exports.formatIntraCourseSlotsForPdf = slot => ({

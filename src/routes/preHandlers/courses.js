@@ -224,7 +224,21 @@ exports.authorizeCourseEdit = async (req) => {
     const trainerIsTrainee = UtilsHelper.doesArrayIncludeId(course.trainees, get(req, 'payload.trainer'));
     if (trainerIsTrainee) throw Boom.forbidden();
 
-    if (get(req, 'payload.hasCertifyingTest') && !isRofOrAdmin) throw Boom.forbidden();
+    if (has(req, 'payload.hasCertifyingTest')) {
+      if (!isRofOrAdmin) throw Boom.forbidden();
+      const isCertifiedTraineesListEmpty = !(get(req, 'payload.certifiedTrainees.length') ||
+        get(course, 'certifiedTrainees.length'));
+      if (!isCertifiedTraineesListEmpty && req.payload.hasCertifyingTest === false) throw Boom.conflict();
+    }
+    if (get(req, 'payload.certifiedTrainees')) {
+      if (!isRofOrAdmin) throw Boom.forbidden();
+      const areEveryTraineeInCourse = req.payload.certifiedTrainees
+        .every(trainee => UtilsHelper.doesArrayIncludeId(course.trainees, trainee));
+      if (!areEveryTraineeInCourse) throw Boom.notFound();
+      const doesCourseHaveNoCertification = course.hasCertifyingTest === false ||
+        (has(req, 'payload.hasCertifyingTest') && req.payload.hasCertifyingTest === false);
+      if (doesCourseHaveNoCertification) throw Boom.conflict();
+    }
 
     if (get(req, 'payload.maxTrainees')) {
       if (!isRofOrAdmin) throw Boom.forbidden();
@@ -324,7 +338,10 @@ exports.authorizeTraineeAddition = async (req) => {
   try {
     const { payload } = req;
     const course = await Course
-      .findOne({ _id: req.params._id }, { trainees: 1, type: 1, companies: 1, maxTrainees: 1, trainer: 1 })
+      .findOne(
+        { _id: req.params._id },
+        { trainees: 1, type: 1, companies: 1, maxTrainees: 1, trainer: 1, hasCertifyingTest: 1 }
+      )
       .lean();
 
     if (course.trainees.length + 1 > course.maxTrainees) throw Boom.forbidden(translate[language].maxTraineesReached);
@@ -339,6 +356,15 @@ exports.authorizeTraineeAddition = async (req) => {
       .populate({ path: 'userCompanyList' })
       .lean();
     if (!trainee) throw Boom.notFound();
+
+    const isRofOrAdmin = [TRAINING_ORGANISATION_MANAGER, VENDOR_ADMIN]
+      .includes(get(req, 'auth.credentials.role.vendor.name'));
+
+    if (has(payload, 'isCertified') && !payload.isCertified) throw Boom.badData();
+    if (payload.isCertified) {
+      if (!isRofOrAdmin) throw Boom.forbidden();
+      if (!course.hasCertifyingTest) throw Boom.forbidden();
+    }
 
     if (course.type === INTRA) {
       if (payload.company) throw Boom.badData();
@@ -359,8 +385,6 @@ exports.authorizeTraineeAddition = async (req) => {
       if (!UtilsHelper.doesArrayIncludeId(course.companies, payload.company)) throw Boom.forbidden();
 
       if (course.type === INTRA_HOLDING) {
-        const isRofOrAdmin = [TRAINING_ORGANISATION_MANAGER, VENDOR_ADMIN]
-          .includes(get(req, 'auth.credentials.role.vendor.name'));
         const loggedUserCompany = get(req, 'auth.credentials.company._id');
         const isClientRoleWithoutVendorOrHoldingRole = [COACH, CLIENT_ADMIN].includes(clientRole) && !isRofOrAdmin &&
           !holdingRole;
