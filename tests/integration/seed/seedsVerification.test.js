@@ -2251,6 +2251,14 @@ describe('SEEDS VERIFICATION', () => {
 
           expect(doUserHaveBothFirstMobileConnectionAndLoginCode).toBeFalsy();
         });
+
+        it('should pass if every user has both firstMobileConnectionDate and firstMobileConnectionMode', () => {
+          const doUserHaveBothFirstMobileConnectionDateAndDirstMobileConnectionMode = userList
+            .filter(u => u.firstMobileConnectionDate)
+            .every(u => u.firstMobileConnectionMode);
+
+          expect(doUserHaveBothFirstMobileConnectionDateAndDirstMobileConnectionMode).toBeTruthy();
+        });
       });
 
       describe('Collection UserCompany', () => {

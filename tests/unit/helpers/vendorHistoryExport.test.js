@@ -27,6 +27,8 @@ const {
   ESTIMATED_START_DATE_EDITION,
   WEBAPP,
   MOBILE,
+  AUTHENTICATION,
+  IDENTITY_VERIFICATION,
 } = require('../../../src/helpers/constants');
 const CourseSlot = require('../../../src/models/CourseSlot');
 const Course = require('../../../src/models/Course');
@@ -41,8 +43,8 @@ const CourseHistory = require('../../../src/models/CourseHistory');
 
 describe('exportCourseHistory', () => {
   const traineeList = [
-    { _id: new ObjectId(), firstMobileConnectionDate: new Date() },
-    { _id: new ObjectId(), firstMobileConnectionDate: new Date() },
+    { _id: new ObjectId(), firstMobileConnectionDate: new Date(), firstMobileConnectionMode: AUTHENTICATION },
+    { _id: new ObjectId(), firstMobileConnectionDate: new Date(), firstMobileConnectionMode: IDENTITY_VERIFICATION },
     { _id: new ObjectId() },
     { _id: new ObjectId() },
     { _id: new ObjectId() },
