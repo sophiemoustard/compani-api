@@ -75,7 +75,7 @@ exports.findCoursesForExport = async (startDate, endDate, credentials) => {
       populate: { path: 'attendances', options: { isVendorUser } },
     })
     .populate({ path: 'slotsToPlan', select: '_id' })
-    .populate({ path: 'trainees', select: 'firstMobileConnection' })
+    .populate({ path: 'trainees', select: 'firstMobileConnectionDate' })
     .populate({
       path: 'bills',
       select: 'payer billedAt mainFee billingPurchaseList',

@@ -32,10 +32,10 @@ exports.authenticate = async (payload) => {
   const tokenPayload = { _id: user._id.toHexString() };
   const token = exports.encode(tokenPayload);
 
-  if (payload.origin === MOBILE && !user.firstMobileConnection) {
+  if (payload.origin === MOBILE && !user.firstMobileConnectionDate) {
     await User.updateOne(
-      { _id: user._id, firstMobileConnection: { $exists: false } },
-      { $set: { firstMobileConnection: CompaniDate().toISO() }, $unset: { loginCode: '' } }
+      { _id: user._id, firstMobileConnectionDate: { $exists: false } },
+      { $set: { firstMobileConnectionDate: CompaniDate().toISO() }, $unset: { loginCode: '' } }
     );
   }
 

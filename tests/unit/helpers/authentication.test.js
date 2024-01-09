@@ -39,7 +39,7 @@ describe('authenticate', () => {
     UtilsMock.unmockCurrentDate();
   });
 
-  it('should authenticate user and set firstMobileConnection', async () => {
+  it('should authenticate user and set firstMobileConnection info', async () => {
     const payload = { email: 'toto@email.com', password: 'toto', origin: 'mobile' };
     const user = { _id: new ObjectId(), refreshToken: 'refreshToken', local: { password: 'toto' } };
     findOne.returns(SinonMongoose.stubChainedQueries(user, ['select', 'lean']));
@@ -64,8 +64,8 @@ describe('authenticate', () => {
     );
     sinon.assert.calledOnceWithExactly(
       updateOne,
-      { _id: user._id, firstMobileConnection: { $exists: false } },
-      { $set: { firstMobileConnection: '2022-09-18T10:00:00.000Z' }, $unset: { loginCode: '' } }
+      { _id: user._id, firstMobileConnectionDate: { $exists: false } },
+      { $set: { firstMobileConnectionDate: '2022-09-18T10:00:00.000Z' }, $unset: { loginCode: '' } }
     );
     sinon.assert.calledOnceWithExactly(compare, payload.password, 'toto');
     sinon.assert.calledOnceWithExactly(encode, { _id: user._id.toHexString() });
@@ -74,7 +74,7 @@ describe('authenticate', () => {
     sinon.assert.calledWithExactly(formatMiscToCompaniDate.getCall(1));
   });
 
-  it('should authenticate user but not set firstMobileConnection (authentication from webapp)', async () => {
+  it('should authenticate user but not set firstMobileConnection info (authentication from webapp)', async () => {
     const payload = { email: 'toto@email.com', password: 'toto', origin: 'webapp' };
     const user = { _id: new ObjectId(), refreshToken: 'refreshToken', local: { password: 'toto' } };
 
@@ -104,13 +104,13 @@ describe('authenticate', () => {
     sinon.assert.calledOnceWithExactly(formatMiscToCompaniDate);
   });
 
-  it('should authenticate user but not set firstMobileConnection (firstMobileConnection already set)', async () => {
+  it('should authenticate user but not set firstMobileConnection info (this info is already set)', async () => {
     const payload = { email: 'toto@email.com', password: 'toto', origin: 'mobile' };
     const user = {
       _id: new ObjectId(),
       refreshToken: 'refreshToken',
       local: { password: 'toto' },
-      firstMobileConnection: '2020-12-08T13:45:25.437Z',
+      firstMobileConnectionDate: '2020-12-08T13:45:25.437Z',
     };
 
     findOne.returns(SinonMongoose.stubChainedQueries(user, ['select', 'lean']));

@@ -41,8 +41,8 @@ const CourseHistory = require('../../../src/models/CourseHistory');
 
 describe('exportCourseHistory', () => {
   const traineeList = [
-    { _id: new ObjectId(), firstMobileConnection: new Date() },
-    { _id: new ObjectId(), firstMobileConnection: new Date() },
+    { _id: new ObjectId(), firstMobileConnectionDate: new Date() },
+    { _id: new ObjectId(), firstMobileConnectionDate: new Date() },
     { _id: new ObjectId() },
     { _id: new ObjectId() },
     { _id: new ObjectId() },
@@ -469,7 +469,7 @@ describe('exportCourseHistory', () => {
           }],
         },
         { query: 'populate', args: [{ path: 'slotsToPlan', select: '_id' }] },
-        { query: 'populate', args: [{ path: 'trainees', select: 'firstMobileConnection' }] },
+        { query: 'populate', args: [{ path: 'trainees', select: 'firstMobileConnectionDate' }] },
         {
           query: 'populate',
           args: [{
@@ -526,8 +526,8 @@ describe('exportCourseHistory', () => {
       ['select', 'setOptions', 'lean']
     ));
     getTraineesWithElearningProgress.onCall(0).returns([
-      { _id: traineeList[0]._id, firstMobileConnection: traineeList[0].firstMobileConnection, steps: [], progress: {} },
-      { _id: traineeList[1]._id, firstMobileConnection: traineeList[1].firstMobileConnection, steps: [], progress: {} },
+      { _id: traineeList[0]._id, firstMobileConnectionDate: traineeList[0].firstMobileConnectionDate, steps: [], progress: {} },
+      { _id: traineeList[1]._id, firstMobileConnectionDate: traineeList[1].firstMobileConnectionDate, steps: [], progress: {} },
       { _id: traineeList[2]._id, steps: [], progress: {} },
     ]);
     getTraineesWithElearningProgress.onCall(1).returns([
@@ -540,13 +540,13 @@ describe('exportCourseHistory', () => {
     ]);
     getTraineesWithElearningProgress.onCall(2).returns([]);
     getTraineesWithElearningProgress.onCall(3).returns([
-      { _id: traineeList[0]._id, firstMobileConnection: traineeList[0].firstMobileConnection, steps: [], progress: {} },
-      { _id: traineeList[1]._id, firstMobileConnection: traineeList[1].firstMobileConnection, steps: [], progress: {} },
+      { _id: traineeList[0]._id, firstMobileConnectionDate: traineeList[0].firstMobileConnectionDate, steps: [], progress: {} },
+      { _id: traineeList[1]._id, firstMobileConnectionDate: traineeList[1].firstMobileConnectionDate, steps: [], progress: {} },
       { _id: traineeList[2]._id, steps: [], progress: {} },
     ]);
     getTraineesWithElearningProgress.onCall(4).returns([
-      { _id: traineeList[0]._id, firstMobileConnection: traineeList[0].firstMobileConnection, steps: [], progress: {} },
-      { _id: traineeList[1]._id, firstMobileConnection: traineeList[1].firstMobileConnection, steps: [], progress: {} },
+      { _id: traineeList[0]._id, firstMobileConnectionDate: traineeList[0].firstMobileConnectionDate, steps: [], progress: {} },
+      { _id: traineeList[1]._id, firstMobileConnectionDate: traineeList[1].firstMobileConnectionDate, steps: [], progress: {} },
     ]);
 
     const result = await ExportHelper
@@ -838,7 +838,7 @@ describe('exportCourseHistory', () => {
           }],
         },
         { query: 'populate', args: [{ path: 'slotsToPlan', select: '_id' }] },
-        { query: 'populate', args: [{ path: 'trainees', select: 'firstMobileConnection' }] },
+        { query: 'populate', args: [{ path: 'trainees', select: 'firstMobileConnectionDate' }] },
         {
           query: 'populate',
           args: [{

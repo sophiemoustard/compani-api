@@ -31,7 +31,7 @@ describe('AUTHENTICATION ROUTES - POST /users/authenticate', () => {
     expect(response.result.data).toBeDefined();
   });
 
-  it('should authenticate a user and set firstMobileConnection', async () => {
+  it('should authenticate a user and set firstMobileConnection info', async () => {
     UtilsMock.mockCurrentDate('2020-12-08T13:45:25.437Z');
 
     const response = await app.inject({
@@ -42,7 +42,7 @@ describe('AUTHENTICATION ROUTES - POST /users/authenticate', () => {
 
     expect(response.statusCode).toBe(200);
     const user = await User.findOne({ _id: response.result.data.user._id }).lean();
-    expect(user.firstMobileConnection).toEqual(new Date('2020-12-08T13:45:25.437Z'));
+    expect(user.firstMobileConnectionDate).toEqual(new Date('2020-12-08T13:45:25.437Z'));
     UtilsMock.unmockCurrentDate();
   });
 

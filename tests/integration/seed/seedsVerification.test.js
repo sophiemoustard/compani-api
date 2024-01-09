@@ -2245,9 +2245,9 @@ describe('SEEDS VERIFICATION', () => {
           expect(doUsersHaveRoleInWrongInterface).toBeFalsy();
         });
 
-        it('should pass if every user has either firstMobileConnection or loginCode or none of these 2 fields', () => {
+        it('should pass if every user has either firstMobileConnectionDate or loginCode or none of these', () => {
           const doUserHaveBothFirstMobileConnectionAndLoginCode = userList
-            .some(u => u.firstMobileConnection && u.loginCode);
+            .some(u => u.firstMobileConnectionDate && u.loginCode);
 
           expect(doUserHaveBothFirstMobileConnectionAndLoginCode).toBeFalsy();
         });
