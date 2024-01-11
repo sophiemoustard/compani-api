@@ -44,7 +44,7 @@ describe('authenticate', () => {
       email: 'toto@email.com',
       password: 'toto',
       origin: 'mobile',
-      firstMobileConnectionMode: AUTHENTICATION,
+      mobileConnectionMode: AUTHENTICATION,
     };
     const user = { _id: new ObjectId(), refreshToken: 'refreshToken', local: { password: 'toto' } };
     findOne.returns(SinonMongoose.stubChainedQueries(user, ['select', 'lean']));
@@ -113,7 +113,12 @@ describe('authenticate', () => {
   });
 
   it('should authenticate user but not set firstMobileConnection info (this info is already set)', async () => {
-    const payload = { email: 'toto@email.com', password: 'toto', origin: 'mobile' };
+    const payload = {
+      email: 'toto@email.com',
+      password: 'toto',
+      origin: 'mobile',
+      mobileConnectionMode: AUTHENTICATION,
+    };
     const user = {
       _id: new ObjectId(),
       refreshToken: 'refreshToken',

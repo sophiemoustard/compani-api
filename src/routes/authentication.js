@@ -36,7 +36,7 @@ exports.plugin = {
             email: Joi.string().email().required(),
             password: Joi.string().required(),
             origin: Joi.string().valid(...ORIGIN_OPTIONS),
-            firstMobileConnectionMode: Joi
+            mobileConnectionMode: Joi
               .string()
               .valid(...MOBILE_CONNECTION_MODE.filter(val => val !== UNKNOWN))
               .when('origin', { is: MOBILE, then: Joi.required(), otherwise: Joi.forbidden() }),

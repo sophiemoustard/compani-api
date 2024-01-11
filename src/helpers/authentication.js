@@ -21,7 +21,7 @@ exports.encode = payload => jwt
   .sign(payload, process.env.TOKEN_SECRET, { expiresIn: CompaniDuration(TOKEN_EXPIRE_DURATION).asSeconds() });
 
 exports.authenticate = async (payload) => {
-  const { email, origin, password, firstMobileConnectionMode } = payload;
+  const { email, origin, password } = payload;
 
   const user = await User
     .findOne({ 'local.email': email.toLowerCase() })
@@ -39,7 +39,10 @@ exports.authenticate = async (payload) => {
     await User.updateOne(
       { _id: user._id, firstMobileConnectionDate: { $exists: false } },
       {
-        $set: { firstMobileConnectionDate: CompaniDate().toISO(), firstMobileConnectionMode },
+        $set: {
+          firstMobileConnectionDate: CompaniDate().toISO(),
+          firstMobileConnectionMode: payload.mobileConnectionMode,
+        },
         $unset: { loginCode: '' },
       }
     );

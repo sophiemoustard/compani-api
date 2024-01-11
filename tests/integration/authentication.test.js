@@ -37,7 +37,7 @@ describe('AUTHENTICATION ROUTES - POST /users/authenticate', () => {
       email: 'norole.nocompany@userseed.fr',
       password: 'fdsf5P56D',
       origin: 'mobile',
-      firstMobileConnectionMode: AUTHENTICATION,
+      mobileConnectionMode: AUTHENTICATION,
     };
 
     const response = await app.inject({
