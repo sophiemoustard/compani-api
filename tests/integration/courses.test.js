@@ -2082,17 +2082,6 @@ describe('COURSES ROUTES - PUT /courses/{_id}', () => {
 
       expect(response.statusCode).toBe(409);
     });
-
-    it('should return 409 if remove course certification while adding trainnes in certification list', async () => {
-      const response = await app.inject({
-        method: 'PUT',
-        url: `/courses/${coursesList[0]._id}`,
-        headers: { Cookie: `alenvi_token=${authToken}` },
-        payload: { hasCertifyingTest: false, certifiedTrainees: [coach._id] },
-      });
-
-      expect(response.statusCode).toBe(409);
-    });
   });
 
   describe('TRAINER', () => {

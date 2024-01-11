@@ -226,15 +226,18 @@ exports.authorizeCourseEdit = async (req) => {
 
     if (has(req, 'payload.hasCertifyingTest')) {
       if (!isRofOrAdmin) throw Boom.forbidden();
-      const isCertifiedTraineesListEmpty = !(get(req, 'payload.certifiedTrainees.length') ||
-        get(course, 'certifiedTrainees.length'));
-      if (!isCertifiedTraineesListEmpty && req.payload.hasCertifyingTest === false) throw Boom.conflict();
+      const isCertifiedTraineesListNotEmpty = get(req, 'payload.certifiedTrainees.length') ||
+        get(course, 'certifiedTrainees.length');
+      if (isCertifiedTraineesListNotEmpty && !req.payload.hasCertifyingTest) throw Boom.conflict();
     }
+
     if (get(req, 'payload.certifiedTrainees')) {
       if (!isRofOrAdmin) throw Boom.forbidden();
+
       const areEveryTraineeInCourse = req.payload.certifiedTrainees
         .every(trainee => UtilsHelper.doesArrayIncludeId(course.trainees, trainee));
       if (!areEveryTraineeInCourse) throw Boom.notFound();
+
       const doesCourseHaveCertification = course.hasCertifyingTest || req.payload.hasCertifyingTest;
       if (!doesCourseHaveCertification) throw Boom.conflict();
     }
