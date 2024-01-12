@@ -2252,12 +2252,12 @@ describe('SEEDS VERIFICATION', () => {
           expect(doUserHaveBothFirstMobileConnectionAndLoginCode).toBeFalsy();
         });
 
-        it('should pass if every user has both firstMobileConnectionDate and firstMobileConnectionMode', () => {
-          const doUserHaveBothFirstMobileConnectionDateAndMode = userList
+        it('should pass if every user who has firstMobileConnectionDate also has firstMobileConnectionMode', () => {
+          const everyUserWithFirstMobileConnectionDateAlsoHasMode = userList
             .filter(u => u.firstMobileConnectionDate)
             .every(u => u.firstMobileConnectionMode);
 
-          expect(doUserHaveBothFirstMobileConnectionDateAndMode).toBeTruthy();
+          expect(everyUserWithFirstMobileConnectionDateAlsoHasMode).toBeTruthy();
         });
       });
 

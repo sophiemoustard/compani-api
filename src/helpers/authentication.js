@@ -23,10 +23,7 @@ exports.encode = payload => jwt
 exports.authenticate = async (payload) => {
   const { email, origin, password } = payload;
 
-  const user = await User
-    .findOne({ 'local.email': email.toLowerCase() })
-    .select('local refreshToken')
-    .lean();
+  const user = await User.findOne({ 'local.email': email.toLowerCase() }).select('local refreshToken').lean();
 
   const correctPassword = get(user, 'local.password') || '';
   const isCorrect = await bcrypt.compare(password, correctPassword);
