@@ -629,4 +629,11 @@ module.exports = {
   },
   // LEARNERS
   DIRECTORY: 'directory',
+  // MOBILE CONNECTION
+  ACCOUNT_CREATION: 'account_creation',
+  LOGIN_CODE: 'login_code',
+  IDENTITY_VERIFICATION: 'identity_verification',
+  get MOBILE_CONNECTION_MODE() {
+    return [this.ACCOUNT_CREATION, this.AUTHENTICATION, this.LOGIN_CODE, this.IDENTITY_VERIFICATION, this.UNKNOWN];
+  },
 };

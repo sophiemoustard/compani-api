@@ -26,6 +26,7 @@ const {
   ORIGIN_OPTIONS,
   NONE,
   HOLDING_ADMIN,
+  MOBILE_CONNECTION_MODE,
 } = require('../helpers/constants');
 const { formatQuery, queryMiddlewareList } = require('./preHooks/validate');
 const { CompaniDate } = require('../helpers/dates/companiDates');
@@ -149,7 +150,12 @@ const UserSchema = mongoose.Schema({
   establishment: { type: mongoose.Schema.Types.ObjectId, ref: 'Establishment' },
   inactivityDate: { type: Date, default: null },
   biography: { type: String },
-  firstMobileConnection: { type: Date },
+  firstMobileConnectionDate: { type: Date },
+  firstMobileConnectionMode: {
+    type: String,
+    enum: MOBILE_CONNECTION_MODE,
+    required: () => !!this.firstMobileConnectionDate,
+  },
   origin: { type: String, enum: ORIGIN_OPTIONS, required: true, immutable: true },
   formationExpoTokenList: [{ type: String }],
   loginCode: { type: String },

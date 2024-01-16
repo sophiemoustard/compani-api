@@ -2245,11 +2245,19 @@ describe('SEEDS VERIFICATION', () => {
           expect(doUsersHaveRoleInWrongInterface).toBeFalsy();
         });
 
-        it('should pass if every user has either firstMobileConnection or loginCode or none of these 2 fields', () => {
+        it('should pass if every user has either firstMobileConnectionDate or loginCode or none of these', () => {
           const doUserHaveBothFirstMobileConnectionAndLoginCode = userList
-            .some(u => u.firstMobileConnection && u.loginCode);
+            .some(u => u.firstMobileConnectionDate && u.loginCode);
 
           expect(doUserHaveBothFirstMobileConnectionAndLoginCode).toBeFalsy();
+        });
+
+        it('should pass if every user who has firstMobileConnectionDate also has firstMobileConnectionMode', () => {
+          const everyUserWithFirstMobileConnectionDateAlsoHasMode = userList
+            .filter(u => u.firstMobileConnectionDate)
+            .every(u => u.firstMobileConnectionMode);
+
+          expect(everyUserWithFirstMobileConnectionDateAlsoHasMode).toBeTruthy();
         });
       });
 

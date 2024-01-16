@@ -323,7 +323,8 @@ const getCourseForOperations = async (courseId, credentials, origin) => {
       { path: 'companies', select: 'name' },
       {
         path: 'trainees',
-        select: 'identity.firstname identity.lastname local.email contact picture.link firstMobileConnection loginCode',
+        select: 'identity.firstname identity.lastname local.email contact picture.link '
+          + 'firstMobileConnectionDate loginCode',
         populate: { path: 'company' },
       },
       {
@@ -470,7 +471,7 @@ exports.getCourseFollowUp = async (course, query, credentials) => {
     })
     .populate({
       path: 'trainees',
-      select: 'identity.firstname identity.lastname firstMobileConnection loginCode',
+      select: 'identity.firstname identity.lastname firstMobileConnectionDate loginCode',
       populate: { path: 'company' },
     })
     .lean();
@@ -709,10 +710,10 @@ exports.addTrainee = async (courseId, payload, credentials) => {
   );
 
   const trainee = await User
-    .findOne({ _id: payload.trainee }, { formationExpoTokenList: 1, firstMobileConnection: 1, loginCode: 1 })
+    .findOne({ _id: payload.trainee }, { formationExpoTokenList: 1, firstMobileConnectionDate: 1, loginCode: 1 })
     .lean();
 
-  if (!trainee.firstMobileConnection && !trainee.loginCode) {
+  if (!trainee.firstMobileConnectionDate && !trainee.loginCode) {
     const loginCode = String(Math.floor(Math.random() * 9000 + 1000));
     await User.updateOne({ _id: payload.trainee }, { loginCode });
   }

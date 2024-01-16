@@ -86,6 +86,8 @@ const {
   GROUP,
   TRAINEE,
   MOBILE,
+  LOGIN_CODE,
+  IDENTITY_VERIFICATION,
 } = require('../../../src/helpers/constants');
 const {
   auxiliaryRoleId,
@@ -1128,14 +1130,16 @@ const traineeList = [
     identity: { firstname: 'Jacques', lastname: 'Trainee' },
     origin: WEBAPP,
     local: { email: 'trainee1@compani.fr' },
-    firstMobileConnection: '2019-01-16T10:30:19.543Z',
+    firstMobileConnectionDate: '2019-01-16T10:30:19.543Z',
+    firstMobileConnectionMode: LOGIN_CODE,
   },
   { // 1
     _id: new ObjectId(),
     identity: { firstname: 'Paul', lastname: 'Trainee' },
     origin: WEBAPP,
     local: { email: 'trainee2@compani.fr' },
-    firstMobileConnection: '2019-01-16T10:30:19.543Z',
+    firstMobileConnectionDate: '2019-01-16T10:30:19.543Z',
+    firstMobileConnectionMode: IDENTITY_VERIFICATION,
   },
   { // 2
     _id: new ObjectId(),

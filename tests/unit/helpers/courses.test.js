@@ -1742,8 +1742,8 @@ describe('getCourse', () => {
               { path: 'companies', select: 'name' },
               {
                 path: 'trainees',
-                select: 'identity.firstname identity.lastname local.email contact picture.link firstMobileConnection '
-                  + 'loginCode',
+                select: 'identity.firstname identity.lastname local.email contact picture.link '
+                  + 'firstMobileConnectionDate loginCode',
                 populate: { path: 'company' },
               },
               {
@@ -1830,8 +1830,8 @@ describe('getCourse', () => {
                 { path: 'companies', select: 'name' },
                 {
                   path: 'trainees',
-                  select: 'identity.firstname identity.lastname local.email contact picture.link firstMobileConnection '
-                    + 'loginCode',
+                  select: 'identity.firstname identity.lastname local.email contact picture.link '
+                    + 'firstMobileConnectionDate loginCode',
                   populate: { path: 'company' },
                 },
                 {
@@ -1920,8 +1920,8 @@ describe('getCourse', () => {
                 { path: 'companies', select: 'name' },
                 {
                   path: 'trainees',
-                  select: 'identity.firstname identity.lastname local.email contact picture.link firstMobileConnection '
-                    + 'loginCode',
+                  select: 'identity.firstname identity.lastname local.email contact picture.link '
+                    + 'firstMobileConnectionDate loginCode',
                   populate: { path: 'company' },
                 },
                 {
@@ -2008,8 +2008,8 @@ describe('getCourse', () => {
               { path: 'companies', select: 'name' },
               {
                 path: 'trainees',
-                select: 'identity.firstname identity.lastname local.email contact picture.link firstMobileConnection '
-                  + 'loginCode',
+                select: 'identity.firstname identity.lastname local.email contact picture.link '
+                  + 'firstMobileConnectionDate loginCode',
                 populate: { path: 'company' },
               },
               {
@@ -2077,8 +2077,8 @@ describe('getCourse', () => {
               { path: 'companies', select: 'name' },
               {
                 path: 'trainees',
-                select: 'identity.firstname identity.lastname local.email contact picture.link firstMobileConnection '
-                  + 'loginCode',
+                select: 'identity.firstname identity.lastname local.email contact picture.link '
+                  + 'firstMobileConnectionDate loginCode',
                 populate: { path: 'company' },
 
               },
@@ -2815,7 +2815,7 @@ describe('getCourseFollowUp', () => {
         {
           _id: '123213124',
           identity: { firstname: 'mamie', lastname: 'Francine' },
-          firstMobileConnection: '2022-11-18T10:20:00.000Z',
+          firstMobileConnectionDate: '2022-11-18T10:20:00.000Z',
         },
 
       ],
@@ -2838,7 +2838,7 @@ describe('getCourseFollowUp', () => {
       {
         _id: '123213124',
         identity: { firstname: 'mamie', lastname: 'Francine' },
-        firstMobileConnection: '2022-11-18T10:20:00.000Z',
+        firstMobileConnectionDate: '2022-11-18T10:20:00.000Z',
         steps: { progress: 1 },
         progress: 1,
         company: companyId,
@@ -2861,7 +2861,7 @@ describe('getCourseFollowUp', () => {
         {
           _id: '123213124',
           identity: { firstname: 'mamie', lastname: 'Francine' },
-          firstMobileConnection: '2022-11-18T10:20:00.000Z',
+          firstMobileConnectionDate: '2022-11-18T10:20:00.000Z',
           company: companyId,
           steps: { progress: 1 },
           progress: 1,
@@ -2905,7 +2905,7 @@ describe('getCourseFollowUp', () => {
           query: 'populate',
           args: [{
             path: 'trainees',
-            select: 'identity.firstname identity.lastname firstMobileConnection loginCode',
+            select: 'identity.firstname identity.lastname firstMobileConnectionDate loginCode',
             populate: { path: 'company' },
           }],
         },
@@ -2983,7 +2983,7 @@ describe('getCourseFollowUp', () => {
           query: 'populate',
           args: [{
             path: 'trainees',
-            select: 'identity.firstname identity.lastname firstMobileConnection loginCode',
+            select: 'identity.firstname identity.lastname firstMobileConnectionDate loginCode',
             populate: { path: 'company' },
           }],
         },
@@ -3079,7 +3079,7 @@ describe('getCourseFollowUp', () => {
           query: 'populate',
           args: [{
             path: 'trainees',
-            select: 'identity.firstname identity.lastname firstMobileConnection loginCode',
+            select: 'identity.firstname identity.lastname firstMobileConnectionDate loginCode',
             populate: { path: 'company' },
           }],
         },
@@ -3160,7 +3160,7 @@ describe('getCourseFollowUp', () => {
           query: 'populate',
           args: [{
             path: 'trainees',
-            select: 'identity.firstname identity.lastname firstMobileConnection loginCode',
+            select: 'identity.firstname identity.lastname firstMobileConnectionDate loginCode',
             populate: { path: 'company' },
           }],
         },
@@ -3738,7 +3738,7 @@ describe('addTrainee', () => {
     const user = {
       _id: new ObjectId(),
       formationExpoTokenList: 'ExponentPushToken[bla]',
-      firstMobileConnection: '2022-01-21T12:00:00.000Z',
+      firstMobileConnectionDate: '2022-01-21T12:00:00.000Z',
     };
     const course = { _id: new ObjectId(), misc: 'Test', type: INTER_B2B };
     const payload = { trainee: user._id, company: new ObjectId() };
@@ -3761,7 +3761,7 @@ describe('addTrainee', () => {
       [
         {
           query: 'findOne',
-          args: [{ _id: user._id }, { formationExpoTokenList: 1, firstMobileConnection: 1, loginCode: 1 }],
+          args: [{ _id: user._id }, { formationExpoTokenList: 1, firstMobileConnectionDate: 1, loginCode: 1 }],
         },
         { query: 'lean' },
       ]
@@ -3803,7 +3803,7 @@ describe('addTrainee', () => {
       [
         {
           query: 'findOne',
-          args: [{ _id: user._id }, { formationExpoTokenList: 1, firstMobileConnection: 1, loginCode: 1 }],
+          args: [{ _id: user._id }, { formationExpoTokenList: 1, firstMobileConnectionDate: 1, loginCode: 1 }],
         },
         { query: 'lean' },
       ]
@@ -3840,7 +3840,7 @@ describe('addTrainee', () => {
       [
         {
           query: 'findOne',
-          args: [{ _id: user._id }, { formationExpoTokenList: 1, firstMobileConnection: 1, loginCode: 1 }],
+          args: [{ _id: user._id }, { formationExpoTokenList: 1, firstMobileConnectionDate: 1, loginCode: 1 }],
         },
         { query: 'lean' },
       ]

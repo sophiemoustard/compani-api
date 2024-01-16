@@ -199,7 +199,7 @@ exports.exportCourseHistory = async (startDate, endDate, credentials) => {
       'Durée Totale': UtilsHelper.getTotalDurationForExport(course.slots),
       'Nombre de SMS envoyés': smsCount,
       'Nombre de personnes connectées à l\'app': course.trainees
-        .filter(trainee => trainee.firstMobileConnection).length,
+        .filter(trainee => trainee.firstMobileConnectionDate).length,
       'Complétion eLearning moyenne': traineeProgressList.length
         ? UtilsHelper.formatFloatForExport(combinedElearningProgress / course.trainees.length)
         : '',
