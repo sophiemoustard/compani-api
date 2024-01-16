@@ -3454,9 +3454,9 @@ describe('updateCourse', () => {
     );
   });
 
-  it('should remove certification', async () => {
+  it('should remove certified trainees', async () => {
     const courseId = new ObjectId();
-    const payload = { hasCertifyingTest: false };
+    const payload = { certifiedTrainees: [] };
     const courseFromDb = { _id: courseId, hasCertifyingTest: true, certifiedTrainees: [new ObjectId()] };
 
     courseFindOneAndUpdate.returns(SinonMongoose.stubChainedQueries(courseFromDb, ['lean']));
@@ -3469,7 +3469,7 @@ describe('updateCourse', () => {
       [
         {
           query: 'findOneAndUpdate',
-          args: [{ _id: courseId }, { $set: { hasCertifyingTest: false }, $unset: { certifiedTrainees: '' } }],
+          args: [{ _id: courseId }, { $unset: { certifiedTrainees: '' } }],
         },
         { query: 'lean' },
       ]
