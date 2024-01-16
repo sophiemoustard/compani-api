@@ -17,7 +17,7 @@ exports.plugin = {
           payload: Joi.object({
             trainer: Joi.objectId().required(),
             courses: Joi.alternatives().try(Joi.array().items(Joi.objectId()).min(1), Joi.objectId()).required(),
-            file: Joi.any().required(),
+            file: Joi.any(),
             fee: Joi.number().positive().required(),
           }),
         },
