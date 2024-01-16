@@ -1,8 +1,7 @@
 const get = require('lodash/get');
-const omit = require('lodash/omit');
 const GCloudStorageHelper = require('./gCloudStorage');
 const UtilsHelper = require('./utils');
-const { TRAINING_ORGANISATION_MANAGER, VENDOR_ADMIN } = require('./constants');
+const { TRAINING_ORGANISATION_MANAGER, VENDOR_ADMIN, GENERATION, UPLOAD } = require('./constants');
 const Course = require('../models/Course');
 const TrainerMission = require('../models/TrainerMission');
 const TrainerMissionPdf = require('../data/pdf/trainerMission');
@@ -24,10 +23,11 @@ exports.upload = async (payload, credentials) => {
   const fileUploaded = await GCloudStorageHelper.uploadCourseFile({ fileName, file: payload.file });
 
   await TrainerMission.create({
-    ...omit(payload, 'file'),
+    ...payload,
     courses: courseIds,
     file: fileUploaded,
     createdBy: credentials._id,
+    creationMethod: UPLOAD,
   });
 };
 
@@ -50,8 +50,9 @@ exports.list = async (query, credentials) => {
 };
 
 exports.generate = async (payload, credentials) => {
+  const courseIds = Array.isArray(payload.courses) ? payload.courses : [payload.courses];
   const courses = await Course
-    .find({ _id: { $in: payload.courses } }, { hasCertifyingTest: 1, misc: 1, type: 1 })
+    .find({ _id: { $in: courseIds } }, { hasCertifyingTest: 1, misc: 1, type: 1 })
     .populate({ path: 'companies', select: 'name' })
     .populate({ path: 'trainer', select: 'identity' })
     .populate({
@@ -89,8 +90,11 @@ exports.generate = async (payload, credentials) => {
 
   await TrainerMission.create({
     ...payload,
+    courses: courseIds,
     file: fileUploaded,
     createdBy: credentials._id,
+    creationMethod: GENERATION,
   });
+
   return { fileName, pdf };
 };

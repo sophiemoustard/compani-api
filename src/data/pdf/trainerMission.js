@@ -29,7 +29,7 @@ const formatCertifications = (courses) => {
 const formatDates = (data) => {
   const dates = data.dates.join(', ');
   const slotsToPlan = data.slotsToPlan
-    ? `\n${UtilsHelper.formatQuantity('créneau', data.slotsToPlan, 'x')} restent à définir`
+    ? `\n${UtilsHelper.formatQuantity('créneau', data.slotsToPlan, 'x')} encore à définir`
     : '';
 
   return dates + slotsToPlan;
@@ -62,7 +62,7 @@ exports.getPdfContent = async (data) => {
       { text: 'Formation certifiante ?' },
       { text: !data.certification.length ? 'Non' : `${formatCertifications(data.certification)}`, style: 'cell' },
     ],
-    [{ text: 'Frais de formateurs prévus' }, { text: data.fee, style: 'cell' }],
+    [{ text: 'Frais de formateurs prévus' }, { text: `${data.fee}€`, style: 'cell' }],
   ];
 
   const table = [{ table: { body, widths: ['*', '*'], dontBreakRows: true }, marginBottom: 8 }];
