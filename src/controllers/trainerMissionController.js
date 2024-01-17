@@ -4,15 +4,10 @@ const translate = require('../helpers/translate');
 
 const { language } = translate;
 
-const create = async (req, h) => {
+const create = async (req) => {
   try {
     if (req.payload.file) await TrainerMissionsHelper.upload(req.payload, req.auth.credentials);
-    else {
-      const { pdf, fileName } = await TrainerMissionsHelper.generate(req.payload, req.auth.credentials);
-      return h.response(pdf)
-        .header('content-disposition', `inline; filename=${fileName}.pdf`)
-        .type('application/pdf');
-    }
+    else await TrainerMissionsHelper.generate(req.payload, req.auth.credentials);
 
     return { message: translate[language].trainerMissionCreated };
   } catch (e) {

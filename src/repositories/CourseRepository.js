@@ -4,7 +4,12 @@ const CourseSlot = require('../models/CourseSlot');
 const { WEBAPP, MOBILE, TRAINING_ORGANISATION_MANAGER, VENDOR_ADMIN } = require('../helpers/constants');
 
 exports.findCourseAndPopulate = (query, origin, populateVirtual = false) => Course
-  .find(query, origin === WEBAPP ? 'misc type archivedAt estimatedStartDate createdAt maxTrainees trainees' : 'misc')
+  .find(
+    query,
+    origin === WEBAPP
+      ? 'misc type archivedAt estimatedStartDate createdAt maxTrainees trainees hasCertifyingTest'
+      : 'misc'
+  )
   .populate([
     { path: 'companies', select: 'name' },
     { path: 'holding', select: 'name' },
@@ -24,7 +29,7 @@ exports.findCourseAndPopulate = (query, origin, populateVirtual = false) => Cour
     { path: 'slotsToPlan', select: '_id' },
     ...(origin === WEBAPP
       ? [
-        { path: 'trainer', select: 'identity.firstname identity.lastname' },
+        { path: 'trainer', select: 'identity' },
         ...(query.accessRules ? [{
           path: 'trainees',
           select: '_id company',

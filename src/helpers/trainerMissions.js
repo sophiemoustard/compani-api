@@ -85,6 +85,13 @@ exports.generate = async (payload, credentials) => {
 
   const pdf = await TrainerMissionPdf.getPdf(infos);
   const fileName = `ordre mission ${infos.program} ${UtilsHelper.formatIdentity(infos.identity, 'FL')}`;
+  pdf.hapi = {
+    fileName,
+    headers: {
+      'content-disposition': `form-data; name="file"; filename="${fileName}"`,
+      'content-type': 'application/pdf',
+    },
+  };
 
   const fileUploaded = await GCloudStorageHelper.uploadCourseFile({ fileName, file: pdf });
 
@@ -95,6 +102,4 @@ exports.generate = async (payload, credentials) => {
     createdBy: credentials._id,
     creationMethod: GENERATION,
   });
-
-  return { fileName, pdf };
 };
