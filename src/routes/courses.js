@@ -213,6 +213,7 @@ exports.plugin = {
             maxTrainees: Joi.number().positive().integer(),
             expectedBillsCount: Joi.number().min(0).integer(),
             hasCertifyingTest: Joi.boolean(),
+            certifiedTrainees: Joi.array().items(Joi.objectId()),
           }),
         },
         pre: [{ method: authorizeCourseEdit }],
@@ -270,7 +271,11 @@ exports.plugin = {
       options: {
         validate: {
           params: Joi.object({ _id: Joi.objectId().required() }),
-          payload: Joi.object({ trainee: Joi.objectId().required(), company: Joi.objectId() }),
+          payload: Joi.object({
+            trainee: Joi.objectId().required(),
+            company: Joi.objectId(),
+            isCertified: Joi.boolean(),
+          }),
         },
         pre: [{ method: authorizeCourseEdit }, { method: authorizeTraineeAddition }],
         auth: { scope: ['courses:edit'] },

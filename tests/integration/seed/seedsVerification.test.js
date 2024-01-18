@@ -703,6 +703,14 @@ describe('SEEDS VERIFICATION', () => {
           expect(isEveryTraineeCompanyAttachedToCourse).toBeTruthy();
         });
 
+        it('should pass if all certified trainees are in course trainees', () => {
+          const isEveryCertifiedTraineeAttachedToCourse = courseList
+            .filter(course => course.format === BLENDED)
+            .every(course => !course.certifiedTrainees || course.certifiedTrainees
+              .every(trainee => UtilsHelper.doesArrayIncludeId(course.trainees.map(t => t._id), trainee)));
+          expect(isEveryCertifiedTraineeAttachedToCourse).toBeTruthy();
+        });
+
         it('should pass if companyRepresentative is defined in intra or intra_holding course only', () => {
           const isCompanyRepresentativeOnlyInIntraCourses = courseList
             .every(c => !c.companyRepresentative || [INTRA, INTRA_HOLDING].includes(c.type));
@@ -835,6 +843,13 @@ describe('SEEDS VERIFICATION', () => {
           expect(noELearningCourseHasMisc).toBeTruthy();
         });
 
+        it('should pass if no e-learning course has certification', () => {
+          const noELearningCourseHasCertification = courseList
+            .filter(course => course.format === STRICTLY_E_LEARNING)
+            .every(course => !(has(course, 'hasCertifyingTest') || has(course, 'certifiedTrainees')));
+          expect(noELearningCourseHasCertification).toBeTruthy();
+        });
+
         it('should pass if every blended course is intra or inter_b2b or intra_holding', () => {
           const everyBlendedCourseHasGoodType = courseList
             .filter(course => course.format === BLENDED)
@@ -857,6 +872,14 @@ describe('SEEDS VERIFICATION', () => {
             .every(course => course.type === INTER_B2C);
 
           expect(everyELearningCourseHasGoodType).toBeTruthy();
+        });
+
+        it('should pass if only certifying course has certified trainees list', () => {
+          const doOnlyCertifiyingCoursesHaveCertifiedTrainees = courseList
+            .filter(course => course.format === BLENDED)
+            .every(course => !has(course, 'certifiedTrainees') || course.hasCertifyingTest);
+
+          expect(doOnlyCertifiyingCoursesHaveCertifiedTrainees).toBeTruthy();
         });
 
         it('should pass if trainer is never in trainees list', () => {

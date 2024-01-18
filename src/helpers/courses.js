@@ -616,6 +616,10 @@ exports.updateCourse = async (courseId, payload, credentials) => {
     setFields = omit(setFields, 'contact');
     unsetFields = { contact: '' };
   }
+  if (has(payload, 'certifiedTrainees') && !payload.certifiedTrainees.length) {
+    setFields = omit(setFields, 'certifiedTrainees');
+    unsetFields = { certifiedTrainees: '' };
+  }
   if (payload.archivedAt === '') {
     setFields = omit(setFields, 'archivedAt');
     unsetFields = { ...unsetFields, archivedAt: '' };
@@ -705,7 +709,7 @@ exports.getSMSHistory = async courseId => CourseSmsHistory.find({ course: course
 exports.addTrainee = async (courseId, payload, credentials) => {
   const course = await Course.findOneAndUpdate(
     { _id: courseId },
-    { $addToSet: { trainees: payload.trainee } },
+    { $addToSet: { trainees: payload.trainee, ...(payload.isCertified && { certifiedTrainees: payload.trainee }) } },
     { projection: { companies: 1, type: 1 } }
   );
 
@@ -736,7 +740,7 @@ exports.registerToELearningCourse = async (courseId, credentials) =>
 
 exports.removeCourseTrainee = async (courseId, traineeId, user) => Promise.all([
   CourseHistoriesHelper.createHistoryOnTraineeDeletion({ course: courseId, traineeId }, user._id),
-  Course.updateOne({ _id: courseId }, { $pull: { trainees: traineeId } }),
+  Course.updateOne({ _id: courseId }, { $pull: { trainees: traineeId, certifiedTrainees: traineeId } }),
 ]);
 
 exports.formatIntraCourseSlotsForPdf = slot => ({

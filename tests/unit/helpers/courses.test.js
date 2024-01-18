@@ -3454,6 +3454,28 @@ describe('updateCourse', () => {
     );
   });
 
+  it('should remove certified trainees', async () => {
+    const courseId = new ObjectId();
+    const payload = { certifiedTrainees: [] };
+    const courseFromDb = { _id: courseId, hasCertifyingTest: true, certifiedTrainees: [new ObjectId()] };
+
+    courseFindOneAndUpdate.returns(SinonMongoose.stubChainedQueries(courseFromDb, ['lean']));
+
+    await CourseHelper.updateCourse(courseId, payload, credentials);
+
+    sinon.assert.notCalled(createHistoryOnEstimatedStartDateEdition);
+    SinonMongoose.calledOnceWithExactly(
+      courseFindOneAndUpdate,
+      [
+        {
+          query: 'findOneAndUpdate',
+          args: [{ _id: courseId }, { $unset: { certifiedTrainees: '' } }],
+        },
+        { query: 'lean' },
+      ]
+    );
+  });
+
   it('should unarchive course', async () => {
     const courseId = new ObjectId();
     const payload = { archivedAt: '' };
@@ -3741,7 +3763,7 @@ describe('addTrainee', () => {
       firstMobileConnectionDate: '2022-01-21T12:00:00.000Z',
     };
     const course = { _id: new ObjectId(), misc: 'Test', type: INTER_B2B };
-    const payload = { trainee: user._id, company: new ObjectId() };
+    const payload = { trainee: user._id, company: new ObjectId(), isCertified: true };
     const credentials = { _id: new ObjectId(), company: { _id: new ObjectId() } };
 
     userFindOne.returns(user);
@@ -3753,7 +3775,7 @@ describe('addTrainee', () => {
     sinon.assert.calledOnceWithExactly(
       courseFindOneAndUpdate,
       { _id: course._id },
-      { $addToSet: { trainees: user._id } },
+      { $addToSet: { trainees: user._id, certifiedTrainees: user._id } },
       { projection: { companies: 1, type: 1 } }
     );
     SinonMongoose.calledOnceWithExactly(
@@ -3890,7 +3912,11 @@ describe('removeCourseTrainee', () => {
     const removedBy = { _id: new ObjectId() };
 
     await CourseHelper.removeCourseTrainee(course, traineeId, removedBy);
-    sinon.assert.calledOnceWithExactly(updateOne, { _id: course }, { $pull: { trainees: traineeId } });
+    sinon.assert.calledOnceWithExactly(
+      updateOne,
+      { _id: course },
+      { $pull: { trainees: traineeId, certifiedTrainees: traineeId } }
+    );
     sinon.assert.calledOnceWithExactly(createHistoryOnTraineeDeletion, { course, traineeId }, removedBy._id);
   });
 });

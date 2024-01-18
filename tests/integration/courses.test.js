@@ -1644,6 +1644,7 @@ describe('COURSES ROUTES - PUT /courses/{_id}', () => {
         maxTrainees: 12,
         expectedBillsCount: 3,
         hasCertifyingTest: true,
+        certifiedTrainees: [coach._id],
       };
 
       const response = await app.inject({
@@ -2037,6 +2038,50 @@ describe('COURSES ROUTES - PUT /courses/{_id}', () => {
 
       expect(response.statusCode).toBe(409);
     });
+
+    it('should return 404 if try to add trainees in certification and trainee is not in course', async () => {
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/courses/${coursesList[4]._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload: { certifiedTrainees: [clientAdmin._id] },
+      });
+
+      expect(response.statusCode).toBe(404);
+    });
+
+    it('should return 409 if try to add trainees in certification for a non certifying course', async () => {
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/courses/${coursesList[17]._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload: { certifiedTrainees: [coach._id] },
+      });
+
+      expect(response.statusCode).toBe(409);
+    });
+
+    it('should return 409 if try to add trainees in certification while removing course certification', async () => {
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/courses/${coursesList[4]._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload: { certifiedTrainees: [coach._id], hasCertifyingTest: false },
+      });
+
+      expect(response.statusCode).toBe(409);
+    });
+
+    it('should return 409 if remove course certification and there are trainees in certification list', async () => {
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/courses/${coursesList[4]._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload: { hasCertifyingTest: false },
+      });
+
+      expect(response.statusCode).toBe(409);
+    });
   });
 
   describe('TRAINER', () => {
@@ -2355,6 +2400,18 @@ describe('COURSES ROUTES - PUT /courses/{_id}', () => {
           url: `/courses/${courseIdFromAuthCompany}`,
           headers: { Cookie: `alenvi_token=${authToken}` },
           payload: { hasCertifyingTest: true },
+        });
+
+        expect(response.statusCode).toBe(403);
+      });
+
+      it(`should return 403 if try to update certified trainees list and user is ${role}`, async () => {
+        authToken = await getToken(role);
+        const response = await app.inject({
+          method: 'PUT',
+          url: `/courses/${coursesList[4]._id}`,
+          headers: { Cookie: `alenvi_token=${authToken}` },
+          payload: { certifiedTrainees: [coach._id] },
         });
 
         expect(response.statusCode).toBe(403);
@@ -2927,7 +2984,7 @@ describe('COURSES ROUTES - PUT /courses/{_id}/trainees', () => {
         method: 'PUT',
         url: `/courses/${intraCourseIdFromAuthCompany}/trainees`,
         headers: { Cookie: `alenvi_token=${authToken}` },
-        payload: { trainee: traineeFromAuthCompanyWithFormationExpoToken._id },
+        payload: { trainee: traineeFromAuthCompanyWithFormationExpoToken._id, isCertified: true },
       });
 
       expect(response.statusCode).toBe(200);
@@ -2942,6 +2999,7 @@ describe('COURSES ROUTES - PUT /courses/{_id}/trainees', () => {
       const course = await Course.countDocuments({
         _id: intraCourseIdFromAuthCompany,
         trainees: traineeFromAuthCompanyWithFormationExpoToken._id,
+        certifiedTrainees: [traineeFromAuthCompanyWithFormationExpoToken._id],
       });
       expect(course).toEqual(1);
     });
@@ -3073,6 +3131,17 @@ describe('COURSES ROUTES - PUT /courses/{_id}/trainees', () => {
       });
 
       expect(response.statusCode).toBe(400);
+    });
+
+    it('should return 403 if field isCertified but course has no certification', async () => {
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/courses/${coursesList[2]._id}/trainees`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload: { trainee: traineeFromAuthFormerlyInOther._id, isCertified: true },
+      });
+
+      expect(response.statusCode).toBe(403);
     });
   });
 
@@ -3407,6 +3476,19 @@ describe('COURSES ROUTES - DELETE /courses/{_id}/trainees/{traineeId}', () => {
         action: TRAINEE_DELETION,
       });
       expect(courseHistory).toEqual(1);
+    });
+
+    it('should delete course trainee with certification', async () => {
+      const response = await app.inject({
+        method: 'DELETE',
+        url: `/courses/${coursesList[4]._id.toHexString()}/trainees/${traineeFromOtherCompany._id.toHexString()}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(200);
+      const course = await Course.findById(coursesList[4]._id).lean();
+      expect(UtilsHelper.doesArrayIncludeId(course.trainees, traineeFromOtherCompany._id)).toBeFalsy();
+      expect(UtilsHelper.doesArrayIncludeId(course.certifiedTrainees, traineeFromOtherCompany._id)).toBeFalsy();
     });
 
     it('should delete course trainee (intra_holding)', async () => {
