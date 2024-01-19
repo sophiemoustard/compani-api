@@ -12,7 +12,15 @@ const {
   sendToken,
   updatePassword,
 } = require('../controllers/authenticationController');
-const { WEBAPP, EMAIL, PHONE, MOBILE, ORIGIN_OPTIONS } = require('../helpers/constants');
+const {
+  WEBAPP,
+  EMAIL,
+  PHONE,
+  MOBILE,
+  ORIGIN_OPTIONS,
+  MOBILE_CONNECTION_MODE,
+  UNKNOWN,
+} = require('../helpers/constants');
 const { getUser, authorizeUserUpdate } = require('./preHandlers/users');
 const { checkPasswordToken, authorizeRefreshToken } = require('./preHandlers/authentication');
 
@@ -28,6 +36,10 @@ exports.plugin = {
             email: Joi.string().email().required(),
             password: Joi.string().required(),
             origin: Joi.string().valid(...ORIGIN_OPTIONS),
+            mobileConnectionMode: Joi
+              .string()
+              .valid(...MOBILE_CONNECTION_MODE.filter(val => val !== UNKNOWN))
+              .when('origin', { is: MOBILE, then: Joi.required(), otherwise: Joi.forbidden() }),
           }).required(),
         },
         auth: false,

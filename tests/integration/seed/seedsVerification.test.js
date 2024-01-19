@@ -29,6 +29,7 @@ const QuestionnaireHistory = require('../../../src/models/QuestionnaireHistory')
 const SectorHistory = require('../../../src/models/SectorHistory');
 const Step = require('../../../src/models/Step');
 const SubProgram = require('../../../src/models/SubProgram');
+const TrainerMission = require('../../../src/models/TrainerMission');
 const TrainingContract = require('../../../src/models/TrainingContract');
 const User = require('../../../src/models/User');
 const UserCompany = require('../../../src/models/UserCompany');
@@ -116,6 +117,7 @@ const questionnaireHistoriesSeed = require('./questionnaireHistoriesSeed');
 const rolesSeed = require('./rolesSeed');
 const stepsSeed = require('./stepsSeed');
 const subProgramsSeed = require('./subProgramsSeed');
+const trainerMissionsSeed = require('./trainerMissionsSeed');
 const trainingContractsSeed = require('./trainingContractsSeed');
 const userCompaniesSeed = require('./userCompaniesSeed');
 const usersSeed = require('./usersSeed');
@@ -148,6 +150,7 @@ const seedList = [
   { label: 'ROLE', value: rolesSeed },
   { label: 'STEP', value: stepsSeed },
   { label: 'SUBPROGRAM', value: subProgramsSeed },
+  { label: 'TRAINERMISSION', value: trainerMissionsSeed },
   { label: 'TRAININGCONTRACT', value: trainingContractsSeed },
   { label: 'USERCOMPANY', value: userCompaniesSeed },
   { label: 'USER', value: usersSeed },
@@ -676,7 +679,7 @@ describe('SEEDS VERIFICATION', () => {
               ],
             })
             .populate({
-              path: 'salesRepresentative',
+              path: 'operationsRepresentative',
               select: '_id',
               populate: [{ path: 'role.vendor', select: 'name' }],
             })
@@ -698,6 +701,14 @@ describe('SEEDS VERIFICATION', () => {
                 .some(uc => UtilsHelper.doesArrayIncludeId(course.companies.map(c => get(c, '_id')), uc.company))
               ));
           expect(isEveryTraineeCompanyAttachedToCourse).toBeTruthy();
+        });
+
+        it('should pass if all certified trainees are in course trainees', () => {
+          const isEveryCertifiedTraineeAttachedToCourse = courseList
+            .filter(course => course.format === BLENDED)
+            .every(course => !course.certifiedTrainees || course.certifiedTrainees
+              .every(trainee => UtilsHelper.doesArrayIncludeId(course.trainees.map(t => t._id), trainee)));
+          expect(isEveryCertifiedTraineeAttachedToCourse).toBeTruthy();
         });
 
         it('should pass if companyRepresentative is defined in intra or intra_holding course only', () => {
@@ -832,6 +843,13 @@ describe('SEEDS VERIFICATION', () => {
           expect(noELearningCourseHasMisc).toBeTruthy();
         });
 
+        it('should pass if no e-learning course has certification', () => {
+          const noELearningCourseHasCertification = courseList
+            .filter(course => course.format === STRICTLY_E_LEARNING)
+            .every(course => !(has(course, 'hasCertifyingTest') || has(course, 'certifiedTrainees')));
+          expect(noELearningCourseHasCertification).toBeTruthy();
+        });
+
         it('should pass if every blended course is intra or inter_b2b or intra_holding', () => {
           const everyBlendedCourseHasGoodType = courseList
             .filter(course => course.format === BLENDED)
@@ -854,6 +872,14 @@ describe('SEEDS VERIFICATION', () => {
             .every(course => course.type === INTER_B2C);
 
           expect(everyELearningCourseHasGoodType).toBeTruthy();
+        });
+
+        it('should pass if only certifying course has certified trainees list', () => {
+          const doOnlyCertifiyingCoursesHaveCertifiedTrainees = courseList
+            .filter(course => course.format === BLENDED)
+            .every(course => !has(course, 'certifiedTrainees') || course.hasCertifyingTest);
+
+          expect(doOnlyCertifiyingCoursesHaveCertifiedTrainees).toBeTruthy();
         });
 
         it('should pass if trainer is never in trainees list', () => {
@@ -883,12 +909,12 @@ describe('SEEDS VERIFICATION', () => {
           expect(haveTrainersVendorRole).toBeTruthy();
         });
 
-        it('should pass if contact is trainer, company representative or sales representative', () => {
+        it('should pass if contact is trainer, company representative or operations representative', () => {
           const isContactGoodUser = courseList
             .filter(c => has(c, 'contact'))
             .every((c) => {
               const acceptedUsers = compact([
-                get(c, 'salesRepresentative._id'),
+                get(c, 'operationsRepresentative._id'),
                 get(c, 'trainer._id'),
                 get(c, 'companyRepresentative._id'),
               ]);
@@ -906,16 +932,16 @@ describe('SEEDS VERIFICATION', () => {
         it('should pass if only blended courses have interlocutors', () => {
           const doELearningCoursesHaveInterlocutors = courseList
             .some(c => c.format === STRICTLY_E_LEARNING &&
-              (c.salesRepresentative || c.trainer || c.companyRepresentative));
+              (c.operationsRepresentative || c.trainer || c.companyRepresentative));
           expect(doELearningCoursesHaveInterlocutors).toBeFalsy();
         });
 
-        it('should pass if all sales representative are rof or vendor admin', () => {
-          const doAllSalesRepresentativeHaveGoodRole = courseList
-            .filter(c => c.salesRepresentative)
+        it('should pass if all operations representative are rof or vendor admin', () => {
+          const doAllOperationsRepresentativeHaveGoodRole = courseList
+            .filter(c => c.operationsRepresentative)
             .every(c => [TRAINING_ORGANISATION_MANAGER, VENDOR_ADMIN]
-              .includes(get(c.salesRepresentative, 'role.vendor.name')));
-          expect(doAllSalesRepresentativeHaveGoodRole).toBeTruthy();
+              .includes(get(c.operationsRepresentative, 'role.vendor.name')));
+          expect(doAllOperationsRepresentativeHaveGoodRole).toBeTruthy();
         });
 
         it('should pass if estimated start date is defined for blended courses only', () => {
@@ -963,7 +989,7 @@ describe('SEEDS VERIFICATION', () => {
           const everyUserExists = courseList.every((c) => {
             const userList = [
               ...(has(c, 'companyRepresentative') ? [c.companyRepresentative] : []),
-              ...(has(c, 'salesRepresentative') ? [c.salesRepresentative] : []),
+              ...(has(c, 'operationsRepresentative') ? [c.operationsRepresentative] : []),
               ...(has(c, 'trainer') ? [c.trainer] : []),
             ];
 
@@ -2120,6 +2146,55 @@ describe('SEEDS VERIFICATION', () => {
         });
       });
 
+      describe('Collection TrainerMission', () => {
+        let trainerMissionList;
+        before(async () => {
+          trainerMissionList = await TrainerMission
+            .find()
+            .populate({
+              path: 'trainer',
+              select: 'role',
+              populate: [{ path: 'role.vendor', select: 'name' }],
+              transform,
+            })
+            .populate({
+              path: 'createdBy',
+              select: 'role',
+              populate: [{ path: 'role.vendor', select: 'name' }],
+              transform,
+            })
+            .populate({ path: 'courses', select: 'trainer', transform })
+            .setOptions({ isVendorUser: true })
+            .lean();
+        });
+
+        it('should pass if every trainer exists and has good role', () => {
+          const doesTrainerExistWithGoodRole = trainerMissionList
+            .map(tm => tm.trainer).every(trainer => has(trainer, 'role.vendor'));
+          expect(doesTrainerExistWithGoodRole).toBeTruthy();
+        });
+
+        it('should pass if every trainer is course trainer', () => {
+          const hasEveryCourseGoodTrainer = trainerMissionList
+            .every(tm => tm.courses.every(course => UtilsHelper.areObjectIdsEquals(course.trainer, tm.trainer._id)));
+          expect(hasEveryCourseGoodTrainer).toBeTruthy();
+        });
+
+        it('should pass if every creator exists and has good role', () => {
+          const doesCreatorExistWithGoodRole = trainerMissionList
+            .map(tm => tm.createdBy)
+            .every(creator => [TRAINING_ORGANISATION_MANAGER, VENDOR_ADMIN].includes(creator.role.vendor.name));
+          expect(doesCreatorExistWithGoodRole).toBeTruthy();
+        });
+
+        it('should pass if none course is in several trainer missions', () => {
+          const coursesInMission = trainerMissionList
+            .map(tm => tm.courses.map(course => course._id.toHexString())).flat();
+
+          expect(coursesInMission.length).toBe([...new Set(coursesInMission)].length);
+        });
+      });
+
       describe('Collection TrainingContract', () => {
         let trainingContractList;
         before(async () => {
@@ -2193,11 +2268,19 @@ describe('SEEDS VERIFICATION', () => {
           expect(doUsersHaveRoleInWrongInterface).toBeFalsy();
         });
 
-        it('should pass if every user has either firstMobileConnection or loginCode or none of these 2 fields', () => {
+        it('should pass if every user has either firstMobileConnectionDate or loginCode or none of these', () => {
           const doUserHaveBothFirstMobileConnectionAndLoginCode = userList
-            .some(u => u.firstMobileConnection && u.loginCode);
+            .some(u => u.firstMobileConnectionDate && u.loginCode);
 
           expect(doUserHaveBothFirstMobileConnectionAndLoginCode).toBeFalsy();
+        });
+
+        it('should pass if every user who has firstMobileConnectionDate also has firstMobileConnectionMode', () => {
+          const everyUserWithFirstMobileConnectionDateAlsoHasMode = userList
+            .filter(u => u.firstMobileConnectionDate)
+            .every(u => u.firstMobileConnectionMode);
+
+          expect(everyUserWithFirstMobileConnectionDateAlsoHasMode).toBeTruthy();
         });
       });
 

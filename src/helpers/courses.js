@@ -323,7 +323,8 @@ const getCourseForOperations = async (courseId, credentials, origin) => {
       { path: 'companies', select: 'name' },
       {
         path: 'trainees',
-        select: 'identity.firstname identity.lastname local.email contact picture.link firstMobileConnection loginCode',
+        select: 'identity.firstname identity.lastname local.email contact picture.link '
+          + 'firstMobileConnectionDate loginCode',
         populate: { path: 'company' },
       },
       {
@@ -359,7 +360,7 @@ const getCourseForOperations = async (courseId, credentials, origin) => {
           },
           { path: 'accessRules', select: 'name' },
           {
-            path: 'salesRepresentative',
+            path: 'operationsRepresentative',
             select: 'identity.firstname identity.lastname contact.phone local.email picture.link',
           },
           { path: 'contact', select: 'identity.firstname identity.lastname contact.phone' },
@@ -470,7 +471,7 @@ exports.getCourseFollowUp = async (course, query, credentials) => {
     })
     .populate({
       path: 'trainees',
-      select: 'identity.firstname identity.lastname firstMobileConnection loginCode',
+      select: 'identity.firstname identity.lastname firstMobileConnectionDate loginCode',
       populate: { path: 'company' },
     })
     .lean();
@@ -615,6 +616,10 @@ exports.updateCourse = async (courseId, payload, credentials) => {
     setFields = omit(setFields, 'contact');
     unsetFields = { contact: '' };
   }
+  if (has(payload, 'certifiedTrainees') && !payload.certifiedTrainees.length) {
+    setFields = omit(setFields, 'certifiedTrainees');
+    unsetFields = { certifiedTrainees: '' };
+  }
   if (payload.archivedAt === '') {
     setFields = omit(setFields, 'archivedAt');
     unsetFields = { ...unsetFields, archivedAt: '' };
@@ -704,15 +709,15 @@ exports.getSMSHistory = async courseId => CourseSmsHistory.find({ course: course
 exports.addTrainee = async (courseId, payload, credentials) => {
   const course = await Course.findOneAndUpdate(
     { _id: courseId },
-    { $addToSet: { trainees: payload.trainee } },
+    { $addToSet: { trainees: payload.trainee, ...(payload.isCertified && { certifiedTrainees: payload.trainee }) } },
     { projection: { companies: 1, type: 1 } }
   );
 
   const trainee = await User
-    .findOne({ _id: payload.trainee }, { formationExpoTokenList: 1, firstMobileConnection: 1, loginCode: 1 })
+    .findOne({ _id: payload.trainee }, { formationExpoTokenList: 1, firstMobileConnectionDate: 1, loginCode: 1 })
     .lean();
 
-  if (!trainee.firstMobileConnection && !trainee.loginCode) {
+  if (!trainee.firstMobileConnectionDate && !trainee.loginCode) {
     const loginCode = String(Math.floor(Math.random() * 9000 + 1000));
     await User.updateOne({ _id: payload.trainee }, { loginCode });
   }
@@ -735,7 +740,7 @@ exports.registerToELearningCourse = async (courseId, credentials) =>
 
 exports.removeCourseTrainee = async (courseId, traineeId, user) => Promise.all([
   CourseHistoriesHelper.createHistoryOnTraineeDeletion({ course: courseId, traineeId }, user._id),
-  Course.updateOne({ _id: courseId }, { $pull: { trainees: traineeId } }),
+  Course.updateOne({ _id: courseId }, { $pull: { trainees: traineeId, certifiedTrainees: traineeId } }),
 ]);
 
 exports.formatIntraCourseSlotsForPdf = slot => ({

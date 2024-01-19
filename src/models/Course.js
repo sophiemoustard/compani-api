@@ -26,7 +26,7 @@ const CourseSchema = mongoose.Schema({
   trainees: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
   contact: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
   accessRules: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Company' }],
-  salesRepresentative: {
+  operationsRepresentative: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
     required() { return this.format === BLENDED; },
@@ -36,6 +36,12 @@ const CourseSchema = mongoose.Schema({
   archivedAt: { type: Date },
   maxTrainees: { type: Number, required() { return [INTRA, INTRA_HOLDING].includes(this.type); } },
   expectedBillsCount: { type: Number, default() { return this.type === INTRA ? 0 : undefined; } },
+  hasCertifyingTest: { type: Boolean, default() { return this.format === BLENDED ? false : undefined; } },
+  certifiedTrainees: {
+    type: [mongoose.Schema.Types.ObjectId],
+    ref: 'User',
+    default: undefined,
+  },
 }, { timestamps: true });
 
 CourseSchema.virtual('slots', {

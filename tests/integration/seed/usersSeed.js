@@ -458,7 +458,7 @@ const coursesList = [
     format: BLENDED,
     trainees: [helperFromOtherCompany._id, usersSeedList[0]._id],
     companies: [otherCompany._id, authCompany._id],
-    salesRepresentative: vendorAdmin._id,
+    operationsRepresentative: vendorAdmin._id,
   },
   {
     _id: new ObjectId(),
@@ -468,7 +468,7 @@ const coursesList = [
     maxTrainees: 8,
     trainees: [usersSeedList[0]._id],
     companies: [authCompany._id],
-    salesRepresentative: vendorAdmin._id,
+    operationsRepresentative: vendorAdmin._id,
   },
   {
     _id: new ObjectId(),

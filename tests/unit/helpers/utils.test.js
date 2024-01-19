@@ -299,8 +299,8 @@ describe('getDaysRatioBetweenTwoDates', () => {
   });
 
   it('Case 3. Holidays in range and company should pay holidays', () => {
-    const start = new Date('2022/04/17');
-    const end = new Date('2022/04/19');
+    const start = new Date('2023/04/09');
+    const end = new Date('2023/04/11');
     const result = UtilsHelper.getDaysRatioBetweenTwoDates(start, end, true);
 
     expect(result).toBeDefined();

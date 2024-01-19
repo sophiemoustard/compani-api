@@ -25,6 +25,8 @@ const {
   CHECK,
   REFUND,
   ESTIMATED_START_DATE_EDITION,
+  WEBAPP,
+  MOBILE,
 } = require('../../../src/helpers/constants');
 const CourseSlot = require('../../../src/models/CourseSlot');
 const Course = require('../../../src/models/Course');
@@ -39,8 +41,8 @@ const CourseHistory = require('../../../src/models/CourseHistory');
 
 describe('exportCourseHistory', () => {
   const traineeList = [
-    { _id: new ObjectId(), firstMobileConnection: new Date() },
-    { _id: new ObjectId(), firstMobileConnection: new Date() },
+    { _id: new ObjectId(), firstMobileConnectionDate: new Date() },
+    { _id: new ObjectId(), firstMobileConnectionDate: new Date() },
     { _id: new ObjectId() },
     { _id: new ObjectId() },
     { _id: new ObjectId() },
@@ -99,7 +101,7 @@ describe('exportCourseHistory', () => {
     },
   ];
   const trainer = { _id: new ObjectId(), identity: { firstname: 'Gilles', lastname: 'Formateur' } };
-  const salesRepresentative = { _id: new ObjectId(), identity: { firstname: 'Aline', lastname: 'Contact-Com' } };
+  const operationsRepresentative = { _id: new ObjectId(), identity: { firstname: 'Aline', lastname: 'Contact-Com' } };
 
   const courseIdList = [new ObjectId(), new ObjectId(), new ObjectId(), new ObjectId(), new ObjectId()];
 
@@ -155,8 +157,8 @@ describe('exportCourseHistory', () => {
       subProgram: subProgramList[0],
       misc: 'group 1',
       trainer,
-      salesRepresentative,
-      contact: salesRepresentative,
+      operationsRepresentative,
+      contact: operationsRepresentative,
       trainees: [traineeList[0], traineeList[1], traineeList[2]],
       slotsToPlan: [],
       slots: [courseSlotList[0], courseSlotList[1]],
@@ -192,8 +194,8 @@ describe('exportCourseHistory', () => {
       misc: 'group 2',
       estimatedStartDate: '2019-01-01T08:00:00',
       trainer,
-      salesRepresentative,
-      contact: salesRepresentative,
+      operationsRepresentative,
+      contact: operationsRepresentative,
       trainees: [traineeList[3], traineeList[4]],
       slotsToPlan: [courseSlotList[4]],
       slots: [courseSlotList[2], courseSlotList[3]],
@@ -238,8 +240,8 @@ describe('exportCourseHistory', () => {
       misc: 'group 3',
       estimatedStartDate: '2022-01-01T08:00:00',
       trainer,
-      salesRepresentative,
-      contact: salesRepresentative,
+      operationsRepresentative,
+      contact: operationsRepresentative,
       trainees: [],
       slotsToPlan: [],
       slots: [],
@@ -252,8 +254,8 @@ describe('exportCourseHistory', () => {
       subProgram: subProgramList[0],
       misc: 'group 1',
       trainer,
-      salesRepresentative,
-      contact: salesRepresentative,
+      operationsRepresentative,
+      contact: operationsRepresentative,
       trainees: [traineeList[0], traineeList[1], traineeList[2]],
       slotsToPlan: [],
       slots: [],
@@ -316,8 +318,8 @@ describe('exportCourseHistory', () => {
       subProgram: subProgramList[0],
       misc: 'group 1',
       trainer,
-      salesRepresentative,
-      contact: salesRepresentative,
+      operationsRepresentative,
+      contact: operationsRepresentative,
       trainees: [traineeList[0], traineeList[1]],
       slotsToPlan: [],
       slots: [courseSlotList[5]],
@@ -450,7 +452,7 @@ describe('exportCourseHistory', () => {
             }],
         },
         { query: 'populate', args: [{ path: 'trainer', select: 'identity' }] },
-        { query: 'populate', args: [{ path: 'salesRepresentative', select: 'identity' }] },
+        { query: 'populate', args: [{ path: 'operationsRepresentative', select: 'identity' }] },
         { query: 'populate', args: [{ path: 'contact', select: 'identity' }] },
         {
           query: 'populate',
@@ -467,7 +469,7 @@ describe('exportCourseHistory', () => {
           }],
         },
         { query: 'populate', args: [{ path: 'slotsToPlan', select: '_id' }] },
-        { query: 'populate', args: [{ path: 'trainees', select: 'firstMobileConnection' }] },
+        { query: 'populate', args: [{ path: 'trainees', select: 'firstMobileConnectionDate' }] },
         {
           query: 'populate',
           args: [{
@@ -524,8 +526,8 @@ describe('exportCourseHistory', () => {
       ['select', 'setOptions', 'lean']
     ));
     getTraineesWithElearningProgress.onCall(0).returns([
-      { _id: traineeList[0]._id, firstMobileConnection: traineeList[0].firstMobileConnection, steps: [], progress: {} },
-      { _id: traineeList[1]._id, firstMobileConnection: traineeList[1].firstMobileConnection, steps: [], progress: {} },
+      { _id: traineeList[0]._id, firstMobileConnectionDate: traineeList[0].firstMobileConnectionDate, steps: [], progress: {} },
+      { _id: traineeList[1]._id, firstMobileConnectionDate: traineeList[1].firstMobileConnectionDate, steps: [], progress: {} },
       { _id: traineeList[2]._id, steps: [], progress: {} },
     ]);
     getTraineesWithElearningProgress.onCall(1).returns([
@@ -538,13 +540,13 @@ describe('exportCourseHistory', () => {
     ]);
     getTraineesWithElearningProgress.onCall(2).returns([]);
     getTraineesWithElearningProgress.onCall(3).returns([
-      { _id: traineeList[0]._id, firstMobileConnection: traineeList[0].firstMobileConnection, steps: [], progress: {} },
-      { _id: traineeList[1]._id, firstMobileConnection: traineeList[1].firstMobileConnection, steps: [], progress: {} },
+      { _id: traineeList[0]._id, firstMobileConnectionDate: traineeList[0].firstMobileConnectionDate, steps: [], progress: {} },
+      { _id: traineeList[1]._id, firstMobileConnectionDate: traineeList[1].firstMobileConnectionDate, steps: [], progress: {} },
       { _id: traineeList[2]._id, steps: [], progress: {} },
     ]);
     getTraineesWithElearningProgress.onCall(4).returns([
-      { _id: traineeList[0]._id, firstMobileConnection: traineeList[0].firstMobileConnection, steps: [], progress: {} },
-      { _id: traineeList[1]._id, firstMobileConnection: traineeList[1].firstMobileConnection, steps: [], progress: {} },
+      { _id: traineeList[0]._id, firstMobileConnectionDate: traineeList[0].firstMobileConnectionDate, steps: [], progress: {} },
+      { _id: traineeList[1]._id, firstMobileConnectionDate: traineeList[1].firstMobileConnectionDate, steps: [], progress: {} },
     ]);
 
     const result = await ExportHelper
@@ -560,7 +562,7 @@ describe('exportCourseHistory', () => {
         'Sous-Programme',
         'Infos complémentaires',
         'Formateur',
-        'Référent Compani',
+        'Chargé des opérations',
         'Contact pour la formation',
         'Nombre d\'inscrits',
         'Nombre de dates',
@@ -819,7 +821,7 @@ describe('exportCourseHistory', () => {
             }],
         },
         { query: 'populate', args: [{ path: 'trainer', select: 'identity' }] },
-        { query: 'populate', args: [{ path: 'salesRepresentative', select: 'identity' }] },
+        { query: 'populate', args: [{ path: 'operationsRepresentative', select: 'identity' }] },
         { query: 'populate', args: [{ path: 'contact', select: 'identity' }] },
         {
           query: 'populate',
@@ -836,7 +838,7 @@ describe('exportCourseHistory', () => {
           }],
         },
         { query: 'populate', args: [{ path: 'slotsToPlan', select: '_id' }] },
-        { query: 'populate', args: [{ path: 'trainees', select: 'firstMobileConnection' }] },
+        { query: 'populate', args: [{ path: 'trainees', select: 'firstMobileConnectionDate' }] },
         {
           query: 'populate',
           args: [{
@@ -1216,6 +1218,7 @@ describe('exportEndOfCourseQuestionnaireHistory', () => {
             answerList: [cards[3].qcAnswers[0]._id.toHexString(), cards[3].qcAnswers[1]._id.toHexString()],
           },
         ],
+        origin: WEBAPP,
         createdAt: '2021-06-27T12:40:29.561Z',
         updatedAt: '2022-03-03T12:40:29.561Z',
       },
@@ -1245,6 +1248,7 @@ describe('exportEndOfCourseQuestionnaireHistory', () => {
           },
           { card: { _id: cards[2]._id }, answerList: ['1'] },
         ],
+        origin: MOBILE,
         createdAt: '2021-06-30T12:40:29.561Z',
         updatedAt: '2022-03-03T12:40:29.561Z',
       },
@@ -1270,6 +1274,7 @@ describe('exportEndOfCourseQuestionnaireHistory', () => {
           },
           { card: { _id: cards[2]._id }, answerList: ['1'] },
         ],
+        origin: MOBILE,
         createdAt: '2021-06-30T12:40:29.561Z',
         updatedAt: '2022-03-03T12:40:29.561Z',
       },
@@ -1313,6 +1318,7 @@ describe('exportEndOfCourseQuestionnaireHistory', () => {
         'Prénom Nom intervenant(e)',
         'Structure',
         'Date de réponse',
+        'Origine de réponse',
         'Prénom Nom répondant(e)',
         'Mail répondant(e)',
         'Numéro de tél répondant(e)',
@@ -1327,6 +1333,7 @@ describe('exportEndOfCourseQuestionnaireHistory', () => {
         'Didier DESCHAMPS',
         'créole',
         '27/06/2021 14:40:29',
+        WEBAPP,
         'ZIZOU',
         'zizou@2027.com',
         '0600000000',
@@ -1341,6 +1348,7 @@ describe('exportEndOfCourseQuestionnaireHistory', () => {
         'Shia LABEOUF',
         'Reggae Music',
         '30/06/2021 14:40:29',
+        MOBILE,
         'Bob MARLEY',
         'bob@marley.com',
         '',
@@ -1355,6 +1363,7 @@ describe('exportEndOfCourseQuestionnaireHistory', () => {
         '',
         'Reggae Music',
         '30/06/2021 14:40:29',
+        MOBILE,
         'Bob MARLEY',
         'bob@marley.com',
         '',

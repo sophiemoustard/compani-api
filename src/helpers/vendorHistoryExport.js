@@ -190,7 +190,7 @@ exports.exportCourseHistory = async (startDate, endDate, credentials) => {
       'Sous-Programme': get(course, 'subProgram.name') || '',
       'Infos complémentaires': course.misc,
       Formateur: UtilsHelper.formatIdentity(get(course, 'trainer.identity') || '', 'FL'),
-      'Référent Compani': UtilsHelper.formatIdentity(get(course, 'salesRepresentative.identity') || '', 'FL'),
+      'Chargé des opérations': UtilsHelper.formatIdentity(get(course, 'operationsRepresentative.identity') || '', 'FL'),
       'Contact pour la formation': UtilsHelper.formatIdentity(get(course, 'contact.identity') || '', 'FL'),
       'Nombre d\'inscrits': get(course, 'trainees.length'),
       'Nombre de dates': slotsGroupedByDate.length,
@@ -199,7 +199,7 @@ exports.exportCourseHistory = async (startDate, endDate, credentials) => {
       'Durée Totale': UtilsHelper.getTotalDurationForExport(course.slots),
       'Nombre de SMS envoyés': smsCount,
       'Nombre de personnes connectées à l\'app': course.trainees
-        .filter(trainee => trainee.firstMobileConnection).length,
+        .filter(trainee => trainee.firstMobileConnectionDate).length,
       'Complétion eLearning moyenne': traineeProgressList.length
         ? UtilsHelper.formatFloatForExport(combinedElearningProgress / course.trainees.length)
         : '',
@@ -350,6 +350,7 @@ exports.exportEndOfCourseQuestionnaireHistory = async (startDate, endDate, crede
       'Prénom Nom intervenant(e)': UtilsHelper.formatIdentity(get(qHistory, 'course.trainer.identity') || '', 'FL'),
       Structure: get(qHistory, 'company.name'),
       'Date de réponse': CompaniDate(qHistory.createdAt).format(`${DD_MM_YYYY} ${HH_MM_SS}`),
+      'Origine de réponse': qHistory.origin,
       'Prénom Nom répondant(e)': UtilsHelper.formatIdentity(get(qHistory, 'user.identity') || '', 'FL'),
       'Mail répondant(e)': get(qHistory, 'user.local.email'),
       'Numéro de tél répondant(e)': get(qHistory, 'user.contact.phone') || '',

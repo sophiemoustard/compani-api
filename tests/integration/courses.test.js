@@ -95,8 +95,9 @@ describe('COURSES ROUTES - POST /courses', () => {
         misc: 'course',
         type: INTER_B2B,
         subProgram: subProgramsList[0]._id,
-        salesRepresentative: vendorAdmin._id,
+        operationsRepresentative: vendorAdmin._id,
         estimatedStartDate: '2022-05-31T08:00:00.000Z',
+        hasCertifyingTest: true,
       };
       const coursesCountBefore = await Course.countDocuments();
 
@@ -132,8 +133,9 @@ describe('COURSES ROUTES - POST /courses', () => {
         maxTrainees: 12,
         company: authCompany._id,
         subProgram: subProgramsList[0]._id,
-        salesRepresentative: vendorAdmin._id,
+        operationsRepresentative: vendorAdmin._id,
         expectedBillsCount: 2,
+        hasCertifyingTest: false,
       };
       const coursesCountBefore = await Course.countDocuments();
 
@@ -159,7 +161,8 @@ describe('COURSES ROUTES - POST /courses', () => {
         maxTrainees: 12,
         holding: authHolding._id,
         subProgram: subProgramsList[0]._id,
-        salesRepresentative: vendorAdmin._id,
+        operationsRepresentative: vendorAdmin._id,
+        hasCertifyingTest: false,
       };
       const coursesCountBefore = await Course.countDocuments();
 
@@ -178,12 +181,13 @@ describe('COURSES ROUTES - POST /courses', () => {
       expect(courseSlotsCount).toEqual(1);
     });
 
-    it('should return 403 if invalid salesRepresentative', async () => {
+    it('should return 403 if invalid operationsRepresentative', async () => {
       const payload = {
         misc: 'course',
         type: INTER_B2B,
         subProgram: subProgramsList[0]._id,
-        salesRepresentative: clientAdmin._id,
+        operationsRepresentative: clientAdmin._id,
+        hasCertifyingTest: false,
       };
       const response = await app.inject({
         method: 'POST',
@@ -202,8 +206,9 @@ describe('COURSES ROUTES - POST /courses', () => {
         company: new ObjectId(),
         maxTrainees: 12,
         subProgram: subProgramsList[0]._id,
-        salesRepresentative: vendorAdmin._id,
+        operationsRepresentative: vendorAdmin._id,
         expectedBillsCount: 0,
+        hasCertifyingTest: false,
       };
       const response = await app.inject({
         method: 'POST',
@@ -222,8 +227,9 @@ describe('COURSES ROUTES - POST /courses', () => {
         company: authCompany._id,
         maxTrainees: 12,
         subProgram: new ObjectId(),
-        salesRepresentative: vendorAdmin._id,
+        operationsRepresentative: vendorAdmin._id,
         expectedBillsCount: 0,
+        hasCertifyingTest: false,
       };
       const response = await app.inject({
         method: 'POST',
@@ -240,10 +246,11 @@ describe('COURSES ROUTES - POST /courses', () => {
         misc: 'course',
         type: INTRA_HOLDING,
         subProgram: subProgramsList[0]._id,
-        salesRepresentative: vendorAdmin._id,
+        operationsRepresentative: vendorAdmin._id,
         estimatedStartDate: '2022-05-31T08:00:00.000Z',
         holding: new ObjectId(),
         maxTrainees: 2,
+        hasCertifyingTest: false,
       };
 
       const response = await app.inject({
@@ -263,8 +270,9 @@ describe('COURSES ROUTES - POST /courses', () => {
         company: authCompany._id,
         maxTrainees: 12,
         subProgram: subProgramsList[2]._id,
-        salesRepresentative: vendorAdmin._id,
+        operationsRepresentative: vendorAdmin._id,
         expectedBillsCount: 0,
+        hasCertifyingTest: false,
       };
       const response = await app.inject({
         method: 'POST',
@@ -283,8 +291,9 @@ describe('COURSES ROUTES - POST /courses', () => {
         company: authCompany._id,
         maxTrainees: 12,
         subProgram: subProgramsList[3]._id,
-        salesRepresentative: vendorAdmin._id,
+        operationsRepresentative: vendorAdmin._id,
         expectedBillsCount: 0,
+        hasCertifyingTest: false,
       };
       const response = await app.inject({
         method: 'POST',
@@ -301,7 +310,8 @@ describe('COURSES ROUTES - POST /courses', () => {
         misc: 'course',
         type: 'invalid type',
         subProgram: subProgramsList[0]._id,
-        salesRepresentative: vendorAdmin._id,
+        operationsRepresentative: vendorAdmin._id,
+        hasCertifyingTest: false,
       };
 
       const response = await app.inject({
@@ -320,8 +330,9 @@ describe('COURSES ROUTES - POST /courses', () => {
         type: INTER_B2B,
         maxTrainees: 10,
         subProgram: subProgramsList[0]._id,
-        salesRepresentative: vendorAdmin._id,
+        operationsRepresentative: vendorAdmin._id,
         estimatedStartDate: '2022-05-31T08:00:00.000Z',
+        hasCertifyingTest: false,
       };
 
       const response = await app.inject({
@@ -340,8 +351,9 @@ describe('COURSES ROUTES - POST /courses', () => {
         type: INTER_B2B,
         expectedBillsCount: 2,
         subProgram: subProgramsList[0]._id,
-        salesRepresentative: vendorAdmin._id,
+        operationsRepresentative: vendorAdmin._id,
         estimatedStartDate: '2022-05-31T08:00:00.000Z',
+        hasCertifyingTest: false,
       };
 
       const response = await app.inject({
@@ -360,10 +372,11 @@ describe('COURSES ROUTES - POST /courses', () => {
         type: INTRA_HOLDING,
         expectedBillsCount: 2,
         subProgram: subProgramsList[0]._id,
-        salesRepresentative: vendorAdmin._id,
+        operationsRepresentative: vendorAdmin._id,
         estimatedStartDate: '2022-05-31T08:00:00.000Z',
         holding: authHolding._id,
         maxTrainees: 2,
+        hasCertifyingTest: false,
       };
 
       const response = await app.inject({
@@ -382,8 +395,9 @@ describe('COURSES ROUTES - POST /courses', () => {
         type: INTER_B2B,
         companies: [authCompany._id],
         subProgram: subProgramsList[0]._id,
-        salesRepresentative: vendorAdmin._id,
+        operationsRepresentative: vendorAdmin._id,
         estimatedStartDate: '2022-05-31T08:00:00.000Z',
+        hasCertifyingTest: false,
       };
 
       const response = await app.inject({
@@ -402,10 +416,11 @@ describe('COURSES ROUTES - POST /courses', () => {
         type: INTRA_HOLDING,
         companies: [authCompany._id],
         subProgram: subProgramsList[0]._id,
-        salesRepresentative: vendorAdmin._id,
+        operationsRepresentative: vendorAdmin._id,
         estimatedStartDate: '2022-05-31T08:00:00.000Z',
         holding: authHolding._id,
         maxTrainees: 2,
+        hasCertifyingTest: false,
       };
 
       const response = await app.inject({
@@ -424,11 +439,12 @@ describe('COURSES ROUTES - POST /courses', () => {
         type: INTRA,
         companies: [authCompany._id],
         subProgram: subProgramsList[0]._id,
-        salesRepresentative: vendorAdmin._id,
+        operationsRepresentative: vendorAdmin._id,
         estimatedStartDate: '2022-05-31T08:00:00.000Z',
         holding: authHolding._id,
         maxTrainees: 2,
         expectedBillsCount: 2,
+        hasCertifyingTest: false,
       };
 
       const response = await app.inject({
@@ -446,9 +462,10 @@ describe('COURSES ROUTES - POST /courses', () => {
         misc: 'course',
         type: INTER_B2B,
         subProgram: subProgramsList[0]._id,
-        salesRepresentative: vendorAdmin._id,
+        operationsRepresentative: vendorAdmin._id,
         estimatedStartDate: '2022-05-31T08:00:00.000Z',
         holding: authHolding._id,
+        hasCertifyingTest: false,
       };
 
       const response = await app.inject({
@@ -467,8 +484,9 @@ describe('COURSES ROUTES - POST /courses', () => {
         type: INTRA,
         expectedBillsCount: -3,
         subProgram: subProgramsList[0]._id,
-        salesRepresentative: vendorAdmin._id,
+        operationsRepresentative: vendorAdmin._id,
         estimatedStartDate: '2022-05-31T08:00:00.000Z',
+        hasCertifyingTest: false,
       };
 
       const response = await app.inject({
@@ -487,8 +505,9 @@ describe('COURSES ROUTES - POST /courses', () => {
         type: INTRA,
         expectedBillsCount: 3.2,
         subProgram: subProgramsList[0]._id,
-        salesRepresentative: vendorAdmin._id,
+        operationsRepresentative: vendorAdmin._id,
         estimatedStartDate: '2022-05-31T08:00:00.000Z',
+        hasCertifyingTest: false,
       };
 
       const response = await app.inject({
@@ -507,8 +526,9 @@ describe('COURSES ROUTES - POST /courses', () => {
       subProgram: subProgramsList[0]._id,
       type: INTRA,
       maxTrainees: 8,
-      salesRepresentative: vendorAdmin._id,
+      operationsRepresentative: vendorAdmin._id,
       expectedBillsCount: 0,
+      hasCertifyingTest: false,
     };
     ['company', 'subProgram', 'maxTrainees', 'expectedBillsCount'].forEach((param) => {
       it(`should return a 400 error if course is intra and '${param}' parameter is missing`, async () => {
@@ -528,8 +548,9 @@ describe('COURSES ROUTES - POST /courses', () => {
       subProgram: subProgramsList[0]._id,
       type: INTRA_HOLDING,
       maxTrainees: 8,
-      salesRepresentative: vendorAdmin._id,
+      operationsRepresentative: vendorAdmin._id,
       holding: authHolding._id,
+      hasCertifyingTest: false,
     };
 
     ['holding', 'subProgram', 'maxTrainees'].forEach((param) => {
@@ -561,8 +582,9 @@ describe('COURSES ROUTES - POST /courses', () => {
           maxTrainees: 8,
           company: authCompany._id,
           subProgram: subProgramsList[0]._id,
-          salesRepresentative: vendorAdmin._id,
+          operationsRepresentative: vendorAdmin._id,
           expectedBillsCount: 2,
+          hasCertifyingTest: false,
         };
         authToken = await getToken(role.name);
         const response = await app.inject({
@@ -820,7 +842,7 @@ describe('COURSES ROUTES - GET /courses', () => {
       }));
       expect(course.trainer).toBeUndefined();
       expect(course.trainees).toBeUndefined();
-      expect(course.salesRepresentative).toBeUndefined();
+      expect(course.operationsRepresentative).toBeUndefined();
     });
 
     it('should return 400 if no trainer (ops mobile)', async () => {
@@ -1621,6 +1643,8 @@ describe('COURSES ROUTES - PUT /courses/{_id}', () => {
         estimatedStartDate: '2022-05-31T08:00:00.000Z',
         maxTrainees: 12,
         expectedBillsCount: 3,
+        hasCertifyingTest: true,
+        certifiedTrainees: [coach._id],
       };
 
       const response = await app.inject({
@@ -1754,7 +1778,7 @@ describe('COURSES ROUTES - PUT /courses/{_id}', () => {
       { misc: 'new name' },
       { trainer: new ObjectId() },
       { contact: vendorAdmin._id },
-      { salesRepresentative: new ObjectId() },
+      { operationsRepresentative: new ObjectId() },
       { maxTrainees: 15 },
       { expectedBillsCount: 10 },
       { archivedAt: CompaniDate('2020-03-25T09:00:00.000Z').toDate() },
@@ -1772,8 +1796,8 @@ describe('COURSES ROUTES - PUT /courses/{_id}', () => {
       });
     });
 
-    it('should return 403 if invalid salesRepresentative', async () => {
-      const payload = { salesRepresentative: clientAdmin._id };
+    it('should return 403 if invalid operationsRepresentative', async () => {
+      const payload = { operationsRepresentative: clientAdmin._id };
       const response = await app.inject({
         method: 'PUT',
         url: `/courses/${courseIdFromAuthCompany}`,
@@ -2014,6 +2038,50 @@ describe('COURSES ROUTES - PUT /courses/{_id}', () => {
 
       expect(response.statusCode).toBe(409);
     });
+
+    it('should return 404 if try to add trainees in certification and trainee is not in course', async () => {
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/courses/${coursesList[4]._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload: { certifiedTrainees: [clientAdmin._id] },
+      });
+
+      expect(response.statusCode).toBe(404);
+    });
+
+    it('should return 409 if try to add trainees in certification for a non certifying course', async () => {
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/courses/${coursesList[17]._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload: { certifiedTrainees: [coach._id] },
+      });
+
+      expect(response.statusCode).toBe(409);
+    });
+
+    it('should return 409 if try to add trainees in certification while removing course certification', async () => {
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/courses/${coursesList[4]._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload: { certifiedTrainees: [coach._id], hasCertifyingTest: false },
+      });
+
+      expect(response.statusCode).toBe(409);
+    });
+
+    it('should return 409 if remove course certification and there are trainees in certification list', async () => {
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/courses/${coursesList[4]._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload: { hasCertifyingTest: false },
+      });
+
+      expect(response.statusCode).toBe(409);
+    });
   });
 
   describe('TRAINER', () => {
@@ -2032,12 +2100,12 @@ describe('COURSES ROUTES - PUT /courses/{_id}', () => {
       expect(response.statusCode).toBe(200);
     });
 
-    it('should return 403 if try to update salesRepresentative', async () => {
+    it('should return 403 if try to update operationsRepresentative', async () => {
       const response = await app.inject({
         method: 'PUT',
         url: `/courses/${courseIdFromAuthCompany}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
-        payload: { salesRepresentative: vendorAdmin._id },
+        payload: { operationsRepresentative: vendorAdmin._id },
       });
 
       expect(response.statusCode).toBe(403);
@@ -2321,6 +2389,32 @@ describe('COURSES ROUTES - PUT /courses/{_id}', () => {
         });
 
         expect(response.statusCode).toBe(role.expectedCode);
+      });
+    });
+
+    ['client_admin', 'trainer'].forEach((role) => {
+      it(`should return 403 if try to update hasCertifyingTest and user is ${role}`, async () => {
+        authToken = await getToken(role);
+        const response = await app.inject({
+          method: 'PUT',
+          url: `/courses/${courseIdFromAuthCompany}`,
+          headers: { Cookie: `alenvi_token=${authToken}` },
+          payload: { hasCertifyingTest: true },
+        });
+
+        expect(response.statusCode).toBe(403);
+      });
+
+      it(`should return 403 if try to update certified trainees list and user is ${role}`, async () => {
+        authToken = await getToken(role);
+        const response = await app.inject({
+          method: 'PUT',
+          url: `/courses/${coursesList[4]._id}`,
+          headers: { Cookie: `alenvi_token=${authToken}` },
+          payload: { certifiedTrainees: [coach._id] },
+        });
+
+        expect(response.statusCode).toBe(403);
       });
     });
   });
@@ -2890,7 +2984,7 @@ describe('COURSES ROUTES - PUT /courses/{_id}/trainees', () => {
         method: 'PUT',
         url: `/courses/${intraCourseIdFromAuthCompany}/trainees`,
         headers: { Cookie: `alenvi_token=${authToken}` },
-        payload: { trainee: traineeFromAuthCompanyWithFormationExpoToken._id },
+        payload: { trainee: traineeFromAuthCompanyWithFormationExpoToken._id, isCertified: true },
       });
 
       expect(response.statusCode).toBe(200);
@@ -2905,6 +2999,7 @@ describe('COURSES ROUTES - PUT /courses/{_id}/trainees', () => {
       const course = await Course.countDocuments({
         _id: intraCourseIdFromAuthCompany,
         trainees: traineeFromAuthCompanyWithFormationExpoToken._id,
+        certifiedTrainees: [traineeFromAuthCompanyWithFormationExpoToken._id],
       });
       expect(course).toEqual(1);
     });
@@ -3036,6 +3131,17 @@ describe('COURSES ROUTES - PUT /courses/{_id}/trainees', () => {
       });
 
       expect(response.statusCode).toBe(400);
+    });
+
+    it('should return 403 if field isCertified but course has no certification', async () => {
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/courses/${coursesList[2]._id}/trainees`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload: { trainee: traineeFromAuthFormerlyInOther._id, isCertified: true },
+      });
+
+      expect(response.statusCode).toBe(403);
     });
   });
 
@@ -3370,6 +3476,19 @@ describe('COURSES ROUTES - DELETE /courses/{_id}/trainees/{traineeId}', () => {
         action: TRAINEE_DELETION,
       });
       expect(courseHistory).toEqual(1);
+    });
+
+    it('should delete course trainee with certification', async () => {
+      const response = await app.inject({
+        method: 'DELETE',
+        url: `/courses/${coursesList[4]._id.toHexString()}/trainees/${traineeFromOtherCompany._id.toHexString()}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(200);
+      const course = await Course.findById(coursesList[4]._id).lean();
+      expect(UtilsHelper.doesArrayIncludeId(course.trainees, traineeFromOtherCompany._id)).toBeFalsy();
+      expect(UtilsHelper.doesArrayIncludeId(course.certifiedTrainees, traineeFromOtherCompany._id)).toBeFalsy();
     });
 
     it('should delete course trainee (intra_holding)', async () => {

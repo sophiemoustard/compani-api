@@ -105,7 +105,7 @@ describe('createCourse', () => {
       subProgram: subProgram._id,
       type: INTRA,
       maxTrainees: 12,
-      salesRepresentative: new ObjectId(),
+      operationsRepresentative: new ObjectId(),
     };
 
     findOneSubProgram.returns(SinonMongoose.stubChainedQueries(subProgram));
@@ -120,7 +120,7 @@ describe('createCourse', () => {
     expect(result.companies).toContain(payload.company);
     expect(result.format).toEqual('blended');
     expect(result.type).toEqual(INTRA);
-    expect(result.salesRepresentative).toEqual(payload.salesRepresentative);
+    expect(result.operationsRepresentative).toEqual(payload.operationsRepresentative);
     sinon.assert.notCalled(createHistoryOnEstimatedStartDateEdition);
     sinon.assert.calledOnceWithExactly(create, { ...omit(payload, 'company'), companies: [payload.company] });
     sinon.assert.calledOnceWithExactly(insertManyCourseSlot, slots);
@@ -140,7 +140,7 @@ describe('createCourse', () => {
       misc: 'name',
       subProgram: subProgram._id,
       type: INTER_B2B,
-      salesRepresentative: new ObjectId(),
+      operationsRepresentative: new ObjectId(),
     };
 
     findOneSubProgram.returns(SinonMongoose.stubChainedQueries(subProgram));
@@ -152,7 +152,7 @@ describe('createCourse', () => {
     expect(result.subProgram).toEqual(payload.subProgram);
     expect(result.format).toEqual('blended');
     expect(result.type).toEqual(INTER_B2B);
-    expect(result.salesRepresentative).toEqual(payload.salesRepresentative);
+    expect(result.operationsRepresentative).toEqual(payload.operationsRepresentative);
     sinon.assert.notCalled(createHistoryOnEstimatedStartDateEdition);
     sinon.assert.calledOnceWithExactly(create, payload);
     sinon.assert.notCalled(insertManyCourseSlot);
@@ -173,7 +173,7 @@ describe('createCourse', () => {
       company: new ObjectId(),
       subProgram: subProgram._id,
       type: INTRA,
-      salesRepresentative: new ObjectId(),
+      operationsRepresentative: new ObjectId(),
       estimatedStartDate: '2022-12-10T12:00:00.000Z',
     };
     const createdCourse = { ...payload, _id: new ObjectId(), format: 'blended', companies: [] };
@@ -1742,8 +1742,8 @@ describe('getCourse', () => {
               { path: 'companies', select: 'name' },
               {
                 path: 'trainees',
-                select: 'identity.firstname identity.lastname local.email contact picture.link firstMobileConnection '
-                  + 'loginCode',
+                select: 'identity.firstname identity.lastname local.email contact picture.link '
+                  + 'firstMobileConnectionDate loginCode',
                 populate: { path: 'company' },
               },
               {
@@ -1772,7 +1772,7 @@ describe('getCourse', () => {
               },
               { path: 'accessRules', select: 'name' },
               {
-                path: 'salesRepresentative',
+                path: 'operationsRepresentative',
                 select: 'identity.firstname identity.lastname contact.phone local.email picture.link',
               },
               { path: 'contact', select: 'identity.firstname identity.lastname contact.phone' },
@@ -1830,8 +1830,8 @@ describe('getCourse', () => {
                 { path: 'companies', select: 'name' },
                 {
                   path: 'trainees',
-                  select: 'identity.firstname identity.lastname local.email contact picture.link firstMobileConnection '
-                    + 'loginCode',
+                  select: 'identity.firstname identity.lastname local.email contact picture.link '
+                    + 'firstMobileConnectionDate loginCode',
                   populate: { path: 'company' },
                 },
                 {
@@ -1862,7 +1862,7 @@ describe('getCourse', () => {
                 },
                 { path: 'accessRules', select: 'name' },
                 {
-                  path: 'salesRepresentative',
+                  path: 'operationsRepresentative',
                   select: 'identity.firstname identity.lastname contact.phone local.email picture.link',
                 },
                 { path: 'contact', select: 'identity.firstname identity.lastname contact.phone' },
@@ -1920,8 +1920,8 @@ describe('getCourse', () => {
                 { path: 'companies', select: 'name' },
                 {
                   path: 'trainees',
-                  select: 'identity.firstname identity.lastname local.email contact picture.link firstMobileConnection '
-                    + 'loginCode',
+                  select: 'identity.firstname identity.lastname local.email contact picture.link '
+                    + 'firstMobileConnectionDate loginCode',
                   populate: { path: 'company' },
                 },
                 {
@@ -1952,7 +1952,7 @@ describe('getCourse', () => {
                 },
                 { path: 'accessRules', select: 'name' },
                 {
-                  path: 'salesRepresentative',
+                  path: 'operationsRepresentative',
                   select: 'identity.firstname identity.lastname contact.phone local.email picture.link',
                 },
                 { path: 'contact', select: 'identity.firstname identity.lastname contact.phone' },
@@ -2008,8 +2008,8 @@ describe('getCourse', () => {
               { path: 'companies', select: 'name' },
               {
                 path: 'trainees',
-                select: 'identity.firstname identity.lastname local.email contact picture.link firstMobileConnection '
-                  + 'loginCode',
+                select: 'identity.firstname identity.lastname local.email contact picture.link '
+                  + 'firstMobileConnectionDate loginCode',
                 populate: { path: 'company' },
               },
               {
@@ -2077,8 +2077,8 @@ describe('getCourse', () => {
               { path: 'companies', select: 'name' },
               {
                 path: 'trainees',
-                select: 'identity.firstname identity.lastname local.email contact picture.link firstMobileConnection '
-                  + 'loginCode',
+                select: 'identity.firstname identity.lastname local.email contact picture.link '
+                  + 'firstMobileConnectionDate loginCode',
                 populate: { path: 'company' },
 
               },
@@ -2108,7 +2108,7 @@ describe('getCourse', () => {
               },
               { path: 'accessRules', select: 'name' },
               {
-                path: 'salesRepresentative',
+                path: 'operationsRepresentative',
                 select: 'identity.firstname identity.lastname contact.phone local.email picture.link',
               },
               { path: 'contact', select: 'identity.firstname identity.lastname contact.phone' },
@@ -2815,7 +2815,7 @@ describe('getCourseFollowUp', () => {
         {
           _id: '123213124',
           identity: { firstname: 'mamie', lastname: 'Francine' },
-          firstMobileConnection: '2022-11-18T10:20:00.000Z',
+          firstMobileConnectionDate: '2022-11-18T10:20:00.000Z',
         },
 
       ],
@@ -2838,7 +2838,7 @@ describe('getCourseFollowUp', () => {
       {
         _id: '123213124',
         identity: { firstname: 'mamie', lastname: 'Francine' },
-        firstMobileConnection: '2022-11-18T10:20:00.000Z',
+        firstMobileConnectionDate: '2022-11-18T10:20:00.000Z',
         steps: { progress: 1 },
         progress: 1,
         company: companyId,
@@ -2861,7 +2861,7 @@ describe('getCourseFollowUp', () => {
         {
           _id: '123213124',
           identity: { firstname: 'mamie', lastname: 'Francine' },
-          firstMobileConnection: '2022-11-18T10:20:00.000Z',
+          firstMobileConnectionDate: '2022-11-18T10:20:00.000Z',
           company: companyId,
           steps: { progress: 1 },
           progress: 1,
@@ -2905,7 +2905,7 @@ describe('getCourseFollowUp', () => {
           query: 'populate',
           args: [{
             path: 'trainees',
-            select: 'identity.firstname identity.lastname firstMobileConnection loginCode',
+            select: 'identity.firstname identity.lastname firstMobileConnectionDate loginCode',
             populate: { path: 'company' },
           }],
         },
@@ -2983,7 +2983,7 @@ describe('getCourseFollowUp', () => {
           query: 'populate',
           args: [{
             path: 'trainees',
-            select: 'identity.firstname identity.lastname firstMobileConnection loginCode',
+            select: 'identity.firstname identity.lastname firstMobileConnectionDate loginCode',
             populate: { path: 'company' },
           }],
         },
@@ -3079,7 +3079,7 @@ describe('getCourseFollowUp', () => {
           query: 'populate',
           args: [{
             path: 'trainees',
-            select: 'identity.firstname identity.lastname firstMobileConnection loginCode',
+            select: 'identity.firstname identity.lastname firstMobileConnectionDate loginCode',
             populate: { path: 'company' },
           }],
         },
@@ -3160,7 +3160,7 @@ describe('getCourseFollowUp', () => {
           query: 'populate',
           args: [{
             path: 'trainees',
-            select: 'identity.firstname identity.lastname firstMobileConnection loginCode',
+            select: 'identity.firstname identity.lastname firstMobileConnectionDate loginCode',
             populate: { path: 'company' },
           }],
         },
@@ -3433,9 +3433,9 @@ describe('updateCourse', () => {
 
   it('should remove contact field in intra course', async () => {
     const courseId = new ObjectId();
-    const salesRepresentativeId = new ObjectId();
-    const payload = { contact: '', salesRepresentative: salesRepresentativeId };
-    const courseFromDb = { _id: courseId, contact: salesRepresentativeId, salesRepresentative: salesRepresentativeId };
+    const operationsRepresentative = new ObjectId();
+    const payload = { contact: '', operationsRepresentative };
+    const courseFromDb = { _id: courseId, contact: operationsRepresentative, operationsRepresentative };
 
     courseFindOneAndUpdate.returns(SinonMongoose.stubChainedQueries(courseFromDb, ['lean']));
 
@@ -3447,7 +3447,29 @@ describe('updateCourse', () => {
       [
         {
           query: 'findOneAndUpdate',
-          args: [{ _id: courseId }, { $set: { salesRepresentative: salesRepresentativeId }, $unset: { contact: '' } }],
+          args: [{ _id: courseId }, { $set: { operationsRepresentative }, $unset: { contact: '' } }],
+        },
+        { query: 'lean' },
+      ]
+    );
+  });
+
+  it('should remove certified trainees', async () => {
+    const courseId = new ObjectId();
+    const payload = { certifiedTrainees: [] };
+    const courseFromDb = { _id: courseId, hasCertifyingTest: true, certifiedTrainees: [new ObjectId()] };
+
+    courseFindOneAndUpdate.returns(SinonMongoose.stubChainedQueries(courseFromDb, ['lean']));
+
+    await CourseHelper.updateCourse(courseId, payload, credentials);
+
+    sinon.assert.notCalled(createHistoryOnEstimatedStartDateEdition);
+    SinonMongoose.calledOnceWithExactly(
+      courseFindOneAndUpdate,
+      [
+        {
+          query: 'findOneAndUpdate',
+          args: [{ _id: courseId }, { $unset: { certifiedTrainees: '' } }],
         },
         { query: 'lean' },
       ]
@@ -3738,10 +3760,10 @@ describe('addTrainee', () => {
     const user = {
       _id: new ObjectId(),
       formationExpoTokenList: 'ExponentPushToken[bla]',
-      firstMobileConnection: '2022-01-21T12:00:00.000Z',
+      firstMobileConnectionDate: '2022-01-21T12:00:00.000Z',
     };
     const course = { _id: new ObjectId(), misc: 'Test', type: INTER_B2B };
-    const payload = { trainee: user._id, company: new ObjectId() };
+    const payload = { trainee: user._id, company: new ObjectId(), isCertified: true };
     const credentials = { _id: new ObjectId(), company: { _id: new ObjectId() } };
 
     userFindOne.returns(user);
@@ -3753,7 +3775,7 @@ describe('addTrainee', () => {
     sinon.assert.calledOnceWithExactly(
       courseFindOneAndUpdate,
       { _id: course._id },
-      { $addToSet: { trainees: user._id } },
+      { $addToSet: { trainees: user._id, certifiedTrainees: user._id } },
       { projection: { companies: 1, type: 1 } }
     );
     SinonMongoose.calledOnceWithExactly(
@@ -3761,7 +3783,7 @@ describe('addTrainee', () => {
       [
         {
           query: 'findOne',
-          args: [{ _id: user._id }, { formationExpoTokenList: 1, firstMobileConnection: 1, loginCode: 1 }],
+          args: [{ _id: user._id }, { formationExpoTokenList: 1, firstMobileConnectionDate: 1, loginCode: 1 }],
         },
         { query: 'lean' },
       ]
@@ -3803,7 +3825,7 @@ describe('addTrainee', () => {
       [
         {
           query: 'findOne',
-          args: [{ _id: user._id }, { formationExpoTokenList: 1, firstMobileConnection: 1, loginCode: 1 }],
+          args: [{ _id: user._id }, { formationExpoTokenList: 1, firstMobileConnectionDate: 1, loginCode: 1 }],
         },
         { query: 'lean' },
       ]
@@ -3840,7 +3862,7 @@ describe('addTrainee', () => {
       [
         {
           query: 'findOne',
-          args: [{ _id: user._id }, { formationExpoTokenList: 1, firstMobileConnection: 1, loginCode: 1 }],
+          args: [{ _id: user._id }, { formationExpoTokenList: 1, firstMobileConnectionDate: 1, loginCode: 1 }],
         },
         { query: 'lean' },
       ]
@@ -3890,7 +3912,11 @@ describe('removeCourseTrainee', () => {
     const removedBy = { _id: new ObjectId() };
 
     await CourseHelper.removeCourseTrainee(course, traineeId, removedBy);
-    sinon.assert.calledOnceWithExactly(updateOne, { _id: course }, { $pull: { trainees: traineeId } });
+    sinon.assert.calledOnceWithExactly(
+      updateOne,
+      { _id: course },
+      { $pull: { trainees: traineeId, certifiedTrainees: traineeId } }
+    );
     sinon.assert.calledOnceWithExactly(createHistoryOnTraineeDeletion, { course, traineeId }, removedBy._id);
   });
 });

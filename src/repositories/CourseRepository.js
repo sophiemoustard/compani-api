@@ -7,6 +7,7 @@ exports.findCourseAndPopulate = (query, origin, populateVirtual = false) => Cour
   .find(query, origin === WEBAPP ? 'misc type archivedAt estimatedStartDate createdAt maxTrainees trainees' : 'misc')
   .populate([
     { path: 'companies', select: 'name' },
+    { path: 'holding', select: 'name' },
     {
       path: 'subProgram',
       select: 'program',
@@ -30,7 +31,7 @@ exports.findCourseAndPopulate = (query, origin, populateVirtual = false) => Cour
           populate: { path: 'company', populate: { path: 'company', select: 'name' } },
         }] : []
         ),
-        { path: 'salesRepresentative', select: 'identity.firstname identity.lastname' },
+        { path: 'operationsRepresentative', select: 'identity.firstname identity.lastname' },
       ]
       : []
     ),
@@ -66,7 +67,7 @@ exports.findCoursesForExport = async (startDate, endDate, credentials) => {
       ],
     })
     .populate({ path: 'trainer', select: 'identity' })
-    .populate({ path: 'salesRepresentative', select: 'identity' })
+    .populate({ path: 'operationsRepresentative', select: 'identity' })
     .populate({ path: 'contact', select: 'identity' })
     .populate({
       path: 'slots',
@@ -74,7 +75,7 @@ exports.findCoursesForExport = async (startDate, endDate, credentials) => {
       populate: { path: 'attendances', options: { isVendorUser } },
     })
     .populate({ path: 'slotsToPlan', select: '_id' })
-    .populate({ path: 'trainees', select: 'firstMobileConnection' })
+    .populate({ path: 'trainees', select: 'firstMobileConnectionDate' })
     .populate({
       path: 'bills',
       select: 'payer billedAt mainFee billingPurchaseList',

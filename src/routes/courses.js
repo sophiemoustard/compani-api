@@ -112,7 +112,7 @@ exports.plugin = {
             subProgram: Joi.objectId().required(),
             misc: Joi.string().allow('', null),
             company: Joi.objectId().when('type', { is: INTRA, then: Joi.required(), otherwise: Joi.forbidden() }),
-            salesRepresentative: Joi.objectId().required(),
+            operationsRepresentative: Joi.objectId().required(),
             estimatedStartDate: dateToISOString,
             maxTrainees: Joi
               .number()
@@ -128,6 +128,7 @@ exports.plugin = {
             holding: Joi
               .objectId()
               .when('type', { is: INTRA_HOLDING, then: Joi.required(), otherwise: Joi.forbidden() }),
+            hasCertifyingTest: Joi.boolean().required(),
           }),
         },
         auth: { scope: ['courses:create'] },
@@ -205,12 +206,14 @@ exports.plugin = {
             misc: Joi.string().allow('', null),
             trainer: Joi.objectId(),
             contact: Joi.objectId().allow(''),
-            salesRepresentative: Joi.objectId(),
+            operationsRepresentative: Joi.objectId(),
             companyRepresentative: Joi.objectId(),
             archivedAt: Joi.date().allow(''),
             estimatedStartDate: dateToISOString,
             maxTrainees: Joi.number().positive().integer(),
             expectedBillsCount: Joi.number().min(0).integer(),
+            hasCertifyingTest: Joi.boolean(),
+            certifiedTrainees: Joi.array().items(Joi.objectId()),
           }),
         },
         pre: [{ method: authorizeCourseEdit }],
@@ -268,7 +271,11 @@ exports.plugin = {
       options: {
         validate: {
           params: Joi.object({ _id: Joi.objectId().required() }),
-          payload: Joi.object({ trainee: Joi.objectId().required(), company: Joi.objectId() }),
+          payload: Joi.object({
+            trainee: Joi.objectId().required(),
+            company: Joi.objectId(),
+            isCertified: Joi.boolean(),
+          }),
         },
         pre: [{ method: authorizeCourseEdit }, { method: authorizeTraineeAddition }],
         auth: { scope: ['courses:edit'] },

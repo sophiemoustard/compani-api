@@ -25,9 +25,9 @@ const { trainerOrganisationManager, trainer } = require('../../seed/authUsersSee
 const userList = [
   {
     _id: new ObjectId(),
-    identity: { firstname: 'sales', lastname: 'representative' },
+    identity: { firstname: 'operations', lastname: 'representative' },
     refreshToken: uuidv4(),
-    local: { email: 'salesrep@compani.fr' },
+    local: { email: 'operationsrep@compani.fr' },
     role: { vendor: vendorAdminRoleId },
     origin: WEBAPP,
   },
@@ -87,7 +87,7 @@ const coursesList = [
     maxTrainees: 8,
     trainees: [userList[1]._id],
     companies: [authCompany._id],
-    salesRepresentative: userList[0]._id,
+    operationsRepresentative: userList[0]._id,
     trainer: trainer._id,
   },
   { // 1
@@ -96,7 +96,7 @@ const coursesList = [
     type: INTER_B2B,
     trainees: [userList[1]._id, userList[2]._id, userList[4]._id],
     companies: [authCompany._id, otherCompany._id, companyWithoutSubscription._id],
-    salesRepresentative: userList[0]._id,
+    operationsRepresentative: userList[0]._id,
     trainer: trainer._id,
   },
   { // 2
@@ -107,7 +107,7 @@ const coursesList = [
     trainees: [userList[1]._id],
     companies: [authCompany._id],
     trainer: userList[3]._id,
-    salesRepresentative: userList[0]._id,
+    operationsRepresentative: userList[0]._id,
   },
   { // 3 - archived
     _id: new ObjectId(),
@@ -116,7 +116,7 @@ const coursesList = [
     archivedAt: new Date(),
     trainees: [userList[1]._id],
     companies: [authCompany._id],
-    salesRepresentative: userList[0]._id,
+    operationsRepresentative: userList[0]._id,
     trainer: trainer._id,
   },
   { // 4
@@ -127,7 +127,7 @@ const coursesList = [
     trainees: [userList[2]._id],
     companies: [otherCompany._id],
     trainer: userList[3]._id,
-    salesRepresentative: userList[0]._id,
+    operationsRepresentative: userList[0]._id,
   },
   { // 5
     _id: new ObjectId(),
@@ -138,7 +138,7 @@ const coursesList = [
     companies: [otherCompany._id],
     holding: otherHolding._id,
     trainer: trainer._id,
-    salesRepresentative: userList[0]._id,
+    operationsRepresentative: userList[0]._id,
   },
   { // 6
     _id: new ObjectId(),
@@ -148,7 +148,7 @@ const coursesList = [
     trainees: [],
     companies: [],
     holding: otherHolding._id,
-    salesRepresentative: userList[0]._id,
+    operationsRepresentative: userList[0]._id,
   },
 ];
 
