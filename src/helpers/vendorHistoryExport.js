@@ -52,14 +52,14 @@ const getEndOfCourse = (slotsGroupedByDate, slotsToPlan) => {
   if (slotsGroupedByDate.length) {
     const lastDate = slotsGroupedByDate.length - 1;
     const lastSlot = slotsGroupedByDate[lastDate].length - 1;
-    return CompaniDate(slotsGroupedByDate[lastDate][lastSlot].endDate).format(`${DD_MM_YYYY} ${HH_MM_SS}`);
+    return CompaniDate(slotsGroupedByDate[lastDate][lastSlot].endDate).format(DD_MM_YYYY);
   }
 
   return '';
 };
 
 const getStartOfCourse = slotsGroupedByDate => (slotsGroupedByDate.length
-  ? CompaniDate(slotsGroupedByDate[0][0].startDate).format(`${DD_MM_YYYY} ${HH_MM_SS}`)
+  ? CompaniDate(slotsGroupedByDate[0][0].startDate).format(DD_MM_YYYY)
   : '');
 
 const isSlotInInterval = (slot, startDate, endDate) => CompaniDate(slot.startDate).isAfter(startDate) &&
