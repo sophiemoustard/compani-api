@@ -64,8 +64,8 @@ exports.generate = async (payload, credentials) => {
     .populate({ path: 'slotsToPlan', select: '_id' })
     .lean();
 
-  const infos = {
-    identity: courses[0].trainer.identity,
+  const datas = {
+    trainerIdentity: courses[0].trainer.identity,
     program: courses[0].subProgram.program.name,
     slotsCount: courses[0].slots.length + courses[0].slotsToPlan.length,
     liveDuration: UtilsHelper.computeLiveDuration(
@@ -83,8 +83,8 @@ exports.generate = async (payload, credentials) => {
     createdBy: UtilsHelper.formatIdentity(credentials.identity, 'FL'),
   };
 
-  const pdf = await TrainerMissionPdf.getPdf(infos);
-  const fileName = `ordre mission ${infos.program} ${UtilsHelper.formatIdentity(infos.identity, 'FL')}`;
+  const pdf = await TrainerMissionPdf.getPdf(datas);
+  const fileName = `ordre mission ${datas.program} ${UtilsHelper.formatIdentity(datas.trainerIdentity, 'FL')}`;
   pdf.hapi = {
     fileName,
     headers: {

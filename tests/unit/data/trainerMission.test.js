@@ -24,7 +24,7 @@ describe('getPdfContent', () => {
     downloadImages.returns(paths);
 
     const data = {
-      identity: { lastname: 'For', firstname: 'Matrice', title: MRS },
+      trainerIdentity: { lastname: 'For', firstname: 'Matrice', title: MRS },
       program: 'Bien manger',
       slotsCount: 3,
       liveDuration: '6h30',
@@ -58,13 +58,13 @@ describe('getPdfContent', () => {
         {
           body:
           [
-            [{ text: 'NOM et Prénom' }, { text: 'Matrice FOR', style: 'cell' }],
+            [{ text: 'Prénom et NOM' }, { text: 'Matrice FOR', style: 'cell' }],
             [{ text: 'Fonction' }, { text: 'Formatrice', style: 'cell' }],
             [{ text: 'Se rendra à la formation suivante' }, { text: 'Bien manger', style: 'cell' }],
             [{ text: 'Durée de la formation' }, { text: '3 sessions - 6h30', style: 'cell' }],
             [{ text: 'Nombre de groupe' }, { text: 2, style: 'cell' }],
             [{ text: 'Structures' }, { text: 'Alenvi, ASAPAD', style: 'cell' }],
-            [{ text: 'Lieu(x) de la formation' }, { text: '3 rue du château, 4 rue du château', style: 'cell' }],
+            [{ text: 'Lieux de la formation' }, { text: '3 rue du château, 4 rue du château', style: 'cell' }],
             [
               { text: 'Dates de la formation' },
               {
@@ -133,7 +133,7 @@ describe('getPdf', () => {
 
   it('should get pdf', async () => {
     const data = {
-      identity: { lastname: 'For', firstname: 'Matrice' },
+      trainerIdentity: { lastname: 'For', firstname: 'Matrice' },
       program: 'program',
       slotsCount: 3,
       liveDuration: '6h30',
@@ -149,7 +149,7 @@ describe('getPdf', () => {
     const template = {
       content: [{
         table: [
-          [{ text: 'NOM et Prénom' }, { text: 'Jean Dors', style: 'cell' }],
+          [{ text: 'Prénom et NOM' }, { text: 'Jean Dors', style: 'cell' }],
         ],
       }],
       defaultStyle: { font: 'SourceSans', fontSize: 14 },

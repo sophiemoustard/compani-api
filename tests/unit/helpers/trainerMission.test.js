@@ -224,8 +224,8 @@ describe('generate', () => {
     }];
     const payload = { courses: courseId, fee: 1200, trainer: trainerId };
 
-    const infos = {
-      identity: { lastname: 'For', firstname: 'Matrice' },
+    const datas = {
+      trainerIdentity: { lastname: 'For', firstname: 'Matrice' },
       program: 'program',
       slotsCount: 3,
       liveDuration: '6h30',
@@ -245,7 +245,7 @@ describe('generate', () => {
 
     await trainerMissionsHelper.generate(payload, credentials);
 
-    sinon.assert.calledOnceWithExactly(trainerMissionGetPdf, infos);
+    sinon.assert.calledOnceWithExactly(trainerMissionGetPdf, datas);
 
     sinon.assert.calledOnceWithExactly(
       uploadCourseFile,
@@ -356,8 +356,8 @@ describe('generate', () => {
     ];
     const payload = { courses: courseIds, fee: 1200, trainer: trainerId };
 
-    const infos = {
-      identity: { lastname: 'For', firstname: 'Matrice' },
+    const datas = {
+      trainerIdentity: { lastname: 'For', firstname: 'Matrice' },
       program: 'program',
       slotsCount: 3,
       liveDuration: '6h30',
@@ -377,7 +377,7 @@ describe('generate', () => {
 
     await trainerMissionsHelper.generate(payload, credentials);
 
-    sinon.assert.calledOnceWithExactly(trainerMissionGetPdf, infos);
+    sinon.assert.calledOnceWithExactly(trainerMissionGetPdf, datas);
 
     sinon.assert.calledOnceWithExactly(
       uploadCourseFile,

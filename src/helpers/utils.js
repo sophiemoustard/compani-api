@@ -5,7 +5,15 @@ const isEmpty = require('lodash/isEmpty');
 const { ObjectId } = require('mongodb');
 const Intl = require('intl');
 const moment = require('../extensions/moment');
-const { CIVILITY_LIST, SHORT_DURATION_H_MM, HHhMM, SECOND, E_LEARNING, REMOTE, DD_MM_YYYY } = require('./constants');
+const {
+  CIVILITY_LIST,
+  SHORT_DURATION_H_MM,
+  HHhMM, SECOND,
+  E_LEARNING,
+  REMOTE,
+  DD_MM_YYYY,
+  INTRA,
+} = require('./constants');
 const DatesHelper = require('./dates');
 const DatesUtilsHelper = require('./dates/utils');
 const { CompaniDate } = require('./dates/companiDates');
@@ -326,4 +334,11 @@ exports.getDates = (slots) => {
     .map(slot => CompaniDate(slot.startDate).format(DD_MM_YYYY));
 
   return [...new Set(slotDatesWithDuplicate)];
+};
+
+exports.composeCourseName = (course) => {
+  const companyName = course.type === INTRA ? `${course.companies[0].name} - ` : '';
+  const misc = course.misc ? ` - ${course.misc}` : '';
+
+  return companyName + course.subProgram.program.name + misc;
 };

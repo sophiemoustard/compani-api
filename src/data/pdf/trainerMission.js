@@ -1,5 +1,5 @@
 const get = require('lodash/get');
-const { MISTER, DD_MM_YYYY, INTRA } = require('../../helpers/constants');
+const { MISTER, DD_MM_YYYY } = require('../../helpers/constants');
 const { CompaniDate } = require('../../helpers/dates/companiDates');
 const FileHelper = require('../../helpers/file');
 const PdfHelper = require('../../helpers/pdf');
@@ -14,15 +14,8 @@ const getImages = async () => {
   return FileHelper.downloadImages(imageList);
 };
 
-const composeCourseName = (course) => {
-  const companyName = course.type === INTRA ? `${course.companies[0].name} - ` : '';
-  const misc = course.misc ? ` - ${course.misc}` : '';
-
-  return companyName + course.subProgram.program.name + misc;
-};
-
 const formatCertifications = (courses) => {
-  const courseNames = courses.map(course => composeCourseName(course)).join(', ');
+  const courseNames = courses.map(course => UtilsHelper.composeCourseName(course)).join(', ');
   return `au moins un(e) stagiaire de ${courseNames}`;
 };
 
@@ -44,10 +37,10 @@ exports.getPdfContent = async (data) => {
   ];
 
   const body = [
-    [{ text: 'NOM et Prénom' }, { text: UtilsHelper.formatIdentity(data.identity, 'FL'), style: 'cell' }],
+    [{ text: 'Prénom et NOM' }, { text: UtilsHelper.formatIdentity(data.trainerIdentity, 'FL'), style: 'cell' }],
     [
       { text: 'Fonction' },
-      { text: get(data, 'identity.title') === MISTER ? 'Formateur' : 'Formatrice', style: 'cell' },
+      { text: get(data, 'trainerIdentity.title') === MISTER ? 'Formateur' : 'Formatrice', style: 'cell' },
     ],
     [{ text: 'Se rendra à la formation suivante' }, { text: data.program, style: 'cell' }],
     [
@@ -56,7 +49,7 @@ exports.getPdfContent = async (data) => {
     ],
     [{ text: 'Nombre de groupe' }, { text: data.groupCount, style: 'cell' }],
     [{ text: 'Structures' }, { text: data.companies, style: 'cell' }],
-    [{ text: 'Lieu(x) de la formation' }, { text: data.addressList.join(', '), style: 'cell' }],
+    [{ text: 'Lieux de la formation' }, { text: data.addressList.join(', '), style: 'cell' }],
     [{ text: 'Dates de la formation' }, { text: formatDates(data), style: 'cell' }],
     [
       { text: 'Formation certifiante ?' },
