@@ -42,12 +42,14 @@ const Questionnaire = require('../models/Questionnaire');
 const CoursePayment = require('../models/CoursePayment');
 
 const getEndOfCourse = (slotsGroupedByDate, slotsToPlan) => {
-  if (slotsToPlan.length) return 'à planifier';
+  if (slotsToPlan.length) return '';
+
   if (slotsGroupedByDate.length) {
     const lastDate = slotsGroupedByDate.length - 1;
     const lastSlot = slotsGroupedByDate[lastDate].length - 1;
     return CompaniDate(slotsGroupedByDate[lastDate][lastSlot].endDate).format(`${DD_MM_YYYY} ${HH_MM_SS}`);
   }
+
   return '';
 };
 
