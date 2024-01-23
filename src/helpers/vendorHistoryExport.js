@@ -144,12 +144,13 @@ const formatCourseForExport = (course) => {
   // const { isBilled, billsCountForExport, payerList, netInclTaxes, paid, total } = getBillsInfos(course);
 
   // const companiesName = course.companies.map(co => co.name).sort((a, b) => a.localeCompare(b)).toString();
+  const companyName = course.companies.length ? course.companies[0].name : ''
 
   return {
     Identifiant: course._id,
     Type: course.type,
     // Payeur: payerList || '',
-    Structure: course.companies[0].name || '',
+    Structure: course.holding ? course.holding.name : companyName,
     Programme: get(course, 'subProgram.program.name') || '',
     'Sous-Programme': get(course, 'subProgram.name') || '',
     'Infos complémentaires': course.misc,
