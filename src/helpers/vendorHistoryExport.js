@@ -118,6 +118,73 @@ const getBillsInfos = (course) => {
 const getProgress = (pastSlots, course) =>
   UtilsHelper.formatFloatForExport(pastSlots / (course.slots.length + course.slotsToPlan.length));
 
+const formatCourseForExport = (course, smsCount, attendanceSheetsCount, qHistories, estimatedStartDateHistory) => {
+  const slotsGroupedByDate = CourseHelper.groupSlotsByDate(course.slots);
+  const {
+    subscribedAttendances,
+    unsubscribedAttendances,
+    absences,
+    unsubscribedTrainees,
+    pastSlots,
+  } = getAttendancesCountInfos(course);
+
+  const expectactionQuestionnaireAnswers = qHistories.filter(qh => qh.questionnaire.type === EXPECTATIONS).length;
+  const endQuestionnaireAnswers = qHistories.filter(qh => qh.questionnaire.type === END_OF_COURSE).length;
+
+  const traineeProgressList = CourseHelper.getTraineesWithElearningProgress(course.trainees, course.subProgram.steps)
+    .filter(trainee => trainee.progress.eLearning >= 0)
+    .map(trainee => trainee.progress.eLearning);
+  const combinedElearningProgress = traineeProgressList.reduce((acc, value) => acc + value, 0);
+
+  const { isBilled, billsCountForExport, payerList, netInclTaxes, paid, total } = getBillsInfos(course);
+
+  const companiesName = course.companies.map(co => co.name).sort((a, b) => a.localeCompare(b)).toString();
+
+  return {
+    Identifiant: course._id,
+    Type: course.type,
+    Payeur: payerList || '',
+    Structure: companiesName || '',
+    Programme: get(course, 'subProgram.program.name') || '',
+    'Sous-Programme': get(course, 'subProgram.name') || '',
+    'Infos complémentaires': course.misc,
+    Formateur: UtilsHelper.formatIdentity(get(course, 'trainer.identity') || '', 'FL'),
+    'Chargé des opérations': UtilsHelper.formatIdentity(get(course, 'operationsRepresentative.identity') || '', 'FL'),
+    'Contact pour la formation': UtilsHelper.formatIdentity(get(course, 'contact.identity') || '', 'FL'),
+    'Nombre d\'inscrits': get(course, 'trainees.length'),
+    'Nombre de dates': slotsGroupedByDate.length,
+    'Nombre de créneaux': get(course, 'slots.length'),
+    'Nombre de créneaux à planifier': get(course, 'slotsToPlan.length'),
+    'Durée Totale': UtilsHelper.getTotalDurationForExport(course.slots),
+    'Nombre de SMS envoyés': smsCount,
+    'Nombre de personnes connectées à l\'app': course.trainees
+      .filter(trainee => trainee.firstMobileConnection).length,
+    'Complétion eLearning moyenne': traineeProgressList.length
+      ? UtilsHelper.formatFloatForExport(combinedElearningProgress / course.trainees.length)
+      : '',
+    'Nombre de réponses au questionnaire de recueil des attentes': expectactionQuestionnaireAnswers,
+    'Nombre de réponses au questionnaire de satisfaction': endQuestionnaireAnswers,
+    'Date de démarrage souhaitée': course.estimatedStartDate
+      ? CompaniDate(course.estimatedStartDate).format(DD_MM_YYYY)
+      : '',
+    'Première date de démarrage souhaitée': estimatedStartDateHistory
+      ? CompaniDate(estimatedStartDateHistory[0].update.estimatedStartDate.to).format(DD_MM_YYYY)
+      : '',
+    'Début de formation': getStartOfCourse(slotsGroupedByDate),
+    'Fin de formation': getEndOfCourse(slotsGroupedByDate, course.slotsToPlan),
+    'Nombre de feuilles d\'émargement chargées': attendanceSheetsCount,
+    'Nombre de présences': subscribedAttendances,
+    'Nombre d\'absences': absences,
+    'Nombre de stagiaires non prévus': unsubscribedTrainees,
+    'Nombre de présences non prévues': unsubscribedAttendances,
+    Avancement: getProgress(pastSlots, course),
+    'Nombre de factures': billsCountForExport,
+    Facturée: isBilled ? 'Oui' : 'Non',
+    'Montant facturé': UtilsHelper.formatFloatForExport(netInclTaxes),
+    'Montant réglé': UtilsHelper.formatFloatForExport(paid),
+    Solde: UtilsHelper.formatFloatForExport(total),
+  };
+};
 exports.exportCourseHistory = async (startDate, endDate, credentials) => {
   const courses = await CourseRepository.findCoursesForExport(startDate, endDate, credentials);
 
@@ -154,79 +221,19 @@ exports.exportCourseHistory = async (startDate, endDate, credentials) => {
   const groupedEstimatedStartDateHistories = groupBy(estimatedStartDateHistories, 'course');
 
   for (const course of filteredCourses) {
-    const slotsGroupedByDate = CourseHelper.groupSlotsByDate(course.slots);
     const smsCount = (groupedSms[course._id] || []).length;
-    const attendanceSheets = (grouppedAttendanceSheets[course._id] || []).length;
-    const {
-      subscribedAttendances,
-      unsubscribedAttendances,
-      absences,
-      unsubscribedTrainees,
-      pastSlots,
-    } = getAttendancesCountInfos(course);
+    const attendanceSheetsCount = (grouppedAttendanceSheets[course._id] || []).length;
 
     const courseQuestionnaireHistories = groupedCourseQuestionnaireHistories[course._id] || [];
     const estimatedStartDateHistory = groupedEstimatedStartDateHistories[course._id];
-    const expectactionQuestionnaireAnswers = courseQuestionnaireHistories
-      .filter(qh => qh.questionnaire.type === EXPECTATIONS)
-      .length;
-    const endQuestionnaireAnswers = courseQuestionnaireHistories
-      .filter(qh => qh.questionnaire.type === END_OF_COURSE)
-      .length;
 
-    const traineeProgressList = CourseHelper.getTraineesWithElearningProgress(course.trainees, course.subProgram.steps)
-      .filter(trainee => trainee.progress.eLearning >= 0)
-      .map(trainee => trainee.progress.eLearning);
-    const combinedElearningProgress = traineeProgressList.reduce((acc, value) => acc + value, 0);
-
-    const { isBilled, billsCountForExport, payerList, netInclTaxes, paid, total } = getBillsInfos(course);
-
-    const companiesName = course.companies.map(co => co.name).sort((a, b) => a.localeCompare(b)).toString();
-
-    rows.push({
-      Identifiant: course._id,
-      Type: course.type,
-      Payeur: payerList || '',
-      Structure: companiesName || '',
-      Programme: get(course, 'subProgram.program.name') || '',
-      'Sous-Programme': get(course, 'subProgram.name') || '',
-      'Infos complémentaires': course.misc,
-      Formateur: UtilsHelper.formatIdentity(get(course, 'trainer.identity') || '', 'FL'),
-      'Chargé des opérations': UtilsHelper.formatIdentity(get(course, 'operationsRepresentative.identity') || '', 'FL'),
-      'Contact pour la formation': UtilsHelper.formatIdentity(get(course, 'contact.identity') || '', 'FL'),
-      'Nombre d\'inscrits': get(course, 'trainees.length'),
-      'Nombre de dates': slotsGroupedByDate.length,
-      'Nombre de créneaux': get(course, 'slots.length'),
-      'Nombre de créneaux à planifier': get(course, 'slotsToPlan.length'),
-      'Durée Totale': UtilsHelper.getTotalDurationForExport(course.slots),
-      'Nombre de SMS envoyés': smsCount,
-      'Nombre de personnes connectées à l\'app': course.trainees
-        .filter(trainee => trainee.firstMobileConnectionDate).length,
-      'Complétion eLearning moyenne': traineeProgressList.length
-        ? UtilsHelper.formatFloatForExport(combinedElearningProgress / course.trainees.length)
-        : '',
-      'Nombre de réponses au questionnaire de recueil des attentes': expectactionQuestionnaireAnswers,
-      'Nombre de réponses au questionnaire de satisfaction': endQuestionnaireAnswers,
-      'Date de démarrage souhaitée': course.estimatedStartDate
-        ? CompaniDate(course.estimatedStartDate).format(DD_MM_YYYY)
-        : '',
-      'Première date de démarrage souhaitée': estimatedStartDateHistory
-        ? CompaniDate(estimatedStartDateHistory[0].update.estimatedStartDate.to).format(DD_MM_YYYY)
-        : '',
-      'Début de formation': getStartOfCourse(slotsGroupedByDate),
-      'Fin de formation': getEndOfCourse(slotsGroupedByDate, course.slotsToPlan),
-      'Nombre de feuilles d\'émargement chargées': attendanceSheets,
-      'Nombre de présences': subscribedAttendances,
-      'Nombre d\'absences': absences,
-      'Nombre de stagiaires non prévus': unsubscribedTrainees,
-      'Nombre de présences non prévues': unsubscribedAttendances,
-      Avancement: getProgress(pastSlots, course),
-      'Nombre de factures': billsCountForExport,
-      Facturée: isBilled ? 'Oui' : 'Non',
-      'Montant facturé': UtilsHelper.formatFloatForExport(netInclTaxes),
-      'Montant réglé': UtilsHelper.formatFloatForExport(paid),
-      Solde: UtilsHelper.formatFloatForExport(total),
-    });
+    rows.push(formatCourseForExport(
+      course,
+      smsCount,
+      attendanceSheetsCount,
+      courseQuestionnaireHistories,
+      estimatedStartDateHistory
+    ));
   }
 
   return [Object.keys(rows[0]), ...rows.map(d => Object.values(d))];
