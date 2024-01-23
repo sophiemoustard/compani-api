@@ -23,6 +23,9 @@ const {
   HH_MM_SS,
   DAY,
   ESTIMATED_START_DATE_EDITION,
+  INTRA_HOLDING,
+  COURSE,
+  TRAINEE,
 } = require('./constants');
 const { CompaniDate } = require('./dates/companiDates');
 const DatesUtilsHelper = require('./dates/utils');
@@ -30,6 +33,7 @@ const UtilsHelper = require('./utils');
 const NumbersHelper = require('./numbers');
 const CourseBillHelper = require('./courseBills');
 const CourseHelper = require('./courses');
+const CourseHistoriesHelper = require('./courseHistories');
 const AttendanceSheet = require('../models/AttendanceSheet');
 const CourseSmsHistory = require('../models/CourseSmsHistory');
 const CourseSlot = require('../models/CourseSlot');
@@ -40,6 +44,7 @@ const QuestionnaireHistory = require('../models/QuestionnaireHistory');
 const CourseHistory = require('../models/CourseHistory');
 const Questionnaire = require('../models/Questionnaire');
 const CoursePayment = require('../models/CoursePayment');
+const { mapValues } = require('lodash');
 
 const getEndOfCourse = (slotsGroupedByDate, slotsToPlan) => {
   if (slotsToPlan.length) return '';
@@ -118,73 +123,74 @@ const getBillsInfos = (course) => {
 const getProgress = (pastSlots, course) =>
   UtilsHelper.formatFloatForExport(pastSlots / (course.slots.length + course.slotsToPlan.length));
 
-const formatCourseForExport = (course, smsCount, attendanceSheetsCount, qHistories, estimatedStartDateHistory) => {
+const formatCourseForExport = (course) => {
   const slotsGroupedByDate = CourseHelper.groupSlotsByDate(course.slots);
-  const {
-    subscribedAttendances,
-    unsubscribedAttendances,
-    absences,
-    unsubscribedTrainees,
-    pastSlots,
-  } = getAttendancesCountInfos(course);
+  // const {
+  //   subscribedAttendances,
+  //   unsubscribedAttendances,
+  //   absences,
+  //   unsubscribedTrainees,
+  //   pastSlots,
+  // } = getAttendancesCountInfos(course);
 
-  const expectactionQuestionnaireAnswers = qHistories.filter(qh => qh.questionnaire.type === EXPECTATIONS).length;
-  const endQuestionnaireAnswers = qHistories.filter(qh => qh.questionnaire.type === END_OF_COURSE).length;
+  // const expectactionQuestionnaireAnswers = qHistories.filter(qh => qh.questionnaire.type === EXPECTATIONS).length;
+  // const endQuestionnaireAnswers = qHistories.filter(qh => qh.questionnaire.type === END_OF_COURSE).length;
 
-  const traineeProgressList = CourseHelper.getTraineesWithElearningProgress(course.trainees, course.subProgram.steps)
-    .filter(trainee => trainee.progress.eLearning >= 0)
-    .map(trainee => trainee.progress.eLearning);
-  const combinedElearningProgress = traineeProgressList.reduce((acc, value) => acc + value, 0);
+  // const traineeProgressList = CourseHelper.getTraineesWithElearningProgress(course.trainees, course.subProgram.steps)
+  //   .filter(trainee => trainee.progress.eLearning >= 0)
+  //   .map(trainee => trainee.progress.eLearning);
+  // const combinedElearningProgress = traineeProgressList.reduce((acc, value) => acc + value, 0);
 
-  const { isBilled, billsCountForExport, payerList, netInclTaxes, paid, total } = getBillsInfos(course);
+  // const { isBilled, billsCountForExport, payerList, netInclTaxes, paid, total } = getBillsInfos(course);
 
-  const companiesName = course.companies.map(co => co.name).sort((a, b) => a.localeCompare(b)).toString();
+  // const companiesName = course.companies.map(co => co.name).sort((a, b) => a.localeCompare(b)).toString();
 
   return {
     Identifiant: course._id,
     Type: course.type,
-    Payeur: payerList || '',
-    Structure: companiesName || '',
+    // Payeur: payerList || '',
+    Structure: course.companies[0].name || '',
     Programme: get(course, 'subProgram.program.name') || '',
     'Sous-Programme': get(course, 'subProgram.name') || '',
     'Infos complémentaires': course.misc,
-    Formateur: UtilsHelper.formatIdentity(get(course, 'trainer.identity') || '', 'FL'),
+    // Formateur: UtilsHelper.formatIdentity(get(course, 'trainer.identity') || '', 'FL'),
     'Chargé des opérations': UtilsHelper.formatIdentity(get(course, 'operationsRepresentative.identity') || '', 'FL'),
-    'Contact pour la formation': UtilsHelper.formatIdentity(get(course, 'contact.identity') || '', 'FL'),
+    // 'Contact pour la formation': UtilsHelper.formatIdentity(get(course, 'contact.identity') || '', 'FL'),
     'Nombre d\'inscrits': get(course, 'trainees.length'),
     'Nombre de dates': slotsGroupedByDate.length,
     'Nombre de créneaux': get(course, 'slots.length'),
     'Nombre de créneaux à planifier': get(course, 'slotsToPlan.length'),
     'Durée Totale': UtilsHelper.getTotalDurationForExport(course.slots),
-    'Nombre de SMS envoyés': smsCount,
-    'Nombre de personnes connectées à l\'app': course.trainees
-      .filter(trainee => trainee.firstMobileConnection).length,
-    'Complétion eLearning moyenne': traineeProgressList.length
-      ? UtilsHelper.formatFloatForExport(combinedElearningProgress / course.trainees.length)
-      : '',
-    'Nombre de réponses au questionnaire de recueil des attentes': expectactionQuestionnaireAnswers,
-    'Nombre de réponses au questionnaire de satisfaction': endQuestionnaireAnswers,
-    'Date de démarrage souhaitée': course.estimatedStartDate
-      ? CompaniDate(course.estimatedStartDate).format(DD_MM_YYYY)
-      : '',
-    'Première date de démarrage souhaitée': estimatedStartDateHistory
-      ? CompaniDate(estimatedStartDateHistory[0].update.estimatedStartDate.to).format(DD_MM_YYYY)
-      : '',
+    // 'Nombre de SMS envoyés': smsCount,
+    // 'Nombre de personnes connectées à l\'app': course.trainees
+    //   .filter(trainee => trainee.firstMobileConnection).length,
+    // 'Complétion eLearning moyenne': traineeProgressList.length
+    //   ? UtilsHelper.formatFloatForExport(combinedElearningProgress / course.trainees.length)
+    //   : '',
+    // 'Nombre de réponses au questionnaire de recueil des attentes': expectactionQuestionnaireAnswers,
+    // 'Nombre de réponses au questionnaire de satisfaction': endQuestionnaireAnswers,
+    // 'Date de démarrage souhaitée': course.estimatedStartDate
+    //   ? CompaniDate(course.estimatedStartDate).format(DD_MM_YYYY)
+    //   : '',
+    // 'Première date de démarrage souhaitée': estimatedStartDateHistory
+    //   ? CompaniDate(estimatedStartDateHistory[0].update.estimatedStartDate.to).format(DD_MM_YYYY)
+    //   : '',
     'Début de formation': getStartOfCourse(slotsGroupedByDate),
     'Fin de formation': getEndOfCourse(slotsGroupedByDate, course.slotsToPlan),
-    'Nombre de feuilles d\'émargement chargées': attendanceSheetsCount,
-    'Nombre de présences': subscribedAttendances,
-    'Nombre d\'absences': absences,
-    'Nombre de stagiaires non prévus': unsubscribedTrainees,
-    'Nombre de présences non prévues': unsubscribedAttendances,
-    Avancement: getProgress(pastSlots, course),
-    'Nombre de factures': billsCountForExport,
-    Facturée: isBilled ? 'Oui' : 'Non',
-    'Montant facturé': UtilsHelper.formatFloatForExport(netInclTaxes),
-    'Montant réglé': UtilsHelper.formatFloatForExport(paid),
-    Solde: UtilsHelper.formatFloatForExport(total),
+    // 'Nombre de feuilles d\'émargement chargées': attendanceSheetsCount,
+    // 'Nombre de présences': subscribedAttendances,
+    // 'Nombre d\'absences': absences,
+    // 'Nombre de stagiaires non prévus': unsubscribedTrainees,
+    // 'Nombre de présences non prévues': unsubscribedAttendances,
+    // Avancement: getProgress(pastSlots, course),
+    // 'Nombre de factures': billsCountForExport,
+    // Facturée: isBilled ? 'Oui' : 'Non',
+    // 'Montant facturé': UtilsHelper.formatFloatForExport(netInclTaxes),
+    // 'Montant réglé': UtilsHelper.formatFloatForExport(paid),
+    // Solde: UtilsHelper.formatFloatForExport(total),
   };
 };
+
 exports.exportCourseHistory = async (startDate, endDate, credentials) => {
   const courses = await CourseRepository.findCoursesForExport(startDate, endDate, credentials);
 
@@ -193,47 +199,56 @@ exports.exportCourseHistory = async (startDate, endDate, credentials) => {
 
   if (!filteredCourses.length) return [[NO_DATA]];
 
-  const courseIds = filteredCourses.map(course => course._id);
-  const isVendorUser = [TRAINING_ORGANISATION_MANAGER, VENDOR_ADMIN].includes(get(credentials, 'role.vendor.name'));
-  const [questionnaireHistories, smsList, attendanceSheetList, estimatedStartDateHistories] = await Promise.all([
-    QuestionnaireHistory
-      .find({ course: { $in: courseIds } })
-      .select('course questionnaire')
-      .populate({ path: 'questionnaire', select: 'type' })
-      .setOptions({ isVendorUser })
-      .lean(),
-    CourseSmsHistory.find({ course: { $in: courseIds } }).select('course').lean(),
-    AttendanceSheet.find({ course: { $in: courseIds } }).select('course').setOptions({ isVendorUser }).lean(),
-    CourseHistory.find(
-      {
-        course: { $in: courseIds },
-        action: ESTIMATED_START_DATE_EDITION,
-        update: { estimatedStartDate: { from: '' } },
-      },
-      { course: 1, update: 1 }
-    ).lean(),
-  ]);
+  // const courseIds = filteredCourses.map(course => course._id);
+  // const isVendorUser = [TRAINING_ORGANISATION_MANAGER, VENDOR_ADMIN].includes(get(credentials, 'role.vendor.name'));
+  // const [questionnaireHistories, smsList, attendanceSheetList, estimatedStartDateHistories] = await Promise.all([
+  //   QuestionnaireHistory
+  //     .find({ course: { $in: courseIds } })
+  //     .select('course questionnaire')
+  //     .populate({ path: 'questionnaire', select: 'type' })
+  //     .setOptions({ isVendorUser })
+  //     .lean(),
+  //   CourseSmsHistory.find({ course: { $in: courseIds } }).select('course').lean(),
+  //   AttendanceSheet.find({ course: { $in: courseIds } }).select('course').setOptions({ isVendorUser }).lean(),
+  //   CourseHistory.find(
+  //     {
+  //       course: { $in: courseIds },
+  //       action: ESTIMATED_START_DATE_EDITION,
+  //       update: { estimatedStartDate: { from: '' } },
+  //     },
+  //     { course: 1, update: 1 }
+  //   ).lean(),
+  // ]);
 
   const rows = [];
-  const groupedSms = groupBy(smsList, 'course');
-  const grouppedAttendanceSheets = groupBy(attendanceSheetList, 'course');
-  const groupedCourseQuestionnaireHistories = groupBy(questionnaireHistories, 'course');
-  const groupedEstimatedStartDateHistories = groupBy(estimatedStartDateHistories, 'course');
+  // const groupedSms = groupBy(smsList, 'course');
+  // const grouppedAttendanceSheets = groupBy(attendanceSheetList, 'course');
+  // const groupedCourseQuestionnaireHistories = groupBy(questionnaireHistories, 'course');
+  // const groupedEstimatedStartDateHistories = groupBy(estimatedStartDateHistories, 'course');
 
   for (const course of filteredCourses) {
-    const smsCount = (groupedSms[course._id] || []).length;
-    const attendanceSheetsCount = (grouppedAttendanceSheets[course._id] || []).length;
+    // const smsCount = (groupedSms[course._id] || []).length;
+    // const attendanceSheetsCount = (grouppedAttendanceSheets[course._id] || []).length;
 
-    const courseQuestionnaireHistories = groupedCourseQuestionnaireHistories[course._id] || [];
-    const estimatedStartDateHistory = groupedEstimatedStartDateHistories[course._id];
+    // const courseQuestionnaireHistories = groupedCourseQuestionnaireHistories[course._id] || [];
+    // const estimatedStartDateHistory = groupedEstimatedStartDateHistories[course._id];
 
-    rows.push(formatCourseForExport(
-      course,
-      smsCount,
-      attendanceSheetsCount,
-      courseQuestionnaireHistories,
-      estimatedStartDateHistory
-    ));
+    if (course.type === INTRA) rows.push(formatCourseForExport(course));
+    else if (course.type === INTRA_HOLDING) {
+      rows.push(formatCourseForExport(course));
+    } else {
+      const traineesCompanyList = await CourseHistoriesHelper.getCompanyAtCourseRegistrationList(
+        { key: COURSE, value: course._id },
+        { key: TRAINEE, value: course.trainees }
+      );
+      const traineesByCompany = mapValues(groupBy(traineesCompanyList, 'company'), a => a.map(t => t.trainee));
+      for (const comp of course.companies) {
+        const trainees = course.trainees
+          .filter(t => UtilsHelper.doesArrayIncludeId(traineesByCompany[comp._id] || [], t._id));
+        const formattedCourse = { ...course, companies: [comp], trainees };
+        rows.push(formatCourseForExport(formattedCourse));
+      }
+    }
   }
 
   return [Object.keys(rows[0]), ...rows.map(d => Object.values(d))];
