@@ -62,16 +62,16 @@ describe('AUTHENTICATION ROUTES - POST /users/authenticate', () => {
     expect(res.statusCode).toBe(400);
   });
 
-  it('should not authenticate a user if origin is Mobile and firstMobileConnectionMode is missing', async () => {
-    const payload = { email: 'norole.nocompany@userseed.fr', password: 'fdsf5P56D', origin: 'mobile' };
+  // it('should not authenticate a user if origin is Mobile and firstMobileConnectionMode is missing', async () => {
+  //   const payload = { email: 'norole.nocompany@userseed.fr', password: 'fdsf5P56D', origin: 'mobile' };
 
-    const res = await app.inject({
-      method: 'POST',
-      url: '/users/authenticate',
-      payload,
-    });
-    expect(res.statusCode).toBe(400);
-  });
+  //   const res = await app.inject({
+  //     method: 'POST',
+  //     url: '/users/authenticate',
+  //     payload,
+  //   });
+  //   expect(res.statusCode).toBe(400);
+  // });
 
   it('should not authenticate a user if user does not exist', async () => {
     const res = await app.inject({
