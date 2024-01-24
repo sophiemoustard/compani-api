@@ -60,6 +60,7 @@ const {
   CUSTOM,
   OFFICIAL,
   SHORT_DURATION_H_MM,
+  MOBILE,
 } = require('./constants');
 const CourseHistoriesHelper = require('./courseHistories');
 const NotificationHelper = require('./notifications');
@@ -378,8 +379,11 @@ const getCourseForOperations = async (courseId, credentials, origin) => {
     );
 
     const traineesCompany = mapValues(keyBy(traineesCompanyAtCourseRegistration, 'trainee'), 'company');
-    courseTrainees = fetchedCourse.trainees
-      .map(trainee => ({ ...trainee, registrationCompany: traineesCompany[trainee._id] }));
+    courseTrainees = fetchedCourse.trainees.map(trainee => ({
+      ...trainee,
+      registrationCompany: traineesCompany[trainee._id],
+      ...(origin === MOBILE && { firstMobileConnection: trainee.firstMobileConnectionDate }),
+    }));
   }
 
   // A coach/client_admin is not supposed to read infos on trainees from other companies
