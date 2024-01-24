@@ -328,7 +328,7 @@ exports.getAddressList = (slots, steps) => {
     : uniqCityList;
 };
 
-exports.getDates = (slots) => {
+exports.formatSlotDates = (slots) => {
   const slotDatesWithDuplicate = slots
     .sort(DatesUtilsHelper.ascendingSortBy('startDate'))
     .map(slot => CompaniDate(slot.startDate).format(DD_MM_YYYY));

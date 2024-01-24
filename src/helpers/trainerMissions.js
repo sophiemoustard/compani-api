@@ -64,27 +64,25 @@ exports.generate = async (payload, credentials) => {
     .populate({ path: 'slotsToPlan', select: '_id' })
     .lean();
 
-  const datas = {
-    trainerIdentity: courses[0].trainer.identity,
-    program: courses[0].subProgram.program.name,
-    slotsCount: courses[0].slots.length + courses[0].slotsToPlan.length,
-    liveDuration: UtilsHelper.computeLiveDuration(
-      courses[0].slots,
-      courses[0].slotsToPlan,
-      courses[0].subProgram.steps
-    ),
+  const { trainer, subProgram, slots, slotsToPlan } = courses[0];
+
+  const data = {
+    trainerIdentity: trainer.identity,
+    program: subProgram.program.name,
+    slotsCount: slots.length + slotsToPlan.length,
+    liveDuration: UtilsHelper.computeLiveDuration(slots, slotsToPlan, subProgram.steps),
     groupCount: courses.length,
     companies: [...new Set(courses.map(c => UtilsHelper.formatName(c.companies)))].join(', '),
-    addressList: UtilsHelper.getAddressList(courses.map(c => c.slots).flat(), courses[0].subProgram.steps),
-    dates: UtilsHelper.getDates(courses.map(c => c.slots).flat()),
+    addressList: UtilsHelper.getAddressList(courses.map(c => c.slots).flat(), subProgram.steps),
+    dates: UtilsHelper.formatSlotDates(courses.map(c => c.slots).flat()),
     slotsToPlan: courses.reduce((acc, course) => acc + course.slotsToPlan.length, 0),
     certification: courses.filter(c => c.hasCertifyingTest),
     fee: payload.fee,
     createdBy: UtilsHelper.formatIdentity(credentials.identity, 'FL'),
   };
 
-  const pdf = await TrainerMissionPdf.getPdf(datas);
-  const fileName = `ordre mission ${datas.program} ${UtilsHelper.formatIdentity(datas.trainerIdentity, 'FL')}`;
+  const pdf = await TrainerMissionPdf.getPdf(data);
+  const fileName = `ordre mission ${data.program} ${UtilsHelper.formatIdentity(data.trainerIdentity, 'FL')}`;
   pdf.hapi = {
     fileName,
     headers: {

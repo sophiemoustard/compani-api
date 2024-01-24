@@ -90,7 +90,7 @@ exports.formatCourseForTrainingContract = async (course, vendorCompany, price) =
     eLearningDuration: computeElearnigDuration(subProgram.steps),
     misc: course.misc,
     learnersCount: await getLearnersCount(course),
-    dates: UtilsHelper.getDates(slots),
+    dates: UtilsHelper.formatSlotDates(slots),
     addressList: UtilsHelper.getAddressList(slots, subProgram.steps),
     trainer: UtilsHelper.formatIdentity(get(trainer, 'identity'), 'FL'),
     price,

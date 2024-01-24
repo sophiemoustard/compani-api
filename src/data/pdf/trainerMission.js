@@ -47,7 +47,7 @@ exports.getPdfContent = async (data) => {
       { text: 'Durée de la formation' },
       { text: `${UtilsHelper.formatQuantity('session', data.slotsCount)} - ${data.liveDuration}`, style: 'cell' },
     ],
-    [{ text: 'Nombre de groupe' }, { text: data.groupCount, style: 'cell' }],
+    [{ text: 'Nombre de groupes' }, { text: data.groupCount, style: 'cell' }],
     [{ text: 'Structures' }, { text: data.companies, style: 'cell' }],
     [{ text: 'Lieux de la formation' }, { text: data.addressList.join(', '), style: 'cell' }],
     [{ text: 'Dates de la formation' }, { text: formatDates(data), style: 'cell' }],

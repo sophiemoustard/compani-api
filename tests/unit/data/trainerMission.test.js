@@ -62,7 +62,7 @@ describe('getPdfContent', () => {
             [{ text: 'Fonction' }, { text: 'Formatrice', style: 'cell' }],
             [{ text: 'Se rendra à la formation suivante' }, { text: 'Bien manger', style: 'cell' }],
             [{ text: 'Durée de la formation' }, { text: '3 sessions - 6h30', style: 'cell' }],
-            [{ text: 'Nombre de groupe' }, { text: 2, style: 'cell' }],
+            [{ text: 'Nombre de groupes' }, { text: 2, style: 'cell' }],
             [{ text: 'Structures' }, { text: 'Alenvi, ASAPAD', style: 'cell' }],
             [{ text: 'Lieux de la formation' }, { text: '3 rue du château, 4 rue du château', style: 'cell' }],
             [
