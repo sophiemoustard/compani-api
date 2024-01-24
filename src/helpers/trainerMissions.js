@@ -96,3 +96,6 @@ exports.generate = async (payload, credentials) => {
 
   return uploadDocument(payload, courses[0], pdf, GENERATION, credentials);
 };
+
+exports.update = async (trainerMissionId, payload) =>
+  TrainerMission.updateOne({ _id: trainerMissionId }, { $set: payload });

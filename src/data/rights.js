@@ -63,6 +63,7 @@ const rights = [
   { permission: 'taxcertificates:edit', rolesConcerned: [CLIENT_ADMIN, COACH], subscription: ERP, description: 'Éditer une attestation fiscale' },
   { permission: 'taxcertificates:read', rolesConcerned: [CLIENT_ADMIN, COACH], subscription: ERP, description: 'Consulter une attestation fiscale' },
   { permission: 'timestamp:edit', rolesConcerned: [AUXILIARY, PLANNING_REFERENT], subscription: ERP, description: 'Horodater un évènement' },
+  { permission: 'trainermissions:edit', rolesConcerned: [VENDOR_ADMIN, TRAINING_ORGANISATION_MANAGER], description: 'Créer et éditer les ordres de mission' },
   { permission: 'trainermissions:read', rolesConcerned: [VENDOR_ADMIN, TRAINING_ORGANISATION_MANAGER], description: 'Récupérer les ordres de mission' },
   { permission: 'trainingcontracts:read', rolesConcerned: [CLIENT_ADMIN, COACH, VENDOR_ADMIN, TRAINING_ORGANISATION_MANAGER], description: 'Récupérer les conventions de formation' },
   { permission: 'users:edit', rolesConcerned: [CLIENT_ADMIN, COACH, VENDOR_ADMIN, TRAINING_ORGANISATION_MANAGER, TRAINER, HOLDING_ADMIN], description: 'Editer un(e) utilisateur(rice)' },

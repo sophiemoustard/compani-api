@@ -14,6 +14,7 @@ const TrainerMissionSchema = mongoose.Schema({
   fee: { type: Number, required: true },
   createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true, immutable: true },
   creationMethod: { type: String, required: true, enum: CREATION_METHOD_TYPES, immutable: true },
+  cancelledAt: { type: Date },
 }, { timestamps: true });
 
 TrainerMissionSchema.pre('find', validateQuery);
