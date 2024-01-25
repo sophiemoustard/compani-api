@@ -1,6 +1,7 @@
 const get = require('lodash/get');
 const uniqBy = require('lodash/uniqBy');
 const groupBy = require('lodash/groupBy');
+const mapValues = require('lodash/mapValues');
 const {
   NO_DATA,
   INTRA,
@@ -44,7 +45,6 @@ const QuestionnaireHistory = require('../models/QuestionnaireHistory');
 const CourseHistory = require('../models/CourseHistory');
 const Questionnaire = require('../models/Questionnaire');
 const CoursePayment = require('../models/CoursePayment');
-const { mapValues } = require('lodash');
 
 const getEndOfCourse = (slotsGroupedByDate, slotsToPlan) => {
   if (slotsToPlan.length) return '';
@@ -144,13 +144,13 @@ const formatCourseForExport = (course) => {
   // const { isBilled, billsCountForExport, payerList, netInclTaxes, paid, total } = getBillsInfos(course);
 
   // const companiesName = course.companies.map(co => co.name).sort((a, b) => a.localeCompare(b)).toString();
-  const companyName = course.companies.length ? course.companies[0].name : ''
 
   return {
     Identifiant: course._id,
     Type: course.type,
     // Payeur: payerList || '',
-    Structure: course.holding ? course.holding.name : companyName,
+    Structure: course.companies.map(c => c.name).join(', '),
+    'Société mère': get(course, 'holding.name') || '',
     Programme: get(course, 'subProgram.program.name') || '',
     'Sous-Programme': get(course, 'subProgram.name') || '',
     'Infos complémentaires': course.misc,
@@ -235,9 +235,7 @@ exports.exportCourseHistory = async (startDate, endDate, credentials) => {
     // const estimatedStartDateHistory = groupedEstimatedStartDateHistories[course._id];
 
     if (course.type === INTRA) rows.push(formatCourseForExport(course));
-    else if (course.type === INTRA_HOLDING) {
-      rows.push(formatCourseForExport(course));
-    } else {
+    else {
       const traineesCompanyList = await CourseHistoriesHelper.getCompanyAtCourseRegistrationList(
         { key: COURSE, value: course._id },
         { key: TRAINEE, value: course.trainees }
