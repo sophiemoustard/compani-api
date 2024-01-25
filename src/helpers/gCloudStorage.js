@@ -18,7 +18,7 @@ const uploadMedia = async (payload, bucketName) => new Promise((resolve, reject)
 
   const bucket = getStorage().bucket(bucketName);
   const stream = bucket.file(fileName)
-    .createWriteStream({ metadata: { contentType: get(file, 'hapi.headers.content-type') } })
+    .createWriteStream({ metadata: { contentType: payload.contentType || get(file, 'hapi.headers.content-type') } })
     .on('finish', () => {
       resolve({ link: `https://storage.googleapis.com/${bucket.name}/${fileName}`, publicId: fileName });
     })

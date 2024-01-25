@@ -249,7 +249,7 @@ describe('generate', () => {
 
     sinon.assert.calledOnceWithExactly(
       uploadCourseFile,
-      { fileName: 'ordre mission program Matrice FOR', file: 'test.pdf' }
+      { fileName: 'ordre mission program Matrice FOR', file: 'test.pdf', contentType: 'application/pdf' }
     );
     sinon.assert.calledOnceWithExactly(
       create,
@@ -381,7 +381,7 @@ describe('generate', () => {
 
     sinon.assert.calledOnceWithExactly(
       uploadCourseFile,
-      { fileName: 'ordre mission program Matrice FOR', file: 'test.pdf' }
+      { fileName: 'ordre mission program Matrice FOR', file: 'test.pdf', contentType: 'application/pdf' }
     );
     sinon.assert.calledOnceWithExactly(
       create,

@@ -11,8 +11,9 @@ const TrainerMissionPdf = require('../data/pdf/trainerMission');
 const getFileName = (programName, trainerIdentity) =>
   `ordre mission ${programName} ${UtilsHelper.formatIdentity(trainerIdentity, 'FL')}`;
 
-const uploadDocument = async (payload, courseIds, file, fileName, method, credentials) => {
-  const fileUploaded = await GCloudStorageHelper.uploadCourseFile({ fileName, file });
+const uploadDocument = async (payload, courseIds, file, fileName, method, credentials, contentType) => {
+  const fileUploaded = await GCloudStorageHelper
+    .uploadCourseFile({ fileName, file, ...(contentType && { contentType }) });
 
   await TrainerMission.create({
     ...payload,
@@ -96,13 +97,6 @@ exports.generate = async (payload, credentials) => {
 
   const pdf = await TrainerMissionPdf.getPdf(data);
   const fileName = getFileName(data.program, data.trainerIdentity);
-  pdf.hapi = {
-    fileName,
-    headers: {
-      'content-disposition': `form-data; name="file"; filename="${fileName}"`,
-      'content-type': 'application/pdf',
-    },
-  };
 
-  return uploadDocument(payload, courseIds, pdf, fileName, GENERATION, credentials);
+  return uploadDocument(payload, courseIds, pdf, fileName, GENERATION, credentials, 'application/pdf');
 };
