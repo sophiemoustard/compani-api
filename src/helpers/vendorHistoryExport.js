@@ -267,7 +267,7 @@ exports.exportCourseSlotHistory = async (startDate, endDate, credentials) => {
     rows.push({
       'Id Créneau': slot._id,
       'Id Formation': slot.course._id,
-      Formation: UtilsHelper.composeCourseName(slot.course),
+      Formation: CourseHelper.composeCourseName(slot.course),
       Étape: get(slot, 'step.name') || '',
       Type: STEP_TYPES[get(slot, 'step.type')] || '',
       'Date de création': CompaniDate(slot.createdAt).format(`${DD_MM_YYYY} ${HH_MM_SS}`) || '',

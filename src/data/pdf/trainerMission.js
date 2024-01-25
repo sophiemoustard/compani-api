@@ -2,6 +2,7 @@ const get = require('lodash/get');
 const { MISTER, DD_MM_YYYY } = require('../../helpers/constants');
 const { CompaniDate } = require('../../helpers/dates/companiDates');
 const FileHelper = require('../../helpers/file');
+const CourseHelper = require('../../helpers/courses');
 const PdfHelper = require('../../helpers/pdf');
 const UtilsHelper = require('../../helpers/utils');
 
@@ -15,7 +16,7 @@ const getImages = async () => {
 };
 
 const formatCertifications = (courses) => {
-  const courseNames = courses.map(course => UtilsHelper.composeCourseName(course)).join(', ');
+  const courseNames = courses.map(course => CourseHelper.composeCourseName(course)).join(', ');
   return `au moins un(e) stagiaire de ${courseNames}`;
 };
 

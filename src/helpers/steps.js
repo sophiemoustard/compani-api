@@ -2,7 +2,7 @@ const { pick, get } = require('lodash');
 const Step = require('../models/Step');
 const SubProgram = require('../models/SubProgram');
 const UtilsHelper = require('./utils');
-const { E_LEARNING, PT0S, MINUTE } = require('./constants');
+const { E_LEARNING, PT0S, MINUTE, SHORT_DURATION_H_MM } = require('./constants');
 const { CompaniDate } = require('./dates/companiDates');
 const { CompaniDuration } = require('./dates/companiDurations');
 
@@ -68,4 +68,18 @@ exports.list = async (programId) => {
     .filter(step => step.subPrograms.some(subProgram =>
       UtilsHelper.areObjectIdsEquals(get(subProgram, 'program._id'), programId)))
     .map(step => pick(step, ['_id', 'name', 'type']));
+};
+
+exports.computeLiveDuration = (slots, slotsToPlan, steps) => {
+  if (slotsToPlan.length) {
+    const theoreticalDurationList = steps
+      .filter(step => step.type !== E_LEARNING)
+      .map(step => step.theoreticalDuration);
+
+    return theoreticalDurationList
+      .reduce((acc, duration) => acc.add(duration), CompaniDuration())
+      .format(SHORT_DURATION_H_MM);
+  }
+
+  return CompaniDuration(UtilsHelper.getISOTotalDuration(slots)).format(SHORT_DURATION_H_MM);
 };

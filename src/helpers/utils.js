@@ -1,4 +1,3 @@
-const compact = require('lodash/compact');
 const get = require('lodash/get');
 const omit = require('lodash/omit');
 const isEmpty = require('lodash/isEmpty');
@@ -9,13 +8,8 @@ const {
   CIVILITY_LIST,
   SHORT_DURATION_H_MM,
   HHhMM, SECOND,
-  E_LEARNING,
-  REMOTE,
-  DD_MM_YYYY,
-  INTRA,
 } = require('./constants');
 const DatesHelper = require('./dates');
-const DatesUtilsHelper = require('./dates/utils');
 const { CompaniDate } = require('./dates/companiDates');
 const { CompaniDuration } = require('./dates/companiDurations');
 const NumbersHelper = require('./numbers');
@@ -293,52 +287,3 @@ exports.hasUserAccessToCompany = (credentials, company) => {
 };
 
 exports.formatName = list => list.map(item => item.name).join(', ');
-
-// functions to generate a document
-exports.computeLiveDuration = (slots, slotsToPlan, steps) => {
-  if (slotsToPlan.length) {
-    const theoreticalDurationList = steps
-      .filter(step => step.type !== E_LEARNING)
-      .map(step => step.theoreticalDuration);
-
-    return theoreticalDurationList
-      .reduce((acc, duration) => acc.add(duration), CompaniDuration())
-      .format(SHORT_DURATION_H_MM);
-  }
-
-  return CompaniDuration(exports.getISOTotalDuration(slots)).format(SHORT_DURATION_H_MM);
-};
-
-exports.getAddressList = (slots, steps) => {
-  const hasRemoteSteps = steps.some(step => step.type === REMOTE);
-
-  const fullAddressList = compact(slots.map(slot => get(slot, 'address.fullAddress')));
-  const uniqFullAddressList = [...new Set(fullAddressList)];
-  if (uniqFullAddressList.length <= 2) {
-    return hasRemoteSteps
-      ? [...uniqFullAddressList, 'Cette formation contient des créneaux en distanciel']
-      : uniqFullAddressList;
-  }
-
-  const cityList = compact(slots.map(slot => get(slot, 'address.city')));
-  const uniqCityList = [...new Set(cityList)];
-
-  return hasRemoteSteps
-    ? [...uniqCityList, 'Cette formation contient des créneaux en distanciel']
-    : uniqCityList;
-};
-
-exports.formatSlotDates = (slots) => {
-  const slotDatesWithDuplicate = slots
-    .sort(DatesUtilsHelper.ascendingSortBy('startDate'))
-    .map(slot => CompaniDate(slot.startDate).format(DD_MM_YYYY));
-
-  return [...new Set(slotDatesWithDuplicate)];
-};
-
-exports.composeCourseName = (course) => {
-  const companyName = course.type === INTRA ? `${course.companies[0].name} - ` : '';
-  const misc = course.misc ? ` - ${course.misc}` : '';
-
-  return companyName + course.subProgram.program.name + misc;
-};

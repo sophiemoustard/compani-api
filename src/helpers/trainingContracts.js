@@ -4,6 +4,8 @@ const keyBy = require('lodash/keyBy');
 const mapValues = require('lodash/mapValues');
 const GCloudStorageHelper = require('./gCloudStorage');
 const UtilsHelper = require('./utils');
+const StepsHelper = require('./steps');
+const CourseSlotsHelper = require('./courseSlots');
 const { E_LEARNING, SHORT_DURATION_H_MM, COURSE, TRAINEE, INTER_B2B } = require('./constants');
 const { CompaniDuration } = require('./dates/companiDurations');
 const Course = require('../models/Course');
@@ -86,12 +88,12 @@ exports.formatCourseForTrainingContract = async (course, vendorCompany, price) =
     programName: subProgram.program.name,
     learningGoals: subProgram.program.learningGoals,
     slotsCount: slots.length + slotsToPlan.length,
-    liveDuration: UtilsHelper.computeLiveDuration(slots, slotsToPlan, subProgram.steps),
+    liveDuration: StepsHelper.computeLiveDuration(slots, slotsToPlan, subProgram.steps),
     eLearningDuration: computeElearnigDuration(subProgram.steps),
     misc: course.misc,
     learnersCount: await getLearnersCount(course),
-    dates: UtilsHelper.formatSlotDates(slots),
-    addressList: UtilsHelper.getAddressList(slots, subProgram.steps),
+    dates: CourseSlotsHelper.formatSlotDates(slots),
+    addressList: CourseSlotsHelper.getAddressList(slots, subProgram.steps),
     trainer: UtilsHelper.formatIdentity(get(trainer, 'identity'), 'FL'),
     price,
   };
