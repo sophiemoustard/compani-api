@@ -31,7 +31,7 @@ exports.authorizeTrainerMissionGet = async (req) => {
 };
 
 exports.authorizeTrainerMissionEdit = async (req) => {
-  const trainerMission = await TrainerMission.findOne({ _id: req.params._id }).lean();
+  const trainerMission = await TrainerMission.findOne({ _id: req.params._id }, { cancelledAt: 1, date: 1 }).lean();
   if (trainerMission.cancelledAt) throw Boom.forbidden();
   if (req.payload.cancelledAt && CompaniDate(req.payload.cancelledAt).isBefore(trainerMission.date)) {
     throw Boom.conflict();
