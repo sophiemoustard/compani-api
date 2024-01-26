@@ -417,3 +417,22 @@ describe('generate', () => {
     );
   });
 });
+
+describe('update', () => {
+  let updateOne;
+  beforeEach(() => {
+    updateOne = sinon.stub(TrainerMission, 'updateOne');
+  });
+  afterEach(() => {
+    updateOne.restore();
+  });
+
+  it('should cancel a trainer mission', async () => {
+    const trainerMission = { _id: new ObjectId() };
+    const payload = { cancelledAt: '2023-01-05T23:00:00.000Z' };
+
+    await trainerMissionsHelper.update(trainerMission._id, payload);
+
+    sinon.assert.calledOnceWithExactly(updateOne, { _id: trainerMission._id }, { $set: payload });
+  });
+});

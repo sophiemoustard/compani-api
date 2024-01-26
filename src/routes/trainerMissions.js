@@ -1,8 +1,12 @@
 const Joi = require('joi');
 Joi.objectId = require('joi-objectid')(Joi);
-const { create, list } = require('../controllers/trainerMissionController');
-const { authorizeTrainerMissionCreation, authorizeTrainerMissionGet } = require('./preHandlers/trainerMissions');
-const { formDataPayload } = require('./validations/utils');
+const { create, list, update } = require('../controllers/trainerMissionController');
+const {
+  authorizeTrainerMissionCreation,
+  authorizeTrainerMissionGet,
+  authorizeTrainerMissionEdit,
+} = require('./preHandlers/trainerMissions');
+const { formDataPayload, requiredDateToISOString } = require('./validations/utils');
 
 exports.plugin = {
   name: 'routes-trainermissions',
@@ -11,7 +15,7 @@ exports.plugin = {
       method: 'POST',
       path: '/',
       options: {
-        auth: { scope: ['courses:create'] },
+        auth: { scope: ['trainermissions:edit'] },
         payload: formDataPayload(),
         validate: {
           payload: Joi.object({
@@ -37,6 +41,20 @@ exports.plugin = {
         pre: [{ method: authorizeTrainerMissionGet }],
       },
       handler: list,
+    });
+
+    server.route({
+      method: 'PUT',
+      path: '/{_id}',
+      options: {
+        auth: { scope: ['trainermissions:edit'] },
+        validate: {
+          params: Joi.object({ _id: Joi.objectId().required() }),
+          payload: Joi.object({ cancelledAt: requiredDateToISOString }),
+        },
+        pre: [{ method: authorizeTrainerMissionEdit }],
+      },
+      handler: update,
     });
   },
 };

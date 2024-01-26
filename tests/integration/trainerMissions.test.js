@@ -4,7 +4,7 @@ const { ObjectId } = require('mongodb');
 const app = require('../../server');
 const TrainerMission = require('../../src/models/TrainerMission');
 const { trainer, coach } = require('../seed/authUsersSeed');
-const { populateDB, courseList } = require('./seed/trainerMissionsSeed');
+const { populateDB, courseList, trainerMissionList } = require('./seed/trainerMissionsSeed');
 const { getToken } = require('./helpers/authentication');
 const { generateFormData, getStream } = require('./utils');
 const { CompaniDate } = require('../../src/helpers/dates/companiDates');
@@ -17,7 +17,7 @@ describe('NODE ENV', () => {
   });
 });
 
-describe('TRAINING CONTRACTS ROUTES - POST /trainermissions', () => {
+describe('TRAINER MISSIONS ROUTES - POST /trainermissions', () => {
   let authToken;
   let uploadCourseFileStub;
 
@@ -301,7 +301,7 @@ describe('TRAINING CONTRACTS ROUTES - POST /trainermissions', () => {
   });
 });
 
-describe('TRAINING CONTRACTS ROUTES - GET /trainermissions', () => {
+describe('TRAINER MISSIONS ROUTES - GET /trainermissions', () => {
   let authToken;
 
   beforeEach(async () => {
@@ -321,7 +321,7 @@ describe('TRAINING CONTRACTS ROUTES - GET /trainermissions', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      expect(response.result.data.trainerMissions.length).toEqual(1);
+      expect(response.result.data.trainerMissions.length).toEqual(2);
     });
 
     it('should return 404 if user doesn\'t exist as trainer', async () => {
@@ -350,6 +350,80 @@ describe('TRAINING CONTRACTS ROUTES - GET /trainermissions', () => {
           method: 'GET',
           url: `/trainermissions?trainer=${trainer._id}`,
           headers: { Cookie: `alenvi_token=${authToken}` },
+        });
+
+        expect(response.statusCode).toBe(role.expectedCode);
+      });
+    });
+  });
+});
+
+describe('TRAINER MISSIONS ROUTES - PUT /trainermissions/{_id}', () => {
+  let authToken;
+
+  beforeEach(async () => {
+    await populateDB();
+  });
+
+  describe('TRAINING_ORGANISATION_MANAGER', () => {
+    beforeEach(async () => {
+      authToken = await getToken('training_organisation_manager');
+    });
+
+    it('should cancel trainer mission', async () => {
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/trainermissions/${trainerMissionList[0]._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload: { cancelledAt: '2023-01-03T23:00:00.000Z' },
+      });
+
+      const trainerMissionUpdated = await TrainerMission
+        .countDocuments({ _id: trainerMissionList[0]._id, cancelledAt: '2023-01-03T23:00:00.000Z' });
+
+      expect(response.statusCode).toBe(200);
+      expect(trainerMissionUpdated).toEqual(1);
+    });
+
+    it('should return 409 if cancellation is before trainer mission\'s', async () => {
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/trainermissions/${trainerMissionList[0]._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload: { cancelledAt: '2023-01-01T23:00:00.000Z' },
+      });
+
+      expect(response.statusCode).toBe(409);
+    });
+
+    it('should return 403 if try to update a cancelled trainer mission', async () => {
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/trainermissions/${trainerMissionList[1]._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload: { cancelledAt: '2023-01-10T23:00:00.000Z' },
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
+  });
+
+  describe('Other roles', () => {
+    const roles = [
+      { name: 'helper', expectedCode: 403 },
+      { name: 'planning_referent', expectedCode: 403 },
+      { name: 'client_admin', expectedCode: 403 },
+      { name: 'trainer', expectedCode: 403 },
+    ];
+    roles.forEach((role) => {
+      it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+        authToken = await getToken(role.name);
+
+        const response = await app.inject({
+          method: 'PUT',
+          url: `/trainermissions/${trainerMissionList[0]._id}`,
+          headers: { Cookie: `alenvi_token=${authToken}` },
+          payload: { cancelledAt: '2023-01-03T23:00:00.000Z' },
         });
 
         expect(response.statusCode).toBe(role.expectedCode);

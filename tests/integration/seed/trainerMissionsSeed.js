@@ -81,6 +81,17 @@ const trainerMissionList = [
     file: { publicId: '123test', link: 'ceciestunlien' },
     creationMethod: GENERATION,
   },
+  {
+    _id: new ObjectId(),
+    courses: [courseList[0]._id],
+    trainer: trainer._id,
+    date: '2023-01-02T23:00:00.000Z',
+    cancelledAt: '2023-01-05T23:00:00.000Z',
+    fee: 1200,
+    createdBy: vendorAdmin._id,
+    file: { publicId: '123test', link: 'ceciestunlien' },
+    creationMethod: GENERATION,
+  },
 ];
 
 const populateDB = async () => {
@@ -95,4 +106,4 @@ const populateDB = async () => {
   ]);
 };
 
-module.exports = { populateDB, courseList };
+module.exports = { populateDB, courseList, trainerMissionList };
