@@ -11,10 +11,12 @@ const TrainerMissionPdf = require('../data/pdf/trainerMission');
 const getFileName = (programName, trainerIdentity) =>
   `ordre mission ${programName} ${UtilsHelper.formatIdentity(trainerIdentity, 'FL')}`;
 
-const uploadDocument = async (payload, courseIds, file, fileName, method, credentials, contentType) => {
+const uploadDocument = async (payload, course, file, method, credentials) => {
+  const fileName = getFileName(course.subProgram.program.name, course.trainer.identity);
   const fileUploaded = await GCloudStorageHelper
-    .uploadCourseFile({ fileName, file, ...(contentType && { contentType }) });
+    .uploadCourseFile({ fileName, file, ...(method === GENERATION && { contentType: 'application/pdf' }) });
 
+  const courseIds = Array.isArray(payload.courses) ? payload.courses : [payload.courses];
   await TrainerMission.create({
     ...payload,
     courses: courseIds,
@@ -33,10 +35,7 @@ exports.upload = async (payload, credentials) => {
     ])
     .lean();
 
-  const programName = course.subProgram.program.name;
-  const fileName = getFileName(programName, course.trainer.identity);
-
-  return uploadDocument(payload, courseIds, payload.file, fileName, UPLOAD, credentials);
+  return uploadDocument(payload, course, payload.file, UPLOAD, credentials);
 };
 
 exports.list = async (query, credentials) => {
@@ -57,23 +56,10 @@ exports.list = async (query, credentials) => {
     .lean();
 };
 
-const formatData = async (courseIds, fee, credentials) => {
-  const courses = await Course
-    .find({ _id: { $in: courseIds } }, { hasCertifyingTest: 1, misc: 1, type: 1 })
-    .populate({ path: 'companies', select: 'name' })
-    .populate({ path: 'trainer', select: 'identity' })
-    .populate({
-      path: 'subProgram',
-      select: 'program steps',
-      populate: [{ path: 'program', select: 'name' }, { path: 'steps', select: 'theoreticalDuration type' }],
-    })
-    .populate({ path: 'slots', select: 'startDate endDate address' })
-    .populate({ path: 'slotsToPlan', select: '_id' })
-    .lean();
-
+const formatData = (courses, fee, credentials) => {
   const { trainer, subProgram, slots, slotsToPlan } = courses[0];
 
-  const data = {
+  return {
     trainerIdentity: trainer.identity,
     program: subProgram.program.name,
     slotsCount: slots.length + slotsToPlan.length,
@@ -87,16 +73,26 @@ const formatData = async (courseIds, fee, credentials) => {
     fee,
     createdBy: UtilsHelper.formatIdentity(credentials.identity, 'FL'),
   };
-
-  return data;
 };
 
 exports.generate = async (payload, credentials) => {
   const courseIds = Array.isArray(payload.courses) ? payload.courses : [payload.courses];
-  const data = await formatData(courseIds, payload.fee, credentials);
+  const courses = await Course
+    .find({ _id: { $in: courseIds } }, { hasCertifyingTest: 1, misc: 1, type: 1 })
+    .populate({ path: 'companies', select: 'name' })
+    .populate({ path: 'trainer', select: 'identity' })
+    .populate({
+      path: 'subProgram',
+      select: 'program steps',
+      populate: [{ path: 'program', select: 'name' }, { path: 'steps', select: 'theoreticalDuration type' }],
+    })
+    .populate({ path: 'slots', select: 'startDate endDate address' })
+    .populate({ path: 'slotsToPlan', select: '_id' })
+    .lean();
+
+  const data = formatData(courses, payload.fee, credentials);
 
   const pdf = await TrainerMissionPdf.getPdf(data);
-  const fileName = getFileName(data.program, data.trainerIdentity);
 
-  return uploadDocument(payload, courseIds, pdf, fileName, GENERATION, credentials, 'application/pdf');
+  return uploadDocument(payload, courses[0], pdf, GENERATION, credentials);
 };
