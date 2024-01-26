@@ -1,9 +1,13 @@
 const Boom = require('@hapi/boom');
+const compact = require('lodash/compact');
+const get = require('lodash/get');
 const pick = require('lodash/pick');
 const translate = require('./translate');
 const CourseSlot = require('../models/CourseSlot');
 const CourseHistoriesHelper = require('./courseHistories');
-const { ON_SITE, REMOTE } = require('./constants');
+const { ON_SITE, REMOTE, DD_MM_YYYY } = require('./constants');
+const DatesUtilsHelper = require('./dates/utils');
+const { CompaniDate } = require('./dates/companiDates');
 
 const { language } = translate;
 
@@ -55,3 +59,30 @@ exports.updateCourseSlot = async (courseSlotId, payload, user) => {
 };
 
 exports.removeCourseSlot = async courseSlotId => CourseSlot.deleteOne({ _id: courseSlotId });
+
+exports.getAddressList = (slots, steps) => {
+  const hasRemoteSteps = steps.some(step => step.type === REMOTE);
+
+  const fullAddressList = compact(slots.map(slot => get(slot, 'address.fullAddress')));
+  const uniqFullAddressList = [...new Set(fullAddressList)];
+  if (uniqFullAddressList.length <= 2) {
+    return hasRemoteSteps
+      ? [...uniqFullAddressList, 'Cette formation contient des créneaux en distanciel']
+      : uniqFullAddressList;
+  }
+
+  const cityList = compact(slots.map(slot => get(slot, 'address.city')));
+  const uniqCityList = [...new Set(cityList)];
+
+  return hasRemoteSteps
+    ? [...uniqCityList, 'Cette formation contient des créneaux en distanciel']
+    : uniqCityList;
+};
+
+exports.formatSlotDates = (slots) => {
+  const slotDatesWithDuplicate = slots
+    .sort(DatesUtilsHelper.ascendingSortBy('startDate'))
+    .map(slot => CompaniDate(slot.startDate).format(DD_MM_YYYY));
+
+  return [...new Set(slotDatesWithDuplicate)];
+};

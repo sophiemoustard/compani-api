@@ -1203,3 +1203,10 @@ exports.generateTrainingContract = async (courseId, payload) => {
 
   return { fileName, pdf };
 };
+
+exports.composeCourseName = (course) => {
+  const companyName = course.type === INTRA ? `${course.companies[0].name} - ` : '';
+  const misc = course.misc ? ` - ${course.misc}` : '';
+
+  return companyName + course.subProgram.program.name + misc;
+};

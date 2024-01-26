@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 const { CompaniDate } = require('../helpers/dates/companiDates');
-const { DAY } = require('../helpers/constants');
+const { DAY, CREATION_METHOD_TYPES } = require('../helpers/constants');
 const { formatQuery, validateQuery, queryMiddlewareList } = require('./preHooks/validate');
 
 const TrainerMissionSchema = mongoose.Schema({
@@ -13,6 +13,7 @@ const TrainerMissionSchema = mongoose.Schema({
   },
   fee: { type: Number, required: true },
   createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true, immutable: true },
+  creationMethod: { type: String, required: true, enum: CREATION_METHOD_TYPES, immutable: true },
 }, { timestamps: true });
 
 TrainerMissionSchema.pre('find', validateQuery);

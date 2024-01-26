@@ -6,7 +6,8 @@ const { language } = translate;
 
 const create = async (req) => {
   try {
-    await TrainerMissionsHelper.upload(req.payload, req.auth.credentials);
+    if (req.payload.file) await TrainerMissionsHelper.upload(req.payload, req.auth.credentials);
+    else await TrainerMissionsHelper.generate(req.payload, req.auth.credentials);
 
     return { message: translate[language].trainerMissionCreated };
   } catch (e) {
