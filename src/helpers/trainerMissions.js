@@ -52,7 +52,10 @@ exports.list = async (query, credentials) => {
         { path: 'companies', select: 'name' },
       ],
     })
-    .setOptions({ isVendorUser: isRofOrAdmin })
+    .setOptions({
+      isVendorUser: isRofOrAdmin,
+      requestingOwnInfos: UtilsHelper.areObjectIdsEquals(trainer, credentials._id),
+    })
     .lean();
 };
 

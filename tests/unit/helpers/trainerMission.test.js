@@ -6,7 +6,7 @@ const TrainerMission = require('../../../src/models/TrainerMission');
 const trainerMissionsHelper = require('../../../src/helpers/trainerMissions');
 const SinonMongoose = require('../sinonMongoose');
 const GCloudStorageHelper = require('../../../src/helpers/gCloudStorage');
-const { VENDOR_ADMIN, UPLOAD, GENERATION, INTRA } = require('../../../src/helpers/constants');
+const { VENDOR_ADMIN, UPLOAD, GENERATION, INTRA, TRAINER } = require('../../../src/helpers/constants');
 const TrainerMissionPdf = require('../../../src/data/pdf/trainerMission');
 
 describe('upload', () => {
@@ -162,7 +162,44 @@ describe('list', () => {
             ],
           }],
         },
-        { query: 'setOptions', args: [{ isVendorUser: true }] },
+        { query: 'setOptions', args: [{ isVendorUser: true, requestingOwnInfos: false }] },
+        { query: 'lean' },
+      ]
+    );
+  });
+  it('should return trainer missions as trainer', async () => {
+    const credentials = { _id: new ObjectId(), role: { vendor: { name: TRAINER } } };
+    const trainerId = credentials._id;
+    const trainerMissions = [{
+      trainer: trainerId,
+      file: { publicId: 'mon premier upload', link: 'www.test.com' },
+      date: '2023-12-10T23:00:00.000Z',
+      courses: [{ _id: new ObjectId(), subProgram: { program: { name: 'name' } }, companies: [{ name: 'Alenvi' }] }],
+      fee: 12,
+      createdBy: new ObjectId(),
+    }];
+
+    find.returns(SinonMongoose.stubChainedQueries(trainerMissions, ['populate', 'setOptions', 'lean']));
+
+    const result = await trainerMissionsHelper.list({ trainer: trainerId }, credentials);
+
+    expect(result).toMatchObject(trainerMissions);
+    SinonMongoose.calledOnceWithExactly(
+      find,
+      [
+        { query: 'find', args: [{ trainer: trainerId }] },
+        {
+          query: 'populate',
+          args: [{
+            path: 'courses',
+            select: 'misc type companies subProgram',
+            populate: [
+              { path: 'subProgram', select: 'program', populate: { path: 'program', select: 'name' } },
+              { path: 'companies', select: 'name' },
+            ],
+          }],
+        },
+        { query: 'setOptions', args: [{ isVendorUser: false, requestingOwnInfos: true }] },
         { query: 'lean' },
       ]
     );
