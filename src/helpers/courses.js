@@ -319,6 +319,8 @@ exports.formatCourseWithProgress = (course, shouldComputePresence = false) => {
 };
 
 const getCourseForOperations = async (courseId, credentials, origin) => {
+  const isRofOrAdmin = [VENDOR_ADMIN, TRAINING_ORGANISATION_MANAGER].includes(get(credentials, 'role.vendor.name'));
+
   const fetchedCourse = await Course.findOne({ _id: courseId })
     .populate([
       { path: 'companies', select: 'name' },
@@ -365,6 +367,7 @@ const getCourseForOperations = async (courseId, credentials, origin) => {
             select: 'identity.firstname identity.lastname contact.phone local.email picture.link',
           },
           { path: 'contact', select: 'identity.firstname identity.lastname contact.phone' },
+          ...(isRofOrAdmin ? [{ path: 'trainerMission', select: '_id', options: { isVendorUser: true } }] : []),
         ]
         : [{ path: 'slots', select: 'startDate' }]
       ),
