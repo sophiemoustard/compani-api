@@ -367,8 +367,8 @@ describe('COMPANIES ROUTES - POST /companies', () => {
     createFolder.restore();
   });
 
-  describe('TRAINING_ORGANISATION_MANAGER', () => {
-    const payload = { name: 'Test SARL' };
+  describe('TRAINING_ORGANISATION_MANAGER #tag', () => {
+    const payload = { name: 'Test SARL', salesRepresentative: usersList[2]._id };
 
     beforeEach(populateDB);
     beforeEach(async () => {
@@ -425,6 +425,17 @@ describe('COMPANIES ROUTES - POST /companies', () => {
       });
 
       expect(response.statusCode).toBe(400);
+    });
+
+    it('should return 404 if salesRepresentative has wrong role', async () => {
+      const response = await app.inject({
+        method: 'POST',
+        url: '/companies',
+        payload: { name: 'Test other company', salesRepresentative: usersList[1]._id },
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(404);
     });
   });
 
