@@ -158,7 +158,7 @@ exports.deleteBillingPurchase = async (courseBillId, billingPurchaseId) => Cours
   { $pull: { billingPurchaseList: { _id: billingPurchaseId } } }
 );
 
-exports.generateBillPdf = async (billId) => {
+exports.generateBillPdf = async (billId, companies, credentials) => {
   const vendorCompany = await VendorCompaniesHelper.get();
   const bill = await CourseBill.findOne({ _id: billId })
     .populate({
@@ -170,11 +170,38 @@ exports.generateBillPdf = async (billId) => {
     .populate({ path: 'companies', select: 'name address' })
     .populate({ path: 'payer.fundingOrganisation', select: 'name address' })
     .populate({ path: 'payer.company', select: 'name address' })
+    .populate({
+      path: 'coursePayments',
+      options: {
+        sort: { date: -1 },
+        isVendorUser: [TRAINING_ORGANISATION_MANAGER, VENDOR_ADMIN].includes(get(credentials, 'role.vendor.name')),
+        requestingOwnInfos: UtilsHelper.doesArrayIncludeId(companies, get(credentials, 'company._id')),
+      },
+    })
+    .populate({
+      path: 'courseCreditNote',
+      options: {
+        isVendorUser: [TRAINING_ORGANISATION_MANAGER, VENDOR_ADMIN].includes(get(credentials, 'role.vendor.name')),
+        requestingOwnInfos: UtilsHelper.doesArrayIncludeId(companies, get(credentials, 'company._id')),
+      },
+    })
     .lean();
 
   const { billedAt, payer } = bill;
   const data = {
-    ...pick(bill, ['number', 'companies', 'course', 'mainFee', 'billingPurchaseList', 'isPayerCompany']),
+    ...pick(
+      bill,
+      [
+        'number',
+        'companies',
+        'course',
+        'mainFee',
+        'billingPurchaseList',
+        'isPayerCompany',
+        'coursePayments',
+        'courseCreditNote',
+      ]
+    ),
     date: CompaniDate(billedAt).format(DD_MM_YYYY),
     vendorCompany,
     payer: { name: payer.name, address: get(payer, 'address.fullAddress') || payer.address },

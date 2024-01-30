@@ -2,20 +2,22 @@ const get = require('lodash/get');
 const UtilsHelper = require('../../../helpers/utils');
 const NumbersHelper = require('../../../helpers/numbers');
 const FileHelper = require('../../../helpers/file');
-const CourseBillHelper = require('../../../helpers/courseBills');
-const { COPPER_GREY_200, COUNT_UNIT } = require('../../../helpers/constants');
+const { COPPER_GREY_200, COUNT_UNIT, PAYMENT, DD_MM_YYYY } = require('../../../helpers/constants');
+const { CompaniDate } = require('../../../helpers/dates/companiDates');
 
-const getImages = async () => {
+exports.getImages = async (downloadSignature = false) => {
   const imageList = [
     { url: 'https://storage.googleapis.com/compani-main/icons/compani_texte_bleu.png', name: 'compani.png' },
+    ...(downloadSignature
+      ? [{ url: 'https://storage.googleapis.com/compani-main/tsb_signature.png', name: 'signature.png' }]
+      : []
+    ),
   ];
 
   return FileHelper.downloadImages(imageList);
 };
 
-exports.getHeader = async (data, isBill = false) => {
-  const [compani] = await getImages();
-
+exports.getHeader = (data, compani, totalBalance, isBill = false) => {
   const additionalInfosSection = isBill
     ? {
       ...!data.isPayerCompany &&
@@ -50,6 +52,14 @@ exports.getHeader = async (data, isBill = false) => {
             { text: isBill ? 'Facture' : 'Avoir', fontSize: 32 },
             { text: data.number, bold: true },
             { text: `${isBill ? 'Date de facture' : 'Date de l\'avoir'} : ${data.date}` },
+            ...(isBill && !data.courseCreditNote && totalBalance <= 0
+              ? [{
+                text: 'Facture acquitée le '
+                + `${CompaniDate(data.coursePayments.filter(p => p.nature === PAYMENT)[0].date).format(DD_MM_YYYY)} ☑`,
+                color: 'green',
+              }]
+              : []
+            ),
           ],
           alignment: 'right',
         },
@@ -85,7 +95,7 @@ exports.getHeader = async (data, isBill = false) => {
     },
   ];
 
-  return { header, images: [compani] };
+  return header;
 };
 
 exports.getFeeTable = (data) => {
@@ -150,22 +160,42 @@ exports.getFeeTable = (data) => {
   ];
 };
 
-exports.getTableFooter = (data) => {
-  const netInclTaxes = UtilsHelper.formatPrice(CourseBillHelper.getNetInclTaxes(data));
-
-  return {
-    columns: [
-      { text: '' },
-      { text: '' },
-      { text: '' },
-      [
-        { text: 'Sous-total HT', alignment: 'right', marginRight: 22, marginBottom: 8 },
-        { text: 'Total TTC', alignment: 'right', marginRight: 22, bold: true },
-      ],
-      [
-        { text: netInclTaxes, alignment: 'right', width: 'auto', marginBottom: 8 },
-        { text: netInclTaxes, alignment: 'right', width: 'auto', bold: true },
-      ],
+exports.getTotalInfos = netInclTaxes => ({
+  columns: [
+    { text: '' },
+    { text: '' },
+    { text: '' },
+    [
+      { text: 'Sous-total HT', alignment: 'right', marginBottom: 8 },
+      { text: 'Total TTC', alignment: 'right', marginBottom: 8, bold: true },
     ],
-  };
-};
+    [
+      { text: UtilsHelper.formatPrice(netInclTaxes), alignment: 'right', width: 'auto', marginBottom: 8 },
+      { text: UtilsHelper.formatPrice(netInclTaxes), alignment: 'right', width: 'auto', marginBottom: 8, bold: true },
+    ],
+  ],
+});
+
+exports.getBalanceInfos = (data, coursePayments, netInclTaxes, totalBalance) => ({
+  columns: [
+    { text: '' },
+    { text: '' },
+    { text: '' },
+    [
+      ...(data.coursePayments.length ? [{ text: 'Paiements effectués', alignment: 'right', marginBottom: 8 }] : []),
+      ...(data.courseCreditNote ? [{ text: 'Crédits appliqués', alignment: 'right', marginBottom: 8 }] : []),
+      { text: 'Solde dû', alignment: 'right', marginBottom: 8, bold: true },
+    ],
+    [
+      ...(data.coursePayments.length
+        ? [{ text: UtilsHelper.formatPrice(coursePayments), alignment: 'right', width: 'auto', marginBottom: 8 }]
+        : []
+      ),
+      ...(data.courseCreditNote
+        ? [{ text: UtilsHelper.formatPrice(netInclTaxes), alignment: 'right', width: 'auto', marginBottom: 8 }]
+        : []
+      ),
+      { text: UtilsHelper.formatPrice(totalBalance), alignment: 'right', width: 'auto', marginBottom: 8, bold: true },
+    ],
+  ],
+});
