@@ -81,8 +81,21 @@ describe('COMPANIES ROUTES - PUT /companies/:id', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      const updatedTpp = await Company.countDocuments({ _id: company._id, name: 'Tèst' });
-      expect(updatedTpp).toBe(1);
+      const updatedCompany = await Company.countDocuments({ _id: company._id, name: 'Tèst' });
+      expect(updatedCompany).toBe(1);
+    });
+
+    it('should update salesRepresentative', async () => {
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/companies/${company._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload: { salesRepresentative: usersList[2]._id },
+      });
+
+      expect(response.statusCode).toBe(200);
+      const updatedCompany = await Company.countDocuments({ _id: company._id, salesRepresentative: usersList[2]._id });
+      expect(updatedCompany).toBe(1);
     });
 
     it('should return 409 if other company has exact same name', async () => {
@@ -138,6 +151,17 @@ describe('COMPANIES ROUTES - PUT /companies/:id', () => {
         url: `/companies/${company._id}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
         payload,
+      });
+
+      expect(response.statusCode).toBe(404);
+    });
+
+    it('should return 404 if salesRepresentative has wrong role', async () => {
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/companies/${company._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload: { salesRepresentative: usersList[1]._id },
       });
 
       expect(response.statusCode).toBe(404);

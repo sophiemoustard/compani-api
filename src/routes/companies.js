@@ -78,6 +78,7 @@ exports.plugin = {
                 gcs: Joi.object().keys({ driveId: Joi.string().allow(null), link: Joi.string().allow(null) }),
               }),
             }),
+            salesRepresentative: Joi.objectId(),
           }),
         },
         pre: [

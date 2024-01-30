@@ -91,4 +91,5 @@ exports.updateCompany = async (companyId, payload) => {
 exports.getCompany = async companyId => Company
   .findOne({ _id: companyId })
   .populate({ path: 'billingRepresentative', select: '_id picture contact identity local' })
+  .populate({ path: 'salesRepresentative', select: '_id picture contact identity local' })
   .lean();

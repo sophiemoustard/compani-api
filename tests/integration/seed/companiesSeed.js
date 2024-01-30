@@ -6,7 +6,7 @@ const User = require('../../../src/models/User');
 const UserCompany = require('../../../src/models/UserCompany');
 const { authCompany, companyWithoutSubscription, otherCompany } = require('../../seed/authCompaniesSeed');
 const { deleteNonAuthenticationSeeds } = require('../helpers/db');
-const { clientAdminRoleId } = require('../../seed/authRolesSeed');
+const { clientAdminRoleId, trainingOrganisationManagerRoleId } = require('../../seed/authRolesSeed');
 const { INTERVENTION, MOBILE, WEBAPP, COMPANY } = require('../../../src/helpers/constants');
 
 const company = {
@@ -61,7 +61,16 @@ const usersList = [
     refreshToken: uuidv4(),
     role: { client: clientAdminRoleId },
     origin: WEBAPP,
-  }];
+  },
+  {
+    _id: new ObjectId(),
+    identity: { firstname: 'Chargé', lastname: 'accompagnement' },
+    local: { email: 'acc@c.com', password: '123456!eR' },
+    refreshToken: uuidv4(),
+    role: { vendor: trainingOrganisationManagerRoleId },
+    origin: WEBAPP,
+  },
+];
 
 const userCompanies = [
   // old inactive user company

@@ -21,6 +21,14 @@ exports.doesCompanyExist = async (req) => {
   }
 };
 
+const salesRepresentativeExists = async (userId) => {
+  const salesRepresentative = await User.findOne({ _id: userId }, { role: 1 }).lean({ autopopulate: true });
+  const rofOrAdminRoles = [TRAINING_ORGANISATION_MANAGER, VENDOR_ADMIN];
+  if (!salesRepresentative || !(rofOrAdminRoles.includes(get(salesRepresentative, 'role.vendor.name')))) {
+    throw Boom.notFound();
+  }
+};
+
 exports.authorizeCompanyUpdate = async (req) => {
   const { params, payload } = req;
   const updatedCompanyId = params._id;
@@ -48,6 +56,8 @@ exports.authorizeCompanyUpdate = async (req) => {
       get(billingRepresentative, 'role.client.name') === CLIENT_ADMIN;
     if (!billingRepresentativeExistsAndIsClientAdmin) throw Boom.notFound();
   }
+
+  if (payload.salesRepresentative) await salesRepresentativeExists(payload.salesRepresentative);
 
   return null;
 };
