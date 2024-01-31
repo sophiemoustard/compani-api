@@ -23,6 +23,7 @@ exports.doesCompanyExist = async (req) => {
 
 const salesRepresentativeExists = async (userId) => {
   const salesRepresentative = await User.findOne({ _id: userId }, { role: 1 }).lean({ autopopulate: true });
+
   const rofOrAdminRoles = [TRAINING_ORGANISATION_MANAGER, VENDOR_ADMIN];
   if (!salesRepresentative || !(rofOrAdminRoles.includes(get(salesRepresentative, 'role.vendor.name')))) {
     throw Boom.notFound();

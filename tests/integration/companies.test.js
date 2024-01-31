@@ -8,7 +8,7 @@ const app = require('../../server');
 const { company, populateDB, usersList } = require('./seed/companiesSeed');
 const { getToken, getTokenByCredentials } = require('./helpers/authentication');
 const { authCompany, otherCompany, otherHolding, authHolding } = require('../seed/authCompaniesSeed');
-const { noRoleNoCompany, coach, holdingAdminFromOtherCompany } = require('../seed/authUsersSeed');
+const { noRoleNoCompany, coach, holdingAdminFromOtherCompany, vendorAdmin } = require('../seed/authUsersSeed');
 const { generateFormData, getStream } = require('./utils');
 
 describe('NODE ENV', () => {
@@ -90,11 +90,11 @@ describe('COMPANIES ROUTES - PUT /companies/:id', () => {
         method: 'PUT',
         url: `/companies/${company._id}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
-        payload: { salesRepresentative: usersList[2]._id },
+        payload: { salesRepresentative: vendorAdmin._id },
       });
 
       expect(response.statusCode).toBe(200);
-      const updatedCompany = await Company.countDocuments({ _id: company._id, salesRepresentative: usersList[2]._id });
+      const updatedCompany = await Company.countDocuments({ _id: company._id, salesRepresentative: vendorAdmin._id });
       expect(updatedCompany).toBe(1);
     });
 
@@ -368,7 +368,7 @@ describe('COMPANIES ROUTES - POST /companies', () => {
   });
 
   describe('TRAINING_ORGANISATION_MANAGER', () => {
-    const payload = { name: 'Test SARL', salesRepresentative: usersList[2]._id };
+    const payload = { name: 'Test SARL', salesRepresentative: vendorAdmin._id };
 
     beforeEach(populateDB);
     beforeEach(async () => {
