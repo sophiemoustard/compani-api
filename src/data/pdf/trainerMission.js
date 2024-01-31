@@ -56,7 +56,7 @@ exports.getPdfContent = async (data) => {
       { text: 'Formation certifiante ?' },
       { text: !data.certification.length ? 'Non' : `${formatCertifications(data.certification)}`, style: 'cell' },
     ],
-    [{ text: 'Frais de formateurs prévus' }, { text: `${data.fee}€`, style: 'cell' }],
+    [{ text: 'Frais de formateurs prévus' }, { text: UtilsHelper.formatPrice(data.fee), style: 'cell' }],
   ];
 
   const table = [{ table: { body, widths: ['*', '*'], dontBreakRows: true }, marginBottom: 8 }];

@@ -22,7 +22,7 @@ exports.plugin = {
             trainer: Joi.objectId().required(),
             courses: Joi.alternatives().try(Joi.array().items(Joi.objectId()).min(1), Joi.objectId()).required(),
             file: Joi.any(),
-            fee: Joi.number().positive().required(),
+            fee: Joi.number().min(0).required(),
           }),
         },
         pre: [{ method: authorizeTrainerMissionCreation }],

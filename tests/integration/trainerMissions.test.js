@@ -155,6 +155,27 @@ describe('TRAINER MISSIONS ROUTES - POST /trainermissions', () => {
       expect(trainerMissionCount).toBe(1);
     });
 
+    it('should return 400 if fee is smaller than 0', async () => {
+      const courses = [courseList[0]._id.toHexString(), courseList[1]._id.toHexString()];
+      const formData = {
+        trainer: trainer._id.toHexString(),
+        fee: -1200,
+      };
+      const form = generateFormData(formData);
+      courses.forEach(course => form.append('courses', course));
+
+      uploadCourseFileStub.returns({ publicId: '1234567890', link: 'https://test.com/file.pdf' });
+
+      const response = await app.inject({
+        method: 'POST',
+        url: '/trainermissions',
+        headers: { ...form.getHeaders(), Cookie: `alenvi_token=${authToken}` },
+        payload: getStream(form),
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
+
     it('should return 400 if course is string', async () => {
       const formData = {
         courses: '12345',
