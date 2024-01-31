@@ -167,6 +167,7 @@ describe('getCompany', () => {
       [
         { query: 'findOne', args: [{ _id: company._id }] },
         { query: 'populate', args: [{ path: 'billingRepresentative', select: '_id picture contact identity local' }] },
+        { query: 'populate', args: [{ path: 'salesRepresentative', select: '_id picture contact identity local' }] },
         { query: 'lean', args: [] },
       ]
     );

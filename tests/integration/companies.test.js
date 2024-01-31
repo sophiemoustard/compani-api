@@ -367,7 +367,7 @@ describe('COMPANIES ROUTES - POST /companies', () => {
     createFolder.restore();
   });
 
-  describe('TRAINING_ORGANISATION_MANAGER #tag', () => {
+  describe('TRAINING_ORGANISATION_MANAGER', () => {
     const payload = { name: 'Test SARL', salesRepresentative: usersList[2]._id };
 
     beforeEach(populateDB);
