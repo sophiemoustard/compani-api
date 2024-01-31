@@ -39,7 +39,7 @@ exports.plugin = {
             mobileConnectionMode: Joi
               .string()
               .valid(...MOBILE_CONNECTION_MODE.filter(val => val !== UNKNOWN))
-              .when('origin', { is: MOBILE, then: Joi.string(), otherwise: Joi.forbidden() })
+              .when('origin', { is: MOBILE, then: Joi.required(), otherwise: Joi.forbidden() })
               .default(UNKNOWN),
           }).required(),
         },
