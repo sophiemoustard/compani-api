@@ -1776,6 +1776,7 @@ describe('getCourse', () => {
                 select: 'identity.firstname identity.lastname contact.phone local.email picture.link',
               },
               { path: 'contact', select: 'identity.firstname identity.lastname contact.phone' },
+              { path: 'trainerMission', select: '_id', options: { isVendorUser: true } },
             ]],
           },
           { query: 'lean' },
