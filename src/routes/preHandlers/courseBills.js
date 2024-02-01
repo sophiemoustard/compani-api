@@ -184,5 +184,5 @@ exports.authorizeBillPdfGet = async (req) => {
     if (!hasSameCompany && !isPayer) throw Boom.notFound();
   }
 
-  return [...bill.companies, bill.payer];
+  return [...new Set([...bill.companies.map(c => c.toHexString()), bill.payer.toHexString()])];
 };

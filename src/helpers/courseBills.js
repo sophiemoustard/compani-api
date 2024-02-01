@@ -1,7 +1,6 @@
 const get = require('lodash/get');
 const flat = require('flat');
 const omit = require('lodash/omit');
-const pick = require('lodash/pick');
 const NumbersHelper = require('./numbers');
 const CourseBill = require('../models/CourseBill');
 const CourseBillsNumber = require('../models/CourseBillsNumber');
@@ -160,7 +159,8 @@ exports.deleteBillingPurchase = async (courseBillId, billingPurchaseId) => Cours
 
 exports.generateBillPdf = async (billId, companies, credentials) => {
   const vendorCompany = await VendorCompaniesHelper.get();
-  const bill = await CourseBill.findOne({ _id: billId })
+  const bill = await CourseBill
+    .findOne({ _id: billId }, { number: 1, companies: 1, course: 1, mainFee: 1, billingPurchaseList: 1, billedAt: 1 })
     .populate({
       path: 'course',
       select: 'subProgram',
@@ -172,6 +172,7 @@ exports.generateBillPdf = async (billId, companies, credentials) => {
     .populate({ path: 'payer.company', select: 'name address' })
     .populate({
       path: 'coursePayments',
+      select: 'nature netInclTaxes date',
       options: {
         sort: { date: -1 },
         isVendorUser: [TRAINING_ORGANISATION_MANAGER, VENDOR_ADMIN].includes(get(credentials, 'role.vendor.name')),
@@ -189,19 +190,7 @@ exports.generateBillPdf = async (billId, companies, credentials) => {
 
   const { billedAt, payer } = bill;
   const data = {
-    ...pick(
-      bill,
-      [
-        'number',
-        'companies',
-        'course',
-        'mainFee',
-        'billingPurchaseList',
-        'isPayerCompany',
-        'coursePayments',
-        'courseCreditNote',
-      ]
-    ),
+    ...omit(bill, ['_id', 'billedAt']),
     date: CompaniDate(billedAt).format(DD_MM_YYYY),
     vendorCompany,
     payer: { name: payer.name, address: get(payer, 'address.fullAddress') || payer.address },

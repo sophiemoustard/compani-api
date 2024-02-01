@@ -695,7 +695,13 @@ describe('generateBillPdf', () => {
     );
     SinonMongoose.calledOnceWithExactly(findOne,
       [
-        { query: 'findOne', args: [{ _id: billId }] },
+        {
+          query: 'findOne',
+          args: [
+            { _id: billId },
+            { number: 1, companies: 1, course: 1, mainFee: 1, billingPurchaseList: 1, billedAt: 1 },
+          ],
+        },
         {
           query: 'populate',
           args: [{
@@ -716,7 +722,11 @@ describe('generateBillPdf', () => {
         {
           query: 'populate',
           args: [
-            { path: 'coursePayments', options: { sort: { date: -1 }, isVendorUser: false, requestingOwnInfos: true } },
+            {
+              path: 'coursePayments',
+              select: 'nature netInclTaxes date',
+              options: { sort: { date: -1 }, isVendorUser: false, requestingOwnInfos: true },
+            },
           ],
         },
         {

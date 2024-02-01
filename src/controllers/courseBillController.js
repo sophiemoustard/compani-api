@@ -81,8 +81,10 @@ const generateBillPdf = async (req, h) => {
     req.log('courseBillController - generateBillPdf - params', req.params);
     req.log('courseBillController - generateBillPdf - company', get(req, 'auth.credentials.company._id'));
 
-    const { pdf, billNumber } = await CourseBillHelper
-      .generateBillPdf(req.params._id, req.pre.companies, req.auth.credentials);
+    const {
+      pdf,
+      billNumber,
+    } = await CourseBillHelper.generateBillPdf(req.params._id, req.pre.companies, req.auth.credentials);
     return h.response(pdf)
       .header('content-disposition', `inline; filename=${billNumber}.pdf`)
       .type('application/pdf');

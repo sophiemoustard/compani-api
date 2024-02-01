@@ -5,16 +5,17 @@ const CourseBillHelper = require('../../../helpers/courseBills');
 
 exports.getPdfContent = async (bill) => {
   const netInclTaxes = CourseBillHelper.getNetInclTaxes(bill);
-  const coursePayments = bill.coursePayments
+  const amountPaid = bill.coursePayments
     .reduce((acc, p) => (p.nature === PAYMENT ? acc + p.netInclTaxes : acc - p.netInclTaxes), 0);
-  const totalBalance = bill.courseCreditNote ? -coursePayments : netInclTaxes - coursePayments;
-  const displaySignature = !bill.courseCreditNote && totalBalance <= 0;
-  const [compani, signature] = await UtilsPdfHelper.getImages(displaySignature);
+  const totalBalance = bill.courseCreditNote ? -amountPaid : netInclTaxes - amountPaid;
+  const isBillPaid = !bill.courseCreditNote && totalBalance <= 0;
 
-  const header = UtilsPdfHelper.getHeader(bill, compani, totalBalance, true);
+  const [compani, signature] = await UtilsPdfHelper.getImages(isBillPaid);
+
+  const header = UtilsPdfHelper.getHeader(bill, compani, true, isBillPaid);
   const feeTable = UtilsPdfHelper.getFeeTable(bill);
   const totalInfos = UtilsPdfHelper.getTotalInfos(netInclTaxes);
-  const balanceInfos = UtilsPdfHelper.getBalanceInfos(bill, coursePayments, netInclTaxes, totalBalance);
+  const balanceInfos = UtilsPdfHelper.getBalanceInfos(bill, amountPaid, netInclTaxes, totalBalance);
 
   const footer = [
     {
@@ -22,7 +23,7 @@ exports.getPdfContent = async (bill) => {
       fontSize: 8,
       marginTop: 48,
     },
-    ...(displaySignature ? [{ image: signature, width: 144, marginTop: 8, alignment: 'right' }] : []),
+    ...(isBillPaid ? [{ image: signature, width: 144, marginTop: 8, alignment: 'right' }] : []),
   ];
 
   const content = [header, feeTable, totalInfos, balanceInfos, footer];
@@ -36,7 +37,7 @@ exports.getPdfContent = async (bill) => {
         description: { alignment: 'left', marginLeft: 8, fontSize: 10 },
       },
     },
-    images: [compani, ...(displaySignature ? [signature] : [])],
+    images: [compani, ...(isBillPaid ? [signature] : [])],
   };
 };
 

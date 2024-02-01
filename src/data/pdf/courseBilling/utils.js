@@ -17,7 +17,7 @@ exports.getImages = async (downloadSignature = false) => {
   return FileHelper.downloadImages(imageList);
 };
 
-exports.getHeader = (data, compani, totalBalance, isBill = false) => {
+exports.getHeader = (data, compani, isBill = false, isBillPaid = false) => {
   const additionalInfosSection = isBill
     ? {
       ...!data.isPayerCompany &&
@@ -52,7 +52,7 @@ exports.getHeader = (data, compani, totalBalance, isBill = false) => {
             { text: isBill ? 'Facture' : 'Avoir', fontSize: 32 },
             { text: data.number, bold: true },
             { text: `${isBill ? 'Date de facture' : 'Date de l\'avoir'} : ${data.date}` },
-            ...(isBill && !data.courseCreditNote && totalBalance <= 0
+            ...(isBillPaid
               ? [{
                 text: 'Facture acquitée le '
                 + `${CompaniDate(data.coursePayments.filter(p => p.nature === PAYMENT)[0].date).format(DD_MM_YYYY)} ☑`,
@@ -176,7 +176,7 @@ exports.getTotalInfos = netInclTaxes => ({
   ],
 });
 
-exports.getBalanceInfos = (data, coursePayments, netInclTaxes, totalBalance) => ({
+exports.getBalanceInfos = (data, amountPaid, netInclTaxes, totalBalance) => ({
   columns: [
     { text: '' },
     { text: '' },
@@ -188,7 +188,7 @@ exports.getBalanceInfos = (data, coursePayments, netInclTaxes, totalBalance) => 
     ],
     [
       ...(data.coursePayments.length
-        ? [{ text: UtilsHelper.formatPrice(coursePayments), alignment: 'right', width: 'auto', marginBottom: 8 }]
+        ? [{ text: UtilsHelper.formatPrice(amountPaid), alignment: 'right', width: 'auto', marginBottom: 8 }]
         : []
       ),
       ...(data.courseCreditNote
