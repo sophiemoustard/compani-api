@@ -142,7 +142,7 @@ describe('list', () => {
       createdBy: new ObjectId(),
     }];
 
-    find.returns(SinonMongoose.stubChainedQueries(trainerMissions, ['populate', 'setOptions', 'lean']));
+    find.returns(SinonMongoose.stubChainedQueries(trainerMissions, ['populate', 'setOptions', 'sort', 'lean']));
 
     const result = await trainerMissionsHelper.list({ trainer: trainerId }, credentials);
 
@@ -163,6 +163,7 @@ describe('list', () => {
           }],
         },
         { query: 'setOptions', args: [{ isVendorUser: true, requestingOwnInfos: false }] },
+        { query: 'sort', args: [{ createdAt: -1 }] },
         { query: 'lean' },
       ]
     );
@@ -179,7 +180,7 @@ describe('list', () => {
       createdBy: new ObjectId(),
     }];
 
-    find.returns(SinonMongoose.stubChainedQueries(trainerMissions, ['populate', 'setOptions', 'lean']));
+    find.returns(SinonMongoose.stubChainedQueries(trainerMissions, ['populate', 'setOptions', 'sort', 'lean']));
 
     const result = await trainerMissionsHelper.list({ trainer: trainerId }, credentials);
 
@@ -200,6 +201,7 @@ describe('list', () => {
           }],
         },
         { query: 'setOptions', args: [{ isVendorUser: false, requestingOwnInfos: true }] },
+        { query: 'sort', args: [{ createdAt: -1 }] },
         { query: 'lean' },
       ]
     );

@@ -56,6 +56,7 @@ exports.list = async (query, credentials) => {
       isVendorUser: isRofOrAdmin,
       requestingOwnInfos: UtilsHelper.areObjectIdsEquals(trainer, credentials._id),
     })
+    .sort({ createdAt: -1 })
     .lean();
 };
 
