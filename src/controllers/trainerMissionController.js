@@ -18,7 +18,7 @@ const create = async (req) => {
 
 const list = async (req) => {
   try {
-    const trainerMissions = await TrainerMissionsHelper.list(req.query, req.auth.credentials);
+    const trainerMissions = await TrainerMissionsHelper.list(req.query);
 
     return {
       message: trainerMissions.length
