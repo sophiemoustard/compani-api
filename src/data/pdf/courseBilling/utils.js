@@ -17,7 +17,7 @@ exports.getImages = async (downloadSignature = false) => {
   return FileHelper.downloadImages(imageList);
 };
 
-exports.getHeader = (data, compani, isBill = false, isBillPaid = false) => {
+exports.getHeader = (data, compani, isBill = false, isPaid = false) => {
   const additionalInfosSection = isBill
     ? {
       ...!data.isPayerCompany &&
@@ -52,7 +52,7 @@ exports.getHeader = (data, compani, isBill = false, isBillPaid = false) => {
             { text: isBill ? 'Facture' : 'Avoir', fontSize: 32 },
             { text: data.number, bold: true },
             { text: `${isBill ? 'Date de facture' : 'Date de l\'avoir'} : ${data.date}` },
-            ...(isBillPaid
+            ...(isPaid
               ? [{
                 text: 'Facture acquitée le '
                 + `${CompaniDate(data.coursePayments.filter(p => p.nature === PAYMENT)[0].date).format(DD_MM_YYYY)} ☑`,
@@ -176,22 +176,19 @@ exports.getTotalInfos = netInclTaxes => ({
   ],
 });
 
-exports.getBalanceInfos = (data, amountPaid, netInclTaxes, totalBalance) => ({
+exports.getBalanceInfos = (courseCreditNote, amountPaid, netInclTaxes, totalBalance) => ({
   columns: [
     { text: '' },
     { text: '' },
     { text: '' },
     [
-      ...(data.coursePayments.length ? [{ text: 'Paiements effectués', alignment: 'right', marginBottom: 8 }] : []),
-      ...(data.courseCreditNote ? [{ text: 'Crédits appliqués', alignment: 'right', marginBottom: 8 }] : []),
+      { text: 'Paiements effectués', alignment: 'right', marginBottom: 8 },
+      ...(courseCreditNote ? [{ text: 'Crédits appliqués', alignment: 'right', marginBottom: 8 }] : []),
       { text: 'Solde dû', alignment: 'right', marginBottom: 8, bold: true },
     ],
     [
-      ...(data.coursePayments.length
-        ? [{ text: UtilsHelper.formatPrice(amountPaid), alignment: 'right', width: 'auto', marginBottom: 8 }]
-        : []
-      ),
-      ...(data.courseCreditNote
+      { text: UtilsHelper.formatPrice(amountPaid), alignment: 'right', width: 'auto', marginBottom: 8 },
+      ...(courseCreditNote
         ? [{ text: UtilsHelper.formatPrice(netInclTaxes), alignment: 'right', width: 'auto', marginBottom: 8 }]
         : []
       ),

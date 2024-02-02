@@ -340,10 +340,12 @@ describe('getPdfContent', () => {
             { text: '' },
             { text: '' },
             [
+              { text: 'Paiements effectués', alignment: 'right', marginBottom: 8 },
               { text: 'Crédits appliqués', alignment: 'right', marginBottom: 8 },
               { text: 'Solde dû', alignment: 'right', marginBottom: 8, bold: true },
             ],
             [
+              { text: '0,00 €', alignment: 'right', width: 'auto', marginBottom: 8 },
               { text: '1000,00 €', alignment: 'right', width: 'auto', marginBottom: 8 },
               { text: '0,00 €', alignment: 'right', width: 'auto', marginBottom: 8, bold: true },
             ],
@@ -370,8 +372,9 @@ describe('getPdfContent', () => {
     formatPrice.onCall(1).returns('1000,00 €');
     formatPrice.onCall(2).returns('1000,00 €');
     formatPrice.onCall(3).returns('1000,00 €');
-    formatPrice.onCall(4).returns('1000,00 €');
-    formatPrice.onCall(5).returns('0,00 €');
+    formatPrice.onCall(4).returns('0,00 €');
+    formatPrice.onCall(5).returns('1000,00 €');
+    formatPrice.onCall(6).returns('0,00 €');
 
     const result = await CourseBill.getPdfContent(bill);
 

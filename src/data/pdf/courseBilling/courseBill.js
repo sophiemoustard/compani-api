@@ -4,18 +4,19 @@ const PdfHelper = require('../../../helpers/pdf');
 const CourseBillHelper = require('../../../helpers/courseBills');
 
 exports.getPdfContent = async (bill) => {
+  const { coursePayments, courseCreditNote } = bill;
   const netInclTaxes = CourseBillHelper.getNetInclTaxes(bill);
-  const amountPaid = bill.coursePayments
+  const amountPaid = coursePayments
     .reduce((acc, p) => (p.nature === PAYMENT ? acc + p.netInclTaxes : acc - p.netInclTaxes), 0);
-  const totalBalance = bill.courseCreditNote ? -amountPaid : netInclTaxes - amountPaid;
-  const isBillPaid = !bill.courseCreditNote && totalBalance <= 0;
+  const totalBalance = courseCreditNote ? -amountPaid : netInclTaxes - amountPaid;
+  const isPaid = !courseCreditNote && totalBalance <= 0;
 
-  const [compani, signature] = await UtilsPdfHelper.getImages(isBillPaid);
+  const [compani, signature] = await UtilsPdfHelper.getImages(isPaid);
 
-  const header = UtilsPdfHelper.getHeader(bill, compani, true, isBillPaid);
+  const header = UtilsPdfHelper.getHeader(bill, compani, true, isPaid);
   const feeTable = UtilsPdfHelper.getFeeTable(bill);
   const totalInfos = UtilsPdfHelper.getTotalInfos(netInclTaxes);
-  const balanceInfos = UtilsPdfHelper.getBalanceInfos(bill, amountPaid, netInclTaxes, totalBalance);
+  const balanceInfos = UtilsPdfHelper.getBalanceInfos(courseCreditNote, amountPaid, netInclTaxes, totalBalance);
 
   const footer = [
     {
@@ -23,7 +24,7 @@ exports.getPdfContent = async (bill) => {
       fontSize: 8,
       marginTop: 48,
     },
-    ...(isBillPaid ? [{ image: signature, width: 144, marginTop: 8, alignment: 'right' }] : []),
+    ...(isPaid ? [{ image: signature, width: 144, marginTop: 8, alignment: 'right' }] : []),
   ];
 
   const content = [header, feeTable, totalInfos, balanceInfos, footer];
@@ -37,7 +38,7 @@ exports.getPdfContent = async (bill) => {
         description: { alignment: 'left', marginLeft: 8, fontSize: 10 },
       },
     },
-    images: [compani, ...(isBillPaid ? [signature] : [])],
+    images: [compani, ...(isPaid ? [signature] : [])],
   };
 };
 
