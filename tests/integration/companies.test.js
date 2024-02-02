@@ -8,7 +8,7 @@ const app = require('../../server');
 const { company, populateDB, usersList } = require('./seed/companiesSeed');
 const { getToken, getTokenByCredentials } = require('./helpers/authentication');
 const { authCompany, otherCompany, otherHolding, authHolding } = require('../seed/authCompaniesSeed');
-const { noRoleNoCompany, coach, holdingAdminFromOtherCompany } = require('../seed/authUsersSeed');
+const { noRoleNoCompany, coach, holdingAdminFromOtherCompany, vendorAdmin } = require('../seed/authUsersSeed');
 const { generateFormData, getStream } = require('./utils');
 
 describe('NODE ENV', () => {
@@ -81,8 +81,21 @@ describe('COMPANIES ROUTES - PUT /companies/:id', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      const updatedTpp = await Company.countDocuments({ _id: company._id, name: 'Tèst' });
-      expect(updatedTpp).toBe(1);
+      const updatedCompany = await Company.countDocuments({ _id: company._id, name: 'Tèst' });
+      expect(updatedCompany).toBe(1);
+    });
+
+    it('should update salesRepresentative', async () => {
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/companies/${company._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload: { salesRepresentative: vendorAdmin._id },
+      });
+
+      expect(response.statusCode).toBe(200);
+      const updatedCompany = await Company.countDocuments({ _id: company._id, salesRepresentative: vendorAdmin._id });
+      expect(updatedCompany).toBe(1);
     });
 
     it('should return 409 if other company has exact same name', async () => {
@@ -138,6 +151,17 @@ describe('COMPANIES ROUTES - PUT /companies/:id', () => {
         url: `/companies/${company._id}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
         payload,
+      });
+
+      expect(response.statusCode).toBe(404);
+    });
+
+    it('should return 404 if salesRepresentative has wrong role', async () => {
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/companies/${company._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload: { salesRepresentative: usersList[1]._id },
       });
 
       expect(response.statusCode).toBe(404);
@@ -344,7 +368,7 @@ describe('COMPANIES ROUTES - POST /companies', () => {
   });
 
   describe('TRAINING_ORGANISATION_MANAGER', () => {
-    const payload = { name: 'Test SARL' };
+    const payload = { name: 'Test SARL', salesRepresentative: vendorAdmin._id };
 
     beforeEach(populateDB);
     beforeEach(async () => {
@@ -401,6 +425,17 @@ describe('COMPANIES ROUTES - POST /companies', () => {
       });
 
       expect(response.statusCode).toBe(400);
+    });
+
+    it('should return 404 if salesRepresentative has wrong role', async () => {
+      const response = await app.inject({
+        method: 'POST',
+        url: '/companies',
+        payload: { name: 'Test other company', salesRepresentative: usersList[1]._id },
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(404);
     });
   });
 

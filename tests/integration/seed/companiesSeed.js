@@ -61,7 +61,8 @@ const usersList = [
     refreshToken: uuidv4(),
     role: { client: clientAdminRoleId },
     origin: WEBAPP,
-  }];
+  },
+];
 
 const userCompanies = [
   // old inactive user company
