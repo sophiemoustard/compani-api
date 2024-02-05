@@ -8,7 +8,7 @@ const getDocListMiddlewareList = ['find'];
 const getDocMiddlewareList = [
   'findOne',
   'findOneAndDelete',
-  'findOneAndRemove',
+  'findOneAndDelete',
   'findOneAndUpdate',
 ];
 
@@ -63,7 +63,7 @@ module.exports = {
       'deleteMany',
       'deleteOne',
       'findOneAndDelete',
-      'findOneAndRemove',
+      'findOneAndDelete',
       'remove',
       'findOneAndUpdate',
       'updateOne',

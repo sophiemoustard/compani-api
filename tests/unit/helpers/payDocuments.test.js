@@ -102,21 +102,21 @@ describe('create', () => {
 });
 
 describe('removeFromDriveAndDb', () => {
-  let findByIdAndRemoveStub;
+  let findByIdAndDeleteStub;
   beforeEach(() => {
-    findByIdAndRemoveStub = sinon.stub(PayDocument, 'findByIdAndRemove');
+    findByIdAndDeleteStub = sinon.stub(PayDocument, 'findByIdAndDelete');
   });
   afterEach(() => {
-    findByIdAndRemoveStub.restore();
+    findByIdAndDeleteStub.restore();
   });
 
   it('should remove document from db and drive', async () => {
     const deleteFileStub = sinon.stub(GDriveStorageHelper, 'deleteFile');
     const id = new ObjectId();
     const doc = { file: { driveId: '1234567890', link: 'http://test.com/test.pdf' } };
-    findByIdAndRemoveStub.returns(doc);
+    findByIdAndDeleteStub.returns(doc);
     await PayDocumentHelper.removeFromDriveAndDb(id);
-    sinon.assert.calledWithExactly(findByIdAndRemoveStub, id);
+    sinon.assert.calledWithExactly(findByIdAndDeleteStub, id);
     sinon.assert.calledWithExactly(deleteFileStub, doc.file.driveId);
     deleteFileStub.restore();
   });
