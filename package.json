@@ -65,7 +65,7 @@
     "mongoose-lean-virtuals": "~0.9.0",
     "nodemailer": "~6.9.9",
     "pdfmake": "~0.2.9",
-    "pizzip": "~3.1.1",
+    "pizzip": "~3.1.6",
     "qrcode": "git+https://github.com/sophiemoustard/node-qrcode.git",
     "qs": "~6.11.0",
     "randomatic": "~3.1.1",
