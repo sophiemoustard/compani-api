@@ -237,10 +237,10 @@
   dependencies:
     "@hapi/boom" "^10.0.1"
 
-"@hapi/eslint-plugin@~5.1.0":
-  version "5.1.0"
-  resolved "https://registry.yarnpkg.com/@hapi/eslint-plugin/-/eslint-plugin-5.1.0.tgz#644e4f0d03afb186350ca6735ba66f13a6c544a5"
-  integrity sha512-D0OvhsjbWW4lhuw0LqERl8vqCIRMnePy9XGYhkf7krzwqzYNEAcBFCafiFsd0gIF6QiQj3O1vYmshRVFZMXdwQ==
+"@hapi/eslint-plugin@~6.0.0":
+  version "6.0.0"
+  resolved "https://registry.yarnpkg.com/@hapi/eslint-plugin/-/eslint-plugin-6.0.0.tgz#49c594a927c74fe821c4c5d235b90efcd3c74e80"
+  integrity sha512-6eN1fnBO742nTTSpQtYB35aFGAT9I7r4u2v/+R2c9ToYTQp4QBoPOBA5R3+C7+Az3I0ugs+lTIqAsMPDLpsRAg==
 
 "@hapi/file@^3.0.0":
   version "3.0.0"
