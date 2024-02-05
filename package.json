@@ -42,7 +42,7 @@
     "cron": "~3.1.6",
     "date-holidays": "~3.23.7",
     "docxtemplater": "3.44.0",
-    "dotenv": "~16.3.1",
+    "dotenv": "~16.4.1",
     "flat": "~5.0.2",
     "form-data": "~4.0.0",
     "handlebars": "~4.7.5",
