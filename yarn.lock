@@ -1296,7 +1296,7 @@ date-easter@^1.0.2:
   resolved "https://registry.yarnpkg.com/date-easter/-/date-easter-1.0.2.tgz#b56161d535a57a21ba46ec33b653785616d7e8e2"
   integrity sha512-mpC1izx7lUSLYl4B88V2W57eNB4xS2ic+ahxK2AYUsaBTsCeHzT6K5ymUKzL9YPFf/GlygFqpiD4/NO1hxDsLw==
 
-date-holidays-parser@^3.4.3:
+date-holidays-parser@^3.4.4:
   version "3.4.4"
   resolved "https://registry.yarnpkg.com/date-holidays-parser/-/date-holidays-parser-3.4.4.tgz#57501fcbb38d000953b178d34fb8136d284ebab3"
   integrity sha512-R5aO4oT8H51ZKdvApqHrqYEiNBrqT6tRj2PFXNcZfqMI4nxY7KKKly0ZsmquR5gY+x9ldKR8SAMdozzIInaoXg==
@@ -1310,15 +1310,14 @@ date-holidays-parser@^3.4.3:
     jalaali-js "^1.2.6"
     moment-timezone "^0.5.43"
 
-date-holidays@~3.16.13:
-  version "3.16.17"
-  resolved "https://registry.yarnpkg.com/date-holidays/-/date-holidays-3.16.17.tgz#a3ae8cfaa81eef12ba8053cf5a2962239b8082e6"
-  integrity sha512-sKp0pWC9MGpxoJZBwVSF20zhpd14FUMoOo40IcZsN9MnX8/djtA/Rh+pKkO4DCzsqiiLTChunwqG4E0mM94iaQ==
+date-holidays@~3.23.7:
+  version "3.23.7"
+  resolved "https://registry.yarnpkg.com/date-holidays/-/date-holidays-3.23.7.tgz#01cc8ecd248beafa0827671c1f20b8e2afa22b19"
+  integrity sha512-B5mJ4EzMx0vtQ8HEyaoxgffT3nrTBUst6TV/bH21KwPaZvLlnS3NHqO8+PK1cqHoYWvgRSsgkLvrYPvZrlIqYg==
   dependencies:
-    date-holidays-parser "^3.4.3"
+    date-holidays-parser "^3.4.4"
     js-yaml "^4.1.0"
-    lodash.omit "^4.5.0"
-    lodash.pick "^4.4.0"
+    lodash "^4.17.21"
     prepin "^1.0.3"
 
 debug@4, debug@4.3.4, debug@4.x, debug@^4.1.1, debug@^4.3.2, debug@^4.3.4:
@@ -2745,16 +2744,6 @@ lodash.merge@^4.6.2:
   version "4.6.2"
   resolved "https://registry.yarnpkg.com/lodash.merge/-/lodash.merge-4.6.2.tgz#558aa53b43b661e1925a0afdfa36a9a1085fe57a"
   integrity sha512-0KpjqXRVvrYyCsX1swR/XTK0va6VQkQM6MNo7PqW77ByjAhoARA8EfrP1N4+KlKj8YS0ZUCtRT/YUuhyYDujIQ==
-
-lodash.omit@^4.5.0:
-  version "4.5.0"
-  resolved "https://registry.yarnpkg.com/lodash.omit/-/lodash.omit-4.5.0.tgz#6eb19ae5a1ee1dd9df0b969e66ce0b7fa30b5e60"
-  integrity sha512-XeqSp49hNGmlkj2EJlfrQFIzQ6lXdNro9sddtQzcJY8QaoC2GO0DT7xaIokHeyM+mIT0mPMlPvkYzg2xCuHdZg==
-
-lodash.pick@^4.4.0:
-  version "4.4.0"
-  resolved "https://registry.yarnpkg.com/lodash.pick/-/lodash.pick-4.4.0.tgz#52f05610fff9ded422611441ed1fc123a03001b3"
-  integrity sha512-hXt6Ul/5yWjfklSGvLQl8vM//l3FtyHZeuelpzK6mm99pNvN9yTDruNZPEJZD1oWrqo+izBmB7oUfWgcCX7s4Q==
 
 lodash@^4.17.21, lodash@~4.17.21:
   version "4.17.21"
