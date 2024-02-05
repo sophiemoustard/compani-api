@@ -47,7 +47,7 @@
     "form-data": "~4.0.0",
     "handlebars": "~4.7.5",
     "hapi-auth-jwt2": "~10.5.1",
-    "hapi-sentry": "~4.0.0",
+    "hapi-sentry": "~4.0.1-2",
     "intl": "~1.2.5",
     "joi": "~17.9.2",
     "joi-objectid": "~4.0.2",
