@@ -6,7 +6,7 @@ const TrainerMission = require('../../../src/models/TrainerMission');
 const trainerMissionsHelper = require('../../../src/helpers/trainerMissions');
 const SinonMongoose = require('../sinonMongoose');
 const GCloudStorageHelper = require('../../../src/helpers/gCloudStorage');
-const { VENDOR_ADMIN, UPLOAD, GENERATION, INTRA } = require('../../../src/helpers/constants');
+const { UPLOAD, GENERATION, INTRA } = require('../../../src/helpers/constants');
 const TrainerMissionPdf = require('../../../src/data/pdf/trainerMission');
 
 describe('upload', () => {
@@ -130,8 +130,7 @@ describe('list', () => {
     find.restore();
   });
 
-  it('should return trainer missions as rof/admin', async () => {
-    const credentials = { role: { vendor: { name: VENDOR_ADMIN } } };
+  it('should return trainer missions', async () => {
     const trainerId = new ObjectId();
     const trainerMissions = [{
       trainer: trainerId,
@@ -142,9 +141,9 @@ describe('list', () => {
       createdBy: new ObjectId(),
     }];
 
-    find.returns(SinonMongoose.stubChainedQueries(trainerMissions, ['populate', 'setOptions', 'lean']));
+    find.returns(SinonMongoose.stubChainedQueries(trainerMissions, ['populate', 'sort', 'lean']));
 
-    const result = await trainerMissionsHelper.list({ trainer: trainerId }, credentials);
+    const result = await trainerMissionsHelper.list({ trainer: trainerId });
 
     expect(result).toMatchObject(trainerMissions);
     SinonMongoose.calledOnceWithExactly(
@@ -162,7 +161,7 @@ describe('list', () => {
             ],
           }],
         },
-        { query: 'setOptions', args: [{ isVendorUser: true }] },
+        { query: 'sort', args: [{ createdAt: -1 }] },
         { query: 'lean' },
       ]
     );

@@ -34,7 +34,7 @@ exports.plugin = {
       method: 'GET',
       path: '/',
       options: {
-        auth: { scope: ['trainermissions:read'] },
+        auth: { scope: ['trainermissions:read', 'user:read-{query.trainer}'] },
         validate: {
           query: Joi.object({ trainer: Joi.objectId().required() }),
         },

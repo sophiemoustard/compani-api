@@ -1,9 +1,8 @@
-const get = require('lodash/get');
 const GCloudStorageHelper = require('./gCloudStorage');
 const UtilsHelper = require('./utils');
 const CourseSlotsHelper = require('./courseSlots');
 const StepsHelper = require('./steps');
-const { TRAINING_ORGANISATION_MANAGER, VENDOR_ADMIN, GENERATION, UPLOAD } = require('./constants');
+const { GENERATION, UPLOAD } = require('./constants');
 const Course = require('../models/Course');
 const TrainerMission = require('../models/TrainerMission');
 const TrainerMissionPdf = require('../data/pdf/trainerMission');
@@ -38,9 +37,8 @@ exports.upload = async (payload, credentials) => {
   return uploadDocument(payload, course, payload.file, UPLOAD, credentials);
 };
 
-exports.list = async (query, credentials) => {
+exports.list = async (query) => {
   const { trainer } = query;
-  const isRofOrAdmin = [VENDOR_ADMIN, TRAINING_ORGANISATION_MANAGER].includes(get(credentials, 'role.vendor.name'));
 
   return TrainerMission
     .find({ trainer })
@@ -52,7 +50,7 @@ exports.list = async (query, credentials) => {
         { path: 'companies', select: 'name' },
       ],
     })
-    .setOptions({ isVendorUser: isRofOrAdmin })
+    .sort({ createdAt: -1 })
     .lean();
 };
 
