@@ -41,7 +41,7 @@
     "bignumber.js": "~9.1.2",
     "cron": "~3.1.6",
     "date-holidays": "~3.23.7",
-    "docxtemplater": "3.28.1",
+    "docxtemplater": "3.44.0",
     "dotenv": "~16.3.1",
     "flat": "~5.0.2",
     "form-data": "~4.0.0",
