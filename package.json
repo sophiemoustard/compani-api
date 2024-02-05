@@ -28,7 +28,7 @@
     "node": "18.17.0"
   },
   "dependencies": {
-    "@google-cloud/storage": "~6.9.0",
+    "@google-cloud/storage": "~7.7.0",
     "@googleapis/drive": "~4.0.1",
     "@hapi/boom": "~10.0.1",
     "@hapi/good": "~9.0.1",
