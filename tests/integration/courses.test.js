@@ -64,6 +64,7 @@ const {
   noRole,
   holdingAdminFromAuthCompany,
   holdingAdminFromOtherCompany,
+  trainerOrganisationManager,
 } = require('../seed/authUsersSeed');
 const SmsHelper = require('../../src/helpers/sms');
 const DocxHelper = require('../../src/helpers/docx');
@@ -98,6 +99,7 @@ describe('COURSES ROUTES - POST /courses', () => {
         operationsRepresentative: vendorAdmin._id,
         estimatedStartDate: '2022-05-31T08:00:00.000Z',
         hasCertifyingTest: true,
+        salesRepresentative: trainerOrganisationManager._id,
       };
       const coursesCountBefore = await Course.countDocuments();
 
@@ -250,6 +252,46 @@ describe('COURSES ROUTES - POST /courses', () => {
         estimatedStartDate: '2022-05-31T08:00:00.000Z',
         holding: new ObjectId(),
         maxTrainees: 2,
+        hasCertifyingTest: false,
+      };
+
+      const response = await app.inject({
+        method: 'POST',
+        url: '/courses',
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload,
+      });
+
+      expect(response.statusCode).toBe(404);
+    });
+
+    it('should return 404 if invalid salesRepresentative', async () => {
+      const payload = {
+        misc: 'course',
+        type: INTER_B2B,
+        subProgram: subProgramsList[0]._id,
+        operationsRepresentative: vendorAdmin._id,
+        salesRepresentative: clientAdmin._id,
+        hasCertifyingTest: false,
+      };
+
+      const response = await app.inject({
+        method: 'POST',
+        url: '/courses',
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload,
+      });
+
+      expect(response.statusCode).toBe(404);
+    });
+
+    it('should return 404 if salesRepresentative doesn\'t exist', async () => {
+      const payload = {
+        misc: 'course',
+        type: INTER_B2B,
+        subProgram: subProgramsList[0]._id,
+        operationsRepresentative: vendorAdmin._id,
+        salesRepresentative: new ObjectId(),
         hasCertifyingTest: false,
       };
 

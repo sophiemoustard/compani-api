@@ -139,6 +139,10 @@ exports.authorizeCourseCreation = async (req) => {
     if (!holdingExists) throw Boom.notFound();
   }
 
+  if (get(req, 'payload.salesRepresentative')) {
+    await checkUserExistsAndHasRightRole(req.payload.salesRepresentative, true);
+  }
+
   return null;
 };
 
