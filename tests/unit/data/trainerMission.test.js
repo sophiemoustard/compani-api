@@ -2,26 +2,31 @@ const sinon = require('sinon');
 const { expect } = require('expect');
 const FileHelper = require('../../../src/helpers/file');
 const PdfHelper = require('../../../src/helpers/pdf');
+const UtilsHelper = require('../../../src/helpers/utils');
 const TrainerMission = require('../../../src/data/pdf/trainerMission');
 const { INTRA, MRS } = require('../../../src/helpers/constants');
 const UtilsMock = require('../../utilsMock');
 
 describe('getPdfContent', () => {
   let downloadImages;
+  let formatPrice;
 
   beforeEach(() => {
     downloadImages = sinon.stub(FileHelper, 'downloadImages');
+    formatPrice = sinon.stub(UtilsHelper, 'formatPrice');
     UtilsMock.mockCurrentDate('2022-09-18T10:00:00.000Z');
   });
 
   afterEach(() => {
     downloadImages.restore();
+    formatPrice.restore();
     UtilsMock.unmockCurrentDate();
   });
 
-  it('it should format and return pdf content ', async () => {
+  it('it should format and return pdf content', async () => {
     const paths = ['src/data/pdf/tmp/compani.png', 'src/data/pdf/tmp/signature.png'];
     downloadImages.returns(paths);
+    formatPrice.onCall(0).returns('1200,00 €');
 
     const data = {
       trainerIdentity: { lastname: 'For', firstname: 'Matrice', title: MRS },
@@ -76,7 +81,7 @@ describe('getPdfContent', () => {
               { text: 'Formation certifiante ?' },
               { text: 'au moins un(e) stagiaire de ASAPAD - Bien manger - Groupe 1', style: 'cell' },
             ],
-            [{ text: 'Frais de formateurs prévus' }, { text: '1200€', style: 'cell' }],
+            [{ text: 'Frais de formateurs prévus' }, { text: '1200,00 €', style: 'cell' }],
           ],
           widths: ['*', '*'],
           dontBreakRows: true,
