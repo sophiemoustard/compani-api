@@ -111,7 +111,10 @@ describe('list', () => {
     SinonMongoose.calledOnceWithExactly(
       find,
       [
-        { query: 'find', args: [{ _id: { $nin: [companyHoldingsList[0].company] } }, { name: 1, salesRepresentative: 1  }] },
+        {
+          query: 'find',
+          args: [{ _id: { $nin: [companyHoldingsList[0].company] } }, { name: 1, salesRepresentative: 1 }],
+        },
         { query: 'lean', args: [] },
       ]
     );
