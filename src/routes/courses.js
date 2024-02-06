@@ -129,6 +129,7 @@ exports.plugin = {
               .objectId()
               .when('type', { is: INTRA_HOLDING, then: Joi.required(), otherwise: Joi.forbidden() }),
             hasCertifyingTest: Joi.boolean().required(),
+            salesRepresentative: Joi.objectId(),
           }),
         },
         auth: { scope: ['courses:create'] },

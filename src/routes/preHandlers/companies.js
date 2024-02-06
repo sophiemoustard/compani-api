@@ -6,6 +6,7 @@ const translate = require('../../helpers/translate');
 const UtilsHelper = require('../../helpers/utils');
 const { TRAINING_ORGANISATION_MANAGER, VENDOR_ADMIN, CLIENT_ADMIN, HOLDING_ADMIN } = require('../../helpers/constants');
 const User = require('../../models/User');
+const { checkUserExistsAndHasRightRole } = require('./utils');
 
 const { language } = translate;
 
@@ -18,15 +19,6 @@ exports.doesCompanyExist = async (req) => {
   } catch (e) {
     req.log('error', e);
     return Boom.isBoom(e) ? e : Boom.badImplementation(e);
-  }
-};
-
-const salesRepresentativeExists = async (userId) => {
-  const salesRepresentative = await User.findOne({ _id: userId }, { role: 1 }).lean({ autopopulate: true });
-
-  const rofOrAdminRoles = [TRAINING_ORGANISATION_MANAGER, VENDOR_ADMIN];
-  if (!salesRepresentative || !(rofOrAdminRoles.includes(get(salesRepresentative, 'role.vendor.name')))) {
-    throw Boom.notFound();
   }
 };
 
@@ -58,7 +50,9 @@ exports.authorizeCompanyUpdate = async (req) => {
     if (!billingRepresentativeExistsAndIsClientAdmin) throw Boom.notFound();
   }
 
-  if (payload.salesRepresentative) await salesRepresentativeExists(payload.salesRepresentative);
+  if (payload.salesRepresentative) {
+    await checkUserExistsAndHasRightRole(payload.salesRepresentative, true);
+  }
 
   return null;
 };
@@ -70,7 +64,9 @@ exports.authorizeCompanyCreation = async (req) => {
     .collation({ locale: 'fr', strength: 1 });
   if (nameAlreadyExists) throw Boom.conflict(translate[language].companyExists);
 
-  if (salesRepresentative) await salesRepresentativeExists(salesRepresentative);
+  if (salesRepresentative) {
+    await checkUserExistsAndHasRightRole(salesRepresentative, true);
+  }
 
   return null;
 };

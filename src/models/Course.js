@@ -42,6 +42,7 @@ const CourseSchema = mongoose.Schema({
     ref: 'User',
     default: undefined,
   },
+  salesRepresentative: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
 }, { timestamps: true });
 
 CourseSchema.virtual('slots', {

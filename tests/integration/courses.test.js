@@ -181,7 +181,7 @@ describe('COURSES ROUTES - POST /courses', () => {
       expect(courseSlotsCount).toEqual(1);
     });
 
-    it('should return 403 if invalid operationsRepresentative', async () => {
+    it('should return 404 if invalid operationsRepresentative', async () => {
       const payload = {
         misc: 'course',
         type: INTER_B2B,
@@ -196,7 +196,7 @@ describe('COURSES ROUTES - POST /courses', () => {
         payload,
       });
 
-      expect(response.statusCode).toBe(403);
+      expect(response.statusCode).toBe(404);
     });
 
     it('should return 404 if company does not exist', async () => {
@@ -1796,7 +1796,7 @@ describe('COURSES ROUTES - PUT /courses/{_id}', () => {
       });
     });
 
-    it('should return 403 if invalid operationsRepresentative', async () => {
+    it('should return 404 if invalid operationsRepresentative', async () => {
       const payload = { operationsRepresentative: clientAdmin._id };
       const response = await app.inject({
         method: 'PUT',
@@ -1805,7 +1805,7 @@ describe('COURSES ROUTES - PUT /courses/{_id}', () => {
         payload,
       });
 
-      expect(response.statusCode).toBe(403);
+      expect(response.statusCode).toBe(404);
     });
 
     it('should return 403 if invalid trainer', async () => {
