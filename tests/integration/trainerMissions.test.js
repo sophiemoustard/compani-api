@@ -40,7 +40,7 @@ describe('TRAINER MISSIONS ROUTES - POST /trainermissions', () => {
         courses: courseList[0]._id.toHexString(),
         trainer: trainer._id.toHexString(),
         file: 'test',
-        fee: 1200,
+        fee: 0,
       };
       const form = generateFormData(formData);
 
@@ -58,7 +58,7 @@ describe('TRAINER MISSIONS ROUTES - POST /trainermissions', () => {
         courses: [courseList[0]._id],
         date: CompaniDate().startOf(DAY).toISO(),
         trainer: trainer._id,
-        fee: 1200,
+        fee: 0,
         file: { publicId: '1234567890', link: 'ceciestunautrelien' },
         creationMethod: UPLOAD,
       });
