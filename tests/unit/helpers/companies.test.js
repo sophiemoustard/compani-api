@@ -87,7 +87,10 @@ describe('list', () => {
     expect(result).toEqual(companyList);
     SinonMongoose.calledOnceWithExactly(
       find,
-      [{ query: 'find', args: [{ _id: { $nin: [] } }, { name: 1 }] }, { query: 'lean', args: [] }]
+      [
+        { query: 'find', args: [{ _id: { $nin: [] } }, { name: 1, salesRepresentative: 1 }] },
+        { query: 'lean', args: [] },
+      ]
     );
     sinon.assert.notCalled(companyHoldingFind);
   });
@@ -108,7 +111,7 @@ describe('list', () => {
     SinonMongoose.calledOnceWithExactly(
       find,
       [
-        { query: 'find', args: [{ _id: { $nin: [companyHoldingsList[0].company] } }, { name: 1 }] },
+        { query: 'find', args: [{ _id: { $nin: [companyHoldingsList[0].company] } }, { name: 1, salesRepresentative: 1  }] },
         { query: 'lean', args: [] },
       ]
     );

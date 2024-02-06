@@ -42,7 +42,7 @@ exports.list = async (query) => {
     linkedCompanyList = companyHoldings.map(ch => ch.company);
   }
 
-  return Company.find({ _id: { $nin: linkedCompanyList.flat() } }, { name: 1, salesRepresentative }).lean();
+  return Company.find({ _id: { $nin: linkedCompanyList.flat() } }, { name: 1, salesRepresentative: 1 }).lean();
 };
 
 exports.uploadFile = async (payload, params) => {
