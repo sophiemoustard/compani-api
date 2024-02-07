@@ -2334,15 +2334,15 @@ hapi-auth-jwt2@~10.5.1:
     cookie "^0.6.0"
     jsonwebtoken "^9.0.0"
 
-hapi-sentry@~4.0.1-2:
-  version "4.0.1-2"
-  resolved "https://registry.yarnpkg.com/hapi-sentry/-/hapi-sentry-4.0.1-2.tgz#64584eeb5657869e5c562553a7a69eec60526aaf"
-  integrity sha512-oBNxUI1t022uFgn0rS71JJxAAEF9j43Vw4IT0S8YufM+qjxHlx7wND2bx/Cr0St2A0SqA9IeGk6NYFa7Wz0uFg==
+hapi-sentry@4.0.0:
+  version "4.0.0"
+  resolved "https://registry.yarnpkg.com/hapi-sentry/-/hapi-sentry-4.0.0.tgz#ab4c046a6cd7885a7d4b90544099605d7b7bb778"
+  integrity sha512-xaRyJpW4+wHaC2j74NJxpOgMF7SmB2qNvO2mni9lclH6ofKxRToLLSlqdYTQEhT9oOcJ3MCS9S9UfSbSUHFYlw==
   dependencies:
     "@hapi/hoek" "^11.0.2"
     "@sentry/node" "^7.38.0"
     "@sentry/types" "^7.38.0"
-    zod "^3.22.4"
+    joi "^17.7.1"
 
 has-bigints@^1.0.1, has-bigints@^1.0.2:
   version "1.0.2"
@@ -2769,7 +2769,7 @@ joi-objectid@~4.0.2:
   resolved "https://registry.yarnpkg.com/joi-objectid/-/joi-objectid-4.0.2.tgz#a4065aa91431bbc6959a57f7b4d1dd10bd95a4b7"
   integrity sha512-OjYM+wK/JGo2bSb9ADEyzxxROJPZYtrqIwBbywpJ2a98oKlbLtWTKvpzmrnXzou69Ey9EsjHsFvZYzpjeCdKuA==
 
-joi@~17.12.1:
+joi@^17.7.1, joi@~17.12.1:
   version "17.12.1"
   resolved "https://registry.yarnpkg.com/joi/-/joi-17.12.1.tgz#3347ecf4cd3301962d42191c021b165eef1f395b"
   integrity sha512-vtxmq+Lsc5SlfqotnfVjlViWfOL9nt/avKNbKYizwf6gsCfq9NYY/ceYRMFD8XDdrjJ9abJyScWmhmIiy+XRtQ==
@@ -4514,8 +4514,3 @@ yocto-queue@^0.1.0:
   version "0.1.0"
   resolved "https://registry.yarnpkg.com/yocto-queue/-/yocto-queue-0.1.0.tgz#0294eb3dee05028d31ee1a5fa2c556a6aaf10a1b"
   integrity sha512-rVksvsnNCdJ/ohGc6xgPwyN8eheCxsiLM8mxuE/t/mOVqJewPuO1miLpTHQiRgTKCLexL4MeAFVagts7HmNZ2Q==
-
-zod@^3.22.4:
-  version "3.22.4"
-  resolved "https://registry.yarnpkg.com/zod/-/zod-3.22.4.tgz#f31c3a9386f61b1f228af56faa9255e845cf3fff"
-  integrity sha512-iC+8Io04lddc+mVqQ9AZ7OQ2MrUKGN+oIQyq1vemgt46jwCwLfhq7/pwnBnNXXXZb8VTVLKwp9EDkx+ryxIWmg==
