@@ -426,6 +426,7 @@ module.exports = {
     trainerMissionAlreadyExist: 'Trainer mission already exists.',
     trainerMissionsFound: 'Trainer missions found',
     trainerMissionsNotFound: 'Trainer missions not found',
+    trainerMissionUpdated: 'Trainer mission updated',
   },
   'fr-FR': {
     /* Global errors */
@@ -854,5 +855,6 @@ module.exports = {
     trainerMissionAlreadyExist: 'Il existe déjà un ordre de mission pour une des formations.',
     trainerMissionsFound: 'Ordres de mission trouvés',
     trainerMissionsNotFound: 'Ordres de mission non trouvés',
+    trainerMissionUpdated: 'Ordre de mission mis à jour',
   },
 };

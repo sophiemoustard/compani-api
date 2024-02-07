@@ -232,7 +232,7 @@ exports.getUser = async (userId, credentials) => {
     .populate({ path: 'contracts', select: '-__v -createdAt -updatedAt' })
     .populate({
       path: 'company',
-      populate: { path: 'company', populate: { path: 'billingRepresentative' } },
+      populate: { path: 'company', populate: { path: 'billingRepresentative salesRepresentative' } },
       select: '-__v -createdAt -updatedAt',
     })
     .populate({

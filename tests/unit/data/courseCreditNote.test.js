@@ -156,12 +156,12 @@ describe('getPdfContent', () => {
             { text: '' },
             { text: '' },
             [
-              { text: 'Sous-total HT', alignment: 'right', marginRight: 22, marginBottom: 8 },
-              { text: 'Total TTC', alignment: 'right', marginRight: 22, bold: true },
+              { text: 'Sous-total HT', alignment: 'right', marginBottom: 8 },
+              { text: 'Total TTC', alignment: 'right', marginBottom: 8, bold: true },
             ],
             [
               { text: '1300,00 €', alignment: 'right', width: 'auto', marginBottom: 8 },
-              { text: '1300,00 €', alignment: 'right', width: 'auto', bold: true },
+              { text: '1300,00 €', alignment: 'right', width: 'auto', marginBottom: 8, bold: true },
             ],
           ],
         },
@@ -184,6 +184,7 @@ describe('getPdfContent', () => {
     formatPrice.onCall(4).returns('20,00 €');
     formatPrice.onCall(5).returns('200,00 €');
     formatPrice.onCall(6).returns('1300,00 €');
+    formatPrice.onCall(7).returns('1300,00 €');
 
     const result = await CourseCreditNote.getPdfContent(creditNote);
 
@@ -300,12 +301,12 @@ describe('getPdfContent', () => {
             { text: '' },
             { text: '' },
             [
-              { text: 'Sous-total HT', alignment: 'right', marginRight: 22, marginBottom: 8 },
-              { text: 'Total TTC', alignment: 'right', marginRight: 22, bold: true },
+              { text: 'Sous-total HT', alignment: 'right', marginBottom: 8 },
+              { text: 'Total TTC', alignment: 'right', marginBottom: 8, bold: true },
             ],
             [
               { text: '1000,00 €', alignment: 'right', width: 'auto', marginBottom: 8 },
-              { text: '1000,00 €', alignment: 'right', width: 'auto', bold: true },
+              { text: '1000,00 €', alignment: 'right', width: 'auto', marginBottom: 8, bold: true },
             ],
           ],
         },
@@ -324,6 +325,7 @@ describe('getPdfContent', () => {
     formatPrice.onCall(0).returns('1000,00 €');
     formatPrice.onCall(1).returns('1000,00 €');
     formatPrice.onCall(2).returns('1000,00 €');
+    formatPrice.onCall(3).returns('1000,00 €');
 
     const result = await CourseCreditNote.getPdfContent(creditNote);
 

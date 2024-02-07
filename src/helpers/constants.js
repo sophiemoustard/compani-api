@@ -636,4 +636,8 @@ module.exports = {
   get MOBILE_CONNECTION_MODE() {
     return [this.ACCOUNT_CREATION, this.AUTHENTICATION, this.LOGIN_CODE, this.IDENTITY_VERIFICATION, this.UNKNOWN];
   },
+  // TRAINER MISSION CREATION METHOD TYPES
+  UPLOAD: 'upload',
+  GENERATION: 'generation',
+  get CREATION_METHOD_TYPES() { return [this.UPLOAD, this.GENERATION]; },
 };

@@ -60,7 +60,6 @@ const {
   CUSTOM,
   OFFICIAL,
   SHORT_DURATION_H_MM,
-  MOBILE,
 } = require('./constants');
 const CourseHistoriesHelper = require('./courseHistories');
 const NotificationHelper = require('./notifications');
@@ -319,6 +318,8 @@ exports.formatCourseWithProgress = (course, shouldComputePresence = false) => {
 };
 
 const getCourseForOperations = async (courseId, credentials, origin) => {
+  const isRofOrAdmin = [VENDOR_ADMIN, TRAINING_ORGANISATION_MANAGER].includes(get(credentials, 'role.vendor.name'));
+
   const fetchedCourse = await Course.findOne({ _id: courseId })
     .populate([
       { path: 'companies', select: 'name' },
@@ -365,6 +366,7 @@ const getCourseForOperations = async (courseId, credentials, origin) => {
             select: 'identity.firstname identity.lastname contact.phone local.email picture.link',
           },
           { path: 'contact', select: 'identity.firstname identity.lastname contact.phone' },
+          ...(isRofOrAdmin ? [{ path: 'trainerMission', select: '_id', options: { isVendorUser: true } }] : []),
         ]
         : [{ path: 'slots', select: 'startDate' }]
       ),
@@ -379,11 +381,8 @@ const getCourseForOperations = async (courseId, credentials, origin) => {
     );
 
     const traineesCompany = mapValues(keyBy(traineesCompanyAtCourseRegistration, 'trainee'), 'company');
-    courseTrainees = fetchedCourse.trainees.map(trainee => ({
-      ...trainee,
-      registrationCompany: traineesCompany[trainee._id],
-      ...(origin === MOBILE && { firstMobileConnection: trainee.firstMobileConnectionDate }),
-    }));
+    courseTrainees = fetchedCourse.trainees
+      .map(trainee => ({ ...trainee, registrationCompany: traineesCompany[trainee._id] }));
   }
 
   // A coach/client_admin is not supposed to read infos on trainees from other companies
@@ -1202,4 +1201,11 @@ exports.generateTrainingContract = async (courseId, payload) => {
   const fileName = `convention_${formattedCourse.programName}_${formattedCourse.company.name}.pdf`;
 
   return { fileName, pdf };
+};
+
+exports.composeCourseName = (course) => {
+  const companyName = course.type === INTRA ? `${course.companies[0].name} - ` : '';
+  const misc = course.misc ? ` - ${course.misc}` : '';
+
+  return companyName + course.subProgram.program.name + misc;
 };

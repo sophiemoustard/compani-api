@@ -60,6 +60,7 @@ const CompanySchema = mongoose.Schema({
       gcs: driveResourceSchemaDefinition,
     },
   },
+  salesRepresentative: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
 }, { timestamps: true });
 
 queryMiddlewareList.map(middleware => CompanySchema.pre(middleware, formatQuery));

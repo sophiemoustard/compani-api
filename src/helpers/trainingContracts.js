@@ -1,13 +1,12 @@
-const compact = require('lodash/compact');
 const get = require('lodash/get');
 const omit = require('lodash/omit');
 const keyBy = require('lodash/keyBy');
 const mapValues = require('lodash/mapValues');
 const GCloudStorageHelper = require('./gCloudStorage');
-const DatesUtilsHelper = require('./dates/utils');
 const UtilsHelper = require('./utils');
-const { E_LEARNING, SHORT_DURATION_H_MM, DD_MM_YYYY, REMOTE, COURSE, TRAINEE, INTER_B2B } = require('./constants');
-const { CompaniDate } = require('./dates/companiDates');
+const StepsHelper = require('./steps');
+const CourseSlotsHelper = require('./courseSlots');
+const { E_LEARNING, SHORT_DURATION_H_MM, COURSE, TRAINEE, INTER_B2B } = require('./constants');
 const { CompaniDuration } = require('./dates/companiDurations');
 const Course = require('../models/Course');
 const TrainingContract = require('../models/TrainingContract');
@@ -57,20 +56,6 @@ exports.deleteMany = async (trainingContractIdList) => {
   return Promise.all([trainingContracts.map(tc => GCloudStorageHelper.deleteCourseFile(tc.file.publicId))]);
 };
 
-const computeLiveDuration = (slots, slotsToPlan, steps) => {
-  if (slotsToPlan.length) {
-    const theoreticalDurationList = steps
-      .filter(step => step.type !== E_LEARNING)
-      .map(step => step.theoreticalDuration);
-
-    return theoreticalDurationList
-      .reduce((acc, duration) => acc.add(duration), CompaniDuration())
-      .format(SHORT_DURATION_H_MM);
-  }
-
-  return CompaniDuration(UtilsHelper.getISOTotalDuration(slots)).format(SHORT_DURATION_H_MM);
-};
-
 const computeElearnigDuration = (steps) => {
   if (!steps.some(step => step.type === E_LEARNING)) return '';
 
@@ -78,33 +63,6 @@ const computeElearnigDuration = (steps) => {
     .filter(step => step.type === E_LEARNING)
     .reduce((acc, step) => acc.add(step.theoreticalDuration), CompaniDuration())
     .format(SHORT_DURATION_H_MM);
-};
-
-const getDates = (slots) => {
-  const slotDatesWithDuplicate = slots
-    .sort(DatesUtilsHelper.ascendingSortBy('startDate'))
-    .map(slot => CompaniDate(slot.startDate).format(DD_MM_YYYY));
-
-  return [...new Set(slotDatesWithDuplicate)];
-};
-
-const getAddressList = (slots, steps) => {
-  const hasRemoteSteps = steps.some(step => step.type === REMOTE);
-
-  const fullAddressList = compact(slots.map(slot => get(slot, 'address.fullAddress')));
-  const uniqFullAddressList = [...new Set(fullAddressList)];
-  if (uniqFullAddressList.length <= 2) {
-    return hasRemoteSteps
-      ? [...uniqFullAddressList, 'Cette formation contient des créneaux en distanciel']
-      : uniqFullAddressList;
-  }
-
-  const cityList = compact(slots.map(slot => get(slot, 'address.city')));
-  const uniqCityList = [...new Set(cityList)];
-
-  return hasRemoteSteps
-    ? [...uniqCityList, 'Cette formation contient des créneaux en distanciel']
-    : uniqCityList;
 };
 
 const getLearnersCount = async (course) => {
@@ -130,12 +88,12 @@ exports.formatCourseForTrainingContract = async (course, vendorCompany, price) =
     programName: subProgram.program.name,
     learningGoals: subProgram.program.learningGoals,
     slotsCount: slots.length + slotsToPlan.length,
-    liveDuration: computeLiveDuration(slots, slotsToPlan, subProgram.steps),
+    liveDuration: StepsHelper.computeLiveDuration(slots, slotsToPlan, subProgram.steps),
     eLearningDuration: computeElearnigDuration(subProgram.steps),
     misc: course.misc,
     learnersCount: await getLearnersCount(course),
-    dates: getDates(slots),
-    addressList: getAddressList(slots, subProgram.steps),
+    dates: CourseSlotsHelper.formatSlotDates(slots),
+    addressList: CourseSlotsHelper.getAddressList(slots, subProgram.steps),
     trainer: UtilsHelper.formatIdentity(get(trainer, 'identity'), 'FL'),
     price,
   };

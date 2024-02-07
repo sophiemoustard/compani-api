@@ -616,6 +616,8 @@ describe('generateBillPdf', () => {
   });
 
   it('should download course bill', async () => {
+    const companyId = new ObjectId();
+    const credentials = { company: { _id: companyId }, role: { client: new ObjectId() } };
     const billId = new ObjectId();
 
     const vendorCompany = {
@@ -644,6 +646,7 @@ describe('generateBillPdf', () => {
       number: 'FACT-00001',
       billedAt: '2022-03-08T00:00:00.000Z',
       companies: [{
+        _id: companyId,
         name: 'test',
         address: {
           fullAddress: '24 Avenue Daumesnil 75012 Paris',
@@ -664,13 +667,15 @@ describe('generateBillPdf', () => {
         },
       },
       isPayerCompany: true,
+      coursePayments: [{ netInclTaxes: 1200 }],
+      courseCreditNote: { number: 'AV-00001' },
     };
 
     getVendorCompany.returns(vendorCompany);
     findOne.returns(SinonMongoose.stubChainedQueries(bill));
     getPdf.returns({ pdf: 'pdf' });
 
-    const result = await CourseBillHelper.generateBillPdf(billId);
+    const result = await CourseBillHelper.generateBillPdf(billId, [companyId], credentials);
     expect(result).toEqual({ billNumber: bill.number, pdf: { pdf: 'pdf' } });
     sinon.assert.calledOnceWithExactly(
       getPdf,
@@ -684,11 +689,19 @@ describe('generateBillPdf', () => {
         course: bill.course,
         mainFee: bill.mainFee,
         billingPurchaseList: bill.billingPurchaseList,
+        coursePayments: [{ netInclTaxes: 1200 }],
+        courseCreditNote: { number: 'AV-00001' },
       }
     );
     SinonMongoose.calledOnceWithExactly(findOne,
       [
-        { query: 'findOne', args: [{ _id: billId }] },
+        {
+          query: 'findOne',
+          args: [
+            { _id: billId },
+            { number: 1, companies: 1, course: 1, mainFee: 1, billingPurchaseList: 1, billedAt: 1 },
+          ],
+        },
         {
           query: 'populate',
           args: [{
@@ -706,6 +719,20 @@ describe('generateBillPdf', () => {
         { query: 'populate', args: [{ path: 'companies', select: 'name address' }] },
         { query: 'populate', args: [{ path: 'payer.fundingOrganisation', select: 'name address' }] },
         { query: 'populate', args: [{ path: 'payer.company', select: 'name address' }] },
+        {
+          query: 'populate',
+          args: [
+            {
+              path: 'coursePayments',
+              select: 'nature netInclTaxes date',
+              options: { sort: { date: -1 }, isVendorUser: false, requestingOwnInfos: true },
+            },
+          ],
+        },
+        {
+          query: 'populate',
+          args: [{ path: 'courseCreditNote', options: { isVendorUser: false, requestingOwnInfos: true } }],
+        },
         { query: 'lean' },
       ]);
   });

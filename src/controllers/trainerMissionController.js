@@ -6,7 +6,8 @@ const { language } = translate;
 
 const create = async (req) => {
   try {
-    await TrainerMissionsHelper.upload(req.payload, req.auth.credentials);
+    if (req.payload.file) await TrainerMissionsHelper.upload(req.payload, req.auth.credentials);
+    else await TrainerMissionsHelper.generate(req.payload, req.auth.credentials);
 
     return { message: translate[language].trainerMissionCreated };
   } catch (e) {
@@ -17,7 +18,7 @@ const create = async (req) => {
 
 const list = async (req) => {
   try {
-    const trainerMissions = await TrainerMissionsHelper.list(req.query, req.auth.credentials);
+    const trainerMissions = await TrainerMissionsHelper.list(req.query);
 
     return {
       message: trainerMissions.length
@@ -31,4 +32,15 @@ const list = async (req) => {
   }
 };
 
-module.exports = { create, list };
+const update = async (req) => {
+  try {
+    await TrainerMissionsHelper.update(req.params._id, req.payload);
+
+    return { message: translate[language].trainerMissionUpdated };
+  } catch (e) {
+    req.log('error', e);
+    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
+  }
+};
+
+module.exports = { create, list, update };

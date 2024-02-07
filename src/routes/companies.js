@@ -78,6 +78,7 @@ exports.plugin = {
                 gcs: Joi.object().keys({ driveId: Joi.string().allow(null), link: Joi.string().allow(null) }),
               }),
             }),
+            salesRepresentative: Joi.objectId(),
           }),
         },
         pre: [
@@ -114,7 +115,7 @@ exports.plugin = {
       options: {
         auth: { scope: ['companies:create'] },
         validate: {
-          payload: Joi.object().keys({ name: Joi.string().required() }),
+          payload: Joi.object().keys({ name: Joi.string().required(), salesRepresentative: Joi.objectId() }),
         },
         pre: [{ method: authorizeCompanyCreation }],
       },

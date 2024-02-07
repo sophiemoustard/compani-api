@@ -4,7 +4,7 @@ const FileHelper = require('../../../src/helpers/file');
 const PdfHelper = require('../../../src/helpers/pdf');
 const UtilsHelper = require('../../../src/helpers/utils');
 const CourseBill = require('../../../src/data/pdf/courseBilling/courseBill');
-const { COPPER_GREY_200, COPPER_600, GROUP, TRAINEE } = require('../../../src/helpers/constants');
+const { COPPER_GREY_200, COPPER_600, GROUP, TRAINEE, PAYMENT, REFUND } = require('../../../src/helpers/constants');
 
 describe('getPdfContent', () => {
   let downloadImages;
@@ -20,8 +20,8 @@ describe('getPdfContent', () => {
     formatPrice.restore();
   });
 
-  it('it should format and return course bill pdf (with billing items)', async () => {
-    const paths = ['src/data/pdf/tmp/logo.png'];
+  it('it should format and return paid course bill pdf (with billing items)', async () => {
+    const paths = ['src/data/pdf/tmp/logo.png', 'src/data/pdf/tmp/signature.png'];
 
     const bill = {
       number: 'FACT-000045',
@@ -49,6 +49,12 @@ describe('getPdfContent', () => {
         { billingItem: { name: 'article 1' }, price: 10, count: 10 },
         { billingItem: { name: 'article 2' }, price: 20, count: 10, description: 'article cool' },
       ],
+      courseCreditNote: null,
+      coursePayments: [
+        { netInclTaxes: 1300, nature: REFUND, date: '2023-01-10T00:00:00.000Z' },
+        { netInclTaxes: 1400, nature: PAYMENT, date: '2023-01-02T10:00:00.000Z' },
+        { netInclTaxes: 1200, nature: PAYMENT, date: '2023-01-01T10:00:00.000Z' },
+      ],
     };
 
     const pdf = {
@@ -61,6 +67,7 @@ describe('getPdfContent', () => {
                 { text: 'Facture', fontSize: 32 },
                 { text: 'FACT-000045', bold: true },
                 { text: 'Date de facture : 18/08/1998' },
+                { text: 'Facture acquitée le 02/01/2023 ☑', color: 'green' },
               ],
               alignment: 'right',
             },
@@ -153,12 +160,27 @@ describe('getPdfContent', () => {
             { text: '' },
             { text: '' },
             [
-              { text: 'Sous-total HT', alignment: 'right', marginRight: 22, marginBottom: 8 },
-              { text: 'Total TTC', alignment: 'right', marginRight: 22, bold: true },
+              { text: 'Sous-total HT', alignment: 'right', marginBottom: 8 },
+              { text: 'Total TTC', alignment: 'right', marginBottom: 8, bold: true },
             ],
             [
               { text: '1300,00 €', alignment: 'right', width: 'auto', marginBottom: 8 },
-              { text: '1300,00 €', alignment: 'right', width: 'auto', bold: true },
+              { text: '1300,00 €', alignment: 'right', width: 'auto', marginBottom: 8, bold: true },
+            ],
+          ],
+        },
+        {
+          columns: [
+            { text: '' },
+            { text: '' },
+            { text: '' },
+            [
+              { text: 'Paiements effectués', alignment: 'right', marginBottom: 8 },
+              { text: 'Solde dû', alignment: 'right', marginBottom: 8, bold: true },
+            ],
+            [
+              { text: '1300,00 €', alignment: 'right', width: 'auto', marginBottom: 8 },
+              { text: '0,00 €', alignment: 'right', width: 'auto', marginBottom: 8, bold: true },
             ],
           ],
         },
@@ -167,6 +189,7 @@ describe('getPdfContent', () => {
           fontSize: 8,
           marginTop: 48,
         },
+        { image: paths[1], width: 144, marginTop: 8, alignment: 'right' },
       ],
       defaultStyle: { font: 'SourceSans', fontSize: 12 },
       styles: {
@@ -176,6 +199,7 @@ describe('getPdfContent', () => {
     };
     const imageList = [
       { url: 'https://storage.googleapis.com/compani-main/icons/compani_texte_bleu.png', name: 'compani.png' },
+      { url: 'https://storage.googleapis.com/compani-main/tsb_signature.png', name: 'signature.png' },
     ];
 
     downloadImages.returns(paths);
@@ -186,6 +210,9 @@ describe('getPdfContent', () => {
     formatPrice.onCall(4).returns('20,00 €');
     formatPrice.onCall(5).returns('200,00 €');
     formatPrice.onCall(6).returns('1300,00 €');
+    formatPrice.onCall(7).returns('1300,00 €');
+    formatPrice.onCall(8).returns('1300,00 €');
+    formatPrice.onCall(9).returns('0,00 €');
 
     const result = await CourseBill.getPdfContent(bill);
 
@@ -194,8 +221,8 @@ describe('getPdfContent', () => {
     sinon.assert.calledOnceWithExactly(downloadImages, imageList);
   });
 
-  it('it should format and return course bill pdf (without billing items)', async () => {
-    const paths = ['src/data/pdf/tmp/logo.png'];
+  it('it should format and return course bill pdf (without billing items and with course credit note)', async () => {
+    const paths = ['src/data/pdf/tmp/logo.png', undefined];
 
     const bill = {
       number: 'FACT-000045',
@@ -219,6 +246,8 @@ describe('getPdfContent', () => {
       isPayerCompany: true,
       course: { subProgram: { program: { name: 'Test' } } },
       mainFee: { price: 1000, count: 1, description: 'description', countUnit: TRAINEE },
+      courseCreditNote: { number: 'AV-00001' },
+      coursePayments: [],
     };
 
     const pdf = {
@@ -296,12 +325,29 @@ describe('getPdfContent', () => {
             { text: '' },
             { text: '' },
             [
-              { text: 'Sous-total HT', alignment: 'right', marginRight: 22, marginBottom: 8 },
-              { text: 'Total TTC', alignment: 'right', marginRight: 22, bold: true },
+              { text: 'Sous-total HT', alignment: 'right', marginBottom: 8 },
+              { text: 'Total TTC', alignment: 'right', marginBottom: 8, bold: true },
             ],
             [
               { text: '1000,00 €', alignment: 'right', width: 'auto', marginBottom: 8 },
-              { text: '1000,00 €', alignment: 'right', width: 'auto', bold: true },
+              { text: '1000,00 €', alignment: 'right', width: 'auto', marginBottom: 8, bold: true },
+            ],
+          ],
+        },
+        {
+          columns: [
+            { text: '' },
+            { text: '' },
+            { text: '' },
+            [
+              { text: 'Paiements effectués', alignment: 'right', marginBottom: 8 },
+              { text: 'Crédits appliqués', alignment: 'right', marginBottom: 8 },
+              { text: 'Solde dû', alignment: 'right', marginBottom: 8, bold: true },
+            ],
+            [
+              { text: '0,00 €', alignment: 'right', width: 'auto', marginBottom: 8 },
+              { text: '1000,00 €', alignment: 'right', width: 'auto', marginBottom: 8 },
+              { text: '0,00 €', alignment: 'right', width: 'auto', marginBottom: 8, bold: true },
             ],
           ],
         },
@@ -325,6 +371,10 @@ describe('getPdfContent', () => {
     formatPrice.onCall(0).returns('1000,00 €');
     formatPrice.onCall(1).returns('1000,00 €');
     formatPrice.onCall(2).returns('1000,00 €');
+    formatPrice.onCall(3).returns('1000,00 €');
+    formatPrice.onCall(4).returns('0,00 €');
+    formatPrice.onCall(5).returns('1000,00 €');
+    formatPrice.onCall(6).returns('0,00 €');
 
     const result = await CourseBill.getPdfContent(bill);
 

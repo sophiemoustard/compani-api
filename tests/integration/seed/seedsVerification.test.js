@@ -2193,6 +2193,13 @@ describe('SEEDS VERIFICATION', () => {
 
           expect(coursesInMission.length).toBe([...new Set(coursesInMission)].length);
         });
+
+        it('should pass if cancellation date is after trainer mission\'s date', () => {
+          const everyCancellationDateIsAfter = trainerMissionList
+            .every(tm => !tm.cancelledAt || CompaniDate(tm.date).isBefore(tm.cancelledAt));
+
+          expect(everyCancellationDateIsAfter).toBeTruthy();
+        });
       });
 
       describe('Collection TrainingContract', () => {

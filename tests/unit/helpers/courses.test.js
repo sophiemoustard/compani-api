@@ -1776,6 +1776,7 @@ describe('getCourse', () => {
                 select: 'identity.firstname identity.lastname contact.phone local.email picture.link',
               },
               { path: 'contact', select: 'identity.firstname identity.lastname contact.phone' },
+              { path: 'trainerMission', select: '_id', options: { isVendorUser: true } },
             ]],
           },
           { query: 'lean' },
@@ -1975,10 +1976,7 @@ describe('getCourse', () => {
         _id: new ObjectId(),
         type: INTER_B2B,
         format: BLENDED,
-        trainees: [
-          { _id: traineeIds[0], firstMobileConnectionDate: '2023-01-01T00:00:00.000Z' },
-          { _id: traineeIds[1], firstMobileConnectionDate: '2023-01-01T00:00:00.000Z' },
-        ],
+        trainees: [{ _id: traineeIds[0] }, { _id: traineeIds[1] }],
         subProgram: { steps: [{ theoreticalDuration: 'PT3600S' }, { theoreticalDuration: 'PT1800S' }] },
       };
       findOne.returns(SinonMongoose.stubChainedQueries(course));
@@ -1996,12 +1994,8 @@ describe('getCourse', () => {
         ...course,
         totalTheoreticalDuration: 'PT5400S',
         trainees: [
-          { _id: traineeIds[0], registrationCompany: authCompanyId, firstMobileConnection: '2023-01-01T00:00:00.000Z' },
-          {
-            _id: traineeIds[1],
-            registrationCompany: otherCompanyId,
-            firstMobileConnection: '2023-01-01T00:00:00.000Z',
-          },
+          { _id: traineeIds[0], registrationCompany: authCompanyId },
+          { _id: traineeIds[1], registrationCompany: otherCompanyId },
         ],
       });
 

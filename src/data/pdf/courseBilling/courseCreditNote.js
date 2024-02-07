@@ -1,11 +1,14 @@
 const { ORANGE_600 } = require('../../../helpers/constants');
 const UtilsPdfHelper = require('./utils');
 const PdfHelper = require('../../../helpers/pdf');
+const CourseBillHelper = require('../../../helpers/courseBills');
 
 exports.getPdfContent = async (creditNote) => {
-  const { header, images } = await UtilsPdfHelper.getHeader(creditNote);
+  const [compani] = await UtilsPdfHelper.getImages();
+  const netInclTaxes = CourseBillHelper.getNetInclTaxes(creditNote);
+  const header = UtilsPdfHelper.getHeader(creditNote, compani);
   const feeTable = UtilsPdfHelper.getFeeTable(creditNote);
-  const tableFooter = UtilsPdfHelper.getTableFooter(creditNote);
+  const tableFooter = UtilsPdfHelper.getTotalInfos(netInclTaxes);
 
   const content = [header, feeTable, tableFooter];
 
@@ -18,7 +21,7 @@ exports.getPdfContent = async (creditNote) => {
         description: { alignment: 'left', marginLeft: 8, fontSize: 10 },
       },
     },
-    images,
+    images: [compani],
   };
 };
 

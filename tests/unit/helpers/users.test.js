@@ -920,7 +920,7 @@ describe('getUser', () => {
           query: 'populate',
           args: [{
             path: 'company',
-            populate: { path: 'company', populate: { path: 'billingRepresentative' } },
+            populate: { path: 'company', populate: { path: 'billingRepresentative salesRepresentative' } },
             select: '-__v -createdAt -updatedAt',
           }],
         },
@@ -992,7 +992,7 @@ describe('getUser', () => {
           query: 'populate',
           args: [{
             path: 'company',
-            populate: { path: 'company', populate: { path: 'billingRepresentative' } },
+            populate: { path: 'company', populate: { path: 'billingRepresentative salesRepresentative' } },
             select: '-__v -createdAt -updatedAt',
           }],
         },
@@ -1058,7 +1058,7 @@ describe('getUser', () => {
           query: 'populate',
           args: [{
             path: 'company',
-            populate: { path: 'company', populate: { path: 'billingRepresentative' } },
+            populate: { path: 'company', populate: { path: 'billingRepresentative salesRepresentative' } },
             select: '-__v -createdAt -updatedAt',
           }],
         },
@@ -1118,7 +1118,7 @@ describe('getUser', () => {
           query: 'populate',
           args: [{
             path: 'company',
-            populate: { path: 'company', populate: { path: 'billingRepresentative' } },
+            populate: { path: 'company', populate: { path: 'billingRepresentative salesRepresentative' } },
             select: '-__v -createdAt -updatedAt',
           }],
         },
@@ -1183,7 +1183,7 @@ describe('getUser', () => {
             query: 'populate',
             args: [{
               path: 'company',
-              populate: { path: 'company', populate: { path: 'billingRepresentative' } },
+              populate: { path: 'company', populate: { path: 'billingRepresentative salesRepresentative' } },
               select: '-__v -createdAt -updatedAt',
             }],
           },

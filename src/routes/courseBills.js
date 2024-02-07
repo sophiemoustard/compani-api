@@ -154,7 +154,7 @@ exports.plugin = {
           params: Joi.object({ _id: Joi.objectId().required() }),
         },
         auth: { scope: ['coursebills:read'] },
-        pre: [{ method: authorizeBillPdfGet }],
+        pre: [{ method: authorizeBillPdfGet, assign: 'companies' }],
       },
       handler: generateBillPdf,
     });
