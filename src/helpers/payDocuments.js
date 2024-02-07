@@ -33,6 +33,6 @@ exports.create = async (payload, credentials) => {
 };
 
 exports.removeFromDriveAndDb = async (payDocumentId) => {
-  const deletedPayDocument = await PayDocument.findByIdAndRemove(payDocumentId);
+  const deletedPayDocument = await PayDocument.findByIdAndDelete(payDocumentId);
   return GDriveStorageHelper.deleteFile(deletedPayDocument.file.driveId);
 };

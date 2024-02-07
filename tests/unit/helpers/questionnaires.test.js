@@ -148,16 +148,16 @@ describe('addCard', () => {
 });
 
 describe('removeCard', () => {
-  let findOneAndRemoveCard;
+  let findOneAndDeleteCard;
   let updateOne;
   let deleteMedia;
   beforeEach(() => {
-    findOneAndRemoveCard = sinon.stub(Card, 'findOneAndRemove');
+    findOneAndDeleteCard = sinon.stub(Card, 'findOneAndDelete');
     updateOne = sinon.stub(Questionnaire, 'updateOne');
     deleteMedia = sinon.stub(CardHelper, 'deleteMedia');
   });
   afterEach(() => {
-    findOneAndRemoveCard.restore();
+    findOneAndDeleteCard.restore();
     updateOne.restore();
     deleteMedia.restore();
   });
@@ -165,16 +165,16 @@ describe('removeCard', () => {
   it('should remove card without media from questionnaire', async () => {
     const cardId = new ObjectId();
 
-    findOneAndRemoveCard.returns(SinonMongoose.stubChainedQueries(null, ['lean']));
+    findOneAndDeleteCard.returns(SinonMongoose.stubChainedQueries(null, ['lean']));
 
     await QuestionnaireHelper.removeCard(cardId);
 
     sinon.assert.calledOnceWithExactly(updateOne, { cards: cardId }, { $pull: { cards: cardId } });
     sinon.assert.notCalled(deleteMedia);
     SinonMongoose.calledOnceWithExactly(
-      findOneAndRemoveCard,
+      findOneAndDeleteCard,
       [
-        { query: 'findOneAndRemove', args: [{ _id: cardId }, { 'media.publicId': 1 }] },
+        { query: 'findOneAndDelete', args: [{ _id: cardId }, { 'media.publicId': 1 }] },
         { query: 'lean' },
       ]
     );
@@ -184,16 +184,16 @@ describe('removeCard', () => {
     const cardId = new ObjectId();
     const card = { _id: cardId, media: { publicId: 'publicId' } };
 
-    findOneAndRemoveCard.returns(SinonMongoose.stubChainedQueries(card, ['lean']));
+    findOneAndDeleteCard.returns(SinonMongoose.stubChainedQueries(card, ['lean']));
 
     await QuestionnaireHelper.removeCard(cardId);
 
     sinon.assert.calledOnceWithExactly(updateOne, { cards: cardId }, { $pull: { cards: cardId } });
     sinon.assert.calledOnceWithExactly(deleteMedia, cardId, 'publicId');
     SinonMongoose.calledOnceWithExactly(
-      findOneAndRemoveCard,
+      findOneAndDeleteCard,
       [
-        { query: 'findOneAndRemove', args: [{ _id: cardId }, { 'media.publicId': 1 }] },
+        { query: 'findOneAndDelete', args: [{ _id: cardId }, { 'media.publicId': 1 }] },
         { query: 'lean' },
       ]
     );
