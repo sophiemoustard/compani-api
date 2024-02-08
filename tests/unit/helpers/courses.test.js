@@ -3564,6 +3564,28 @@ describe('updateCourse', () => {
     );
     sinon.assert.notCalled(createHistoryOnEstimatedStartDateEdition);
   });
+
+  it('should remove salesRepresentative field', async () => {
+    const courseId = new ObjectId();
+    const payload = { salesRepresentative: '' };
+    const courseFromDb = { _id: courseId, salesRepresentative: new ObjectId() };
+
+    courseFindOneAndUpdate.returns(SinonMongoose.stubChainedQueries(courseFromDb, ['lean']));
+
+    await CourseHelper.updateCourse(courseId, payload, credentials);
+
+    sinon.assert.notCalled(createHistoryOnEstimatedStartDateEdition);
+    SinonMongoose.calledOnceWithExactly(
+      courseFindOneAndUpdate,
+      [
+        {
+          query: 'findOneAndUpdate',
+          args: [{ _id: courseId }, { $unset: { salesRepresentative: '' } }],
+        },
+        { query: 'lean' },
+      ]
+    );
+  });
 });
 
 describe('deleteCourse', () => {

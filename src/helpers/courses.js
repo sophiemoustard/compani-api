@@ -638,6 +638,7 @@ exports.updateCourse = async (courseId, payload, credentials) => {
     setFields = omit(setFields, 'salesRepresentative');
     unsetFields = { salesRepresentative: '' };
   }
+
   const formattedPayload = {
     ...(!isEmpty(setFields) && { $set: { ...setFields } }),
     ...(!isEmpty(unsetFields) && { $unset: { ...unsetFields } }),
