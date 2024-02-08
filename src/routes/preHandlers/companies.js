@@ -6,7 +6,7 @@ const translate = require('../../helpers/translate');
 const UtilsHelper = require('../../helpers/utils');
 const { TRAINING_ORGANISATION_MANAGER, VENDOR_ADMIN, CLIENT_ADMIN, HOLDING_ADMIN } = require('../../helpers/constants');
 const User = require('../../models/User');
-const { checkUserExistsAndHasRightRole } = require('./utils');
+const { checkVendorUserExistsAndHasRightRole } = require('./utils');
 
 const { language } = translate;
 
@@ -51,7 +51,7 @@ exports.authorizeCompanyUpdate = async (req) => {
   }
 
   if (payload.salesRepresentative) {
-    await checkUserExistsAndHasRightRole(payload.salesRepresentative, true);
+    await checkVendorUserExistsAndHasRightRole(payload.salesRepresentative, true);
   }
 
   return null;
@@ -65,7 +65,7 @@ exports.authorizeCompanyCreation = async (req) => {
   if (nameAlreadyExists) throw Boom.conflict(translate[language].companyExists);
 
   if (salesRepresentative) {
-    await checkUserExistsAndHasRightRole(salesRepresentative, true);
+    await checkVendorUserExistsAndHasRightRole(salesRepresentative, true);
   }
 
   return null;

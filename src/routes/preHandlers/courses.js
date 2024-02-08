@@ -41,7 +41,7 @@ const UtilsHelper = require('../../helpers/utils');
 const CourseHistoriesHelper = require('../../helpers/courseHistories');
 const { CompaniDate } = require('../../helpers/dates/companiDates');
 const UserCompaniesHelper = require('../../helpers/userCompanies');
-const { checkUserExistsAndHasRightRole } = require('./utils');
+const { checkVendorUserExistsAndHasRightRole } = require('./utils');
 
 const { language } = translate;
 
@@ -117,7 +117,7 @@ exports.checkContact = (req, course, isRofOrAdmin) => {
 };
 
 exports.authorizeCourseCreation = async (req) => {
-  await checkUserExistsAndHasRightRole(req.payload.operationsRepresentative, true);
+  await checkVendorUserExistsAndHasRightRole(req.payload.operationsRepresentative, true);
 
   const subProgram = await SubProgram
     .findOne({ _id: req.payload.subProgram })
@@ -140,7 +140,7 @@ exports.authorizeCourseCreation = async (req) => {
   }
 
   if (get(req, 'payload.salesRepresentative')) {
-    await checkUserExistsAndHasRightRole(req.payload.salesRepresentative, true);
+    await checkVendorUserExistsAndHasRightRole(req.payload.salesRepresentative, true);
   }
 
   return null;
@@ -244,11 +244,11 @@ exports.authorizeCourseEdit = async (req) => {
     }
 
     if (get(payload, 'operationsRepresentative')) {
-      await checkUserExistsAndHasRightRole(payload.operationsRepresentative, isRofOrAdmin);
+      await checkVendorUserExistsAndHasRightRole(payload.operationsRepresentative, isRofOrAdmin);
     }
 
     if (get(payload, 'trainer')) {
-      await checkUserExistsAndHasRightRole(payload.trainer, isRofOrAdmin, true);
+      await checkVendorUserExistsAndHasRightRole(payload.trainer, isRofOrAdmin, true);
     }
 
     if (get(payload, 'companyRepresentative')) {

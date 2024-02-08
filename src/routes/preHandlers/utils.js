@@ -36,7 +36,7 @@ exports.checkQuestionnaireAnswersList = async (questionnaireAnswersList, parentI
   }
 };
 
-exports.checkUserExistsAndHasRightRole = async (userId, isRofOrAdmin, checkHasTrainerRole = false) => {
+exports.checkVendorUserExistsAndHasRightRole = async (userId, isRofOrAdmin, checkHasTrainerRole = false) => {
   if (!isRofOrAdmin) throw Boom.forbidden();
 
   const user = await User.findOne({ _id: userId }, { role: 1 }).lean({ autopopulate: true });

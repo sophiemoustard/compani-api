@@ -1850,8 +1850,8 @@ describe('COURSES ROUTES - PUT /courses/{_id}', () => {
       expect(response.statusCode).toBe(404);
     });
 
-    it('should return 403 if invalid trainer', async () => {
-      const payload = { trainer: clientAdmin._id };
+    it('should return 404 if invalid trainer', async () => {
+      const payload = { trainer: coachFromOtherCompany._id };
       const response = await app.inject({
         method: 'PUT',
         url: `/courses/${courseIdFromAuthCompany}`,
@@ -1859,7 +1859,7 @@ describe('COURSES ROUTES - PUT /courses/{_id}', () => {
         payload,
       });
 
-      expect(response.statusCode).toBe(403);
+      expect(response.statusCode).toBe(404);
     });
 
     it('should return 403 if trainer is trainee', async () => {
