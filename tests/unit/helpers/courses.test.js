@@ -1775,6 +1775,10 @@ describe('getCourse', () => {
                 path: 'operationsRepresentative',
                 select: 'identity.firstname identity.lastname contact.phone local.email picture.link',
               },
+              {
+                path: 'salesRepresentative',
+                select: 'identity.firstname identity.lastname contact.phone local.email picture.link',
+              },
               { path: 'contact', select: 'identity.firstname identity.lastname contact.phone' },
               { path: 'trainerMission', select: '_id', options: { isVendorUser: true } },
             ]],
@@ -1866,6 +1870,10 @@ describe('getCourse', () => {
                   path: 'operationsRepresentative',
                   select: 'identity.firstname identity.lastname contact.phone local.email picture.link',
                 },
+                {
+                  path: 'salesRepresentative',
+                  select: 'identity.firstname identity.lastname contact.phone local.email picture.link',
+                },
                 { path: 'contact', select: 'identity.firstname identity.lastname contact.phone' },
               ]],
           },
@@ -1954,6 +1962,10 @@ describe('getCourse', () => {
                 { path: 'accessRules', select: 'name' },
                 {
                   path: 'operationsRepresentative',
+                  select: 'identity.firstname identity.lastname contact.phone local.email picture.link',
+                },
+                {
+                  path: 'salesRepresentative',
                   select: 'identity.firstname identity.lastname contact.phone local.email picture.link',
                 },
                 { path: 'contact', select: 'identity.firstname identity.lastname contact.phone' },
@@ -2110,6 +2122,10 @@ describe('getCourse', () => {
               { path: 'accessRules', select: 'name' },
               {
                 path: 'operationsRepresentative',
+                select: 'identity.firstname identity.lastname contact.phone local.email picture.link',
+              },
+              {
+                path: 'salesRepresentative',
                 select: 'identity.firstname identity.lastname contact.phone local.email picture.link',
               },
               { path: 'contact', select: 'identity.firstname identity.lastname contact.phone' },
