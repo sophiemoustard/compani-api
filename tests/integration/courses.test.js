@@ -2157,7 +2157,7 @@ describe('COURSES ROUTES - PUT /courses/{_id}', () => {
       expect(response.statusCode).toBe(409);
     });
 
-    it('should return 404 if wrong salesRepresentative', async () => {
+    it('should return 404 if invalid salesRepresentative', async () => {
       const payload = { salesRepresentative: coachFromOtherCompany._id };
       const response = await app.inject({
         method: 'PUT',
@@ -2247,6 +2247,17 @@ describe('COURSES ROUTES - PUT /courses/{_id}', () => {
         url: `/courses/${courseIdFromAuthCompany}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
         payload: { contact: clientAdmin._id, companyRepresentative: clientAdmin._id },
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
+
+    it('should return 403 if try to update sales representative #tag', async () => {
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/courses/${courseIdFromAuthCompany}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload: { salesRepresentative: vendorAdmin._id },
       });
 
       expect(response.statusCode).toBe(403);
