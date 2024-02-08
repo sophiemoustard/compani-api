@@ -350,6 +350,7 @@ const coursesList = [
     maxTrainees: 8,
     operationsRepresentative: vendorAdmin._id,
     expectedBillsCount: 2,
+    salesRepresentative: vendorAdmin._id,
   },
   { // 2
     _id: new ObjectId(),
