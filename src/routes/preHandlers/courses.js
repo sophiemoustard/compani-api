@@ -266,6 +266,10 @@ exports.authorizeCourseEdit = async (req) => {
 
     if (get(req, 'payload.estimatedStartDate') && (course.slots.length || !isRofOrAdmin)) return Boom.forbidden();
 
+    if (get(payload, 'salesRepresentative')) {
+      await checkVendorUserExistsAndHasRightRole(payload.salesRepresentative, isRofOrAdmin);
+    }
+
     return null;
   } catch (e) {
     req.log('error', e);

@@ -215,6 +215,7 @@ exports.plugin = {
             expectedBillsCount: Joi.number().min(0).integer(),
             hasCertifyingTest: Joi.boolean(),
             certifiedTrainees: Joi.array().items(Joi.objectId()),
+            salesRepresentative: Joi.objectId(),
           }),
         },
         pre: [{ method: authorizeCourseEdit }],
