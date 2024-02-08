@@ -41,6 +41,7 @@ const UtilsHelper = require('../../helpers/utils');
 const CourseHistoriesHelper = require('../../helpers/courseHistories');
 const { CompaniDate } = require('../../helpers/dates/companiDates');
 const UserCompaniesHelper = require('../../helpers/userCompanies');
+const { checkVendorUserExistsAndHasRightRole } = require('./utils');
 
 const { language } = translate;
 
@@ -62,31 +63,6 @@ exports.checkAuthorization = (credentials, courseTrainerId, companies, holding =
   if (!isAdminVendor && !isTOM && !isTrainerAndAuthorized && !isClientAndAuthorized && !isHoldingAndAuthorized) {
     throw Boom.forbidden();
   }
-};
-
-exports.checkOperationsRepresentativeExists = async (req, isRofOrAdmin) => {
-  if (!isRofOrAdmin) throw Boom.forbidden();
-
-  const operationsRepresentative = await User.findOne({ _id: req.payload.operationsRepresentative }, { role: 1 })
-    .lean({ autopopulate: true });
-
-  if (![VENDOR_ADMIN, TRAINING_ORGANISATION_MANAGER].includes(get(operationsRepresentative, 'role.vendor.name'))) {
-    throw Boom.forbidden();
-  }
-
-  return null;
-};
-
-exports.checkTrainerExists = async (req, isRofOrAdmin) => {
-  if (!isRofOrAdmin) throw Boom.forbidden();
-
-  const trainer = await User.findOne({ _id: req.payload.trainer }, { role: 1 }).lean({ autopopulate: true });
-
-  if (![VENDOR_ADMIN, TRAINING_ORGANISATION_MANAGER, TRAINER].includes(get(trainer, 'role.vendor.name'))) {
-    throw Boom.forbidden();
-  }
-
-  return null;
 };
 
 exports.checkCompanyRepresentativeExists = async (req, course, isRofOrAdmin) => {
@@ -141,7 +117,7 @@ exports.checkContact = (req, course, isRofOrAdmin) => {
 };
 
 exports.authorizeCourseCreation = async (req) => {
-  await this.checkOperationsRepresentativeExists(req, true);
+  await checkVendorUserExistsAndHasRightRole(req.payload.operationsRepresentative, true);
 
   const subProgram = await SubProgram
     .findOne({ _id: req.payload.subProgram })
@@ -161,6 +137,10 @@ exports.authorizeCourseCreation = async (req) => {
 
     const holdingExists = await Holding.countDocuments({ _id: holding });
     if (!holdingExists) throw Boom.notFound();
+  }
+
+  if (get(req, 'payload.salesRepresentative')) {
+    await checkVendorUserExistsAndHasRightRole(req.payload.salesRepresentative, true);
   }
 
   return null;
@@ -201,16 +181,16 @@ exports.authorizeGetCompletionCertificates = async (req) => {
 
 exports.authorizeCourseEdit = async (req) => {
   try {
-    const { credentials } = req.auth;
+    const { auth: { credentials }, payload, params } = req;
     const course = await Course
-      .findOne({ _id: req.params._id })
+      .findOne({ _id: params._id })
       .populate({ path: 'slots', select: 'startDate endDate' })
       .populate({ path: 'slotsToPlan' })
       .populate({ path: 'contact' })
       .lean();
     if (!course) throw Boom.notFound();
 
-    const unarchiveCourse = has(req, 'payload.archivedAt') && req.payload.archivedAt === '';
+    const unarchiveCourse = has(payload, 'archivedAt') && payload.archivedAt === '';
     if (course.archivedAt && !unarchiveCourse) throw Boom.forbidden();
 
     const courseTrainerId = get(course, 'trainer') || null;
@@ -218,39 +198,39 @@ exports.authorizeCourseEdit = async (req) => {
     const holding = course.type === INTRA_HOLDING ? course.holding : null;
     this.checkAuthorization(credentials, courseTrainerId, companies, holding);
 
-    const userVendorRole = get(req, 'auth.credentials.role.vendor.name');
+    const userVendorRole = get(credentials, 'role.vendor.name');
     const isRofOrAdmin = [TRAINING_ORGANISATION_MANAGER, VENDOR_ADMIN].includes(userVendorRole);
 
-    const trainerIsTrainee = UtilsHelper.doesArrayIncludeId(course.trainees, get(req, 'payload.trainer'));
+    const trainerIsTrainee = UtilsHelper.doesArrayIncludeId(course.trainees, get(payload, 'trainer'));
     if (trainerIsTrainee) throw Boom.forbidden();
 
-    if (has(req, 'payload.hasCertifyingTest')) {
+    if (has(payload, 'hasCertifyingTest')) {
       if (!isRofOrAdmin) throw Boom.forbidden();
-      const certifiedTraineesCount = get(req, 'payload.certifiedTrainees.length') ||
+      const certifiedTraineesCount = get(payload, 'certifiedTrainees.length') ||
         get(course, 'certifiedTrainees.length');
-      if (certifiedTraineesCount && !req.payload.hasCertifyingTest) throw Boom.conflict();
+      if (certifiedTraineesCount && !payload.hasCertifyingTest) throw Boom.conflict();
     }
 
-    if (get(req, 'payload.certifiedTrainees')) {
+    if (get(payload, 'certifiedTrainees')) {
       if (!isRofOrAdmin) throw Boom.forbidden();
 
-      const doesCourseHaveCertification = course.hasCertifyingTest || req.payload.hasCertifyingTest;
+      const doesCourseHaveCertification = course.hasCertifyingTest || payload.hasCertifyingTest;
       if (!doesCourseHaveCertification) throw Boom.conflict();
 
-      const areEveryTraineeInCourse = req.payload.certifiedTrainees
+      const areEveryTraineeInCourse = payload.certifiedTrainees
         .every(trainee => UtilsHelper.doesArrayIncludeId(course.trainees, trainee));
       if (!areEveryTraineeInCourse) throw Boom.notFound();
     }
 
-    if (get(req, 'payload.maxTrainees')) {
+    if (get(payload, 'maxTrainees')) {
       if (!isRofOrAdmin) throw Boom.forbidden();
       if (course.type === INTER_B2B) throw Boom.badRequest();
-      if ((req.payload.maxTrainees < course.trainees.length)) {
+      if (payload.maxTrainees < course.trainees.length) {
         throw Boom.forbidden(translate[language].maxTraineesSmallerThanRegistered);
       }
     }
 
-    if (has(req, 'payload.expectedBillsCount')) {
+    if (has(payload, 'expectedBillsCount')) {
       if (!isRofOrAdmin) throw Boom.forbidden();
       if (course.type !== INTRA) throw Boom.badRequest();
 
@@ -260,15 +240,21 @@ exports.authorizeCourseEdit = async (req) => {
         .lean();
 
       const courseBillsWithoutCreditNote = courseBills.filter(cb => !cb.courseCreditNote);
-      if (courseBillsWithoutCreditNote.length > req.payload.expectedBillsCount) throw Boom.conflict();
+      if (courseBillsWithoutCreditNote.length > payload.expectedBillsCount) throw Boom.conflict();
     }
 
-    if (get(req, 'payload.operationsRepresentative')) await this.checkOperationsRepresentativeExists(req, isRofOrAdmin);
-    if (get(req, 'payload.trainer')) await this.checkTrainerExists(req, isRofOrAdmin);
-    if (get(req, 'payload.companyRepresentative')) {
+    if (get(payload, 'operationsRepresentative')) {
+      await checkVendorUserExistsAndHasRightRole(payload.operationsRepresentative, isRofOrAdmin);
+    }
+
+    if (get(payload, 'trainer')) {
+      await checkVendorUserExistsAndHasRightRole(payload.trainer, isRofOrAdmin, true);
+    }
+
+    if (get(payload, 'companyRepresentative')) {
       await this.checkCompanyRepresentativeExists(req, course, isRofOrAdmin);
     }
-    if (get(req, 'payload.contact')) this.checkContact(req, course, isRofOrAdmin);
+    if (get(payload, 'contact')) this.checkContact(req, course, isRofOrAdmin);
 
     const archivedAt = get(req, 'payload.archivedAt');
     if (archivedAt || unarchiveCourse) {
