@@ -623,13 +623,20 @@ exports.updateCourse = async (courseId, payload, credentials) => {
     setFields = omit(setFields, 'contact');
     unsetFields = { contact: '' };
   }
+
   if (has(payload, 'certifiedTrainees') && !payload.certifiedTrainees.length) {
     setFields = omit(setFields, 'certifiedTrainees');
     unsetFields = { certifiedTrainees: '' };
   }
+
   if (payload.archivedAt === '') {
     setFields = omit(setFields, 'archivedAt');
     unsetFields = { ...unsetFields, archivedAt: '' };
+  }
+
+  if (payload.salesRepresentative === '') {
+    setFields = omit(setFields, 'salesRepresentative');
+    unsetFields = { salesRepresentative: '' };
   }
   const formattedPayload = {
     ...(!isEmpty(setFields) && { $set: { ...setFields } }),
