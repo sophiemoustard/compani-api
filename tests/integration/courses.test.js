@@ -1817,10 +1817,10 @@ describe('COURSES ROUTES - PUT /courses/{_id}', () => {
     });
 
     it('should update salesRepresentative for a blended course', async () => {
-      const payload = { salesRepresentative: vendorAdmin._id };
+      const payload = { salesRepresentative: trainerOrganisationManager._id };
       const response = await app.inject({
         method: 'PUT',
-        url: `/courses/${coursesList[0]._id}`,
+        url: `/courses/${courseIdFromAuthCompany}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
         payload,
       });
@@ -2252,12 +2252,12 @@ describe('COURSES ROUTES - PUT /courses/{_id}', () => {
       expect(response.statusCode).toBe(403);
     });
 
-    it('should return 403 if try to update sales representative #tag', async () => {
+    it('should return 403 if try to update sales representative', async () => {
       const response = await app.inject({
         method: 'PUT',
         url: `/courses/${courseIdFromAuthCompany}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
-        payload: { salesRepresentative: vendorAdmin._id },
+        payload: { salesRepresentative: trainerOrganisationManager._id },
       });
 
       expect(response.statusCode).toBe(403);
