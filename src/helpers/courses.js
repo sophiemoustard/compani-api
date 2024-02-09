@@ -365,6 +365,10 @@ const getCourseForOperations = async (courseId, credentials, origin) => {
             path: 'operationsRepresentative',
             select: 'identity.firstname identity.lastname contact.phone local.email picture.link',
           },
+          {
+            path: 'salesRepresentative',
+            select: 'identity.firstname identity.lastname contact.phone local.email picture.link',
+          },
           { path: 'contact', select: 'identity.firstname identity.lastname contact.phone' },
           ...(isRofOrAdmin ? [{ path: 'trainerMission', select: '_id', options: { isVendorUser: true } }] : []),
         ]
@@ -619,14 +623,22 @@ exports.updateCourse = async (courseId, payload, credentials) => {
     setFields = omit(setFields, 'contact');
     unsetFields = { contact: '' };
   }
+
   if (has(payload, 'certifiedTrainees') && !payload.certifiedTrainees.length) {
     setFields = omit(setFields, 'certifiedTrainees');
     unsetFields = { certifiedTrainees: '' };
   }
+
   if (payload.archivedAt === '') {
     setFields = omit(setFields, 'archivedAt');
     unsetFields = { ...unsetFields, archivedAt: '' };
   }
+
+  if (payload.salesRepresentative === '') {
+    setFields = omit(setFields, 'salesRepresentative');
+    unsetFields = { salesRepresentative: '' };
+  }
+
   const formattedPayload = {
     ...(!isEmpty(setFields) && { $set: { ...setFields } }),
     ...(!isEmpty(unsetFields) && { $unset: { ...unsetFields } }),

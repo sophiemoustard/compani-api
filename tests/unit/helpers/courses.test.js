@@ -1775,6 +1775,10 @@ describe('getCourse', () => {
                 path: 'operationsRepresentative',
                 select: 'identity.firstname identity.lastname contact.phone local.email picture.link',
               },
+              {
+                path: 'salesRepresentative',
+                select: 'identity.firstname identity.lastname contact.phone local.email picture.link',
+              },
               { path: 'contact', select: 'identity.firstname identity.lastname contact.phone' },
               { path: 'trainerMission', select: '_id', options: { isVendorUser: true } },
             ]],
@@ -1866,6 +1870,10 @@ describe('getCourse', () => {
                   path: 'operationsRepresentative',
                   select: 'identity.firstname identity.lastname contact.phone local.email picture.link',
                 },
+                {
+                  path: 'salesRepresentative',
+                  select: 'identity.firstname identity.lastname contact.phone local.email picture.link',
+                },
                 { path: 'contact', select: 'identity.firstname identity.lastname contact.phone' },
               ]],
           },
@@ -1954,6 +1962,10 @@ describe('getCourse', () => {
                 { path: 'accessRules', select: 'name' },
                 {
                   path: 'operationsRepresentative',
+                  select: 'identity.firstname identity.lastname contact.phone local.email picture.link',
+                },
+                {
+                  path: 'salesRepresentative',
                   select: 'identity.firstname identity.lastname contact.phone local.email picture.link',
                 },
                 { path: 'contact', select: 'identity.firstname identity.lastname contact.phone' },
@@ -2110,6 +2122,10 @@ describe('getCourse', () => {
               { path: 'accessRules', select: 'name' },
               {
                 path: 'operationsRepresentative',
+                select: 'identity.firstname identity.lastname contact.phone local.email picture.link',
+              },
+              {
+                path: 'salesRepresentative',
                 select: 'identity.firstname identity.lastname contact.phone local.email picture.link',
               },
               { path: 'contact', select: 'identity.firstname identity.lastname contact.phone' },
@@ -3547,6 +3563,28 @@ describe('updateCourse', () => {
       ]
     );
     sinon.assert.notCalled(createHistoryOnEstimatedStartDateEdition);
+  });
+
+  it('should remove salesRepresentative field', async () => {
+    const courseId = new ObjectId();
+    const payload = { salesRepresentative: '' };
+    const courseFromDb = { _id: courseId, salesRepresentative: new ObjectId() };
+
+    courseFindOneAndUpdate.returns(SinonMongoose.stubChainedQueries(courseFromDb, ['lean']));
+
+    await CourseHelper.updateCourse(courseId, payload, credentials);
+
+    sinon.assert.notCalled(createHistoryOnEstimatedStartDateEdition);
+    SinonMongoose.calledOnceWithExactly(
+      courseFindOneAndUpdate,
+      [
+        {
+          query: 'findOneAndUpdate',
+          args: [{ _id: courseId }, { $unset: { salesRepresentative: '' } }],
+        },
+        { query: 'lean' },
+      ]
+    );
   });
 });
 
