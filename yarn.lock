@@ -2334,7 +2334,7 @@ hapi-auth-jwt2@~10.5.1:
     cookie "^0.6.0"
     jsonwebtoken "^9.0.0"
 
-hapi-sentry@4.0.0:
+hapi-sentry@~4.0.0:
   version "4.0.0"
   resolved "https://registry.yarnpkg.com/hapi-sentry/-/hapi-sentry-4.0.0.tgz#ab4c046a6cd7885a7d4b90544099605d7b7bb778"
   integrity sha512-xaRyJpW4+wHaC2j74NJxpOgMF7SmB2qNvO2mni9lclH6ofKxRToLLSlqdYTQEhT9oOcJ3MCS9S9UfSbSUHFYlw==
