@@ -37,6 +37,7 @@ exports.findCourseAndPopulate = (query, origin, populateVirtual = false) => Cour
         }] : []
         ),
         { path: 'operationsRepresentative', select: 'identity.firstname identity.lastname' },
+        { path: 'salesRepresentative', select: 'identity.firstname identity.lastname' },
       ]
       : []
     ),
