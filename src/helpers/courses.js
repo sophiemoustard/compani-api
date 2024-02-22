@@ -619,11 +619,6 @@ exports.updateCourse = async (courseId, payload, credentials) => {
   let setFields = payload;
   let unsetFields = {};
 
-  if (payload.contact === '') {
-    setFields = omit(setFields, 'contact');
-    unsetFields = { contact: '' };
-  }
-
   if (has(payload, 'certifiedTrainees') && !payload.certifiedTrainees.length) {
     setFields = omit(setFields, 'certifiedTrainees');
     unsetFields = { certifiedTrainees: '' };
@@ -637,6 +632,16 @@ exports.updateCourse = async (courseId, payload, credentials) => {
   if (payload.salesRepresentative === '') {
     setFields = omit(setFields, 'salesRepresentative');
     unsetFields = { salesRepresentative: '' };
+  }
+
+  if (payload.trainer === '') {
+    setFields = omit(setFields, 'trainer');
+    unsetFields = { trainer: '' };
+  }
+
+  if (payload.contact === '') {
+    setFields = omit(setFields, 'contact');
+    unsetFields = { ...unsetFields, contact: '' };
   }
 
   const formattedPayload = {

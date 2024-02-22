@@ -205,7 +205,7 @@ exports.plugin = {
           params: Joi.object({ _id: Joi.objectId().required() }),
           payload: Joi.object({
             misc: Joi.string().allow('', null),
-            trainer: Joi.objectId(),
+            trainer: Joi.objectId().allow(''),
             contact: Joi.objectId().allow(''),
             operationsRepresentative: Joi.objectId(),
             companyRepresentative: Joi.objectId(),
