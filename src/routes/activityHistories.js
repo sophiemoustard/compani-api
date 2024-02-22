@@ -21,6 +21,7 @@ exports.plugin = {
               answerList: Joi.array().items(Joi.string()).min(1).required(),
             })),
             score: Joi.number().required(),
+            duration: Joi.string().required(),
           }),
         },
         auth: { mode: 'required' },

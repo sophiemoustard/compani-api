@@ -4,8 +4,10 @@ const ActivityHistory = require('../models/ActivityHistory');
 const UserCompany = require('../models/UserCompany');
 const { STRICTLY_E_LEARNING } = require('./constants');
 const UtilsHelper = require('./utils');
+const { CompaniDuration } = require('./dates/companiDurations');
 
-exports.addActivityHistory = async payload => ActivityHistory.create(payload);
+exports.addActivityHistory = async payload => ActivityHistory
+  .create({ ...payload, duration: CompaniDuration(payload.duration).asSeconds() });
 
 const filterCourses = activityHistory => ({
   ...activityHistory,
