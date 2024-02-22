@@ -1739,6 +1739,23 @@ describe('COURSES ROUTES - PUT /courses/{_id}', () => {
       expect(course).toEqual(1);
     });
 
+    it('should remove the course trainer who is contact', async () => {
+      const payload = { trainer: '', contact: '' };
+
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/courses/${coursesList[17]._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload,
+      });
+
+      expect(response.statusCode).toBe(200);
+
+      const courseUpdated = await Course
+        .countDocuments({ _id: coursesList[17]._id, contact: { $exists: false }, trainer: { $exists: false } });
+      expect(courseUpdated).toEqual(1);
+    });
+
     it('should return 400 if try to remove estimated start date', async () => {
       const payload = { estimatedStartDate: '' };
       const response = await app.inject({
