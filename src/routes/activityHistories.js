@@ -4,6 +4,7 @@ const Joi = require('joi');
 Joi.objectId = require('joi-objectid')(Joi);
 const { addActivityHistory, list } = require('../controllers/activityHistoryController');
 const { authorizeAddActivityHistory, authorizeHistoriesList } = require('./preHandlers/activityHistories');
+const { durationPositive } = require('./validations/utils');
 
 exports.plugin = {
   name: 'routes-activity-histories',
@@ -21,7 +22,7 @@ exports.plugin = {
               answerList: Joi.array().items(Joi.string()).min(1).required(),
             })),
             score: Joi.number().required(),
-            duration: Joi.string().required(),
+            duration: durationPositive,
           }),
         },
         auth: { mode: 'required' },
