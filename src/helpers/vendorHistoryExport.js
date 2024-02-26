@@ -1,5 +1,6 @@
+/* eslint-disable max-len */
 const get = require('lodash/get');
-const uniqBy = require('lodash/uniqBy');
+// const uniqBy = require('lodash/uniqBy');
 const groupBy = require('lodash/groupBy');
 const mapValues = require('lodash/mapValues');
 const {
@@ -8,7 +9,7 @@ const {
   ON_SITE,
   REMOTE,
   STEP_TYPES,
-  EXPECTATIONS,
+  // EXPECTATIONS,
   END_OF_COURSE,
   OPEN_QUESTION,
   SURVEY,
@@ -23,8 +24,8 @@ const {
   DD_MM_YYYY,
   HH_MM_SS,
   DAY,
-  ESTIMATED_START_DATE_EDITION,
-  INTRA_HOLDING,
+  // ESTIMATED_START_DATE_EDITION,
+  // INTRA_HOLDING,
   COURSE,
   TRAINEE,
 } = require('./constants');
@@ -35,14 +36,14 @@ const NumbersHelper = require('./numbers');
 const CourseBillHelper = require('./courseBills');
 const CourseHelper = require('./courses');
 const CourseHistoriesHelper = require('./courseHistories');
-const AttendanceSheet = require('../models/AttendanceSheet');
-const CourseSmsHistory = require('../models/CourseSmsHistory');
+// const AttendanceSheet = require('../models/AttendanceSheet');
+// const CourseSmsHistory = require('../models/CourseSmsHistory');
 const CourseSlot = require('../models/CourseSlot');
 const CourseBill = require('../models/CourseBill');
 const CourseCreditNote = require('../models/CourseCreditNote');
 const CourseRepository = require('../repositories/CourseRepository');
-const QuestionnaireHistory = require('../models/QuestionnaireHistory');
-const CourseHistory = require('../models/CourseHistory');
+// const QuestionnaireHistory = require('../models/QuestionnaireHistory');
+// const CourseHistory = require('../models/CourseHistory');
 const Questionnaire = require('../models/Questionnaire');
 const CoursePayment = require('../models/CoursePayment');
 
@@ -65,31 +66,32 @@ const getStartOfCourse = slotsGroupedByDate => (slotsGroupedByDate.length
 const isSlotInInterval = (slot, startDate, endDate) => CompaniDate(slot.startDate).isAfter(startDate) &&
   CompaniDate(slot.endDate).isBefore(endDate);
 
-const getAttendancesCountInfos = (course) => {
-  const attendances = course.slots.map(slot => slot.attendances).flat();
-  const courseTraineeList = course.trainees.map(trainee => trainee._id);
-  const subscribedAttendances = attendances
-    .filter(attendance => UtilsHelper.doesArrayIncludeId(courseTraineeList, attendance.trainee))
-    .length;
+// const getAttendancesCountInfos = (course) => {
+//   const attendances = course.slots.map(slot => slot.attendances).flat();
+//   const courseTraineeList = course.trainees.map(trainee => trainee._id);
+//   const subscribedAttendances = attendances
+//     .filter(attendance => UtilsHelper.doesArrayIncludeId(courseTraineeList, attendance.trainee))
+//     .length;
 
-  const upComingSlots = course.slots.filter(slot => CompaniDate().isBefore(slot.startDate)).length;
-  const attendancesToCome = upComingSlots * course.trainees.length;
+//   const upComingSlots = course.slots.filter(slot => CompaniDate().isBefore(slot.startDate)).length;
+//   const attendancesToCome = upComingSlots * course.trainees.length;
 
-  const unsubscribedTrainees = uniqBy(attendances.map(a => a.trainee), trainee => trainee.toString())
-    .filter(attendanceTrainee => !UtilsHelper.doesArrayIncludeId(courseTraineeList, attendanceTrainee))
-    .length;
+//   const unsubscribedTrainees = uniqBy(attendances.map(a => a.trainee), trainee => trainee.toString())
+//     .filter(attendanceTrainee => !UtilsHelper.doesArrayIncludeId(courseTraineeList, attendanceTrainee))
+//     .length;
 
-  return {
-    subscribedAttendances,
-    unsubscribedAttendances: attendances.length - subscribedAttendances,
-    absences: (course.slots.length * course.trainees.length) - subscribedAttendances - attendancesToCome,
-    unsubscribedTrainees,
-    pastSlots: course.slots.length - upComingSlots,
-  };
-};
+//   return {
+//     subscribedAttendances,
+//     unsubscribedAttendances: attendances.length - subscribedAttendances,
+//     absences: (course.slots.length * course.trainees.length) - subscribedAttendances - attendancesToCome,
+//     unsubscribedTrainees,
+//     pastSlots: course.slots.length - upComingSlots,
+//   };
+// };
 
 const getBillsInfos = (course) => {
-  const validatedBillsWithoutCreditNote = course.bills.filter(bill => !bill.courseCreditNote && bill.billedAt);
+  const validatedBillsWithoutCreditNote = course.bills.filter(bill => !bill.courseCreditNote && bill.billedAt &&
+    UtilsHelper.doesArrayIncludeId(bill.companies, course.company[0]._id));
 
   const payerList =
     [...new Set(validatedBillsWithoutCreditNote.map(bill => get(bill, 'payer.name')))]
@@ -125,70 +127,31 @@ const getProgress = (pastSlots, course) =>
 
 const formatCourseForExport = (course) => {
   const slotsGroupedByDate = CourseHelper.groupSlotsByDate(course.slots);
-  // const {
-  //   subscribedAttendances,
-  //   unsubscribedAttendances,
-  //   absences,
-  //   unsubscribedTrainees,
-  //   pastSlots,
-  // } = getAttendancesCountInfos(course);
 
-  // const expectactionQuestionnaireAnswers = qHistories.filter(qh => qh.questionnaire.type === EXPECTATIONS).length;
-  // const endQuestionnaireAnswers = qHistories.filter(qh => qh.questionnaire.type === END_OF_COURSE).length;
-
-  // const traineeProgressList = CourseHelper.getTraineesWithElearningProgress(course.trainees, course.subProgram.steps)
-  //   .filter(trainee => trainee.progress.eLearning >= 0)
-  //   .map(trainee => trainee.progress.eLearning);
-  // const combinedElearningProgress = traineeProgressList.reduce((acc, value) => acc + value, 0);
-
-  // const { isBilled, billsCountForExport, payerList, netInclTaxes, paid, total } = getBillsInfos(course);
-
-  // const companiesName = course.companies.map(co => co.name).sort((a, b) => a.localeCompare(b)).toString();
+  const { isBilled, billsCountForExport, payerList, netInclTaxes, paid, total } = getBillsInfos(course);
 
   return {
     Identifiant: course._id,
     Type: course.type,
-    // Payeur: payerList || '',
+    Payeur: payerList || '',
     Structure: course.companies.map(c => c.name).join(', '),
     'Société mère': get(course, 'holding.name') || '',
     Programme: get(course, 'subProgram.program.name') || '',
     'Sous-Programme': get(course, 'subProgram.name') || '',
     'Infos complémentaires': course.misc,
-    // Formateur: UtilsHelper.formatIdentity(get(course, 'trainer.identity') || '', 'FL'),
     'Chargé des opérations': UtilsHelper.formatIdentity(get(course, 'operationsRepresentative.identity') || '', 'FL'),
-    // 'Contact pour la formation': UtilsHelper.formatIdentity(get(course, 'contact.identity') || '', 'FL'),
     'Nombre d\'inscrits': get(course, 'trainees.length'),
     'Nombre de dates': slotsGroupedByDate.length,
     'Nombre de créneaux': get(course, 'slots.length'),
     'Nombre de créneaux à planifier': get(course, 'slotsToPlan.length'),
     'Durée Totale': UtilsHelper.getTotalDurationForExport(course.slots),
-    // 'Nombre de SMS envoyés': smsCount,
-    // 'Nombre de personnes connectées à l\'app': course.trainees
-    //   .filter(trainee => trainee.firstMobileConnection).length,
-    // 'Complétion eLearning moyenne': traineeProgressList.length
-    //   ? UtilsHelper.formatFloatForExport(combinedElearningProgress / course.trainees.length)
-    //   : '',
-    // 'Nombre de réponses au questionnaire de recueil des attentes': expectactionQuestionnaireAnswers,
-    // 'Nombre de réponses au questionnaire de satisfaction': endQuestionnaireAnswers,
-    // 'Date de démarrage souhaitée': course.estimatedStartDate
-    //   ? CompaniDate(course.estimatedStartDate).format(DD_MM_YYYY)
-    //   : '',
-    // 'Première date de démarrage souhaitée': estimatedStartDateHistory
-    //   ? CompaniDate(estimatedStartDateHistory[0].update.estimatedStartDate.to).format(DD_MM_YYYY)
-    //   : '',
     'Début de formation': getStartOfCourse(slotsGroupedByDate),
     'Fin de formation': getEndOfCourse(slotsGroupedByDate, course.slotsToPlan),
-    // 'Nombre de feuilles d\'émargement chargées': attendanceSheetsCount,
-    // 'Nombre de présences': subscribedAttendances,
-    // 'Nombre d\'absences': absences,
-    // 'Nombre de stagiaires non prévus': unsubscribedTrainees,
-    // 'Nombre de présences non prévues': unsubscribedAttendances,
-    // Avancement: getProgress(pastSlots, course),
-    // 'Nombre de factures': billsCountForExport,
-    // Facturée: isBilled ? 'Oui' : 'Non',
-    // 'Montant facturé': UtilsHelper.formatFloatForExport(netInclTaxes),
-    // 'Montant réglé': UtilsHelper.formatFloatForExport(paid),
-    // Solde: UtilsHelper.formatFloatForExport(total),
+    'Nombre de factures': billsCountForExport,
+    Facturée: isBilled ? 'Oui' : 'Non',
+    'Montant facturé': UtilsHelper.formatFloatForExport(netInclTaxes),
+    'Montant réglé': UtilsHelper.formatFloatForExport(paid),
+    Solde: UtilsHelper.formatFloatForExport(total),
   };
 };
 
@@ -200,40 +163,8 @@ exports.exportCourseHistory = async (startDate, endDate, credentials) => {
 
   if (!filteredCourses.length) return [[NO_DATA]];
 
-  // const courseIds = filteredCourses.map(course => course._id);
-  // const isVendorUser = [TRAINING_ORGANISATION_MANAGER, VENDOR_ADMIN].includes(get(credentials, 'role.vendor.name'));
-  // const [questionnaireHistories, smsList, attendanceSheetList, estimatedStartDateHistories] = await Promise.all([
-  //   QuestionnaireHistory
-  //     .find({ course: { $in: courseIds } })
-  //     .select('course questionnaire')
-  //     .populate({ path: 'questionnaire', select: 'type' })
-  //     .setOptions({ isVendorUser })
-  //     .lean(),
-  //   CourseSmsHistory.find({ course: { $in: courseIds } }).select('course').lean(),
-  //   AttendanceSheet.find({ course: { $in: courseIds } }).select('course').setOptions({ isVendorUser }).lean(),
-  //   CourseHistory.find(
-  //     {
-  //       course: { $in: courseIds },
-  //       action: ESTIMATED_START_DATE_EDITION,
-  //       update: { estimatedStartDate: { from: '' } },
-  //     },
-  //     { course: 1, update: 1 }
-  //   ).lean(),
-  // ]);
-
   const rows = [];
-  // const groupedSms = groupBy(smsList, 'course');
-  // const grouppedAttendanceSheets = groupBy(attendanceSheetList, 'course');
-  // const groupedCourseQuestionnaireHistories = groupBy(questionnaireHistories, 'course');
-  // const groupedEstimatedStartDateHistories = groupBy(estimatedStartDateHistories, 'course');
-
   for (const course of filteredCourses) {
-    // const smsCount = (groupedSms[course._id] || []).length;
-    // const attendanceSheetsCount = (grouppedAttendanceSheets[course._id] || []).length;
-
-    // const courseQuestionnaireHistories = groupedCourseQuestionnaireHistories[course._id] || [];
-    // const estimatedStartDateHistory = groupedEstimatedStartDateHistories[course._id];
-
     if (course.type === INTRA) rows.push(formatCourseForExport(course));
     else {
       const traineesCompanyList = await CourseHistoriesHelper.getCompanyAtCourseRegistrationList(
@@ -252,6 +183,120 @@ exports.exportCourseHistory = async (startDate, endDate, credentials) => {
 
   return [Object.keys(rows[0]), ...rows.map(d => Object.values(d))];
 };
+
+// exports.exportCourseHistory = async (startDate, endDate, credentials) => {
+//   const courses = await CourseRepository.findCoursesForExport(startDate, endDate, credentials);
+
+//   const filteredCourses = courses
+//     .filter(course => !course.slots.length || course.slots.some(slot => isSlotInInterval(slot, startDate, endDate)));
+
+//   if (!filteredCourses.length) return [[NO_DATA]];
+
+//   const courseIds = filteredCourses.map(course => course._id);
+//   const isVendorUser = [TRAINING_ORGANISATION_MANAGER, VENDOR_ADMIN].includes(get(credentials, 'role.vendor.name'));
+//   const [questionnaireHistories, smsList, attendanceSheetList, estimatedStartDateHistories] = await Promise.all([
+//     QuestionnaireHistory
+//       .find({ course: { $in: courseIds } })
+//       .select('course questionnaire')
+//       .populate({ path: 'questionnaire', select: 'type' })
+//       .setOptions({ isVendorUser })
+//       .lean(),
+//     CourseSmsHistory.find({ course: { $in: courseIds } }).select('course').lean(),
+//     AttendanceSheet.find({ course: { $in: courseIds } }).select('course').setOptions({ isVendorUser }).lean(),
+//     CourseHistory.find(
+//       {
+//         course: { $in: courseIds },
+//         action: ESTIMATED_START_DATE_EDITION,
+//         update: { estimatedStartDate: { from: '' } },
+//       },
+//       { course: 1, update: 1 }
+//     ).lean(),
+//   ]);
+
+//   const rows = [];
+//   const groupedSms = groupBy(smsList, 'course');
+//   const grouppedAttendanceSheets = groupBy(attendanceSheetList, 'course');
+//   const groupedCourseQuestionnaireHistories = groupBy(questionnaireHistories, 'course');
+//   const groupedEstimatedStartDateHistories = groupBy(estimatedStartDateHistories, 'course');
+
+//   for (const course of filteredCourses) {
+//     const slotsGroupedByDate = CourseHelper.groupSlotsByDate(course.slots);
+//     const smsCount = (groupedSms[course._id] || []).length;
+//     const attendanceSheets = (grouppedAttendanceSheets[course._id] || []).length;
+//     const {
+//       subscribedAttendances,
+//       unsubscribedAttendances,
+//       absences,
+//       unsubscribedTrainees,
+//       pastSlots,
+//     } = getAttendancesCountInfos(course);
+
+//     const courseQuestionnaireHistories = groupedCourseQuestionnaireHistories[course._id] || [];
+//     const estimatedStartDateHistory = groupedEstimatedStartDateHistories[course._id];
+//     const expectactionQuestionnaireAnswers = courseQuestionnaireHistories
+//       .filter(qh => qh.questionnaire.type === EXPECTATIONS)
+//       .length;
+//     const endQuestionnaireAnswers = courseQuestionnaireHistories
+//       .filter(qh => qh.questionnaire.type === END_OF_COURSE)
+//       .length;
+
+//     const traineeProgressList = CourseHelper.getTraineesWithElearningProgress(course.trainees, course.subProgram.steps)
+//       .filter(trainee => trainee.progress.eLearning >= 0)
+//       .map(trainee => trainee.progress.eLearning);
+//     const combinedElearningProgress = traineeProgressList.reduce((acc, value) => acc + value, 0);
+
+//     const { isBilled, billsCountForExport, payerList, netInclTaxes, paid, total } = getBillsInfos(course);
+
+//     const companiesName = course.companies.map(co => co.name).sort((a, b) => a.localeCompare(b)).toString();
+
+//     rows.push({
+//       Identifiant: course._id,
+//       Type: course.type,
+//       Payeur: payerList || '',
+//       Structure: companiesName || '',
+//       Programme: get(course, 'subProgram.program.name') || '',
+//       'Sous-Programme': get(course, 'subProgram.name') || '',
+//       'Infos complémentaires': course.misc,
+//       Formateur: UtilsHelper.formatIdentity(get(course, 'trainer.identity') || '', 'FL'),
+//       'Chargé des opérations': UtilsHelper.formatIdentity(get(course, 'operationsRepresentative.identity') || '', 'FL'),
+//       'Contact pour la formation': UtilsHelper.formatIdentity(get(course, 'contact.identity') || '', 'FL'),
+//       'Nombre d\'inscrits': get(course, 'trainees.length'),
+//       'Nombre de dates': slotsGroupedByDate.length,
+//       'Nombre de créneaux': get(course, 'slots.length'),
+//       'Nombre de créneaux à planifier': get(course, 'slotsToPlan.length'),
+//       'Durée Totale': UtilsHelper.getTotalDurationForExport(course.slots),
+//       'Nombre de SMS envoyés': smsCount,
+//       'Nombre de personnes connectées à l\'app': course.trainees
+//         .filter(trainee => trainee.firstMobileConnectionDate).length,
+//       'Complétion eLearning moyenne': traineeProgressList.length
+//         ? UtilsHelper.formatFloatForExport(combinedElearningProgress / course.trainees.length)
+//         : '',
+//       'Nombre de réponses au questionnaire de recueil des attentes': expectactionQuestionnaireAnswers,
+//       'Nombre de réponses au questionnaire de satisfaction': endQuestionnaireAnswers,
+//       'Date de démarrage souhaitée': course.estimatedStartDate
+//         ? CompaniDate(course.estimatedStartDate).format(DD_MM_YYYY)
+//         : '',
+//       'Première date de démarrage souhaitée': estimatedStartDateHistory
+//         ? CompaniDate(estimatedStartDateHistory[0].update.estimatedStartDate.to).format(DD_MM_YYYY)
+//         : '',
+//       'Début de formation': getStartOfCourse(slotsGroupedByDate),
+//       'Fin de formation': getEndOfCourse(slotsGroupedByDate, course.slotsToPlan),
+//       'Nombre de feuilles d\'émargement chargées': attendanceSheets,
+//       'Nombre de présences': subscribedAttendances,
+//       'Nombre d\'absences': absences,
+//       'Nombre de stagiaires non prévus': unsubscribedTrainees,
+//       'Nombre de présences non prévues': unsubscribedAttendances,
+//       Avancement: getProgress(pastSlots, course),
+//       'Nombre de factures': billsCountForExport,
+//       Facturée: isBilled ? 'Oui' : 'Non',
+//       'Montant facturé': UtilsHelper.formatFloatForExport(netInclTaxes),
+//       'Montant réglé': UtilsHelper.formatFloatForExport(paid),
+//       Solde: UtilsHelper.formatFloatForExport(total),
+//     });
+//   }
+
+//   return [Object.keys(rows[0]), ...rows.map(d => Object.values(d))];
+// };
 
 const getAddress = (slot) => {
   if (get(slot, 'step.type') === ON_SITE) return get(slot, 'address.fullAddress') || '';
