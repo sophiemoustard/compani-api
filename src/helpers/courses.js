@@ -621,7 +621,7 @@ exports.updateCourse = async (courseId, payload, credentials) => {
 
   if (has(payload, 'certifiedTrainees') && !payload.certifiedTrainees.length) {
     setFields = omit(setFields, 'certifiedTrainees');
-    unsetFields = { certifiedTrainees: '' };
+    unsetFields = { ...unsetFields, certifiedTrainees: '' };
   }
 
   if (payload.archivedAt === '') {
@@ -631,12 +631,12 @@ exports.updateCourse = async (courseId, payload, credentials) => {
 
   if (payload.salesRepresentative === '') {
     setFields = omit(setFields, 'salesRepresentative');
-    unsetFields = { salesRepresentative: '' };
+    unsetFields = { ...unsetFields, salesRepresentative: '' };
   }
 
   if (payload.trainer === '') {
     setFields = omit(setFields, 'trainer');
-    unsetFields = { trainer: '' };
+    unsetFields = { ...unsetFields, trainer: '' };
   }
 
   if (payload.contact === '') {
