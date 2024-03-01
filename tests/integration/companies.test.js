@@ -519,47 +519,6 @@ describe('COMPANIES ROUTES - POST /companies', () => {
   });
 });
 
-describe('COMPANIES ROUTES - GET /companies/first-intervention', () => {
-  let authToken;
-  describe('COACH', () => {
-    beforeEach(populateDB);
-    beforeEach(async () => {
-      authToken = await getToken('coach');
-    });
-
-    it('should get the first intervention of the company', async () => {
-      const response = await app.inject({
-        method: 'GET',
-        url: '/companies/first-intervention',
-        headers: { Cookie: `alenvi_token=${authToken}` },
-      });
-
-      expect(response.statusCode).toBe(200);
-      expect(response.result.data.firstIntervention).toBeDefined();
-    });
-  });
-
-  describe('Other roles', () => {
-    const roles = [
-      { name: 'helper', expectedCode: 403 },
-      { name: 'planning_referent', expectedCode: 200 },
-      { name: 'vendor_admin', expectedCode: 403 },
-    ];
-    roles.forEach((role) => {
-      it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
-        authToken = await getToken(role.name);
-        const response = await app.inject({
-          method: 'GET',
-          url: '/companies/first-intervention',
-          headers: { Cookie: `alenvi_token=${authToken}` },
-        });
-
-        expect(response.statusCode).toBe(role.expectedCode);
-      });
-    });
-  });
-});
-
 describe('COMPANIES ROUTES - GET /companies', () => {
   let authToken;
   describe('LOGGED USER', () => {

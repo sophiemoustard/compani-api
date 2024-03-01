@@ -7,7 +7,6 @@ const {
   update,
   uploadFile,
   create,
-  getFirstIntervention,
   list,
   show,
 } = require('../controllers/companyController');
@@ -118,15 +117,6 @@ exports.plugin = {
           payload: Joi.object().keys({ name: Joi.string().required(), salesRepresentative: Joi.objectId() }),
         },
         pre: [{ method: authorizeCompanyCreation }],
-      },
-    });
-
-    server.route({
-      method: 'GET',
-      path: '/first-intervention',
-      handler: getFirstIntervention,
-      options: {
-        auth: { scope: ['events:read'] },
       },
     });
 
