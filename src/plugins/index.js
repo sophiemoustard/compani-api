@@ -1,7 +1,6 @@
 const good = require('./good');
 const hapiAuthJwt2 = require('./hapiAuthJwt2');
 const cron = require('./cron');
-const eventRepetitions = require('../jobs/eventRepetitions');
 const updateRole = require('../jobs/updateRole');
 const eventConsistency = require('../jobs/eventConsistency');
 
@@ -16,16 +15,6 @@ const plugins = [
     plugin: cron,
     options: {
       jobs: [
-        {
-          name: 'eventRepetitions',
-          time: '0 0 4 * * *',
-          request: {
-            method: 'GET',
-            url: '/scripts/events-repetitions',
-            auth: { credentials: { scope: ['scripts:run'] }, strategy: 'jwt' },
-          },
-          onComplete: eventRepetitions.onComplete,
-        },
         {
           name: 'roleUpdate',
           time: '0 0 6 1,15 * *',

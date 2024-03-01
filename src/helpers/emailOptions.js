@@ -61,19 +61,6 @@ const billEmail = async (companyName) => {
   return template({ billLink: `${process.env.WEBSITE_HOSTNAME}/customers/documents`, companyName });
 };
 
-const completeEventRepScriptEmailBody = (nb, deletedRepetitions, repIds) => {
-  let body = `<p>Script correctement exécuté. ${nb} répétitions traitées.</p>`;
-  if (repIds.length) {
-    body = body.concat(`<p>Répétitions à traiter manuellement ${repIds.join()}</p>`);
-  }
-
-  for (const repetition of deletedRepetitions) {
-    body = body.concat(`<p>Répétition supprimée : ${repetition._id}, pour le/la bénéficiaire : ${repetition.customer._id}</p>`);
-  }
-
-  return body;
-};
-
 const completeRoleUpdateScriptEmailBody = nb => `<p>Script correctement exécuté. ${nb} role(s) mis à jour.</p>`;
 
 const completeEventConsistencyScriptEmailBody = (eventsWithErrors) => {
@@ -132,7 +119,6 @@ module.exports = {
   forgotPasswordEmail,
   verificationCodeEmail,
   billEmail,
-  completeEventRepScriptEmailBody,
   completeRoleUpdateScriptEmailBody,
   completeEventConsistencyScriptEmailBody,
   welcomeTraineeContent,
