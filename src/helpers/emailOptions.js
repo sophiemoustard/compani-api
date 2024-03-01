@@ -63,14 +63,6 @@ const billEmail = async (companyName) => {
 
 const completeRoleUpdateScriptEmailBody = nb => `<p>Script correctement exécuté. ${nb} role(s) mis à jour.</p>`;
 
-const completeEventConsistencyScriptEmailBody = (eventsWithErrors) => {
-  let message = `<p>Script correctement exécuté. ${eventsWithErrors.length} evenements avec erreurs.</p>`;
-  for (const event of eventsWithErrors) {
-    message += `${event.eventId}: ${event.issuesWithEvent}</br>`;
-  }
-  return message;
-};
-
 const welcomeTraineeContent = () => `<p>Bonjour,</p>
   <p>Bienvenue sur Compani Formation, l'outil au service du prendre soin,
   nous venons de vous créer votre compte apprenant.</p>
@@ -120,6 +112,5 @@ module.exports = {
   verificationCodeEmail,
   billEmail,
   completeRoleUpdateScriptEmailBody,
-  completeEventConsistencyScriptEmailBody,
   welcomeTraineeContent,
 };

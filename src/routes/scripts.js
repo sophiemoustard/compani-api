@@ -2,7 +2,6 @@
 
 const {
   updateRoleScript,
-  eventConsistencyScript,
 } = require('../controllers/scriptController');
 
 exports.plugin = {
@@ -15,15 +14,6 @@ exports.plugin = {
         auth: { scope: ['scripts:run'] },
       },
       handler: updateRoleScript,
-    });
-
-    server.route({
-      method: 'GET',
-      path: '/event-consistency',
-      options: {
-        auth: { scope: ['scripts:run'] },
-      },
-      handler: eventConsistencyScript,
     });
   },
 };
