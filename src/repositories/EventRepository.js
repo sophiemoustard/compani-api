@@ -485,26 +485,6 @@ exports.getTaxCertificateInterventions = async (taxCertificate, companyId) => {
   return formattedEvents;
 };
 
-exports.getUnassignedHoursBySector = async (sectors, month, companyId) => {
-  const minStartDate = moment(month, 'MMYYYY').startOf('month').toDate();
-  const maxStartDate = moment(month, 'MMYYYY').endOf('month').toDate();
-
-  return Event.aggregate([
-    {
-      $match: {
-        sector: { $in: sectors },
-        startDate: { $gte: minStartDate, $lt: maxStartDate },
-        auxiliary: { $exists: false },
-        isCancelled: false,
-        type: INTERVENTION,
-      },
-    },
-    { $addFields: { duration: { $divide: [{ $subtract: ['$endDate', '$startDate'] }, 60 * 60 * 1000] } } },
-    { $group: { _id: { sector: '$sector' }, duration: { $sum: '$duration' } } },
-    { $project: { sector: '$_id.sector', duration: 1, _id: 0 } },
-  ]).option({ company: companyId });
-};
-
 exports.getEventsByDayAndAuxiliary = async (startDate, endDate, companyId) => Event.aggregate([
   {
     $match: {

@@ -506,10 +506,3 @@ exports.workingStats = async (query, credentials) => {
 
   return workingStats;
 };
-
-exports.getUnassignedHoursBySector = async (query, credentials) => {
-  const companyId = get(credentials, 'company._id', null);
-  const sectors = UtilsHelper.formatObjectIdsArray(query.sector);
-
-  return EventRepository.getUnassignedHoursBySector(sectors, query.month, companyId);
-};
