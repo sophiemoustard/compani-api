@@ -8,7 +8,6 @@ const Drive = require('../../../src/models/Google/Drive');
 const ESign = require('../../../src/models/ESign');
 const GDriveStorageHelper = require('../../../src/helpers/gDriveStorage');
 const MandatesHelper = require('../../../src/helpers/mandates');
-const ESignHelper = require('../../../src/helpers/eSign');
 const FileHelper = require('../../../src/helpers/file');
 const SinonMongoose = require('../sinonMongoose');
 
@@ -80,100 +79,6 @@ describe('updateMandate', () => {
         { query: 'lean' },
       ]
     );
-  });
-});
-
-describe('getSignatureRequest', () => {
-  let findOneCustomer;
-  let updateOneCustomer;
-  let generateSignatureRequest;
-  beforeEach(() => {
-    findOneCustomer = sinon.stub(Customer, 'findOne');
-    updateOneCustomer = sinon.stub(Customer, 'updateOne');
-    generateSignatureRequest = sinon.stub(ESignHelper, 'generateSignatureRequest');
-  });
-  afterEach(() => {
-    findOneCustomer.restore();
-    updateOneCustomer.restore();
-    generateSignatureRequest.restore();
-  });
-
-  it('should generate signature request', async () => {
-    const customerId = (new ObjectId()).toHexString();
-    const mandateId = new ObjectId();
-    const payload = {
-      fileId: 'fileId',
-      fields: 'fields',
-      title: 'MANDAT SEPA rum',
-      customer: { name: 'qwertyuiop', email: 'toto@toto.com' },
-      redirect: 'redirect',
-      redirectDecline: 'redirectDecline',
-    };
-    const customer = {
-      _id: customerId,
-      payment: { mandates: [{ _id: new ObjectId() }, { _id: mandateId, rum: 'rum' }] },
-    };
-    findOneCustomer.returns(SinonMongoose.stubChainedQueries(customer, ['lean']));
-    generateSignatureRequest.returns({
-      data: { document_hash: 'document_hash', signers: [{ embedded_signing_url: 'embedded_signing_url' }] },
-    });
-
-    const result = await MandatesHelper.getSignatureRequest(customerId, mandateId.toHexString(), payload);
-
-    expect(result).toEqual({ embeddedUrl: 'embedded_signing_url' });
-    sinon.assert.calledOnceWithExactly(
-      updateOneCustomer,
-      { _id: customerId, 'payment.mandates._id': mandateId.toHexString() },
-      { $set: flat({ 'payment.mandates.$.everSignId': 'document_hash' }) }
-    );
-    SinonMongoose.calledOnceWithExactly(
-      findOneCustomer,
-      [
-        {
-          query: 'findOne',
-          args: [{ _id: customerId, 'payment.mandates._id': mandateId.toHexString() }, { payment: 1 }],
-        },
-        { query: 'lean' },
-      ]
-    );
-  });
-
-  it('should throw error if error on generate', async () => {
-    const customerId = (new ObjectId()).toHexString();
-    const mandateId = new ObjectId();
-    try {
-      const payload = {
-        fileId: 'fileId',
-        fields: 'fields',
-        title: 'MANDAT SEPA rum',
-        customer: { name: 'qwertyuiop', email: 'toto@toto.com' },
-        redirect: 'redirect',
-        redirectDecline: 'redirectDecline',
-      };
-      const customer = {
-        _id: customerId,
-        payment: { mandates: [{ _id: new ObjectId() }, { _id: mandateId, rum: 'rum' }] },
-      };
-
-      findOneCustomer.returns(SinonMongoose.stubChainedQueries(customer, ['lean']));
-      generateSignatureRequest.returns({ data: { error: 'error' } });
-
-      await MandatesHelper.getSignatureRequest(customerId, mandateId.toHexString(), payload);
-    } catch (e) {
-      expect(e.output.statusCode).toEqual(400);
-    } finally {
-      sinon.assert.notCalled(updateOneCustomer);
-      SinonMongoose.calledOnceWithExactly(
-        findOneCustomer,
-        [
-          {
-            query: 'findOne',
-            args: [{ _id: customerId, 'payment.mandates._id': mandateId.toHexString() }, { payment: 1 }],
-          },
-          { query: 'lean' },
-        ]
-      );
-    }
   });
 });
 

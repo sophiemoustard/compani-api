@@ -23,7 +23,6 @@ const {
   createCustomerQuote,
   uploadFile,
   deleteCertificates,
-  getMandateSignatureRequest,
   saveSignedMandate,
   createFunding,
   updateFunding,
@@ -293,29 +292,6 @@ exports.plugin = {
         pre: [{ method: authorizeCustomerUpdate }],
       },
       handler: updateMandate,
-    });
-
-    server.route({
-      method: 'POST',
-      path: '/{_id}/mandates/{mandateId}/esign',
-      options: {
-        auth: { scope: ['customer-{params._id}'] },
-        validate: {
-          params: Joi.object({ _id: Joi.objectId().required(), mandateId: Joi.objectId().required() }),
-          payload: Joi.object({
-            fileId: Joi.string().required(),
-            customer: Joi.object().keys({
-              name: Joi.string().required(),
-              email: Joi.string().email().required(),
-            }).required(),
-            fields: Joi.object().required(),
-            redirect: Joi.string(),
-            redirectDecline: Joi.string(),
-          }),
-        },
-        pre: [{ method: authorizeCustomerUpdate }],
-      },
-      handler: getMandateSignatureRequest,
     });
 
     server.route({

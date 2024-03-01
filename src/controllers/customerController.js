@@ -221,24 +221,6 @@ const updateMandate = async (req) => {
   }
 };
 
-const getMandateSignatureRequest = async (req) => {
-  try {
-    const signatureRequest = await MandatesHelper.getSignatureRequest(
-      req.params._id,
-      req.params.mandateId,
-      req.payload
-    );
-
-    return {
-      message: translate[language].signatureRequestCreated,
-      data: { signatureRequest },
-    };
-  } catch (e) {
-    req.log('error', e);
-    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
-  }
-};
-
 const getCustomerQuotes = async (req) => {
   try {
     const customer = await QuoteHelper.getQuotes(req.params._id);
@@ -382,7 +364,6 @@ module.exports = {
   createCustomerQuote,
   uploadFile,
   deleteCertificates,
-  getMandateSignatureRequest,
   saveSignedMandate,
   createFunding,
   updateFunding,
