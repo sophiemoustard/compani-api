@@ -1,24 +1,16 @@
 module.exports = {
   language: 'fr-FR',
   'en-EN': {
-    /* Global errors */
-    unexpectedBehavior: 'Unexpected behavior.',
     /* Token errors */
-    tokenAuthFailed: 'Failed to authenticate token.',
     tokenExpired: 'Token is expired.',
-    tokenNotFound: 'Please provide a token.',
     /* Users strings */
     usersNotFound: 'There are no users.',
     userNotFound: 'User doesn\'t exist.',
     userEmailExists: 'This email is already taken by another user.',
-    invalidEmail: 'Email is not valid.',
     userFound: 'User found successfully.',
-    usersFound: 'Users found successfully.',
     userSaved: 'User saved successfully.',
     userRemoved: 'User removed successfully.',
     userUpdated: 'User updated successfully.',
-    userAuthFailed: 'The email address or password you entered is not valid.',
-    forbidden: 'Forbidden.',
     userAuthentified: 'User authenticated successfully.',
     userLogout: 'User disconnected successfully.',
     userRoleConflict: 'User already has a role on this interface.',
@@ -26,14 +18,7 @@ module.exports = {
     /* Api */
     apiVersionUpToDate: 'api version up to date.',
     apiVersionToUpdate: 'api version must be updated.',
-    /* Messages */
-    getAllMessagesFound: 'Messages found successfully.',
-    getAllMessagesNotFound: 'Messages not found.',
-    messageNotFound: 'Message not found.',
-    storeMessage: 'Message successfully stored.',
-    messageRecipientAdded: 'Message recipient added successfully.',
     /* SMS */
-    smsNotSent: 'SMS not sent.',
     smsSent: 'SMS well sent.',
     smsFound: 'SMS found.',
     /* Role */
@@ -45,17 +30,13 @@ module.exports = {
     emailNotSent: 'An error occurred while sending the email.',
     /* Reset password token */
     resetPasswordTokenFound: 'Reset password token found.',
-    resetPasswordTokenNotFound: 'Reset password token not found.',
     /* Uploader */
     fileNotFound: 'File not found.',
     filesNotFound: 'Files not found.',
     fileFound: 'File found.',
     filesFound: 'Files found.',
     fileDeleted: 'File Deleted.',
-    folderCreated: 'Folder successfully created.',
-    folderCreationFailure: 'Folder creation Failed.',
     fileCreated: 'File successfully created.',
-    uploadNotAllowed: 'Upload not allowed.',
     /* Company */
     companyCreated: 'Company created.',
     companiesFound: 'Companies found.',
@@ -73,13 +54,9 @@ module.exports = {
     companyLinkRequestDeleted: 'Company link request deleted.',
     companyInternalHourCreated: 'Company internal hour created.',
     companyInternalHourNotFound: 'Company internal hour not found.',
-    companyInternalHoursNotFound: 'Company internal hours not found.',
     companyInternalHoursFound: 'Company internal hours found.',
     companyInternalHourRemoved: 'Company internal hour removed.',
     companyInternalHourCreationNotAllowed: 'Company internal hour creation not allowed.',
-    companyInternalHourDeletionNotAllowed: 'Company internal hour deletion not allowed.',
-    companyFirstInterventionFound: 'Company first intervention found.',
-    companyFirstInterventionNotFound: 'Company first intervention not found.',
     administrativeDocumentNotFound: 'Administrative document not found.',
     administrativeDocumentFound: 'Administrative documents found.',
     administrativeDocumentCreated: 'Administrative documents found.',
@@ -88,9 +65,6 @@ module.exports = {
     contractsFound: 'Contracts found.',
     contractsNotFound: 'Contracts not found.',
     contractUpdated: 'Contract updated.',
-    contractAdded: 'Contract added.',
-    contractRemoved: 'Contract removed.',
-    staffRegisteredFound: 'Staff Registered Found.',
     contractHasTimeStampedEventAfterEndDate: 'There are timestamped events after the end date of the contract.',
     contractEndDateBeforeStartDate: 'End date is before last version start date.',
     contractHasBilledEventAfterEndDate: 'There are billed events after contract end date.',
@@ -115,13 +89,10 @@ module.exports = {
     customerMandatesFound: 'Customer mandates found.',
     customerQuotesFound: 'Customer quotes found.',
     customerQuoteAdded: 'Customer quote added.',
-    signedDocumentSaved: 'Signed document saved.',
-    customerSubscriptionHistoryAdded: 'Customer subscription history added.',
     customerFundingConflict: 'Subscription is already used by another funding on the indicated dates.',
     customerFundingCreated: 'Customer funding created.',
     customerFundingUpdated: 'Customer funding updated.',
     customerFundingRemoved: 'Customer funding removed.',
-    qrCodeCreated: 'QR code created.',
     archivingNotAllowed: 'Archiving not allowed : customer has non-billed interventions.',
     archivingNotAllowedBeforeStoppingDate: 'Archiving not allowed before stopping date.',
     archivedCustomer: 'Can\'t delete events for an archived customer.',
@@ -129,7 +100,6 @@ module.exports = {
     /* Customer absence */
     stoppedCustomer: 'Can\'t create an absence on a period where customer is stopped.',
     customerAlreadyAbsent: 'Customer absence already exists on this period.',
-    customerAbsenceCreated: 'Customer absence created.',
     customerAbsenceUpdated: 'Customer absence updated.',
     customerAbsenceDeleted: 'Customer absence deleted.',
     customerAbsencesConflict: 'A customer absence already exists for this period.',
@@ -137,12 +107,10 @@ module.exports = {
     customerAbsenceNotFound: 'Customer absence not found.',
     customerAbsencesFound: 'Customer absences found.',
     /* Customer notes */
-    customerNoteCreated: 'Customer note created.',
     customerNotesFound: 'Customer notes found.',
     customerNotesNotFound: 'Customer notes not found.',
     customerNoteUpdated: 'Customer note updated.',
     /* ESign */
-    signatureRequestCreated: 'Signature request created.',
     documentNotFound: 'Eversign document not found.',
     documentFound: 'Eversign document found.',
     /* Google drive */
@@ -170,8 +138,6 @@ module.exports = {
     timeStampCancelledEvent: 'Can\'t timestamp a cancelled event.',
     /* Repetitions */
     invalidRepetition: 'Forbidden action : Invalid repetition.',
-    repetitionNotFound: 'Repetition not found.',
-    repetitionsFound: 'Repetitions found.',
     /* Sectors */
     sectorCreated: 'Sector created.',
     sectorUpdated: 'Sector updated.',
@@ -185,26 +151,21 @@ module.exports = {
     serviceDeleted: 'Service deleted.',
     servicesNotFound: 'Services not found.',
     serviceNotFound: 'Service not found.',
-    servicesUpdated: 'Services updated.',
     /* Surcharges */
     surchargesFound: 'Surcharges found.',
     surchargeCreated: 'Surcharge created.',
     surchargeDeleted: 'Surcharge deleted.',
-    surchargeNotFound: 'Surcharge not found.',
     surchargeUpdated: 'Surcharge updated.',
     /* Third party payers */
     thirdPartyPayerCreated: 'Company third party payer created.',
     thirdPartyPayersFound: 'Company third party payers found.',
     thirdPartyPayerExits: 'Company third party payer already exists.',
     thirdPartyPayersNotFound: 'Company third party payers not found.',
-    thirdPartyPayerUpdated: 'Company third party payer updated.',
     thirdPartyPayerDeleted: 'Company third party payer deleted.',
     /* Bills */
     billsCreated: 'Bills created.',
     billCreated: 'Bill created.',
-    draftBillsCreated: 'Draft bills created.',
     billsFound: 'Bills found.',
-    billNotCompani: 'Bill\'s origin must be \'Compani\'.',
     periodMustBeLessThanOneYear: 'Period must be less than a year.',
     /* Credit Notes */
     creditNotesFound: 'Credit notes found.',
@@ -217,17 +178,10 @@ module.exports = {
     /* Balances */
     balancesFound: 'Balances found.',
     /* Payments */
-    paymentsFound: 'Payments found.',
-    paymentsNotFound: 'Payments not found.',
     paymentNotFound: 'Payment not found.',
     paymentCreated: 'Payment created.',
     paymentUpdated: 'Payment updated.',
     paymentRemoved: 'Payment removed.',
-    /* Pay */
-    payListCreated: 'Pay list created.',
-    hoursToWorkFound: 'Hours to work found.',
-    /* Final pay */
-    finalPayListCreated: 'Final pay list created.',
     /* Event history */
     eventHistoriesFound: 'Event histories found.',
     eventHistoryUpdated: 'Event history updated.',
@@ -235,13 +189,10 @@ module.exports = {
     payDocumentCreated: 'Pay document created.',
     payDocumentsFound: 'Pay documents found.',
     payDocumentsNotFound: 'Pay documents not found.',
-    payDocumentNotFound: 'Pay document not found.',
     payDocumentDeleted: 'Pay document deleted.',
     /* Stats */
     statsFound: 'Stats found.',
     statsNotFound: 'Stats not found.',
-    /* Sector history */
-    sectorHistoryNotFound: 'Sector history not found.',
     /* Bill slip */
     billSlipsFound: 'Bill slips found.',
     /* Tax certificates */
@@ -373,12 +324,6 @@ module.exports = {
     /*  QuestionnaireHistories */
     questionnaireHistoryConflict: 'A questionnaire history already exists.',
     /* PartnerOrganization */
-    partnerOrganizationCreated: 'Partner organization created.',
-    partnerOrganizationAlreadyExists: 'A partner organization already exists.',
-    partnerOrganizationsFound: 'Partner organizations found.',
-    partnerOrganizationFound: 'Partner organization found.',
-    partnerOrganizationUpdated: 'Partner organization updated.',
-    partnerCreated: 'Partner created.',
     partnersFound: 'Partners found.',
     partnersNotFound: 'Partners not found.',
     partnerUpdated: 'Partner updated.',
@@ -429,24 +374,16 @@ module.exports = {
     trainerMissionUpdated: 'Trainer mission updated',
   },
   'fr-FR': {
-    /* Global errors */
-    unexpectedBehavior: 'Comportement inattendu.',
     /* Token errors */
-    tokenAuthFailed: 'Impossible d\'authentifier le token.',
     tokenExpired: 'Le token a expiré.',
-    tokenNotFound: 'Merci de fournir un token.',
     /* Users strings */
     usersNotFound: 'Il n\'y a aucun compte.',
     userNotFound: 'Le compte n\'existe pas.',
     userEmailExists: 'Cet email est déjà pris par un autre compte.',
-    invalidEmail: 'L\'email n\'est pas valide.',
     userSaved: 'Compte enregistré avec succès.',
-    usersFound: 'Comptes trouvés avec succès.',
     userFound: 'Compte trouvé avec succès.',
     userRemoved: 'Compte supprimé avec succès.',
     userUpdated: 'Compte modifié avec succès.',
-    userAuthFailed: 'L\'adresse email ou le mot de passe est invalide.',
-    forbidden: 'Accès non autorisé.',
     userAuthentified: 'Compte authentifié avec succès.',
     userLogout: 'Compte déconnecté avec succès.',
     userRoleConflict: 'Ce compte a déjà un rôle sur cette interface.',
@@ -454,14 +391,7 @@ module.exports = {
     /* Api */
     apiVersionUpToDate: 'La version de l\'api est à jour.',
     apiVersionToUpdate: 'La version de l\'api doit être mis à jour.',
-    /* Messages */
-    getAllMessagesFound: 'Messages trouvés avec succès.',
-    getAllMessagesNotFound: 'Pas de messages.',
-    messageNotFound: 'Message non trouvé.',
-    storeMessage: 'Message enregistré avec succès.',
-    messageRecipientUpdated: 'Destinataire message ajouté avec succès.',
     /* SMS */
-    smsNotSent: 'SMS non envoyé.',
     smsSent: 'SMS bien envoyé.',
     smsFound: 'SMS trouvés.',
     /* Role */
@@ -473,15 +403,11 @@ module.exports = {
     emailNotSent: 'Erreur lors de l\'envoi de l\'email.',
     /* Reset password token */
     resetPasswordTokenFound: 'Token de changement de password trouvé.',
-    resetPasswordTokenNotFound: 'Token de changement de password non trouvé.',
     /* Uploader */
     fileNotFound: 'Fichier non trouvé.',
     fileFound: 'Fichier trouvé.',
     fileDeleted: 'Fichier supprimé.',
-    folderCreated: 'Dossier créé.',
-    folderCreationFailure: 'La création de dossier a échouée.',
     fileCreated: 'Fichier créé.',
-    uploadNotAllowed: 'Téléchargement non autorisé.',
     /* Company */
     companyCreated: 'Entreprise créée.',
     companiesFound: 'Entreprises trouvées.',
@@ -499,13 +425,9 @@ module.exports = {
     companyLinkRequestDeleted: 'Demande de rattachement à la structure supprimée.',
     companyInternalHourCreated: 'Heure interne de l\'entreprise créée.',
     companyInternalHourNotFound: 'Heure interne de l\'entreprise non trouvée.',
-    companyInternalHoursNotFound: 'Heures internes de l\'entreprise non trouvées.',
     companyInternalHoursFound: 'Heures internes de l\'entreprise trouvées.',
     companyInternalHourRemoved: 'Heure interne de l\'entreprise supprimé.',
     companyInternalHourCreationNotAllowed: 'Creation de l\'heure interne non autorisée.',
-    companyInternalHourDeletionNotAllowed: 'Suppression de l\'heure interne non autorisée.',
-    companyFirstInterventionFound: 'Première intervention de l\'entreprise trouvée.',
-    companyFirstInterventionNotFound: 'Première intervention de l\'entreprise non trouvée.',
     administrativeDocumentNotFound: 'Document administratif non trouvé.',
     administrativeDocumentFound: 'Document administratif trouvé.',
     administrativeDocumentCreated: 'Document administratif créé.',
@@ -514,9 +436,6 @@ module.exports = {
     contractsFound: 'Contrats trouvés.',
     contractsNotFound: 'Contrats non trouvés.',
     contractUpdated: 'Contrat mis à jour.',
-    contractAdded: 'Contrat ajouté.',
-    contractRemoved: 'Contrat supprimé.',
-    staffRegisteredFound: 'Registre Unique du personnel récuperé.',
     contractHasTimeStampedEventAfterEndDate:
       'Impossible: il y a des évènements horodatés après la date de fin du contrat.',
     contractEndDateBeforeStartDate:
@@ -543,13 +462,10 @@ module.exports = {
     customerMandatesFound: 'Mandats du/de la bénéficiaire trouvés.',
     customerQuotesFound: 'Devis du/de la bénéficiaire trouvés.',
     customerQuoteAdded: 'Devis du/de la bénéficiaire ajouté.',
-    signedDocumentSaved: 'Document signé enregistré.',
-    customerSubscriptionHistoryAdded: 'Historique de l\'abonnement du/de la bénéficiaire ajouté.',
     customerFundingConflict: 'La souscription est déjà utilisée par un autre financement durant les dates indiquées.',
     customerFundingCreated: 'Financement du/de la bénéficiaire créé.',
     customerFundingUpdated: 'Financement du/de la bénéficiaire modifié.',
     customerFundingRemoved: 'Financement du/ de la bénéficiaire supprimé.',
-    qrCodeCreated: 'QR code créé.',
     archivingNotAllowed: 'Archivage impossible : interventions non facturées.',
     archivingNotAllowedBeforeStoppingDate: 'Vous ne pouvez pas archiver une personne avant sa date d\'arrêt.',
     archivedCustomer: 'Impossible : la personne est archivée.',
@@ -557,7 +473,6 @@ module.exports = {
     /* Customer absence */
     stoppedCustomer: 'Impossible: la personne est arrêtée sur cette période.',
     customerAlreadyAbsent: 'Impossible: une absence existe déjà sur cette période.',
-    customerAbsenceCreated: 'Absence créée.',
     customerAbsenceUpdated: 'Absence modifiée.',
     customerAbsenceDeleted: 'Absence supprimée.',
     customerAbsencesConflict: 'Impossible: une absence existe déjà sur cette période.',
@@ -565,12 +480,10 @@ module.exports = {
     customerAbsenceNotFound: 'Absence bénéficiaire non trouvée.',
     customerAbsencesFound: 'Absences bénéficiaire trouvées.',
     /* Customer notes */
-    customerNoteCreated: 'Note de suivi créée.',
     customerNotesFound: 'Notes de suivi trouvées.',
     customerNotesNotFound: 'Notes de suivi non trouvées.',
     customerNoteUpdated: 'Note de suivi mise à jour.',
     /* ESign */
-    signatureRequestCreated: 'Demande de signature créée.',
     documentNotFound: 'Document eversign non trouvé.',
     documentFound: 'Document eversign trouvé.',
     /* Google drive */
@@ -598,8 +511,6 @@ module.exports = {
     timeStampCancelledEvent: 'Vous ne pouvez pas horodater un évènement annulé.',
     /* Repetitions */
     invalidRepetition: 'Action impossible : La répétition est invalide.',
-    repetitionNotFound: 'Répétition non trouvée.',
-    repetitionsFound: 'Répétitions trouvées.',
     /* Sectors */
     sectorCreated: 'Équipe créée.',
     sectorUpdated: 'Équipe modifiée.',
@@ -613,26 +524,21 @@ module.exports = {
     serviceDeleted: 'Service supprimé.',
     servicesNotFound: 'Services non trouvés.',
     serviceNotFound: 'Service non trouvé.',
-    servicesUpdated: 'Service modifié.',
     /* Surcharges */
     surchargesFound: 'Plans de majorations trouvés.',
     surchargeCreated: 'Plan de majoration créé.',
     surchargeDeleted: 'Plan de majoration supprimé.',
-    surchargeNotFound: 'Plan de majoration non trouvé.',
     surchargeUpdated: 'Plan de majoration modifié.',
     /* Third party payers */
     thirdPartyPayerCreated: 'Tiers payeur de l\'entreprise créé.',
     thirdPartyPayersFound: 'Tiers payeurs de l\'entreprise trouvés.',
     thirdPartyPayerExits: 'Tiers payeur déjà existant.',
     thirdPartyPayersNotFound: 'Tiers payeurs de l\'entreprise non trouvés.',
-    thirdPartyPayerUpdated: 'Tiers payeur de l\'entreprise modifié.',
     thirdPartyPayerDeleted: 'Tiers payeur de l\'entreprise supprimé.',
     /* Bills */
     billsCreated: 'Factures créées.',
     billCreated: 'Facture créée.',
-    draftBillsCreated: 'Brouillons de facture générés.',
     billsFound: 'Factures trouvés.',
-    billNotCompani: 'L\'origine de la facture doit être \'Compani\'.',
     periodMustBeLessThanOneYear: 'La période maximale est 1 an.',
     /* Credit Notes */
     creditNotesFound: 'Avoirs trouvés.',
@@ -645,17 +551,10 @@ module.exports = {
     /* Balances */
     balancesFound: 'Balances trouvées.',
     /* Payments */
-    paymentsFound: 'Règlements trouvés.',
-    paymentsNotFound: 'Règlements non trouvés.',
     paymentCreated: 'Règlement créé.',
     paymentNotFound: 'Règlement non trouvé.',
     paymentUpdated: 'Règlement modifié.',
     paymentRemoved: 'Règlement supprimé.',
-    /* Pay */
-    payListCreated: 'Liste de paie créée.',
-    hoursToWorkFound: 'Heures à travailler trouvées.',
-    /* Final pay */
-    finalPayListCreated: 'Liste des stc créée.',
     /* Event history */
     eventHistoriesFound: 'Historique des évènements trouvés.',
     eventHistoryUpdated: 'Historique d\'évènement mis à jour.',
@@ -663,13 +562,10 @@ module.exports = {
     payDocumentCreated: 'Document de paie créé.',
     payDocumentsFound: 'Documents de paie trouvés.',
     payDocumentsNotFound: 'Documents de paie non trouvés.',
-    payDocumentNotFound: 'Document de paie non trouvé.',
     payDocumentDeleted: 'Document de paie supprimé.',
     /* Stats */
     statsFound: 'Statistiques trouvées.',
     statsNotFound: 'Statistiques non trouvées.',
-    /* Sector history */
-    sectorHistoryNotFound: 'Historique du secteur non trouvé.',
     /* Bill slip */
     billSlipsFound: 'Bordereaux trouvés.',
     /* Tax certificates */
@@ -801,12 +697,6 @@ module.exports = {
     /*  QuestionnaireHistories */
     questionnaireHistoryConflict: 'Vous avez déjà répondu à ce questionnaire.',
     /* PartnerOrganization */
-    partnerOrganizationCreated: 'Structure partenaire créée.',
-    partnerOrganizationAlreadyExists: 'Structure partenaire déjà existante.',
-    partnerOrganizationsFound: 'Liste des structures partenaires trouvées.',
-    partnerOrganizationFound: 'Structure partenaire trouvée.',
-    partnerOrganizationUpdated: 'Structure partenaire mise à jour.',
-    partnerCreated: 'Partenaire créé(e).',
     partnersFound: 'Liste des partenaires trouvée.',
     partnersNotFound: 'Liste des partenaires non trouvée.',
     partnerUpdated: 'Partenaire mis(e) à jour.',
