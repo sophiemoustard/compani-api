@@ -7,7 +7,6 @@ const {
   getCustomerFollowUp,
   getCustomerFundingsMonitoring,
   getPaidInterventionStats,
-  getIntenalAndBilledHoursBySector,
 } = require('../controllers/statController');
 const { monthValidation, objectIdOrArray } = require('./validations/utils');
 const { authorizeGetStats } = require('./preHandlers/stats');
@@ -56,19 +55,6 @@ exports.plugin = {
         pre: [{ method: authorizeGetStats }],
       },
       handler: getPaidInterventionStats,
-    });
-
-    server.route({
-      method: 'GET',
-      path: '/internal-billed-hours',
-      options: {
-        auth: { scope: ['events:read'] },
-        validate: {
-          query: Joi.object().keys({ sector: objectIdOrArray.required(), month: monthValidation.required() }),
-        },
-        pre: [{ method: authorizeGetStats }],
-      },
-      handler: getIntenalAndBilledHoursBySector,
     });
   },
 };

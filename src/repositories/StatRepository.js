@@ -1,13 +1,11 @@
 const { ObjectId } = require('mongodb');
 const Customer = require('../models/Customer');
-const SectorHistory = require('../models/SectorHistory');
 const {
   HOURLY,
   MONTHLY,
   INVOICED_AND_PAID,
   INVOICED_AND_NOT_PAID,
   INTERVENTION,
-  INTERNAL_HOUR,
 } = require('../helpers/constants');
 const { CompaniDate } = require('../helpers/dates/companiDates');
 
@@ -118,72 +116,4 @@ exports.getEventsGroupedByFundings = async (customerId, fundingsDate, eventsDate
       ...formatFundings,
     ])
     .option({ company: companyId });
-};
-
-exports.getIntenalAndBilledHoursBySector = async (sectors, month, companyId) => {
-  const minStartDate = CompaniDate(month, 'MM-yyyy').startOf('month').toISO();
-  const maxStartDate = CompaniDate(month, 'MM-yyyy').endOf('month').toISO();
-
-  return SectorHistory.aggregate([
-    {
-      $match: {
-        sector: { $in: sectors },
-        startDate: { $lt: new Date(maxStartDate) },
-        $or: [{ endDate: { $exists: false } }, { endDate: { $gt: new Date(minStartDate) } }],
-      },
-    },
-    {
-      $lookup: {
-        from: 'events',
-        as: 'event',
-        let: {
-          auxiliaryId: '$auxiliary',
-          startDate: { $max: ['$startDate', new Date(minStartDate)] },
-          endDate: { $min: [{ $ifNull: ['$endDate', new Date(maxStartDate)] }, new Date(maxStartDate)] },
-        },
-        pipeline: [
-          {
-            $match: {
-              type: { $in: [INTERVENTION, INTERNAL_HOUR] },
-              $or: [
-                { isCancelled: false },
-                { 'cancel.condition': { $in: [INVOICED_AND_NOT_PAID, INVOICED_AND_PAID] } },
-              ],
-              $expr: {
-                $and: [
-                  { $eq: ['$auxiliary', '$$auxiliaryId'] },
-                  { $gt: ['$endDate', '$$startDate'] },
-                  { $lt: ['$startDate', '$$endDate'] },
-                ],
-              },
-            },
-          },
-        ],
-      },
-    },
-    { $unwind: { path: '$event' } },
-    {
-      $addFields: {
-        'event.duration': { $divide: [{ $subtract: ['$event.endDate', '$event.startDate'] }, 1000 * 60 * 60] },
-      },
-    },
-    { $group: { _id: '$sector', events: { $push: '$event' } } },
-    {
-      $addFields: {
-        internalHours: { $filter: { input: '$events', as: 'event', cond: { $eq: ['$$event.type', INTERNAL_HOUR] } } },
-        interventions: { $filter: { input: '$events', as: 'event', cond: { $eq: ['$$event.type', INTERVENTION] } } },
-      },
-    },
-    {
-      $project: {
-        sector: '$_id',
-        internalHours: {
-          $reduce: { input: '$internalHours', initialValue: 0, in: { $add: ['$$value', '$$this.duration'] } },
-        },
-        interventions: {
-          $reduce: { input: '$interventions', initialValue: 0, in: { $add: ['$$value', '$$this.duration'] } },
-        },
-      },
-    },
-  ]).option({ company: companyId });
 };

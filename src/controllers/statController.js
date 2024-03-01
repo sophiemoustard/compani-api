@@ -59,20 +59,3 @@ exports.getPaidInterventionStats = async (req) => {
     return Boom.isBoom(e) ? e : Boom.badImplementation(e);
   }
 };
-
-exports.getIntenalAndBilledHoursBySector = async (req) => {
-  try {
-    req.log('statController - getIntenalAndBilledHoursBySector - query', req.query);
-    req.log('statController - getIntenalAndBilledHoursBySector - company', get(req, 'auth.credentials.company._id'));
-
-    const internalAndBilledHours = await StatsHelper.getIntenalAndBilledHoursBySector(req.query, req.auth.credentials);
-
-    return {
-      message: messages.statsFound,
-      data: { internalAndBilledHours },
-    };
-  } catch (e) {
-    req.log('error', e);
-    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
-  }
-};
