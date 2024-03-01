@@ -1,6 +1,5 @@
 const { ObjectId } = require('mongodb');
 const get = require('lodash/get');
-const pick = require('lodash/pick');
 const UtilsHelper = require('./utils');
 const { CompaniDate } = require('./dates/companiDates');
 const { CompaniDuration } = require('./dates/companiDurations');
@@ -66,40 +65,6 @@ exports.getCustomerFundingsMonitoring = async (customerId, credentials) => {
   }
 
   return customerFundingsMonitoring;
-};
-
-exports.getAllCustomersFundingsMonitoring = async (credentials) => {
-  const fundingsDate = {
-    maxStartDate: CompaniDate().endOf('month').toISO(),
-    minEndDate: CompaniDate().startOf('month').toISO(),
-  };
-  const eventsDate = {
-    minDate: CompaniDate().oldSubtract({ months: 1 }).startOf('month').toISO(),
-    maxDate: CompaniDate().oldAdd({ months: 1 }).endOf('month').toISO(),
-  };
-  const eventsGroupedByFundingsforAllCustomers = await StatRepository.getEventsGroupedByFundingsforAllCustomers(
-    fundingsDate,
-    eventsDate,
-    get(credentials, 'company._id', null)
-  );
-
-  const allCustomersFundingsMonitoring = [];
-  for (const funding of eventsGroupedByFundingsforAllCustomers) {
-    const isPrevMonthRelevant = CompaniDate(funding.startDate).isBefore(CompaniDate().startOf('month'));
-    const isNextMonthRelevant = !funding.endDate ||
-      CompaniDate(funding.endDate).isAfter(CompaniDate().endOf('month'));
-
-    allCustomersFundingsMonitoring.push({
-      ...pick(funding, ['sector', 'customer', 'referent', 'unitTTCRate', 'customerParticipationRate']),
-      careHours: funding.careHours,
-      tpp: funding.thirdPartyPayer,
-      prevMonthCareHours: isPrevMonthRelevant ? getMonthCareHours(funding.prevMonthEvents, funding) : -1,
-      currentMonthCareHours: getMonthCareHours(funding.currentMonthEvents, funding),
-      nextMonthCareHours: isNextMonthRelevant ? getMonthCareHours(funding.nextMonthEvents, funding) : -1,
-    });
-  }
-
-  return allCustomersFundingsMonitoring;
 };
 
 exports.getPaidInterventionStats = async (query, credentials) => {

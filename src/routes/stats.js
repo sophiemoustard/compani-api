@@ -8,7 +8,6 @@ const {
   getCustomerFundingsMonitoring,
   getPaidInterventionStats,
   getCustomersAndDurationBySector,
-  getAllCustomersFundingsMonitoring,
   getIntenalAndBilledHoursBySector,
 } = require('../controllers/statController');
 const { monthValidation, objectIdOrArray } = require('./validations/utils');
@@ -41,15 +40,6 @@ exports.plugin = {
         pre: [{ method: authorizeGetStats }],
       },
       handler: getCustomerFundingsMonitoring,
-    });
-
-    server.route({
-      method: 'GET',
-      path: '/all-customers-fundings-monitoring',
-      options: {
-        auth: { scope: ['customers:read'] },
-      },
-      handler: getAllCustomersFundingsMonitoring,
     });
 
     server.route({

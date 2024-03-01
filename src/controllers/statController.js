@@ -43,22 +43,6 @@ exports.getCustomerFundingsMonitoring = async (req) => {
   }
 };
 
-exports.getAllCustomersFundingsMonitoring = async (req) => {
-  try {
-    req.log('statController - getAllCustomersFundingsMonitoring - company', get(req, 'auth.credentials.company._id'));
-
-    const allCustomersFundingsMonitoring = await StatsHelper.getAllCustomersFundingsMonitoring(req.auth.credentials);
-
-    return {
-      message: messages.statsFound,
-      data: { allCustomersFundingsMonitoring },
-    };
-  } catch (e) {
-    req.log('error', e);
-    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
-  }
-};
-
 exports.getPaidInterventionStats = async (req) => {
   try {
     req.log('statController - getPaidInterventionStats - query', req.query);

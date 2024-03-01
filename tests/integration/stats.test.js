@@ -134,60 +134,6 @@ describe('STATS ROUTES - GET /stats/customer-fundings-monitoring', () => {
   });
 });
 
-describe('STATS ROUTES - GET /stats/all-customers-fundings-monitoring', () => {
-  let authToken;
-
-  describe('COACH', () => {
-    beforeEach(populateDB);
-    beforeEach(populateDBWithEventsForFundingsMonitoring);
-    beforeEach(async () => {
-      authToken = await getToken('coach');
-    });
-
-    it('should get all customers fundings monitoring', async () => {
-      const res = await app.inject({
-        method: 'GET',
-        url: '/stats/all-customers-fundings-monitoring',
-        headers: { Cookie: `alenvi_token=${authToken}` },
-      });
-      expect(res.statusCode).toBe(200);
-      expect(res.result.data.allCustomersFundingsMonitoring).toEqual(expect.arrayContaining([
-        expect.objectContaining({
-          sector: expect.objectContaining({ name: 'Neptune' }),
-          customer: expect.objectContaining({ lastname: 'Giscard d\'Estaing' }),
-          referent: expect.objectContaining({ firstname: 'Auxiliary', lastname: 'Black' }),
-          currentMonthCareHours: 6,
-          prevMonthCareHours: 4,
-          nextMonthCareHours: 0,
-        }),
-      ]));
-      expect(res.result.data.allCustomersFundingsMonitoring.length).toBe(1);
-    });
-  });
-
-  describe('Other roles', () => {
-    const roles = [
-      { name: 'helper', expectedCode: 403 },
-      { name: 'auxiliary', expectedCode: 200 },
-      { name: 'auxiliary_without_company', expectedCode: 403 },
-      { name: 'vendor_admin', expectedCode: 403 },
-    ];
-
-    roles.forEach((role) => {
-      it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
-        authToken = await getToken(role.name);
-        const response = await app.inject({
-          method: 'GET',
-          url: '/stats/all-customers-fundings-monitoring',
-          headers: { Cookie: `alenvi_token=${authToken}` },
-        });
-
-        expect(response.statusCode).toBe(role.expectedCode);
-      });
-    });
-  });
-});
-
 describe('STATS ROUTES - GET /stats/paid-intervention-stats', () => {
   let authToken;
 
