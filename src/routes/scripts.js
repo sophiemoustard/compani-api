@@ -2,7 +2,6 @@
 
 const Joi = require('joi');
 const {
-  billDispatchScript,
   eventRepetitionsScript,
   updateRoleScript,
   eventConsistencyScript,
@@ -11,18 +10,6 @@ const {
 exports.plugin = {
   name: 'routes-scripts',
   register: async (server) => {
-    server.route({
-      method: 'GET',
-      path: '/bill-dispatch',
-      options: {
-        auth: { scope: ['scripts:run'] },
-        validate: {
-          query: Joi.object({ date: Joi.date() }),
-        },
-      },
-      handler: billDispatchScript,
-    });
-
     server.route({
       method: 'GET',
       path: '/events-repetitions',

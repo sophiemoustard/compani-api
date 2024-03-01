@@ -1,19 +1,7 @@
 const Boom = require('@hapi/boom');
-const billDispatch = require('../jobs/billDispatch');
 const eventRepetitions = require('../jobs/eventRepetitions');
 const updateRole = require('../jobs/updateRole');
 const eventConsistency = require('../jobs/eventConsistency');
-
-const billDispatchScript = async (req) => {
-  try {
-    const job = await billDispatch.method(req);
-
-    return { message: `Bill dispatch: ${job.results.length} emails envoyés.`, data: job };
-  } catch (e) {
-    req.log('error', e);
-    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
-  }
-};
 
 const eventRepetitionsScript = async (req) => {
   try {
@@ -48,4 +36,4 @@ const eventConsistencyScript = async (req) => {
   }
 };
 
-module.exports = { billDispatchScript, eventRepetitionsScript, updateRoleScript, eventConsistencyScript };
+module.exports = { eventRepetitionsScript, updateRoleScript, eventConsistencyScript };

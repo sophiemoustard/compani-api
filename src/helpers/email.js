@@ -24,17 +24,6 @@ exports.billAlertEmail = async (receiver, company) => {
   return exports.sendEmail(mailOptions);
 };
 
-exports.completeBillScriptEmail = async (sentNb, emails = null) => {
-  const mailOptions = {
-    from: `Compani <${SENDER_MAIL}>`,
-    to: process.env.TECH_EMAILS,
-    subject: 'Script envoi factures',
-    html: EmailOptionsHelper.completeBillScriptEmailBody(sentNb, emails),
-  };
-
-  return exports.sendEmail(mailOptions);
-};
-
 exports.completeEventRepScriptEmail = async (nb, deletedRepetitions, repIds = null) => {
   const mailOptions = {
     from: `Compani <${SENDER_MAIL}>`,
