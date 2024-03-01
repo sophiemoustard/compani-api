@@ -1,4 +1,3 @@
-const path = require('path');
 const flat = require('flat');
 const { expect } = require('expect');
 const { ObjectId } = require('mongodb');
@@ -27,15 +26,12 @@ const Repetition = require('../../src/models/Repetition');
 const ReferentHistory = require('../../src/models/ReferentHistory');
 const CustomerPartner = require('../../src/models/CustomerPartner');
 const Event = require('../../src/models/Event');
-const ESign = require('../../src/models/ESign');
 const Drive = require('../../src/models/Google/Drive');
 const Helper = require('../../src/models/Helper');
 const { MONTHLY, FIXED, DEATH } = require('../../src/helpers/constants');
 const { getToken, getTokenByCredentials } = require('./helpers/authentication');
 const { authCompany, otherCompany } = require('../seed/authCompaniesSeed');
-const FileHelper = require('../../src/helpers/file');
 const UtilsHelper = require('../../src/helpers/utils');
-const DocxHelper = require('../../src/helpers/docx');
 const { CompaniDate } = require('../../src/helpers/dates/companiDates');
 
 describe('NODE ENV', () => {

@@ -23,7 +23,6 @@ const {
   createCustomerQuote,
   uploadFile,
   deleteCertificates,
-  saveSignedMandate,
   createFunding,
   updateFunding,
   deleteFunding,
@@ -373,19 +372,6 @@ exports.plugin = {
         pre: [{ method: authorizeCustomerUpdate }],
       },
       handler: deleteCertificates,
-    });
-
-    server.route({
-      method: 'POST',
-      path: '/{_id}/mandates/{mandateId}/savesigneddoc',
-      options: {
-        auth: { scope: ['customer-{params._id}'] },
-        validate: {
-          params: Joi.object({ _id: Joi.objectId().required(), mandateId: Joi.objectId().required() }),
-        },
-        pre: [{ method: authorizeCustomerUpdate }],
-      },
-      handler: saveSignedMandate,
     });
 
     server.route({

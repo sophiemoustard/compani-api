@@ -275,20 +275,6 @@ const deleteCertificates = async (req) => {
   }
 };
 
-const saveSignedMandate = async (req) => {
-  try {
-    const customer = await MandatesHelper.saveSignedMandate(req.params._id, req.params.mandateId);
-
-    return {
-      message: translate[language].signedDocumentSaved,
-      data: { customer },
-    };
-  } catch (e) {
-    req.log('error', e);
-    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
-  }
-};
-
 const createFunding = async (req) => {
   try {
     const customer = await FundingHelper.createFunding(req.params._id, req.payload);
@@ -364,7 +350,6 @@ module.exports = {
   createCustomerQuote,
   uploadFile,
   deleteCertificates,
-  saveSignedMandate,
   createFunding,
   updateFunding,
   deleteFunding,
