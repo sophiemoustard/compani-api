@@ -1,5 +1,4 @@
 const Boom = require('@hapi/boom');
-const nodemailer = require('nodemailer');
 const NodemailerHelper = require('./nodemailer');
 const EmailOptionsHelper = require('./emailOptions');
 const AuthenticationHelper = require('./authentication');
@@ -7,22 +6,6 @@ const { SENDER_MAIL, TRAINER, HELPER, COACH, CLIENT_ADMIN, TRAINEE } = require('
 const translate = require('./translate');
 
 const { language } = translate;
-
-exports.sendEmail = async mailOptions => (process.env.NODE_ENV === 'production'
-  ? NodemailerHelper.sendinBlueTransporter().sendMail(mailOptions)
-  : NodemailerHelper.testTransporter(await nodemailer.createTestAccount()).sendMail(mailOptions));
-
-exports.billAlertEmail = async (receiver, company) => {
-  const companyName = company.name;
-  const mailOptions = {
-    from: `Compani <${SENDER_MAIL}>`,
-    to: receiver,
-    subject: `Nouvelle facture ${companyName}`,
-    html: await EmailOptionsHelper.billEmail(companyName),
-  };
-
-  return exports.sendEmail(mailOptions);
-};
 
 exports.sendWelcome = async (type, email, company) => {
   const passwordToken = await AuthenticationHelper.createPasswordToken(email);
