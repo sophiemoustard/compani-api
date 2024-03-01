@@ -61,8 +61,6 @@ const billEmail = async (companyName) => {
   return template({ billLink: `${process.env.WEBSITE_HOSTNAME}/customers/documents`, companyName });
 };
 
-const completeRoleUpdateScriptEmailBody = nb => `<p>Script correctement exécuté. ${nb} role(s) mis à jour.</p>`;
-
 const welcomeTraineeContent = () => `<p>Bonjour,</p>
   <p>Bienvenue sur Compani Formation, l'outil au service du prendre soin,
   nous venons de vous créer votre compte apprenant.</p>
@@ -111,6 +109,5 @@ module.exports = {
   forgotPasswordEmail,
   verificationCodeEmail,
   billEmail,
-  completeRoleUpdateScriptEmailBody,
   welcomeTraineeContent,
 };

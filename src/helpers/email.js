@@ -24,17 +24,6 @@ exports.billAlertEmail = async (receiver, company) => {
   return exports.sendEmail(mailOptions);
 };
 
-exports.completeRoleUpdateScriptEmail = async (nb) => {
-  const mailOptions = {
-    from: `Compani <${SENDER_MAIL}>`,
-    to: process.env.TECH_EMAILS,
-    subject: 'Script traitement mis à jour des roles',
-    html: EmailOptionsHelper.completeRoleUpdateScriptEmailBody(nb),
-  };
-
-  return exports.sendEmail(mailOptions);
-};
-
 exports.sendWelcome = async (type, email, company) => {
   const passwordToken = await AuthenticationHelper.createPasswordToken(email);
 

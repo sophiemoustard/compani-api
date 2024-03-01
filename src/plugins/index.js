@@ -1,7 +1,6 @@
 const good = require('./good');
 const hapiAuthJwt2 = require('./hapiAuthJwt2');
 const cron = require('./cron');
-const updateRole = require('../jobs/updateRole');
 
 const plugins = [
   {
@@ -14,16 +13,6 @@ const plugins = [
     plugin: cron,
     options: {
       jobs: [
-        {
-          name: 'roleUpdate',
-          time: '0 0 6 1,15 * *',
-          request: {
-            method: 'GET',
-            url: '/scripts/update-role',
-            auth: { credentials: { scope: ['scripts:run'] }, strategy: 'jwt' },
-          },
-          onComplete: updateRole.onComplete,
-        },
       ],
     },
   },
