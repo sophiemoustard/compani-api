@@ -25,7 +25,6 @@ const {
   deleteCertificates,
   getMandateSignatureRequest,
   saveSignedMandate,
-  createHistorySubscription,
   createFunding,
   updateFunding,
   deleteFunding,
@@ -411,37 +410,6 @@ exports.plugin = {
         pre: [{ method: authorizeCustomerUpdate }],
       },
       handler: saveSignedMandate,
-    });
-
-    server.route({
-      method: 'POST',
-      path: '/{_id}/subscriptionshistory',
-      options: {
-        auth: { scope: ['customer-{params._id}'] },
-        validate: {
-          params: Joi.object({ _id: Joi.objectId().required() }),
-          payload: Joi.object().keys({
-            subscriptions: Joi.array().items(Joi.object().keys({
-              subscriptionId: Joi.objectId().required(),
-              service: Joi.string().required(),
-              unitTTCRate: Joi.number().min(0).required(),
-              weeklyCount: Joi.number().min(0).integer().required(),
-              startDate: Joi.date(),
-              weeklyHours: Joi.number().min(0),
-              evenings: Joi.number().min(0),
-              saturdays: Joi.number().min(0),
-              sundays: Joi.number().min(0),
-            }).or('weeklyCount', 'weeklyHours')).required(),
-            helper: Joi.object().keys({
-              firstname: Joi.string().allow(null, ''),
-              lastname: Joi.string(),
-              title: Joi.string().allow(null, ''),
-            }).required(),
-          }),
-        },
-        pre: [{ method: authorizeCustomerUpdate }],
-      },
-      handler: createHistorySubscription,
     });
 
     server.route({

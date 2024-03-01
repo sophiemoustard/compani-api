@@ -307,20 +307,6 @@ const saveSignedMandate = async (req) => {
   }
 };
 
-const createHistorySubscription = async (req) => {
-  try {
-    const customer = await SubscriptionHelper.createSubscriptionHistory(req.params._id, req.payload);
-
-    return {
-      message: translate[language].customerSubscriptionHistoryAdded,
-      data: { customer },
-    };
-  } catch (e) {
-    req.log('error', e);
-    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
-  }
-};
-
 const createFunding = async (req) => {
   try {
     const customer = await FundingHelper.createFunding(req.params._id, req.payload);
@@ -398,7 +384,6 @@ module.exports = {
   deleteCertificates,
   getMandateSignatureRequest,
   saveSignedMandate,
-  createHistorySubscription,
   createFunding,
   updateFunding,
   deleteFunding,
