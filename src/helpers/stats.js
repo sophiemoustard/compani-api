@@ -88,13 +88,6 @@ exports.getPaidInterventionStats = async (query, credentials) => {
   return SectorHistoryRepository.getPaidInterventionStats([new ObjectId(query.auxiliary)], query.month, companyId);
 };
 
-exports.getCustomersAndDurationBySector = async (query, credentials) => {
-  const companyId = get(credentials, 'company._id', null);
-  const sectors = UtilsHelper.formatObjectIdsArray(query.sector);
-
-  return StatRepository.getCustomersAndDurationBySector(sectors, query.month, companyId);
-};
-
 exports.getIntenalAndBilledHoursBySector = async (query, credentials) => {
   const companyId = get(credentials, 'company._id', null);
   const sectors = UtilsHelper.formatObjectIdsArray(query.sector);
