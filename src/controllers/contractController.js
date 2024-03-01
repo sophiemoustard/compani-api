@@ -145,21 +145,6 @@ const receiveSignatureEvents = async (req, h) => {
   }
 };
 
-const getStaffRegister = async (req) => {
-  try {
-    const { credentials } = req.auth;
-    const staffRegister = await ContractHelper.getStaffRegister(credentials.company._id);
-
-    return {
-      message: translate[language].staffRegisteredFound,
-      data: { staffRegister },
-    };
-  } catch (e) {
-    req.log('error', e);
-    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
-  }
-};
-
 module.exports = {
   list,
   create,
@@ -170,5 +155,4 @@ module.exports = {
   removeContractVersion,
   uploadFile,
   receiveSignatureEvents,
-  getStaffRegister,
 };

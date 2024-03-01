@@ -14,7 +14,6 @@ const {
   removeContractVersion,
   uploadFile,
   receiveSignatureEvents,
-  getStaffRegister,
 } = require('../controllers/contractController');
 const {
   getContract,
@@ -210,15 +209,6 @@ exports.plugin = {
       path: '/esign-webhook-receiver',
       handler: receiveSignatureEvents,
       options: { auth: false },
-    });
-
-    server.route({
-      method: 'GET',
-      path: '/staff-register',
-      handler: getStaffRegister,
-      options: {
-        auth: { scope: ['contracts:edit'] },
-      },
     });
   },
 };
