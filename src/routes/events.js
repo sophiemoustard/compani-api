@@ -11,7 +11,6 @@ const {
   deleteList,
   listForCreditNotes,
   getWorkingStats,
-  getPaidTransportStatsBySector,
   getUnassignedHoursBySector,
   timeStampEvent,
 } = require('../controllers/eventController');
@@ -153,19 +152,6 @@ exports.plugin = {
         },
         pre: [{ method: authorizeEventGet }],
       },
-    });
-
-    server.route({
-      method: 'GET',
-      path: '/paid-transport',
-      options: {
-        auth: { scope: ['events:read'] },
-        validate: {
-          query: Joi.object().keys({ sector: objectIdOrArray.required(), month: monthValidation.required() }),
-        },
-        pre: [{ method: authorizeEventGet }],
-      },
-      handler: getPaidTransportStatsBySector,
     });
 
     server.route({

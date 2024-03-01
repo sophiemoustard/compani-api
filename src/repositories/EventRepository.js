@@ -8,7 +8,6 @@ const { cloneDeep } = require('lodash');
 const Event = require('../models/Event');
 const UtilsHelper = require('../helpers/utils');
 const NumbersHelper = require('../helpers/numbers');
-const SectorHistory = require('../models/SectorHistory');
 const {
   INTERNAL_HOUR,
   INTERVENTION,
@@ -484,82 +483,6 @@ exports.getTaxCertificateInterventions = async (taxCertificate, companyId) => {
   }));
 
   return formattedEvents;
-};
-
-exports.getPaidTransportStatsBySector = async (sectors, month, companyId) => {
-  const minStartDate = moment(month, 'MMYYYY').startOf('month').toDate();
-  const maxStartDate = moment(month, 'MMYYYY').endOf('month').toDate();
-
-  const sectorAuxiliaries = [
-    {
-      $match: {
-        sector: { $in: sectors },
-        startDate: { $lte: maxStartDate },
-        $or: [{ endDate: { $gte: minStartDate } }, { endDate: { $exists: false } }],
-      },
-    },
-    { $lookup: { from: 'users', localField: 'auxiliary', foreignField: '_id', as: 'auxiliary' } },
-    { $unwind: { path: '$auxiliary' } },
-    { $addFields: { 'auxiliary.sector': { _id: '$sector', startDate: '$startDate', endDate: '$endDate' } } },
-    { $replaceRoot: { newRoot: '$auxiliary' } },
-  ];
-
-  const auxiliariesEvents = [
-    {
-      $lookup: {
-        from: 'events',
-        as: 'events',
-        let: {
-          auxiliaryId: '$_id',
-          startDate: { $max: ['$sector.startDate', minStartDate] },
-          endDate: { $min: [{ $ifNull: ['$sector.endDate', maxStartDate] }, maxStartDate] },
-        },
-        pipeline: [
-          {
-            $match: {
-              type: { $in: [INTERVENTION, INTERNAL_HOUR] },
-              $or: [{ isCancelled: false }, { 'cancel.condition': INVOICED_AND_PAID }],
-              $expr: {
-                $and: [
-                  { $eq: ['$auxiliary', '$$auxiliaryId'] },
-                  { $gt: ['$endDate', '$$startDate'] },
-                  { $lt: ['$startDate', '$$endDate'] },
-                ],
-              },
-            },
-          },
-        ],
-      },
-    },
-    { $unwind: { path: '$events' } },
-  ];
-
-  const formatAndGroup = [
-    { $addFields: { 'events.auxiliary.administrative.transportInvoice': '$administrative.transportInvoice' } },
-    {
-      $group: {
-        _id: {
-          date: { $dateToString: { format: '%Y-%m-%d', date: '$events.startDate' } },
-          auxiliary: '$_id',
-          sector: '$sector._id',
-        },
-        events: { $push: '$events' },
-      },
-    },
-    {
-      $group: {
-        _id: { sector: '$_id.sector', auxiliary: '$_id.auxiliary' },
-        days: { $push: '$$ROOT' },
-      },
-    },
-    { $group: { _id: '$_id.sector', auxiliaries: { $push: '$$ROOT' } } },
-  ];
-
-  return SectorHistory.aggregate([
-    ...sectorAuxiliaries,
-    ...auxiliariesEvents,
-    ...formatAndGroup,
-  ]).option({ company: companyId });
 };
 
 exports.getUnassignedHoursBySector = async (sectors, month, companyId) => {
