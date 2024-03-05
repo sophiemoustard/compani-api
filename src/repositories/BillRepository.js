@@ -1,5 +1,4 @@
 const moment = require('moment');
-const groupBy = require('lodash/groupBy');
 const NumbersHelper = require('../helpers/numbers');
 const Bill = require('../models/Bill');
 
@@ -33,36 +32,6 @@ exports.findAmountsGroupedByClient = async (companyId, customersIds, dateMax = n
     ...bill,
     billed: bill.billedList.reduce((acc, b) => NumbersHelper.add(acc, b), NumbersHelper.toString(0)),
   }));
-};
-
-exports.findBillsAndHelpersByCustomer = async (date) => {
-  const options = { allCompanies: true };
-
-  const bills = await Bill
-    .find({
-      createdAt: {
-        $lt: moment(date).startOf('d').toDate(),
-        $gte: moment(date).subtract(1, 'd').startOf('d').toDate(),
-      },
-      thirdPartyPayer: { $exists: false },
-      sentAt: { $exists: false },
-      shouldBeSent: true,
-    })
-    .populate({
-      path: 'customer',
-      select: 'identity',
-      populate: {
-        path: 'helpers',
-        populate: { path: 'user', select: 'local', populate: { path: 'company' }, options },
-        options,
-      },
-      options,
-    })
-    .setOptions(options)
-    .lean();
-
-  return Object.values(groupBy(bills, b => b.customer._id))
-    .map(g => ({ bills: g, customer: g[0].customer, helpers: g[0].customer.helpers }));
 };
 
 exports.getBillsSlipList = async (companyId) => {

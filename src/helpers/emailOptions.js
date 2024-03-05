@@ -1,9 +1,4 @@
 /* eslint-disable max-len */
-const handlebars = require('handlebars');
-const path = require('path');
-const fs = require('fs');
-
-const fsPromises = fs.promises;
 
 const baseWelcomeContent = (customContent, options) => {
   const link = `${process.env.WEBSITE_HOSTNAME}/reset-password/${options.passwordToken.token}`;
@@ -55,12 +50,6 @@ const verificationCodeEmail = verificationCode => `<p>Bonjour,</p>
     <p>Bien cordialement,<br>
       L'équipe Compani</p>`;
 
-const billEmail = async (companyName) => {
-  const content = await fsPromises.readFile(path.join(__dirname, '../data/emails/billDispatch.html'), 'utf8');
-  const template = handlebars.compile(content);
-  return template({ billLink: `${process.env.WEBSITE_HOSTNAME}/customers/documents`, companyName });
-};
-
 const welcomeTraineeContent = () => `<p>Bonjour,</p>
   <p>Bienvenue sur Compani Formation, l'outil au service du prendre soin,
   nous venons de vous créer votre compte apprenant.</p>
@@ -108,6 +97,5 @@ module.exports = {
   coachCustomContent,
   forgotPasswordEmail,
   verificationCodeEmail,
-  billEmail,
   welcomeTraineeContent,
 };

@@ -1,5 +1,4 @@
 const Boom = require('@hapi/boom');
-const moment = require('moment');
 const get = require('lodash/get');
 const omit = require('lodash/omit');
 const cloneDeep = require('lodash/cloneDeep');
@@ -193,39 +192,4 @@ exports.deleteRepetition = async (event, credentials) => {
   };
 
   await EventsHelper.deleteEventsAndRepetition(query, true, credentials);
-};
-
-exports.formatEventBasedOnRepetition = async (repetition, date) => {
-  const { frequency, parentId, startDate, endDate } = repetition;
-  const startDateObj = moment(startDate).toObject();
-  const endDateObj = moment(endDate).toObject();
-  const timeFields = ['hours', 'minutes', 'seconds', 'milliseconds'];
-  const newEventStartDate = moment(date).add(90, 'd').set(pick(startDateObj, timeFields)).toDate();
-  const newEventEndDate = moment(date).add(90, 'd').set(pick(endDateObj, timeFields)).toDate();
-  const pickedFields = [
-    'type',
-    'customer',
-    'subscription',
-    'auxiliary',
-    'sector',
-    'misc',
-    'internalHour',
-    'address',
-    'company',
-  ];
-  let newEvent = {
-    ...pick(cloneDeep(repetition), pickedFields),
-    startDate: newEventStartDate,
-    endDate: newEventEndDate,
-    repetition: { frequency, parentId },
-  };
-
-  const hasConflicts = await EventsValidationHelper.hasConflicts(newEvent);
-  if ([INTERNAL_HOUR, UNAVAILABILITY].includes(newEvent.type) && hasConflicts) return null;
-
-  if (newEvent.type === INTERVENTION && newEvent.auxiliary && hasConflicts) {
-    newEvent = await EventsHelper.detachAuxiliaryFromEvent(newEvent, repetition.company);
-  }
-
-  return newEvent;
 };
