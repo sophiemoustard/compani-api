@@ -129,6 +129,7 @@ exports.plugin = {
               .objectId()
               .when('type', { is: INTRA_HOLDING, then: Joi.required(), otherwise: Joi.forbidden() }),
             hasCertifyingTest: Joi.boolean().required(),
+            salesRepresentative: Joi.objectId(),
           }),
         },
         auth: { scope: ['courses:create'] },
@@ -204,7 +205,7 @@ exports.plugin = {
           params: Joi.object({ _id: Joi.objectId().required() }),
           payload: Joi.object({
             misc: Joi.string().allow('', null),
-            trainer: Joi.objectId(),
+            trainer: Joi.objectId().allow(''),
             contact: Joi.objectId().allow(''),
             operationsRepresentative: Joi.objectId(),
             companyRepresentative: Joi.objectId(),
@@ -214,6 +215,7 @@ exports.plugin = {
             expectedBillsCount: Joi.number().min(0).integer(),
             hasCertifyingTest: Joi.boolean(),
             certifiedTrainees: Joi.array().items(Joi.objectId()),
+            salesRepresentative: Joi.objectId().allow(''),
           }),
         },
         pre: [{ method: authorizeCourseEdit }],

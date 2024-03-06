@@ -582,33 +582,6 @@ exports.getUnassignedHoursBySector = async (sectors, month, companyId) => {
   ]).option({ company: companyId });
 };
 
-exports.getEventsToCheckEventConsistency = async (rules, companyId) => Event.aggregate([
-  { $match: rules },
-  { $lookup: { from: 'customers', localField: 'customer', foreignField: '_id', as: 'customer' } },
-  { $unwind: { path: '$customer', preserveNullAndEmptyArrays: true } },
-  {
-    $addFields: {
-      subscription: {
-        $filter: { input: '$customer.subscriptions', as: 'sub', cond: { $eq: ['$$sub._id', '$subscription'] } },
-      },
-    },
-  },
-  { $unwind: { path: '$subscription', preserveNullAndEmptyArrays: true } },
-  {
-    $project: {
-      _id: 1,
-      customer: { _id: 1 },
-      auxiliary: 1,
-      type: 1,
-      startDate: 1,
-      endDate: 1,
-      subscription: 1,
-      isCancelled: 1,
-    },
-  },
-  { $group: { _id: { $ifNull: ['$auxiliary', '$sector'] }, events: { $push: '$$ROOT' } } },
-]).option({ company: companyId });
-
 exports.getEventsByDayAndAuxiliary = async (startDate, endDate, companyId) => Event.aggregate([
   {
     $match: {

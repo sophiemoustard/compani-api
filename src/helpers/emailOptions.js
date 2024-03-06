@@ -1,9 +1,4 @@
 /* eslint-disable max-len */
-const handlebars = require('handlebars');
-const path = require('path');
-const fs = require('fs');
-
-const fsPromises = fs.promises;
 
 const baseWelcomeContent = (customContent, options) => {
   const link = `${process.env.WEBSITE_HOSTNAME}/reset-password/${options.passwordToken.token}`;
@@ -55,43 +50,6 @@ const verificationCodeEmail = verificationCode => `<p>Bonjour,</p>
     <p>Bien cordialement,<br>
       L'équipe Compani</p>`;
 
-const billEmail = async (companyName) => {
-  const content = await fsPromises.readFile(path.join(__dirname, '../data/emails/billDispatch.html'), 'utf8');
-  const template = handlebars.compile(content);
-  return template({ billLink: `${process.env.WEBSITE_HOSTNAME}/customers/documents`, companyName });
-};
-
-const completeBillScriptEmailBody = (sentNb, emails) => {
-  let body = `<p>Script correctement exécuté. ${sentNb} emails envoyés.</p>`;
-  if (emails.length) {
-    body = body.concat(`<p>Facture non envoyée à ${emails.join()}</p>`);
-  }
-  return body;
-};
-
-const completeEventRepScriptEmailBody = (nb, deletedRepetitions, repIds) => {
-  let body = `<p>Script correctement exécuté. ${nb} répétitions traitées.</p>`;
-  if (repIds.length) {
-    body = body.concat(`<p>Répétitions à traiter manuellement ${repIds.join()}</p>`);
-  }
-
-  for (const repetition of deletedRepetitions) {
-    body = body.concat(`<p>Répétition supprimée : ${repetition._id}, pour le/la bénéficiaire : ${repetition.customer._id}</p>`);
-  }
-
-  return body;
-};
-
-const completeRoleUpdateScriptEmailBody = nb => `<p>Script correctement exécuté. ${nb} role(s) mis à jour.</p>`;
-
-const completeEventConsistencyScriptEmailBody = (eventsWithErrors) => {
-  let message = `<p>Script correctement exécuté. ${eventsWithErrors.length} evenements avec erreurs.</p>`;
-  for (const event of eventsWithErrors) {
-    message += `${event.eventId}: ${event.issuesWithEvent}</br>`;
-  }
-  return message;
-};
-
 const welcomeTraineeContent = () => `<p>Bonjour,</p>
   <p>Bienvenue sur Compani Formation, l'outil au service du prendre soin,
   nous venons de vous créer votre compte apprenant.</p>
@@ -139,10 +97,5 @@ module.exports = {
   coachCustomContent,
   forgotPasswordEmail,
   verificationCodeEmail,
-  billEmail,
-  completeBillScriptEmailBody,
-  completeEventRepScriptEmailBody,
-  completeRoleUpdateScriptEmailBody,
-  completeEventConsistencyScriptEmailBody,
   welcomeTraineeContent,
 };

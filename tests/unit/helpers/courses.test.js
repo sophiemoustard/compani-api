@@ -250,12 +250,72 @@ describe('list', () => {
 
   describe('OPERATIONS', () => {
     it('should return courses', async () => {
-      const coursesList = [{ _id: new ObjectId(), misc: 'name' }, { _id: new ObjectId(), misc: 'program' }];
+      const trainerId = new ObjectId();
+      const coursesList = [
+        {
+          _id: new ObjectId(),
+          type: INTRA,
+          misc: 'name',
+          name: 'Formation',
+          companies: [new ObjectId()],
+          subProgram: {
+            steps: [{
+              _id: new ObjectId(),
+              activities: [{ activityHistories: [{}, {}] }],
+              name: 'Développement personnel test',
+              type: E_LEARNING,
+              theoreticalDuration: 'PT5400S',
+              areActivitiesValid: false,
+            }],
+            slots: [
+              {
+                startDate: '2019-11-06T09:00:00.000Z',
+                endDate: '2019-11-06T12:00:00.000Z',
+                step: new ObjectId(),
+                attendances: [{ _id: new ObjectId() }],
+              },
+            ],
+          },
+          trainer: { _id: trainerId, identity: { firstname: 'Un nouveau', lastname: 'Prof' } },
+          trainees: [],
+          operationsRepresentative: { identity: { firstname: 'charge', lastname: 'operations' } },
+          salesRepresentative: { identity: { firstname: 'charge', lastname: 'd\'accompagnement' } },
+        },
+        {
+          _id: new ObjectId(),
+          type: INTRA,
+          name: 'Super formation',
+          misc: 'program',
+          companies: [new ObjectId()],
+          subProgram: {
+            steps: [{
+              _id: new ObjectId(),
+              activities: [{ activityHistories: [{}, {}] }],
+              name: 'Intégrer des nouvelles personnes dans une équipe',
+              type: E_LEARNING,
+              theoreticalDuration: 'PT5400S',
+              areActivitiesValid: false,
+            }],
+            slots: [
+              {
+                startDate: '2019-13-06T09:00:00.000Z',
+                endDate: '2019-13-06T12:00:00.000Z',
+                step: new ObjectId(),
+                attendances: [{ _id: new ObjectId() }],
+              },
+            ],
+          },
+          trainer: { _id: trainerId, identity: { firstname: 'Un autre', lastname: 'Prof' } },
+          trainees: [],
+          operationsRepresentative: { identity: { firstname: 'charge', lastname: 'operations' } },
+          salesRepresentative: { identity: { firstname: 'charge', lastname: 'd\'accompagnement' } },
+        },
+      ];
 
       findCourseAndPopulate.returns(coursesList);
 
       const query = {
-        trainer: '1234567890abcdef12345678',
+        trainer: trainerId,
         format: 'blended',
         action: 'operations',
         origin: 'webapp',
@@ -266,7 +326,7 @@ describe('list', () => {
       expect(result).toMatchObject(coursesList);
       sinon.assert.calledOnceWithExactly(
         findCourseAndPopulate,
-        { trainer: '1234567890abcdef12345678', format: 'blended', archivedAt: { $exists: false } },
+        { trainer: trainerId, format: 'blended', archivedAt: { $exists: false } },
         'webapp'
       );
       sinon.assert.notCalled(getTotalTheoreticalDurationSpy);
@@ -1775,6 +1835,10 @@ describe('getCourse', () => {
                 path: 'operationsRepresentative',
                 select: 'identity.firstname identity.lastname contact.phone local.email picture.link',
               },
+              {
+                path: 'salesRepresentative',
+                select: 'identity.firstname identity.lastname contact.phone local.email picture.link',
+              },
               { path: 'contact', select: 'identity.firstname identity.lastname contact.phone' },
               { path: 'trainerMission', select: '_id', options: { isVendorUser: true } },
             ]],
@@ -1866,6 +1930,10 @@ describe('getCourse', () => {
                   path: 'operationsRepresentative',
                   select: 'identity.firstname identity.lastname contact.phone local.email picture.link',
                 },
+                {
+                  path: 'salesRepresentative',
+                  select: 'identity.firstname identity.lastname contact.phone local.email picture.link',
+                },
                 { path: 'contact', select: 'identity.firstname identity.lastname contact.phone' },
               ]],
           },
@@ -1954,6 +2022,10 @@ describe('getCourse', () => {
                 { path: 'accessRules', select: 'name' },
                 {
                   path: 'operationsRepresentative',
+                  select: 'identity.firstname identity.lastname contact.phone local.email picture.link',
+                },
+                {
+                  path: 'salesRepresentative',
                   select: 'identity.firstname identity.lastname contact.phone local.email picture.link',
                 },
                 { path: 'contact', select: 'identity.firstname identity.lastname contact.phone' },
@@ -2110,6 +2182,10 @@ describe('getCourse', () => {
               { path: 'accessRules', select: 'name' },
               {
                 path: 'operationsRepresentative',
+                select: 'identity.firstname identity.lastname contact.phone local.email picture.link',
+              },
+              {
+                path: 'salesRepresentative',
                 select: 'identity.firstname identity.lastname contact.phone local.email picture.link',
               },
               { path: 'contact', select: 'identity.firstname identity.lastname contact.phone' },
@@ -3547,6 +3623,28 @@ describe('updateCourse', () => {
       ]
     );
     sinon.assert.notCalled(createHistoryOnEstimatedStartDateEdition);
+  });
+
+  it('should remove salesRepresentative field', async () => {
+    const courseId = new ObjectId();
+    const payload = { salesRepresentative: '' };
+    const courseFromDb = { _id: courseId, salesRepresentative: new ObjectId() };
+
+    courseFindOneAndUpdate.returns(SinonMongoose.stubChainedQueries(courseFromDb, ['lean']));
+
+    await CourseHelper.updateCourse(courseId, payload, credentials);
+
+    sinon.assert.notCalled(createHistoryOnEstimatedStartDateEdition);
+    SinonMongoose.calledOnceWithExactly(
+      courseFindOneAndUpdate,
+      [
+        {
+          query: 'findOneAndUpdate',
+          args: [{ _id: courseId }, { $unset: { salesRepresentative: '' } }],
+        },
+        { query: 'lean' },
+      ]
+    );
   });
 });
 

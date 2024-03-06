@@ -350,6 +350,7 @@ const coursesList = [
     maxTrainees: 8,
     operationsRepresentative: vendorAdmin._id,
     expectedBillsCount: 2,
+    salesRepresentative: vendorAdmin._id,
   },
   { // 2
     _id: new ObjectId(),
@@ -517,7 +518,7 @@ const coursesList = [
   { // 17 Intra course without slots
     _id: new ObjectId(),
     subProgram: subProgramsList[0]._id,
-    contact: vendorAdmin._id,
+    contact: trainer._id,
     companies: [authCompany._id],
     misc: 'third session',
     trainer: trainer._id,
