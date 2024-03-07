@@ -2,12 +2,12 @@ const has = require('lodash/has');
 const get = require('lodash/get');
 const ActivityHistory = require('../models/ActivityHistory');
 const UserCompany = require('../models/UserCompany');
-const { STRICTLY_E_LEARNING, PTOS } = require('./constants');
+const { STRICTLY_E_LEARNING, PT0S } = require('./constants');
 const UtilsHelper = require('./utils');
 const { CompaniDuration } = require('./dates/companiDurations');
 
 exports.addActivityHistory = async payload => ActivityHistory
-  .create({ ...payload, duration: CompaniDuration(payload.duration || PTOS).asSeconds() });
+  .create({ ...payload, duration: CompaniDuration(payload.duration || PT0S).asSeconds() });
 
 const filterCourses = activityHistory => ({
   ...activityHistory,
