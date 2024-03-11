@@ -48,9 +48,9 @@ exports.plugin = {
             qcuGoodAnswer: Joi.string().max(QC_ANSWER_MAX_LENGTH),
             isQuestionAnswerMultipleChoiced: Joi.boolean(),
             explanation: Joi.string(),
-            label: Joi.object().keys({
-              right: Joi.string().allow('', null).max(SURVEY_LABEL_MAX_LENGTH),
-              left: Joi.string().allow('', null).max(SURVEY_LABEL_MAX_LENGTH),
+            labels: Joi.object().keys({
+              1: Joi.string().allow('', null).max(SURVEY_LABEL_MAX_LENGTH),
+              5: Joi.string().allow('', null).max(SURVEY_LABEL_MAX_LENGTH),
             }),
             canSwitchAnswers: Joi.boolean(),
             isMandatory: Joi.boolean(),

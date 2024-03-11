@@ -66,9 +66,9 @@ const CardSchema = mongoose.Schema({
     type: [mongoose.Schema({ text: { type: String } }, { id: false })],
     default: undefined,
   },
-  label: mongoose.Schema({
-    right: { type: String },
-    left: { type: String },
+  labels: mongoose.Schema({
+    1: { type: String },
+    5: { type: String },
   }, { default: undefined, _id: false, id: false }),
 }, {
   timestamps: true,
@@ -98,7 +98,7 @@ function save(next) {
         if (!this.qcAnswers) this.qcAnswers = [{ text: '', correct: false }, { text: '', correct: false }];
         break;
       case SURVEY:
-        if (!this.label) this.label = { right: '', left: '' };
+        if (!this.labels) this.labels = { 1: '', 5: '' };
         if (!this.isMandatory) this.isMandatory = false;
         break;
       case TEXT_MEDIA:
