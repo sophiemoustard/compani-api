@@ -97,7 +97,7 @@ describe('formatQueryForUsersList', () => {
     );
   });
 
-  it('should return params with role', async () => {
+  it('should return params with role (1 interface)', async () => {
     const users = [{ _id: new ObjectId(), user: new ObjectId() }];
     const query = {
       company: companyId,
@@ -113,6 +113,49 @@ describe('formatQueryForUsersList', () => {
     expect(result).toEqual({
       _id: { $in: users.map(u => u.user) },
       'role.vendor': { $in: [query.role[0]._id, query.role[1]._id] },
+    });
+
+    SinonMongoose.calledOnceWithExactly(
+      find,
+      [{ query: 'find', args: [{ name: { $in: query.role } }, { _id: 1, interface: 1 }] }, { query: 'lean' }]
+    );
+    SinonMongoose.calledOnceWithExactly(
+      findUserCompany,
+      [
+        {
+          query: 'find',
+          args: [
+            {
+              company: companyId,
+              $or: [{ endDate: { $gt: '2022-12-21T16:00:00.000Z' } }, { endDate: { $exists: false } }],
+            },
+            { user: 1 },
+          ],
+        },
+        { query: 'lean' },
+      ]
+    );
+    sinon.assert.notCalled(findCompanyHolding);
+    sinon.assert.notCalled(findOneCompanyHolding);
+    sinon.assert.notCalled(findUserHolding);
+  });
+
+  it('should return params with role (several interfaces)', async () => {
+    const users = [{ _id: new ObjectId(), user: new ObjectId() }];
+    const query = {
+      company: companyId,
+      _id: { $in: users.map(u => u.user) },
+      role: [{ _id: new ObjectId() }, { _id: new ObjectId() }],
+    };
+    const roles = [{ _id: query.role[0]._id, interface: 'client' }, { _id: query.role[1]._id, interface: 'holding' }];
+
+    find.returns(SinonMongoose.stubChainedQueries(roles, ['lean']));
+    findUserCompany.returns(SinonMongoose.stubChainedQueries(users, ['lean']));
+
+    const result = await UsersHelper.formatQueryForUsersList(query);
+    expect(result).toEqual({
+      _id: { $in: users.map(u => u.user) },
+      $or: [{ 'role.client': { $in: [query.role[0]._id] } }, { 'role.holding': { $in: [query.role[1]._id] } }],
     });
 
     SinonMongoose.calledOnceWithExactly(
@@ -321,6 +364,7 @@ describe('getUsersList', () => {
       [
         { query: 'find', args: [{ ...query, company: companyId }, {}, { autopopulate: false }] },
         { query: 'populate', args: [{ path: 'role.client', select: '-__v -createdAt -updatedAt' }] },
+        { query: 'populate', args: [{ path: 'role.holding', select: '-__v -createdAt -updatedAt' }] },
         {
           query: 'populate',
           args: [{ path: 'company', populate: { path: 'company' }, select: '-__v -createdAt -updatedAt' }],
@@ -359,6 +403,8 @@ describe('getUsersList', () => {
       [
         { query: 'find', args: [formattedQuery, {}, { autopopulate: false }] },
         { query: 'populate', args: [{ path: 'role.client', select: '-__v -createdAt -updatedAt' }] },
+        { query: 'populate', args: [{ path: 'role.holding', select: '-__v -createdAt -updatedAt' }] },
+
         {
           query: 'populate',
           args: [{ path: 'company', populate: { path: 'company' }, select: '-__v -createdAt -updatedAt' }],

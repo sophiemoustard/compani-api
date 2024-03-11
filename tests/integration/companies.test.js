@@ -7,8 +7,20 @@ const Drive = require('../../src/models/Google/Drive');
 const app = require('../../server');
 const { company, populateDB, usersList } = require('./seed/companiesSeed');
 const { getToken, getTokenByCredentials } = require('./helpers/authentication');
-const { authCompany, otherCompany, otherHolding, authHolding } = require('../seed/authCompaniesSeed');
-const { noRoleNoCompany, coach, holdingAdminFromOtherCompany, vendorAdmin } = require('../seed/authUsersSeed');
+const {
+  authCompany,
+  otherCompany,
+  otherHolding,
+  authHolding,
+  companyWithoutSubscription,
+} = require('../seed/authCompaniesSeed');
+const {
+  noRoleNoCompany,
+  coach,
+  holdingAdminFromOtherCompany,
+  vendorAdmin,
+  userList: authUsersList,
+} = require('../seed/authUsersSeed');
 const { generateFormData, getStream } = require('./utils');
 
 describe('NODE ENV', () => {
@@ -72,6 +84,17 @@ describe('COMPANIES ROUTES - PUT /companies/:id', () => {
       expect(response.result.data.company).toMatchObject(payload);
     });
 
+    it('should update billingRepresentative with holding admin from another company', async () => {
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/companies/${companyWithoutSubscription._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload: { billingRepresentative: holdingAdminFromOtherCompany._id },
+      });
+
+      expect(response.statusCode).toBe(200);
+    });
+
     it('should update name even if only case or diacritics have changed', async () => {
       const response = await app.inject({
         method: 'PUT',
@@ -132,7 +155,7 @@ describe('COMPANIES ROUTES - PUT /companies/:id', () => {
       expect(response.statusCode).toBe(404);
     });
 
-    it('should return 404 if billingRepresentative is from an other company', async () => {
+    it('should return 404 if billingRepresentative is from an other company and another holding', async () => {
       const payload = { name: 'Alenvi Alenvi', billingRepresentative: usersList[1]._id };
       const response = await app.inject({
         method: 'PUT',
@@ -144,7 +167,7 @@ describe('COMPANIES ROUTES - PUT /companies/:id', () => {
       expect(response.statusCode).toBe(404);
     });
 
-    it('should return 404 if billingRepresentative is not client_admin', async () => {
+    it('should return 404 if billingRepresentative is not client_admin or holding_admin', async () => {
       const payload = { name: 'Alenvi Alenvi', billingRepresentative: coach._id };
       const response = await app.inject({
         method: 'PUT',
@@ -199,7 +222,7 @@ describe('COMPANIES ROUTES - PUT /companies/:id', () => {
       expect(response.statusCode).toBe(403);
     });
 
-    it('should return 404 if billingRepresentative is from an other company', async () => {
+    it('should return 404 if billingRepresentative is from an other company and another holding', async () => {
       const payload = { name: 'Alenvi Alenvi', billingRepresentative: usersList[1]._id };
       const response = await app.inject({
         method: 'PUT',
@@ -211,7 +234,7 @@ describe('COMPANIES ROUTES - PUT /companies/:id', () => {
       expect(response.statusCode).toBe(404);
     });
 
-    it('should return 404 if billingRepresentative is not client_admin', async () => {
+    it('should return 404 if billingRepresentative is not client_admin or holding_admin', async () => {
       const payload = { name: 'Alenvi Alenvi', billingRepresentative: coach._id };
       const response = await app.inject({
         method: 'PUT',
@@ -244,6 +267,24 @@ describe('COMPANIES ROUTES - PUT /companies/:id', () => {
 
         expect(response.statusCode).toBe(400);
       });
+    });
+  });
+
+  describe('CLIENT_ADMIN from third company', () => {
+    beforeEach(populateDB);
+    beforeEach(async () => {
+      authToken = await getTokenByCredentials(authUsersList[9].local);
+    });
+
+    it('should update billingRepresentative with holding admin from another company', async () => {
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/companies/${companyWithoutSubscription._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload: { billingRepresentative: holdingAdminFromOtherCompany._id },
+      });
+
+      expect(response.statusCode).toBe(200);
     });
   });
 

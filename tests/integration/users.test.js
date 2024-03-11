@@ -23,6 +23,7 @@ const {
   WEBAPP,
   DAY,
   CLIENT_ADMIN,
+  HOLDING_ADMIN,
 } = require('../../src/helpers/constants');
 const {
   usersSeedList,
@@ -691,6 +692,21 @@ describe('USERS ROUTES - GET /users', () => {
       expect(res.statusCode).toBe(200);
       expect(res.result.data.users.length).toBe(1);
       expect(res.result.data.users.every(u => get(u, 'role.client.name') === COACH)).toBeTruthy();
+    });
+
+    it('should get all various roles from company, roles as a string', async () => {
+      const res = await app.inject({
+        method: 'GET',
+        url: `/users?company=${authCompany._id}&role=client_admin&role=holding_admin`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(res.statusCode).toBe(200);
+      expect(res.result.data.users.length).toBe(3);
+      expect(
+        res.result.data.users
+          .every(u => get(u, 'role.client.name') === CLIENT_ADMIN || get(u, 'role.holding.name') === HOLDING_ADMIN)
+      ).toBeTruthy();
     });
 
     it('should return a 404 if company does not exist', async () => {
