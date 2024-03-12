@@ -106,7 +106,7 @@ exports.cardValidationByTemplate = (template) => {
         labels: Joi.object().keys({
           1: Joi.string().max(SURVEY_LABEL_MAX_LENGTH).required(),
           5: Joi.string().max(SURVEY_LABEL_MAX_LENGTH).required(),
-        })
+        }),
       });
     case OPEN_QUESTION:
       return Joi.object().keys({

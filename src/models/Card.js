@@ -21,7 +21,7 @@ const {
   formatQuery,
   queryMiddlewareList,
   getDocMiddlewareList,
-  getDocListMiddlewareList
+  getDocListMiddlewareList,
 } = require('./preHooks/validate');
 const { cardValidationByTemplate } = require('./validations/cardValidation');
 
@@ -131,7 +131,6 @@ function formatLabel(doc, next) {
     // eslint-disable-next-line no-param-reassign
     doc.label = { left: doc.labels[1], right: doc.labels[5] };
   }
-  console.log(doc);
 
   return next();
 }

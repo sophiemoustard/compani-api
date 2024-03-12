@@ -16,7 +16,7 @@ const {
   SURVEY,
   SINGLE_CHOICE_QUESTION,
   OPEN_QUESTION,
-  QUESTION_ANSWER
+  QUESTION_ANSWER,
 } = require('../../../src/helpers/constants');
 const { authCompany, companyWithoutSubscription } = require('../../seed/authCompaniesSeed');
 
