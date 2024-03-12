@@ -32,3 +32,5 @@ exports.durationAscendingSort = (miscDurationA, miscDurationB) => {
 
   return companiDurationA.isLongerThan(companiDurationB) ? 1 : -1;
 };
+
+exports.formatSecondsToISODuration = sec => `PT${sec}S`;

@@ -87,3 +87,15 @@ describe('durationAscendingSort', () => {
     expect(result).toBe(0);
   });
 });
+
+describe('formatSecondsToISODuration', () => {
+  it('should return an ISO duration', () => {
+    const result = UtilsHelper.formatSecondsToISODuration(12);
+    expect(result).toBe('PT12S');
+  });
+
+  it('should return a null ISO duration', () => {
+    const result = UtilsHelper.formatSecondsToISODuration(0);
+    expect(result).toBe('PT0S');
+  });
+});

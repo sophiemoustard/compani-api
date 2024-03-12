@@ -24,6 +24,7 @@ describe('ACTIVITY HISTORIES ROUTES - POST /activityhistories', () => {
       { card: cardsList[5]._id, answerList: [new ObjectId()] },
     ],
     score: 1,
+    duration: 'PT23S',
   };
 
   beforeEach(populateDB);
@@ -52,6 +53,17 @@ describe('ACTIVITY HISTORIES ROUTES - POST /activityhistories', () => {
         method: 'POST',
         url: '/activityhistories',
         payload: omit(payload, 'questionnaireAnswersList'),
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(200);
+    });
+
+    it('should create activityHistory without duration', async () => {
+      const response = await app.inject({
+        method: 'POST',
+        url: '/activityhistories',
+        payload: omit(payload, 'duration'),
         headers: { 'x-access-token': authToken },
       });
 
