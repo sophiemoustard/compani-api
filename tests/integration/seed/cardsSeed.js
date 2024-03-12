@@ -60,7 +60,7 @@ const cardsList = [
       { _id: new ObjectId(), text: 'encore des trucs' },
     ],
   },
-  { _id: new ObjectId(), template: SURVEY, label: { right: 'right', left: 'left' }, question: 'question ?' },
+  { _id: new ObjectId(), template: SURVEY, labels: { 1: 'first', left: 'last' }, question: 'question ?' },
   { _id: new ObjectId(), template: OPEN_QUESTION },
   {
     _id: new ObjectId(),

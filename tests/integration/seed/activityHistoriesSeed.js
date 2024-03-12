@@ -8,7 +8,16 @@ const Card = require('../../../src/models/Card');
 const ActivityHistory = require('../../../src/models/ActivityHistory');
 const User = require('../../../src/models/User');
 const UserCompany = require('../../../src/models/UserCompany');
-const { STRICTLY_E_LEARNING, WEBAPP, INTER_B2C, PUBLISHED } = require('../../../src/helpers/constants');
+const {
+  STRICTLY_E_LEARNING,
+  WEBAPP,
+  INTER_B2C,
+  PUBLISHED,
+  SURVEY,
+  SINGLE_CHOICE_QUESTION,
+  QUESTION_ANSWER,
+  LESSON,
+} = require('../../../src/helpers/constants');
 const { deleteNonAuthenticationSeeds } = require('../helpers/db');
 const { vendorAdminRoleId } = require('../../seed/authRolesSeed');
 const { authCompany, companyWithoutSubscription } = require('../../seed/authCompaniesSeed');
@@ -44,11 +53,11 @@ const userCompaniesList = [
 ];
 
 const cardsList = [
-  { _id: new ObjectId(), template: 'survey', label: { right: 'right', left: 'left' }, question: 'question ?' },
-  { _id: new ObjectId(), template: 'survey', question: 'test2?' },
+  { _id: new ObjectId(), template: SURVEY, labels: { 1: 'first', 5: 'last' }, question: 'question ?' },
+  { _id: new ObjectId(), template: SURVEY, question: 'test2?' },
   {
     _id: new ObjectId(),
-    template: 'single_choice_question',
+    template: SINGLE_CHOICE_QUESTION,
     question: 'test3?',
     qcuGoodAnswer: 'test',
     qcAnswers: [{ _id: new ObjectId(), text: 'test2' }],
@@ -57,14 +66,14 @@ const cardsList = [
   { _id: new ObjectId(), template: 'open_question', question: 'test4?' },
   {
     _id: new ObjectId(),
-    template: 'question_answer',
+    template: QUESTION_ANSWER,
     question: 'test5?',
     isQuestionAnswerMultipleChoiced: true,
     qcAnswers: [{ _id: new ObjectId(), text: 'test2' }, { _id: new ObjectId(), text: 'test3' }],
   },
   {
     _id: new ObjectId(),
-    template: 'question_answer',
+    template: QUESTION_ANSWER,
     question: 'test6?',
     isQuestionAnswerMultipleChoiced: false,
     qcAnswers: [{ _id: new ObjectId(), text: 'test2' }, { _id: new ObjectId(), text: 'test3' }],
@@ -75,7 +84,7 @@ const activitiesList = [
   {
     _id: new ObjectId(),
     name: 'bouger',
-    type: 'lesson',
+    type: LESSON,
     cards: [cardsList[0]._id, cardsList[2]._id, cardsList[3]._id, cardsList[4]._id, cardsList[5]._id],
     status: PUBLISHED,
   },
