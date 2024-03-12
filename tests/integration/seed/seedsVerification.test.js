@@ -480,7 +480,7 @@ describe('SEEDS VERIFICATION', () => {
           },
           {
             name: SURVEY,
-            allowedKeys: ['question', 'label.right', 'label.left', 'isMandatory'],
+            allowedKeys: ['question', 'labels.5', 'labels.1', 'isMandatory'],
           },
           {
             name: TEXT_MEDIA,
@@ -539,9 +539,9 @@ describe('SEEDS VERIFICATION', () => {
           expect(someSubKeysAreWrong).toBeFalsy();
         });
 
-        it('should pass if every card with \'label\' field contains \'right\' and \'left\' keys', () => {
+        it('should pass if every card with \'labels\' field contains \'1\' and \'5\' keys', () => {
           const someSubKeysAreMissing = cardList
-            .some(card => has(card, 'label') && !(has(card, 'label.left') && has(card, 'label.right')));
+            .some(card => has(card, 'labels') && !(has(card, 'labels.1') && has(card, 'labels.5')));
 
           expect(someSubKeysAreMissing).toBeFalsy();
         });

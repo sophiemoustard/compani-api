@@ -182,8 +182,8 @@ describe('ACTIVITIES ROUTES - POST /activities/{_id}/card', () => {
       const newCardWithValidForm = await Card.countDocuments({
         _id: activityUpdated.cards.slice(-1)[0],
         template: 'survey',
-        'label.right': { $exists: true },
-        'label.left': { $exists: true },
+        'labels.1': { $exists: true },
+        'labels.5': { $exists: true },
       });
       expect(newCardWithValidForm).toEqual(1);
     });
