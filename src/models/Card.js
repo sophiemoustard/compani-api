@@ -17,7 +17,12 @@ const {
   UPLOAD_VIDEO,
   UPLOAD_AUDIO,
 } = require('../helpers/constants');
-const { formatQuery, queryMiddlewareList } = require('./preHooks/validate');
+const {
+  formatQuery,
+  queryMiddlewareList,
+  getDocMiddlewareList,
+  getDocListMiddlewareList
+} = require('./preHooks/validate');
 const { cardValidationByTemplate } = require('./validations/cardValidation');
 
 const CARD_TEMPLATES = [
@@ -121,9 +126,30 @@ function setIsValid() {
   return !validation.error;
 }
 
+function formatLabel(doc, next) {
+  if (doc && doc.labels) {
+    // eslint-disable-next-line no-param-reassign
+    doc.label = { left: doc.labels[1], right: doc.labels[5] };
+  }
+  console.log(doc);
+
+  return next();
+}
+
+function formatLabelList(docs, next) {
+  for (const doc of docs) {
+    formatLabel(doc, next);
+  }
+
+  return next();
+}
+
 CardSchema.pre('save', save);
 CardSchema.virtual('isValid').get(setIsValid);
 queryMiddlewareList.map(middleware => CardSchema.pre(middleware, formatQuery));
+
+getDocMiddlewareList.map(middleware => CardSchema.post(middleware, formatLabel));
+getDocListMiddlewareList.map(middleware => CardSchema.post(middleware, formatLabelList));
 
 CardSchema.plugin(mongooseLeanVirtuals);
 
