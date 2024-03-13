@@ -155,7 +155,7 @@ describe('COMPANIES ROUTES - PUT /companies/:id', () => {
       expect(response.statusCode).toBe(404);
     });
 
-    it('should return 404 if billingRepresentative is from an other company and another holding', async () => {
+    it('should return 404 if billingRepresentative is neither from company nor holding', async () => {
       const payload = { name: 'Alenvi Alenvi', billingRepresentative: usersList[1]._id };
       const response = await app.inject({
         method: 'PUT',
@@ -222,7 +222,7 @@ describe('COMPANIES ROUTES - PUT /companies/:id', () => {
       expect(response.statusCode).toBe(403);
     });
 
-    it('should return 404 if billingRepresentative is from an other company and another holding', async () => {
+    it('should return 404 if billingRepresentative is neither from client_admin company nor holding', async () => {
       const payload = { name: 'Alenvi Alenvi', billingRepresentative: usersList[1]._id };
       const response = await app.inject({
         method: 'PUT',

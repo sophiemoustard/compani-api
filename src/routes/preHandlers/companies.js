@@ -48,15 +48,15 @@ exports.authorizeCompanyUpdate = async (req) => {
 
     if (!billingRepresentative) throw Boom.notFound();
 
-    const isClientAdminInGoodCompany = get(billingRepresentative, 'role.client.name') === CLIENT_ADMIN &&
+    const isClientAdminOfUpdatedCompany = get(billingRepresentative, 'role.client.name') === CLIENT_ADMIN &&
       UtilsHelper.areObjectIdsEquals(billingRepresentative.company, updatedCompanyId);
 
-    if (!isClientAdminInGoodCompany) {
+    if (!isClientAdminOfUpdatedCompany) {
       const companyHoldingExists = await CompanyHolding
         .countDocuments({ company: updatedCompanyId, holding: billingRepresentative.holding });
-      const isHoldingAdminInGoodHolding = get(billingRepresentative, 'role.holding.name') === HOLDING_ADMIN &&
+      const isHoldingAdminOfUpdatedCompanyHolding = get(billingRepresentative, 'role.holding.name') === HOLDING_ADMIN &&
         companyHoldingExists;
-      if (!isHoldingAdminInGoodHolding) throw Boom.notFound();
+      if (!isHoldingAdminOfUpdatedCompanyHolding) throw Boom.notFound();
     }
   }
 
