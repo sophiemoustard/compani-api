@@ -90,8 +90,9 @@ const isSlotInInterval = (slot, startDate, endDate) => CompaniDate(slot.startDat
 // };
 
 const getBillsInfos = (course) => {
+  const company = get(course, 'companies.0') && course.companies[0]._id;
   const validatedBillsWithoutCreditNote = course.bills.filter(bill => !bill.courseCreditNote && bill.billedAt &&
-    UtilsHelper.doesArrayIncludeId(bill.companies, course.company[0]._id));
+    UtilsHelper.doesArrayIncludeId(bill.companies || [], company));
 
   const payerList =
     [...new Set(validatedBillsWithoutCreditNote.map(bill => get(bill, 'payer.name')))]
@@ -136,6 +137,7 @@ const formatCourseForExport = (course) => {
     Payeur: payerList || '',
     Structure: course.companies.map(c => c.name).join(', '),
     'Société mère': get(course, 'holding.name') || '',
+    Formateur: UtilsHelper.formatIdentity(get(course, 'trainer.identity') || '', 'FL'),
     Programme: get(course, 'subProgram.program.name') || '',
     'Sous-Programme': get(course, 'subProgram.name') || '',
     'Infos complémentaires': course.misc,
@@ -145,6 +147,7 @@ const formatCourseForExport = (course) => {
     'Nombre de créneaux': get(course, 'slots.length'),
     'Nombre de créneaux à planifier': get(course, 'slotsToPlan.length'),
     'Durée Totale': UtilsHelper.getTotalDurationForExport(course.slots),
+    Adresse: get(course.slots[0], 'address.fullAddress'),
     'Début de formation': getStartOfCourse(slotsGroupedByDate),
     'Fin de formation': getEndOfCourse(slotsGroupedByDate, course.slotsToPlan),
     'Nombre de factures': billsCountForExport,
@@ -152,19 +155,17 @@ const formatCourseForExport = (course) => {
     'Montant facturé': UtilsHelper.formatFloatForExport(netInclTaxes),
     'Montant réglé': UtilsHelper.formatFloatForExport(paid),
     Solde: UtilsHelper.formatFloatForExport(total),
+    'Date de création': CompaniDate(course.createdAt).format(DD_MM_YYYY),
   };
 };
 
 exports.exportCourseHistory = async (startDate, endDate, credentials) => {
   const courses = await CourseRepository.findCoursesForExport(startDate, endDate, credentials);
 
-  const filteredCourses = courses
-    .filter(course => !course.slots.length || course.slots.some(slot => isSlotInInterval(slot, startDate, endDate)));
-
-  if (!filteredCourses.length) return [[NO_DATA]];
+  if (!courses.length) return [[NO_DATA]];
 
   const rows = [];
-  for (const course of filteredCourses) {
+  for (const course of courses) {
     if (course.type === INTRA) rows.push(formatCourseForExport(course));
     else {
       const traineesCompanyList = await CourseHistoriesHelper.getCompanyAtCourseRegistrationList(
