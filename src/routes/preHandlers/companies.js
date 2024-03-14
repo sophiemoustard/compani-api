@@ -1,6 +1,7 @@
 const Boom = require('@hapi/boom');
 const get = require('lodash/get');
 const Company = require('../../models/Company');
+const CompanyHolding = require('../../models/CompanyHolding');
 const Holding = require('../../models/Holding');
 const translate = require('../../helpers/translate');
 const UtilsHelper = require('../../helpers/utils');
@@ -42,12 +43,21 @@ exports.authorizeCompanyUpdate = async (req) => {
     const billingRepresentative = await User
       .findOne({ _id: payload.billingRepresentative }, { role: 1 })
       .populate({ path: 'company' })
+      .populate({ path: 'holding' })
       .lean({ autopopulate: true });
 
-    const billingRepresentativeExistsAndIsClientAdmin = billingRepresentative &&
-      UtilsHelper.areObjectIdsEquals(billingRepresentative.company, updatedCompanyId) &&
-      get(billingRepresentative, 'role.client.name') === CLIENT_ADMIN;
-    if (!billingRepresentativeExistsAndIsClientAdmin) throw Boom.notFound();
+    if (!billingRepresentative) throw Boom.notFound();
+
+    const isClientAdminOfUpdatedCompany = get(billingRepresentative, 'role.client.name') === CLIENT_ADMIN &&
+      UtilsHelper.areObjectIdsEquals(billingRepresentative.company, updatedCompanyId);
+
+    if (!isClientAdminOfUpdatedCompany) {
+      const companyHoldingExists = await CompanyHolding
+        .countDocuments({ company: updatedCompanyId, holding: billingRepresentative.holding });
+      const isHoldingAdminOfUpdatedCompanyHolding = get(billingRepresentative, 'role.holding.name') === HOLDING_ADMIN &&
+        companyHoldingExists;
+      if (!isHoldingAdminOfUpdatedCompanyHolding) throw Boom.notFound();
+    }
   }
 
   if (payload.salesRepresentative) {
