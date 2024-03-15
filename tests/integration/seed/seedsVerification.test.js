@@ -516,6 +516,7 @@ describe('SEEDS VERIFICATION', () => {
           it(`should pass if every field in '${template.name}' card is allowed`, () => {
             const someKeysAreNotAllowed = cardList
               .filter(card => card.template === template.name)
+              // [temporary] omit can be removed when postHook addLabelForAppCompatibility is removed.
               .some(card => UtilsHelper.getKeysOf2DepthObject(omit(card, ['label']))
                 .filter(key => !['_id', 'template'].includes(key))
                 .some(key => !template.allowedKeys.includes(key)));

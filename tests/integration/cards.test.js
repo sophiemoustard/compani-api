@@ -235,7 +235,7 @@ describe('CARDS ROUTES - PUT /cards/{_id}', () => {
       const requests = [
         { msg: 'First label is too long', payload: { labels: { 1: 'Je suis un très long message' } }, code: 400 },
         { msg: 'Last label is too long', payload: { labels: { 5: 'Je suis un très long message' } }, code: 400 },
-        { msg: 'Unset first  label', payload: { labels: { 1: '' } }, code: 200 },
+        { msg: 'Unset first label', payload: { labels: { 1: '' } }, code: 200 },
         { msg: 'Unset last label', payload: { labels: { 5: '' } }, code: 200 },
       ];
 
