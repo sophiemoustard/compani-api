@@ -62,7 +62,7 @@ exports.authorizeCourseBillGet = async (req) => {
 
   if (!isAdminVendor) {
     if (action !== BALANCE) throw Boom.badRequest();
-    if (!UtilsHelper.areObjectIdsEquals(company, get(credentials, 'company._id'))) throw Boom.forbidden();
+    if (!UtilsHelper.hasUserAccessToCompany(credentials, company)) throw Boom.forbidden();
   }
 
   if (course) {
