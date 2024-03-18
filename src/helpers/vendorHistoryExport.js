@@ -28,6 +28,8 @@ const {
   // INTRA_HOLDING,
   COURSE,
   TRAINEE,
+  INTER_B2B,
+  INTRA_HOLDING,
 } = require('./constants');
 const { CompaniDate } = require('./dates/companiDates');
 const DatesUtilsHelper = require('./dates/utils');
@@ -92,7 +94,7 @@ const isSlotInInterval = (slot, startDate, endDate) => CompaniDate(slot.startDat
 const getBillsInfos = (course) => {
   const company = get(course, 'companies.0') && course.companies[0]._id;
   const validatedBillsWithoutCreditNote = course.bills.filter(bill => !bill.courseCreditNote && bill.billedAt &&
-    UtilsHelper.doesArrayIncludeId(bill.companies || [], company));
+    (course.type === INTRA_HOLDING || UtilsHelper.doesArrayIncludeId(bill.companies || [], company)));
 
   const payerList =
     [...new Set(validatedBillsWithoutCreditNote.map(bill => get(bill, 'payer.name')))]
@@ -166,7 +168,7 @@ exports.exportCourseHistory = async (startDate, endDate, credentials) => {
 
   const rows = [];
   for (const course of courses) {
-    if (course.type === INTRA) rows.push(formatCourseForExport(course));
+    if (course.type !== INTER_B2B) rows.push(formatCourseForExport(course));
     else {
       const traineesCompanyList = await CourseHistoriesHelper.getCompanyAtCourseRegistrationList(
         { key: COURSE, value: course._id },
