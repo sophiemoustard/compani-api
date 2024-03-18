@@ -1054,7 +1054,12 @@ const programIdList = [new ObjectId(), new ObjectId()];
 const cardList = [
   { _id: new ObjectId(), template: TRANSITION, title: 'test' },
   { _id: new ObjectId(), template: OPEN_QUESTION, question: 'Où est Charlie ?' },
-  { _id: new ObjectId(), template: SURVEY, question: 'Comment gagner 100 euros par heure sans travailler ?' },
+  {
+    _id: new ObjectId(),
+    template: SURVEY,
+    question: 'Comment gagner 100 euros par heure sans travailler ?',
+    labels: { 1: 'premier niveau', 5: 'dernier niveau' },
+  },
   {
     _id: new ObjectId(),
     template: QUESTION_ANSWER,

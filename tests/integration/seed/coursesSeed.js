@@ -58,6 +58,8 @@ const {
   INTRA_HOLDING,
   GROUP,
   TRAINEE,
+  TITLE_TEXT,
+  SURVEY,
 } = require('../../../src/helpers/constants');
 const { auxiliaryRoleId, trainerRoleId, coachRoleId, clientAdminRoleId } = require('../../seed/authRolesSeed');
 const { CompaniDate } = require('../../../src/helpers/dates/companiDates');
@@ -267,9 +269,9 @@ const userCompanies = [
 ];
 
 const cardsList = [
-  { _id: new ObjectId(), template: 'title_text', title: 'title', text: 'text' },
-  { _id: new ObjectId(), template: 'survey', label: { right: 'right', left: 'left' }, question: 'question ?' },
-  { _id: new ObjectId(), template: 'survey', label: { right: 'right', left: 'left' }, question: 'question ?' },
+  { _id: new ObjectId(), template: TITLE_TEXT, title: 'title', text: 'text' },
+  { _id: new ObjectId(), template: SURVEY, labels: { 1: 'first', 5: 'last' }, question: 'question ?' },
+  { _id: new ObjectId(), template: SURVEY, labels: { 1: 'first', 5: 'last' }, question: 'question ?' },
 ];
 
 const activitiesList = [

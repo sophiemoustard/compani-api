@@ -1,5 +1,9 @@
 const { expect } = require('expect');
-const { groupBy, get, has, compact } = require('lodash');
+const groupBy = require('lodash/groupBy');
+const get = require('lodash/get');
+const has = require('lodash/has');
+const compact = require('lodash/compact');
+const omit = require('lodash/omit');
 const Activity = require('../../../src/models/Activity');
 const ActivityHistory = require('../../../src/models/ActivityHistory');
 const Attendance = require('../../../src/models/Attendance');
@@ -480,7 +484,7 @@ describe('SEEDS VERIFICATION', () => {
           },
           {
             name: SURVEY,
-            allowedKeys: ['question', 'label.right', 'label.left', 'isMandatory'],
+            allowedKeys: ['question', 'labels.5', 'labels.1', 'isMandatory'],
           },
           {
             name: TEXT_MEDIA,
@@ -512,7 +516,8 @@ describe('SEEDS VERIFICATION', () => {
           it(`should pass if every field in '${template.name}' card is allowed`, () => {
             const someKeysAreNotAllowed = cardList
               .filter(card => card.template === template.name)
-              .some(card => UtilsHelper.getKeysOf2DepthObject(card)
+              // [temporary] omit can be removed when postHook addLabelForAppCompatibility is removed.
+              .some(card => UtilsHelper.getKeysOf2DepthObject(omit(card, ['label']))
                 .filter(key => !['_id', 'template'].includes(key))
                 .some(key => !template.allowedKeys.includes(key)));
 
@@ -539,9 +544,9 @@ describe('SEEDS VERIFICATION', () => {
           expect(someSubKeysAreWrong).toBeFalsy();
         });
 
-        it('should pass if every card with \'label\' field contains \'right\' and \'left\' keys', () => {
+        it('should pass if every card with \'labels\' field contains \'1\' and \'5\' keys', () => {
           const someSubKeysAreMissing = cardList
-            .some(card => has(card, 'label') && !(has(card, 'label.left') && has(card, 'label.right')));
+            .some(card => has(card, 'labels') && !(has(card, 'labels.1') && has(card, 'labels.5')));
 
           expect(someSubKeysAreMissing).toBeFalsy();
         });

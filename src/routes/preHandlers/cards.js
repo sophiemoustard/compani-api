@@ -55,11 +55,17 @@ const checkFillTheGap = (payload) => {
 };
 
 exports.authorizeCardUpdate = async (req) => {
-  const card = await Card.findOne({ _id: req.params._id }).lean();
+  const { payload, params } = req;
+  const card = await Card.findOne({ _id: params._id }).lean();
+
   if (!card) throw Boom.notFound();
-  if (card.template !== FILL_THE_GAPS && has(req, 'payload.canSwitchAnswers')) throw Boom.forbidden();
+
+  if (card.template !== FILL_THE_GAPS && has(payload, 'canSwitchAnswers')) throw Boom.forbidden();
+
   if (![OPEN_QUESTION, SURVEY, QUESTION_ANSWER].includes(card.template) &&
-    has(req, 'payload.isMandatory')) throw Boom.forbidden();
+    has(payload, 'isMandatory')) throw Boom.forbidden();
+
+  if (card.template !== SURVEY && has(payload, 'labels')) throw Boom.forbidden();
 
   switch (card.template) {
     case FILL_THE_GAPS:

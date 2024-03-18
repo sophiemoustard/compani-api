@@ -17,7 +17,12 @@ const {
   UPLOAD_VIDEO,
   UPLOAD_AUDIO,
 } = require('../helpers/constants');
-const { formatQuery, queryMiddlewareList } = require('./preHooks/validate');
+const {
+  formatQuery,
+  queryMiddlewareList,
+  getDocMiddlewareList,
+  getDocListMiddlewareList,
+} = require('./preHooks/validate');
 const { cardValidationByTemplate } = require('./validations/cardValidation');
 
 const CARD_TEMPLATES = [
@@ -66,9 +71,9 @@ const CardSchema = mongoose.Schema({
     type: [mongoose.Schema({ text: { type: String } }, { id: false })],
     default: undefined,
   },
-  label: mongoose.Schema({
-    right: { type: String },
-    left: { type: String },
+  labels: mongoose.Schema({
+    1: { type: String },
+    5: { type: String },
   }, { default: undefined, _id: false, id: false }),
 }, {
   timestamps: true,
@@ -98,7 +103,7 @@ function save(next) {
         if (!this.qcAnswers) this.qcAnswers = [{ text: '', correct: false }, { text: '', correct: false }];
         break;
       case SURVEY:
-        if (!this.label) this.label = { right: '', left: '' };
+        if (!this.labels) this.labels = { 1: '', 5: '' };
         if (!this.isMandatory) this.isMandatory = false;
         break;
       case TEXT_MEDIA:
@@ -121,9 +126,31 @@ function setIsValid() {
   return !validation.error;
 }
 
+// [temporary] This function can be removed when mobile versions prior to 2.24.0 have been deprecated.
+function addLabelForAppCompatibility(doc, next) {
+  if (doc && doc.labels) {
+    // eslint-disable-next-line no-param-reassign
+    doc.label = { left: doc.labels[1], right: doc.labels[5] };
+  }
+
+  return next();
+}
+
+// [temporary] This function can be removed when mobile versions prior to 2.24.0 have been deprecated.
+function addLabelForAppCompatibilityList(docs, next) {
+  for (const doc of docs) {
+    addLabelForAppCompatibility(doc, next);
+  }
+
+  return next();
+}
+
 CardSchema.pre('save', save);
 CardSchema.virtual('isValid').get(setIsValid);
 queryMiddlewareList.map(middleware => CardSchema.pre(middleware, formatQuery));
+
+getDocMiddlewareList.map(middleware => CardSchema.post(middleware, addLabelForAppCompatibility));
+getDocListMiddlewareList.map(middleware => CardSchema.post(middleware, addLabelForAppCompatibilityList));
 
 CardSchema.plugin(mongooseLeanVirtuals);
 
