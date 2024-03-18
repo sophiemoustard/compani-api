@@ -441,6 +441,7 @@ module.exports = {
   // QUESTIONNAIRE_TYPES
   EXPECTATIONS: 'expectations',
   END_OF_COURSE: 'end_of_course',
+  SELF_POSITIONNING: 'self_positionning',
   // tests end2end
   PLANNING: 'planning',
   AUTHENTICATION: 'authentication',

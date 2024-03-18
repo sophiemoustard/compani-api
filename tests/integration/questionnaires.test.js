@@ -127,6 +127,16 @@ describe('QUESTIONNAIRES ROUTES - GET /questionnaires', () => {
       expect(response.statusCode).toBe(200);
       expect(response.result.data.questionnaires.length).toEqual(2);
     });
+
+    it('should return 404 if program does\'nt exist', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/questionnaires?program=${new ObjectId()}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(404);
+    });
   });
 
   describe('Other roles', () => {

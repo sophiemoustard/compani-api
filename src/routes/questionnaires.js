@@ -21,6 +21,7 @@ const {
   authorizeUserQuestionnairesGet,
   authorizeGetFollowUp,
   authorizeQuestionnaireQRCodeGet,
+  authorizeGetList,
 } = require('./preHandlers/questionnaires');
 const {
   PUBLISHED,
@@ -51,9 +52,13 @@ exports.plugin = {
       path: '/',
       options: {
         validate: {
-          query: Joi.object({ status: Joi.string().valid(PUBLISHED) }),
+          query: Joi.object({
+            status: Joi.string().valid(PUBLISHED),
+            program: Joi.objectId(),
+          }),
         },
         auth: { scope: ['questionnaires:read'] },
+        pre: [{ method: authorizeGetList }],
       },
       handler: list,
     });

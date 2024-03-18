@@ -1,16 +1,17 @@
 const mongoose = require('mongoose');
 const mongooseLeanVirtuals = require('mongoose-lean-virtuals');
-const { DRAFT, PUBLISHED, EXPECTATIONS, END_OF_COURSE } = require('../helpers/constants');
+const { DRAFT, PUBLISHED, EXPECTATIONS, END_OF_COURSE, SELF_POSITIONNING } = require('../helpers/constants');
 const { formatQuery, queryMiddlewareList } = require('./preHooks/validate');
 
 const STATUS_TYPES = [DRAFT, PUBLISHED];
-const QUESTIONNAIRE_TYPES = [EXPECTATIONS, END_OF_COURSE];
+const QUESTIONNAIRE_TYPES = [EXPECTATIONS, END_OF_COURSE, SELF_POSITIONNING];
 
 const QuestionnaireSchema = mongoose.Schema({
   name: { type: String, required: true },
   status: { type: String, default: DRAFT, enum: STATUS_TYPES },
   type: { type: String, required: true, enum: QUESTIONNAIRE_TYPES },
   cards: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Card' }],
+  program: { type: mongoose.Schema.Types.ObjectId, ref: 'Program' },
 }, { timestamps: true, id: false });
 
 QuestionnaireSchema.virtual('histories', {

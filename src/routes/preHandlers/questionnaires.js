@@ -12,6 +12,7 @@ const translate = require('../../helpers/translate');
 const Questionnaire = require('../../models/Questionnaire');
 const Card = require('../../models/Card');
 const Course = require('../../models/Course');
+const Program = require('../../models/Program');
 
 const { language } = translate;
 
@@ -99,6 +100,16 @@ exports.authorizeQuestionnaireQRCodeGet = async (req) => {
     if (!course) throw Boom.notFound();
 
     if (!loggedUserVendorRole) throw Boom.forbidden();
+  }
+
+  return null;
+};
+
+exports.authorizeGetList = async (req) => {
+  const programId = get(req, 'query.program');
+  if (programId) {
+    const program = await Program.countDocuments({ _id: programId });
+    if (!program) throw Boom.notFound();
   }
 
   return null;
