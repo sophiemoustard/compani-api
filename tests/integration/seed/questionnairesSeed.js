@@ -227,4 +227,5 @@ module.exports = {
   questionnairesList,
   cardsList,
   coursesList,
+  programsList,
 };

@@ -32,6 +32,7 @@ const {
   OPEN_QUESTION,
   SURVEY,
   QUESTION_ANSWER,
+  SELF_POSITIONNING,
 } = require('../helpers/constants');
 
 const QUESTIONNAIRE_CARD_TEMPLATES = [
@@ -111,6 +112,8 @@ exports.plugin = {
           payload: Joi.object({
             name: Joi.string().required(),
             type: Joi.string().required().valid(...QUESTIONNAIRE_TYPES),
+            program: Joi.objectId()
+              .when('type', { is: SELF_POSITIONNING, then: Joi.required(), otherwise: Joi.forbidden() }),
           }),
         },
         auth: { scope: ['questionnaires:edit'] },

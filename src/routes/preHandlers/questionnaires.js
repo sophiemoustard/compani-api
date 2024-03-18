@@ -17,9 +17,17 @@ const Program = require('../../models/Program');
 const { language } = translate;
 
 exports.authorizeQuestionnaireCreation = async (req) => {
-  const { type } = req.payload;
-  const draftQuestionnaires = await Questionnaire.countDocuments({ type, status: DRAFT });
+  const { type, program: programId } = req.payload;
+  let query = { type, status: DRAFT };
 
+  if (programId) {
+    const program = await Program.countDocuments({ _id: programId });
+    if (!program) throw Boom.notFound();
+
+    query = { ...query, program: programId };
+  }
+
+  const draftQuestionnaires = await Questionnaire.countDocuments(query);
   if (draftQuestionnaires) throw Boom.conflict(translate[language].draftQuestionnaireAlreadyExists);
 
   return null;
