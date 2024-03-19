@@ -102,11 +102,10 @@ exports.authorizeGetCompanies = async (req) => {
 
 exports.authorizeGetCompany = async (req) => {
   const { credentials } = req.auth;
+  const vendorRole = get(credentials, 'role.vendor.name');
 
-  if (!UtilsHelper.hasUserAccessToCompany(credentials, req.params._id)) {
-    const vendorRole = get(credentials, 'role.vendor.name');
-    if (![TRAINING_ORGANISATION_MANAGER, VENDOR_ADMIN].includes(vendorRole)) throw Boom.forbidden();
-  }
+  if ([TRAINING_ORGANISATION_MANAGER, VENDOR_ADMIN].includes(vendorRole)) return null;
+  if (!UtilsHelper.hasUserAccessToCompany(credentials, req.params._id)) throw Boom.forbidden();
 
   return null;
 };
