@@ -114,7 +114,7 @@ exports.authorizeQuestionnaireQRCodeGet = async (req) => {
 };
 
 exports.authorizeGetList = async (req) => {
-  const programId = get(req, 'query.program');
+  const { program: programId } = req.query;
   if (programId) {
     const program = await Program.countDocuments({ _id: programId });
     if (!program) throw Boom.notFound();

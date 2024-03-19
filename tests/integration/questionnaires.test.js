@@ -47,6 +47,19 @@ describe('QUESTIONNAIRES ROUTES - POST /questionnaires', () => {
       expect(questionnairesCount).toBe(questionnairesList.length + 1);
     });
 
+    it('should create self-positionning questionnaire', async () => {
+      const response = await app.inject({
+        method: 'POST',
+        url: '/questionnaires',
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload: { name: 'nouveau questionnaire', type: SELF_POSITIONNING, program: programsList[0]._id },
+      });
+
+      expect(response.statusCode).toBe(200);
+      const questionnairesCount = await Questionnaire.countDocuments();
+      expect(questionnairesCount).toBe(questionnairesList.length + 1);
+    });
+
     it('should return 400 if no name', async () => {
       const response = await app.inject({
         method: 'POST',
@@ -155,7 +168,7 @@ describe('QUESTIONNAIRES ROUTES - GET /questionnaires', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      expect(response.result.data.questionnaires.length).toEqual(2);
+      expect(response.result.data.questionnaires.length).toEqual(3);
     });
 
     it('should return 404 if program doesn\'t exist', async () => {
