@@ -307,7 +307,7 @@ describe('COMPANIES ROUTES - PUT /companies/:id', () => {
     });
 
     it('should update company from holding', async () => {
-      const payload = { name: 'Alenvi Alenvi', rhConfig: { phoneFeeAmount: 70 }, apeCode: '8110Z' };
+      const payload = { rhConfig: { phoneFeeAmount: 70 }, apeCode: '8110Z' };
       const response = await app.inject({
         method: 'PUT',
         url: `/companies/${companyWithoutSubscription._id}`,
