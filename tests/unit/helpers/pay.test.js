@@ -32,68 +32,6 @@ describe('formatSurchargeDetail', () => {
   });
 });
 
-describe('formatPay', () => {
-  const companyId = new ObjectId();
-  let formatSurchargeDetail;
-  beforeEach(() => {
-    formatSurchargeDetail = sinon.stub(PayHelper, 'formatSurchargeDetail');
-  });
-  afterEach(() => {
-    formatSurchargeDetail.restore();
-  });
-
-  it('should return only company if empty object given', () => {
-    const result = PayHelper.formatPay({}, companyId);
-    expect(result).toEqual({ company: companyId });
-    sinon.assert.notCalled(formatSurchargeDetail);
-  });
-
-  it('should format pay with surchargedAndExemptDetails', () => {
-    const draftPay = { _id: 'toto', surchargedAndExemptDetails: { evenings: 3 } };
-    formatSurchargeDetail.returns({ test: 1 });
-
-    const result = PayHelper.formatPay(draftPay, companyId);
-    expect(result).toEqual({
-      company: companyId,
-      _id: 'toto',
-      surchargedAndExemptDetails: { test: 1 },
-    });
-    sinon.assert.calledWithExactly(formatSurchargeDetail, draftPay.surchargedAndExemptDetails);
-  });
-
-  it('should format pay with diff', () => {
-    const draftPay = { _id: 'toto', diff: { surchargedAndExemptDetails: { evenings: 3 } } };
-    formatSurchargeDetail.returns({ test: 1 });
-
-    const result = PayHelper.formatPay(draftPay, companyId);
-    expect(result).toEqual({
-      company: companyId,
-      _id: 'toto',
-      diff: { surchargedAndExemptDetails: { test: 1 } },
-    });
-    sinon.assert.calledWithExactly(formatSurchargeDetail, draftPay.diff.surchargedAndExemptDetails);
-  });
-
-  it('should format pay with both', () => {
-    const draftPay = {
-      _id: 'toto',
-      diff: { surchargedAndExemptDetails: { evenings: 3 } },
-      surchargedAndExemptDetails: { custom: 3 },
-    };
-    formatSurchargeDetail.returns({ test: 1 });
-
-    const result = PayHelper.formatPay(draftPay, companyId);
-    expect(result).toEqual({
-      company: companyId,
-      _id: 'toto',
-      diff: { surchargedAndExemptDetails: { test: 1 } },
-      surchargedAndExemptDetails: { test: 1 },
-    });
-    sinon.assert.calledWithExactly(formatSurchargeDetail, draftPay.surchargedAndExemptDetails);
-    sinon.assert.calledWithExactly(formatSurchargeDetail, draftPay.diff.surchargedAndExemptDetails);
-  });
-});
-
 describe('getContract', () => {
   const startDate = '2019-12-12';
   const endDate = '2019-12-25';

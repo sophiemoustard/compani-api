@@ -1,4 +1,3 @@
-const cloneDeep = require('lodash/cloneDeep');
 const get = require('lodash/get');
 const Boom = require('@hapi/boom');
 const moment = require('moment');
@@ -18,21 +17,6 @@ exports.formatSurchargeDetail = (detail) => {
   }
 
   return surchargeDetail;
-};
-
-exports.formatPay = (draftPay, companyId) => {
-  const payload = { ...cloneDeep(draftPay), company: companyId };
-  const keys = ['surchargedAndNotExemptDetails', 'surchargedAndExemptDetails'];
-  for (const key of keys) {
-    if (draftPay[key]) {
-      payload[key] = exports.formatSurchargeDetail(draftPay[key]);
-    }
-    if (draftPay.diff && draftPay.diff[key]) {
-      payload.diff[key] = exports.formatSurchargeDetail(draftPay.diff[key]);
-    }
-  }
-
-  return payload;
 };
 
 exports.getContract = (contracts, startDate, endDate) => contracts.find((cont) => {

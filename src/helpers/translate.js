@@ -184,7 +184,6 @@ module.exports = {
     paymentRemoved: 'Payment removed.',
     /* Event history */
     eventHistoriesFound: 'Event histories found.',
-    eventHistoryUpdated: 'Event history updated.',
     /* Pay documents */
     payDocumentCreated: 'Pay document created.',
     payDocumentsFound: 'Pay documents found.',
@@ -557,7 +556,6 @@ module.exports = {
     paymentRemoved: 'Règlement supprimé.',
     /* Event history */
     eventHistoriesFound: 'Historique des évènements trouvés.',
-    eventHistoryUpdated: 'Historique d\'évènement mis à jour.',
     /* Pay documents */
     payDocumentCreated: 'Document de paie créé.',
     payDocumentsFound: 'Documents de paie trouvés.',
