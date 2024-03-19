@@ -133,11 +133,14 @@ const formatCourseForExport = (course) => {
 
   const { isBilled, billsCountForExport, payerList, netInclTaxes, paid, total } = getBillsInfos(course);
 
+  const holding = get(course, 'holding.name') || get(course, 'companies.0.holding.name') || '';
+
   return {
     Identifiant: course._id,
     Type: course.type,
     Payeur: payerList || '',
     Structure: course.companies.map(c => c.name).join(', '),
+    Entité: holding || course.companies.map(c => c.name).join(', '),
     'Société mère': get(course, 'holding.name') || '',
     Formateur: UtilsHelper.formatIdentity(get(course, 'trainer.identity') || '', 'FL'),
     Programme: get(course, 'subProgram.program.name') || '',

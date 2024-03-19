@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 
+const { get } = require('lodash');
 const { MONTH, TWO_WEEKS, COMPANY, ASSOCIATION } = require('../helpers/constants');
 const { formatQuery, queryMiddlewareList } = require('./preHooks/validate');
 const addressSchemaDefinition = require('./schemaDefinitions/address');
@@ -64,6 +65,31 @@ const CompanySchema = mongoose.Schema({
 }, { timestamps: true });
 
 queryMiddlewareList.map(middleware => CompanySchema.pre(middleware, formatQuery));
+
+CompanySchema.virtual('holding', { ref: 'CompanyHolding', localField: '_id', foreignField: 'company' });
+
+function populateHolding(doc, next) {
+  if (!doc) next();
+
+  // eslint-disable-next-line no-param-reassign
+  doc.holding = get(doc, 'holding.length') ? doc.holding[0].holding : null;
+
+  return next();
+}
+
+function populateHoldings(docs, next) {
+  for (const doc of docs) {
+    if (doc && get(doc, 'holding.length')) {
+      doc.holding = doc.holding[0].holding;
+    }
+  }
+
+  return next();
+}
+
+CompanySchema.post('findOne', populateHolding);
+CompanySchema.post('findOneAndUpdate', populateHolding);
+CompanySchema.post('find', populateHoldings);
 
 module.exports = mongoose.model('Company', CompanySchema);
 module.exports.COMPANY_BILLING_PERIODS = COMPANY_BILLING_PERIODS;
