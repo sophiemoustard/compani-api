@@ -18,7 +18,7 @@ const rights = [
   { permission: 'bills:read', rolesConcerned: [CLIENT_ADMIN, COACH], subscription: ERP, description: 'Consulter les informations de facturation' },
   { permission: 'companies:create', rolesConcerned: [VENDOR_ADMIN, TRAINING_ORGANISATION_MANAGER], description: 'Créer une entreprise' },
   { permission: 'companies:edit', rolesConcerned: [VENDOR_ADMIN, TRAINING_ORGANISATION_MANAGER], description: 'Editer les informations de la compagnie' },
-  { permission: 'companies:read', rolesConcerned: [VENDOR_ADMIN, TRAINING_ORGANISATION_MANAGER], description: 'Consulter les données des organisations' },
+  { permission: 'companies:read', rolesConcerned: [VENDOR_ADMIN, TRAINING_ORGANISATION_MANAGER, CLIENT_ADMIN, HOLDING_ADMIN], description: 'Consulter les données des organisations' },
   { permission: 'companylinkrequests:edit', rolesConcerned: [CLIENT_ADMIN, COACH], description: 'Consulter les demandes de rattachement à la structure' },
   { permission: 'config:edit', rolesConcerned: [CLIENT_ADMIN], subscription: ERP, description: 'Editer les infos de configuration' },
   { permission: 'config:read', rolesConcerned: [CLIENT_ADMIN, COACH, AUXILIARY, PLANNING_REFERENT], subscription: ERP, description: 'Consulter les infos de configuration' },

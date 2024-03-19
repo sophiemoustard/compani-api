@@ -196,7 +196,7 @@ describe('COURSE BILL ROUTES - GET /coursebills', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      expect(response.result.data.courseBills.length).toEqual(1);
+      expect(response.result.data.courseBills.length).toEqual(2);
     });
 
     it('should return 403 if company not in holding', async () => {
@@ -302,6 +302,42 @@ describe('COURSE BILL ROUTES - GET /coursebills/{_id}/pdfs', () => {
       const response = await app.inject({
         method: 'GET',
         url: `/coursebills/${courseBillsList[7]._id}/pdfs`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(404);
+    });
+  });
+
+  describe('HOLDING_ADMIN', () => {
+    beforeEach(async () => {
+      authToken = await getTokenByCredentials(holdingAdminFromOtherCompany.local);
+    });
+
+    it('should download holding course bill for intra course', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/coursebills/${courseBillsList[10]._id}/pdfs`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(200);
+    });
+
+    it('should download course bill for intra course (as payer)', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/coursebills/${courseBillsList[11]._id}/pdfs`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(200);
+    });
+
+    it('should return 404 if bill has wrong company', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/coursebills/${courseBillsList[8]._id}/pdfs`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -743,7 +779,7 @@ describe('COURSE BILL ROUTES - PUT /coursebills/{_id}', () => {
     });
 
     it('should invoice course bill', async () => {
-      const isBilledBefore = await CourseBill.countDocuments({ number: 'FACT-00008' });
+      const isBilledBefore = await CourseBill.countDocuments({ number: 'FACT-00009' });
       expect(isBilledBefore).toBeFalsy();
 
       const response = await app.inject({
@@ -755,7 +791,7 @@ describe('COURSE BILL ROUTES - PUT /coursebills/{_id}', () => {
 
       expect(response.statusCode).toBe(200);
       const isBilledAfter = await CourseBill
-        .countDocuments({ _id: courseBillsList[0]._id, billedAt: '2022-03-08T00:00:00.000Z', number: 'FACT-00008' });
+        .countDocuments({ _id: courseBillsList[0]._id, billedAt: '2022-03-08T00:00:00.000Z', number: 'FACT-00009' });
       expect(isBilledAfter).toBeTruthy();
     });
 

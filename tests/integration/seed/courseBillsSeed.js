@@ -174,7 +174,7 @@ const coursesList = [
     operationsRepresentative: vendorAdmin._id,
     contact: vendorAdmin._id,
     trainees: [],
-    expectedBillsCount: 1,
+    expectedBillsCount: 2,
     companies: [companyWithoutAddress._id],
   },
   { // 7 - linked to bill 6
@@ -253,7 +253,7 @@ const billingItemList = [
   { _id: new ObjectId(), name: 'petit déjeuner' },
 ];
 
-const courseBillNumber = { _id: new ObjectId(), seq: 7 };
+const courseBillNumber = { _id: new ObjectId(), seq: 8 };
 
 const courseBillsList = [
   { // 0
@@ -366,7 +366,7 @@ const courseBillsList = [
     billedAt: '2022-04-07T00:00:00.000Z',
     number: 'FACT-00006',
   },
-  { // 9
+  { // 10
     _id: new ObjectId(),
     course: coursesList[11]._id,
     companies: [companyWithoutSubscription._id],
@@ -377,6 +377,18 @@ const courseBillsList = [
     ],
     billedAt: '2022-04-07T00:00:00.000Z',
     number: 'FACT-00007',
+  },
+  { // 11 - payer is company without subscription
+    _id: new ObjectId(),
+    course: coursesList[6]._id,
+    companies: [companyWithoutAddress._id],
+    payer: { company: companyWithoutSubscription._id },
+    mainFee: { price: 200, count: 2, description: 'yoyo', countUnit: GROUP },
+    billedAt: '2022-04-07T00:00:00.000Z',
+    number: 'FACT-00008',
+    billingPurchaseList: [
+      { _id: new ObjectId(), billingItem: billingItemList[0]._id, price: 9, count: 1 },
+    ],
   },
 ];
 

@@ -172,16 +172,15 @@ exports.authorizeBillPdfGet = async (req) => {
   const { credentials } = req.auth;
   const userVendorRole = get(credentials, 'role.vendor.name');
   const isAdminVendor = [TRAINING_ORGANISATION_MANAGER, VENDOR_ADMIN].includes(userVendorRole);
-
   const bill = await CourseBill
     .findOne({ _id: req.params._id, billedAt: { $exists: true, $type: 'date' } }, { companies: 1, payer: 1 }).lean();
   if (!bill) throw Boom.notFound();
 
   if (!isAdminVendor) {
-    const loggedUserCompanyId = get(credentials, 'company._id');
-    const hasSameCompany = UtilsHelper.doesArrayIncludeId(bill.companies, loggedUserCompanyId);
-    const isPayer = UtilsHelper.areObjectIdsEquals(bill.payer, loggedUserCompanyId);
-    if (!hasSameCompany && !isPayer) throw Boom.notFound();
+    const hasAccessToCompanies = !!bill.companies
+      .find(company => UtilsHelper.hasUserAccessToCompany(credentials, company));
+    const hasAccessToPayer = !!UtilsHelper.hasUserAccessToCompany(credentials, bill.payer);
+    if (!hasAccessToCompanies && !hasAccessToPayer) throw Boom.notFound();
   }
 
   return [...new Set([...bill.companies.map(c => c.toHexString()), bill.payer.toHexString()])];

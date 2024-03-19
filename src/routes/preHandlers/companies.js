@@ -26,13 +26,11 @@ exports.doesCompanyExist = async (req) => {
 exports.authorizeCompanyUpdate = async (req) => {
   const { params, payload } = req;
   const updatedCompanyId = params._id;
-  const loggedCompanyId = get(req, 'auth.credentials.company._id');
+  const { credentials } = req.auth;
   const vendorRole = get(req, 'auth.credentials.role.vendor.name');
 
   const isVendorAdmin = !!vendorRole && [TRAINING_ORGANISATION_MANAGER, VENDOR_ADMIN].includes(vendorRole);
-  if (!isVendorAdmin && (!UtilsHelper.areObjectIdsEquals(updatedCompanyId, loggedCompanyId))) {
-    throw Boom.forbidden();
-  }
+  if (!isVendorAdmin && (!UtilsHelper.hasUserAccessToCompany(credentials, updatedCompanyId))) throw Boom.forbidden();
 
   const nameAlreadyExists = await Company
     .countDocuments({ _id: { $ne: updatedCompanyId }, name: payload.name }, { limit: 1 })
@@ -97,6 +95,17 @@ exports.authorizeGetCompanies = async (req) => {
     if (!(holdingRole === HOLDING_ADMIN && UtilsHelper.areObjectIdsEquals(holding, userHolding))) {
       throw Boom.forbidden();
     }
+  }
+
+  return null;
+};
+
+exports.authorizeGetCompany = async (req) => {
+  const { credentials } = req.auth;
+
+  if (!UtilsHelper.hasUserAccessToCompany(credentials, req.params._id)) {
+    const vendorRole = get(credentials, 'role.vendor.name');
+    if (![TRAINING_ORGANISATION_MANAGER, VENDOR_ADMIN].includes(vendorRole)) throw Boom.forbidden();
   }
 
   return null;

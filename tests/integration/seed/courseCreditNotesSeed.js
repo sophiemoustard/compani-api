@@ -9,7 +9,7 @@ const Step = require('../../../src/models/Step');
 const SubProgram = require('../../../src/models/SubProgram');
 const VendorCompany = require('../../../src/models/VendorCompany');
 const Program = require('../../../src/models/Program');
-const { authCompany, otherCompany } = require('../../seed/authCompaniesSeed');
+const { authCompany, otherCompany, companyWithoutSubscription } = require('../../seed/authCompaniesSeed');
 const { trainer, vendorAdmin, auxiliary } = require('../../seed/authUsersSeed');
 const { deleteNonAuthenticationSeeds } = require('../helpers/db');
 
@@ -43,7 +43,7 @@ const coursesList = [
     operationsRepresentative: vendorAdmin._id,
     contact: vendorAdmin._id,
     trainees: [auxiliary._id],
-    companies: [authCompany._id, otherCompany._id],
+    companies: [authCompany._id, companyWithoutSubscription._id],
   },
   { // 1 - linked to bill 0 1
     _id: new ObjectId(),
@@ -89,7 +89,7 @@ const courseBillsList = [
   { // 3 bill cancelled by credit note (otherCompany but autCompany as payer)
     _id: new ObjectId(),
     course: coursesList[0]._id,
-    companies: [otherCompany._id],
+    companies: [companyWithoutSubscription._id],
     payer: { company: authCompany._id },
     mainFee: { price: 73, count: 1, countUnit: TRAINEE },
     billedAt: '2022-05-30T10:00:00.000Z',
@@ -98,15 +98,24 @@ const courseBillsList = [
   { // 4 bill cancelled by credit note (otherCompany)
     _id: new ObjectId(),
     course: coursesList[0]._id,
-    companies: [otherCompany._id],
+    companies: [companyWithoutSubscription._id],
     payer: { company: otherCompany._id },
     mainFee: { price: 73, count: 1, countUnit: TRAINEE },
     billedAt: '2022-05-30T10:00:00.000Z',
     number: 'FACT-00004',
   },
+  { // 5 bill cancelled by credit note
+    _id: new ObjectId(),
+    course: coursesList[0]._id,
+    companies: [authCompany._id],
+    payer: { company: companyWithoutSubscription._id },
+    mainFee: { price: 73, count: 1, countUnit: TRAINEE },
+    billedAt: '2022-05-30T10:00:00.000Z',
+    number: 'FACT-00005',
+  },
 ];
 
-const courseBillNumber = { _id: new ObjectId(), seq: 4 };
+const courseBillNumber = { _id: new ObjectId(), seq: 5 };
 
 const courseCreditNote = [
   {
@@ -123,7 +132,7 @@ const courseCreditNote = [
     courseBill: courseBillsList[3]._id,
     date: '2022-06-08T10:00:00.000Z',
     misc: 'wesh',
-    companies: [otherCompany._id],
+    companies: [companyWithoutSubscription._id],
   },
   {
     _id: new ObjectId(),
@@ -131,11 +140,19 @@ const courseCreditNote = [
     courseBill: courseBillsList[4]._id,
     date: '2022-06-08T10:00:00.000Z',
     misc: 'wesh',
-    companies: [otherCompany._id],
+    companies: [companyWithoutSubscription._id],
+  },
+  {
+    _id: new ObjectId(),
+    number: 'AV-00004',
+    courseBill: courseBillsList[5]._id,
+    date: '2022-06-08T10:00:00.000Z',
+    misc: 'wesh',
+    companies: [authCompany._id],
   },
 ];
 
-const courseCreditNoteNumber = { _id: new ObjectId(), seq: 3 };
+const courseCreditNoteNumber = { _id: new ObjectId(), seq: 4 };
 
 const populateDB = async () => {
   await deleteNonAuthenticationSeeds();

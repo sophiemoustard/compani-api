@@ -170,7 +170,7 @@ const formatDataForPdf = (bill, vendorCompany) => {
 
 exports.generateBillPdf = async (billId, companies, credentials) => {
   const isVendorUser = [TRAINING_ORGANISATION_MANAGER, VENDOR_ADMIN].includes(get(credentials, 'role.vendor.name'));
-  const requestingOwnInfos = UtilsHelper.doesArrayIncludeId(companies, get(credentials, 'company._id'));
+  const requestingOwnInfos = !!companies.find(company => UtilsHelper.hasUserAccessToCompany(credentials, company));
 
   const vendorCompany = await VendorCompaniesHelper.get();
 
