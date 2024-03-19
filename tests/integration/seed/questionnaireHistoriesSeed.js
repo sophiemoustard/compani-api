@@ -8,18 +8,27 @@ const Step = require('../../../src/models/Step');
 const SubProgram = require('../../../src/models/SubProgram');
 const { userList, trainerOrganisationManager, vendorAdmin } = require('../../seed/authUsersSeed');
 const { deleteNonAuthenticationSeeds } = require('../helpers/db');
-const { INTER_B2B, TRAINEE_ADDITION, COMPANY_ADDITION, PUBLISHED } = require('../../../src/helpers/constants');
+const {
+  INTER_B2B,
+  TRAINEE_ADDITION,
+  COMPANY_ADDITION,
+  PUBLISHED,
+  SURVEY,
+  SINGLE_CHOICE_QUESTION,
+  OPEN_QUESTION,
+  QUESTION_ANSWER,
+} = require('../../../src/helpers/constants');
 const { authCompany, companyWithoutSubscription } = require('../../seed/authCompaniesSeed');
 
 const questionnaireHistoriesUsersList = [userList[6]._id, userList[5]._id, userList[4]._id];
 
 const cardsList = [
-  { _id: new ObjectId(), template: 'survey', question: 'test?', label: { right: 'right', left: 'left' } },
-  { _id: new ObjectId(), template: 'survey', question: 'test2?' },
-  { _id: new ObjectId(), template: 'single_choice_question', question: 'test3?' },
-  { _id: new ObjectId(), template: 'open_question', question: 'test4?' },
-  { _id: new ObjectId(), template: 'question_answer', question: 'test5?', isQuestionAnswerMultipleChoiced: true },
-  { _id: new ObjectId(), template: 'question_answer', question: 'test6?', isQuestionAnswerMultipleChoiced: false },
+  { _id: new ObjectId(), template: SURVEY, question: 'test?', labels: { 1: 'first', 5: 'last' } },
+  { _id: new ObjectId(), template: SURVEY, question: 'test2?' },
+  { _id: new ObjectId(), template: SINGLE_CHOICE_QUESTION, question: 'test3?' },
+  { _id: new ObjectId(), template: OPEN_QUESTION, question: 'test4?' },
+  { _id: new ObjectId(), template: QUESTION_ANSWER, question: 'test5?', isQuestionAnswerMultipleChoiced: true },
+  { _id: new ObjectId(), template: QUESTION_ANSWER, question: 'test6?', isQuestionAnswerMultipleChoiced: false },
 ];
 
 const questionnairesList = [

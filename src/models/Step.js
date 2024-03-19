@@ -10,6 +10,7 @@ const {
   getDocListMiddlewareList,
 } = require('./preHooks/validate');
 const { CompaniDuration } = require('../helpers/dates/companiDurations');
+const { formatSecondsToISODuration } = require('../helpers/dates/utils');
 
 const STEP_TYPES = [E_LEARNING, ON_SITE, REMOTE];
 
@@ -48,7 +49,7 @@ function update(next) {
 function formatTheoreticalDuration(doc, next) {
   if (doc && doc.theoreticalDuration) {
     // eslint-disable-next-line no-param-reassign
-    doc.theoreticalDuration = `PT${doc.theoreticalDuration}S`;
+    doc.theoreticalDuration = formatSecondsToISODuration(doc.theoreticalDuration);
   }
 
   return next();

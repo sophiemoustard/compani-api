@@ -21,12 +21,26 @@ describe('addActivityHistory', () => {
     const activityId = new ObjectId();
     const userId = new ObjectId();
     const questionnaireAnswersList = [{ card: new ObjectId(), answerList: ['blabla'] }];
+    const payload = { user: userId, activity: activityId, questionnaireAnswersList, duration: 'PT36S' };
+
+    await ActivityHistoryHelper.addActivityHistory(payload);
+
+    sinon.assert.calledOnceWithExactly(
+      create,
+      { user: userId, activity: activityId, questionnaireAnswersList, duration: 36 }
+    );
+  });
+
+  it('should create an activityHistory without duration', async () => {
+    const activityId = new ObjectId();
+    const userId = new ObjectId();
+    const questionnaireAnswersList = [{ card: new ObjectId(), answerList: ['blabla'] }];
 
     await ActivityHistoryHelper.addActivityHistory({ user: userId, activity: activityId, questionnaireAnswersList });
 
     sinon.assert.calledOnceWithExactly(
       create,
-      { user: userId, activity: activityId, questionnaireAnswersList }
+      { user: userId, activity: activityId, questionnaireAnswersList, duration: 0 }
     );
   });
 });

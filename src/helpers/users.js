@@ -51,7 +51,13 @@ exports.formatQueryForUsersList = async (query) => {
     const roles = await Role.find({ name: { $in: roleNames } }, { _id: 1, interface: 1 }).lean();
     if (!roles.length) throw Boom.notFound(translate[language].roleNotFound);
 
-    formattedQuery[`role.${roles[0].interface}`] = { $in: roles.map(role => role._id) };
+    const rolesGroupByInterface = groupBy(roles, 'interface');
+    if (Object.keys(rolesGroupByInterface).length > 1) {
+      formattedQuery.$or = Object.keys(rolesGroupByInterface)
+        .map(int => ({ [`role.${int}`]: { $in: rolesGroupByInterface[int].map(role => role._id) } }));
+    } else {
+      formattedQuery[`role.${roles[0].interface}`] = { $in: roles.map(role => role._id) };
+    }
   }
 
   if (query.company) {
@@ -94,6 +100,7 @@ exports.getUsersList = async (query, credentials) => {
 
   return User.find(params, {}, { autopopulate: false })
     .populate({ path: 'role.client', select: '-__v -createdAt -updatedAt' })
+    .populate({ path: 'role.holding', select: '-__v -createdAt -updatedAt' })
     .populate({ path: 'company', populate: { path: 'company' }, select: '-__v -createdAt -updatedAt' })
     .populate({
       path: 'sector',

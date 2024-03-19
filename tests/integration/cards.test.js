@@ -83,7 +83,7 @@ describe('CARDS ROUTES - PUT /cards/{_id}', () => {
       },
       {
         template: 'survey',
-        payload: { question: 'Sur une échelle de 1 à 10 ?', label: { left: '1', right: '10' }, isMandatory: true },
+        payload: { question: 'Sur une échelle de 1 à 10 ?', labels: { 1: '1', 5: '10' }, isMandatory: true },
         id: surveyId,
       },
       {
@@ -233,14 +233,14 @@ describe('CARDS ROUTES - PUT /cards/{_id}', () => {
 
     describe('Survey', () => {
       const requests = [
-        { msg: 'Left label is too long', payload: { label: { left: 'Je suis un très long message' } }, code: 400 },
-        { msg: 'Right label is too long', payload: { label: { right: 'Je suis un très long message' } }, code: 400 },
-        { msg: 'Unset left label', payload: { label: { left: '' } }, code: 200 },
-        { msg: 'Unset right label', payload: { label: { right: '' } }, code: 200 },
+        { msg: 'First label is too long', payload: { labels: { 1: 'Je suis un très long message' } }, code: 400 },
+        { msg: 'Last label is too long', payload: { labels: { 5: 'Je suis un très long message' } }, code: 400 },
+        { msg: 'Unset first label', payload: { labels: { 1: '' } }, code: 200 },
+        { msg: 'Unset last label', payload: { labels: { 5: '' } }, code: 200 },
       ];
 
       requests.forEach((request) => {
-        it(`should return a ${request.code} if ${request.msg}`, async () => {
+        it(`should return ${request.code} if ${request.msg}`, async () => {
           const response = await app.inject({
             method: 'PUT',
             url: `/cards/${surveyId}`,
@@ -250,6 +250,17 @@ describe('CARDS ROUTES - PUT /cards/{_id}', () => {
 
           expect(response.statusCode).toBe(request.code);
         });
+      });
+
+      it('should return 403 if set labels on a card that isn\'t a survey', async () => {
+        const response = await app.inject({
+          method: 'PUT',
+          url: `/cards/${fillTheGapId}`,
+          payload: { labels: { 1: 'action interdite' } },
+          headers: { Cookie: `alenvi_token=${authToken}` },
+        });
+
+        expect(response.statusCode).toBe(403);
       });
     });
 

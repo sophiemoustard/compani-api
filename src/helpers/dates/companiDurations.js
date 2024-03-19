@@ -3,6 +3,7 @@ const luxon = require('./luxon');
 
 const DURATION_HOURS = 'h\'h\'';
 const DURATION_MINUTES = 'm\'min\'';
+exports.ISO_DURATION_VALIDATION = /(PT\d*H\d*M|PT\d*S)/;
 
 exports.CompaniDuration = (...args) => companiDurationFactory(exports._formatMiscToCompaniDuration(...args));
 

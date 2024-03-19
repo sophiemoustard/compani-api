@@ -21,6 +21,8 @@ const {
   MOBILE,
   COMPANY,
   PUBLISHED,
+  TITLE_TEXT,
+  SURVEY,
 } = require('../../../src/helpers/constants');
 const { auxiliaryRoleId, coachRoleId, trainingOrganisationManagerRoleId } = require('../../seed/authRolesSeed');
 const { vendorAdmin, trainerOrganisationManager, trainer } = require('../../seed/authUsersSeed');
@@ -227,8 +229,8 @@ const userCompanies = [
 ];
 
 const cardsList = [
-  { _id: new ObjectId(), template: 'title_text', title: 'title', text: 'text' },
-  { _id: new ObjectId(), template: 'survey', label: { right: 'right', left: 'left' }, question: 'question ?' },
+  { _id: new ObjectId(), template: TITLE_TEXT, title: 'title', text: 'text' },
+  { _id: new ObjectId(), template: SURVEY, labels: { 1: 'first', 5: 'last' }, question: 'question ?' },
 ];
 
 const activitiesList = [
