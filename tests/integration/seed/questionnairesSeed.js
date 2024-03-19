@@ -27,6 +27,7 @@ const {
   END_OF_COURSE,
   EXPECTATIONS,
   DRAFT,
+  SELF_POSITIONNING,
 } = require('../../../src/helpers/constants');
 const { trainerRoleId } = require('../../seed/authRolesSeed');
 const { companyWithoutSubscription, authCompany } = require('../../seed/authCompaniesSeed');
@@ -37,6 +38,30 @@ const cardsList = [
   { _id: new ObjectId(), template: TRANSITION, title: 'test2' },
   { _id: new ObjectId(), template: OPEN_QUESTION, question: 'question?' },
 ];
+
+const activityList = [
+  { _id: new ObjectId(), name: 'activité 1', type: 'sharing_experience', cards: [cardsList[0]._id], status: PUBLISHED },
+];
+
+const stepList = [
+  { _id: new ObjectId(), type: ON_SITE, name: 'etape 1', activities: [], status: PUBLISHED, theoreticalDuration: 60 },
+  {
+    _id: new ObjectId(),
+    type: E_LEARNING,
+    name: 'etape 2',
+    activities: [activityList[0]._id],
+    status: PUBLISHED,
+    theoreticalDuration: 60,
+  },
+  { _id: new ObjectId(), type: ON_SITE, name: 'etape 3', activities: [], status: PUBLISHED, theoreticalDuration: 240 },
+];
+
+const subProgramsList = [
+  { _id: new ObjectId(), name: 'sous-programme 1', steps: [stepList[0]._id, stepList[2]._id], status: PUBLISHED },
+  { _id: new ObjectId(), name: 'sous-programme 2', steps: [stepList[1]._id], status: PUBLISHED },
+];
+
+const programsList = [{ _id: new ObjectId(), name: 'test', subPrograms: [subProgramsList[0]._id] }];
 
 const questionnairesList = [
   {
@@ -60,33 +85,17 @@ const questionnairesList = [
     type: END_OF_COURSE,
     cards: [cardsList[2]._id, cardsList[3]._id],
   },
-];
-
-const activityList = [
-  { _id: new ObjectId(), name: 'activité 1', type: 'sharing_experience', cards: [cardsList[0]._id], status: PUBLISHED },
+  {
+    _id: new ObjectId(),
+    name: 'test self',
+    status: PUBLISHED,
+    type: SELF_POSITIONNING,
+    program: programsList[0]._id,
+    cards: [cardsList[1]._id, cardsList[3]._id],
+  },
 ];
 
 const courseTrainer = userList.find(user => user.role.vendor === trainerRoleId);
-
-const stepList = [
-  { _id: new ObjectId(), type: ON_SITE, name: 'etape 1', activities: [], status: PUBLISHED, theoreticalDuration: 60 },
-  {
-    _id: new ObjectId(),
-    type: E_LEARNING,
-    name: 'etape 2',
-    activities: [activityList[0]._id],
-    status: PUBLISHED,
-    theoreticalDuration: 60,
-  },
-  { _id: new ObjectId(), type: ON_SITE, name: 'etape 3', activities: [], status: PUBLISHED, theoreticalDuration: 240 },
-];
-
-const subProgramsList = [
-  { _id: new ObjectId(), name: 'sous-programme 1', steps: [stepList[0]._id, stepList[2]._id], status: PUBLISHED },
-  { _id: new ObjectId(), name: 'sous-programme 2', steps: [stepList[1]._id], status: PUBLISHED },
-];
-
-const programsList = [{ _id: new ObjectId(), name: 'test', subPrograms: [subProgramsList[0]._id] }];
 
 const traineeList = [{
   _id: new ObjectId(),
@@ -227,4 +236,5 @@ module.exports = {
   questionnairesList,
   cardsList,
   coursesList,
+  programsList,
 };
