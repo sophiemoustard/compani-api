@@ -35,8 +35,8 @@ exports.authorizeCreditNotePdfGet = async (req) => {
   if (!creditNote) throw Boom.notFound();
 
   if (!isAdminVendor) {
-    const hasAccessToCompany = !!creditNote.companies
-      .find(company => UtilsHelper.hasUserAccessToCompany(credentials, company));
+    const hasAccessToCompany = !!(creditNote.companies
+      .find(company => UtilsHelper.hasUserAccessToCompany(credentials, company)));
     const hasAccessToPayer = !!UtilsHelper.hasUserAccessToCompany(credentials, creditNote.courseBill.payer);
     if (!hasAccessToCompany && !hasAccessToPayer) throw Boom.notFound();
   }
