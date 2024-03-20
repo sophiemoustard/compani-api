@@ -484,7 +484,7 @@ describe('SEEDS VERIFICATION', () => {
           },
           {
             name: SURVEY,
-            allowedKeys: ['question', 'labels.5', 'labels.1', 'isMandatory'],
+            allowedKeys: ['question', 'labels.1', 'labels.2', 'labels.3', 'labels.4', 'labels.5', 'isMandatory'],
           },
           {
             name: TEXT_MEDIA,
@@ -544,9 +544,17 @@ describe('SEEDS VERIFICATION', () => {
           expect(someSubKeysAreWrong).toBeFalsy();
         });
 
-        it('should pass if every card with \'labels\' field contains \'1\' and \'5\' keys', () => {
+        it('should pass if every card with \'labels\' field contains right keys #tag', () => {
           const someSubKeysAreMissing = cardList
-            .some(card => has(card, 'labels') && !(has(card, 'labels.1') && has(card, 'labels.5')));
+            .some((card) => {
+              const hasWrongKeys = has(card, 'labels') &&
+                !(
+                  (Object.keys(card.labels).length === 2 && ['1', '5'].every(item => has(card, `labels.${item}`))) ||
+                  ['1', '2', '3', '4', '5'].every(item => has(card, `labels.${item}`))
+                );
+
+              return hasWrongKeys;
+            });
 
           expect(someSubKeysAreMissing).toBeFalsy();
         });
