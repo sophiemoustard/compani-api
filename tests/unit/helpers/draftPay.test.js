@@ -9,7 +9,6 @@ const ContractHelper = require('../../../src/helpers/contracts');
 const Company = require('../../../src/models/Company');
 const Surcharge = require('../../../src/models/Surcharge');
 const DistanceMatrix = require('../../../src/models/DistanceMatrix');
-const ContractRepository = require('../../../src/repositories/ContractRepository');
 const EventRepository = require('../../../src/repositories/EventRepository');
 const { INTERNAL_HOUR } = require('../../../src/helpers/constants');
 const SinonMongoose = require('../sinonMongoose');
@@ -2462,66 +2461,6 @@ describe('computeDraftPay', () => {
       { startDate: '2019-01-01T00:00:00', endDate: '2019-01-31T23:59:59' },
       [{ _id: 'dm' }],
       [{ _id: 'sur' }]
-    );
-  });
-});
-
-describe('getDraftPay', () => {
-  let getAuxiliariesToPay;
-  let computeDraftPay;
-  beforeEach(() => {
-    getAuxiliariesToPay = sinon.stub(ContractRepository, 'getAuxiliariesToPay');
-    computeDraftPay = sinon.stub(DraftPayHelper, 'computeDraftPay');
-  });
-  afterEach(() => {
-    getAuxiliariesToPay.restore();
-    computeDraftPay.restore();
-  });
-
-  it('should return an empty array if no auxiliary', async () => {
-    const query = { startDate: '2019-05-01T00:00:00', endDate: '2019-05-31T23:59:59' };
-    const end = moment(query.endDate).endOf('d').toDate();
-    const credentials = { company: { _id: '1234567890', rhConfig: { shouldPayHolidays: false } } };
-    getAuxiliariesToPay.returns([]);
-    const result = await DraftPayHelper.getDraftPay(query, credentials);
-
-    expect(result).toEqual([]);
-    sinon.assert.calledOnceWithExactly(
-      getAuxiliariesToPay,
-      {
-        startDate: { $lte: end },
-        $or: [{ endDate: null }, { endDate: { $exists: false } }, { endDate: { $gt: end } }],
-      },
-      end,
-      'pays',
-      credentials.company._id
-    );
-    sinon.assert.notCalled(computeDraftPay);
-  });
-
-  it('should return draft pay', async () => {
-    const query = { startDate: '2019-05-01T00:00:00', endDate: '2019-05-31T23:59:59' };
-    const end = moment(query.endDate).endOf('d').toDate();
-    const auxiliaries = [{ _id: new ObjectId(), sector: { name: 'Abeilles' } }];
-    const credentials = { company: { _id: '1234567890' } };
-    getAuxiliariesToPay.returns(auxiliaries);
-    await DraftPayHelper.getDraftPay(query, credentials);
-
-    sinon.assert.calledOnceWithExactly(
-      getAuxiliariesToPay,
-      {
-        startDate: { $lte: end },
-        $or: [{ endDate: null }, { endDate: { $exists: false } }, { endDate: { $gt: end } }],
-      },
-      end,
-      'pays',
-      credentials.company._id
-    );
-    sinon.assert.calledOnceWithExactly(
-      computeDraftPay,
-      auxiliaries,
-      { startDate: moment(query.startDate).startOf('d').toDate(), endDate: moment(query.endDate).endOf('d').toDate() },
-      credentials
     );
   });
 });

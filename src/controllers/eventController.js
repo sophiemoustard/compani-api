@@ -131,43 +131,6 @@ const getWorkingStats = async (req) => {
   }
 };
 
-const getPaidTransportStatsBySector = async (req) => {
-  try {
-    req.log('eventController - getPaidTransportStatsBySector - query', req.query);
-    req.log('eventController - getPaidTransportStatsBySector - company', get(req, 'auth.credentials.company._id'));
-
-    const paidTransportStatsBySector = await EventsHelper.getPaidTransportStatsBySector(
-      req.query,
-      req.auth.credentials
-    );
-
-    return {
-      message: translate[language].statsFound,
-      data: { paidTransportStatsBySector },
-    };
-  } catch (e) {
-    req.log('error', e);
-    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
-  }
-};
-
-const getUnassignedHoursBySector = async (req) => {
-  try {
-    req.log('eventController - getUnassignedHoursBySector - query', req.query);
-    req.log('eventController - getUnassignedHoursBySector - company', get(req, 'auth.credentials.company._id'));
-
-    const unassignedHoursBySector = await EventsHelper.getUnassignedHoursBySector(req.query, req.auth.credentials);
-
-    return {
-      message: translate[language].statsFound,
-      data: { unassignedHoursBySector },
-    };
-  } catch (e) {
-    req.log('error', e);
-    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
-  }
-};
-
 const timeStampEvent = async (req) => {
   try {
     await EventTimeStampingHelper.addTimeStamp(req.pre.event, req.payload, req.auth.credentials);
@@ -188,7 +151,5 @@ module.exports = {
   deleteList,
   listForCreditNotes,
   getWorkingStats,
-  getPaidTransportStatsBySector,
-  getUnassignedHoursBySector,
   timeStampEvent,
 };

@@ -4,11 +4,9 @@ const { expect } = require('expect');
 const { ObjectId } = require('mongodb');
 const Company = require('../../../src/models/Company');
 const CompanyHolding = require('../../../src/models/CompanyHolding');
-const Event = require('../../../src/models/Event');
 const CompanyHelper = require('../../../src/helpers/companies');
 const GDriveStorageHelper = require('../../../src/helpers/gDriveStorage');
 const Drive = require('../../../src/models/Google/Drive');
-const { INTERVENTION } = require('../../../src/helpers/constants');
 const SinonMongoose = require('../sinonMongoose');
 
 describe('createCompany', () => {
@@ -224,35 +222,6 @@ describe('uploadFile', () => {
       findOneAndUpdate,
       [
         { query: 'findOneAndUpdate', args: [{ _id: params._id }, { $set: flat(companyPayload) }, { new: true }] },
-        { query: 'lean', args: [] },
-      ]
-    );
-  });
-});
-
-describe('getFirstIntervention', () => {
-  let find;
-  beforeEach(() => {
-    find = sinon.stub(Event, 'find');
-  });
-  afterEach(() => {
-    find.restore();
-  });
-
-  it('should get first intervention', async () => {
-    const credentials = { company: { _id: new ObjectId() } };
-    find.returns(SinonMongoose.stubChainedQueries([{ startDate: '2019-11-12' }], ['sort', 'limit', 'lean']));
-
-    const result = await CompanyHelper.getFirstIntervention(credentials);
-
-    expect(result).toBeDefined();
-    expect(result).toEqual([{ startDate: '2019-11-12' }]);
-    SinonMongoose.calledOnceWithExactly(
-      find,
-      [
-        { query: 'find', args: [{ company: credentials.company._id, type: INTERVENTION }] },
-        { query: 'sort', args: [{ startDate: 1 }] },
-        { query: 'limit', args: [1] },
         { query: 'lean', args: [] },
       ]
     );

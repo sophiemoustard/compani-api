@@ -1628,36 +1628,6 @@ describe('auxiliaryHasActiveContractOnDay', () => {
   });
 });
 
-describe('getStaffRegister', () => {
-  let getStaffRegisterStub;
-  beforeEach(() => {
-    getStaffRegisterStub = sinon.stub(ContractRepository, 'getStaffRegister');
-  });
-  afterEach(() => {
-    getStaffRegisterStub.restore();
-  });
-
-  it('should get staff register ', async () => {
-    const companyId = new ObjectId();
-    const staffRegister = [
-      {
-        _id: new ObjectId(),
-        serialNumber: '123',
-        user: { _id: new ObjectId() },
-        startDate: new Date(),
-        company: companyId,
-        versions: [{ _id: new ObjectId() }],
-      },
-    ];
-
-    getStaffRegisterStub.returns(staffRegister);
-
-    const result = await ContractHelper.getStaffRegister(companyId);
-    expect(result).toEqual(staffRegister);
-    sinon.assert.calledWithExactly(getStaffRegisterStub, companyId);
-  });
-});
-
 describe('auxiliaryHasActiveContractBetweenDates', () => {
   it('should return true if auxiliary has contract that start before the start date and don\'t end', () => {
     const contracts = [{ startDate: '2019-01-01T08:38:18.000Z' }];

@@ -1,4 +1,3 @@
-const path = require('path');
 const flat = require('flat');
 const { expect } = require('expect');
 const { ObjectId } = require('mongodb');
@@ -27,15 +26,12 @@ const Repetition = require('../../src/models/Repetition');
 const ReferentHistory = require('../../src/models/ReferentHistory');
 const CustomerPartner = require('../../src/models/CustomerPartner');
 const Event = require('../../src/models/Event');
-const ESign = require('../../src/models/ESign');
 const Drive = require('../../src/models/Google/Drive');
 const Helper = require('../../src/models/Helper');
 const { MONTHLY, FIXED, DEATH } = require('../../src/helpers/constants');
 const { getToken, getTokenByCredentials } = require('./helpers/authentication');
 const { authCompany, otherCompany } = require('../seed/authCompaniesSeed');
-const FileHelper = require('../../src/helpers/file');
 const UtilsHelper = require('../../src/helpers/utils');
-const DocxHelper = require('../../src/helpers/docx');
 const { CompaniDate } = require('../../src/helpers/dates/companiDates');
 
 describe('NODE ENV', () => {
@@ -1683,110 +1679,6 @@ describe('CUSTOMERS MANDATES ROUTES', () => {
       });
     });
   });
-
-  describe('POST customers/:id/mandates/:id/esign', () => {
-    let createDocumentStub;
-    let generateDocxStub;
-    let fileToBase64Stub;
-
-    beforeEach(() => {
-      createDocumentStub = sinon.stub(ESign, 'createDocument');
-      generateDocxStub = sinon.stub(DocxHelper, 'generateDocx');
-      fileToBase64Stub = sinon.stub(FileHelper, 'fileToBase64');
-
-      createDocumentStub.returns({
-        data: {
-          document_hash: 'dOcUmEnThAsH',
-          signers: [{ embedded_signing_url: 'embeddedSigningUrl<->' }],
-        },
-      });
-      generateDocxStub.returns(path.join(__dirname, 'assets/signature_request.docx'));
-      fileToBase64Stub.returns('signature_request');
-    });
-
-    afterEach(() => {
-      createDocumentStub.restore();
-      generateDocxStub.restore();
-      fileToBase64Stub.restore();
-    });
-
-    const payload = {
-      fileId: '1234567',
-      customer: {
-        name: 'Test',
-        email: 'test@test.com',
-      },
-      fields: {
-        title: 'mrs',
-        firstname: 'Test',
-        lastname: 'Test',
-        address: '15 rue du test',
-        city: 'Test city',
-        zipCode: '34000',
-        birthDate: '15/07/88',
-        birthCountry: 'France',
-        birthState: '93',
-        nationality: 'Française',
-        SSN: '12345678909876543',
-        grossHourlyRate: 24,
-        monthlyHours: 56,
-        salary: 1500,
-        startDate: '18/12/2018',
-        weeklyHours: 35,
-        yearlyHours: 1200,
-        uploadDate: '18/12/2018',
-        initialContractStartDate: '16/12/2018',
-      },
-    };
-
-    describe('HELPER', () => {
-      it('should create a mandate signature request if I am its helper', async () => {
-        authToken = await getTokenByCredentials(userList[1].local);
-        const res = await app.inject({
-          method: 'POST',
-          url: `/customers/${customersList[1]._id}/mandates/${customersList[1].payment.mandates[0]._id}/esign`,
-          headers: { Cookie: `alenvi_token=${authToken}` },
-          payload,
-        });
-
-        expect(res.statusCode).toBe(200);
-        expect(res.statusCode).toBe(200);
-        expect(res.result.data.signatureRequest).toEqual(expect.objectContaining({
-          embeddedUrl: expect.any(String),
-        }));
-
-        const customerCount = await Customer
-          .countDocuments({ _id: customersList[1]._id, 'payment.mandates.everSignId': { $exists: true } });
-        expect(customerCount).toEqual(1);
-
-        sinon.assert.calledOnce(createDocumentStub);
-        sinon.assert.calledOnce(generateDocxStub);
-        sinon.assert.calledOnce(fileToBase64Stub);
-      });
-    });
-
-    describe('Other roles', () => {
-      const roles = [
-        { name: 'vendor_admin', expectedCode: 403, callCount: 0 },
-        { name: 'helper', expectedCode: 403, callCount: 0 },
-        { name: 'planning_referent', expectedCode: 403, callCount: 0 },
-      ];
-
-      roles.forEach((role) => {
-        it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
-          authToken = await getToken(role.name);
-          const response = await app.inject({
-            method: 'POST',
-            url: `/customers/${customersList[1]._id}/mandates/${customersList[1].payment.mandates[0]._id}/esign`,
-            payload,
-            headers: { Cookie: `alenvi_token=${authToken}` },
-          });
-
-          expect(response.statusCode).toBe(role.expectedCode);
-        });
-      });
-    });
-  });
 });
 
 describe('CUSTOMERS QUOTES ROUTES', () => {
@@ -1982,113 +1874,6 @@ describe('CUSTOMERS QUOTES ROUTES', () => {
           const response = await app.inject({
             method: 'POST',
             url: `/customers/${customersList[1]._id}/quotes`,
-            payload,
-            headers: { Cookie: `alenvi_token=${authToken}` },
-          });
-
-          expect(response.statusCode).toBe(role.expectedCode);
-        });
-      });
-    });
-  });
-});
-
-describe('CUSTOMERS SUBSCRIPTION HISTORY ROUTES', () => {
-  let authToken;
-  beforeEach(populateDB);
-
-  describe('POST customers/:id/subscriptionshistory', () => {
-    beforeEach(async () => {
-      authToken = await getTokenByCredentials(userList[0].local);
-    });
-
-    it('should create a customer subscription history', async () => {
-      const payload = {
-        subscriptions: [
-          {
-            service: 'horaire avec des articles de facturation',
-            unitTTCRate: 23,
-            weeklyHours: 3,
-            weeklyCount: 5,
-            subscriptionId: new ObjectId(),
-            evenings: 2,
-            saturdays: 3,
-            sundays: 4,
-          },
-          { service: 'forfaitaire', unitTTCRate: 30, weeklyCount: 10, subscriptionId: new ObjectId() },
-        ],
-        helper: { firstname: 'Emmanuel', lastname: 'Magellan', title: 'mrs' },
-      };
-
-      const res = await app.inject({
-        method: 'POST',
-        url: `/customers/${customersList[0]._id}/subscriptionshistory`,
-        payload,
-        headers: { Cookie: `alenvi_token=${authToken}` },
-      });
-
-      expect(res.statusCode).toBe(200);
-      expect(res.result.data.customer).toBeDefined();
-      expect(res.result.data.customer.subscriptionsHistory[1]).toBeDefined();
-      expect(res.result.data.customer._id).toEqual(customersList[0]._id);
-      expect(res.result.data.customer.subscriptionsHistory[1].subscriptions).toEqual(expect.arrayContaining([
-        expect.objectContaining(payload.subscriptions[0]),
-        expect.objectContaining(payload.subscriptions[1]),
-      ]));
-      expect(res.result.data.customer.subscriptionsHistory[1].helper).toEqual(expect.objectContaining(payload.helper));
-      expect(res.result.data.customer.subscriptionsHistory[1].approvalDate).toEqual(expect.any(Date));
-    });
-
-    it('should return a 400 error if \'subscriptions\' array is missing from payload', async () => {
-      const payload = { helper: { firstname: 'Emmanuel', lastname: 'Magellan', title: 'mrs' } };
-      const res = await app.inject({
-        method: 'POST',
-        url: `/customers/${customersList[0]._id}/subscriptionshistory`,
-        payload,
-        headers: { Cookie: `alenvi_token=${authToken}` },
-      });
-
-      expect(res.statusCode).toBe(400);
-    });
-
-    it('should return a 400 error if \'helper\' object is missing from payload', async () => {
-      const payload = {
-        subscriptions: [
-          { service: 'TestTest', unitTTCRate: 23, weeklyHours: 3 },
-          { service: 'TestTest2', unitTTCRate: 30, weeklyHours: 10 },
-        ],
-      };
-
-      const res = await app.inject({
-        method: 'POST',
-        url: `/customers/${customersList[0]._id}/subscriptionshistory`,
-        payload,
-        headers: { Cookie: `alenvi_token=${authToken}` },
-      });
-
-      expect(res.statusCode).toBe(400);
-    });
-
-    describe('Other roles', () => {
-      const payload = {
-        subscriptions: [
-          { service: 'TestTest', unitTTCRate: 23, weeklyHours: 3 },
-          { service: 'TestTest2', unitTTCRate: 30, weeklyHours: 10 },
-        ],
-        helper: { firstname: 'Lana', lastname: 'Wachowski', title: 'mrs' },
-      };
-
-      const roles = [
-        { name: 'vendor_admin', expectedCode: 403 },
-        { name: 'helper', expectedCode: 403 },
-        { name: 'planning_referent', expectedCode: 403 },
-      ];
-      roles.forEach((role) => {
-        it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
-          authToken = await getToken(role.name);
-          const response = await app.inject({
-            method: 'POST',
-            url: `/customers/${customersList[0]._id}/subscriptionshistory`,
             payload,
             headers: { Cookie: `alenvi_token=${authToken}` },
           });

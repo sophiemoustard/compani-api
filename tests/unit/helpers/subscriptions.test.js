@@ -438,39 +438,3 @@ describe('deleteSubscription', () => {
     );
   });
 });
-
-describe('createSubscriptionHistory', () => {
-  let findOneAndUpdateCustomer;
-  beforeEach(() => {
-    findOneAndUpdateCustomer = sinon.stub(Customer, 'findOneAndUpdate');
-  });
-  afterEach(() => {
-    findOneAndUpdateCustomer.restore();
-  });
-
-  it('should create subscription history', async () => {
-    const customerId = new ObjectId();
-    const payload = { evenings: 2 };
-    const customer = { _id: customerId };
-
-    findOneAndUpdateCustomer.returns(SinonMongoose.stubChainedQueries(customer, ['lean']));
-
-    const result = await SubscriptionsHelper.createSubscriptionHistory(customerId.toHexString(), payload);
-
-    expect(result).toEqual(customer);
-    SinonMongoose.calledOnceWithExactly(
-      findOneAndUpdateCustomer,
-      [
-        {
-          query: 'findOneAndUpdate',
-          args: [
-            { _id: customerId.toHexString() },
-            { $push: { subscriptionsHistory: payload } },
-            { new: true, select: { identity: 1, subscriptionsHistory: 1 }, autopopulate: false },
-          ],
-        },
-        { query: 'lean' },
-      ]
-    );
-  });
-});

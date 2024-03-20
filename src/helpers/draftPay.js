@@ -12,7 +12,6 @@ const Company = require('../models/Company');
 const Customer = require('../models/Customer');
 const DistanceMatrix = require('../models/DistanceMatrix');
 const Surcharge = require('../models/Surcharge');
-const ContractRepository = require('../repositories/ContractRepository');
 const EventRepository = require('../repositories/EventRepository');
 const {
   PUBLIC_TRANSPORT,
@@ -583,19 +582,4 @@ exports.computeDraftPay = async (auxiliaries, query, credentials) => {
   }
 
   return Promise.all(draftPay);
-};
-
-exports.getDraftPay = async (query, credentials) => {
-  const startDate = moment(query.startDate).startOf('d').toDate();
-  const endDate = moment(query.endDate).endOf('d').toDate();
-
-  const contractRules = {
-    startDate: { $lte: endDate },
-    $or: [{ endDate: null }, { endDate: { $exists: false } }, { endDate: { $gt: endDate } }],
-  };
-  const companyId = get(credentials, 'company._id');
-  const auxiliaries = await ContractRepository.getAuxiliariesToPay(contractRules, endDate, 'pays', companyId);
-  if (auxiliaries.length === 0) return [];
-
-  return exports.computeDraftPay(auxiliaries, { startDate, endDate }, credentials);
 };

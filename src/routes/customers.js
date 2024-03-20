@@ -23,9 +23,6 @@ const {
   createCustomerQuote,
   uploadFile,
   deleteCertificates,
-  getMandateSignatureRequest,
-  saveSignedMandate,
-  createHistorySubscription,
   createFunding,
   updateFunding,
   deleteFunding,
@@ -297,29 +294,6 @@ exports.plugin = {
     });
 
     server.route({
-      method: 'POST',
-      path: '/{_id}/mandates/{mandateId}/esign',
-      options: {
-        auth: { scope: ['customer-{params._id}'] },
-        validate: {
-          params: Joi.object({ _id: Joi.objectId().required(), mandateId: Joi.objectId().required() }),
-          payload: Joi.object({
-            fileId: Joi.string().required(),
-            customer: Joi.object().keys({
-              name: Joi.string().required(),
-              email: Joi.string().email().required(),
-            }).required(),
-            fields: Joi.object().required(),
-            redirect: Joi.string(),
-            redirectDecline: Joi.string(),
-          }),
-        },
-        pre: [{ method: authorizeCustomerUpdate }],
-      },
-      handler: getMandateSignatureRequest,
-    });
-
-    server.route({
       method: 'GET',
       path: '/{_id}/quotes',
       options: {
@@ -398,50 +372,6 @@ exports.plugin = {
         pre: [{ method: authorizeCustomerUpdate }],
       },
       handler: deleteCertificates,
-    });
-
-    server.route({
-      method: 'POST',
-      path: '/{_id}/mandates/{mandateId}/savesigneddoc',
-      options: {
-        auth: { scope: ['customer-{params._id}'] },
-        validate: {
-          params: Joi.object({ _id: Joi.objectId().required(), mandateId: Joi.objectId().required() }),
-        },
-        pre: [{ method: authorizeCustomerUpdate }],
-      },
-      handler: saveSignedMandate,
-    });
-
-    server.route({
-      method: 'POST',
-      path: '/{_id}/subscriptionshistory',
-      options: {
-        auth: { scope: ['customer-{params._id}'] },
-        validate: {
-          params: Joi.object({ _id: Joi.objectId().required() }),
-          payload: Joi.object().keys({
-            subscriptions: Joi.array().items(Joi.object().keys({
-              subscriptionId: Joi.objectId().required(),
-              service: Joi.string().required(),
-              unitTTCRate: Joi.number().min(0).required(),
-              weeklyCount: Joi.number().min(0).integer().required(),
-              startDate: Joi.date(),
-              weeklyHours: Joi.number().min(0),
-              evenings: Joi.number().min(0),
-              saturdays: Joi.number().min(0),
-              sundays: Joi.number().min(0),
-            }).or('weeklyCount', 'weeklyHours')).required(),
-            helper: Joi.object().keys({
-              firstname: Joi.string().allow(null, ''),
-              lastname: Joi.string(),
-              title: Joi.string().allow(null, ''),
-            }).required(),
-          }),
-        },
-        pre: [{ method: authorizeCustomerUpdate }],
-      },
-      handler: createHistorySubscription,
     });
 
     server.route({
