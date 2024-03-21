@@ -544,7 +544,7 @@ describe('SEEDS VERIFICATION', () => {
           expect(someSubKeysAreWrong).toBeFalsy();
         });
 
-        it('should pass if every card with \'labels\' field contains right keys #tag', () => {
+        it('should pass if every card with \'labels\' field contains right keys', () => {
           const someSubKeysAreMissing = cardList
             .some((card) => {
               const hasWrongKeys = has(card, 'labels') &&

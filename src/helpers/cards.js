@@ -1,4 +1,6 @@
 const flat = require('flat');
+const has = require('lodash/has');
+const pickBy = require('lodash/pickBy');
 const Card = require('../models/Card');
 const GCloudStorageHelper = require('./gCloudStorage');
 const {
@@ -11,10 +13,20 @@ const {
 
 exports.createCard = async payload => Card.create(payload);
 
-exports.updateCard = async (cardId, payload) => Card.updateOne(
-  { _id: cardId },
-  { $set: flat(payload, { safe: true }) }
-);
+exports.updateCard = async (cardId, payload) => {
+  let formattedPayload = {};
+
+  if (has(payload, 'labels') && Object.values(payload.labels).includes(null)) {
+    formattedPayload = {
+      $set: flat({ ...payload, labels: pickBy(payload.labels) }, { safe: true }),
+      $unset: { 'labels.2': '', 'labels.3': '', 'labels.4': '' },
+    };
+  } else {
+    formattedPayload = { $set: flat(payload, { safe: true }) };
+  }
+
+  return Card.updateOne({ _id: cardId }, formattedPayload);
+};
 
 exports.addCardAnswer = async (card) => {
   const key = exports.getAnswerKeyToUpdate(card.template);
