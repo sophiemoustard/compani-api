@@ -30,7 +30,7 @@ exports.authorizeCompanyUpdate = async (req) => {
   const vendorRole = get(req, 'auth.credentials.role.vendor.name');
 
   const isVendorAdmin = !!vendorRole && [TRAINING_ORGANISATION_MANAGER, VENDOR_ADMIN].includes(vendorRole);
-  if (!isVendorAdmin && (!UtilsHelper.hasUserAccessToCompany(credentials, updatedCompanyId))) throw Boom.forbidden();
+  if (!isVendorAdmin && !UtilsHelper.hasUserAccessToCompany(credentials, updatedCompanyId)) throw Boom.forbidden();
 
   const nameAlreadyExists = await Company
     .countDocuments({ _id: { $ne: updatedCompanyId }, name: payload.name }, { limit: 1 })

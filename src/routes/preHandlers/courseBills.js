@@ -177,8 +177,8 @@ exports.authorizeBillPdfGet = async (req) => {
   if (!bill) throw Boom.notFound();
 
   if (!isAdminVendor) {
-    const hasAccessToCompanies = !!(bill.companies
-      .find(company => UtilsHelper.hasUserAccessToCompany(credentials, company)));
+    const hasAccessToCompanies = bill.companies
+      .some(company => UtilsHelper.hasUserAccessToCompany(credentials, company));
     const hasAccessToPayer = UtilsHelper.hasUserAccessToCompany(credentials, bill.payer);
     if (!hasAccessToCompanies && !hasAccessToPayer) throw Boom.notFound();
   }
