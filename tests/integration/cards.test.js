@@ -258,6 +258,19 @@ describe('CARDS ROUTES - PUT /cards/{_id}', () => {
         });
       });
 
+      it('should return 200 if set a label on a card which has 5 labels', async () => {
+        const response = await app.inject({
+          method: 'PUT',
+          url: `/cards/${cardsList[18]._id}`,
+          payload: { labels: { 4: 'test' } },
+          headers: { Cookie: `alenvi_token=${authToken}` },
+        });
+
+        expect(response.statusCode).toBe(200);
+        const isCardEdited = await Card.countDocuments({ _id: cardsList[18]._id, labels: { 4: 'test' } });
+        expect(isCardEdited).toBeTruthy();
+      });
+
       it('should return 403 if set labels on a card that isn\'t a survey', async () => {
         const response = await app.inject({
           method: 'PUT',

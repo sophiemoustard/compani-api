@@ -109,6 +109,12 @@ const cardsList = [
       { _id: new ObjectId(), text: 'des trucs' },
     ],
   },
+  {
+    _id: new ObjectId(),
+    template: SURVEY,
+    labels: { 1: 'first', 2: 'second', 3: 'third', 4: 'fourth', 5: 'last' },
+    question: 'question ?',
+  },
 ];
 
 const activitiesList = [
