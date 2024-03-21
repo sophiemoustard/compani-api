@@ -29,7 +29,28 @@ const {
   FILL_THE_GAPS_MIN_ANSWERS_COUNT,
 } = require('../../helpers/constants');
 
-exports.cardValidationByTemplate = (template) => {
+const labelsValidation = (labels) => {
+  let validation;
+
+  if (labels && Object.keys(labels).length === 2) {
+    validation = Joi.object().keys({
+      1: Joi.string().max(SURVEY_LABEL_MAX_LENGTH).required(),
+      5: Joi.string().max(SURVEY_LABEL_MAX_LENGTH).required(),
+    });
+  } else {
+    validation = Joi.object().keys({
+      1: Joi.string().max(SURVEY_LABEL_MAX_LENGTH).required(),
+      2: Joi.string().max(SURVEY_LABEL_MAX_LENGTH).required(),
+      3: Joi.string().max(SURVEY_LABEL_MAX_LENGTH).required(),
+      4: Joi.string().max(SURVEY_LABEL_MAX_LENGTH).required(),
+      5: Joi.string().max(SURVEY_LABEL_MAX_LENGTH).required(),
+    });
+  }
+
+  return validation;
+};
+
+exports.cardValidationByTemplate = (template, labels = {}) => {
   switch (template) {
     case TRANSITION:
       return Joi.object().keys({
@@ -103,19 +124,7 @@ exports.cardValidationByTemplate = (template) => {
     case SURVEY:
       return Joi.object().keys({
         question: Joi.string().required().max(QUESTION_MAX_LENGTH),
-        labels: Joi.alternatives().try(
-          Joi.object().keys({
-            1: Joi.string().max(SURVEY_LABEL_MAX_LENGTH).required(),
-            5: Joi.string().max(SURVEY_LABEL_MAX_LENGTH).required(),
-          }),
-          Joi.object().keys({
-            1: Joi.string().max(SURVEY_LABEL_MAX_LENGTH).required(),
-            2: Joi.string().max(SURVEY_LABEL_MAX_LENGTH).required(),
-            3: Joi.string().max(SURVEY_LABEL_MAX_LENGTH).required(),
-            4: Joi.string().max(SURVEY_LABEL_MAX_LENGTH).required(),
-            5: Joi.string().max(SURVEY_LABEL_MAX_LENGTH).required(),
-          })
-        ),
+        labels: labelsValidation(labels),
       });
     case OPEN_QUESTION:
       return Joi.object().keys({

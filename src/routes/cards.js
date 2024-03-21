@@ -50,6 +50,9 @@ exports.plugin = {
             explanation: Joi.string(),
             labels: Joi.object().keys({
               1: Joi.string().allow('', null).max(SURVEY_LABEL_MAX_LENGTH),
+              2: Joi.string().allow('', null).max(SURVEY_LABEL_MAX_LENGTH),
+              3: Joi.string().allow('', null).max(SURVEY_LABEL_MAX_LENGTH),
+              4: Joi.string().allow('', null).max(SURVEY_LABEL_MAX_LENGTH),
               5: Joi.string().allow('', null).max(SURVEY_LABEL_MAX_LENGTH),
             }),
             canSwitchAnswers: Joi.boolean(),

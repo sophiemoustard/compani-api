@@ -125,7 +125,7 @@ function save(next) {
 }
 
 function setIsValid() {
-  const validation = cardValidationByTemplate(this.template).validate(this, { allowUnknown: true });
+  const validation = cardValidationByTemplate(this.template, this.labels).validate(this, { allowUnknown: true });
   return !validation.error;
 }
 
