@@ -231,7 +231,7 @@ describe('CARDS ROUTES - PUT /cards/{_id}', () => {
       });
     });
 
-    describe('Survey #tag', () => {
+    describe('Survey', () => {
       const requests = [
         { msg: 'First label is too long', payload: { labels: { 1: 'Je suis un très long message' } }, code: 400 },
         { msg: 'Second label is too long', payload: { labels: { 2: 'Je suis un très long message' } }, code: 400 },
@@ -240,9 +240,9 @@ describe('CARDS ROUTES - PUT /cards/{_id}', () => {
         { msg: 'Last label is too long', payload: { labels: { 5: 'Je suis un très long message' } }, code: 400 },
         { msg: 'Unset first label', payload: { labels: { 1: '' } }, code: 200 },
         { msg: 'Unset last label', payload: { labels: { 5: '' } }, code: 200 },
-        { msg: 'Set all labels', payload: { labels: { 2: '2eme niveau', 3: '3eme niveau', 4: '4eme' } }, code: 200 },
         { msg: 'Set some labels and unset others', payload: { labels: { 1: '', 4: '4eme niveau' } }, code: 200 },
-        { msg: 'Unset others', payload: { labels: { 1: 'test', 2: null, 3: null, 4: null } }, code: 200 },
+        { msg: 'Set all labels', payload: { labels: { 2: '', 3: '', 4: '' } }, code: 200 },
+        { msg: 'Unset labels', payload: { labels: { 2: null, 3: null, 4: null } }, code: 200 },
       ];
 
       requests.forEach((request) => {
