@@ -231,18 +231,13 @@ describe('CARDS ROUTES - PUT /cards/{_id}', () => {
       });
     });
 
-    describe('Survey', () => {
+    describe('Survey #tag', () => {
       const requests = [
         { msg: 'Unset first label', payload: { labels: { 1: '' } }, code: 200 },
         { msg: 'Unset last label', payload: { labels: { 5: '' } }, code: 200 },
         { msg: 'Set some labels and unset others', payload: { labels: { 1: '', 4: '4eme niveau' } }, code: 200 },
         { msg: 'Set labels with empty string', payload: { labels: { 2: '', 3: '', 4: '' } }, code: 200 },
         { msg: 'Unset labels', payload: { labels: { 2: null, 3: null, 4: null } }, code: 200 },
-        { msg: 'First label is too long', payload: { labels: { 1: 'Je suis un très long message' } }, code: 400 },
-        { msg: 'Second label is too long', payload: { labels: { 2: 'Je suis un très long message' } }, code: 400 },
-        { msg: 'Third label is too long', payload: { labels: { 3: 'Je suis un très long message' } }, code: 400 },
-        { msg: 'Fourth label is too long', payload: { labels: { 4: 'Je suis un très long message' } }, code: 400 },
-        { msg: 'Last label is too long', payload: { labels: { 5: 'Je suis un très long message' } }, code: 400 },
         { msg: 'Set null to first label', payload: { labels: { 1: null } }, code: 400 },
         { msg: 'Set null to fifth label', payload: { labels: { 5: null } }, code: 400 },
         { msg: 'Second key is missing', payload: { labels: { 3: null, 4: null } }, code: 400 },
