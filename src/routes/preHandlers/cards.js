@@ -54,13 +54,11 @@ const checkFillTheGap = (payload) => {
   return null;
 };
 
-const checkSurvey = (payload) => {
-  const { labels } = payload;
+const checkSurvey = (labels) => {
+  const someSubKeysAreMissing = labels && Object.values(labels).includes(null) &&
+    !(['2', '3', '4'].every(key => Object.keys(labels).includes(key)));
 
-  const someSubKeysAreMissing = Object.values(labels).includes(null) &&
-    !(['2', '3', '4'].every(key => Object.keys(payload.labels).includes(key)));
-
-  if (labels && someSubKeysAreMissing) throw Boom.badRequest();
+  if (someSubKeysAreMissing) throw Boom.badRequest();
 
   return null;
 };
@@ -84,7 +82,7 @@ exports.authorizeCardUpdate = async (req) => {
     case FLASHCARD:
       return checkFlashCard(req.payload);
     case SURVEY:
-      return checkSurvey(req.payload);
+      return checkSurvey(get(req.payload, 'labels'));
     default:
       return null;
   }
