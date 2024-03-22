@@ -174,7 +174,7 @@ const coursesList = [
     operationsRepresentative: vendorAdmin._id,
     contact: vendorAdmin._id,
     trainees: [],
-    expectedBillsCount: 1,
+    expectedBillsCount: 2,
     companies: [companyWithoutAddress._id],
   },
   { // 7 - linked to bill 6
@@ -182,7 +182,7 @@ const coursesList = [
     type: INTRA,
     maxTrainees: 8,
     subProgram: subProgramList[0]._id,
-    misc: 'group 7',
+    misc: 'group 8',
     trainer: trainer._id,
     operationsRepresentative: vendorAdmin._id,
     contact: vendorAdmin._id,
@@ -195,7 +195,7 @@ const coursesList = [
     type: INTRA,
     maxTrainees: 8,
     subProgram: subProgramList[0]._id,
-    misc: 'group 7',
+    misc: 'group 9',
     trainer: trainer._id,
     operationsRepresentative: vendorAdmin._id,
     contact: vendorAdmin._id,
@@ -207,7 +207,7 @@ const coursesList = [
     _id: new ObjectId(),
     type: INTER_B2B,
     subProgram: subProgramList[0]._id,
-    misc: 'group 8',
+    misc: 'group 10',
     trainer: trainer._id,
     operationsRepresentative: vendorAdmin._id,
     contact: vendorAdmin._id,
@@ -220,12 +220,25 @@ const coursesList = [
     maxTrainees: 8,
     companies: [otherCompany._id],
     subProgram: subProgramList[0]._id,
-    misc: 'group 7',
+    misc: 'group 11',
     trainer: trainer._id,
     operationsRepresentative: vendorAdmin._id,
     contact: vendorAdmin._id,
     trainees: [traineeFromOtherCompany._id],
     expectedBillsCount: 0,
+  },
+  { // 11 - third company course
+    _id: new ObjectId(),
+    type: INTRA,
+    maxTrainees: 8,
+    companies: [companyWithoutSubscription._id],
+    subProgram: subProgramList[0]._id,
+    misc: 'group 12',
+    trainer: trainer._id,
+    operationsRepresentative: vendorAdmin._id,
+    contact: vendorAdmin._id,
+    trainees: [],
+    expectedBillsCount: 1,
   },
 ];
 
@@ -240,7 +253,7 @@ const billingItemList = [
   { _id: new ObjectId(), name: 'petit déjeuner' },
 ];
 
-const courseBillNumber = { _id: new ObjectId(), seq: 6 };
+const courseBillNumber = { _id: new ObjectId(), seq: 8 };
 
 const courseBillsList = [
   { // 0
@@ -352,6 +365,30 @@ const courseBillsList = [
     ],
     billedAt: '2022-04-07T00:00:00.000Z',
     number: 'FACT-00006',
+  },
+  { // 10
+    _id: new ObjectId(),
+    course: coursesList[11]._id,
+    companies: [companyWithoutSubscription._id],
+    payer: { company: companyWithoutSubscription._id },
+    mainFee: { price: 200, count: 2, description: 'yoyo', countUnit: GROUP },
+    billingPurchaseList: [
+      { _id: new ObjectId(), billingItem: billingItemList[0]._id, price: 9, count: 1 },
+    ],
+    billedAt: '2022-04-07T00:00:00.000Z',
+    number: 'FACT-00007',
+  },
+  { // 11 - payer is company without subscription
+    _id: new ObjectId(),
+    course: coursesList[6]._id,
+    companies: [companyWithoutAddress._id],
+    payer: { company: companyWithoutSubscription._id },
+    mainFee: { price: 200, count: 2, description: 'yoyo', countUnit: GROUP },
+    billedAt: '2022-04-07T00:00:00.000Z',
+    number: 'FACT-00008',
+    billingPurchaseList: [
+      { _id: new ObjectId(), billingItem: billingItemList[0]._id, price: 9, count: 1 },
+    ],
   },
 ];
 

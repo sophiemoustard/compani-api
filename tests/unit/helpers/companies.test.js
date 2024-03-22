@@ -133,7 +133,14 @@ describe('list', () => {
       companyHoldingFind,
       [
         { query: 'find', args: [{ holding: holdingId }, { company: 1 }] },
-        { query: 'populate', args: [{ path: 'company', select: 'name' }] },
+        {
+          query: 'populate',
+          args: [{
+            path: 'company',
+            select: 'name',
+            populate: { path: 'billingRepresentative', select: '_id picture contact identity local' },
+          }],
+        },
         { query: 'lean', args: [] },
       ]
     );

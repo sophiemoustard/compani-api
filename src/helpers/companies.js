@@ -28,7 +28,11 @@ exports.list = async (query) => {
   if (query.holding) {
     const companyHoldingList = await CompanyHolding
       .find({ holding: query.holding }, { company: 1 })
-      .populate({ path: 'company', select: 'name' })
+      .populate({
+        path: 'company',
+        select: 'name',
+        populate: { path: 'billingRepresentative', select: '_id picture contact identity local' },
+      })
       .lean();
 
     return companyHoldingList.map(ch => ch.company);

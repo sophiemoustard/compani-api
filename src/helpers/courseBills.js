@@ -68,19 +68,19 @@ const balance = async (company, credentials) => {
       path: 'courseCreditNote',
       options: {
         isVendorUser: [TRAINING_ORGANISATION_MANAGER, VENDOR_ADMIN].includes(get(credentials, 'role.vendor.name')),
-        requestingOwnInfos: UtilsHelper.areObjectIdsEquals(company, get(credentials, 'company._id')),
+        requestingOwnInfos: UtilsHelper.hasUserAccessToCompany(credentials, company),
       },
     })
     .populate({
       path: 'coursePayments',
       options: {
         isVendorUser: [TRAINING_ORGANISATION_MANAGER, VENDOR_ADMIN].includes(get(credentials, 'role.vendor.name')),
-        requestingOwnInfos: UtilsHelper.areObjectIdsEquals(company, get(credentials, 'company._id')),
+        requestingOwnInfos: UtilsHelper.hasUserAccessToCompany(credentials, company),
       },
     })
     .setOptions({
       isVendorUser: [TRAINING_ORGANISATION_MANAGER, VENDOR_ADMIN].includes(get(credentials, 'role.vendor.name')),
-      requestingOwnInfos: UtilsHelper.areObjectIdsEquals(company, get(credentials, 'company._id')),
+      requestingOwnInfos: UtilsHelper.hasUserAccessToCompany(credentials, company),
     })
     .lean();
 
@@ -170,7 +170,7 @@ const formatDataForPdf = (bill, vendorCompany) => {
 
 exports.generateBillPdf = async (billId, companies, credentials) => {
   const isVendorUser = [TRAINING_ORGANISATION_MANAGER, VENDOR_ADMIN].includes(get(credentials, 'role.vendor.name'));
-  const requestingOwnInfos = UtilsHelper.doesArrayIncludeId(companies, get(credentials, 'company._id'));
+  const requestingOwnInfos = companies.some(company => UtilsHelper.hasUserAccessToCompany(credentials, company));
 
   const vendorCompany = await VendorCompaniesHelper.get();
 

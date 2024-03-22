@@ -17,6 +17,7 @@ const {
   authorizeCompanyCreation,
   doesCompanyExist,
   authorizeGetCompanies,
+  authorizeGetCompany,
 } = require('./preHandlers/companies');
 const { addressValidation, formDataPayload } = require('./validations/utils');
 
@@ -145,7 +146,7 @@ exports.plugin = {
           params: Joi.object({ _id: Joi.objectId().required() }),
         },
         auth: { scope: ['companies:read'] },
-        pre: [{ method: doesCompanyExist }],
+        pre: [{ method: doesCompanyExist }, { method: authorizeGetCompany }],
       },
     });
   },

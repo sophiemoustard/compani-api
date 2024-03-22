@@ -300,6 +300,50 @@ describe('COMPANIES ROUTES - PUT /companies/:id', () => {
     });
   });
 
+  describe('HOLDING_ADMIN', () => {
+    beforeEach(populateDB);
+    beforeEach(async () => {
+      authToken = await getTokenByCredentials(holdingAdminFromOtherCompany.local);
+    });
+
+    it('should update company from holding', async () => {
+      const payload = { rhConfig: { phoneFeeAmount: 70 }, apeCode: '8110Z' };
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/companies/${companyWithoutSubscription._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload,
+      });
+
+      expect(response.statusCode).toBe(200);
+      expect(response.result.data.company).toMatchObject(payload);
+    });
+
+    it('should return 403 if company not in holding', async () => {
+      const payload = { name: 'Alenvi Alenvi' };
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/companies/${authCompany._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload,
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
+
+    it('should return 404 if billingRepresentative is from other company not in holding', async () => {
+      const payload = { name: 'Alenvi Alenvi', billingRepresentative: usersList[0]._id };
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/companies/${companyWithoutSubscription._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload,
+      });
+
+      expect(response.statusCode).toBe(404);
+    });
+  });
+
   describe('Other roles', () => {
     const roles = [
       { name: 'helper', expectedCode: 403 },
@@ -667,11 +711,65 @@ describe('COMPANIES ROUTES - GET /companies/:id', () => {
     });
   });
 
+  describe('CLIENT_ADMIN', () => {
+    beforeEach(populateDB);
+    beforeEach(async () => {
+      authToken = await getToken('client_admin');
+    });
+
+    it('should return company', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/companies/${authCompany._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(200);
+    });
+
+    it('should return 403 if other company', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/companies/${otherCompany._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
+  });
+
+  describe('HOLDING_ADMIN', () => {
+    beforeEach(populateDB);
+    beforeEach(async () => {
+      authToken = await getTokenByCredentials(holdingAdminFromOtherCompany.local);
+    });
+
+    it('should return company from holding', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/companies/${companyWithoutSubscription._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(200);
+    });
+
+    it('should return 403 if company not in holding', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/companies/${authCompany._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
+  });
+
   describe('Other roles', () => {
     const roles = [
       { name: 'helper', expectedCode: 403 },
       { name: 'planning_referent', expectedCode: 403 },
-      { name: 'client_admin', expectedCode: 403 },
+      { name: 'coach', expectedCode: 403 },
       { name: 'trainer', expectedCode: 403 },
     ];
 
