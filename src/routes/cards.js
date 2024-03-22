@@ -18,12 +18,7 @@ const {
   authorizeCardAnswerDeletion,
   getCardMediaPublicId,
 } = require('./preHandlers/cards');
-const {
-  SURVEY_LABEL_MAX_LENGTH,
-  QC_ANSWER_MAX_LENGTH,
-  QUESTION_MAX_LENGTH,
-  FLASHCARD_TEXT_MAX_LENGTH,
-} = require('../helpers/constants');
+const { QC_ANSWER_MAX_LENGTH, QUESTION_MAX_LENGTH, FLASHCARD_TEXT_MAX_LENGTH } = require('../helpers/constants');
 
 exports.plugin = {
   name: 'routes-cards',
@@ -49,8 +44,11 @@ exports.plugin = {
             isQuestionAnswerMultipleChoiced: Joi.boolean(),
             explanation: Joi.string(),
             labels: Joi.object().keys({
-              1: Joi.string().allow('', null).max(SURVEY_LABEL_MAX_LENGTH),
-              5: Joi.string().allow('', null).max(SURVEY_LABEL_MAX_LENGTH),
+              1: Joi.string().allow(''),
+              2: Joi.string().allow('', null),
+              3: Joi.string().allow('', null),
+              4: Joi.string().allow('', null),
+              5: Joi.string().allow(''),
             }),
             canSwitchAnswers: Joi.boolean(),
             isMandatory: Joi.boolean(),

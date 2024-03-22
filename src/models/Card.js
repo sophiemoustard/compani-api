@@ -73,6 +73,9 @@ const CardSchema = mongoose.Schema({
   },
   labels: mongoose.Schema({
     1: { type: String },
+    2: { type: String },
+    3: { type: String },
+    4: { type: String },
     5: { type: String },
   }, { default: undefined, _id: false, id: false }),
 }, {
@@ -122,7 +125,7 @@ function save(next) {
 }
 
 function setIsValid() {
-  const validation = cardValidationByTemplate(this.template).validate(this, { allowUnknown: true });
+  const validation = cardValidationByTemplate(this.template, this.labels).validate(this, { allowUnknown: true });
   return !validation.error;
 }
 
