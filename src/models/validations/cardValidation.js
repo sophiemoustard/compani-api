@@ -22,7 +22,6 @@ const {
   ORDER_THE_SEQUENCE_MAX_ANSWERS_COUNT,
   QUESTION_ANSWER_MIN_ANSWERS_COUNT,
   QUESTION_ANSWER_MAX_ANSWERS_COUNT,
-  SURVEY_LABEL_MAX_LENGTH,
   QC_ANSWER_MAX_LENGTH,
   QUESTION_MAX_LENGTH,
   GAP_ANSWER_MAX_LENGTH,
@@ -33,17 +32,14 @@ const labelsValidation = (labels) => {
   let validation;
 
   if (labels && Object.keys(labels).length === 2) {
-    validation = Joi.object().keys({
-      1: Joi.string().max(SURVEY_LABEL_MAX_LENGTH).required(),
-      5: Joi.string().max(SURVEY_LABEL_MAX_LENGTH).required(),
-    });
+    validation = Joi.object().keys({ 1: Joi.string().required(), 5: Joi.string().required() });
   } else {
     validation = Joi.object().keys({
-      1: Joi.string().max(SURVEY_LABEL_MAX_LENGTH).required(),
-      2: Joi.string().max(SURVEY_LABEL_MAX_LENGTH).required(),
-      3: Joi.string().max(SURVEY_LABEL_MAX_LENGTH).required(),
-      4: Joi.string().max(SURVEY_LABEL_MAX_LENGTH).required(),
-      5: Joi.string().max(SURVEY_LABEL_MAX_LENGTH).required(),
+      1: Joi.string().required(),
+      2: Joi.string().required(),
+      3: Joi.string().required(),
+      4: Joi.string().required(),
+      5: Joi.string().required(),
     });
   }
 
