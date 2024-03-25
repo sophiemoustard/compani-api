@@ -64,6 +64,7 @@ const subProgramsList = [
 const programsList = [
   { _id: new ObjectId(), name: 'test', subPrograms: [subProgramsList[0]._id] },
   { _id: new ObjectId(), name: 'program', subProgramsList: [subProgramsList[1]._id] },
+  { _id: new ObjectId(), name: 'third program', subProgramsList: [subProgramsList[0]._id] },
 ];
 
 const questionnairesList = [
@@ -109,7 +110,7 @@ const questionnairesList = [
     name: 'test draft self',
     status: DRAFT,
     type: SELF_POSITIONNING,
-    program: programsList[1]._id,
+    program: programsList[2]._id,
     cards: [cardsList[1]._id, cardsList[3]._id],
   },
 ];

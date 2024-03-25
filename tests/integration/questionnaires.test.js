@@ -52,7 +52,7 @@ describe('QUESTIONNAIRES ROUTES - POST /questionnaires', () => {
         method: 'POST',
         url: '/questionnaires',
         headers: { Cookie: `alenvi_token=${authToken}` },
-        payload: { name: 'nouveau questionnaire', type: SELF_POSITIONNING, program: programsList[0]._id },
+        payload: { name: 'nouveau questionnaire', type: SELF_POSITIONNING, program: programsList[1]._id },
       });
 
       expect(response.statusCode).toBe(200);
