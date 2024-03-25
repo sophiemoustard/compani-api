@@ -52,7 +52,7 @@ describe('QUESTIONNAIRES ROUTES - POST /questionnaires', () => {
         method: 'POST',
         url: '/questionnaires',
         headers: { Cookie: `alenvi_token=${authToken}` },
-        payload: { name: 'nouveau questionnaire', type: SELF_POSITIONNING, program: programsList[0]._id },
+        payload: { name: 'nouveau questionnaire', type: SELF_POSITIONNING, program: programsList[1]._id },
       });
 
       expect(response.statusCode).toBe(200);
@@ -544,6 +544,20 @@ describe('QUESTIONNAIRES ROUTES - PUT /questionnaires/{_id}', () => {
       expect(questionnairesCount).toBe(1);
     });
 
+    it('should update self_positionning questionnaire status', async () => {
+      const payload = { status: PUBLISHED };
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/questionnaires/${questionnairesList[5]._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload,
+      });
+
+      expect(response.statusCode).toBe(200);
+      const questionnairesCount = await Questionnaire.countDocuments({ _id: questionnairesList[5]._id, ...payload });
+      expect(questionnairesCount).toBe(1);
+    });
+
     it('should return 400 if questionnaire status is not PUBLISHED', async () => {
       await Questionnaire.deleteMany({ _id: questionnairesList[1]._id });
 
@@ -626,6 +640,18 @@ describe('QUESTIONNAIRES ROUTES - PUT /questionnaires/{_id}', () => {
       const response = await app.inject({
         method: 'PUT',
         url: `/questionnaires/${questionnairesList[0]._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload,
+      });
+
+      expect(response.statusCode).toBe(409);
+    });
+
+    it('should return 409 if self_positionning questionnaire with same program is already published', async () => {
+      const payload = { status: PUBLISHED };
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/questionnaires/${questionnairesList[4]._id}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
         payload,
       });
