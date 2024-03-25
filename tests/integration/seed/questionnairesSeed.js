@@ -61,7 +61,10 @@ const subProgramsList = [
   { _id: new ObjectId(), name: 'sous-programme 2', steps: [stepList[1]._id], status: PUBLISHED },
 ];
 
-const programsList = [{ _id: new ObjectId(), name: 'test', subPrograms: [subProgramsList[0]._id] }];
+const programsList = [
+  { _id: new ObjectId(), name: 'test', subPrograms: [subProgramsList[0]._id] },
+  { _id: new ObjectId(), name: 'program', subProgramsList: [subProgramsList[1]._id] },
+];
 
 const questionnairesList = [
   {
@@ -91,6 +94,22 @@ const questionnairesList = [
     status: PUBLISHED,
     type: SELF_POSITIONNING,
     program: programsList[0]._id,
+    cards: [cardsList[1]._id, cardsList[3]._id],
+  },
+  {
+    _id: new ObjectId(),
+    name: 'test draft self',
+    status: DRAFT,
+    type: SELF_POSITIONNING,
+    program: programsList[0]._id,
+    cards: [cardsList[1]._id, cardsList[3]._id],
+  },
+  {
+    _id: new ObjectId(),
+    name: 'test draft self',
+    status: DRAFT,
+    type: SELF_POSITIONNING,
+    program: programsList[1]._id,
     cards: [cardsList[1]._id, cardsList[3]._id],
   },
 ];

@@ -56,17 +56,19 @@ exports.authorizeUserQuestionnairesGet = async (req) => {
 
 exports.authorizeQuestionnaireEdit = async (req) => {
   const questionnaire = await Questionnaire
-    .findOne({ _id: req.params._id }, { status: 1, type: 1 })
+    .findOne({ _id: req.params._id }, { status: 1, type: 1, program: 1 })
     .populate({ path: 'cards', select: '-__v -createdAt -updatedAt' })
     .lean({ virtuals: true });
-
   if (!questionnaire) throw Boom.notFound();
 
   if (questionnaire.status === PUBLISHED && !req.payload.name) throw Boom.forbidden();
 
-  const publishedQuestionnaireWithSameTypeExists = await Questionnaire.countDocuments(
-    { type: questionnaire.type, status: PUBLISHED }
-  );
+  const questionnaireQuery = {
+    type: questionnaire.type,
+    status: PUBLISHED,
+    ...(questionnaire.program && { program: questionnaire.program }),
+  };
+  const publishedQuestionnaireWithSameTypeExists = await Questionnaire.countDocuments(questionnaireQuery);
   if (req.payload.status === PUBLISHED && publishedQuestionnaireWithSameTypeExists) {
     throw Boom.conflict(translate[language].publishedQuestionnaireWithSameTypeExists);
   }
