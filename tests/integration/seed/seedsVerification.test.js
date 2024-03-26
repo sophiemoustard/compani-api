@@ -94,6 +94,7 @@ const {
   END_OF_COURSE,
   INTRA_HOLDING,
   GROUP,
+  SELF_POSITIONNING,
 } = require('../../../src/helpers/constants');
 const attendancesSeed = require('./attendancesSeed');
 const activitiesSeed = require('./activitiesSeed');
@@ -2036,6 +2037,14 @@ describe('SEEDS VERIFICATION', () => {
               )
             );
           expect(everyTraineeIsRegisteredToCourseWithCompany).toBeTruthy();
+        });
+
+        it('should pass if timeline is defined for every SELF_POSITIONNING questionnaire', () => {
+          const everySelfPositionningHistoryHasTimeline = questionnaireHistoryList
+            .filter(qh => qh.questionnaire.type === SELF_POSITIONNING)
+            .every(qh => qh.timeline);
+
+          expect(everySelfPositionningHistoryHasTimeline).toBeTruthy();
         });
       });
 
