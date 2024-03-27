@@ -5,10 +5,18 @@ const app = require('../../server');
 const Questionnaire = require('../../src/models/Questionnaire');
 const Card = require('../../src/models/Card');
 const UtilsHelper = require('../../src/helpers/utils');
-const { populateDB, questionnairesList, cardsList, coursesList } = require('./seed/questionnairesSeed');
+const { populateDB, questionnairesList, cardsList, coursesList, programsList } = require('./seed/questionnairesSeed');
 const { getToken, getTokenByCredentials } = require('./helpers/authentication');
 const { noRoleNoCompany } = require('../seed/authUsersSeed');
-const { SURVEY, PUBLISHED, DRAFT, FLASHCARD, EXPECTATIONS, END_OF_COURSE } = require('../../src/helpers/constants');
+const {
+  SURVEY,
+  PUBLISHED,
+  DRAFT,
+  FLASHCARD,
+  EXPECTATIONS,
+  END_OF_COURSE,
+  SELF_POSITIONNING,
+} = require('../../src/helpers/constants');
 const { companyWithoutSubscription, authCompany } = require('../seed/authCompaniesSeed');
 
 describe('NODE ENV', () => {
@@ -31,7 +39,20 @@ describe('QUESTIONNAIRES ROUTES - POST /questionnaires', () => {
         method: 'POST',
         url: '/questionnaires',
         headers: { Cookie: `alenvi_token=${authToken}` },
-        payload: { name: 'test', type: 'end_of_course' },
+        payload: { name: 'test', type: END_OF_COURSE },
+      });
+
+      expect(response.statusCode).toBe(200);
+      const questionnairesCount = await Questionnaire.countDocuments();
+      expect(questionnairesCount).toBe(questionnairesList.length + 1);
+    });
+
+    it('should create self-positionning questionnaire', async () => {
+      const response = await app.inject({
+        method: 'POST',
+        url: '/questionnaires',
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload: { name: 'nouveau questionnaire', type: SELF_POSITIONNING, program: programsList[1]._id },
       });
 
       expect(response.statusCode).toBe(200);
@@ -44,7 +65,7 @@ describe('QUESTIONNAIRES ROUTES - POST /questionnaires', () => {
         method: 'POST',
         url: '/questionnaires',
         headers: { Cookie: `alenvi_token=${authToken}` },
-        payload: { name: '', type: 'expectations' },
+        payload: { name: '', type: EXPECTATIONS },
       });
 
       expect(response.statusCode).toBe(400);
@@ -61,15 +82,37 @@ describe('QUESTIONNAIRES ROUTES - POST /questionnaires', () => {
       expect(response.statusCode).toBe(400);
     });
 
+    it('should return 400 if set program on end_of_course questionnaire', async () => {
+      const response = await app.inject({
+        method: 'POST',
+        url: '/questionnaires',
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload: { name: 'test', type: END_OF_COURSE, program: programsList[0]._id },
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
+
     it('should return 409 if already exists a draft questionnaire with same type', async () => {
       const response = await app.inject({
         method: 'POST',
         url: '/questionnaires',
         headers: { Cookie: `alenvi_token=${authToken}` },
-        payload: { name: 'test', type: 'expectations' },
+        payload: { name: 'test', type: EXPECTATIONS },
       });
 
       expect(response.statusCode).toBe(409);
+    });
+
+    it('should return 404 if program doesn\'t exist', async () => {
+      const response = await app.inject({
+        method: 'POST',
+        url: '/questionnaires',
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload: { name: 'test auto-positionnement', type: SELF_POSITIONNING, program: new ObjectId() },
+      });
+
+      expect(response.statusCode).toBe(404);
     });
   });
 
@@ -88,7 +131,7 @@ describe('QUESTIONNAIRES ROUTES - POST /questionnaires', () => {
           method: 'POST',
           url: '/questionnaires',
           headers: { Cookie: `alenvi_token=${authToken}` },
-          payload: { name: 'test', type: 'expectations' },
+          payload: { name: 'test', type: EXPECTATIONS },
         });
 
         expect(response.statusCode).toBe(role.expectedCode);
@@ -125,7 +168,17 @@ describe('QUESTIONNAIRES ROUTES - GET /questionnaires', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      expect(response.result.data.questionnaires.length).toEqual(2);
+      expect(response.result.data.questionnaires.length).toEqual(3);
+    });
+
+    it('should return 404 if program doesn\'t exist', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/questionnaires?program=${new ObjectId()}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(404);
     });
   });
 
@@ -491,6 +544,20 @@ describe('QUESTIONNAIRES ROUTES - PUT /questionnaires/{_id}', () => {
       expect(questionnairesCount).toBe(1);
     });
 
+    it('should update self_positionning questionnaire status', async () => {
+      const payload = { status: PUBLISHED };
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/questionnaires/${questionnairesList[5]._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload,
+      });
+
+      expect(response.statusCode).toBe(200);
+      const questionnairesCount = await Questionnaire.countDocuments({ _id: questionnairesList[5]._id, ...payload });
+      expect(questionnairesCount).toBe(1);
+    });
+
     it('should return 400 if questionnaire status is not PUBLISHED', async () => {
       await Questionnaire.deleteMany({ _id: questionnairesList[1]._id });
 
@@ -573,6 +640,18 @@ describe('QUESTIONNAIRES ROUTES - PUT /questionnaires/{_id}', () => {
       const response = await app.inject({
         method: 'PUT',
         url: `/questionnaires/${questionnairesList[0]._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload,
+      });
+
+      expect(response.statusCode).toBe(409);
+    });
+
+    it('should return 409 if self_positionning questionnaire with same program is already published', async () => {
+      const payload = { status: PUBLISHED };
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/questionnaires/${questionnairesList[4]._id}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
         payload,
       });

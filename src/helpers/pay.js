@@ -1,4 +1,3 @@
-const cloneDeep = require('lodash/cloneDeep');
 const get = require('lodash/get');
 const Boom = require('@hapi/boom');
 const moment = require('moment');
@@ -7,7 +6,6 @@ const FinalPay = require('../models/FinalPay');
 const User = require('../models/User');
 const DraftPayHelper = require('./draftPay');
 const DraftFinalPayHelper = require('./draftFinalPay');
-const ContractHelper = require('./contracts');
 const UtilsHelper = require('./utils');
 const SectorHistoryRepository = require('../repositories/SectorHistoryRepository');
 const SectorHistory = require('./sectorHistories');
@@ -19,31 +17,6 @@ exports.formatSurchargeDetail = (detail) => {
   }
 
   return surchargeDetail;
-};
-
-exports.formatPay = (draftPay, companyId) => {
-  const payload = { ...cloneDeep(draftPay), company: companyId };
-  const keys = ['surchargedAndNotExemptDetails', 'surchargedAndExemptDetails'];
-  for (const key of keys) {
-    if (draftPay[key]) {
-      payload[key] = exports.formatSurchargeDetail(draftPay[key]);
-    }
-    if (draftPay.diff && draftPay.diff[key]) {
-      payload.diff[key] = exports.formatSurchargeDetail(draftPay.diff[key]);
-    }
-  }
-
-  return payload;
-};
-
-exports.createPayList = async (payToCreate, credentials) => {
-  const list = [];
-  const companyId = get(credentials, 'company._id', null);
-  for (const pay of payToCreate) {
-    list.push(new Pay(exports.formatPay(pay, companyId)));
-  }
-
-  await Pay.insertMany(list);
 };
 
 exports.getContract = (contracts, startDate, endDate) => contracts.find((cont) => {
@@ -115,69 +88,4 @@ exports.hoursBalanceDetailBySector = async (sector, startDate, endDate, credenti
   }
 
   return result;
-};
-
-const updateVersionsWithSectorDates = (version, sector) => {
-  const returnedVersion = {
-    ...version,
-    startDate: moment.max(moment(sector.startDate), moment(version.startDate)).startOf('d').toDate(),
-  };
-
-  if (version.endDate && sector.endDate) {
-    returnedVersion.endDate = moment.min(moment(sector.endDate), moment(version.endDate)).endOf('d').toDate();
-  } else if (sector.endDate) returnedVersion.endDate = moment(sector.endDate).endOf('d').toDate();
-
-  return returnedVersion;
-};
-
-exports.computeHoursToWork = (month, contracts, shouldPayHolidays) => {
-  const contractsInfoSum = { contractHours: 0, holidaysHours: 0, absencesHours: 0 };
-
-  for (const contract of contracts) {
-    const contractQuery = {
-      startDate: moment.max(moment(month, 'MMYYYY').startOf('M'), moment(contract.sector.startDate)).toDate(),
-      endDate: contract.sector.endDate
-        ? moment.min(moment(month, 'MMYYYY').endOf('M'), moment(contract.sector.endDate)).toDate()
-        : moment(month, 'MMYYYY').endOf('M').toDate(),
-    };
-
-    let versions = ContractHelper.getMatchingVersionsList(contract.versions || [], contractQuery);
-    versions = versions.map(version => updateVersionsWithSectorDates(version, contract.sector));
-    const contractWithSectorDates = { ...contract, versions };
-
-    const contractInfo = DraftPayHelper.getContractMonthInfo(contractWithSectorDates, contractQuery, shouldPayHolidays);
-    contractsInfoSum.contractHours += contractInfo.contractHours;
-    contractsInfoSum.holidaysHours += contractInfo.holidaysHours;
-
-    if (contractWithSectorDates.absences.length) {
-      contractsInfoSum.absencesHours += DraftPayHelper.getPayFromAbsences(
-        contractWithSectorDates.absences,
-        contractWithSectorDates,
-        contractQuery
-      );
-    }
-  }
-
-  return Math.max(contractsInfoSum.contractHours - contractsInfoSum.holidaysHours - contractsInfoSum.absencesHours, 0);
-};
-
-exports.getHoursToWorkBySector = async (query, credentials) => {
-  const hoursToWorkBySector = [];
-  const sectors = UtilsHelper.formatObjectIdsArray(query.sector);
-  const shouldPayHolidays = get(credentials, 'company.rhConfig.shouldPayHolidays');
-
-  const contractsAndAbsencesBySector = await SectorHistoryRepository.getContractsAndAbsencesBySector(
-    query.month,
-    sectors,
-    get(credentials, 'company._id', null)
-  );
-
-  for (const sector of contractsAndAbsencesBySector) {
-    hoursToWorkBySector.push({
-      sector: sector._id,
-      hoursToWork: exports.computeHoursToWork(query.month, sector.contracts, shouldPayHolidays),
-    });
-  }
-
-  return hoursToWorkBySector;
 };

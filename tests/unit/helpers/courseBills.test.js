@@ -140,7 +140,7 @@ describe('list', () => {
     );
   });
 
-  it('should return all company bills (with credit note)', async () => {
+  it('should return all company bills (with credit note) (vendor role)', async () => {
     const companyId = new ObjectId();
     const courseId = new ObjectId();
     const course = {
@@ -234,7 +234,7 @@ describe('list', () => {
             options: {
               isVendorUser: [TRAINING_ORGANISATION_MANAGER, VENDOR_ADMIN]
                 .includes(get(credentials, 'role.vendor.name')),
-              requestingOwnInfos: UtilsHelper.areObjectIdsEquals(companyId, credentials.company._id),
+              requestingOwnInfos: UtilsHelper.hasUserAccessToCompany(credentials, companyId),
             },
           }],
         },
@@ -245,7 +245,7 @@ describe('list', () => {
             options: {
               isVendorUser: [TRAINING_ORGANISATION_MANAGER, VENDOR_ADMIN]
                 .includes(get(credentials, 'role.vendor.name')),
-              requestingOwnInfos: UtilsHelper.areObjectIdsEquals(companyId, credentials.company._id),
+              requestingOwnInfos: UtilsHelper.hasUserAccessToCompany(credentials, companyId),
             },
           }],
         },
@@ -253,7 +253,7 @@ describe('list', () => {
           query: 'setOptions',
           args: [{
             isVendorUser: [TRAINING_ORGANISATION_MANAGER, VENDOR_ADMIN].includes(get(credentials, 'role.vendor.name')),
-            requestingOwnInfos: UtilsHelper.areObjectIdsEquals(companyId, credentials.company._id),
+            requestingOwnInfos: UtilsHelper.hasUserAccessToCompany(credentials, companyId),
           }],
         },
         { query: 'lean' },
@@ -261,8 +261,9 @@ describe('list', () => {
     );
   });
 
-  it('should return all company bills (without credit note)', async () => {
+  it('should return all company bills (without credit note) (holding role)', async () => {
     const companyId = new ObjectId();
+    const otherCompanyId = new ObjectId();
     const courseId = new ObjectId();
     const course = {
       _id: courseId,
@@ -272,12 +273,19 @@ describe('list', () => {
       slotsToPlan: [],
     };
 
-    const credentials = { role: { vendor: { name: 'vendor_admin' } }, company: { _id: companyId } };
+    const credentials = {
+      role: {
+        client: { name: 'client_admin' },
+        holding: { name: 'holding_admin' },
+      },
+      company: { _id: companyId },
+      holding: { companies: [companyId, otherCompanyId] },
+    };
     const billingItemList = [{ _id: new ObjectId(), name: 'article 1' }, { _id: new ObjectId(), name: 'article 2' }];
     const courseBills = [
       {
         course,
-        company: companyId,
+        company: otherCompanyId,
         mainFee: { price: 120, count: 2 },
         payer: { company: companyId },
         billingPurchaseList: [
@@ -296,7 +304,7 @@ describe('list', () => {
 
     find.returns(SinonMongoose.stubChainedQueries(courseBills, ['populate', 'setOptions', 'lean']));
 
-    const result = await CourseBillHelper.list({ company: companyId, action: BALANCE }, credentials);
+    const result = await CourseBillHelper.list({ company: otherCompanyId, action: BALANCE }, credentials);
 
     expect(result).toEqual([{
       course: {
@@ -304,7 +312,7 @@ describe('list', () => {
         misc: 'group 1',
         subProgram: { program: { name: 'program 1' } },
       },
-      company: companyId,
+      company: otherCompanyId,
       mainFee: { price: 120, count: 2 },
       payer: { company: companyId },
       billingPurchaseList: [
@@ -329,7 +337,7 @@ describe('list', () => {
         {
           query: 'find',
           args: [{
-            $or: [{ companies: companyId }, { 'payer.company': companyId }],
+            $or: [{ companies: otherCompanyId }, { 'payer.company': otherCompanyId }],
             billedAt: { $exists: true, $type: 'date' },
           }],
         },
@@ -355,7 +363,7 @@ describe('list', () => {
             options: {
               isVendorUser: [TRAINING_ORGANISATION_MANAGER, VENDOR_ADMIN]
                 .includes(get(credentials, 'role.vendor.name')),
-              requestingOwnInfos: UtilsHelper.areObjectIdsEquals(companyId, credentials.company._id),
+              requestingOwnInfos: UtilsHelper.hasUserAccessToCompany(credentials, companyId),
             },
           }],
         },
@@ -366,7 +374,7 @@ describe('list', () => {
             options: {
               isVendorUser: [TRAINING_ORGANISATION_MANAGER, VENDOR_ADMIN]
                 .includes(get(credentials, 'role.vendor.name')),
-              requestingOwnInfos: UtilsHelper.areObjectIdsEquals(companyId, credentials.company._id),
+              requestingOwnInfos: UtilsHelper.hasUserAccessToCompany(credentials, companyId),
             },
           }],
         },
@@ -374,7 +382,7 @@ describe('list', () => {
           query: 'setOptions',
           args: [{
             isVendorUser: [TRAINING_ORGANISATION_MANAGER, VENDOR_ADMIN].includes(get(credentials, 'role.vendor.name')),
-            requestingOwnInfos: UtilsHelper.areObjectIdsEquals(companyId, credentials.company._id),
+            requestingOwnInfos: UtilsHelper.hasUserAccessToCompany(credentials, companyId),
           }],
         },
         { query: 'lean' },

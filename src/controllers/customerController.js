@@ -221,24 +221,6 @@ const updateMandate = async (req) => {
   }
 };
 
-const getMandateSignatureRequest = async (req) => {
-  try {
-    const signatureRequest = await MandatesHelper.getSignatureRequest(
-      req.params._id,
-      req.params.mandateId,
-      req.payload
-    );
-
-    return {
-      message: translate[language].signatureRequestCreated,
-      data: { signatureRequest },
-    };
-  } catch (e) {
-    req.log('error', e);
-    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
-  }
-};
-
 const getCustomerQuotes = async (req) => {
   try {
     const customer = await QuoteHelper.getQuotes(req.params._id);
@@ -287,34 +269,6 @@ const deleteCertificates = async (req) => {
     await CustomerHelper.deleteCertificates(req.params._id, req.payload.driveId);
 
     return { message: translate[language].customerFinancialCertificateRemoved };
-  } catch (e) {
-    req.log('error', e);
-    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
-  }
-};
-
-const saveSignedMandate = async (req) => {
-  try {
-    const customer = await MandatesHelper.saveSignedMandate(req.params._id, req.params.mandateId);
-
-    return {
-      message: translate[language].signedDocumentSaved,
-      data: { customer },
-    };
-  } catch (e) {
-    req.log('error', e);
-    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
-  }
-};
-
-const createHistorySubscription = async (req) => {
-  try {
-    const customer = await SubscriptionHelper.createSubscriptionHistory(req.params._id, req.payload);
-
-    return {
-      message: translate[language].customerSubscriptionHistoryAdded,
-      data: { customer },
-    };
   } catch (e) {
     req.log('error', e);
     return Boom.isBoom(e) ? e : Boom.badImplementation(e);
@@ -396,9 +350,6 @@ module.exports = {
   createCustomerQuote,
   uploadFile,
   deleteCertificates,
-  getMandateSignatureRequest,
-  saveSignedMandate,
-  createHistorySubscription,
   createFunding,
   updateFunding,
   deleteFunding,

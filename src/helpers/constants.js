@@ -417,7 +417,6 @@ module.exports = {
   ORDER_THE_SEQUENCE_MAX_ANSWERS_COUNT: 3,
   QUESTION_ANSWER_MAX_ANSWERS_COUNT: 4,
   QUESTION_ANSWER_MIN_ANSWERS_COUNT: 2,
-  SURVEY_LABEL_MAX_LENGTH: 25,
   QC_ANSWER_MAX_LENGTH: 70,
   QUESTION_MAX_LENGTH: 170,
   GAP_ANSWER_MAX_LENGTH: 15,
@@ -441,6 +440,7 @@ module.exports = {
   // QUESTIONNAIRE_TYPES
   EXPECTATIONS: 'expectations',
   END_OF_COURSE: 'end_of_course',
+  SELF_POSITIONNING: 'self_positionning',
   // tests end2end
   PLANNING: 'planning',
   AUTHENTICATION: 'authentication',

@@ -7,7 +7,6 @@ const {
   update,
   uploadFile,
   create,
-  getFirstIntervention,
   list,
   show,
 } = require('../controllers/companyController');
@@ -18,6 +17,7 @@ const {
   authorizeCompanyCreation,
   doesCompanyExist,
   authorizeGetCompanies,
+  authorizeGetCompany,
 } = require('./preHandlers/companies');
 const { addressValidation, formDataPayload } = require('./validations/utils');
 
@@ -123,15 +123,6 @@ exports.plugin = {
 
     server.route({
       method: 'GET',
-      path: '/first-intervention',
-      handler: getFirstIntervention,
-      options: {
-        auth: { scope: ['events:read'] },
-      },
-    });
-
-    server.route({
-      method: 'GET',
       path: '/',
       handler: list,
       options: {
@@ -155,7 +146,7 @@ exports.plugin = {
           params: Joi.object({ _id: Joi.objectId().required() }),
         },
         auth: { scope: ['companies:read'] },
-        pre: [{ method: doesCompanyExist }],
+        pre: [{ method: doesCompanyExist }, { method: authorizeGetCompany }],
       },
     });
   },

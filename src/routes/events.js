@@ -11,8 +11,6 @@ const {
   deleteList,
   listForCreditNotes,
   getWorkingStats,
-  getPaidTransportStatsBySector,
-  getUnassignedHoursBySector,
   timeStampEvent,
 } = require('../controllers/eventController');
 const {
@@ -51,7 +49,6 @@ const {
   authorizeTimeStamping,
 } = require('./preHandlers/events');
 const {
-  monthValidation,
   addressValidation,
   objectIdOrArray,
   requiredDateToISOString,
@@ -153,19 +150,6 @@ exports.plugin = {
         },
         pre: [{ method: authorizeEventGet }],
       },
-    });
-
-    server.route({
-      method: 'GET',
-      path: '/paid-transport',
-      options: {
-        auth: { scope: ['events:read'] },
-        validate: {
-          query: Joi.object().keys({ sector: objectIdOrArray.required(), month: monthValidation.required() }),
-        },
-        pre: [{ method: authorizeEventGet }],
-      },
-      handler: getPaidTransportStatsBySector,
     });
 
     server.route({
@@ -277,19 +261,6 @@ exports.plugin = {
         pre: [{ method: authorizeEventDeletionList }],
       },
       handler: deleteList,
-    });
-
-    server.route({
-      method: 'GET',
-      path: '/unassigned-hours',
-      options: {
-        auth: { scope: ['events:read'] },
-        validate: {
-          query: Joi.object().keys({ sector: objectIdOrArray.required(), month: monthValidation.required() }),
-        },
-        pre: [{ method: authorizeEventGet }],
-      },
-      handler: getUnassignedHoursBySector,
     });
 
     server.route({

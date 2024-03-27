@@ -3,7 +3,6 @@ const get = require('lodash/get');
 const Company = require('../models/Company');
 const Surcharge = require('../models/Surcharge');
 const DistanceMatrix = require('../models/DistanceMatrix');
-const ContractRepository = require('../repositories/ContractRepository');
 const EventRepository = require('../repositories/EventRepository');
 const DraftPayHelper = require('./draftPay');
 const UtilsHelper = require('./utils');
@@ -70,22 +69,4 @@ exports.computeDraftFinalPay = async (auxiliaries, query, credentials) => {
   }
 
   return draftFinalPay;
-};
-
-exports.getDraftFinalPay = async (query, credentials) => {
-  const startDate = moment(query.startDate).startOf('d').toDate();
-  const endDate = moment(query.endDate).endOf('d').toDate();
-
-  const contractRules = {
-    endDate: {
-      $exists: true,
-      $lte: moment(query.endDate).endOf('d').toDate(),
-      $gte: moment(query.startDate).startOf('d').toDate(),
-    },
-  };
-  const companyId = get(credentials, 'company._id', null);
-  const auxiliaries = await ContractRepository.getAuxiliariesToPay(contractRules, endDate, 'finalpays', companyId);
-  if (auxiliaries.length === 0) return [];
-
-  return exports.computeDraftFinalPay(auxiliaries, { startDate, endDate }, credentials);
 };

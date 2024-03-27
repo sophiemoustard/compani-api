@@ -43,22 +43,6 @@ exports.getCustomerFundingsMonitoring = async (req) => {
   }
 };
 
-exports.getAllCustomersFundingsMonitoring = async (req) => {
-  try {
-    req.log('statController - getAllCustomersFundingsMonitoring - company', get(req, 'auth.credentials.company._id'));
-
-    const allCustomersFundingsMonitoring = await StatsHelper.getAllCustomersFundingsMonitoring(req.auth.credentials);
-
-    return {
-      message: messages.statsFound,
-      data: { allCustomersFundingsMonitoring },
-    };
-  } catch (e) {
-    req.log('error', e);
-    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
-  }
-};
-
 exports.getPaidInterventionStats = async (req) => {
   try {
     req.log('statController - getPaidInterventionStats - query', req.query);
@@ -69,40 +53,6 @@ exports.getPaidInterventionStats = async (req) => {
     return {
       message: messages.statsFound,
       data: { paidInterventionStats },
-    };
-  } catch (e) {
-    req.log('error', e);
-    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
-  }
-};
-
-exports.getCustomersAndDurationBySector = async (req) => {
-  try {
-    req.log('statController - getCustomersAndDurationBySector - query', req.query);
-    req.log('statController - getCustomersAndDurationBySector - company', get(req, 'auth.credentials.company._id'));
-
-    const customersAndDuration = await StatsHelper.getCustomersAndDurationBySector(req.query, req.auth.credentials);
-
-    return {
-      message: messages.statsFound,
-      data: { customersAndDuration },
-    };
-  } catch (e) {
-    req.log('error', e);
-    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
-  }
-};
-
-exports.getIntenalAndBilledHoursBySector = async (req) => {
-  try {
-    req.log('statController - getIntenalAndBilledHoursBySector - query', req.query);
-    req.log('statController - getIntenalAndBilledHoursBySector - company', get(req, 'auth.credentials.company._id'));
-
-    const internalAndBilledHours = await StatsHelper.getIntenalAndBilledHoursBySector(req.query, req.auth.credentials);
-
-    return {
-      message: messages.statsFound,
-      data: { internalAndBilledHours },
     };
   } catch (e) {
     req.log('error', e);

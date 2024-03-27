@@ -58,7 +58,9 @@ describe('validate', () => {
   });
 
   it('should authenticate user with company without erp subscription and with holding role', async () => {
-    const holding = { _id: new ObjectId(), companies: [new ObjectId(), new ObjectId()] };
+    const companyId = new ObjectId();
+    const otherCompanyId = new ObjectId();
+    const holding = { _id: new ObjectId(), companies: [companyId, otherCompanyId] };
     const userId = new ObjectId();
     const sectorId = new ObjectId();
     const user = {
@@ -69,7 +71,7 @@ describe('validate', () => {
         vendor: { name: 'vendor_admin', interface: 'vendor' },
         holding: { name: 'holding_admin', interface: 'holding' },
       },
-      company: { _id: 'company', subscriptions: { erp: false } },
+      company: { _id: companyId, subscriptions: { erp: false } },
       holding,
       local: { email: 'email@email.com' },
       sector: sectorId,
@@ -85,7 +87,7 @@ describe('validate', () => {
         _id: userId,
         identity: { lastname: 'lastname' },
         email: 'email@email.com',
-        company: { _id: 'company', subscriptions: { erp: false } },
+        company: { _id: companyId, subscriptions: { erp: false } },
         holding,
         sector: sectorId.toHexString(),
         scope: [
@@ -95,6 +97,7 @@ describe('validate', () => {
           'vendor_admin',
           'holding_admin',
           'attendances:read',
+          'companies:read',
           'companylinkrequests:edit',
           'vendorcompanies:read',
           'coursebills:read',
@@ -110,7 +113,6 @@ describe('validate', () => {
           'attendances:edit',
           'companies:create',
           'companies:edit',
-          'companies:read',
           'vendorcompanies:edit',
           'coursebills:edit',
           'courses:create',
@@ -123,7 +125,8 @@ describe('validate', () => {
           'questionnaires:read',
           'trainermissions:edit',
           'trainermissions:read',
-          `company-${user.company._id}`,
+          `company-${companyId}`,
+          `company-${otherCompanyId}`,
         ],
         role: {
           client: { name: 'client_admin' },
@@ -179,6 +182,7 @@ describe('validate', () => {
           'attendances:read',
           'bills:edit',
           'bills:read',
+          'companies:read',
           'companylinkrequests:edit',
           'config:edit',
           'config:read',
@@ -202,10 +206,8 @@ describe('validate', () => {
           'helpers:list',
           'helpers:edit',
           'pay:edit',
-          'pay:read',
           'paydocuments:edit',
           'payments:edit',
-          'partnerorganizations:edit',
           'partners:read',
           'partners:edit',
           'roles:read',
@@ -381,9 +383,7 @@ describe('validate', () => {
           'exports:read',
           'helpers:list',
           'helpers:edit',
-          'pay:read',
           'paydocuments:edit',
-          'partnerorganizations:edit',
           'partners:read',
           'partners:edit',
           'roles:read',

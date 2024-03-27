@@ -764,60 +764,6 @@ describe('CONTRACTS ROUTES - DELETE contracts/:id/versions/:versionId', () => {
   });
 });
 
-describe('CONTRACTS ROUTES - GET contracts/staff-register', () => {
-  let authToken;
-  beforeEach(populateDB);
-  beforeEach(async () => {
-    authToken = await getToken('client_admin');
-  });
-
-  describe('COACH', () => {
-    beforeEach(async () => {
-      authToken = await getToken('coach');
-    });
-
-    it('should return staff-register list', async () => {
-      const response = await app.inject({
-        method: 'GET',
-        url: '/contracts/staff-register',
-        headers: { Cookie: `alenvi_token=${authToken}` },
-      });
-
-      expect(response.statusCode).toBe(200);
-      expect(response.result.data.staffRegister.length).toEqual(contractsList.length);
-      expect(response.result.data.staffRegister[0]).toEqual(expect.objectContaining({
-        _id: expect.any(ObjectId),
-        serialNumber: expect.any(String),
-        user: expect.objectContaining({ _id: expect.any(ObjectId) }),
-        startDate: expect.any(Date),
-        company: expect.any(ObjectId),
-        versions: expect.any(Array),
-      }));
-    });
-  });
-
-  describe('Other roles', () => {
-    const roles = [
-      { name: 'vendor_admin', expectedCode: 403 },
-      { name: 'planning_referent', expectedCode: 403 },
-      { name: 'helper', expectedCode: 403 },
-    ];
-
-    roles.forEach((role) => {
-      it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
-        authToken = await getToken(role.name);
-        const response = await app.inject({
-          method: 'GET',
-          url: '/contracts/staff-register',
-          headers: { Cookie: `alenvi_token=${authToken}` },
-        });
-
-        expect(response.statusCode).toBe(role.expectedCode);
-      });
-    });
-  });
-});
-
 describe('CONTRACTS ROUTES - GET /{_id}/gdrive/{driveId}/upload', () => {
   const fakeDriveId = 'fakeDriveId';
   let addStub;

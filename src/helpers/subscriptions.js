@@ -102,9 +102,3 @@ exports.deleteSubscription = async (customerId, subscriptionId) => {
     { $pull: { subscriptions: { _id: subscriptionId } }, $set: { subscriptionsHistory } }
   );
 };
-
-exports.createSubscriptionHistory = async (customerId, payload) => Customer.findOneAndUpdate(
-  { _id: customerId },
-  { $push: { subscriptionsHistory: payload } },
-  { new: true, select: { identity: 1, subscriptionsHistory: 1 }, autopopulate: false }
-).lean();

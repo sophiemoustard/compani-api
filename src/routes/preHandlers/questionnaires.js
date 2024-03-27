@@ -12,13 +12,22 @@ const translate = require('../../helpers/translate');
 const Questionnaire = require('../../models/Questionnaire');
 const Card = require('../../models/Card');
 const Course = require('../../models/Course');
+const Program = require('../../models/Program');
 
 const { language } = translate;
 
 exports.authorizeQuestionnaireCreation = async (req) => {
-  const { type } = req.payload;
-  const draftQuestionnaires = await Questionnaire.countDocuments({ type, status: DRAFT });
+  const { type, program: programId } = req.payload;
+  let query = { type, status: DRAFT };
 
+  if (programId) {
+    const program = await Program.countDocuments({ _id: programId });
+    if (!program) throw Boom.notFound();
+
+    query = { ...query, program: programId };
+  }
+
+  const draftQuestionnaires = await Questionnaire.countDocuments(query);
   if (draftQuestionnaires) throw Boom.conflict(translate[language].draftQuestionnaireAlreadyExists);
 
   return null;
@@ -47,17 +56,19 @@ exports.authorizeUserQuestionnairesGet = async (req) => {
 
 exports.authorizeQuestionnaireEdit = async (req) => {
   const questionnaire = await Questionnaire
-    .findOne({ _id: req.params._id }, { status: 1, type: 1 })
+    .findOne({ _id: req.params._id }, { status: 1, type: 1, program: 1 })
     .populate({ path: 'cards', select: '-__v -createdAt -updatedAt' })
     .lean({ virtuals: true });
-
   if (!questionnaire) throw Boom.notFound();
 
   if (questionnaire.status === PUBLISHED && !req.payload.name) throw Boom.forbidden();
 
-  const publishedQuestionnaireWithSameTypeExists = await Questionnaire.countDocuments(
-    { type: questionnaire.type, status: PUBLISHED }
-  );
+  const questionnaireQuery = {
+    type: questionnaire.type,
+    status: PUBLISHED,
+    ...(questionnaire.program && { program: questionnaire.program }),
+  };
+  const publishedQuestionnaireWithSameTypeExists = await Questionnaire.countDocuments(questionnaireQuery);
   if (req.payload.status === PUBLISHED && publishedQuestionnaireWithSameTypeExists) {
     throw Boom.conflict(translate[language].publishedQuestionnaireWithSameTypeExists);
   }
@@ -99,6 +110,16 @@ exports.authorizeQuestionnaireQRCodeGet = async (req) => {
     if (!course) throw Boom.notFound();
 
     if (!loggedUserVendorRole) throw Boom.forbidden();
+  }
+
+  return null;
+};
+
+exports.authorizeGetList = async (req) => {
+  const { program: programId } = req.query;
+  if (programId) {
+    const program = await Program.countDocuments({ _id: programId });
+    if (!program) throw Boom.notFound();
   }
 
   return null;

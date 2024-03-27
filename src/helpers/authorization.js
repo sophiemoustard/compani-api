@@ -2,7 +2,7 @@ const get = require('lodash/get');
 const pick = require('lodash/pick');
 const User = require('../models/User');
 const { rights } = require('../data/rights');
-const { CLIENT_ADMIN, CLIENT } = require('./constants');
+const { CLIENT_ADMIN, CLIENT, HOLDING_ADMIN } = require('./constants');
 
 const formatRights = (roles, company) => {
   let formattedRights = [];
@@ -48,6 +48,12 @@ const validate = async (decoded) => {
     ];
 
     if (get(user, 'role.client.name') === CLIENT_ADMIN) scope.push(`company-${user.company._id}`);
+    if (get(user, 'role.holding.name') === HOLDING_ADMIN) {
+      user.holding.companies
+        .forEach((company) => {
+          if (!scope.includes(`company-${company}`)) scope.push(`company-${company}`);
+        });
+    }
     const credentials = {
       email: get(user, 'local.email', null),
       _id: decoded._id,

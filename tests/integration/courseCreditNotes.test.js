@@ -3,9 +3,10 @@ const omit = require('lodash/omit');
 const { ObjectId } = require('mongodb');
 const app = require('../../server');
 const { courseBillsList, courseCreditNote, populateDB } = require('./seed/courseCreditNotesSeed');
-const { getToken } = require('./helpers/authentication');
+const { getToken, getTokenByCredentials } = require('./helpers/authentication');
 const CourseCreditNote = require('../../src/models/CourseCreditNote');
 const CourseCourseCreditNoteNumber = require('../../src/models/CourseCreditNoteNumber');
+const { holdingAdminFromOtherCompany } = require('../seed/authUsersSeed');
 
 describe('NODE ENV', () => {
   it('should be \'test\'', () => {
@@ -37,10 +38,10 @@ describe('COURSE CREDIT NOTES ROUTES - POST /coursecreditnotes', () => {
 
       expect(response.statusCode).toBe(200);
 
-      const newCreditNote = await CourseCreditNote.countDocuments({ ...payload, number: 'AV-00004' });
+      const newCreditNote = await CourseCreditNote.countDocuments({ ...payload, number: 'AV-00005' });
       const newCreditNoteNumber = await CourseCourseCreditNoteNumber.findOne({}).lean();
       expect(newCreditNote).toBeTruthy();
-      expect(newCreditNoteNumber.seq).toBe(4);
+      expect(newCreditNoteNumber.seq).toBe(5);
     });
 
     it('should create a credit note without misc', async () => {
@@ -195,6 +196,42 @@ describe('COURSE CREDIT NOTES ROUTES - GET /coursecreditnotes/{_id}/pdfs', () =>
       const response = await app.inject({
         method: 'GET',
         url: `/coursecreditnotes/${courseCreditNote[2]._id}/pdfs`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(404);
+    });
+  });
+
+  describe('HOLDING_ADMIN', () => {
+    beforeEach(async () => {
+      authToken = await getTokenByCredentials(holdingAdminFromOtherCompany.local);
+    });
+
+    it('should download course creditNote from holding for intra course', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/coursecreditnotes/${courseCreditNote[2]._id}/pdfs`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(200);
+    });
+
+    it('should download course creditNote for intra course as payer', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/coursecreditnotes/${courseCreditNote[3]._id}/pdfs`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(200);
+    });
+
+    it('should return 404 if wrong credit note', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/coursecreditnotes/${courseCreditNote[0]._id}/pdfs`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 

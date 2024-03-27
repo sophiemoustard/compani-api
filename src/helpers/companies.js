@@ -2,10 +2,8 @@ const flat = require('flat');
 const get = require('lodash/get');
 const Company = require('../models/Company');
 const CompanyHolding = require('../models/CompanyHolding');
-const Event = require('../models/Event');
 const GDriveStorageHelper = require('./gDriveStorage');
 const drive = require('../models/Google/Drive');
-const { INTERVENTION } = require('./constants');
 
 exports.createCompany = async (companyPayload) => {
   const companyFolder = await GDriveStorageHelper.createFolderForCompany(companyPayload.name);
@@ -30,7 +28,11 @@ exports.list = async (query) => {
   if (query.holding) {
     const companyHoldingList = await CompanyHolding
       .find({ holding: query.holding }, { company: 1 })
-      .populate({ path: 'company', select: 'name' })
+      .populate({
+        path: 'company',
+        select: 'name',
+        populate: { path: 'billingRepresentative', select: '_id picture contact identity local' },
+      })
       .lean();
 
     return companyHoldingList.map(ch => ch.company);
@@ -65,12 +67,6 @@ exports.uploadFile = async (payload, params) => {
   };
   return Company.findOneAndUpdate({ _id: params._id }, { $set: flat(companyPayload) }, { new: true }).lean();
 };
-
-exports.getFirstIntervention = async credentials => Event
-  .find({ company: get(credentials, 'company._id'), type: INTERVENTION })
-  .sort({ startDate: 1 })
-  .limit(1)
-  .lean();
 
 exports.updateCompany = async (companyId, payload) => {
   const transportSubs = get(payload, 'rhConfig.transportSubs');

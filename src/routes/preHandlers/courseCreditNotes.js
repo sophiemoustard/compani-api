@@ -35,10 +35,10 @@ exports.authorizeCreditNotePdfGet = async (req) => {
   if (!creditNote) throw Boom.notFound();
 
   if (!isAdminVendor) {
-    const companyId = get(credentials, 'company._id');
-    const hasSameCompany = UtilsHelper.doesArrayIncludeId(creditNote.companies, companyId);
-    const isPayer = UtilsHelper.areObjectIdsEquals(creditNote.courseBill.payer, companyId);
-    if (!hasSameCompany && !isPayer) throw Boom.notFound();
+    const hasAccessToCompany = creditNote.companies
+      .some(company => UtilsHelper.hasUserAccessToCompany(credentials, company));
+    const hasAccessToPayer = !!UtilsHelper.hasUserAccessToCompany(credentials, creditNote.courseBill.payer);
+    if (!hasAccessToCompany && !hasAccessToPayer) throw Boom.notFound();
   }
 
   return null;
