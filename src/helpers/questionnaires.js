@@ -4,7 +4,16 @@ const Questionnaire = require('../models/Questionnaire');
 const Course = require('../models/Course');
 const Card = require('../models/Card');
 const CardHelper = require('./cards');
-const { EXPECTATIONS, PUBLISHED, STRICTLY_E_LEARNING, END_OF_COURSE, INTRA } = require('./constants');
+const {
+  EXPECTATIONS,
+  PUBLISHED,
+  STRICTLY_E_LEARNING,
+  END_OF_COURSE,
+  INTRA,
+  SELF_POSITIONNING,
+  START_COURSE,
+  END_COURSE,
+} = require('./constants');
 const DatesUtilsHelper = require('./dates/utils');
 const { CompaniDate } = require('./dates/companiDates');
 
@@ -33,22 +42,39 @@ exports.removeCard = async (cardId) => {
   if (get(card, 'media.publicId')) await CardHelper.deleteMedia(cardId, card.media.publicId);
 };
 
-exports.findQuestionnaire = async (course, credentials, type) => Questionnaire
-  .findOne({ type, status: PUBLISHED }, { type: 1, name: 1 })
-  .populate({
-    path: 'histories',
-    match: { course: course._id, user: credentials._id },
-    options: { requestingOwnInfos: true },
-    select: { _id: 1 },
-  })
-  .lean({ virtuals: true });
+const findQuestionnaires = (questionnaireConditions, historiesConditions) => {
+  const { typeList, program } = questionnaireConditions;
+  const { courseId, user, timeline } = historiesConditions;
+
+  const findQuestionnaireQuery = {
+    type: { $in: typeList },
+    $or: [{ program: { $exists: false } }, { program }],
+    status: PUBLISHED,
+  };
+
+  const matchHistoriesQuery = {
+    course: courseId,
+    user,
+    $or: [{ timeline: { $exists: false } }, { timeline }],
+  };
+
+  return Questionnaire
+    .find(findQuestionnaireQuery, { type: 1, name: 1 })
+    .populate({
+      path: 'histories',
+      match: matchHistoriesQuery,
+      options: { requestingOwnInfos: true },
+      select: { _id: 1, timeline: 1 },
+    })
+    .lean({ virtuals: true });
+};
 
 exports.getUserQuestionnaires = async (courseId, credentials) => {
   const course = await Course.findOne({ _id: courseId })
     .populate({ path: 'slots', select: '-__v -createdAt -updatedAt' })
     .populate({ path: 'slotsToPlan', select: '_id' })
+    .populate({ path: 'subProgram', select: 'program', populate: { path: 'program', select: '_id' } })
     .lean({ virtuals: true });
-
   if (course.format === STRICTLY_E_LEARNING) return [];
 
   const sortedCourseSlots = course.slots.sort(DatesUtilsHelper.ascendingSortBy('startDate'));
@@ -58,9 +84,12 @@ exports.getUserQuestionnaires = async (courseId, credentials) => {
   const isBeforeMiddleCourse = !sortedCourseSlots.length ||
     CompaniDate().isBefore(sortedCourseSlots[middleCourseSlotIndex].endDate);
   if (isBeforeMiddleCourse) {
-    const questionnaire = await this.findQuestionnaire(course, credentials, EXPECTATIONS);
+    const questionnaires = await findQuestionnaires(
+      { typeList: [EXPECTATIONS, SELF_POSITIONNING], program: course.subProgram.program._id },
+      { courseId: course._id, user: credentials._id, timeline: START_COURSE }
+    );
 
-    return !questionnaire || questionnaire.histories.length ? [] : [questionnaire];
+    return questionnaires.filter(q => q && !q.histories.length);
   }
 
   if (get(course, 'slotsToPlan.length')) return [];
@@ -68,9 +97,12 @@ exports.getUserQuestionnaires = async (courseId, credentials) => {
   const isCourseEnded = sortedCourseSlots.length &&
     CompaniDate().isAfter(sortedCourseSlots[sortedCourseSlots.length - 1].startDate);
   if (isCourseEnded) {
-    const questionnaire = await this.findQuestionnaire(course, credentials, END_OF_COURSE);
+    const questionnaires = await findQuestionnaires(
+      { typeList: [END_OF_COURSE, SELF_POSITIONNING], program: course.subProgram.program._id },
+      { courseId: course._id, user: credentials._id, timeline: END_COURSE }
+    );
 
-    return !questionnaire || questionnaire.histories.length ? [] : [questionnaire];
+    return questionnaires.filter(q => q && !q.histories.length);
   }
 
   return [];
