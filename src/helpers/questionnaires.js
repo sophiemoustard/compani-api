@@ -44,7 +44,7 @@ exports.removeCard = async (cardId) => {
 
 const findQuestionnaires = (questionnaireConditions, historiesConditions) => {
   const { typeList, program } = questionnaireConditions;
-  const { courseId, user, timeline } = historiesConditions;
+  const { course, user, timeline } = historiesConditions;
 
   const findQuestionnaireQuery = {
     type: { $in: typeList },
@@ -52,11 +52,7 @@ const findQuestionnaires = (questionnaireConditions, historiesConditions) => {
     status: PUBLISHED,
   };
 
-  const matchHistoriesQuery = {
-    course: courseId,
-    user,
-    $or: [{ timeline: { $exists: false } }, { timeline }],
-  };
+  const matchHistoriesQuery = { course, user, $or: [{ timeline: { $exists: false } }, { timeline }] };
 
   return Questionnaire
     .find(findQuestionnaireQuery, { type: 1, name: 1 })
@@ -86,7 +82,7 @@ exports.getUserQuestionnaires = async (courseId, credentials) => {
   if (isBeforeMiddleCourse) {
     const questionnaires = await findQuestionnaires(
       { typeList: [EXPECTATIONS, SELF_POSITIONNING], program: course.subProgram.program._id },
-      { courseId: course._id, user: credentials._id, timeline: START_COURSE }
+      { course: course._id, user: credentials._id, timeline: START_COURSE }
     );
 
     return questionnaires.filter(q => q && !q.histories.length);
@@ -99,7 +95,7 @@ exports.getUserQuestionnaires = async (courseId, credentials) => {
   if (isCourseEnded) {
     const questionnaires = await findQuestionnaires(
       { typeList: [END_OF_COURSE, SELF_POSITIONNING], program: course.subProgram.program._id },
-      { courseId: course._id, user: credentials._id, timeline: END_COURSE }
+      { course: course._id, user: credentials._id, timeline: END_COURSE }
     );
 
     return questionnaires.filter(q => q && !q.histories.length);
