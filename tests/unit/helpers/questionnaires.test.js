@@ -244,7 +244,7 @@ describe('getUserQuestionnaires', () => {
     );
   });
 
-  it('should return an empty array if not started and no questionnaire', async () => {
+  it('should return an empty array if course has not started and there is no questionnaire', async () => {
     const courseId = new ObjectId();
     const credentials = { _id: new ObjectId() };
 
@@ -305,7 +305,7 @@ describe('getUserQuestionnaires', () => {
     );
   });
 
-  it('should return an empty array if not started and published questionnaires are already answered', async () => {
+  it('should return an empty array if course has not started and published questionnaires are answered', async () => {
     const courseId = new ObjectId();
     const programId = new ObjectId();
     const credentials = { _id: new ObjectId() };
@@ -393,7 +393,7 @@ describe('getUserQuestionnaires', () => {
     );
   });
 
-  it('should return published questionnaires if course is not started and questionnaires'
+  it('should return published questionnaires if course has not started and questionnaires'
     + 'are not answered (EXPECTATION and SELF_POSITIONNING)', async () => {
     const courseId = new ObjectId();
     const programId = new ObjectId();
@@ -535,7 +535,7 @@ describe('getUserQuestionnaires', () => {
     );
   });
 
-  it('should return an empty array if course is started and has slots to plan', async () => {
+  it('should return an empty array if course has started and has slots to plan', async () => {
     const courseId = new ObjectId();
     const credentials = { _id: new ObjectId() };
 
@@ -566,7 +566,7 @@ describe('getUserQuestionnaires', () => {
     );
   });
 
-  it('should return an empty array if course is ended and any questionnaire is published', async () => {
+  it('should return an empty array if course has ended and any questionnaire is published', async () => {
     const courseId = new ObjectId();
     const programId = new ObjectId();
     const credentials = { _id: new ObjectId() };
@@ -628,7 +628,7 @@ describe('getUserQuestionnaires', () => {
     );
   });
 
-  it('should return an empty array if course is ended and published questionnaires are already answered', async () => {
+  it('should return an empty array if course has ended and published questionnaires are already answered', async () => {
     const courseId = new ObjectId();
     const programId = new ObjectId();
     const credentials = { _id: new ObjectId() };
@@ -717,7 +717,7 @@ describe('getUserQuestionnaires', () => {
     );
   });
 
-  it('should return questionnaire if course is ended and end self-positionning questionnaire'
+  it('should return questionnaires if course has ended and end_course self-positionning questionnaire'
     + 'is not answered', async () => {
     const courseId = new ObjectId();
     const programId = new ObjectId();
@@ -799,7 +799,7 @@ describe('getUserQuestionnaires', () => {
     );
   });
 
-  it('should return end of course questionnaire if last slot is started and questionnaire not answered', async () => {
+  it('should return questionnaires if last slot has started and questionnaires are not answered', async () => {
     const courseId = new ObjectId();
     const programId = new ObjectId();
     const credentials = { _id: new ObjectId() };
@@ -875,7 +875,7 @@ describe('getUserQuestionnaires', () => {
     UtilsMock.unmockCurrentDate();
   });
 
-  it('should return an empty array if mid-course is passed but last slot isn\'t', async () => {
+  it('should return an empty array if half course has been completed and last slot has not started', async () => {
     const courseId = new ObjectId();
     const programId = new ObjectId();
     const credentials = { _id: new ObjectId() };
