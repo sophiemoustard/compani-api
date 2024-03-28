@@ -441,6 +441,10 @@ module.exports = {
   EXPECTATIONS: 'expectations',
   END_OF_COURSE: 'end_of_course',
   SELF_POSITIONNING: 'self_positionning',
+  // QUESTIONNAIRE_HISTORY
+  START_COURSE: 'start_course',
+  END_COURSE: 'end_course',
+  get TIMELINE_OPTIONS() { return [this.START_COURSE, this.END_COURSE]; },
   // tests end2end
   PLANNING: 'planning',
   AUTHENTICATION: 'authentication',
