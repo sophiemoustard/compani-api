@@ -142,11 +142,13 @@ describe('QUESTIONNAIRES ROUTES - POST /questionnaires', () => {
 
 describe('QUESTIONNAIRES ROUTES - GET /questionnaires', () => {
   let authToken;
+  let nowStub;
   beforeEach(populateDB);
 
   describe('TRAINER', () => {
     beforeEach(async () => {
       authToken = await getToken('trainer');
+      nowStub = sinon.stub(Date, 'now');
     });
 
     it('should get all questionnaires', async () => {
@@ -160,10 +162,12 @@ describe('QUESTIONNAIRES ROUTES - GET /questionnaires', () => {
       expect(response.result.data.questionnaires.length).toEqual(questionnairesList.length);
     });
 
-    it('should get published questionnaires', async () => {
+    it('should get published questionnaires linked to a course', async () => {
+      nowStub.returns(new Date('2021-04-20T10:00:00.000Z'));
+
       const response = await app.inject({
         method: 'GET',
-        url: `/questionnaires?status=${PUBLISHED}`,
+        url: `/questionnaires?course=${coursesList[0]._id}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -175,6 +179,16 @@ describe('QUESTIONNAIRES ROUTES - GET /questionnaires', () => {
       const response = await app.inject({
         method: 'GET',
         url: `/questionnaires?program=${new ObjectId()}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(404);
+    });
+
+    it('should return 404 if course doesn\'t exist', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/questionnaires?course=${new ObjectId()}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 

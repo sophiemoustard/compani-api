@@ -54,9 +54,9 @@ exports.plugin = {
       options: {
         validate: {
           query: Joi.object({
-            status: Joi.string().valid(PUBLISHED),
+            course: Joi.objectId(),
             program: Joi.objectId(),
-          }),
+          }).oxor('course', 'program'),
         },
         auth: { scope: ['questionnaires:read'] },
         pre: [{ method: authorizeGetList }],
