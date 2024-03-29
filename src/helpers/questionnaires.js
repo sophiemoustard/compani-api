@@ -13,6 +13,7 @@ const {
   SELF_POSITIONNING,
   START_COURSE,
   END_COURSE,
+  DAY,
 } = require('./constants');
 const DatesUtilsHelper = require('./dates/utils');
 const { CompaniDate } = require('./dates/companiDates');
@@ -90,8 +91,8 @@ exports.getUserQuestionnaires = async (courseId, credentials) => {
 
   if (get(course, 'slotsToPlan.length')) return [];
 
-  const isCourseEnded = sortedCourseSlots.length &&
-    CompaniDate().isAfter(sortedCourseSlots[sortedCourseSlots.length - 1].startDate);
+  const lastSlotStartOfDay = CompaniDate(sortedCourseSlots[sortedCourseSlots.length - 1].startDate).startOf(DAY);
+  const isCourseEnded = sortedCourseSlots.length && CompaniDate().isAfter(lastSlotStartOfDay);
   if (isCourseEnded) {
     const questionnaires = await findQuestionnaires(
       { typeList: [END_OF_COURSE, SELF_POSITIONNING], program: course.subProgram.program._id },

@@ -250,7 +250,7 @@ describe('getUserQuestionnaires', () => {
 
     const course = {
       _id: courseId,
-      slots: [{ startDate: new Date('2021-04-20T09:00:00'), endDate: new Date('2021-04-20T11:00:00') }],
+      slots: [{ startDate: '2021-04-20T09:00:00.000Z', endDate: '2021-04-20T11:00:00.000Z' }],
       subProgram: { program: { _id: new ObjectId() } },
     };
 
@@ -312,7 +312,7 @@ describe('getUserQuestionnaires', () => {
 
     const course = {
       _id: courseId,
-      slots: [{ startDate: new Date('2021-04-20T09:00:00'), endDate: new Date('2021-04-20T11:00:00') }],
+      slots: [{ startDate: '2021-04-20T09:00:00.000Z', endDate: '2021-04-20T11:00:00.000Z' }],
       subProgram: { program: { _id: programId } },
     };
 
@@ -400,7 +400,7 @@ describe('getUserQuestionnaires', () => {
     const credentials = { _id: new ObjectId() };
     const course = {
       _id: courseId,
-      slots: [{ startDate: new Date('2021-04-20T09:00:00'), endDate: new Date('2021-04-20T11:00:00') }],
+      slots: [{ startDate: '2021-04-20T09:00:00.000Z', endDate: '2021-04-20T11:00:00.000Z' }],
       subProgram: { program: { _id: programId } },
     };
     const questionnaires = [
@@ -541,7 +541,7 @@ describe('getUserQuestionnaires', () => {
 
     const course = {
       _id: courseId,
-      slots: [{ startDate: new Date('2021-04-11T09:00:00'), endDate: new Date('2021-04-11T11:00:00') }],
+      slots: [{ startDate: '2021-04-11T09:00:00.000Z', endDate: '2021-04-11T11:00:00.000Z' }],
       slotsToPlan: [{ _id: new ObjectId() }],
       subProgram: { program: { _id: new ObjectId() } },
     };
@@ -573,7 +573,7 @@ describe('getUserQuestionnaires', () => {
 
     const course = {
       _id: courseId,
-      slots: [{ startDate: new Date('2021-04-11T09:00:00'), endDate: new Date('2021-04-11T11:00:00') }],
+      slots: [{ startDate: '2021-04-11T09:00:00.000Z', endDate: '2021-04-11T11:00:00.000Z' }],
       subProgram: { program: { _id: programId } },
     };
 
@@ -635,7 +635,7 @@ describe('getUserQuestionnaires', () => {
 
     const course = {
       _id: courseId,
-      slots: [{ startDate: new Date('2021-04-11T09:00:00'), endDate: new Date('2021-04-11T11:00:00') }],
+      slots: [{ startDate: '2021-04-11T09:00:00.000Z', endDate: '2021-04-11T11:00:00.000Z' }],
       subProgram: { program: { _id: programId } },
     };
 
@@ -717,15 +717,20 @@ describe('getUserQuestionnaires', () => {
     );
   });
 
-  it('should return questionnaires if course has ended and end_course self-positionning questionnaire'
-    + 'is not answered', async () => {
+  it('should return questionnaires if course ends today and end_course self-positionning questionnaire'
+    + 'are not answered #tag', async () => {
     const courseId = new ObjectId();
     const programId = new ObjectId();
     const credentials = { _id: new ObjectId() };
 
     const course = {
       _id: courseId,
-      slots: [{ startDate: new Date('2021-04-11T09:00:00'), endDate: new Date('2021-04-11T11:00:00') }],
+      slots: [
+        { startDate: '2021-04-10T14:00:00.000Z', endDate: '2021-04-10T16:00:00.000Z' },
+        { startDate: '2021-04-10T16:30:00.000Z', endDate: '2021-04-10T18:30:00.000Z' },
+        { startDate: '2021-04-13T14:00:00.000Z', endDate: '2021-04-13T16:00:00.000Z' },
+        { startDate: '2021-04-13T16:30:00.000Z', endDate: '2021-04-13T18:30:00.000Z' },
+      ],
       subProgram: { program: { _id: programId } },
     };
 
@@ -735,7 +740,7 @@ describe('getUserQuestionnaires', () => {
         name: 'test',
         type: END_OF_COURSE,
         status: PUBLISHED,
-        histories: [{ _id: new ObjectId(), course: course._id, user: credentials._id }],
+        histories: [],
       },
       {
         _id: new ObjectId(),
@@ -748,12 +753,11 @@ describe('getUserQuestionnaires', () => {
     ];
 
     findOneCourse.returns(SinonMongoose.stubChainedQueries(course));
-    UtilsMock.mockCurrentDate('2021-04-23T15:00:00.000Z');
     findQuestionnaires.returns(SinonMongoose.stubChainedQueries(questionnaires));
 
     const result = await QuestionnaireHelper.getUserQuestionnaires(courseId, credentials);
 
-    expect(result).toMatchObject([questionnaires[1]]);
+    expect(result).toMatchObject(questionnaires);
     SinonMongoose.calledOnceWithExactly(
       findOneCourse,
       [
@@ -806,7 +810,7 @@ describe('getUserQuestionnaires', () => {
 
     const course = {
       _id: courseId,
-      slots: [{ startDate: new Date('2021-04-23T09:00:00'), endDate: new Date('2021-04-23T11:00:00') }],
+      slots: [{ startDate: '2021-04-23T09:00:00.000Z', endDate: '2021-04-23T11:00:00.000Z' }],
       subProgram: { program: { _id: programId } },
     };
 
@@ -884,8 +888,8 @@ describe('getUserQuestionnaires', () => {
       _id: courseId,
       format: 'blended',
       slots: [
-        { startDate: new Date('2021-04-20T09:00:00'), endDate: new Date('2021-04-20T11:00:00') },
-        { startDate: new Date('2021-04-24T09:00:00'), endDate: new Date('2021-04-24T11:00:00') },
+        { startDate: '2021-04-20T09:00:00.000Z', endDate: '2021-04-20T11:00:00.000Z' },
+        { startDate: '2021-04-24T09:00:00.000Z', endDate: '2021-04-24T11:00:00.000Z' },
       ],
       subProgram: { program: { _id: programId } },
     };
