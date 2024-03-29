@@ -46,8 +46,44 @@ const getCourseInfos = async (courseId) => {
 
 exports.list = async (credentials, query = {}) => {
   const isVendorUser = !!get(credentials, 'role.vendor');
+  const { course: courseId } = query;
 
-  return Questionnaire.find(query).populate({ path: 'historiesCount', options: { isVendorUser } }).lean();
+  let findQuery = query;
+  if (courseId) {
+    console.log('ici');
+    const {
+      isStrictlyELearning,
+      hasSlots,
+      hasSlotsToPlan,
+      middleCourseSlotEndDate,
+      lastSlotStartOfDay,
+      programId,
+    } = await getCourseInfos(courseId);
+
+    if (isStrictlyELearning) return [];
+
+    const isBeforeMiddleCourse = !hasSlots || CompaniDate().isBefore(middleCourseSlotEndDate);
+    if (isBeforeMiddleCourse) {
+      findQuery = {
+        type: { $in: [END_OF_COURSE, SELF_POSITIONNING] },
+        $or: [{ program: { $exists: false } }, { program: programId }],
+        status: PUBLISHED,
+      };
+    }
+
+    if (hasSlotsToPlan) return [];
+
+    const isCourseEnded = hasSlots && CompaniDate().isAfter(lastSlotStartOfDay);
+    if (isCourseEnded) {
+      findQuery = {
+        type: { $in: [END_OF_COURSE, SELF_POSITIONNING] },
+        $or: [{ program: { $exists: false } }, { program: programId }],
+        status: PUBLISHED,
+      };
+    }
+  }
+
+  return Questionnaire.find(findQuery).populate({ path: 'historiesCount', options: { isVendorUser } }).lean();
 };
 
 exports.getQuestionnaire = async id => Questionnaire.findOne({ _id: id })
