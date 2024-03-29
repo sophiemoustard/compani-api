@@ -48,7 +48,6 @@ exports.list = async (credentials, query = {}) => {
   const isVendorUser = !!get(credentials, 'role.vendor');
   const { course: courseId } = query;
 
-  let findQuery = query;
   if (courseId) {
     const {
       isStrictlyELearning,
@@ -63,26 +62,28 @@ exports.list = async (credentials, query = {}) => {
 
     const isBeforeMiddleCourse = !hasSlots || CompaniDate().isBefore(middleCourseSlotEndDate);
     if (isBeforeMiddleCourse) {
-      findQuery = {
-        type: { $in: [END_OF_COURSE, SELF_POSITIONNING] },
+      const findQuery = {
+        type: { $in: [EXPECTATIONS, SELF_POSITIONNING] },
         $or: [{ program: { $exists: false } }, { program: programId }],
         status: PUBLISHED,
       };
+      return Questionnaire.find(findQuery).populate({ path: 'historiesCount', options: { isVendorUser } }).lean();
     }
 
     if (hasSlotsToPlan) return [];
 
     const isCourseEnded = hasSlots && CompaniDate().isAfter(lastSlotStartOfDay);
     if (isCourseEnded) {
-      findQuery = {
+      const findQuery = {
         type: { $in: [END_OF_COURSE, SELF_POSITIONNING] },
         $or: [{ program: { $exists: false } }, { program: programId }],
         status: PUBLISHED,
       };
+      return Questionnaire.find(findQuery).populate({ path: 'historiesCount', options: { isVendorUser } }).lean();
     }
   }
 
-  return Questionnaire.find(findQuery).populate({ path: 'historiesCount', options: { isVendorUser } }).lean();
+  return Questionnaire.find(query).populate({ path: 'historiesCount', options: { isVendorUser } }).lean();
 };
 
 exports.getQuestionnaire = async id => Questionnaire.findOne({ _id: id })
