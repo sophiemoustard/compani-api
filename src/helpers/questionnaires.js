@@ -50,7 +50,6 @@ exports.list = async (credentials, query = {}) => {
 
   let findQuery = query;
   if (courseId) {
-    console.log('ici');
     const {
       isStrictlyELearning,
       hasSlots,
