@@ -718,7 +718,7 @@ describe('getUserQuestionnaires', () => {
   });
 
   it('should return questionnaires if course ends today and end_course self-positionning questionnaire'
-    + 'are not answered #tag', async () => {
+    + 'are not answered', async () => {
     const courseId = new ObjectId();
     const programId = new ObjectId();
     const credentials = { _id: new ObjectId() };

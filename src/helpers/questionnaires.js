@@ -20,6 +20,30 @@ const { CompaniDate } = require('./dates/companiDates');
 
 exports.create = async payload => Questionnaire.create(payload);
 
+const getCourseInfos = async (courseId) => {
+  const course = await Course.findOne({ _id: courseId })
+    .populate({ path: 'slots', select: '-__v -createdAt -updatedAt' })
+    .populate({ path: 'slotsToPlan', select: '_id' })
+    .populate({ path: 'subProgram', select: 'program', populate: { path: 'program', select: '_id' } })
+    .lean({ virtuals: true });
+
+  if (course.format === STRICTLY_E_LEARNING) return { isStrictlyELearning: true };
+  const sortedCourseSlots = course.slots.sort(DatesUtilsHelper.ascendingSortBy('startDate'));
+
+  const middleCourseSlotIndex = Math.ceil(sortedCourseSlots.length / 2) - 1;
+  const lastSlotStartOfDay = get(sortedCourseSlots[sortedCourseSlots.length - 1], 'startDate')
+    ? CompaniDate(get(sortedCourseSlots[sortedCourseSlots.length - 1], 'startDate')).startOf(DAY)
+    : null;
+
+  return {
+    hasSlots: sortedCourseSlots.length,
+    hasSlotsToPlan: get(course, 'slotsToPlan.length'),
+    middleCourseSlotEndDate: get(sortedCourseSlots[middleCourseSlotIndex], 'endDate'),
+    lastSlotStartOfDay,
+    programId: course.subProgram.program._id,
+  };
+};
+
 exports.list = async (credentials, query = {}) => {
   const isVendorUser = !!get(credentials, 'role.vendor');
 
@@ -67,36 +91,34 @@ const findQuestionnaires = (questionnaireConditions, historiesConditions) => {
 };
 
 exports.getUserQuestionnaires = async (courseId, credentials) => {
-  const course = await Course.findOne({ _id: courseId })
-    .populate({ path: 'slots', select: '-__v -createdAt -updatedAt' })
-    .populate({ path: 'slotsToPlan', select: '_id' })
-    .populate({ path: 'subProgram', select: 'program', populate: { path: 'program', select: '_id' } })
-    .lean({ virtuals: true });
-  if (course.format === STRICTLY_E_LEARNING) return [];
+  const {
+    isStrictlyELearning,
+    hasSlots,
+    hasSlotsToPlan,
+    middleCourseSlotEndDate,
+    lastSlotStartOfDay,
+    programId,
+  } = await getCourseInfos(courseId);
 
-  const sortedCourseSlots = course.slots.sort(DatesUtilsHelper.ascendingSortBy('startDate'));
+  if (isStrictlyELearning) return [];
 
-  const middleCourseSlotIndex = Math.ceil(sortedCourseSlots.length / 2) - 1;
-
-  const isBeforeMiddleCourse = !sortedCourseSlots.length ||
-    CompaniDate().isBefore(sortedCourseSlots[middleCourseSlotIndex].endDate);
+  const isBeforeMiddleCourse = !hasSlots || CompaniDate().isBefore(middleCourseSlotEndDate);
   if (isBeforeMiddleCourse) {
     const questionnaires = await findQuestionnaires(
-      { typeList: [EXPECTATIONS, SELF_POSITIONNING], program: course.subProgram.program._id },
-      { course: course._id, user: credentials._id, timeline: START_COURSE }
+      { typeList: [EXPECTATIONS, SELF_POSITIONNING], program: programId },
+      { course: courseId, user: credentials._id, timeline: START_COURSE }
     );
 
     return questionnaires.filter(q => q && !q.histories.length);
   }
 
-  if (get(course, 'slotsToPlan.length')) return [];
+  if (hasSlotsToPlan) return [];
 
-  const lastSlotStartOfDay = CompaniDate(sortedCourseSlots[sortedCourseSlots.length - 1].startDate).startOf(DAY);
-  const isCourseEnded = sortedCourseSlots.length && CompaniDate().isAfter(lastSlotStartOfDay);
+  const isCourseEnded = hasSlots && CompaniDate().isAfter(lastSlotStartOfDay);
   if (isCourseEnded) {
     const questionnaires = await findQuestionnaires(
-      { typeList: [END_OF_COURSE, SELF_POSITIONNING], program: course.subProgram.program._id },
-      { course: course._id, user: credentials._id, timeline: END_COURSE }
+      { typeList: [END_OF_COURSE, SELF_POSITIONNING], program: programId },
+      { course: courseId, user: credentials._id, timeline: END_COURSE }
     );
 
     return questionnaires.filter(q => q && !q.histories.length);
