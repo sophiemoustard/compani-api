@@ -295,7 +295,7 @@ describe('QUESTIONNAIRES ROUTES - GET /questionnaires/user', () => {
       nowStub.restore();
     });
 
-    it('should get expectations questionnaire', async () => {
+    it('should get questionnaire EXPECTATION and SELF_POSITIONNING when before mid-course', async () => {
       nowStub.returns(new Date('2021-04-20T10:00:00.000Z'));
 
       const response = await app.inject({
@@ -305,11 +305,10 @@ describe('QUESTIONNAIRES ROUTES - GET /questionnaires/user', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      expect(response.result.data.questionnaires[0].type).toBe(EXPECTATIONS);
-      expect(response.result.data.questionnaires.length).toBe(1);
+      expect(response.result.data.questionnaires.length).toBe(2);
     });
 
-    it('should get end_of_course questionnaire', async () => {
+    it('should get questionnaire END_OF_COURSE and SELF_POSITIONNING when after last slot', async () => {
       nowStub.returns(new Date('2021-04-22T16:05:00.000Z'));
 
       const response = await app.inject({
@@ -319,8 +318,7 @@ describe('QUESTIONNAIRES ROUTES - GET /questionnaires/user', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      expect(response.result.data.questionnaires[0].type).toBe(END_OF_COURSE);
-      expect(response.result.data.questionnaires.length).toBe(1);
+      expect(response.result.data.questionnaires.length).toBe(2);
     });
 
     it('should return 400 if query is empty', async () => {

@@ -231,7 +231,7 @@ describe('CARDS ROUTES - PUT /cards/{_id}', () => {
       });
     });
 
-    describe('Survey #tag', () => {
+    describe('Survey', () => {
       const requests = [
         { msg: 'Unset first label', payload: { labels: { 1: '' } }, code: 200 },
         { msg: 'Unset last label', payload: { labels: { 5: '' } }, code: 200 },
