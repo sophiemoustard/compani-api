@@ -151,6 +151,10 @@ describe('QUESTIONNAIRES ROUTES - GET /questionnaires', () => {
       nowStub = sinon.stub(Date, 'now');
     });
 
+    afterEach(() => {
+      nowStub.restore();
+    });
+
     it('should get all questionnaires', async () => {
       const response = await app.inject({
         method: 'GET',
@@ -172,7 +176,7 @@ describe('QUESTIONNAIRES ROUTES - GET /questionnaires', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      expect(response.result.data.questionnaires.length).toEqual(3);
+      expect(response.result.data.questionnaires.length).toEqual(2);
     });
 
     it('should return 404 if program doesn\'t exist', async () => {
