@@ -155,7 +155,7 @@ describe('QUESTIONNAIRES ROUTES - GET /questionnaires', () => {
       nowStub.restore();
     });
 
-    it('should get all questionnaires', async () => {
+    it('should get all questionnaires (END_OF_COURSE and EXPECTATIONS)', async () => {
       const response = await app.inject({
         method: 'GET',
         url: '/questionnaires',
@@ -166,7 +166,7 @@ describe('QUESTIONNAIRES ROUTES - GET /questionnaires', () => {
       expect(response.result.data.questionnaires.length).toEqual(questionnairesList.length);
     });
 
-    it('should get published questionnaires linked to a course', async () => {
+    it('should get published questionnaires linked to a course (EXPECTATIONS and SELF_POSITIONNING)', async () => {
       nowStub.returns(new Date('2021-04-20T10:00:00.000Z'));
 
       const response = await app.inject({
@@ -177,6 +177,53 @@ describe('QUESTIONNAIRES ROUTES - GET /questionnaires', () => {
 
       expect(response.statusCode).toBe(200);
       expect(response.result.data.questionnaires.length).toEqual(2);
+      expect(
+        response.result.data.questionnaires.every(q => [EXPECTATIONS, SELF_POSITIONNING].includes(q.type))
+      ).toBeTruthy();
+    });
+
+    it('should get published questionnaires linked to a course (END_OF_COURSE and SELF_POSITIONNING)', async () => {
+      nowStub.returns(new Date('2021-04-22T10:00:00.000Z'));
+
+      const response = await app.inject({
+        method: 'GET',
+        url: `/questionnaires?course=${coursesList[0]._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(200);
+      expect(response.result.data.questionnaires.length).toEqual(2);
+      expect(
+        response.result.data.questionnaires.every(q => [END_OF_COURSE, SELF_POSITIONNING].includes(q.type))
+      ).toBeTruthy();
+    });
+
+    it('should return an empty array if current date is between mid-course and end of course', async () => {
+      nowStub.returns(new Date('2021-04-21T10:00:00.000Z'));
+
+      const response = await app.inject({
+        method: 'GET',
+        url: `/questionnaires?course=${coursesList[0]._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(200);
+      expect(response.result.data.questionnaires).toEqual([]);
+    });
+
+    it('should get all SELF_POSITIONNING questionnaires linked to a program', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/questionnaires?program=${programsList[0]._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(200);
+      expect(response.result.data.questionnaires.length).toEqual(2);
+      expect(
+        response.result.data.questionnaires
+          .every(q => q.program && UtilsHelper.areObjectIdsEquals(q.program, programsList[0]._id))
+      ).toBeTruthy();
     });
 
     it('should return 404 if program doesn\'t exist', async () => {

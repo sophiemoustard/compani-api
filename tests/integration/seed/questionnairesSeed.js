@@ -208,6 +208,18 @@ const slots = [
     step: stepList[0]._id,
   },
   {
+    startDate: '2021-04-20T11:00:00.000Z',
+    endDate: '2021-04-20T12:00:00.000Z',
+    course: coursesList[0]._id,
+    step: stepList[0]._id,
+  },
+  {
+    startDate: '2021-04-22T09:00:00.000Z',
+    endDate: '2021-04-22T11:00:00.000Z',
+    course: coursesList[0]._id,
+    step: stepList[2]._id,
+  },
+  {
     startDate: '2021-04-22T14:00:00.000Z',
     endDate: '2021-04-22T18:00:00.000Z',
     course: coursesList[0]._id,

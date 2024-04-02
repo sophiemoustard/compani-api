@@ -171,19 +171,19 @@ describe('list', () => {
       { _id: new ObjectId(), name: 'test', status: PUBLISHED, type: EXPECTATIONS },
       {
         _id: new ObjectId(),
-        name: 'brouillon',
-        status: DRAFT,
+        name: 'auto-positionnement',
+        status: PUBLISHED,
         type: SELF_POSITIONNING,
         program: programId,
       },
     ];
 
     findOneCourse.returns(SinonMongoose.stubChainedQueries(course));
-    findQuestionnaires.returns(SinonMongoose.stubChainedQueries([questionnaires[0]]));
+    findQuestionnaires.returns(SinonMongoose.stubChainedQueries(questionnaires));
 
     const result = await QuestionnaireHelper.list(credentials, { course: courseId });
 
-    expect(result).toMatchObject([questionnaires[0]]);
+    expect(result).toMatchObject(questionnaires);
     SinonMongoose.calledOnceWithExactly(
       findOneCourse,
       [
@@ -273,11 +273,11 @@ describe('list', () => {
     ];
 
     findOneCourse.returns(SinonMongoose.stubChainedQueries(course));
-    findQuestionnaires.returns(SinonMongoose.stubChainedQueries([questionnaires[0]]));
+    findQuestionnaires.returns(SinonMongoose.stubChainedQueries(questionnaires));
 
     const result = await QuestionnaireHelper.list(credentials, { course: courseId });
 
-    expect(result).toMatchObject([questionnaires[0]]);
+    expect(result).toMatchObject(questionnaires);
     SinonMongoose.calledOnceWithExactly(
       findOneCourse,
       [
