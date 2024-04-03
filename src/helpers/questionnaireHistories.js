@@ -37,8 +37,9 @@ exports.addQuestionnaireHistory = async (payload) => {
       timeline = START_COURSE;
     } else if (CompaniDate().isAfter(lastSlotStartOfDay)) {
       timeline = END_COURSE;
+    } else {
+      throw Boom.forbidden();
     }
-    if (!timeline) throw Boom.forbidden();
 
     qhPayload = { ...qhPayload, timeline };
   }
