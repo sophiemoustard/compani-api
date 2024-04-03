@@ -1,5 +1,6 @@
 const { expect } = require('expect');
 const { ObjectId } = require('mongodb');
+const sinon = require('sinon');
 const omit = require('lodash/omit');
 const app = require('../../server');
 const {
@@ -13,7 +14,7 @@ const { getTokenByCredentials } = require('./helpers/authentication');
 const { companyWithoutSubscription } = require('../seed/authCompaniesSeed');
 const { noRoleNoCompany } = require('../seed/authUsersSeed');
 const QuestionnaireHistory = require('../../src/models/QuestionnaireHistory');
-const { WEBAPP } = require('../../src/helpers/constants');
+const { WEBAPP, START_COURSE, END_COURSE } = require('../../src/helpers/constants');
 
 describe('NODE ENV', () => {
   it('should be \'test\'', () => {
@@ -21,13 +22,19 @@ describe('NODE ENV', () => {
   });
 });
 
-describe('QUESTIONNAIRE HISTORIES ROUTES - POST /questionnairehistories', () => {
+describe('QUESTIONNAIRE HISTORIES ROUTES - POST /questionnairehistories #tag', () => {
   let authToken;
   beforeEach(populateDB);
 
   describe('NO_ROLE_NO_COMPANY', () => {
+    let nowStub;
     beforeEach(async () => {
       authToken = await getTokenByCredentials(noRoleNoCompany.local);
+      nowStub = sinon.stub(Date, 'now');
+    });
+
+    afterEach(() => {
+      nowStub.restore();
     });
 
     it('should create questionnaireHistory', async () => {
@@ -54,6 +61,68 @@ describe('QUESTIONNAIRE HISTORIES ROUTES - POST /questionnairehistories', () => 
       expect(questionnaireHistoriesCount).toBe(1);
     });
 
+    it('should create questionnaireHistory with timeline START_COURSE', async () => {
+      nowStub.returns(new Date('2021-04-20T10:00:00.000Z'));
+
+      const payload = {
+        course: coursesList[0]._id,
+        user: questionnaireHistoriesUsersList[0],
+        questionnaire: questionnairesList[1]._id,
+        questionnaireAnswersList: [
+          { card: cardsList[1]._id, answerList: ['Premier niveau'] },
+          { card: cardsList[3]._id, answerList: ['coucou'] },
+        ],
+      };
+
+      const response = await app.inject({
+        method: 'POST',
+        url: '/questionnairehistories',
+        payload,
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(200);
+      const qhCount = await QuestionnaireHistory
+        .countDocuments({
+          course: coursesList[0]._id,
+          user: questionnaireHistoriesUsersList[0],
+          questionnaire: questionnairesList[1]._id,
+          timeline: START_COURSE,
+        });
+      expect(qhCount).toBe(1);
+    });
+
+    it('should create questionnaireHistory with timeline END_COURSE', async () => {
+      nowStub.returns(new Date('2021-04-24T10:00:00.000Z'));
+
+      const payload = {
+        course: coursesList[0]._id,
+        user: questionnaireHistoriesUsersList[0],
+        questionnaire: questionnairesList[1]._id,
+        questionnaireAnswersList: [
+          { card: cardsList[1]._id, answerList: ['Premier niveau'] },
+          { card: cardsList[3]._id, answerList: ['coucou'] },
+        ],
+      };
+
+      const response = await app.inject({
+        method: 'POST',
+        url: '/questionnairehistories',
+        payload,
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(200);
+      const qhCount = await QuestionnaireHistory
+        .countDocuments({
+          course: coursesList[0]._id,
+          user: questionnaireHistoriesUsersList[0],
+          questionnaire: questionnairesList[1]._id,
+          timeline: END_COURSE,
+        });
+      expect(qhCount).toBe(1);
+    });
+
     it('should create questionnaireHistory without questionnaireAnswersList', async () => {
       const payload = {
         course: coursesList[0]._id,
@@ -69,8 +138,13 @@ describe('QUESTIONNAIRE HISTORIES ROUTES - POST /questionnairehistories', () => 
       });
 
       expect(response.statusCode).toBe(200);
-      const questionnaireHistoriesCount = await QuestionnaireHistory.countDocuments();
-      expect(questionnaireHistoriesCount).toBe(2);
+      const questionnaireHistoriesCount = await QuestionnaireHistory
+        .countDocuments({
+          course: coursesList[0]._id,
+          user: questionnaireHistoriesUsersList[0],
+          questionnaire: questionnairesList[0]._id,
+        });
+      expect(questionnaireHistoriesCount).toBe(1);
     });
 
     it('should return 400 if questionnaire answer without card', async () => {
@@ -134,6 +208,25 @@ describe('QUESTIONNAIRE HISTORIES ROUTES - POST /questionnairehistories', () => 
         course: coursesList[0]._id,
         user: questionnaireHistoriesUsersList[2],
         questionnaire: questionnairesList[0]._id,
+      };
+
+      const response = await app.inject({
+        method: 'POST',
+        url: '/questionnairehistories',
+        payload,
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(409);
+    });
+
+    it('should return a 409 if a questionnaire history already exists for this course, timeline and user', async () => {
+      nowStub.returns(new Date('2021-04-24T10:00:00.000Z'));
+
+      const payload = {
+        course: coursesList[1]._id,
+        user: questionnaireHistoriesUsersList[1],
+        questionnaire: questionnairesList[2]._id,
       };
 
       const response = await app.inject({
