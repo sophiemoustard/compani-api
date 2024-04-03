@@ -21,7 +21,6 @@ const {
   EXPECTATIONS,
   SELF_POSITIONNING,
   ON_SITE,
-  START_COURSE,
   END_COURSE,
 } = require('../../../src/helpers/constants');
 const { authCompany, companyWithoutSubscription } = require('../../seed/authCompaniesSeed');

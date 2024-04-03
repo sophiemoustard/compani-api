@@ -30,16 +30,17 @@ exports.addQuestionnaireHistory = async (payload) => {
     const sortedCourseSlots = course.slots.sort(DatesUtilsHelper.ascendingSortBy('startDate'));
 
     const middleCourseSlotIndex = Math.ceil(sortedCourseSlots.length / 2) - 1;
-    const middleCourseSlotEndOfDay = CompaniDate(sortedCourseSlots[middleCourseSlotIndex].endDate).endOf(DAY);
+    const isBeforeMiddleCourse = CompaniDate().isBefore(sortedCourseSlots[middleCourseSlotIndex].endDate);
     const lastSlotStartOfDay = CompaniDate(sortedCourseSlots[sortedCourseSlots.length - 1].startDate).startOf(DAY);
 
-    if (CompaniDate().isBefore(middleCourseSlotEndOfDay)) {
+    if (isBeforeMiddleCourse) {
       timeline = START_COURSE;
     } else if (CompaniDate().isAfter(lastSlotStartOfDay)) {
       timeline = END_COURSE;
     }
+    if (!timeline) throw Boom.forbidden();
 
-    qhPayload = { ...qhPayload, ...(timeline && { timeline }) };
+    qhPayload = { ...qhPayload, timeline };
   }
 
   const questionnaireHistoryExists = await QuestionnaireHistory

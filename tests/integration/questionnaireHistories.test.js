@@ -22,7 +22,7 @@ describe('NODE ENV', () => {
   });
 });
 
-describe('QUESTIONNAIRE HISTORIES ROUTES - POST /questionnairehistories #tag', () => {
+describe('QUESTIONNAIRE HISTORIES ROUTES - POST /questionnairehistories', () => {
   let authToken;
   beforeEach(populateDB);
 
@@ -289,6 +289,29 @@ describe('QUESTIONNAIRE HISTORIES ROUTES - POST /questionnairehistories #tag', (
       });
 
       expect(response.statusCode).toBe(404);
+    });
+
+    it('should return 403 if user tries to answer an invalid questionnaire', async () => {
+      nowStub.returns(new Date('2021-04-21T10:00:00.000Z'));
+
+      const payload = {
+        course: coursesList[0]._id,
+        user: questionnaireHistoriesUsersList[0],
+        questionnaire: questionnairesList[1]._id,
+        questionnaireAnswersList: [
+          { card: cardsList[1]._id, answerList: ['Premier niveau'] },
+          { card: cardsList[3]._id, answerList: ['coucou'] },
+        ],
+      };
+
+      const response = await app.inject({
+        method: 'POST',
+        url: '/questionnairehistories',
+        payload,
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(403);
     });
 
     it('should return 422 if card not a survey, an open question or a question/answer', async () => {
