@@ -65,12 +65,13 @@ const subProgramsList = [
     status: PUBLISHED,
   },
   { _id: new ObjectId(), name: 'sous-programme 2', steps: [stepList[1]._id], status: PUBLISHED },
+  { _id: new ObjectId(), name: 'sous-programme 3', steps: [stepList[2]._id], status: PUBLISHED },
 ];
 
 const programsList = [
   { _id: new ObjectId(), name: 'test', subPrograms: [subProgramsList[0]._id] },
-  { _id: new ObjectId(), name: 'program', subProgramsList: [subProgramsList[1]._id] },
-  { _id: new ObjectId(), name: 'third program', subProgramsList: [subProgramsList[0]._id] },
+  { _id: new ObjectId(), name: 'program', subPrograms: [subProgramsList[1]._id] },
+  { _id: new ObjectId(), name: 'third program', subPrograms: [subProgramsList[2]._id] },
 ];
 
 const questionnairesList = [

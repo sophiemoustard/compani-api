@@ -126,7 +126,7 @@ describe('addQuestionnaireHistory', () => {
           query: 'populate',
           args: [{ path: 'subProgram', select: 'program', populate: { path: 'program', select: '_id' } }],
         },
-        { query: 'lean' },
+        { query: 'lean', args: [{ virtuals: true }] },
       ]
     );
     SinonMongoose.calledOnceWithExactly(
@@ -195,7 +195,7 @@ describe('addQuestionnaireHistory', () => {
           query: 'populate',
           args: [{ path: 'subProgram', select: 'program', populate: { path: 'program', select: '_id' } }],
         },
-        { query: 'lean' },
+        { query: 'lean', args: [{ virtuals: true }] },
       ]
     );
     SinonMongoose.calledOnceWithExactly(

@@ -7,6 +7,7 @@ const QuestionnaireHistory = require('../../../src/models/QuestionnaireHistory')
 const Step = require('../../../src/models/Step');
 const SubProgram = require('../../../src/models/SubProgram');
 const CourseSlot = require('../../../src/models/CourseSlot');
+const Program = require('../../../src/models/Program');
 const { userList, trainerOrganisationManager, vendorAdmin } = require('../../seed/authUsersSeed');
 const { deleteNonAuthenticationSeeds } = require('../helpers/db');
 const {
@@ -41,16 +42,24 @@ const stepsList = [
   { _id: new ObjectId(), type: ON_SITE, name: 'etape 2', status: PUBLISHED, theoreticalDuration: 60 },
 ];
 
-const subProgram = {
-  _id: new ObjectId(),
-  name: 'Subprogram 1',
-  steps: [stepsList[0]._id, stepsList[1]._id],
-  status: PUBLISHED,
-};
+const subProgramsList = [
+  {
+    _id: new ObjectId(),
+    name: 'Subprogram 1',
+    steps: [stepsList[0]._id, stepsList[1]._id],
+    status: PUBLISHED,
+  },
+  {
+    _id: new ObjectId(),
+    name: 'Subprogram 2',
+    steps: [stepsList[0]._id],
+    status: PUBLISHED,
+  },
+];
 
 const programsList = [
-  { _id: new ObjectId(), name: 'test', subPrograms: [subProgram._id] },
-  { _id: new ObjectId(), name: 'test', subPrograms: [subProgram._id] },
+  { _id: new ObjectId(), name: 'program 1', subPrograms: [subProgramsList[0]._id] },
+  { _id: new ObjectId(), name: 'program 2', subPrograms: [subProgramsList[1]._id] },
 ];
 
 const questionnairesList = [
@@ -83,7 +92,7 @@ const coursesList = [
   {
     _id: new ObjectId(),
     format: 'blended',
-    subProgram: subProgram._id,
+    subProgram: subProgramsList[0]._id,
     type: INTER_B2B,
     operationsRepresentative: vendorAdmin._id,
     trainees: [questionnaireHistoriesUsersList[0], questionnaireHistoriesUsersList[2]],
@@ -92,7 +101,7 @@ const coursesList = [
   {
     _id: new ObjectId(),
     format: 'blended',
-    subProgram: subProgram._id,
+    subProgram: subProgramsList[1]._id,
     type: INTER_B2B,
     operationsRepresentative: vendorAdmin._id,
     trainees: [questionnaireHistoriesUsersList[1]],
@@ -176,7 +185,7 @@ const slots = [
     startDate: '2021-04-22T14:00:00.000Z',
     endDate: '2021-04-22T18:00:00.000Z',
     course: coursesList[1]._id,
-    step: stepsList[1]._id,
+    step: stepsList[0]._id,
   },
 ];
 
@@ -190,8 +199,9 @@ const populateDB = async () => {
     CourseSlot.create(slots),
     Card.create(cardsList),
     CourseHistory.create(courseHistoriesList),
+    Program.create(programsList),
     Step.create(stepsList),
-    SubProgram.create(subProgram),
+    SubProgram.create(subProgramsList),
   ]);
 };
 

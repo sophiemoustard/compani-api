@@ -14,7 +14,7 @@ const { getTokenByCredentials } = require('./helpers/authentication');
 const { companyWithoutSubscription } = require('../seed/authCompaniesSeed');
 const { noRoleNoCompany } = require('../seed/authUsersSeed');
 const QuestionnaireHistory = require('../../src/models/QuestionnaireHistory');
-const { WEBAPP, START_COURSE, END_COURSE } = require('../../src/helpers/constants');
+const { WEBAPP, START_COURSE, END_COURSE, UNKNOWN } = require('../../src/helpers/constants');
 
 describe('NODE ENV', () => {
   it('should be \'test\'', () => {
@@ -143,6 +143,38 @@ describe('QUESTIONNAIRE HISTORIES ROUTES - POST /questionnairehistories', () => 
           course: coursesList[0]._id,
           user: questionnaireHistoriesUsersList[0],
           questionnaire: questionnairesList[0]._id,
+        });
+      expect(questionnaireHistoriesCount).toBe(1);
+    });
+
+    it('should set timeline to UNKNOWN if user tries to answer a questionnaire between middle '
+      + 'and end of the course', async () => {
+      nowStub.returns(new Date('2021-04-21T10:00:00.000Z'));
+
+      const payload = {
+        course: coursesList[0]._id,
+        user: questionnaireHistoriesUsersList[0],
+        questionnaire: questionnairesList[1]._id,
+        questionnaireAnswersList: [
+          { card: cardsList[1]._id, answerList: ['Premier niveau'] },
+          { card: cardsList[3]._id, answerList: ['coucou'] },
+        ],
+      };
+
+      const response = await app.inject({
+        method: 'POST',
+        url: '/questionnairehistories',
+        payload,
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(200);
+      const questionnaireHistoriesCount = await QuestionnaireHistory
+        .countDocuments({
+          course: coursesList[0]._id,
+          user: questionnaireHistoriesUsersList[0],
+          questionnaire: questionnairesList[1]._id,
+          timeline: UNKNOWN,
         });
       expect(questionnaireHistoriesCount).toBe(1);
     });
@@ -289,29 +321,6 @@ describe('QUESTIONNAIRE HISTORIES ROUTES - POST /questionnairehistories', () => 
       });
 
       expect(response.statusCode).toBe(404);
-    });
-
-    it('should return 403 if user tries to answer an invalid questionnaire', async () => {
-      nowStub.returns(new Date('2021-04-21T10:00:00.000Z'));
-
-      const payload = {
-        course: coursesList[0]._id,
-        user: questionnaireHistoriesUsersList[0],
-        questionnaire: questionnairesList[1]._id,
-        questionnaireAnswersList: [
-          { card: cardsList[1]._id, answerList: ['Premier niveau'] },
-          { card: cardsList[3]._id, answerList: ['coucou'] },
-        ],
-      };
-
-      const response = await app.inject({
-        method: 'POST',
-        url: '/questionnairehistories',
-        payload,
-        headers: { 'x-access-token': authToken },
-      });
-
-      expect(response.statusCode).toBe(403);
     });
 
     it('should return 422 if card not a survey, an open question or a question/answer', async () => {

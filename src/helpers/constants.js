@@ -444,7 +444,11 @@ module.exports = {
   // QUESTIONNAIRE_HISTORY
   START_COURSE: 'start_course',
   END_COURSE: 'end_course',
-  get TIMELINE_OPTIONS() { return [this.START_COURSE, this.END_COURSE]; },
+  get TIMELINE_OPTIONS() { return [this.START_COURSE, this.END_COURSE, this.UNKNOWN]; },
+  // COURSE TIMELINE
+  BEFORE_MIDDLE_COURSE_END_DATE: 'before_middle_course_end_date',
+  BETWEEN_MID_AND_END_COURSE: 'between_mid_and_end_course',
+  ENDED: 'ended',
   // tests end2end
   PLANNING: 'planning',
   AUTHENTICATION: 'authentication',
