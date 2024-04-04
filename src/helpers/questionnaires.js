@@ -21,7 +21,7 @@ const { CompaniDate } = require('./dates/companiDates');
 exports.create = async payload => Questionnaire.create(payload);
 
 const BEFORE_MIDDLE_COURSE_END_DATE = 'before_middle_course_end_date';
-const COURSE_IN_PROGRESS_AND_HAS_SLOTS_TO_PLAN = 'course_in_progress_and_has_slots_to_plan';
+const BETWEEN_MID_AND_END_COURSE = 'between_mid_and_end_course';
 const ENDED = 'ended';
 
 const getCourseTimeline = (course) => {
@@ -35,14 +35,14 @@ const getCourseTimeline = (course) => {
     if (isBeforeMiddleCourseEndDate) return BEFORE_MIDDLE_COURSE_END_DATE;
   }
 
-  if (get(course, 'slotsToPlan.length')) return COURSE_IN_PROGRESS_AND_HAS_SLOTS_TO_PLAN;
+  if (get(course, 'slotsToPlan.length')) return BETWEEN_MID_AND_END_COURSE;
 
   const lastSlotStartOfDay = get(sortedSlots[sortedSlots.length - 1], 'startDate')
     ? CompaniDate(get(sortedSlots[sortedSlots.length - 1], 'startDate')).startOf(DAY)
     : null;
   if (CompaniDate().isAfter(lastSlotStartOfDay)) return ENDED;
 
-  return '';
+  return BETWEEN_MID_AND_END_COURSE;
 };
 
 const getCourseInfos = async (courseId) => {
@@ -70,7 +70,7 @@ exports.list = async (credentials, query = {}) => {
   if (isStrictlyELearning) return [];
 
   switch (courseTimeline) {
-    case COURSE_IN_PROGRESS_AND_HAS_SLOTS_TO_PLAN:
+    case BETWEEN_MID_AND_END_COURSE:
       return [];
     case BEFORE_MIDDLE_COURSE_END_DATE:
     case ENDED: {
@@ -136,7 +136,7 @@ exports.getUserQuestionnaires = async (courseId, credentials) => {
   if (isStrictlyELearning) return [];
 
   switch (courseTimeline) {
-    case COURSE_IN_PROGRESS_AND_HAS_SLOTS_TO_PLAN:
+    case BETWEEN_MID_AND_END_COURSE:
       return [];
     case BEFORE_MIDDLE_COURSE_END_DATE:
     case ENDED: {
