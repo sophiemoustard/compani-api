@@ -20,6 +20,11 @@ const { CompaniDate } = require('./dates/companiDates');
 
 exports.create = async payload => Questionnaire.create(payload);
 
+const FORTHCOMING = 'forthcoming';
+const BEFORE_MIDDLE_COURSE_END_DATE = 'before_middle_course_end_date';
+const HAS_SLOTS_TO_PLAN = 'has_slots_to_plan';
+const ENDED = 'ended';
+
 const getCourseInfos = async (courseId) => {
   const course = await Course.findOne({ _id: courseId })
     .populate({ path: 'slots', select: '-__v -createdAt -updatedAt' })
@@ -35,13 +40,22 @@ const getCourseInfos = async (courseId) => {
     ? CompaniDate(get(sortedCourseSlots[sortedCourseSlots.length - 1], 'startDate')).startOf(DAY)
     : null;
 
-  return {
-    hasSlots: sortedCourseSlots.length,
-    hasSlotsToPlan: get(course, 'slotsToPlan.length'),
-    middleCourseSlotEndDate: get(sortedCourseSlots[middleCourseSlotIndex], 'endDate'),
-    lastSlotStartOfDay,
-    programId: course.subProgram.program._id,
-  };
+  const hasSlots = sortedCourseSlots.length;
+  if (!hasSlots) return { courseTimeline: FORTHCOMING, programId: course.subProgram.program._id };
+  if (get(sortedCourseSlots[middleCourseSlotIndex], 'endDate')) {
+    const isBeforeMiddleCourseEndDate = CompaniDate()
+      .isBefore(get(sortedCourseSlots[middleCourseSlotIndex], 'endDate'));
+    if (isBeforeMiddleCourseEndDate) {
+      return { courseTimeline: BEFORE_MIDDLE_COURSE_END_DATE, programId: course.subProgram.program._id };
+    }
+  }
+  const hasSlotsToPlan = get(course, 'slotsToPlan.length');
+  if (hasSlotsToPlan) return { courseTimeline: HAS_SLOTS_TO_PLAN, programId: course.subProgram.program._id };
+  if (hasSlots && CompaniDate().isAfter(lastSlotStartOfDay)) {
+    return { courseTimeline: ENDED, programId: course.subProgram.program._id };
+  }
+
+  return { programId: course.subProgram.program._id };
 };
 
 exports.list = async (credentials, query = {}) => {
@@ -49,37 +63,32 @@ exports.list = async (credentials, query = {}) => {
   const { course: courseId } = query;
 
   if (courseId) {
-    const {
-      isStrictlyELearning,
-      hasSlots,
-      hasSlotsToPlan,
-      middleCourseSlotEndDate,
-      lastSlotStartOfDay,
-      programId,
-    } = await getCourseInfos(courseId);
+    const { isStrictlyELearning, courseTimeline, programId } = await getCourseInfos(courseId);
 
     if (isStrictlyELearning) return [];
 
-    const isBeforeMiddleCourse = !hasSlots || CompaniDate().isBefore(middleCourseSlotEndDate);
-    if (isBeforeMiddleCourse) {
-      const findQuery = {
-        type: { $in: [EXPECTATIONS, SELF_POSITIONNING] },
-        $or: [{ program: { $exists: false } }, { program: programId }],
-        status: PUBLISHED,
-      };
-      return Questionnaire.find(findQuery).populate({ path: 'historiesCount', options: { isVendorUser } }).lean();
-    }
-
-    if (hasSlotsToPlan) return [];
-
-    const isCourseEnded = hasSlots && CompaniDate().isAfter(lastSlotStartOfDay);
-    if (isCourseEnded) {
-      const findQuery = {
-        type: { $in: [END_OF_COURSE, SELF_POSITIONNING] },
-        $or: [{ program: { $exists: false } }, { program: programId }],
-        status: PUBLISHED,
-      };
-      return Questionnaire.find(findQuery).populate({ path: 'historiesCount', options: { isVendorUser } }).lean();
+    switch (courseTimeline) {
+      case FORTHCOMING:
+      case BEFORE_MIDDLE_COURSE_END_DATE:
+        return Questionnaire
+          .find({
+            type: { $in: [EXPECTATIONS, SELF_POSITIONNING] },
+            $or: [{ program: { $exists: false } }, { program: programId }],
+            status: PUBLISHED,
+          })
+          .populate({ path: 'historiesCount', options: { isVendorUser } })
+          .lean();
+      case HAS_SLOTS_TO_PLAN:
+        return [];
+      case ENDED:
+        return Questionnaire
+          .find({
+            type: { $in: [END_OF_COURSE, SELF_POSITIONNING] },
+            $or: [{ program: { $exists: false } }, { program: programId }],
+            status: PUBLISHED,
+          })
+          .populate({ path: 'historiesCount', options: { isVendorUser } })
+          .lean();
     }
   }
 
@@ -129,35 +138,32 @@ const findQuestionnaires = (questionnaireConditions, historiesConditions) => {
 exports.getUserQuestionnaires = async (courseId, credentials) => {
   const {
     isStrictlyELearning,
-    hasSlots,
-    hasSlotsToPlan,
-    middleCourseSlotEndDate,
-    lastSlotStartOfDay,
+    courseTimeline,
     programId,
   } = await getCourseInfos(courseId);
 
   if (isStrictlyELearning) return [];
 
-  const isBeforeMiddleCourse = !hasSlots || CompaniDate().isBefore(middleCourseSlotEndDate);
-  if (isBeforeMiddleCourse) {
-    const questionnaires = await findQuestionnaires(
-      { typeList: [EXPECTATIONS, SELF_POSITIONNING], program: programId },
-      { course: courseId, user: credentials._id, timeline: START_COURSE }
-    );
+  switch (courseTimeline) {
+    case FORTHCOMING:
+    case BEFORE_MIDDLE_COURSE_END_DATE: {
+      const questionnaires = await findQuestionnaires(
+        { typeList: [EXPECTATIONS, SELF_POSITIONNING], program: programId },
+        { course: courseId, user: credentials._id, timeline: START_COURSE }
+      );
 
-    return questionnaires.filter(q => q && !q.histories.length);
-  }
+      return questionnaires.filter(q => q && !q.histories.length);
+    }
+    case HAS_SLOTS_TO_PLAN:
+      return [];
+    case ENDED: {
+      const questionnaires = await findQuestionnaires(
+        { typeList: [END_OF_COURSE, SELF_POSITIONNING], program: programId },
+        { course: courseId, user: credentials._id, timeline: END_COURSE }
+      );
 
-  if (hasSlotsToPlan) return [];
-
-  const isCourseEnded = hasSlots && CompaniDate().isAfter(lastSlotStartOfDay);
-  if (isCourseEnded) {
-    const questionnaires = await findQuestionnaires(
-      { typeList: [END_OF_COURSE, SELF_POSITIONNING], program: programId },
-      { course: courseId, user: credentials._id, timeline: END_COURSE }
-    );
-
-    return questionnaires.filter(q => q && !q.histories.length);
+      return questionnaires.filter(q => q && !q.histories.length);
+    }
   }
 
   return [];
