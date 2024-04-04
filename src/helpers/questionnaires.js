@@ -62,37 +62,39 @@ exports.list = async (credentials, query = {}) => {
   const isVendorUser = !!get(credentials, 'role.vendor');
   const { course: courseId } = query;
 
-  if (courseId) {
-    const { isStrictlyELearning, courseTimeline, programId } = await getCourseInfos(courseId);
-
-    if (isStrictlyELearning) return [];
-
-    switch (courseTimeline) {
-      case FORTHCOMING:
-      case BEFORE_MIDDLE_COURSE_END_DATE:
-        return Questionnaire
-          .find({
-            type: { $in: [EXPECTATIONS, SELF_POSITIONNING] },
-            $or: [{ program: { $exists: false } }, { program: programId }],
-            status: PUBLISHED,
-          })
-          .populate({ path: 'historiesCount', options: { isVendorUser } })
-          .lean();
-      case HAS_SLOTS_TO_PLAN:
-        return [];
-      case ENDED:
-        return Questionnaire
-          .find({
-            type: { $in: [END_OF_COURSE, SELF_POSITIONNING] },
-            $or: [{ program: { $exists: false } }, { program: programId }],
-            status: PUBLISHED,
-          })
-          .populate({ path: 'historiesCount', options: { isVendorUser } })
-          .lean();
-    }
+  if (!courseId) {
+    return Questionnaire.find(query).populate({ path: 'historiesCount', options: { isVendorUser } }).lean();
   }
 
-  return Questionnaire.find(query).populate({ path: 'historiesCount', options: { isVendorUser } }).lean();
+  const { isStrictlyELearning, courseTimeline, programId } = await getCourseInfos(courseId);
+
+  if (isStrictlyELearning) return [];
+
+  switch (courseTimeline) {
+    case FORTHCOMING:
+    case BEFORE_MIDDLE_COURSE_END_DATE:
+      return Questionnaire
+        .find({
+          type: { $in: [EXPECTATIONS, SELF_POSITIONNING] },
+          $or: [{ program: { $exists: false } }, { program: programId }],
+          status: PUBLISHED,
+        })
+        .populate({ path: 'historiesCount', options: { isVendorUser } })
+        .lean();
+    case HAS_SLOTS_TO_PLAN:
+      return [];
+    case ENDED:
+      return Questionnaire
+        .find({
+          type: { $in: [END_OF_COURSE, SELF_POSITIONNING] },
+          $or: [{ program: { $exists: false } }, { program: programId }],
+          status: PUBLISHED,
+        })
+        .populate({ path: 'historiesCount', options: { isVendorUser } })
+        .lean();
+    default:
+      return [];
+  }
 };
 
 exports.getQuestionnaire = async id => Questionnaire.findOne({ _id: id })
