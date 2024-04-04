@@ -41,7 +41,12 @@ const stepsList = [
   { _id: new ObjectId(), type: ON_SITE, name: 'etape 2', status: PUBLISHED, theoreticalDuration: 60 },
 ];
 
-const subProgram = { _id: new ObjectId(), name: 'Subprogram 1', steps: [stepsList[0]._id], status: PUBLISHED };
+const subProgram = {
+  _id: new ObjectId(),
+  name: 'Subprogram 1',
+  steps: [stepsList[0]._id, stepsList[1]._id],
+  status: PUBLISHED,
+};
 
 const programsList = [
   { _id: new ObjectId(), name: 'test', subPrograms: [subProgram._id] },
@@ -144,6 +149,13 @@ const courseHistoriesList = [
     company: authCompany._id,
     createdBy: trainerOrganisationManager._id,
     createdAt: '2020-01-01T23:00:00.000Z',
+  },
+  {
+    action: COMPANY_ADDITION,
+    course: coursesList[1]._id,
+    company: authCompany._id,
+    createdBy: trainerOrganisationManager._id,
+    createdAt: '2020-01-04T23:00:00.000Z',
   },
 ];
 
