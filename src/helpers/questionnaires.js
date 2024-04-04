@@ -20,10 +20,30 @@ const { CompaniDate } = require('./dates/companiDates');
 
 exports.create = async payload => Questionnaire.create(payload);
 
-const FORTHCOMING = 'forthcoming';
 const BEFORE_MIDDLE_COURSE_END_DATE = 'before_middle_course_end_date';
-const HAS_SLOTS_TO_PLAN = 'has_slots_to_plan';
+const COURSE_IN_PROGRESS_AND_HAS_SLOTS_TO_PLAN = 'course_in_progress_and_has_slots_to_plan';
 const ENDED = 'ended';
+
+const getCourseTimeline = (course) => {
+  const sortedSlots = [...course.slots].sort(DatesUtilsHelper.ascendingSortBy('startDate'));
+
+  if (!sortedSlots.length) return BEFORE_MIDDLE_COURSE_END_DATE;
+
+  const middleSlotIndex = Math.ceil(sortedSlots.length / 2) - 1;
+  if (get(sortedSlots[middleSlotIndex], 'endDate')) {
+    const isBeforeMiddleCourseEndDate = CompaniDate().isBefore(get(sortedSlots[middleSlotIndex], 'endDate'));
+    if (isBeforeMiddleCourseEndDate) return BEFORE_MIDDLE_COURSE_END_DATE;
+  }
+
+  if (get(course, 'slotsToPlan.length')) return COURSE_IN_PROGRESS_AND_HAS_SLOTS_TO_PLAN;
+
+  const lastSlotStartOfDay = get(sortedSlots[sortedSlots.length - 1], 'startDate')
+    ? CompaniDate(get(sortedSlots[sortedSlots.length - 1], 'startDate')).startOf(DAY)
+    : null;
+  if (CompaniDate().isAfter(lastSlotStartOfDay)) return ENDED;
+
+  return '';
+};
 
 const getCourseInfos = async (courseId) => {
   const course = await Course.findOne({ _id: courseId })
@@ -32,30 +52,9 @@ const getCourseInfos = async (courseId) => {
     .populate({ path: 'subProgram', select: 'program', populate: { path: 'program', select: '_id' } })
     .lean({ virtuals: true });
 
-  if (course.format === STRICTLY_E_LEARNING) return { isStrictlyELearning: true };
-  const sortedCourseSlots = course.slots.sort(DatesUtilsHelper.ascendingSortBy('startDate'));
-
-  const middleCourseSlotIndex = Math.ceil(sortedCourseSlots.length / 2) - 1;
-  const lastSlotStartOfDay = get(sortedCourseSlots[sortedCourseSlots.length - 1], 'startDate')
-    ? CompaniDate(get(sortedCourseSlots[sortedCourseSlots.length - 1], 'startDate')).startOf(DAY)
-    : null;
-
-  const hasSlots = sortedCourseSlots.length;
-  if (!hasSlots) return { courseTimeline: FORTHCOMING, programId: course.subProgram.program._id };
-  if (get(sortedCourseSlots[middleCourseSlotIndex], 'endDate')) {
-    const isBeforeMiddleCourseEndDate = CompaniDate()
-      .isBefore(get(sortedCourseSlots[middleCourseSlotIndex], 'endDate'));
-    if (isBeforeMiddleCourseEndDate) {
-      return { courseTimeline: BEFORE_MIDDLE_COURSE_END_DATE, programId: course.subProgram.program._id };
-    }
-  }
-  const hasSlotsToPlan = get(course, 'slotsToPlan.length');
-  if (hasSlotsToPlan) return { courseTimeline: HAS_SLOTS_TO_PLAN, programId: course.subProgram.program._id };
-  if (hasSlots && CompaniDate().isAfter(lastSlotStartOfDay)) {
-    return { courseTimeline: ENDED, programId: course.subProgram.program._id };
-  }
-
-  return { programId: course.subProgram.program._id };
+  return course.format === STRICTLY_E_LEARNING
+    ? { isStrictlyELearning: true }
+    : { programId: course.subProgram.program._id, courseTimeline: getCourseTimeline(course) };
 };
 
 exports.list = async (credentials, query = {}) => {
@@ -71,27 +70,21 @@ exports.list = async (credentials, query = {}) => {
   if (isStrictlyELearning) return [];
 
   switch (courseTimeline) {
-    case FORTHCOMING:
-    case BEFORE_MIDDLE_COURSE_END_DATE:
-      return Questionnaire
-        .find({
-          type: { $in: [EXPECTATIONS, SELF_POSITIONNING] },
-          $or: [{ program: { $exists: false } }, { program: programId }],
-          status: PUBLISHED,
-        })
-        .populate({ path: 'historiesCount', options: { isVendorUser } })
-        .lean();
-    case HAS_SLOTS_TO_PLAN:
+    case COURSE_IN_PROGRESS_AND_HAS_SLOTS_TO_PLAN:
       return [];
-    case ENDED:
+    case BEFORE_MIDDLE_COURSE_END_DATE:
+    case ENDED: {
+      const qType = courseTimeline === BEFORE_MIDDLE_COURSE_END_DATE ? [EXPECTATIONS] : [END_OF_COURSE];
+
       return Questionnaire
         .find({
-          type: { $in: [END_OF_COURSE, SELF_POSITIONNING] },
+          type: { $in: [...qType, SELF_POSITIONNING] },
           $or: [{ program: { $exists: false } }, { program: programId }],
           status: PUBLISHED,
         })
         .populate({ path: 'historiesCount', options: { isVendorUser } })
         .lean();
+    }
     default:
       return [];
   }
@@ -138,30 +131,21 @@ const findQuestionnaires = (questionnaireConditions, historiesConditions) => {
 };
 
 exports.getUserQuestionnaires = async (courseId, credentials) => {
-  const {
-    isStrictlyELearning,
-    courseTimeline,
-    programId,
-  } = await getCourseInfos(courseId);
+  const { isStrictlyELearning, courseTimeline, programId } = await getCourseInfos(courseId);
 
   if (isStrictlyELearning) return [];
 
   switch (courseTimeline) {
-    case FORTHCOMING:
-    case BEFORE_MIDDLE_COURSE_END_DATE: {
-      const questionnaires = await findQuestionnaires(
-        { typeList: [EXPECTATIONS, SELF_POSITIONNING], program: programId },
-        { course: courseId, user: credentials._id, timeline: START_COURSE }
-      );
-
-      return questionnaires.filter(q => q && !q.histories.length);
-    }
-    case HAS_SLOTS_TO_PLAN:
+    case COURSE_IN_PROGRESS_AND_HAS_SLOTS_TO_PLAN:
       return [];
+    case BEFORE_MIDDLE_COURSE_END_DATE:
     case ENDED: {
+      const qType = courseTimeline === BEFORE_MIDDLE_COURSE_END_DATE ? [EXPECTATIONS] : [END_OF_COURSE];
+      const timeline = courseTimeline === BEFORE_MIDDLE_COURSE_END_DATE ? START_COURSE : END_COURSE;
+
       const questionnaires = await findQuestionnaires(
-        { typeList: [END_OF_COURSE, SELF_POSITIONNING], program: programId },
-        { course: courseId, user: credentials._id, timeline: END_COURSE }
+        { typeList: [...qType, SELF_POSITIONNING], program: programId },
+        { course: courseId, user: credentials._id, timeline }
       );
 
       return questionnaires.filter(q => q && !q.histories.length);
