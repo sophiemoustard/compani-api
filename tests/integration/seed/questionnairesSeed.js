@@ -54,10 +54,16 @@ const stepList = [
     theoreticalDuration: 60,
   },
   { _id: new ObjectId(), type: ON_SITE, name: 'etape 3', activities: [], status: PUBLISHED, theoreticalDuration: 240 },
+  { _id: new ObjectId(), type: ON_SITE, name: 'etape 4', activities: [], status: PUBLISHED, theoreticalDuration: 240 },
 ];
 
 const subProgramsList = [
-  { _id: new ObjectId(), name: 'sous-programme 1', steps: [stepList[0]._id, stepList[2]._id], status: PUBLISHED },
+  {
+    _id: new ObjectId(),
+    name: 'sous-programme 1',
+    steps: [stepList[0]._id, stepList[2]._id, stepList[3]._id],
+    status: PUBLISHED,
+  },
   { _id: new ObjectId(), name: 'sous-programme 2', steps: [stepList[1]._id], status: PUBLISHED },
 ];
 
@@ -208,10 +214,36 @@ const slots = [
     step: stepList[0]._id,
   },
   {
+    startDate: '2021-04-20T11:00:00.000Z',
+    endDate: '2021-04-20T12:00:00.000Z',
+    course: coursesList[0]._id,
+    step: stepList[0]._id,
+  },
+  {
+    startDate: '2021-04-22T09:00:00.000Z',
+    endDate: '2021-04-22T11:00:00.000Z',
+    course: coursesList[0]._id,
+    step: stepList[2]._id,
+  },
+  {
     startDate: '2021-04-22T14:00:00.000Z',
     endDate: '2021-04-22T18:00:00.000Z',
     course: coursesList[0]._id,
     step: stepList[2]._id,
+  },
+  {
+    startDate: '2021-04-20T09:00:00.000Z',
+    endDate: '2021-04-20T11:00:00.000Z',
+    course: coursesList[2]._id,
+    step: stepList[0]._id,
+  },
+  {
+    course: coursesList[2]._id,
+    step: stepList[2]._id,
+  },
+  {
+    course: coursesList[2]._id,
+    step: stepList[3]._id,
   },
 ];
 

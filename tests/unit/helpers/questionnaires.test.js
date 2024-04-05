@@ -17,6 +17,7 @@ const {
   START_COURSE,
   END_COURSE,
   DRAFT,
+  STRICTLY_E_LEARNING,
 } = require('../../../src/helpers/constants');
 const SinonMongoose = require('../sinonMongoose');
 const UtilsMock = require('../../utilsMock');
@@ -39,27 +40,324 @@ describe('create', () => {
 });
 
 describe('list', () => {
-  let find;
+  let findQuestionnaires;
+  let findOneCourse;
+
   beforeEach(() => {
-    find = sinon.stub(Questionnaire, 'find');
+    findQuestionnaires = sinon.stub(Questionnaire, 'find');
+    findOneCourse = sinon.stub(Course, 'findOne');
+    UtilsMock.mockCurrentDate('2021-04-13T15:00:00.000Z');
   });
   afterEach(() => {
-    find.restore();
+    findQuestionnaires.restore();
+    findOneCourse.restore();
+    UtilsMock.unmockCurrentDate();
   });
 
-  it('should return questionnaires', async () => {
+  it('should return all questionnaires (DRAFT OR PUBLISHED)', async () => {
     const credentials = { role: { vendor: { name: TRAINING_ORGANISATION_MANAGER } } };
-    const questionnairesList = [{ name: 'test' }, { name: 'test2' }];
+    const questionnairesList = [
+      { name: 'test', stauts: PUBLISHED },
+      { name: 'test2', status: DRAFT },
+    ];
 
-    find.returns(SinonMongoose.stubChainedQueries(questionnairesList));
+    findQuestionnaires.returns(SinonMongoose.stubChainedQueries(questionnairesList));
 
     const result = await QuestionnaireHelper.list(credentials);
 
     expect(result).toMatchObject(questionnairesList);
     SinonMongoose.calledOnceWithExactly(
-      find,
+      findQuestionnaires,
       [
         { query: 'find', args: [{}] },
+        { query: 'populate', args: [{ path: 'historiesCount', options: { isVendorUser: true } }] },
+        { query: 'lean' },
+      ]
+    );
+  });
+
+  it('should return an empty array if course is strictly e-learning', async () => {
+    const courseId = new ObjectId();
+    const credentials = { role: { vendor: { name: TRAINING_ORGANISATION_MANAGER } } };
+    const course = { _id: courseId, format: STRICTLY_E_LEARNING };
+
+    findOneCourse.returns(SinonMongoose.stubChainedQueries(course));
+
+    const result = await QuestionnaireHelper.list(credentials, { course: courseId });
+
+    expect(result).toMatchObject([]);
+    sinon.assert.notCalled(findQuestionnaires);
+    SinonMongoose.calledOnceWithExactly(
+      findOneCourse,
+      [
+        { query: 'findOne', args: [{ _id: courseId }] },
+        { query: 'populate', args: [{ path: 'slots', select: '-__v -createdAt -updatedAt' }] },
+        { query: 'populate', args: [{ path: 'slotsToPlan', select: '_id' }] },
+        {
+          query: 'populate',
+          args: [{ path: 'subProgram', select: 'program', populate: { path: 'program', select: '_id' } }],
+        },
+        { query: 'lean', args: [{ virtuals: true }] },
+      ]
+    );
+  });
+
+  it('should return questionnaires if course has no slots', async () => {
+    const credentials = { role: { vendor: { name: TRAINING_ORGANISATION_MANAGER } } };
+    const courseId = new ObjectId();
+    const programId = new ObjectId();
+    const course = {
+      _id: courseId,
+      slots: [],
+      slotsToPlan: [],
+      subProgram: { program: { _id: programId } },
+    };
+
+    const questionnairesList = [
+      { name: 'test', type: EXPECTATIONS, status: PUBLISHED },
+      { name: 'test2', type: SELF_POSITIONNING, status: PUBLISHED },
+    ];
+
+    findOneCourse.returns(SinonMongoose.stubChainedQueries(course));
+    findQuestionnaires.returns(SinonMongoose.stubChainedQueries(questionnairesList));
+
+    const result = await QuestionnaireHelper.list(credentials, { course: courseId });
+
+    expect(result).toMatchObject(questionnairesList);
+    SinonMongoose.calledOnceWithExactly(
+      findOneCourse,
+      [
+        { query: 'findOne', args: [{ _id: courseId }] },
+        { query: 'populate', args: [{ path: 'slots', select: '-__v -createdAt -updatedAt' }] },
+        { query: 'populate', args: [{ path: 'slotsToPlan', select: '_id' }] },
+        {
+          query: 'populate',
+          args: [{ path: 'subProgram', select: 'program', populate: { path: 'program', select: '_id' } }],
+        },
+        { query: 'lean', args: [{ virtuals: true }] },
+      ]
+    );
+    SinonMongoose.calledOnceWithExactly(
+      findQuestionnaires,
+      [
+        {
+          query: 'find',
+          args: [
+            {
+              type: { $in: [EXPECTATIONS, SELF_POSITIONNING] },
+              $or: [{ program: { $exists: false } }, { program: programId }],
+              status: PUBLISHED,
+            },
+          ],
+        },
+        { query: 'populate', args: [{ path: 'historiesCount', options: { isVendorUser: true } }] },
+        { query: 'lean' },
+      ]
+    );
+  });
+
+  it('should return questionnaires if course has slots and mid course has to be planned', async () => {
+    const credentials = { role: { vendor: { name: TRAINING_ORGANISATION_MANAGER } } };
+    const courseId = new ObjectId();
+    const programId = new ObjectId();
+    const course = {
+      _id: courseId,
+      slots: [{ startDate: '2021-04-01T09:00:00.000Z', endDate: '2021-04-01T11:00:00.000Z' }],
+      slotsToPlan: [{ _id: new ObjectId() }, { _id: new ObjectId() }, { _id: new ObjectId() }],
+      subProgram: { program: { _id: programId } },
+    };
+
+    const questionnairesList = [
+      { name: 'test', type: EXPECTATIONS, status: PUBLISHED },
+      { name: 'test2', type: SELF_POSITIONNING, status: PUBLISHED },
+    ];
+
+    findOneCourse.returns(SinonMongoose.stubChainedQueries(course));
+    findQuestionnaires.returns(SinonMongoose.stubChainedQueries(questionnairesList));
+
+    const result = await QuestionnaireHelper.list(credentials, { course: courseId });
+
+    expect(result).toMatchObject(questionnairesList);
+    SinonMongoose.calledOnceWithExactly(
+      findOneCourse,
+      [
+        { query: 'findOne', args: [{ _id: courseId }] },
+        { query: 'populate', args: [{ path: 'slots', select: '-__v -createdAt -updatedAt' }] },
+        { query: 'populate', args: [{ path: 'slotsToPlan', select: '_id' }] },
+        {
+          query: 'populate',
+          args: [{ path: 'subProgram', select: 'program', populate: { path: 'program', select: '_id' } }],
+        },
+        { query: 'lean', args: [{ virtuals: true }] },
+      ]
+    );
+    SinonMongoose.calledOnceWithExactly(
+      findQuestionnaires,
+      [
+        {
+          query: 'find',
+          args: [
+            {
+              type: { $in: [EXPECTATIONS, SELF_POSITIONNING] },
+              $or: [{ program: { $exists: false } }, { program: programId }],
+              status: PUBLISHED,
+            },
+          ],
+        },
+        { query: 'populate', args: [{ path: 'historiesCount', options: { isVendorUser: true } }] },
+        { query: 'lean' },
+      ]
+    );
+  });
+
+  it('should return published questionnaires if course has not started'
+    + '(EXPECTATION and SELF_POSITIONNING)', async () => {
+    const courseId = new ObjectId();
+    const programId = new ObjectId();
+    const credentials = { role: { vendor: { name: TRAINING_ORGANISATION_MANAGER } } };
+    const course = {
+      _id: courseId,
+      slots: [{ startDate: '2021-04-20T09:00:00.000Z', endDate: '2021-04-20T11:00:00.000Z' }],
+      slotsToPlan: [],
+      subProgram: { program: { _id: programId } },
+    };
+    const questionnaires = [
+      { _id: new ObjectId(), name: 'test', status: PUBLISHED, type: EXPECTATIONS },
+      {
+        _id: new ObjectId(),
+        name: 'auto-positionnement',
+        status: PUBLISHED,
+        type: SELF_POSITIONNING,
+        program: programId,
+      },
+    ];
+
+    findOneCourse.returns(SinonMongoose.stubChainedQueries(course));
+    findQuestionnaires.returns(SinonMongoose.stubChainedQueries(questionnaires));
+
+    const result = await QuestionnaireHelper.list(credentials, { course: courseId });
+
+    expect(result).toMatchObject(questionnaires);
+    SinonMongoose.calledOnceWithExactly(
+      findOneCourse,
+      [
+        { query: 'findOne', args: [{ _id: courseId }] },
+        { query: 'populate', args: [{ path: 'slots', select: '-__v -createdAt -updatedAt' }] },
+        { query: 'populate', args: [{ path: 'slotsToPlan', select: '_id' }] },
+        {
+          query: 'populate',
+          args: [{ path: 'subProgram', select: 'program', populate: { path: 'program', select: '_id' } }],
+        },
+        { query: 'lean', args: [{ virtuals: true }] },
+      ]
+    );
+    SinonMongoose.calledOnceWithExactly(
+      findQuestionnaires,
+      [
+        {
+          query: 'find',
+          args: [
+            {
+              type: { $in: [EXPECTATIONS, SELF_POSITIONNING] },
+              $or: [{ program: { $exists: false } }, { program: programId }],
+              status: PUBLISHED,
+            },
+          ],
+        },
+        { query: 'populate', args: [{ path: 'historiesCount', options: { isVendorUser: true } }] },
+        { query: 'lean' },
+      ]
+    );
+  });
+
+  it('should return [] if half of course has been completed and there are still slots to plan', async () => {
+    const courseId = new ObjectId();
+    const programId = new ObjectId();
+    const credentials = { role: { vendor: { name: TRAINING_ORGANISATION_MANAGER } } };
+    const course = {
+      _id: courseId,
+      slots: [{ startDate: '2021-04-11T09:00:00.000Z', endDate: '2021-04-11T11:00:00.000Z' }],
+      slotsToPlan: [{ _id: new ObjectId() }],
+      subProgram: { program: { _id: programId } },
+    };
+
+    findOneCourse.returns(SinonMongoose.stubChainedQueries(course));
+    const result = await QuestionnaireHelper.list(credentials, { course: courseId });
+
+    expect(result).toMatchObject([]);
+    SinonMongoose.calledOnceWithExactly(
+      findOneCourse,
+      [
+        { query: 'findOne', args: [{ _id: courseId }] },
+        { query: 'populate', args: [{ path: 'slots', select: '-__v -createdAt -updatedAt' }] },
+        { query: 'populate', args: [{ path: 'slotsToPlan', select: '_id' }] },
+        {
+          query: 'populate',
+          args: [{ path: 'subProgram', select: 'program', populate: { path: 'program', select: '_id' } }],
+        },
+        { query: 'lean', args: [{ virtuals: true }] },
+      ]
+    );
+    sinon.assert.notCalled(findQuestionnaires);
+  });
+
+  it('should return published questionnaires if course ends today (END_OF_COURSE and SELF_POSITIONNING)', async () => {
+    const courseId = new ObjectId();
+    const programId = new ObjectId();
+    const credentials = { role: { vendor: { name: TRAINING_ORGANISATION_MANAGER } } };
+    const course = {
+      _id: courseId,
+      slots: [
+        { startDate: '2021-04-11T09:00:00.000Z', endDate: '2021-04-11T11:00:00.000Z' },
+        { startDate: '2021-04-13T09:00:00.000Z', endDate: '2021-04-13T11:00:00.000Z' },
+        { startDate: '2021-04-13T16:00:00.000Z', endDate: '2021-04-13T17:00:00.000Z' },
+      ],
+      slotsToPlan: [],
+      subProgram: { program: { _id: programId } },
+    };
+    const questionnaires = [
+      { _id: new ObjectId(), name: 'test', status: PUBLISHED, type: END_OF_COURSE },
+      {
+        _id: new ObjectId(),
+        name: 'auto-positionnement',
+        status: PUBLISHED,
+        type: SELF_POSITIONNING,
+        program: programId,
+      },
+    ];
+
+    findOneCourse.returns(SinonMongoose.stubChainedQueries(course));
+    findQuestionnaires.returns(SinonMongoose.stubChainedQueries(questionnaires));
+
+    const result = await QuestionnaireHelper.list(credentials, { course: courseId });
+
+    expect(result).toMatchObject(questionnaires);
+    SinonMongoose.calledOnceWithExactly(
+      findOneCourse,
+      [
+        { query: 'findOne', args: [{ _id: courseId }] },
+        { query: 'populate', args: [{ path: 'slots', select: '-__v -createdAt -updatedAt' }] },
+        { query: 'populate', args: [{ path: 'slotsToPlan', select: '_id' }] },
+        {
+          query: 'populate',
+          args: [{ path: 'subProgram', select: 'program', populate: { path: 'program', select: '_id' } }],
+        },
+        { query: 'lean', args: [{ virtuals: true }] },
+      ]
+    );
+    SinonMongoose.calledOnceWithExactly(
+      findQuestionnaires,
+      [
+        {
+          query: 'find',
+          args: [
+            {
+              type: { $in: [END_OF_COURSE, SELF_POSITIONNING] },
+              $or: [{ program: { $exists: false } }, { program: programId }],
+              status: PUBLISHED,
+            },
+          ],
+        },
         { query: 'populate', args: [{ path: 'historiesCount', options: { isVendorUser: true } }] },
         { query: 'lean' },
       ]
@@ -221,7 +519,7 @@ describe('getUserQuestionnaires', () => {
   it('should return an empty array if course is strictly e-learning', async () => {
     const courseId = new ObjectId();
     const credentials = { _id: new ObjectId() };
-    const course = { _id: courseId, format: 'strictly_e_learning' };
+    const course = { _id: courseId, format: STRICTLY_E_LEARNING };
 
     findOneCourse.returns(SinonMongoose.stubChainedQueries(course));
 
@@ -251,6 +549,7 @@ describe('getUserQuestionnaires', () => {
     const course = {
       _id: courseId,
       slots: [{ startDate: '2021-04-20T09:00:00.000Z', endDate: '2021-04-20T11:00:00.000Z' }],
+      slotsToPlan: [],
       subProgram: { program: { _id: new ObjectId() } },
     };
 
@@ -313,6 +612,7 @@ describe('getUserQuestionnaires', () => {
     const course = {
       _id: courseId,
       slots: [{ startDate: '2021-04-20T09:00:00.000Z', endDate: '2021-04-20T11:00:00.000Z' }],
+      slotsToPlan: [],
       subProgram: { program: { _id: programId } },
     };
 
@@ -401,6 +701,7 @@ describe('getUserQuestionnaires', () => {
     const course = {
       _id: courseId,
       slots: [{ startDate: '2021-04-20T09:00:00.000Z', endDate: '2021-04-20T11:00:00.000Z' }],
+      slotsToPlan: [],
       subProgram: { program: { _id: programId } },
     };
     const questionnaires = [
@@ -471,7 +772,7 @@ describe('getUserQuestionnaires', () => {
     const programId = new ObjectId();
 
     const credentials = { _id: new ObjectId() };
-    const course = { _id: courseId, slots: [], subProgram: { program: { _id: programId } } };
+    const course = { _id: courseId, slots: [], subProgram: { program: { _id: programId } }, slotsToPlan: [] };
     const questionnaires = [
       { _id: new ObjectId(), name: 'test', type: EXPECTATIONS, status: PUBLISHED, histories: [] },
       {
@@ -535,7 +836,75 @@ describe('getUserQuestionnaires', () => {
     );
   });
 
-  it('should return an empty array if course has started and has slots to plan', async () => {
+  it('should return questionnaires if course has slots and mid course has to be planned', async () => {
+    const courseId = new ObjectId();
+    const programId = new ObjectId();
+    const credentials = { _id: new ObjectId() };
+
+    const course = {
+      _id: courseId,
+      slots: [{ startDate: '2021-04-01T09:00:00.000Z', endDate: '2021-04-01T11:00:00.000Z' }],
+      slotsToPlan: [{ _id: new ObjectId() }, { _id: new ObjectId() }, { _id: new ObjectId() }],
+      subProgram: { program: { _id: programId } },
+    };
+
+    const questionnaires = [
+      { name: 'test', type: EXPECTATIONS, status: PUBLISHED, histories: [] },
+      { name: 'test2', type: SELF_POSITIONNING, status: PUBLISHED, histories: [] },
+    ];
+
+    findOneCourse.returns(SinonMongoose.stubChainedQueries(course));
+    findQuestionnaires.returns(SinonMongoose.stubChainedQueries(questionnaires));
+
+    const result = await QuestionnaireHelper.getUserQuestionnaires(courseId, credentials);
+
+    expect(result).toMatchObject(questionnaires);
+    SinonMongoose.calledOnceWithExactly(
+      findOneCourse,
+      [
+        { query: 'findOne', args: [{ _id: courseId }] },
+        { query: 'populate', args: [{ path: 'slots', select: '-__v -createdAt -updatedAt' }] },
+        { query: 'populate', args: [{ path: 'slotsToPlan', select: '_id' }] },
+        {
+          query: 'populate',
+          args: [{ path: 'subProgram', select: 'program', populate: { path: 'program', select: '_id' } }],
+        },
+        { query: 'lean', args: [{ virtuals: true }] },
+      ]
+    );
+    SinonMongoose.calledOnceWithExactly(
+      findQuestionnaires,
+      [
+        {
+          query: 'find',
+          args: [
+            {
+              type: { $in: [EXPECTATIONS, SELF_POSITIONNING] },
+              $or: [{ program: { $exists: false } }, { program: course.subProgram.program._id }],
+              status: PUBLISHED,
+            },
+            { type: 1, name: 1 },
+          ],
+        },
+        {
+          query: 'populate',
+          args: [{
+            path: 'histories',
+            match: {
+              course: course._id,
+              user: credentials._id,
+              $or: [{ timeline: { $exists: false } }, { timeline: START_COURSE }],
+            },
+            options: { requestingOwnInfos: true },
+            select: { _id: 1, timeline: 1 },
+          }],
+        },
+        { query: 'lean', args: [{ virtuals: true }] },
+      ]
+    );
+  });
+
+  it('should return [] if half of course has been completed and there are still slots to plan', async () => {
     const courseId = new ObjectId();
     const credentials = { _id: new ObjectId() };
 
@@ -574,6 +943,7 @@ describe('getUserQuestionnaires', () => {
     const course = {
       _id: courseId,
       slots: [{ startDate: '2021-04-11T09:00:00.000Z', endDate: '2021-04-11T11:00:00.000Z' }],
+      slotsToPlan: [],
       subProgram: { program: { _id: programId } },
     };
 
@@ -636,6 +1006,7 @@ describe('getUserQuestionnaires', () => {
     const course = {
       _id: courseId,
       slots: [{ startDate: '2021-04-11T09:00:00.000Z', endDate: '2021-04-11T11:00:00.000Z' }],
+      slotsToPlan: [],
       subProgram: { program: { _id: programId } },
     };
 
@@ -718,7 +1089,7 @@ describe('getUserQuestionnaires', () => {
   });
 
   it('should return questionnaires if course ends today and end_course self-positionning questionnaire'
-    + 'are not answered #tag', async () => {
+    + 'are not answered', async () => {
     const courseId = new ObjectId();
     const programId = new ObjectId();
     const credentials = { _id: new ObjectId() };
@@ -731,6 +1102,7 @@ describe('getUserQuestionnaires', () => {
         { startDate: '2021-04-13T14:00:00.000Z', endDate: '2021-04-13T16:00:00.000Z' },
         { startDate: '2021-04-13T16:30:00.000Z', endDate: '2021-04-13T18:30:00.000Z' },
       ],
+      slotsToPlan: [],
       subProgram: { program: { _id: programId } },
     };
 
@@ -811,6 +1183,7 @@ describe('getUserQuestionnaires', () => {
     const course = {
       _id: courseId,
       slots: [{ startDate: '2021-04-23T09:00:00.000Z', endDate: '2021-04-23T11:00:00.000Z' }],
+      slotsToPlan: [],
       subProgram: { program: { _id: programId } },
     };
 
@@ -891,6 +1264,7 @@ describe('getUserQuestionnaires', () => {
         { startDate: '2021-04-20T09:00:00.000Z', endDate: '2021-04-20T11:00:00.000Z' },
         { startDate: '2021-04-24T09:00:00.000Z', endDate: '2021-04-24T11:00:00.000Z' },
       ],
+      slotsToPlan: [],
       subProgram: { program: { _id: programId } },
     };
 
