@@ -182,6 +182,19 @@ describe('QUESTIONNAIRES ROUTES - GET /questionnaires', () => {
       ).toBeTruthy();
     });
 
+    it('should get questionnaire EXPECTATION and SELF_POSITIONNING when mid-course has to be planned', async () => {
+      nowStub.returns(new Date('2021-04-22T10:00:00.000Z'));
+
+      const response = await app.inject({
+        method: 'GET',
+        url: `/questionnaires?course=${coursesList[2]._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(200);
+      expect(response.result.data.questionnaires.length).toBe(2);
+    });
+
     it('should get published questionnaires linked to a course (END_OF_COURSE and SELF_POSITIONNING)', async () => {
       nowStub.returns(new Date('2021-04-22T10:00:00.000Z'));
 
@@ -366,6 +379,19 @@ describe('QUESTIONNAIRES ROUTES - GET /questionnaires/user', () => {
       const response = await app.inject({
         method: 'GET',
         url: `/questionnaires/user?course=${coursesList[0]._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(200);
+      expect(response.result.data.questionnaires.length).toBe(2);
+    });
+
+    it('should get questionnaire EXPECTATION and SELF_POSITIONNING when mid-course has to be planned', async () => {
+      nowStub.returns(new Date('2021-04-22T10:00:00.000Z'));
+
+      const response = await app.inject({
+        method: 'GET',
+        url: `/questionnaires/user?course=${coursesList[2]._id}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 

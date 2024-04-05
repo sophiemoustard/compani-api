@@ -29,11 +29,12 @@ const getCourseTimeline = (course) => {
 
   if (!sortedSlots.length) return BEFORE_MIDDLE_COURSE_END_DATE;
 
-  const middleSlotIndex = Math.ceil(sortedSlots.length / 2) - 1;
-  if (get(sortedSlots[middleSlotIndex], 'endDate')) {
-    const isBeforeMiddleCourseEndDate = CompaniDate().isBefore(get(sortedSlots[middleSlotIndex], 'endDate'));
-    if (isBeforeMiddleCourseEndDate) return BEFORE_MIDDLE_COURSE_END_DATE;
-  }
+  const allSlots = [...sortedSlots, ...course.slotsToPlan];
+  const middleSlotIndex = Math.ceil(allSlots.length / 2) - 1;
+  if (!get(sortedSlots[middleSlotIndex], 'endDate')) return BEFORE_MIDDLE_COURSE_END_DATE;
+
+  const isBeforeMiddleCourseEndDate = CompaniDate().isBefore(get(sortedSlots[middleSlotIndex], 'endDate'));
+  if (isBeforeMiddleCourseEndDate) return BEFORE_MIDDLE_COURSE_END_DATE;
 
   if (get(course, 'slotsToPlan.length')) return BETWEEN_MID_AND_END_COURSE;
 
