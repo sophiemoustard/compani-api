@@ -73,7 +73,7 @@ describe('addQuestionnaireHistory', () => {
     );
     SinonMongoose.calledOnceWithExactly(
       countDocumentsQH,
-      [{ query: 'countDocuments', args: [{ course: courseId, user: userId }] }]
+      [{ query: 'countDocuments', args: [{ course: courseId, user: userId, questionnaire: questionnaireId }] }]
     );
     sinon.assert.calledOnceWithExactly(
       create,
@@ -133,7 +133,12 @@ describe('addQuestionnaireHistory', () => {
     );
     SinonMongoose.calledOnceWithExactly(
       countDocumentsQH,
-      [{ query: 'countDocuments', args: [{ course: courseId, user: userId, timeline: START_COURSE }] }]
+      [
+        {
+          query: 'countDocuments',
+          args: [{ course: courseId, user: userId, questionnaire: questionnaireId, timeline: START_COURSE }],
+        },
+      ]
     );
     sinon.assert.calledOnceWithExactly(
       create,
@@ -203,7 +208,12 @@ describe('addQuestionnaireHistory', () => {
     );
     SinonMongoose.calledOnceWithExactly(
       countDocumentsQH,
-      [{ query: 'countDocuments', args: [{ course: courseId, user: userId, timeline: END_COURSE }] }]
+      [
+        {
+          query: 'countDocuments',
+          args: [{ course: courseId, user: userId, questionnaire: questionnaireId, timeline: END_COURSE }],
+        },
+      ]
     );
     sinon.assert.calledOnceWithExactly(
       create,
@@ -273,7 +283,11 @@ describe('addQuestionnaireHistory', () => {
     );
     SinonMongoose.calledOnceWithExactly(
       countDocumentsQH,
-      [{ query: 'countDocuments', args: [{ course: courseId, user: userId, timeline: UNKNOWN }] }]
+      [
+        {
+          query: 'countDocuments',
+          args: [{ course: courseId, user: userId, questionnaire: questionnaireId, timeline: UNKNOWN }],
+        }]
     );
     sinon.assert.calledOnceWithExactly(
       create,

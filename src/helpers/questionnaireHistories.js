@@ -20,10 +20,7 @@ const { language } = translate;
 exports.addQuestionnaireHistory = async (payload) => {
   const { user: userId, questionnaire: questionnaireId, course: courseId } = payload;
   const traineesCompanyAtCourseRegistrationList = await CourseHistoriesHelper
-    .getCompanyAtCourseRegistrationList(
-      { key: COURSE, value: payload.course },
-      { key: TRAINEE, value: [payload.user] }
-    );
+    .getCompanyAtCourseRegistrationList({ key: COURSE, value: courseId }, { key: TRAINEE, value: [userId] });
 
   const questionnaire = await Questionnaire.findOne({ _id: questionnaireId }, { type: 1 }).lean();
 
@@ -44,7 +41,7 @@ exports.addQuestionnaireHistory = async (payload) => {
   }
 
   const questionnaireHistoryExists = await QuestionnaireHistory
-    .countDocuments({ course: courseId, user: userId, ...(timeline && { timeline }) });
+    .countDocuments({ course: courseId, user: userId, questionnaire: questionnaireId, ...(timeline && { timeline }) });
   if (questionnaireHistoryExists) throw Boom.conflict(translate[language].questionnaireHistoryConflict);
 
   return QuestionnaireHistory.create(
