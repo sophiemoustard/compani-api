@@ -14,15 +14,14 @@ const {
   START_COURSE,
   END_COURSE,
   DAY,
+  BEFORE_MIDDLE_COURSE_END_DATE,
+  BETWEEN_MID_AND_END_COURSE,
+  ENDED,
 } = require('./constants');
 const DatesUtilsHelper = require('./dates/utils');
 const { CompaniDate } = require('./dates/companiDates');
 
 exports.create = async payload => Questionnaire.create(payload);
-
-const BEFORE_MIDDLE_COURSE_END_DATE = 'before_middle_course_end_date';
-const BETWEEN_MID_AND_END_COURSE = 'between_mid_and_end_course';
-const ENDED = 'ended';
 
 const getCourseTimeline = (course) => {
   const sortedSlots = [...course.slots].sort(DatesUtilsHelper.ascendingSortBy('startDate'));
@@ -46,7 +45,7 @@ const getCourseTimeline = (course) => {
   return BETWEEN_MID_AND_END_COURSE;
 };
 
-const getCourseInfos = async (courseId) => {
+exports.getCourseInfos = async (courseId) => {
   const course = await Course.findOne({ _id: courseId })
     .populate({ path: 'slots', select: '-__v -createdAt -updatedAt' })
     .populate({ path: 'slotsToPlan', select: '_id' })
@@ -66,7 +65,7 @@ exports.list = async (credentials, query = {}) => {
     return Questionnaire.find(query).populate({ path: 'historiesCount', options: { isVendorUser } }).lean();
   }
 
-  const { isStrictlyELearning, courseTimeline, programId } = await getCourseInfos(courseId);
+  const { isStrictlyELearning, courseTimeline, programId } = await exports.getCourseInfos(courseId);
 
   if (isStrictlyELearning) return [];
 
@@ -132,7 +131,7 @@ const findQuestionnaires = (questionnaireConditions, historiesConditions) => {
 };
 
 exports.getUserQuestionnaires = async (courseId, credentials) => {
-  const { isStrictlyELearning, courseTimeline, programId } = await getCourseInfos(courseId);
+  const { isStrictlyELearning, courseTimeline, programId } = await exports.getCourseInfos(courseId);
 
   if (isStrictlyELearning) return [];
 
