@@ -43,14 +43,21 @@ const getFooter = (data, signature) => [
         stack: [
           { text: get(data, 'vendorCompany.name') || '', color: COPPER_600 },
           { text: 'Thibault de Saint Blancard, Directeur général de Compani' },
-          { image: signature, width: 132, marginTop: 8 },
+          { image: signature, width: 104, marginTop: 8 },
         ],
       },
       {
         stack: [
           { text: 'Le client', color: COPPER_600 },
-          { text: 'Votre signature implique l\'acceptation des annexes 1 et 2', italics: true },
+          { text: 'Votre signature implique l\'acceptation des annexes', italics: true },
           { text: 'Prénom + Nom, poste et cachet de la structure', fontSize: 8 },
+        ],
+      },
+      {
+        stack: [
+          { text: 'Le stagiaire', color: COPPER_600 },
+          { text: 'Votre signature implique l\'acceptation des annexes', italics: true },
+          { text: 'Prénom + Nom', fontSize: 8 },
         ],
       },
     ],
@@ -61,13 +68,11 @@ const getFooter = (data, signature) => [
 
 ];
 
-const formatAddressList = (addressList) => {
-  if (addressList.length === 1) return { text: `Lieu : ${addressList[0]}` };
-  const formattedList = addressList.flatMap(address => ({ text: `- ${address}`, marginLeft: 8 }));
+const formatAddressList = addressList =>
+// if (addressList.length === 1) return { text: `Lieu : ${addressList[0]}` };
+// const formattedList = addressList.flatMap(address => ({ text: `- ${address}`, marginLeft: 8 }));
 
-  return { stack: [{ text: 'Lieux : ' }, ...formattedList] };
-};
-
+  ({ text: 'Lieux : 13 Rue Jean Fraix 44400 Rezé et en distanciel' });
 exports.getPdfContent = async (data) => {
   const [compani, signature] = await getImages();
   const header = getHeader(data, compani);
@@ -80,25 +85,25 @@ exports.getPdfContent = async (data) => {
       {
         stack: [
           { text: data.programName, bold: true },
+          { stack: [{ text: 'Objectifs :' }, { text: data.learningGoals, marginLeft: 16 }] },
+          // eslint-disable-next-line max-len
+          { text: 'Organisation : AFEST (Action de Formation en Situation de Travail), distanciel et elearning - rdv en visio et elearning grâce à un smartphone et/ou un ordinateur avec accès à internet' },
+          { text: 'Modalités d\'évaluation : passage de la VAE aide-soignant(e)' },
           {
-            stack: [
-              { text: 'Objectifs :' },
-              { text: data.learningGoals, marginLeft: 16 },
-            ],
+            text: 'Durée totale des actions d\'évaluation, d\'accompagnement et des enseignements : 486 heures '
+            + 'dont durée des enseignements généraux, professionnels et technologiques : 455 heures',
           },
-          {
-            text: `Durée : ${UtilsHelper.formatQuantity('créneau', data.slotsCount, 'x')} - ${data.liveDuration}`
-              + `${data.eLearningDuration ? ` (+ ${data.eLearningDuration} de e-learning)` : ''}`,
-          },
-          {
-            text: `Effectif formé : ${data.misc ? `${data.misc}, ` : ''}${data.type !== INTER_B2B ? 'jusqu\'à ' : ''}`
-            + `${learnersCount}`,
-          },
-          { text: `Dates : ${data.dates.join(' - ')}` },
+          // {
+          //   text: `Durée : ${UtilsHelper.formatQuantity('créneau', data.slotsCount, 'x')} - ${data.liveDuration}`
+          //     + `${data.eLearningDuration ? ` (+ ${data.eLearningDuration} de e-learning)` : ''}`,
+          // },
+          { text: `Effectif formé : 1 apprenant - ${data.traineeName}` },
+          { text: 'Dates : Du 22/04/2024 au 21/10/2025' },
           formatAddressList(data.addressList),
-          { text: `Intervenant(e) : ${data.trainer}`, marginBottom: 16 },
           ...(data.type === INTER_B2B ? [{ text: `Prix TTC par stagiaire : ${data.price} €` }] : []),
-          { text: `Prix total TTC : ${totalPrice} €` },
+          { text: 'Prix total TTC : 12 420 €' },
+          // eslint-disable-next-line max-len
+          { text: 'Ce prix s\'applique à la conception du parcours et aux actions de formation de réflexivité (coaching et ateliers collectifs), d\'enseignements théoriques et d\'accompagnement VAE', italics: true },
           { text: '(Ce prix comprend les frais de formateurs)', italics: true },
           {
             text: 'En tant qu’organisme de formation, Compani est exonéré de la Taxe sur la Valeur Ajoutée (TVA).',

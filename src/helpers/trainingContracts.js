@@ -88,13 +88,14 @@ exports.formatCourseForTrainingContract = async (course, vendorCompany, price) =
     programName: subProgram.program.name,
     learningGoals: subProgram.program.learningGoals,
     slotsCount: slots.length + slotsToPlan.length,
-    liveDuration: StepsHelper.computeLiveDuration(slots, slotsToPlan, subProgram.steps),
-    eLearningDuration: computeElearnigDuration(subProgram.steps),
+    // liveDuration: StepsHelper.computeLiveDuration(slots, slotsToPlan, subProgram.steps),
+    // eLearningDuration: computeElearnigDuration(subProgram.steps),
     misc: course.misc,
     learnersCount: await getLearnersCount(course),
     dates: CourseSlotsHelper.formatSlotDates(slots),
     addressList: CourseSlotsHelper.getAddressList(slots, subProgram.steps),
     trainer: UtilsHelper.formatIdentity(get(trainer, 'identity'), 'FL'),
+    traineeName: UtilsHelper.formatIdentity(course.trainees[0].identity, 'FL'),
     price,
   };
 };
