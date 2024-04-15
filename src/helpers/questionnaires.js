@@ -82,8 +82,8 @@ exports.list = async (credentials, query = {}) => {
           $or: [{ program: { $exists: false } }, { program: programId }],
           status: PUBLISHED,
         })
-        .populate({ path: 'historiesCount', options: { isVendorUser } })
-        .lean();
+        .populate({ path: 'cards', select: '-__v -createdAt -updatedAt' })
+        .lean({ virtuals: true });
     }
     default:
       return [];
@@ -212,12 +212,9 @@ exports.getFollowUp = async (id, courseId, credentials) => {
   return courseId ? formatQuestionnaireAnswersWithCourse(courseId, questionnaireAnswers) : questionnaireAnswers;
 };
 
-exports.generateQRCode = async (questionnaireId, courseId) => {
+exports.generateQRCode = async (courseId) => {
   const qrCode = await QRCode
-    .toDataURL(
-      `${process.env.WEBSITE_HOSTNAME}/ni/questionnaires/${questionnaireId}?courseId=${courseId}`,
-      { margin: 0 }
-    );
+    .toDataURL(`${process.env.WEBSITE_HOSTNAME}/ni/questionnaires?courseId=${courseId}`, { margin: 0 });
 
   return qrCode;
 };

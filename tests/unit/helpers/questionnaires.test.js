@@ -150,8 +150,8 @@ describe('list', () => {
             },
           ],
         },
-        { query: 'populate', args: [{ path: 'historiesCount', options: { isVendorUser: true } }] },
-        { query: 'lean' },
+        { query: 'populate', args: [{ path: 'cards', select: '-__v -createdAt -updatedAt' }] },
+        { query: 'lean', args: [{ virtuals: true }] },
       ]
     );
   });
@@ -204,8 +204,8 @@ describe('list', () => {
             },
           ],
         },
-        { query: 'populate', args: [{ path: 'historiesCount', options: { isVendorUser: true } }] },
-        { query: 'lean' },
+        { query: 'populate', args: [{ path: 'cards', select: '-__v -createdAt -updatedAt' }] },
+        { query: 'lean', args: [{ virtuals: true }] },
       ]
     );
   });
@@ -264,8 +264,8 @@ describe('list', () => {
             },
           ],
         },
-        { query: 'populate', args: [{ path: 'historiesCount', options: { isVendorUser: true } }] },
-        { query: 'lean' },
+        { query: 'populate', args: [{ path: 'cards', select: '-__v -createdAt -updatedAt' }] },
+        { query: 'lean', args: [{ virtuals: true }] },
       ]
     );
   });
@@ -358,8 +358,8 @@ describe('list', () => {
             },
           ],
         },
-        { query: 'populate', args: [{ path: 'historiesCount', options: { isVendorUser: true } }] },
-        { query: 'lean' },
+        { query: 'populate', args: [{ path: 'cards', select: '-__v -createdAt -updatedAt' }] },
+        { query: 'lean', args: [{ virtuals: true }] },
       ]
     );
   });

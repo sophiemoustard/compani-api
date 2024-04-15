@@ -60,7 +60,7 @@ exports.plugin = {
             status: Joi.string().valid(PUBLISHED),
           }).oxor('course', 'program'),
         },
-        auth: { scope: ['questionnaires:read'] },
+        auth: { mode: 'optional' },
         pre: [{ method: authorizeGetList }],
       },
       handler: list,
@@ -177,6 +177,19 @@ exports.plugin = {
           query: Joi.object({ course: Joi.objectId().required() }),
         },
         pre: [{ method: authorizeQuestionnaireGet }, { method: authorizeQuestionnaireQRCodeGet }],
+      },
+      handler: getQRCode,
+    });
+
+    server.route({
+      method: 'GET',
+      path: '/qrcode',
+      options: {
+        auth: { scope: ['questionnaires:read'] },
+        validate: {
+          query: Joi.object({ course: Joi.objectId().required() }),
+        },
+        pre: [{ method: authorizeQuestionnaireQRCodeGet }],
       },
       handler: getQRCode,
     });
