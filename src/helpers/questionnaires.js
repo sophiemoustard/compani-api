@@ -83,7 +83,7 @@ exports.list = async (credentials, query = {}) => {
           status: PUBLISHED,
         })
         .populate({ path: 'cards', select: '-__v -createdAt -updatedAt' })
-        .lean({ virtuals: true });
+        .lean();
     }
     default:
       return [];

@@ -151,7 +151,7 @@ describe('list', () => {
           ],
         },
         { query: 'populate', args: [{ path: 'cards', select: '-__v -createdAt -updatedAt' }] },
-        { query: 'lean', args: [{ virtuals: true }] },
+        { query: 'lean' },
       ]
     );
   });
@@ -205,7 +205,7 @@ describe('list', () => {
           ],
         },
         { query: 'populate', args: [{ path: 'cards', select: '-__v -createdAt -updatedAt' }] },
-        { query: 'lean', args: [{ virtuals: true }] },
+        { query: 'lean' },
       ]
     );
   });
@@ -265,7 +265,7 @@ describe('list', () => {
           ],
         },
         { query: 'populate', args: [{ path: 'cards', select: '-__v -createdAt -updatedAt' }] },
-        { query: 'lean', args: [{ virtuals: true }] },
+        { query: 'lean' },
       ]
     );
   });
@@ -359,7 +359,7 @@ describe('list', () => {
           ],
         },
         { query: 'populate', args: [{ path: 'cards', select: '-__v -createdAt -updatedAt' }] },
-        { query: 'lean', args: [{ virtuals: true }] },
+        { query: 'lean' },
       ]
     );
   });
