@@ -125,6 +125,9 @@ exports.authorizeGetList = async (req) => {
   if (courseId) {
     const course = await Course.countDocuments({ _id: courseId });
     if (!course) throw Boom.notFound();
+  } else {
+    const loggedUserVendorRole = get(req, 'auth.credentials.role.vendor.name');
+    if (!loggedUserVendorRole) throw Boom.forbidden();
   }
 
   return null;
