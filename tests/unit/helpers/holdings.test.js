@@ -34,15 +34,19 @@ describe('list', () => {
   });
 
   it('should return holdings', async () => {
-    const holdingList = [{ _id: new ObjectId(), name: 'Holding' }];
-    find.returns(SinonMongoose.stubChainedQueries(holdingList, ['lean']));
+    const holdingList = [{ _id: new ObjectId(), name: 'Holding', companies: [new ObjectId(), new ObjectId()] }];
+    find.returns(SinonMongoose.stubChainedQueries(holdingList));
 
     const result = await HoldingHelper.list();
 
     expect(result).toEqual(holdingList);
     SinonMongoose.calledOnceWithExactly(
       find,
-      [{ query: 'find', args: [{}, { _id: 1, name: 1 }] }, { query: 'lean', args: [] }]
+      [
+        { query: 'find', args: [{}, { _id: 1, name: 1 }] },
+        { query: 'populate', args: [{ path: 'companies' }] },
+        { query: 'lean', args: [] },
+      ]
     );
   });
 });
