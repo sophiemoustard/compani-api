@@ -6,7 +6,6 @@ Joi.objectId = require('joi-objectid')(Joi);
 const {
   authenticate,
   logout,
-  createPasswordToken,
   refreshToken,
   forgotPassword,
   sendToken,
@@ -21,7 +20,6 @@ const {
   MOBILE_CONNECTION_MODE,
   UNKNOWN,
 } = require('../helpers/constants');
-const { getUser, authorizeUserUpdate } = require('./preHandlers/users');
 const { checkPasswordToken, authorizeRefreshToken } = require('./preHandlers/authentication');
 
 exports.plugin = {
@@ -46,23 +44,6 @@ exports.plugin = {
         auth: false,
       },
       handler: authenticate,
-    });
-
-    server.route({
-      method: 'POST',
-      path: '/{_id}/passwordtoken',
-      options: {
-        auth: { scope: ['users:edit', 'user:edit-{params._id}'] },
-        validate: {
-          params: Joi.object({ _id: Joi.objectId().required() }),
-          payload: Joi.object().keys({ email: Joi.string().email().required() }),
-        },
-        pre: [
-          { method: getUser, assign: 'user' },
-          { method: authorizeUserUpdate },
-        ],
-      },
-      handler: createPasswordToken,
     });
 
     server.route({
