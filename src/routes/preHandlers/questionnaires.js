@@ -116,10 +116,18 @@ exports.authorizeQuestionnaireQRCodeGet = async (req) => {
 };
 
 exports.authorizeGetList = async (req) => {
-  const { program: programId } = req.query;
+  const { program: programId, course: courseId } = req.query;
   if (programId) {
     const program = await Program.countDocuments({ _id: programId });
     if (!program) throw Boom.notFound();
+  }
+
+  if (courseId) {
+    const course = await Course.countDocuments({ _id: courseId });
+    if (!course) throw Boom.notFound();
+  } else {
+    const loggedUserVendorRole = get(req, 'auth.credentials.role.vendor.name');
+    if (!loggedUserVendorRole) throw Boom.forbidden();
   }
 
   return null;

@@ -142,14 +142,20 @@ describe('QUESTIONNAIRES ROUTES - POST /questionnaires', () => {
 
 describe('QUESTIONNAIRES ROUTES - GET /questionnaires', () => {
   let authToken;
+  let nowStub;
   beforeEach(populateDB);
 
   describe('TRAINER', () => {
     beforeEach(async () => {
       authToken = await getToken('trainer');
+      nowStub = sinon.stub(Date, 'now');
     });
 
-    it('should get all questionnaires', async () => {
+    afterEach(() => {
+      nowStub.restore();
+    });
+
+    it('should get all questionnaires (END_OF_COURSE and EXPECTATIONS)', async () => {
       const response = await app.inject({
         method: 'GET',
         url: '/questionnaires',
@@ -160,15 +166,77 @@ describe('QUESTIONNAIRES ROUTES - GET /questionnaires', () => {
       expect(response.result.data.questionnaires.length).toEqual(questionnairesList.length);
     });
 
-    it('should get published questionnaires', async () => {
+    it('should get published questionnaires linked to a course (EXPECTATIONS and SELF_POSITIONNING)', async () => {
+      nowStub.returns(new Date('2021-04-20T10:00:00.000Z'));
+
       const response = await app.inject({
         method: 'GET',
-        url: `/questionnaires?status=${PUBLISHED}`,
+        url: `/questionnaires?course=${coursesList[0]._id}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(response.statusCode).toBe(200);
-      expect(response.result.data.questionnaires.length).toEqual(3);
+      expect(response.result.data.questionnaires.length).toEqual(2);
+      expect(
+        response.result.data.questionnaires.every(q => [EXPECTATIONS, SELF_POSITIONNING].includes(q.type))
+      ).toBeTruthy();
+    });
+
+    it('should get questionnaire EXPECTATION and SELF_POSITIONNING when mid-course has to be planned', async () => {
+      nowStub.returns(new Date('2021-04-22T10:00:00.000Z'));
+
+      const response = await app.inject({
+        method: 'GET',
+        url: `/questionnaires?course=${coursesList[2]._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(200);
+      expect(response.result.data.questionnaires.length).toBe(2);
+    });
+
+    it('should get published questionnaires linked to a course (END_OF_COURSE and SELF_POSITIONNING)', async () => {
+      nowStub.returns(new Date('2021-04-22T10:00:00.000Z'));
+
+      const response = await app.inject({
+        method: 'GET',
+        url: `/questionnaires?course=${coursesList[0]._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(200);
+      expect(response.result.data.questionnaires.length).toEqual(2);
+      expect(
+        response.result.data.questionnaires.every(q => [END_OF_COURSE, SELF_POSITIONNING].includes(q.type))
+      ).toBeTruthy();
+    });
+
+    it('should return an empty array if current date is between mid-course and end of course', async () => {
+      nowStub.returns(new Date('2021-04-21T10:00:00.000Z'));
+
+      const response = await app.inject({
+        method: 'GET',
+        url: `/questionnaires?course=${coursesList[0]._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(200);
+      expect(response.result.data.questionnaires).toEqual([]);
+    });
+
+    it('should get all SELF_POSITIONNING questionnaires linked to a program', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/questionnaires?program=${programsList[0]._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(200);
+      expect(response.result.data.questionnaires.length).toEqual(2);
+      expect(
+        response.result.data.questionnaires
+          .every(q => q.program && UtilsHelper.areObjectIdsEquals(q.program, programsList[0]._id))
+      ).toBeTruthy();
     });
 
     it('should return 404 if program doesn\'t exist', async () => {
@@ -180,6 +248,47 @@ describe('QUESTIONNAIRES ROUTES - GET /questionnaires', () => {
 
       expect(response.statusCode).toBe(404);
     });
+
+    it('should return 404 if course doesn\'t exist', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/questionnaires?course=${new ObjectId()}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(404);
+    });
+  });
+
+  describe('NOT LOGGED', () => {
+    beforeEach(async () => {
+      nowStub = sinon.stub(Date, 'now');
+    });
+
+    afterEach(() => {
+      nowStub.restore();
+    });
+
+    it('should get questionnaires', async () => {
+      nowStub.returns(new Date('2021-04-22T10:00:00.000Z'));
+      const response = await app.inject({
+        method: 'GET',
+        url: `/questionnaires?course=${coursesList[0]._id}`,
+      });
+
+      expect(response.statusCode).toBe(200);
+      expect(response.result.data.questionnaires.length).toEqual(2);
+    });
+
+    it('should return 403 if no course query', async () => {
+      nowStub.returns(new Date('2021-04-22T10:00:00.000Z'));
+      const response = await app.inject({
+        method: 'GET',
+        url: '/questionnaires',
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
   });
 
   describe('Other roles', () => {
@@ -190,7 +299,7 @@ describe('QUESTIONNAIRES ROUTES - GET /questionnaires', () => {
     ];
 
     roles.forEach((role) => {
-      it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+      it(`should return ${role.expectedCode} as user is ${role.name} and no course query`, async () => {
         authToken = await getToken(role.name);
         const response = await app.inject({
           method: 'GET',
@@ -295,7 +404,7 @@ describe('QUESTIONNAIRES ROUTES - GET /questionnaires/user', () => {
       nowStub.restore();
     });
 
-    it('should get expectations questionnaire', async () => {
+    it('should get questionnaire EXPECTATION and SELF_POSITIONNING when before mid-course', async () => {
       nowStub.returns(new Date('2021-04-20T10:00:00.000Z'));
 
       const response = await app.inject({
@@ -305,11 +414,23 @@ describe('QUESTIONNAIRES ROUTES - GET /questionnaires/user', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      expect(response.result.data.questionnaires[0].type).toBe(EXPECTATIONS);
-      expect(response.result.data.questionnaires.length).toBe(1);
+      expect(response.result.data.questionnaires.length).toBe(2);
     });
 
-    it('should get end_of_course questionnaire', async () => {
+    it('should get questionnaire EXPECTATION and SELF_POSITIONNING when mid-course has to be planned', async () => {
+      nowStub.returns(new Date('2021-04-22T10:00:00.000Z'));
+
+      const response = await app.inject({
+        method: 'GET',
+        url: `/questionnaires/user?course=${coursesList[2]._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(200);
+      expect(response.result.data.questionnaires.length).toBe(2);
+    });
+
+    it('should get questionnaire END_OF_COURSE and SELF_POSITIONNING when after last slot', async () => {
       nowStub.returns(new Date('2021-04-22T16:05:00.000Z'));
 
       const response = await app.inject({
@@ -319,8 +440,7 @@ describe('QUESTIONNAIRES ROUTES - GET /questionnaires/user', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      expect(response.result.data.questionnaires[0].type).toBe(END_OF_COURSE);
-      expect(response.result.data.questionnaires.length).toBe(1);
+      expect(response.result.data.questionnaires.length).toBe(2);
     });
 
     it('should return 400 if query is empty', async () => {
@@ -906,6 +1026,59 @@ describe('QUESTIONNAIRES ROUTES - GET /questionnaires/{_id}/qrcode', () => {
         const response = await app.inject({
           method: 'GET',
           url: `/questionnaires/${questionnairesList[1]._id}/qrcode?course=${coursesList[0]._id}`,
+          headers: { Cookie: `alenvi_token=${authToken}` },
+        });
+
+        expect(response.statusCode).toBe(role.expectedCode);
+      });
+    });
+  });
+});
+
+describe('QUESTIONNAIRES ROUTES - GET /questionnaires/qrcode', () => {
+  let authToken;
+  beforeEach(populateDB);
+
+  describe('TRAINER', () => {
+    beforeEach(async () => {
+      authToken = await getToken('trainer');
+    });
+
+    it('should get qrcode that links to the questionnaire', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/questionnaires/qrcode?course=${coursesList[0]._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(200);
+      expect(response.result).toBeDefined();
+    });
+
+    it('should return 404 if course doesn\'t exist', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/questionnaires/qrcode?course=${new ObjectId()}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(404);
+    });
+  });
+
+  describe('Other roles', () => {
+    const roles = [
+      { name: 'helper', expectedCode: 403 },
+      { name: 'planning_referent', expectedCode: 403 },
+      { name: 'client_admin', expectedCode: 403 },
+    ];
+
+    roles.forEach((role) => {
+      it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+        authToken = await getToken(role.name);
+        const response = await app.inject({
+          method: 'GET',
+          url: `/questionnaires/qrcode?course=${coursesList[0]._id}`,
           headers: { Cookie: `alenvi_token=${authToken}` },
         });
 

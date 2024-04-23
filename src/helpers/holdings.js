@@ -3,7 +3,10 @@ const Holding = require('../models/Holding');
 
 exports.create = async payload => Holding.create(payload);
 
-exports.list = async () => Holding.find({}, { _id: 1, name: 1 }).lean();
+exports.list = async () => Holding
+  .find({}, { _id: 1, name: 1 })
+  .populate({ path: 'companies' })
+  .lean();
 
 exports.update = async (holdingId, payload) => {
   if (payload.company) return CompanyHolding.create({ holding: holdingId, company: payload.company });

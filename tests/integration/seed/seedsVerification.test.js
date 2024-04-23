@@ -94,6 +94,9 @@ const {
   END_OF_COURSE,
   INTRA_HOLDING,
   GROUP,
+  SELF_POSITIONNING,
+  START_COURSE,
+  END_COURSE,
 } = require('../../../src/helpers/constants');
 const attendancesSeed = require('./attendancesSeed');
 const activitiesSeed = require('./activitiesSeed');
@@ -1915,8 +1918,12 @@ describe('SEEDS VERIFICATION', () => {
           expect(everyUserIsRegisteredToCourse).toBeTruthy();
         });
 
-        it('should pass if users only answer once to questionnaire', async () => {
-          const questionnaireHistoriesGroupedByCourse = groupBy(questionnaireHistoryList, 'course._id');
+        it('should pass if users only answer once to questionnaire (EXPECTATIONS and END_OF_COURSE)', async () => {
+          const questionnaireHistoriesGroupedByCourse = groupBy(
+            questionnaireHistoryList.filter(qh => qh.questionnaire.type !== SELF_POSITIONNING),
+            'course._id'
+          );
+
           const someUserHaveAnsweredSeveralTimeToQuestionnaires = Object.keys(questionnaireHistoriesGroupedByCourse)
             .some((courseId) => {
               const uniqueExpectationQuestionnaireRespondants = [
@@ -1941,6 +1948,39 @@ describe('SEEDS VERIFICATION', () => {
             });
 
           expect(someUserHaveAnsweredSeveralTimeToQuestionnaires).toBeFalsy();
+        });
+
+        it('should pass if users answer SELF_POSITIONNING questionnaire max 2 times (with '
+          + 'a different timeline)', async () => {
+          const questionnaireHistoriesGroupedByCourse = groupBy(
+            questionnaireHistoryList.filter(qh => qh.questionnaire.type === SELF_POSITIONNING),
+            'course._id'
+          );
+
+          const someUserHaveAnsweredMoreThanTwiceSameQuestionnaire = Object.keys(questionnaireHistoriesGroupedByCourse)
+            .some((courseId) => {
+              const uniqueStartSelfPositionningQuestionnaireRespondants = [
+                ...new Set(
+                  questionnaireHistoriesGroupedByCourse[courseId]
+                    .filter(qh => qh.timeline === START_COURSE)
+                    .map(qh => qh.user._id.toHexString())
+                ),
+              ];
+
+              const uniqueEndSelfPositionningQuestionnaireRespondants = [
+                ...new Set(
+                  questionnaireHistoriesGroupedByCourse[courseId]
+                    .filter(qh => qh.timeline === END_COURSE)
+                    .map(qh => qh.user._id.toHexString())
+                ),
+              ];
+
+              return questionnaireHistoriesGroupedByCourse[courseId].length
+                !== (uniqueStartSelfPositionningQuestionnaireRespondants.length
+                  + uniqueEndSelfPositionningQuestionnaireRespondants.length);
+            });
+
+          expect(someUserHaveAnsweredMoreThanTwiceSameQuestionnaire).toBeFalsy();
         });
 
         it('should pass if every questionnaire exists and is published', () => {
@@ -2036,6 +2076,14 @@ describe('SEEDS VERIFICATION', () => {
               )
             );
           expect(everyTraineeIsRegisteredToCourseWithCompany).toBeTruthy();
+        });
+
+        it('should pass if timeline is defined for every SELF_POSITIONNING questionnaire', () => {
+          const everySelfPositionningHistoryHasTimeline = questionnaireHistoryList
+            .filter(qh => qh.questionnaire.type === SELF_POSITIONNING)
+            .every(qh => qh.timeline);
+
+          expect(everySelfPositionningHistoryHasTimeline).toBeTruthy();
         });
       });
 

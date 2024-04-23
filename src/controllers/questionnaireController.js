@@ -107,7 +107,7 @@ const getFollowUp = async (req) => {
 
 const getQRCode = async (req) => {
   try {
-    const qrCode = await QuestionnaireHelper.generateQRCode(req.params._id, req.query.course);
+    const qrCode = await QuestionnaireHelper.generateQRCode(req.query.course);
 
     return { message: translate[language].questionnaireQRCodeGenerated, data: { qrCode } };
   } catch (e) {
