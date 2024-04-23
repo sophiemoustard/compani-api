@@ -1,7 +1,6 @@
 exports.routes = [
   { plugin: require('./activities'), routes: { prefix: '/activities' } },
   { plugin: require('./activityHistories'), routes: { prefix: '/activityhistories' } },
-  { plugin: require('./administrativeDocuments'), routes: { prefix: '/administrativedocuments' } },
   { plugin: require('./attendances'), routes: { prefix: '/attendances' } },
   { plugin: require('./attendanceSheets'), routes: { prefix: '/attendancesheets' } },
   { plugin: require('./authentication'), routes: { prefix: '/users' } },

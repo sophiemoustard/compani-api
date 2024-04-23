@@ -57,10 +57,6 @@ module.exports = {
     companyInternalHoursFound: 'Company internal hours found.',
     companyInternalHourRemoved: 'Company internal hour removed.',
     companyInternalHourCreationNotAllowed: 'Company internal hour creation not allowed.',
-    administrativeDocumentNotFound: 'Administrative document not found.',
-    administrativeDocumentFound: 'Administrative documents found.',
-    administrativeDocumentCreated: 'Administrative documents found.',
-    administrativeDocumentRemoved: 'Administrative documents removed.',
     /* Contracts */
     contractsFound: 'Contracts found.',
     contractsNotFound: 'Contracts not found.',
@@ -427,10 +423,6 @@ module.exports = {
     companyInternalHoursFound: 'Heures internes de l\'entreprise trouvées.',
     companyInternalHourRemoved: 'Heure interne de l\'entreprise supprimé.',
     companyInternalHourCreationNotAllowed: 'Creation de l\'heure interne non autorisée.',
-    administrativeDocumentNotFound: 'Document administratif non trouvé.',
-    administrativeDocumentFound: 'Document administratif trouvé.',
-    administrativeDocumentCreated: 'Document administratif créé.',
-    administrativeDocumentRemoved: 'Document administratif supprimé.',
     /* Contracts */
     contractsFound: 'Contrats trouvés.',
     contractsNotFound: 'Contrats non trouvés.',
