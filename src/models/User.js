@@ -237,23 +237,6 @@ async function findOneAndUpdate(next) {
 }
 
 // eslint-disable-next-line consistent-return
-const isActive = (auxiliary) => {
-  const auxiliaryRoleName = get(auxiliary, 'role.client.name');
-  if (auxiliaryRoleName && [AUXILIARY, PLANNING_REFERENT].includes(auxiliaryRoleName)) {
-    const { contracts, inactivityDate, createdAt } = auxiliary;
-    const hasContracts = contracts && contracts.length;
-    const isNew = moment().diff(createdAt, 'd') < 45;
-    const isInactive = inactivityDate && moment().isAfter(inactivityDate);
-
-    return Boolean(!isInactive && (hasContracts || isNew));
-  }
-};
-
-function setIsActive() {
-  return isActive(this);
-}
-
-// eslint-disable-next-line consistent-return
 function setContractCreationMissingInfo() {
   const clientRole = get(this, 'role.client.name');
   if (clientRole && [AUXILIARY, PLANNING_REFERENT, AUXILIARY_WITHOUT_COMPANY].includes(clientRole)) {
@@ -389,9 +372,6 @@ UserSchema.virtual(
 
 UserSchema.virtual('holding', { ref: 'UserHolding', localField: '_id', foreignField: 'user' });
 
-UserSchema.statics.isActive = isActive;
-
-UserSchema.virtual('isActive').get(setIsActive);
 UserSchema.virtual('contractCreationMissingInfo').get(setContractCreationMissingInfo);
 
 UserSchema.pre('validate', validate);

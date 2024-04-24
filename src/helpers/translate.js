@@ -88,8 +88,6 @@ module.exports = {
     customerAbsenceNotFound: 'Customer absence not found.',
     customerAbsencesFound: 'Customer absences found.',
     /* Google drive */
-    googleDriveFolderCreationFailed: 'Google drive folder creation failed.',
-    googleDriveFolderNotFound: 'Google drive folder not found.',
     googleDriveFileNotFound: 'Google drive file not found.',
     /* Events */
     eventsNotFound: 'Events not found.',
@@ -415,8 +413,6 @@ module.exports = {
     customerAbsenceNotFound: 'Absence bénéficiaire non trouvée.',
     customerAbsencesFound: 'Absences bénéficiaire trouvées.',
     /* Google drive */
-    googleDriveFolderCreationFailed: 'Echec de la création du dossier google drive.',
-    googleDriveFolderNotFound: 'Dossier google drive non trouvé.',
     googleDriveFileNotFound: 'Fichier google drive non trouvé.',
     /* Events */
     eventsNotFound: 'Evènements non trouvés.',

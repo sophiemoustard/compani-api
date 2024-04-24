@@ -31,8 +31,6 @@ const {
   DIRECTORY,
   HOLDING_ADMIN,
 } = require('./constants');
-const SectorHistoriesHelper = require('./sectorHistories');
-const GDriveStorageHelper = require('./gDriveStorage');
 const UtilsHelper = require('./utils');
 const HelpersHelper = require('./helpers');
 const UserCompaniesHelper = require('./userCompanies');
@@ -321,33 +319,6 @@ exports.userExists = async (email, credentials) => {
   return { exists: true, user: {} };
 };
 
-exports.saveCertificateDriveId = async (userId, fileInfo) =>
-  User.updateOne({ _id: userId }, { $push: { 'administrative.certificates': fileInfo } });
-
-exports.saveFile = async (userId, administrativeKey, fileInfo) =>
-  User.updateOne({ _id: userId }, { $set: flat({ administrative: { [administrativeKey]: fileInfo } }) });
-
-exports.createAndSaveFile = async (params, payload) => {
-  const uploadedFile = await GDriveStorageHelper.addFile({
-    driveFolderId: params.driveId,
-    name: payload.fileName || payload.type.hapi.filename,
-    type: payload['Content-Type'],
-    body: payload.file,
-  });
-
-  const file = { driveId: uploadedFile.id, link: uploadedFile.webViewLink };
-  switch (payload.type) {
-    case 'certificates':
-      await exports.saveCertificateDriveId(params._id, file);
-      break;
-    default:
-      await exports.saveFile(params._id, payload.type, file);
-      break;
-  }
-
-  return uploadedFile;
-};
-
 /**
  * 1st case : No role / no company => handle payload as given
  *  - User creates his account
@@ -377,10 +348,6 @@ exports.createUser = async (userPayload, credentials) => {
   });
 
   if (userPayload.customer) await HelpersHelper.create(user._id, userPayload.customer, companyId);
-
-  if (userPayload.sector) {
-    await SectorHistoriesHelper.createHistory({ _id: user._id, sector: userPayload.sector }, companyId);
-  }
 
   return User.findOne({ _id: user._id })
     .populate({ path: 'sector', select: '_id sector', match: { company: companyId } })
@@ -419,17 +386,10 @@ exports.updateUser = async (userId, userPayload, credentials) => {
     });
   }
 
-  if (userPayload.sector) {
-    await SectorHistoriesHelper.updateHistoryOnSectorUpdate(userId, userPayload.sector, companyId);
-  }
-
   if (userPayload.holding) await UserHolding.create({ user: userId, holding: userPayload.holding });
 
   await User.updateOne({ _id: userId }, { $set: flat(payload) });
 };
-
-exports.updateUserCertificates = async (userId, userPayload) =>
-  User.updateOne({ _id: userId }, { $pull: { 'administrative.certificates': userPayload.certificates } });
 
 exports.removeUser = async (user, credentials) => {
   if (UtilsHelper.areObjectIdsEquals(user._id, credentials._id)) {
@@ -459,24 +419,6 @@ exports.deletePicture = async (userId, publicId) => {
 
   await User.updateOne({ _id: userId }, { $unset: { 'picture.publicId': '', 'picture.link': '' } });
   await GCloudStorageHelper.deleteUserMedia(publicId);
-};
-
-exports.createDriveFolder = async (userId, credentials) => {
-  const loggedUserCompany = get(credentials, 'company._id');
-
-  const userCompany = await UserCompany
-    .findOne({ user: userId, company: loggedUserCompany })
-    .populate({ path: 'company', select: 'auxiliariesFolderId' })
-    .populate({ path: 'user', select: 'identity' })
-    .lean();
-  if (!get(userCompany, 'company.auxiliariesFolderId')) throw Boom.badData();
-
-  const folder = await GDriveStorageHelper
-    .createFolder(userCompany.user.identity, userCompany.company.auxiliariesFolderId);
-
-  const administrative = { driveFolder: { link: folder.webViewLink, driveId: folder.id } };
-
-  await User.updateOne({ _id: userId }, { $set: flat({ administrative }) });
 };
 
 exports.addExpoToken = async (payload, credentials) => User.updateOne(

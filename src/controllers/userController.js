@@ -52,21 +52,6 @@ const listWithSectorHistories = async (req) => {
   }
 };
 
-const activeList = async (req) => {
-  try {
-    const users = await UsersHelper.getUsersList(req.query, req.auth.credentials);
-    const activeUsers = users.filter(user => user.isActive);
-
-    return {
-      message: users.length === 0 ? translate[language].usersNotFound : translate[language].userFound,
-      data: { users: activeUsers },
-    };
-  } catch (e) {
-    req.log('error', e);
-    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
-  }
-};
-
 const learnerList = async (req) => {
   try {
     const users = await UsersHelper.getLearnerList(req.query, req.auth.credentials);
@@ -125,32 +110,11 @@ const update = async (req) => {
   }
 };
 
-const updateCertificates = async (req) => {
-  try {
-    await UsersHelper.updateUserCertificates(req.params._id, req.payload, req.auth.credentials);
-
-    return { message: translate[language].userUpdated };
-  } catch (e) {
-    req.log('error', e);
-    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
-  }
-};
-
 const removeUser = async (req) => {
   try {
     await UsersHelper.removeUser(req.pre.user, get(req, 'auth.credentials'));
 
     return { message: translate[language].userRemoved };
-  } catch (e) {
-    req.log('error', e);
-    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
-  }
-};
-
-const uploadFile = async (req) => {
-  try {
-    const uploadedFile = await UsersHelper.createAndSaveFile(req.params, req.payload);
-    return { message: translate[language].fileCreated, data: { uploadedFile } };
   } catch (e) {
     req.log('error', e);
     return Boom.isBoom(e) ? e : Boom.badImplementation(e);
@@ -181,23 +145,6 @@ const deletePicture = async (req) => {
   }
 };
 
-const createDriveFolder = async (req) => {
-  try {
-    await UsersHelper.createDriveFolder(req.params._id, req.auth.credentials);
-
-    return { message: translate[language].userUpdated };
-  } catch (e) {
-    req.log('error', e);
-    if (e.output && e.output.statusCode === 424) {
-      return Boom.failedDependency(translate[language].googleDriveFolderCreationFailed);
-    }
-
-    if (e.output && e.output.statusCode === 404) return Boom.notFound(translate[language].googleDriveFolderNotFound);
-
-    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
-  }
-};
-
 const addExpoToken = async (req) => {
   try {
     await UsersHelper.addExpoToken(req.payload, req.auth.credentials);
@@ -224,17 +171,13 @@ module.exports = {
   create,
   list,
   listWithSectorHistories,
-  activeList,
   learnerList,
   show,
   exists,
   update,
   removeUser,
-  updateCertificates,
-  uploadFile,
   uploadPicture,
   deletePicture,
-  createDriveFolder,
   removeExpoToken,
   addExpoToken,
 };

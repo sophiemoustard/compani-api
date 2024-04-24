@@ -7,17 +7,13 @@ const {
   create,
   list,
   listWithSectorHistories,
-  activeList,
   learnerList,
   show,
   exists,
   update,
   removeUser,
-  updateCertificates,
-  uploadFile,
   uploadPicture,
   deletePicture,
-  createDriveFolder,
   addExpoToken,
   removeExpoToken,
 } = require('../controllers/userController');
@@ -36,7 +32,6 @@ const {
   authorizeExpoTokenEdit,
   checkExpoToken,
   authorizeUploadEdition,
-  authorizeDriveFolderCreation,
 } = require('./preHandlers/users');
 const {
   addressValidation,
@@ -45,22 +40,6 @@ const {
   objectIdOrArray,
 } = require('./validations/utils');
 const { formDataPayload, dateToISOString } = require('./validations/utils');
-
-const driveUploadKeys = [
-  'idCardRecto',
-  'idCardVerso',
-  'passport',
-  'residencePermitRecto',
-  'residencePermitVerso',
-  'healthAttest',
-  'certificates',
-  'phoneInvoice',
-  'navigoInvoice',
-  'transportInvoice',
-  'mutualFund',
-  'vitalCard',
-  'medicalCertificate',
-];
 
 exports.plugin = {
   name: 'routes-users',
@@ -78,7 +57,6 @@ exports.plugin = {
               'company',
               { is: Joi.exist(), then: Joi.date(), otherwise: Joi.forbidden() }
             ),
-            sector: Joi.objectId(),
             local: Joi.object().keys({
               email: Joi.string().email().required(),
               password: Joi.string().min(6),
@@ -92,11 +70,6 @@ exports.plugin = {
             contact: Joi.object().keys({
               phone: phoneNumberValidation.allow('', null),
               address: addressValidation,
-            }),
-            administrative: Joi.object().keys({
-              transportInvoice: Joi.object().keys({
-                transportType: Joi.string(),
-              }),
             }),
             customer: Joi.objectId(),
           }).required(),
@@ -136,23 +109,6 @@ exports.plugin = {
         pre: [{ method: authorizeUsersGet }],
       },
       handler: listWithSectorHistories,
-    });
-
-    server.route({
-      method: 'GET',
-      path: '/active',
-      options: {
-        auth: { scope: ['users:list'] },
-        validate: {
-          query: Joi.object({
-            role: [Joi.array(), Joi.string()],
-            email: Joi.string().email(),
-            company: Joi.objectId(),
-          }),
-        },
-        pre: [{ method: authorizeUsersGet }],
-      },
-      handler: activeList,
     });
 
     server.route({
@@ -213,12 +169,10 @@ exports.plugin = {
         validate: {
           params: Joi.object({ _id: Joi.objectId().required() }),
           payload: Joi.object().keys({
-            sector: Joi.objectId(),
             'local.email': Joi.string().email(), // bot special case
             local: Joi.object().keys({ email: Joi.string().email() }),
             role: Joi.objectId(),
             picture: Joi.object().keys({ link: Joi.string().allow(null), publicId: Joi.string().allow(null) }),
-            mentor: Joi.string().allow('', null),
             identity: Joi.object().keys({
               title: Joi.string().valid(...CIVILITY_OPTIONS),
               firstname: Joi.string().allow('', null),
@@ -231,43 +185,6 @@ exports.plugin = {
               socialSecurityNumber: Joi.number(),
             }),
             contact: Joi.object().keys({ phone: phoneNumberValidation.allow('', null), address: addressValidation }),
-            administrative: Joi.object().keys({
-              signup: Joi.object().keys({ step: Joi.string(), complete: Joi.boolean() }),
-              identityDocs: Joi.string().valid('pp', 'cni', 'ts'),
-              mutualFund: Joi.object().keys({
-                has: Joi.boolean(),
-                driveId: Joi.string().allow(null),
-                link: Joi.string().allow(null),
-              }),
-              navigoInvoice: Joi.object().keys({ driveId: Joi.string().allow(null), link: Joi.string().allow(null) }),
-              transportInvoice: Joi.object().keys({
-                transportType: Joi.string(),
-                driveId: Joi.string().allow(null),
-                link: Joi.string().allow(null),
-              }),
-              phoneInvoice: Joi.object().keys({ driveId: Joi.string().allow(null), link: Joi.string().allow(null) }),
-              healthAttest: Joi.object().keys({ driveId: Joi.string().allow(null), link: Joi.string().allow(null) }),
-              idCardRecto: Joi.object().keys({ driveId: Joi.string().allow(null), link: Joi.string().allow(null) }),
-              idCardVerso: Joi.object().keys({ driveId: Joi.string().allow(null), link: Joi.string().allow(null) }),
-              passport: Joi.object().keys({ driveId: Joi.string().allow(null), link: Joi.string().allow(null) }),
-              residencePermitRecto: Joi.object().keys({
-                driveId: Joi.string().allow(null),
-                link: Joi.string().allow(null),
-              }),
-              residencePermitVerso: Joi.object().keys({
-                driveId: Joi.string().allow(null),
-                link: Joi.string().allow(null),
-              }),
-              medicalCertificate: Joi.object().keys({
-                driveId: Joi.string().allow(null),
-                link: Joi.string().allow(null),
-              }),
-              socialSecurityNumber: Joi.number(),
-              payment: Joi.object().keys({ rib: Joi.object().keys({ iban: Joi.string(), bic: Joi.string() }) }),
-              emergencyContact: Joi.object().keys({ name: Joi.string(), phoneNumber: phoneNumberValidation }),
-            }),
-            isActive: Joi.boolean(),
-            establishment: Joi.objectId(),
             biography: Joi.string().allow(''),
             customer: Joi.objectId(),
             holding: Joi.objectId(),
@@ -276,20 +193,6 @@ exports.plugin = {
         pre: [{ method: authorizeUserUpdate }],
       },
       handler: update,
-    });
-
-    server.route({
-      method: 'PUT',
-      path: '/{_id}/certificates',
-      options: {
-        auth: { scope: ['users:edit', 'user:edit-{params._id}'] },
-        validate: {
-          params: Joi.object({ _id: Joi.objectId().required() }),
-          payload: Joi.object().keys({ certificates: Joi.object().keys({ driveId: Joi.string() }) }),
-        },
-        pre: [{ method: authorizeUserUpdate }],
-      },
-      handler: updateCertificates,
     });
 
     server.route({
@@ -306,39 +209,6 @@ exports.plugin = {
         ],
       },
       handler: removeUser,
-    });
-
-    server.route({
-      method: 'POST',
-      path: '/{_id}/gdrive/{driveId}/upload',
-      handler: uploadFile,
-      options: {
-        auth: { scope: ['users:edit', 'user:edit-{params._id}'] },
-        payload: formDataPayload(),
-        validate: {
-          payload: Joi.object({
-            date: Joi.date(),
-            fileName: Joi.string().required(),
-            type: Joi.string().required().valid(...driveUploadKeys),
-            file: Joi.any().required(),
-          }),
-          params: Joi.object({ _id: Joi.objectId().required(), driveId: Joi.string().required() }),
-        },
-        pre: [{ method: authorizeUserUpdate }],
-      },
-    });
-
-    server.route({
-      method: 'POST',
-      path: '/{_id}/drivefolder',
-      options: {
-        auth: { scope: ['users:edit'] },
-        validate: {
-          params: Joi.object({ _id: Joi.objectId().required() }),
-        },
-        pre: [{ method: getUser }, { method: authorizeDriveFolderCreation }],
-      },
-      handler: createDriveFolder,
     });
 
     server.route({

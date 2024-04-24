@@ -4,54 +4,7 @@ const sinon = require('sinon');
 const fs = require('fs');
 const path = require('path');
 const os = require('os');
-const { PassThrough } = require('stream');
 const FileHelper = require('../../../src/helpers/file');
-
-describe('createReadAndReturnFile', () => {
-  let readable;
-  let writable;
-  let createWriteStreamStub;
-  let createReadStreamStub;
-  const outputPath = '/src/data/file.txt';
-
-  beforeEach(() => {
-    readable = new PassThrough();
-    writable = new PassThrough();
-    createWriteStreamStub = sinon.stub(fs, 'createWriteStream').returns(writable);
-    createReadStreamStub = sinon.stub(fs, 'createReadStream');
-  });
-
-  afterEach(() => {
-    createWriteStreamStub.restore();
-    createReadStreamStub.restore();
-  });
-
-  it('should rejects/errors if a write stream error occurs', async () => {
-    const error = new Error('You crossed the streams!');
-
-    const resultPromise = FileHelper.createReadAndReturnFile(readable, outputPath);
-    setTimeout(async () => { writable.emit('error', error); }, 100);
-
-    await expect(resultPromise).rejects.toEqual(error);
-    sinon.assert.calledWithExactly(createWriteStreamStub, outputPath);
-    sinon.assert.notCalled(createReadStreamStub);
-  });
-
-  it('should resolves if data writes successfully', async () => {
-    const resultPromise = FileHelper.createReadAndReturnFile(readable, outputPath);
-    setTimeout(async () => {
-      readable.emit('data', 'Ceci');
-      readable.emit('data', 'est');
-      readable.emit('data', 'un');
-      readable.emit('data', 'test !');
-      readable.emit('end');
-    }, 100);
-
-    await expect(resultPromise).resolves.toEqual(undefined);
-    sinon.assert.calledWithExactly(createWriteStreamStub, outputPath);
-    sinon.assert.calledWithExactly(createReadStreamStub, outputPath);
-  });
-});
 
 describe('downloadImages', () => {
   let get;

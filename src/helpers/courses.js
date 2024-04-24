@@ -1214,8 +1214,7 @@ exports.generateTrainingContract = async (courseId, payload) => {
   const vendorCompany = await VendorCompaniesHelper.get();
   const formattedCourse = await TrainingContractsHelper
     .formatCourseForTrainingContract(course, vendorCompany, payload.price);
-  const pdf 
-  = await TrainingContractPdf.getPdf(formattedCourse);
+  const pdf = await TrainingContractPdf.getPdf(formattedCourse);
   const fileName = `convention_${formattedCourse.programName}_${formattedCourse.company.name}.pdf`;
 
   return { fileName, pdf };

@@ -203,7 +203,6 @@ describe('validate', () => {
           'exports:read',
           'helpers:list',
           'helpers:edit',
-          'pay:edit',
           'payments:edit',
           'roles:read',
           'taxcertificates:edit',
