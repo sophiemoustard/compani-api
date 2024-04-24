@@ -33,7 +33,6 @@ exports.routes = [
   { plugin: require('./helpers'), routes: { prefix: '/helpers' } },
   { plugin: require('./holdings'), routes: { prefix: '/holdings' } },
   { plugin: require('./internalHours'), routes: { prefix: '/internalhours' } },
-  { plugin: require('./partners'), routes: { prefix: '/partners' } },
   { plugin: require('./pay'), routes: { prefix: '/pay' } },
   { plugin: require('./payDocuments'), routes: { prefix: '/paydocuments' } },
   { plugin: require('./payments'), routes: { prefix: '/payments' } },

@@ -296,10 +296,6 @@ module.exports = {
     questionnaireQRCodeGenerated: 'Questionnaire QR Code generated.',
     /*  QuestionnaireHistories */
     questionnaireHistoryConflict: 'A questionnaire history already exists.',
-    /* PartnerOrganization */
-    partnersFound: 'Partners found.',
-    partnersNotFound: 'Partners not found.',
-    partnerUpdated: 'Partner updated.',
     /* Helper */
     helpersFound: 'Helpers found.',
     helpersNotFound: 'Helpers not found.',
@@ -633,10 +629,6 @@ module.exports = {
     questionnaireQRCodeGenerated: 'QR Code généré.',
     /*  QuestionnaireHistories */
     questionnaireHistoryConflict: 'Vous avez déjà répondu à ce questionnaire.',
-    /* PartnerOrganization */
-    partnersFound: 'Liste des partenaires trouvée.',
-    partnersNotFound: 'Liste des partenaires non trouvée.',
-    partnerUpdated: 'Partenaire mis(e) à jour.',
     /* Helper */
     helpersFound: 'Liste des aidants trouvée.',
     helpersNotFound: 'Liste des aidants non trouvée.',
