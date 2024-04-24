@@ -311,13 +311,6 @@ module.exports = {
     helpersFound: 'Helpers found.',
     helpersNotFound: 'Helpers not found.',
     helperUpdated: 'Helper updated.',
-    /* CustomerPartners */
-    customerPartnerCreated: 'Customer partner created.',
-    customerPartnersFound: 'Customer partners found.',
-    customerPartnersNotFound: 'Customer partners not found.',
-    customerPartnerAlreadyExists: 'Customer partner already exists.',
-    customerPartnerUpdated: 'Customer partner updated.',
-    customerPartnerRemoved: 'Customer partner removed.',
     /* BillingItems */
     billingItemCreated: 'Billing item created.',
     billingItemsFound: 'Billing items found.',
@@ -662,13 +655,6 @@ module.exports = {
     helpersFound: 'Liste des aidants trouvée.',
     helpersNotFound: 'Liste des aidants non trouvée.',
     helperUpdated: 'Aidant(e) mis(e) à jour.',
-    /* CustomerPartners */
-    customerPartnerCreated: 'Partenaire bénéficiaire créé.',
-    customerPartnersFound: 'Liste des partenaires bénéficiaire trouvée.',
-    customerPartnersNotFound: 'Liste des partenaires bénéficiaire non trouvée.',
-    customerPartnerAlreadyExists: 'Le/la partenaire existe déjà.',
-    customerPartnerUpdated: 'Partenaire mis(e) à jour.',
-    customerPartnerRemoved: 'Partenaire supprimé(e).',
     /* BillingItems */
     billingItemCreated: 'Article de facturation créé.',
     billingItemsFound: 'Articles de facturation trouvés.',
