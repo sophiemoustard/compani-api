@@ -34,7 +34,6 @@ exports.routes = [
   { plugin: require('./holdings'), routes: { prefix: '/holdings' } },
   { plugin: require('./internalHours'), routes: { prefix: '/internalhours' } },
   { plugin: require('./pay'), routes: { prefix: '/pay' } },
-  { plugin: require('./payDocuments'), routes: { prefix: '/paydocuments' } },
   { plugin: require('./payments'), routes: { prefix: '/payments' } },
   { plugin: require('./programs'), routes: { prefix: '/programs' } },
   { plugin: require('./questionnaireHistories'), routes: { prefix: '/questionnairehistories' } },

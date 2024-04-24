@@ -158,11 +158,6 @@ module.exports = {
     paymentRemoved: 'Payment removed.',
     /* Event history */
     eventHistoriesFound: 'Event histories found.',
-    /* Pay documents */
-    payDocumentCreated: 'Pay document created.',
-    payDocumentsFound: 'Pay documents found.',
-    payDocumentsNotFound: 'Pay documents not found.',
-    payDocumentDeleted: 'Pay document deleted.',
     /* Stats */
     statsFound: 'Stats found.',
     statsNotFound: 'Stats not found.',
@@ -491,11 +486,6 @@ module.exports = {
     paymentRemoved: 'Règlement supprimé.',
     /* Event history */
     eventHistoriesFound: 'Historique des évènements trouvés.',
-    /* Pay documents */
-    payDocumentCreated: 'Document de paie créé.',
-    payDocumentsFound: 'Documents de paie trouvés.',
-    payDocumentsNotFound: 'Documents de paie non trouvés.',
-    payDocumentDeleted: 'Document de paie supprimé.',
     /* Stats */
     statsFound: 'Statistiques trouvées.',
     statsNotFound: 'Statistiques non trouvées.',
