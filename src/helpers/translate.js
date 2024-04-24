@@ -91,10 +91,6 @@ module.exports = {
     endDateBeforeStartDate: 'End date must be later than start date.',
     customerAbsenceNotFound: 'Customer absence not found.',
     customerAbsencesFound: 'Customer absences found.',
-    /* Customer notes */
-    customerNotesFound: 'Customer notes found.',
-    customerNotesNotFound: 'Customer notes not found.',
-    customerNoteUpdated: 'Customer note updated.',
     /* ESign */
     documentNotFound: 'Eversign document not found.',
     documentFound: 'Eversign document found.',
@@ -446,10 +442,6 @@ module.exports = {
     endDateBeforeStartDate: 'Impossible: la date de fin doit être postérieure à la date de début.',
     customerAbsenceNotFound: 'Absence bénéficiaire non trouvée.',
     customerAbsencesFound: 'Absences bénéficiaire trouvées.',
-    /* Customer notes */
-    customerNotesFound: 'Notes de suivi trouvées.',
-    customerNotesNotFound: 'Notes de suivi non trouvées.',
-    customerNoteUpdated: 'Note de suivi mise à jour.',
     /* ESign */
     documentNotFound: 'Document eversign non trouvé.',
     documentFound: 'Document eversign trouvé.',

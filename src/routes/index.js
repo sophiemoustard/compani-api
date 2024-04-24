@@ -22,7 +22,6 @@ exports.routes = [
   { plugin: require('./courseSlots'), routes: { prefix: '/courseslots' } },
   { plugin: require('./creditNotes'), routes: { prefix: '/creditNotes' } },
   { plugin: require('./customerAbsences'), routes: { prefix: '/customerabsences' } },
-  { plugin: require('./customerNotes'), routes: { prefix: '/customernotes' } },
   { plugin: require('./customerPartners'), routes: { prefix: '/customerpartners' } },
   { plugin: require('./customers'), routes: { prefix: '/customers' } },
   { plugin: require('./email'), routes: { prefix: '/email' } },
