@@ -450,11 +450,6 @@ module.exports = {
   PLANNING: 'planning',
   AUTHENTICATION: 'authentication',
   BILLING: 'billing',
-  // Sms
-  COURSE_SMS: 'Formation',
-  HR_SMS: 'RH',
-  PASSWORD_SMS: 'Mot de passe',
-  get SMS_TAGS() { return [this.COURSE_SMS, this.HR_SMS, this.PASSWORD_SMS]; },
   // CourseHistory
   SLOT_CREATION: 'slot_creation',
   SLOT_DELETION: 'slot_deletion',

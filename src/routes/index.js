@@ -41,7 +41,6 @@ exports.routes = [
   { plugin: require('./roles'), routes: { prefix: '/roles' } },
   { plugin: require('./sectors'), routes: { prefix: '/sectors' } },
   { plugin: require('./services'), routes: { prefix: '/services' } },
-  { plugin: require('./sms'), routes: { prefix: '/sms' } },
   { plugin: require('./stats'), routes: { prefix: '/stats' } },
   { plugin: require('./steps'), routes: { prefix: '/steps' } },
   { plugin: require('./subPrograms'), routes: { prefix: '/subprograms' } },
