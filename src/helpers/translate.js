@@ -160,7 +160,6 @@ module.exports = {
     eventHistoriesFound: 'Event histories found.',
     /* Stats */
     statsFound: 'Stats found.',
-    statsNotFound: 'Stats not found.',
     /* Bill slip */
     billSlipsFound: 'Bill slips found.',
     /* Tax certificates */
@@ -488,7 +487,6 @@ module.exports = {
     eventHistoriesFound: 'Historique des évènements trouvés.',
     /* Stats */
     statsFound: 'Statistiques trouvées.',
-    statsNotFound: 'Statistiques non trouvées.',
     /* Bill slip */
     billSlipsFound: 'Bordereaux trouvés.',
     /* Tax certificates */
