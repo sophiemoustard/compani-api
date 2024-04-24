@@ -15,7 +15,6 @@ const {
   NEVER,
   ABSENCE,
   UNAVAILABILITY,
-  PLANNING_VIEW_END_HOUR,
   AUXILIARY,
   CUSTOMER,
 } = require('./constants');
@@ -314,72 +313,6 @@ exports.updateEvent = async (event, eventPayload, credentials) => {
   return exports.populateEventSubscription(updatedEvent);
 };
 
-exports.removeRepetitionsOnContractEndOrDeletion = async (contract) => {
-  const { sector, _id: auxiliaryId } = contract.user;
-
-  await Repetition.updateMany(
-    { auxiliary: auxiliaryId, type: INTERVENTION },
-    { $unset: { auxiliary: '' }, $set: { sector } }
-  );
-  await Repetition.deleteMany({ auxiliary: auxiliaryId, type: { $in: [UNAVAILABILITY, INTERNAL_HOUR] } });
-};
-
-exports.unassignInterventionsOnContractEnd = async (contract, credentials) => {
-  const companyId = get(credentials, 'company._id', null);
-  const { sector, _id: auxiliaryId } = contract.user;
-
-  const interventionsToUnassign = await EventRepository.getInterventionsToUnassign(
-    contract.endDate,
-    auxiliaryId,
-    companyId
-  );
-  const promises = [];
-  const ids = [];
-  for (const group of interventionsToUnassign) {
-    if (group._id) {
-      const { startDate, endDate, misc } = group.events[0];
-      const payload = { startDate, endDate, misc, shouldUpdateRepetition: true };
-      promises.push(EventHistoriesHelper.createEventHistoryOnUpdate(payload, group.events[0], credentials));
-      ids.push(...group.events.map(ev => ev._id));
-    } else {
-      for (const intervention of group.events) {
-        const { startDate, endDate, misc } = intervention;
-        const payload = { startDate, endDate, misc };
-        promises.push(EventHistoriesHelper.createEventHistoryOnUpdate(payload, intervention, credentials));
-        ids.push(intervention._id);
-      }
-    }
-  }
-
-  await Event.updateMany(
-    { _id: { $in: ids } },
-    { $set: { 'repetition.frequency': NEVER, sector }, $unset: { auxiliary: '' } }
-  );
-};
-
-exports.removeEventsExceptInterventionsOnContractEnd = async (contract, credentials) => {
-  const companyId = get(credentials, 'company._id', null);
-  const events = await EventRepository.getEventsExceptInterventions(contract.endDate, contract.user._id, companyId);
-  const promises = [];
-  const ids = [];
-
-  for (const group of events) {
-    if (group._id) {
-      promises.push(EventHistoriesHelper.createEventHistoryOnDelete(group.events[0], credentials));
-      ids.push(...group.events.map(ev => ev._id));
-    } else {
-      for (const intervention of group.events) {
-        promises.push(EventHistoriesHelper.createEventHistoryOnDelete(intervention, credentials));
-        ids.push(intervention._id);
-      }
-    }
-  }
-
-  promises.push(Event.deleteMany({ _id: { $in: ids } }));
-
-  return Promise.all(promises);
-};
-
 exports.deleteCustomerEvents = async (customer, startDate, endDate, absenceType, credentials) => {
   const companyId = get(credentials, 'company._id', null);
   const query = {
@@ -396,23 +329,6 @@ exports.deleteCustomerEvents = async (customer, startDate, endDate, absenceType,
     const queryCustomerAbsence = { customer, startDate, endDate, absenceType };
     await CustomerAbsencesHelper.create(queryCustomerAbsence, companyId);
   }
-};
-
-exports.updateAbsencesOnContractEnd = async (auxiliaryId, contractEndDate, credentials) => {
-  const maxEndDate = CompaniDate(contractEndDate).set({ hour: PLANNING_VIEW_END_HOUR }).startOf('hour').toISO();
-  const absences = await EventRepository.getAbsences(auxiliaryId, maxEndDate, get(credentials, 'company._id', null));
-  const absencesIds = absences.map(abs => abs._id);
-  const promises = [];
-
-  for (const absence of absences) {
-    const { startDate, misc } = absence;
-    const payload = { startDate, endDate: maxEndDate, misc, auxiliary: auxiliaryId.toHexString() };
-    promises.push(EventHistoriesHelper.createEventHistoryOnUpdate(payload, absence, credentials));
-  }
-
-  promises.push(Event.updateMany({ _id: { $in: absencesIds } }, { $set: { endDate: maxEndDate } }));
-
-  return Promise.all(promises);
 };
 
 exports.deleteEvent = async (eventId, credentials) => {

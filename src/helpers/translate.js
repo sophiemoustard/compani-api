@@ -57,17 +57,6 @@ module.exports = {
     companyInternalHoursFound: 'Company internal hours found.',
     companyInternalHourRemoved: 'Company internal hour removed.',
     companyInternalHourCreationNotAllowed: 'Company internal hour creation not allowed.',
-    /* Contracts */
-    contractsFound: 'Contracts found.',
-    contractsNotFound: 'Contracts not found.',
-    contractUpdated: 'Contract updated.',
-    contractHasTimeStampedEventAfterEndDate: 'There are timestamped events after the end date of the contract.',
-    contractEndDateBeforeStartDate: 'End date is before last version start date.',
-    contractHasBilledEventAfterEndDate: 'There are billed events after contract end date.',
-    /* Contracts amendments */
-    contractVersionAdded: 'Contract amendment added.',
-    contractVersionRemoved: 'Contract amendment removed.',
-    contractVersionUpdated: 'Contract amendment updated.',
     /* Customers */
     customersFound: 'Customers found.',
     customerFound: 'Customer found.',
@@ -423,19 +412,6 @@ module.exports = {
     companyInternalHoursFound: 'Heures internes de l\'entreprise trouvées.',
     companyInternalHourRemoved: 'Heure interne de l\'entreprise supprimé.',
     companyInternalHourCreationNotAllowed: 'Creation de l\'heure interne non autorisée.',
-    /* Contracts */
-    contractsFound: 'Contrats trouvés.',
-    contractsNotFound: 'Contrats non trouvés.',
-    contractUpdated: 'Contrat mis à jour.',
-    contractHasTimeStampedEventAfterEndDate:
-      'Impossible: il y a des évènements horodatés après la date de fin du contrat.',
-    contractEndDateBeforeStartDate:
-      'Impossible de mettre fin à un contrat avant sa date de début.',
-    contractHasBilledEventAfterEndDate: 'Impossible: il y a des évènements facturés après la date de fin de contrat.',
-    /* Contracts amendments */
-    contractVersionAdded: 'Avenant au contrat ajouté.',
-    contractVersionRemoved: 'Avenant au contrat supprimé.',
-    contractVersionUpdated: 'Avenant au contrat modifié.',
     /* Customers */
     customersFound: 'Bénéficiaires trouvés.',
     customerFound: 'Bénéficiaire trouvé(e).',

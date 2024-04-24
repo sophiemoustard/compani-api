@@ -7,14 +7,6 @@ const randomize = require('randomatic');
 const fsPromises = fs.promises;
 const TMP_FILES_PATH = `${path.resolve(__dirname, '../data/pdf/tmp')}/`;
 
-exports.createReadAndReturnFile = async (stream, outputPath) => new Promise((resolve, reject) => {
-  const tmpFile = fs.createWriteStream(outputPath)
-    .on('finish', () => { resolve(fs.createReadStream(outputPath)); })
-    .on('error', err => reject(err));
-
-  stream.pipe(tmpFile);
-});
-
 exports.createAndReadFile = async (stream, outputPath) => new Promise((resolve, reject) => {
   const tmpFile = fs.createWriteStream(outputPath)
     .on('finish', () => { resolve(outputPath); })

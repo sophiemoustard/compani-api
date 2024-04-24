@@ -57,43 +57,6 @@ exports.createHistoryOnContractCreation = async (user, newContract, companyId) =
   return exports.createHistory(user, companyId, startDate);
 };
 
-exports.updateHistoryOnContractUpdate = async (contractId, versionToUpdate, companyId) => {
-  const contract = await Contract.findOne({ _id: contractId, company: companyId }).lean();
-  if (moment(versionToUpdate.startDate).isSameOrBefore(contract.startDate, 'day')) {
-    return SectorHistory.updateOne(
-      { auxiliary: contract.user, endDate: null },
-      { $set: { startDate: moment(versionToUpdate.startDate).startOf('day').toDate() } }
-    );
-  }
-
-  await SectorHistory.deleteMany({
-    auxiliary: contract.user,
-    endDate: { $gte: contract.startDate, $lte: versionToUpdate.startDate },
-  });
-
-  const sectorHistory = await SectorHistory
-    .find({ company: companyId, auxiliary: contract.user, startDate: { $gte: moment(contract.startDate).toDate() } })
-    .sort({ startDate: 1 })
-    .limit(1)
-    .lean();
-
-  return SectorHistory.updateOne(
-    { _id: sectorHistory[0]._id },
-    { $set: { startDate: moment(versionToUpdate.startDate).startOf('day').toDate() } }
-  );
-};
-
-exports.updateHistoryOnContractDeletion = async (contract, companyId) => {
-  const sectorHistory = await SectorHistory.findOne({ auxiliary: contract.user._id, endDate: null }).lean();
-  await SectorHistory.deleteMany({
-    auxiliary: contract.user._id,
-    company: companyId,
-    startDate: { $gte: contract.startDate, $lt: sectorHistory.startDate },
-  });
-
-  return SectorHistory.updateOne({ auxiliary: contract.user._id, endDate: null }, { $unset: { startDate: '' } });
-};
-
 exports.createHistory = async (user, companyId, startDate = null, endDate = null) => {
   const payload = { auxiliary: user._id, sector: user.sector, company: companyId };
   if (startDate) payload.startDate = startDate;
@@ -101,11 +64,6 @@ exports.createHistory = async (user, companyId, startDate = null, endDate = null
 
   return (await SectorHistory.create(payload)).toObject();
 };
-
-exports.updateEndDate = async (auxiliaryId, endDate) => SectorHistory.updateOne(
-  { auxiliary: auxiliaryId, endDate: null },
-  { $set: { endDate: moment(endDate).endOf('day').toDate() } }
-);
 
 exports.getAuxiliarySectors = async (auxiliaryId, companyId, startDate, endDate) => {
   const sectors = await SectorHistory.find(

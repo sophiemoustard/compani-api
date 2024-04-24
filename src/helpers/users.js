@@ -1,5 +1,4 @@
 const Boom = require('@hapi/boom');
-const moment = require('moment');
 const pickBy = require('lodash/pickBy');
 const get = require('lodash/get');
 const groupBy = require('lodash/groupBy');
@@ -18,7 +17,6 @@ const Course = require('../models/Course');
 const CourseHistory = require('../models/CourseHistory');
 const UserCompany = require('../models/UserCompany');
 const UserHolding = require('../models/UserHolding');
-const Contract = require('../models/Contract');
 const translate = require('./translate');
 const GCloudStorageHelper = require('./gCloudStorage');
 const {
@@ -432,21 +430,6 @@ exports.updateUser = async (userId, userPayload, credentials) => {
 
 exports.updateUserCertificates = async (userId, userPayload) =>
   User.updateOne({ _id: userId }, { $pull: { 'administrative.certificates': userPayload.certificates } });
-
-exports.updateUserInactivityDate = async (user, contractEndDate, credentials) => {
-  const notEndedContractCount = await Contract.countDocuments({
-    user,
-    company: get(credentials, 'company._id', null),
-    $or: [{ endDate: { $exists: false } }, { endDate: null }],
-  });
-
-  if (!notEndedContractCount) {
-    await User.updateOne(
-      { _id: user },
-      { $set: { inactivityDate: moment(contractEndDate).add('1', 'month').startOf('M').toDate() } }
-    );
-  }
-};
 
 exports.removeUser = async (user, credentials) => {
   if (UtilsHelper.areObjectIdsEquals(user._id, credentials._id)) {
