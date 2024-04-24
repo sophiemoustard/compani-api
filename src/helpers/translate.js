@@ -91,9 +91,6 @@ module.exports = {
     endDateBeforeStartDate: 'End date must be later than start date.',
     customerAbsenceNotFound: 'Customer absence not found.',
     customerAbsencesFound: 'Customer absences found.',
-    /* ESign */
-    documentNotFound: 'Eversign document not found.',
-    documentFound: 'Eversign document found.',
     /* Google drive */
     googleDriveFolderCreationFailed: 'Google drive folder creation failed.',
     googleDriveFolderNotFound: 'Google drive folder not found.',
@@ -435,9 +432,6 @@ module.exports = {
     endDateBeforeStartDate: 'Impossible: la date de fin doit être postérieure à la date de début.',
     customerAbsenceNotFound: 'Absence bénéficiaire non trouvée.',
     customerAbsencesFound: 'Absences bénéficiaire trouvées.',
-    /* ESign */
-    documentNotFound: 'Document eversign non trouvé.',
-    documentFound: 'Document eversign trouvé.',
     /* Google drive */
     googleDriveFolderCreationFailed: 'Echec de la création du dossier google drive.',
     googleDriveFolderNotFound: 'Dossier google drive non trouvé.',

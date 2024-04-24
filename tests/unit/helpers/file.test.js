@@ -53,46 +53,6 @@ describe('createReadAndReturnFile', () => {
   });
 });
 
-describe('fileToBase64', () => {
-  let readable;
-  let createReadStreamStub;
-  const filePath = '/src/data/file.txt';
-
-  beforeEach(() => {
-    readable = new PassThrough();
-    createReadStreamStub = sinon.stub(fs, 'createReadStream').returns(readable);
-  });
-
-  afterEach(() => {
-    createReadStreamStub.restore();
-  });
-
-  it('should rejects/errors if read stream error occurs', async () => {
-    const error = new Error('You crossed the stream!');
-    const resultPromise = FileHelper.fileToBase64(filePath);
-    setTimeout(async () => {
-      readable.emit('error', error);
-    }, 100);
-
-    await expect(resultPromise).rejects.toEqual(error);
-    sinon.assert.calledWithExactly(createReadStreamStub, filePath);
-  });
-
-  it('should resolves to a base64 string if data writes successfully', async () => {
-    const resultPromise = FileHelper.fileToBase64(filePath);
-    setTimeout(async () => {
-      readable.emit('data', Buffer.from('Ceci', 'utf-8'));
-      readable.emit('data', Buffer.from('est', 'utf-8'));
-      readable.emit('data', Buffer.from('un', 'utf-8'));
-      readable.emit('data', Buffer.from('test !', 'utf-8'));
-      readable.end();
-    }, 100);
-
-    await expect(resultPromise).resolves.toEqual(expect.any(String));
-    sinon.assert.calledWithExactly(createReadStreamStub, filePath);
-  });
-});
-
 describe('downloadImages', () => {
   let get;
   let createAndReadFile;

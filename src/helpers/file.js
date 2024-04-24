@@ -15,17 +15,6 @@ exports.createAndReadFile = async (stream, outputPath) => new Promise((resolve, 
   stream.pipe(tmpFile);
 });
 
-exports.fileToBase64 = filePath => new Promise((resolve, reject) => {
-  const buffers = [];
-  const fileStream = fs.createReadStream(filePath);
-  fileStream.on('data', (chunk) => { buffers.push(chunk); });
-  fileStream.once('end', () => {
-    const buffer = Buffer.concat(buffers);
-    resolve(buffer.toString('base64'));
-  });
-  fileStream.once('error', err => reject(err));
-});
-
 exports.downloadImages = async (imageList) => {
   if (!fs.existsSync(TMP_FILES_PATH)) fs.mkdirSync(TMP_FILES_PATH);
 
