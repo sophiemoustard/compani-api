@@ -52,11 +52,7 @@ module.exports = {
     companyLinkRequestCreated: 'Company link request created.',
     companyLinkRequestsFound: 'Company link requests found.',
     companyLinkRequestDeleted: 'Company link request deleted.',
-    companyInternalHourCreated: 'Company internal hour created.',
-    companyInternalHourNotFound: 'Company internal hour not found.',
     companyInternalHoursFound: 'Company internal hours found.',
-    companyInternalHourRemoved: 'Company internal hour removed.',
-    companyInternalHourCreationNotAllowed: 'Company internal hour creation not allowed.',
     /* Customers */
     customersFound: 'Customers found.',
     customerFound: 'Customer found.',
@@ -393,11 +389,7 @@ module.exports = {
     companyLinkRequestCreated: 'Demande de rattachement à une structure créée.',
     companyLinkRequestsFound: 'Demandes de rattachement à la structure trouvées.',
     companyLinkRequestDeleted: 'Demande de rattachement à la structure supprimée.',
-    companyInternalHourCreated: 'Heure interne de l\'entreprise créée.',
-    companyInternalHourNotFound: 'Heure interne de l\'entreprise non trouvée.',
     companyInternalHoursFound: 'Heures internes de l\'entreprise trouvées.',
-    companyInternalHourRemoved: 'Heure interne de l\'entreprise supprimé.',
-    companyInternalHourCreationNotAllowed: 'Creation de l\'heure interne non autorisée.',
     /* Customers */
     customersFound: 'Bénéficiaires trouvés.',
     customerFound: 'Bénéficiaire trouvé(e).',
