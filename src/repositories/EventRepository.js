@@ -97,16 +97,6 @@ exports.formatEventsInConflictQuery = (dates, auxiliary, types, companyId, event
   return query;
 };
 
-exports.countAuxiliaryEventsBetweenDates = (filters) => {
-  const dateQuery = {};
-  if (filters.endDate) dateQuery.startDate = { $lt: filters.endDate };
-  if (filters.startDate) dateQuery.endDate = { $gt: filters.startDate };
-
-  const query = { ...dateQuery, ...omit(filters, ['startDate', 'endDate']) };
-
-  return Event.countDocuments(query);
-};
-
 exports.getAuxiliaryEventsBetweenDates = async (auxiliary, startDate, endDate, companyId, type = null) => {
   const query = {
     auxiliary,
@@ -176,12 +166,6 @@ exports.getInterventionsToUnassign = async (maxDate, auxiliary, companyId) => ex
   auxiliary,
   $or: [{ isBilled: false }, { isBilled: { $exists: false } }],
   type: INTERVENTION,
-}, companyId);
-
-exports.getEventsExceptInterventions = async (startDate, auxiliary, companyId) => exports.getEventsGroupedByParentId({
-  startDate: { $gt: startDate },
-  auxiliary,
-  type: { $ne: INTERVENTION },
 }, companyId);
 
 exports.getAbsences = async (auxiliaryId, maxEndDate, companyId) => Event.find({

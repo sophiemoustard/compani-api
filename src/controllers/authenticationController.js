@@ -48,20 +48,6 @@ const logout = async (req, h) => {
   }
 };
 
-const createPasswordToken = async (req) => {
-  try {
-    const passwordToken = await AuthenticationHelper.createPasswordToken(req.payload.email);
-
-    return {
-      message: translate[language].resetPasswordTokenFound,
-      data: { passwordToken },
-    };
-  } catch (e) {
-    req.log('error', e);
-    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
-  }
-};
-
 const forgotPassword = async (req) => {
   try {
     const mailInfo = await AuthenticationHelper.forgotPassword(req.payload);
@@ -99,7 +85,6 @@ const updatePassword = async (req) => {
 module.exports = {
   authenticate,
   logout,
-  createPasswordToken,
   refreshToken,
   forgotPassword,
   sendToken,

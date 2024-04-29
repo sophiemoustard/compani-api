@@ -1,7 +1,6 @@
 const mongoose = require('mongoose');
 const { ObjectId } = require('mongodb');
 const { expect } = require('expect');
-const moment = require('moment');
 const sinon = require('sinon');
 const Boom = require('@hapi/boom');
 const flat = require('flat');
@@ -10,14 +9,11 @@ const get = require('lodash/get');
 const SinonMongoose = require('../sinonMongoose');
 const UtilsMock = require('../../utilsMock');
 const UsersHelper = require('../../../src/helpers/users');
-const SectorHistoriesHelper = require('../../../src/helpers/sectorHistories');
 const translate = require('../../../src/helpers/translate');
-const GDriveStorageHelper = require('../../../src/helpers/gDriveStorage');
 const GCloudStorageHelper = require('../../../src/helpers/gCloudStorage');
 const HelpersHelper = require('../../../src/helpers/helpers');
 const UserCompaniesHelper = require('../../../src/helpers/userCompanies');
 const User = require('../../../src/models/User');
-const Contract = require('../../../src/models/Contract');
 const Course = require('../../../src/models/Course');
 const CourseHistory = require('../../../src/models/CourseHistory');
 const CompanyHolding = require('../../../src/models/CompanyHolding');
@@ -1563,79 +1559,6 @@ describe('userExists', () => {
   });
 });
 
-describe('createAndSaveFile', () => {
-  let addFileStub;
-  let saveCertificateDriveIdStub;
-  let saveFileStub;
-  const uploadedFile = { id: '123456790', webViewLink: 'http://test.com' };
-
-  beforeEach(() => {
-    addFileStub = sinon.stub(GDriveStorageHelper, 'addFile').returns(uploadedFile);
-    saveFileStub = sinon.stub(UsersHelper, 'saveFile');
-    saveCertificateDriveIdStub = sinon.stub(UsersHelper, 'saveCertificateDriveId');
-  });
-
-  afterEach(() => {
-    addFileStub.restore();
-    saveFileStub.restore();
-    saveCertificateDriveIdStub.restore();
-  });
-
-  it('upload a file on drive and save info to user', async () => {
-    const params = { _id: new ObjectId(), driveId: '1234567890' };
-    const payload = {
-      fileName: 'test',
-      file: 'true',
-      type: 'cni',
-      'Content-type': 'application/pdf',
-    };
-
-    const result = await UsersHelper.createAndSaveFile(params, payload);
-
-    expect(result).toEqual(uploadedFile);
-    sinon.assert.calledOnceWithExactly(
-      addFileStub,
-      { driveFolderId: params.driveId, name: payload.fileName, type: payload['Content-Type'], body: payload.file }
-    );
-    sinon.assert.calledOnceWithExactly(
-      saveFileStub,
-      params._id,
-      payload.type,
-      { driveId: uploadedFile.id, link: uploadedFile.webViewLink }
-    );
-    sinon.assert.notCalled(saveCertificateDriveIdStub);
-  });
-
-  it('upload a certificate file on drive and save info to user', async () => {
-    const params = { _id: new ObjectId(), driveId: '1234567890' };
-    const payload = {
-      fileName: 'test',
-      type: 'certificates',
-      'Content-type': 'application/pdf',
-      file: 'Ceci est un fichier',
-    };
-
-    const result = await UsersHelper.createAndSaveFile(params, payload);
-
-    expect(result).toEqual(uploadedFile);
-    sinon.assert.calledOnceWithExactly(
-      addFileStub,
-      {
-        driveFolderId: params.driveId,
-        name: payload.fileName,
-        type: payload['Content-Type'],
-        body: payload.file,
-      }
-    );
-    sinon.assert.calledOnceWithExactly(
-      saveCertificateDriveIdStub,
-      params._id,
-      { driveId: uploadedFile.id, link: uploadedFile.webViewLink }
-    );
-    sinon.assert.notCalled(saveFileStub);
-  });
-});
-
 describe('createUser', () => {
   let userFindOne;
   let roleFindById;
@@ -1643,7 +1566,6 @@ describe('createUser', () => {
   let userCompanyCreate;
   let userFindOneAndUpdate;
   let objectIdStub;
-  let createHistoryStub;
   const userId = new ObjectId();
   const roleId = new ObjectId();
 
@@ -1654,7 +1576,6 @@ describe('createUser', () => {
     userCompanyCreate = sinon.stub(UserCompaniesHelper, 'create');
     userFindOneAndUpdate = sinon.stub(User, 'findOneAndUpdate');
     objectIdStub = sinon.stub(mongoose.Types, 'ObjectId').returns(userId);
-    createHistoryStub = sinon.stub(SectorHistoriesHelper, 'createHistory');
   });
 
   afterEach(() => {
@@ -1664,7 +1585,6 @@ describe('createUser', () => {
     userCompanyCreate.restore();
     userFindOneAndUpdate.restore();
     objectIdStub.restore();
-    createHistoryStub.restore();
   });
 
   it('should create a new account for not logged user', async () => {
@@ -1680,65 +1600,10 @@ describe('createUser', () => {
     const result = await UsersHelper.createUser(payload, null);
 
     expect(result).toEqual({ identity: payload.identity, local: payload.local, contact: payload.contact });
-    sinon.assert.notCalled(createHistoryStub);
     sinon.assert.notCalled(userCompanyCreate);
     sinon.assert.notCalled(userFindOne);
     sinon.assert.notCalled(roleFindById);
     sinon.assert.calledOnceWithExactly(userCreate, { ...payload, refreshToken: sinon.match.string });
-  });
-
-  it('client admin - should create an auxiliary for his organization and handles sector', async () => {
-    const companyId = new ObjectId();
-    const payload = {
-      identity: { lastname: 'Test' },
-      local: { email: 'toto@test.com' },
-      role: roleId,
-      sector: new ObjectId(),
-      origin: WEBAPP,
-    };
-    const newUser = {
-      _id: userId,
-      identity: { lastname: 'Test' },
-      local: { email: 'toto@test.com' },
-      role: { client: { _id: roleId, name: 'auxiliary' } },
-      origin: WEBAPP,
-    };
-
-    roleFindById.returns(SinonMongoose.stubChainedQueries(
-      { _id: roleId, name: 'auxiliary', interface: 'client' },
-      ['lean']
-    ));
-    userCreate.returns(newUser);
-    userFindOne.returns(SinonMongoose.stubChainedQueries(newUser));
-
-    const result = await UsersHelper.createUser(payload, { company: { _id: companyId } });
-
-    expect(result).toEqual(newUser);
-    sinon.assert.calledOnceWithExactly(createHistoryStub, { _id: userId, sector: payload.sector }, companyId);
-    sinon.assert.calledOnceWithExactly(userCompanyCreate, { user: userId, company: companyId });
-    SinonMongoose.calledOnceWithExactly(
-      roleFindById,
-      [{ query: 'findById', args: [payload.role, { name: 1, interface: 1 }] }, { query: 'lean' }]
-    );
-    sinon.assert.calledOnceWithExactly(
-      userCreate,
-      {
-        identity: { lastname: 'Test' },
-        local: { email: 'toto@test.com' },
-        origin: WEBAPP,
-        refreshToken: sinon.match.string,
-        role: { client: roleId },
-      }
-    );
-    SinonMongoose.calledOnceWithExactly(
-      userFindOne,
-      [
-        { query: 'findOne', args: [{ _id: userId }] },
-        { query: 'populate', args: [{ path: 'sector', select: '_id sector', match: { company: companyId } }] },
-        { query: 'lean', args: [{ virtuals: true, autopopulate: true }] },
-      ]
-    );
-    sinon.assert.notCalled(userFindOneAndUpdate);
   });
 
   it('client admin - should create a coach for his organization', async () => {
@@ -1761,7 +1626,6 @@ describe('createUser', () => {
     const result = await UsersHelper.createUser(payload, { company: { _id: companyId } });
 
     expect(result).toEqual(newUser);
-    sinon.assert.notCalled(createHistoryStub);
     sinon.assert.calledOnceWithExactly(userCompanyCreate, { user: userId, company: companyId });
     SinonMongoose.calledOnceWithExactly(
       roleFindById,
@@ -1868,7 +1732,6 @@ describe('createUser', () => {
     const result = await UsersHelper.createUser(payload, { company: { _id: credentialsCompanyId } });
 
     expect(result).toEqual(newUser);
-    sinon.assert.notCalled(createHistoryStub);
     sinon.assert.notCalled(roleFindById);
     sinon.assert.calledOnceWithExactly(
       userCompanyCreate,
@@ -1900,7 +1763,6 @@ describe('createUser', () => {
     } catch (e) {
       expect(e).toEqual(Boom.badRequest('Le rôle n\'existe pas.'));
     } finally {
-      sinon.assert.notCalled(createHistoryStub);
       sinon.assert.notCalled(userCreate);
       sinon.assert.notCalled(userCompanyCreate);
       sinon.assert.notCalled(userFindOne);
@@ -1981,7 +1843,6 @@ describe('updateUser', () => {
   let userUpdateOne;
   let roleFindById;
   let roleFindOne;
-  let updateHistoryOnSectorUpdateStub;
   let createHelper;
   let userHoldingCreate;
   const credentials = { company: { _id: new ObjectId() } };
@@ -1991,7 +1852,6 @@ describe('updateUser', () => {
     userUpdateOne = sinon.stub(User, 'updateOne');
     roleFindById = sinon.stub(Role, 'findById');
     roleFindOne = sinon.stub(Role, 'findOne');
-    updateHistoryOnSectorUpdateStub = sinon.stub(SectorHistoriesHelper, 'updateHistoryOnSectorUpdate');
     createHelper = sinon.stub(HelpersHelper, 'create');
     userHoldingCreate = sinon.stub(UserHolding, 'create');
   });
@@ -1999,7 +1859,6 @@ describe('updateUser', () => {
     userUpdateOne.restore();
     roleFindById.restore();
     roleFindOne.restore();
-    updateHistoryOnSectorUpdateStub.restore();
     createHelper.restore();
     userHoldingCreate.restore();
   });
@@ -2011,7 +1870,6 @@ describe('updateUser', () => {
 
     sinon.assert.calledOnceWithExactly(userUpdateOne, { _id: userId }, { $set: flat(payload) });
     sinon.assert.notCalled(roleFindById);
-    sinon.assert.notCalled(updateHistoryOnSectorUpdateStub);
     sinon.assert.notCalled(userHoldingCreate);
     sinon.assert.notCalled(roleFindOne);
   });
@@ -2029,29 +1887,10 @@ describe('updateUser', () => {
 
     sinon.assert.calledOnceWithExactly(userUpdateOne, { _id: userId }, { $set: payloadWithRole });
     sinon.assert.calledOnceWithExactly(createHelper, userId, payload.customer, credentials.company._id);
-    sinon.assert.notCalled(updateHistoryOnSectorUpdateStub);
     SinonMongoose.calledOnceWithExactly(
       roleFindById,
       [{ query: 'findById', args: [payload.role, { name: 1, interface: 1 }] }, { query: 'lean' }]
     );
-    sinon.assert.notCalled(userHoldingCreate);
-    sinon.assert.notCalled(roleFindOne);
-  });
-
-  it('should update a user and create sector history', async () => {
-    const payload = { identity: { firstname: 'Titi' }, sector: new ObjectId() };
-
-    await UsersHelper.updateUser(userId, payload, credentials);
-
-    sinon.assert.calledOnceWithExactly(userUpdateOne, { _id: userId }, { $set: flat(omit(payload, 'sector')) });
-    sinon.assert.notCalled(createHelper);
-    sinon.assert.calledOnceWithExactly(
-      updateHistoryOnSectorUpdateStub,
-      userId,
-      payload.sector,
-      credentials.company._id
-    );
-    sinon.assert.notCalled(roleFindById);
     sinon.assert.notCalled(userHoldingCreate);
     sinon.assert.notCalled(roleFindOne);
   });
@@ -2073,7 +1912,6 @@ describe('updateUser', () => {
       roleFindById,
       [{ query: 'findById', args: [payload.role, { name: 1, interface: 1 }] }, { query: 'lean' }]
     );
-    sinon.assert.notCalled(updateHistoryOnSectorUpdateStub);
     sinon.assert.notCalled(userHoldingCreate);
     sinon.assert.notCalled(roleFindOne);
   });
@@ -2094,7 +1932,6 @@ describe('updateUser', () => {
       );
       sinon.assert.notCalled(createHelper);
       sinon.assert.notCalled(userUpdateOne);
-      sinon.assert.notCalled(updateHistoryOnSectorUpdateStub);
       sinon.assert.notCalled(userHoldingCreate);
       sinon.assert.notCalled(roleFindOne);
     }
@@ -2119,77 +1956,6 @@ describe('updateUser', () => {
     sinon.assert.calledOnceWithExactly(userUpdateOne, { _id: userId }, { $set: { 'role.holding': holdingRole._id } });
     sinon.assert.notCalled(createHelper);
     sinon.assert.notCalled(roleFindById);
-    sinon.assert.notCalled(updateHistoryOnSectorUpdateStub);
-  });
-});
-
-describe('updateUserCertificates', async () => {
-  let updateOne;
-  beforeEach(() => {
-    updateOne = sinon.stub(User, 'updateOne');
-  });
-  afterEach(() => {
-    updateOne.restore();
-  });
-
-  it('should update a user certificate', async () => {
-    const payload = { certificates: { driveId: '1234567890' } };
-    const userId = new ObjectId();
-
-    await UsersHelper.updateUserCertificates(userId, payload);
-
-    sinon.assert.calledOnceWithExactly(
-      updateOne,
-      { _id: userId },
-      { $pull: { 'administrative.certificates': payload.certificates } }
-    );
-  });
-});
-
-describe('updateUserInactivityDate', () => {
-  let countDocuments;
-  let updateOne;
-  beforeEach(() => {
-    countDocuments = sinon.stub(Contract, 'countDocuments');
-    updateOne = sinon.stub(User, 'updateOne');
-  });
-  afterEach(() => {
-    countDocuments.restore();
-    updateOne.restore();
-  });
-
-  it('should update user inactivity date', async () => {
-    const userId = new ObjectId();
-    const endDate = '2019-02-12T00:00:00';
-    const credentials = { company: { _id: '1234567890' } };
-
-    countDocuments.returns(0);
-
-    await UsersHelper.updateUserInactivityDate(userId, endDate, credentials);
-    sinon.assert.calledOnceWithExactly(
-      countDocuments,
-      { user: userId, company: '1234567890', $or: [{ endDate: { $exists: false } }, { endDate: null }] }
-    );
-    sinon.assert.calledOnceWithExactly(
-      updateOne,
-      { _id: userId },
-      { $set: { inactivityDate: moment(endDate).add('1', 'month').startOf('M').toDate() } }
-    );
-  });
-
-  it('should not update user inactivity date', async () => {
-    const userId = new ObjectId();
-    const endDate = '2019-02-12T00:00:00';
-    const credentials = { company: { _id: '1234567890' } };
-
-    countDocuments.returns(2);
-
-    await UsersHelper.updateUserInactivityDate(userId, endDate, credentials);
-    sinon.assert.calledOnceWithExactly(
-      countDocuments,
-      { user: userId, company: '1234567890', $or: [{ endDate: { $exists: false } }, { endDate: null }] }
-    );
-    sinon.assert.notCalled(updateOne);
   });
 });
 
@@ -2259,102 +2025,6 @@ describe('deleteMedia', () => {
       { $unset: { 'picture.publicId': '', 'picture.link': '' } }
     );
     sinon.assert.calledOnceWithExactly(deleteUserMedia, 'publicId');
-  });
-});
-
-describe('createDriveFolder', () => {
-  let userCompanyFindOne;
-  let createFolder;
-  let userUpdateOne;
-  const credentials = { company: { _id: new ObjectId() }, _id: new ObjectId() };
-
-  beforeEach(() => {
-    userCompanyFindOne = sinon.stub(UserCompany, 'findOne');
-    createFolder = sinon.stub(GDriveStorageHelper, 'createFolder');
-    userUpdateOne = sinon.stub(User, 'updateOne');
-  });
-  afterEach(() => {
-    userCompanyFindOne.restore();
-    createFolder.restore();
-    userUpdateOne.restore();
-  });
-
-  it('should create a google drive folder and update user', async () => {
-    const userId = new ObjectId();
-    const user = { _id: userId, identity: { lastname: 'Delenda' } };
-
-    userCompanyFindOne.returns(SinonMongoose.stubChainedQueries(
-      { company: { auxiliariesFolderId: 'auxiliariesFolderId' }, user },
-      ['populate', 'lean']
-    ));
-    createFolder.returns({ webViewLink: 'webViewLink', id: 'folderId' });
-
-    await UsersHelper.createDriveFolder(userId, credentials);
-
-    SinonMongoose.calledOnceWithExactly(
-      userCompanyFindOne,
-      [
-        { query: 'findOne', args: [{ user: userId, company: credentials.company._id }] },
-        { query: 'populate', args: [{ path: 'user', select: 'identity' }] },
-        { query: 'populate', args: [{ path: 'company', select: 'auxiliariesFolderId' }] },
-        { query: 'lean' },
-      ]
-    );
-    sinon.assert.calledOnceWithExactly(createFolder, { lastname: 'Delenda' }, 'auxiliariesFolderId');
-    sinon.assert.calledOnceWithExactly(
-      userUpdateOne,
-      { _id: user._id },
-      { $set: { 'administrative.driveFolder.link': 'webViewLink', 'administrative.driveFolder.driveId': 'folderId' } }
-    );
-  });
-
-  it('should return a 422 if user has no company', async () => {
-    const userId = new ObjectId();
-    try {
-      userCompanyFindOne.returns(SinonMongoose.stubChainedQueries(null, ['populate', 'lean']));
-
-      await UsersHelper.createDriveFolder(userId, credentials);
-    } catch (e) {
-      expect(e.output.statusCode).toEqual(422);
-    } finally {
-      SinonMongoose.calledOnceWithExactly(
-        userCompanyFindOne,
-        [
-          { query: 'findOne', args: [{ user: userId, company: credentials.company._id }] },
-          { query: 'populate', args: [{ path: 'user', select: 'identity' }] },
-          { query: 'populate', args: [{ path: 'company', select: 'auxiliariesFolderId' }] },
-          { query: 'lean' },
-        ]
-      );
-      sinon.assert.notCalled(createFolder);
-      sinon.assert.notCalled(userUpdateOne);
-    }
-  });
-
-  it('should return a 422 if user company has no auxialiaries folder Id', async () => {
-    const userId = new ObjectId();
-    try {
-      userCompanyFindOne.returns(SinonMongoose.stubChainedQueries(
-        { user: { _id: userId }, company: { _id: new ObjectId() } },
-        ['populate', 'lean']
-      ));
-
-      await UsersHelper.createDriveFolder(userId, credentials);
-    } catch (e) {
-      expect(e.output.statusCode).toEqual(422);
-    } finally {
-      SinonMongoose.calledOnceWithExactly(
-        userCompanyFindOne,
-        [
-          { query: 'findOne', args: [{ user: userId, company: credentials.company._id }] },
-          { query: 'populate', args: [{ path: 'user', select: 'identity' }] },
-          { query: 'populate', args: [{ path: 'company', select: 'auxiliariesFolderId' }] },
-          { query: 'lean' },
-        ]
-      );
-      sinon.assert.notCalled(createFolder);
-      sinon.assert.notCalled(userUpdateOne);
-    }
   });
 });
 

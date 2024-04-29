@@ -2,7 +2,7 @@ const { expect } = require('expect');
 const sinon = require('sinon');
 const app = require('../../server');
 const User = require('../../src/models/User');
-const { usersSeedList, populateDB, auxiliaryFromOtherCompany } = require('./seed/usersSeed');
+const { usersSeedList, populateDB } = require('./seed/usersSeed');
 const { getToken, getTokenByCredentials } = require('./helpers/authentication');
 const { noRoleNoCompany } = require('../seed/authUsersSeed');
 const EmailHelper = require('../../src/helpers/email');
@@ -99,64 +99,6 @@ describe('AUTHENTICATION ROUTES - POST /users/authenticate', () => {
       payload: { email: 'white@alenvi.io', password: '123456!eR' },
     });
     expect(res.statusCode).toBe(401);
-  });
-});
-
-describe('AUTHENTICATION ROUTES - POST /users/:id/passwordtoken', () => {
-  let authToken;
-  const payload = { email: 'aux@alenvi.io' };
-
-  describe('COACH', () => {
-    beforeEach(populateDB);
-    beforeEach(async () => {
-      authToken = await getToken('coach');
-    });
-
-    it('should create password token', async () => {
-      const res = await app.inject({
-        method: 'POST',
-        url: `/users/${usersSeedList[0]._id}/passwordtoken`,
-        payload,
-        headers: { Cookie: `alenvi_token=${authToken}` },
-      });
-      expect(res.statusCode).toBe(200);
-      expect(res.result.data.passwordToken).toBeDefined();
-    });
-
-    it('should not create password token if user is from an other company', async () => {
-      const res = await app.inject({
-        method: 'POST',
-        url: `/users/${auxiliaryFromOtherCompany._id}/passwordtoken`,
-        payload,
-        headers: { Cookie: `alenvi_token=${authToken}` },
-      });
-      expect(res.statusCode).toBe(404);
-    });
-  });
-
-  describe('Other roles', () => {
-    beforeEach(populateDB);
-    const roles = [
-      { name: 'helper', expectedCode: 403 },
-      { name: 'planning_referent', expectedCode: 403 },
-      { name: 'training_organisation_manager', expectedCode: 200 },
-      { name: 'trainer', expectedCode: 403 },
-    ];
-
-    roles.forEach((role) => {
-      it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
-        authToken = await getToken(role.name);
-
-        const response = await app.inject({
-          method: 'POST',
-          url: `/users/${usersSeedList[6]._id}/passwordtoken`,
-          payload,
-          headers: { Cookie: `alenvi_token=${authToken}` },
-        });
-
-        expect(response.statusCode).toBe(role.expectedCode);
-      });
-    });
   });
 });
 

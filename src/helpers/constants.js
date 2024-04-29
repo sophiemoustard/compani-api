@@ -13,8 +13,6 @@ module.exports = {
   ORANGE_500: '#ED8936',
   ORANGE_600: '#DD6B20',
   SENDER_MAIL: 'nepasrepondre@compani.fr',
-  IDENTIFICATION: 'identification',
-  CONTRACT_END: 'contract_end',
   REJECTED: 'rejected',
   // Time
   SECONDS_IN_AN_HOUR: 3600,
@@ -313,7 +311,6 @@ module.exports = {
   get WORKING_DAYS() { return [this.MONDAY, this.TUESDAY, this.WEDNESDAY, this.THURSDAY, this.FRIDAY, this.SATURDAY]; },
   // CONTRACTS
   CONTRACT: 'contract',
-  CONTRACT_VERSION: 'contract_version',
   EMPLOYER_TRIAL_PERIOD_TERMINATION: 'employer_trial_period_termination',
   EMPLOYEE_TRIAL_PERIOD_TERMINATION: 'employee_trial_period_termination',
   RESIGNATION: 'resignation',
@@ -453,11 +450,6 @@ module.exports = {
   PLANNING: 'planning',
   AUTHENTICATION: 'authentication',
   BILLING: 'billing',
-  // Sms
-  COURSE_SMS: 'Formation',
-  HR_SMS: 'RH',
-  PASSWORD_SMS: 'Mot de passe',
-  get SMS_TAGS() { return [this.COURSE_SMS, this.HR_SMS, this.PASSWORD_SMS]; },
   // CourseHistory
   SLOT_CREATION: 'slot_creation',
   SLOT_DELETION: 'slot_deletion',

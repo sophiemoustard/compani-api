@@ -308,11 +308,3 @@ exports.authorizeUploadEdition = async (req) => {
 
   return null;
 };
-
-exports.authorizeDriveFolderCreation = async (req) => {
-  const { role } = req.auth.credentials;
-
-  if (![COACH, CLIENT_ADMIN].includes(get(role, 'client.name'))) throw Boom.forbidden();
-
-  return null;
-};

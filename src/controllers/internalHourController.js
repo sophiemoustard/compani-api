@@ -4,17 +4,6 @@ const translate = require('../helpers/translate');
 
 const { language } = translate;
 
-const create = async (req) => {
-  try {
-    await InternalHourHelper.create(req.payload, req.auth.credentials);
-
-    return { message: translate[language].companyInternalHourCreated };
-  } catch (e) {
-    req.log('error', e);
-    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
-  }
-};
-
 const list = async (req) => {
   try {
     const internalHours = await InternalHourHelper.list(req.auth.credentials);
@@ -29,15 +18,4 @@ const list = async (req) => {
   }
 };
 
-const remove = async (req) => {
-  try {
-    await InternalHourHelper.removeInternalHour(req.pre.internalHour);
-
-    return { message: translate[language].companyInternalHourRemoved };
-  } catch (e) {
-    req.log('error', e);
-    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
-  }
-};
-
-module.exports = { create, list, remove };
+module.exports = { list };

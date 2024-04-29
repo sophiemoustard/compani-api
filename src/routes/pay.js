@@ -2,13 +2,9 @@
 
 const Joi = require('joi');
 Joi.objectId = require('joi-objectid')(Joi);
-const {
-  getHoursBalanceDetails,
-  exportDsnInfo,
-} = require('../controllers/payController');
+const { getHoursBalanceDetails } = require('../controllers/payController');
 const { monthValidation, objectIdOrArray } = require('./validations/utils');
 const { authorizeGetDetails } = require('./preHandlers/pay');
-const { IDENTIFICATION, CONTRACT_VERSION, ABSENCE, CONTRACT_END, PAY } = require('../helpers/constants');
 
 exports.plugin = {
   name: 'routes-pay',
@@ -28,24 +24,6 @@ exports.plugin = {
         pre: [{ method: authorizeGetDetails }],
       },
       handler: getHoursBalanceDetails,
-    });
-
-    server.route({
-      method: 'GET',
-      path: '/export/{type}',
-      options: {
-        auth: { scope: ['pay:edit'] },
-        validate: {
-          params: Joi.object({
-            type: Joi.string().valid(IDENTIFICATION, CONTRACT_VERSION, ABSENCE, CONTRACT_END, PAY),
-          }),
-          query: Joi.object({
-            startDate: Joi.date().required(),
-            endDate: Joi.date().required().greater(Joi.ref('startDate')),
-          }),
-        },
-      },
-      handler: exportDsnInfo,
     });
   },
 };
