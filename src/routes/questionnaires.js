@@ -169,20 +169,6 @@ exports.plugin = {
 
     server.route({
       method: 'GET',
-      path: '/{_id}/qrcode',
-      options: {
-        auth: { scope: ['questionnaires:read'] },
-        validate: {
-          params: Joi.object({ _id: Joi.objectId().required() }),
-          query: Joi.object({ course: Joi.objectId().required() }),
-        },
-        pre: [{ method: authorizeQuestionnaireGet }, { method: authorizeQuestionnaireQRCodeGet }],
-      },
-      handler: getQRCode,
-    });
-
-    server.route({
-      method: 'GET',
       path: '/qrcode',
       options: {
         auth: { scope: ['questionnaires:read'] },
