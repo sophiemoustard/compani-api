@@ -17,7 +17,7 @@ describe('sendNotificationToAPI', () => {
   });
 
   it('should call expo api', async () => {
-    const EXPO_NOTIFICATION_API_URL = 'https://exp.host/--/api/v2/push/send/';
+    const EXPO_NOTIFICATION_API_URL = 'https://exp.host/--/api/v2/push/send?useFcmV1=true';
     const courseId = new ObjectId();
     const payload = {
       to: 'ExponentPushToken[JeSuisUnTokenExpo]',

@@ -4,7 +4,7 @@ const Course = require('../models/Course');
 const User = require('../models/User');
 const { BLENDED_COURSE_REGISTRATION, NEW_ELEARNING_COURSE } = require('./constants');
 
-const EXPO_NOTIFICATION_API_URL = 'https://exp.host/--/api/v2/push/send/';
+const EXPO_NOTIFICATION_API_URL = 'https://exp.host/--/api/v2/push/send?useFcmV1=true';
 
 exports.sendNotificationToAPI = async payload => axios.post(`${EXPO_NOTIFICATION_API_URL}`, payload);
 
