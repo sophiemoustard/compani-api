@@ -56,8 +56,6 @@ exports.plugin = {
           query: Joi.object({
             course: Joi.objectId(),
             program: Joi.objectId(),
-            // [temporary] This line can be removed when mobile versions prior to 2.25.0 have been deprecated.
-            status: Joi.string().valid(PUBLISHED),
           }).oxor('course', 'program'),
         },
         auth: { mode: 'optional' },
