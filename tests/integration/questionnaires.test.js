@@ -972,69 +972,6 @@ describe('QUESTIONNAIRES ROUTES - DELETE /questionnaires/cards/{cardId}', () => 
   });
 });
 
-describe('QUESTIONNAIRES ROUTES - GET /questionnaires/{_id}/qrcode', () => {
-  let authToken;
-  beforeEach(populateDB);
-
-  describe('TRAINER', () => {
-    beforeEach(async () => {
-      authToken = await getToken('trainer');
-    });
-
-    it('should get qrcode that links to the questionnaire', async () => {
-      const response = await app.inject({
-        method: 'GET',
-        url: `/questionnaires/${questionnairesList[1]._id}/qrcode?course=${coursesList[0]._id}`,
-        headers: { Cookie: `alenvi_token=${authToken}` },
-      });
-
-      expect(response.statusCode).toBe(200);
-      expect(response.result).toBeDefined();
-    });
-
-    it('should return 404 if questionnaire doesn\'t exist', async () => {
-      const response = await app.inject({
-        method: 'GET',
-        url: `/questionnaires/${new ObjectId()}/qrcode?course=${coursesList[0]._id}`,
-        headers: { Cookie: `alenvi_token=${authToken}` },
-      });
-
-      expect(response.statusCode).toBe(404);
-    });
-
-    it('should return 404 if course doesn\'t exist', async () => {
-      const response = await app.inject({
-        method: 'GET',
-        url: `/questionnaires/${questionnairesList[1]._id}/qrcode?course=${new ObjectId()}`,
-        headers: { Cookie: `alenvi_token=${authToken}` },
-      });
-
-      expect(response.statusCode).toBe(404);
-    });
-  });
-
-  describe('Other roles', () => {
-    const roles = [
-      { name: 'helper', expectedCode: 403 },
-      { name: 'planning_referent', expectedCode: 403 },
-      { name: 'client_admin', expectedCode: 403 },
-    ];
-
-    roles.forEach((role) => {
-      it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
-        authToken = await getToken(role.name);
-        const response = await app.inject({
-          method: 'GET',
-          url: `/questionnaires/${questionnairesList[1]._id}/qrcode?course=${coursesList[0]._id}`,
-          headers: { Cookie: `alenvi_token=${authToken}` },
-        });
-
-        expect(response.statusCode).toBe(role.expectedCode);
-      });
-    });
-  });
-});
-
 describe('QUESTIONNAIRES ROUTES - GET /questionnaires/qrcode', () => {
   let authToken;
   beforeEach(populateDB);

@@ -56,8 +56,6 @@ exports.plugin = {
           query: Joi.object({
             course: Joi.objectId(),
             program: Joi.objectId(),
-            // [temporary] This line can be removed when mobile versions prior to 2.25.0 have been deprecated.
-            status: Joi.string().valid(PUBLISHED),
           }).oxor('course', 'program'),
         },
         auth: { mode: 'optional' },
@@ -165,20 +163,6 @@ exports.plugin = {
         pre: [{ method: authorizeQuestionnaireEdit }],
       },
       handler: update,
-    });
-
-    server.route({
-      method: 'GET',
-      path: '/{_id}/qrcode',
-      options: {
-        auth: { scope: ['questionnaires:read'] },
-        validate: {
-          params: Joi.object({ _id: Joi.objectId().required() }),
-          query: Joi.object({ course: Joi.objectId().required() }),
-        },
-        pre: [{ method: authorizeQuestionnaireGet }, { method: authorizeQuestionnaireQRCodeGet }],
-      },
-      handler: getQRCode,
     });
 
     server.route({

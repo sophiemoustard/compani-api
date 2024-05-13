@@ -3,7 +3,6 @@ const groupBy = require('lodash/groupBy');
 const get = require('lodash/get');
 const has = require('lodash/has');
 const compact = require('lodash/compact');
-const omit = require('lodash/omit');
 const Activity = require('../../../src/models/Activity');
 const ActivityHistory = require('../../../src/models/ActivityHistory');
 const Attendance = require('../../../src/models/Attendance');
@@ -519,8 +518,7 @@ describe('SEEDS VERIFICATION', () => {
           it(`should pass if every field in '${template.name}' card is allowed`, () => {
             const someKeysAreNotAllowed = cardList
               .filter(card => card.template === template.name)
-              // [temporary] omit can be removed when postHook addLabelForAppCompatibility is removed.
-              .some(card => UtilsHelper.getKeysOf2DepthObject(omit(card, ['label']))
+              .some(card => UtilsHelper.getKeysOf2DepthObject(card)
                 .filter(key => !['_id', 'template'].includes(key))
                 .some(key => !template.allowedKeys.includes(key)));
 
