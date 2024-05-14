@@ -733,10 +733,10 @@
   resolved "https://registry.yarnpkg.com/@ungap/structured-clone/-/structured-clone-1.2.0.tgz#756641adb587851b5ccb3e095daf27ae581c8406"
   integrity sha512-zuVdFrMJiuCDQUMCzQaD6KL28MjnqqN8XnAqiEq9PNm/hCPTSGfrXCOfwj1ow4LFb/tNymJPwsNbVePc1xFqrQ==
 
-"@xmldom/xmldom@^0.7.5":
-  version "0.7.13"
-  resolved "https://registry.yarnpkg.com/@xmldom/xmldom/-/xmldom-0.7.13.tgz#ff34942667a4e19a9f4a0996a76814daac364cf3"
-  integrity sha512-lm2GW5PkosIzccsaZIz7tp8cPADSIlIHWDFTR1N0SzfinhhYgeIQjFMz4rYzanCScr3DqQLeomUDArp6MWKm+g==
+"@xmldom/xmldom@^0.8.10":
+  version "0.8.10"
+  resolved "https://registry.yarnpkg.com/@xmldom/xmldom/-/xmldom-0.8.10.tgz#a1337ca426aa61cef9fe15b5b28e340a72f6fa99"
+  integrity sha512-2WALfTl4xo2SkGCYRt6rDTFfk9R1czmBvUQy12gK2KuRKIpWEhcbbzy8EZXtz/jkRqHX8bFEc6FC1HjX4TUWYw==
 
 abort-controller@^3.0.0:
   version "3.0.0"
@@ -1479,12 +1479,12 @@ doctrine@^3.0.0:
   dependencies:
     esutils "^2.0.2"
 
-docxtemplater@3.28.1:
-  version "3.28.1"
-  resolved "https://registry.yarnpkg.com/docxtemplater/-/docxtemplater-3.28.1.tgz#7d6fb2df191f9091a91bdf994150c467e6cc8d67"
-  integrity sha512-knwhQOUiaIjBqjH7Q0VVyiPlFYjBTLR3yikBJzVdTbq2QuZb27EbbQOCBSJiLQoQZMHzcHL9CQ96bbAIUPSODw==
+docxtemplater@~3.47.2:
+  version "3.47.2"
+  resolved "https://registry.yarnpkg.com/docxtemplater/-/docxtemplater-3.47.2.tgz#da4699487146b99e74294323ec64157d10cc6dc9"
+  integrity sha512-1v6qQPRYzLGxYhABBZzMIMtOAqu2SgGPdfz+lvAFijuVAF/HEoMTrdZ+CdG+pgxOvI0qPa6AD54kN+alUrW/dA==
   dependencies:
-    "@xmldom/xmldom" "^0.7.5"
+    "@xmldom/xmldom" "^0.8.10"
 
 dotenv@~16.4.1:
   version "16.4.1"
