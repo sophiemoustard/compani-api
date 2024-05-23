@@ -28,6 +28,7 @@ const {
   EXPECTATIONS,
   DRAFT,
   SELF_POSITIONNING,
+  START_COURSE,
 } = require('../../../src/helpers/constants');
 const { trainerRoleId } = require('../../seed/authRolesSeed');
 const { companyWithoutSubscription, authCompany } = require('../../seed/authCompaniesSeed');
@@ -272,6 +273,7 @@ const questionnaireHistories = [
       { card: cardsList[1]._id, answerList: ['test'] },
       { card: cardsList[3]._id, answerList: ['blabla2'] },
     ],
+    timeline: START_COURSE,
   },
 ];
 
