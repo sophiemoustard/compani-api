@@ -186,7 +186,7 @@ const getFollowUpForReview = async (questionnaire, courseId) => {
 
   return {
     followUp,
-    course: { ...pick(course, ['misc', 'type', 'companies', 'holding']), programName: course.subProgram.program.name },
+    course: { ...pick(course, ['misc', 'type', 'companies', 'holding', 'subProgram']) },
   };
 };
 
