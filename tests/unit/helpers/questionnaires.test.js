@@ -18,6 +18,10 @@ const {
   END_COURSE,
   DRAFT,
   STRICTLY_E_LEARNING,
+  OPEN_QUESTION,
+  SURVEY,
+  REVIEW,
+  LIST,
 } = require('../../../src/helpers/constants');
 const SinonMongoose = require('../sinonMongoose');
 const UtilsMock = require('../../utilsMock');
@@ -1306,477 +1310,756 @@ describe('getFollowUp', () => {
     questionnaireFindOne.restore();
   });
 
-  it('should return follow up for course', async () => {
-    const questionnaireId = new ObjectId();
-    const courseId = new ObjectId();
-    const companyId = new ObjectId();
-    const course = {
-      _id: courseId,
-      companies: [{ name: 'company' }],
-      subProgram: { program: { name: 'test' } },
-      misc: 'infos',
-      type: INTRA,
-    };
-    const cardsIds = [new ObjectId(), new ObjectId()];
-    const questionnaire = {
-      _id: questionnaireId,
-      type: EXPECTATIONS,
-      name: 'questionnaire',
-      histories: [
-        {
+  describe('REVIEW', () => {
+    it('should return follow up for course', async () => {
+      const questionnaireId = new ObjectId();
+      const courseId = new ObjectId();
+      const companyId = new ObjectId();
+      const trainees = [new ObjectId(), new ObjectId()];
+
+      const course = {
+        _id: courseId,
+        companies: [{ name: 'company' }],
+        holding: [{ name: 'société mère' }],
+        subProgram: { program: { name: 'test' } },
+        misc: 'infos',
+        type: INTRA,
+      };
+      const cardsIds = [new ObjectId(), new ObjectId()];
+      const questionnaire = {
+        _id: questionnaireId,
+        type: SELF_POSITIONNING,
+        name: 'questionnaire',
+        histories: [
+          {
+            _id: new ObjectId(),
+            course: course._id,
+            company: companyId,
+            user: trainees[0],
+            questionnaireAnswersList: [
+              {
+                card: {
+                  _id: cardsIds[0],
+                  template: SURVEY,
+                  isMandatory: true,
+                  question: 'savez-vous cuisiner ?',
+                  labels: { 1: 'first', 2: 'second', 3: 'third', 4: 'fourth', 5: 'last' },
+                },
+                answerList: ['3'],
+              },
+              {
+                card: {
+                  _id: cardsIds[1],
+                  template: SURVEY,
+                  isMandatory: true,
+                  question: 'aimez vous ce test ?',
+                  labels: { 1: 'first', 2: 'second', 3: 'third', 4: 'fourth', 5: 'last' },
+                },
+                answerList: ['3'],
+              },
+            ],
+            timeline: START_COURSE,
+          },
+          {
+            _id: new ObjectId(),
+            course: course._id,
+            company: companyId,
+            user: trainees[1],
+            questionnaireAnswersList: [
+              {
+                card: {
+                  _id: cardsIds[0],
+                  template: SURVEY,
+                  isMandatory: true,
+                  question: 'savez-vous cuisiner ?',
+                  labels: { 1: 'first', 2: 'second', 3: 'third', 4: 'fourth', 5: 'last' },
+                },
+                answerList: ['5'],
+              },
+              {
+                card: {
+                  _id: cardsIds[1],
+                  template: SURVEY,
+                  isMandatory: true,
+                  question: 'aimez vous ce test ?',
+                  labels: { 1: 'first', 2: 'second', 3: 'third', 4: 'fourth', 5: 'last' },
+                },
+                answerList: ['2'],
+              },
+            ],
+            timeline: END_COURSE,
+          },
+        ],
+      };
+
+      courseFindOne.returns(SinonMongoose.stubChainedQueries(course, ['select', 'populate', 'lean']));
+      questionnaireFindOne.returns(SinonMongoose.stubChainedQueries(questionnaire, ['select', 'populate', 'lean']));
+
+      const query = { course: courseId, action: REVIEW };
+      const result = await QuestionnaireHelper.getFollowUp(questionnaireId, query, credentials);
+
+      expect(result).toEqual({
+        course: {
+          programName: 'test',
+          type: INTRA,
+          companies: [{ name: 'company' }],
+          holding: [{ name: 'société mère' }],
+          misc: 'infos',
+        },
+        followUp: [
+          {
+            user: trainees[0],
+            timeline: START_COURSE,
+            questionnaireAnswersList: [
+              {
+                card: {
+                  _id: cardsIds[0],
+                  template: SURVEY,
+                  isMandatory: true,
+                  question: 'savez-vous cuisiner ?',
+                  labels: { 1: 'first', 2: 'second', 3: 'third', 4: 'fourth', 5: 'last' },
+                },
+                answerList: ['3'],
+              },
+              {
+                card: {
+                  _id: cardsIds[1],
+                  template: SURVEY,
+                  isMandatory: true,
+                  question: 'aimez vous ce test ?',
+                  labels: { 1: 'first', 2: 'second', 3: 'third', 4: 'fourth', 5: 'last' },
+                },
+                answerList: ['3'],
+              },
+            ],
+          },
+          {
+            user: trainees[1],
+            timeline: END_COURSE,
+            questionnaireAnswersList: [
+              {
+                card: {
+                  _id: cardsIds[0],
+                  template: SURVEY,
+                  isMandatory: true,
+                  question: 'savez-vous cuisiner ?',
+                  labels: { 1: 'first', 2: 'second', 3: 'third', 4: 'fourth', 5: 'last' },
+                },
+                answerList: ['5'],
+              },
+              {
+                card: {
+                  _id: cardsIds[1],
+                  template: SURVEY,
+                  isMandatory: true,
+                  question: 'aimez vous ce test ?',
+                  labels: { 1: 'first', 2: 'second', 3: 'third', 4: 'fourth', 5: 'last' },
+                },
+                answerList: ['2'],
+              },
+            ],
+          },
+        ],
+      });
+
+      SinonMongoose.calledOnceWithExactly(
+        questionnaireFindOne,
+        [
+          { query: 'findOne', args: [{ _id: questionnaireId }] },
+          { query: 'select', args: ['type name'] },
+          {
+            query: 'populate',
+            args: [{
+              path: 'histories',
+              match: { course: courseId },
+              options: { isVendorUser: true },
+              select: '-__v -createdAt -updatedAt',
+              populate: [
+                { path: 'questionnaireAnswersList.card', select: '-__v -createdAt -updatedAt' },
+                {
+                  path: 'course',
+                  select: 'trainer subProgram',
+                  populate: { path: 'subProgram', select: 'program', populate: { path: 'program', select: '_id' } },
+                },
+              ],
+            }],
+          },
+          { query: 'lean' },
+        ]
+      );
+      SinonMongoose.calledOnceWithExactly(
+        courseFindOne,
+        [
+          { query: 'findOne', args: [{ _id: courseId }] },
+          { query: 'select', args: ['subProgram companies misc type holding'] },
+          {
+            query: 'populate',
+            args: [{ path: 'subProgram', select: 'program', populate: [{ path: 'program', select: 'name' }] }],
+          },
+          { query: 'populate', args: [{ path: 'companies', select: 'name' }] },
+          { query: 'populate', args: [{ path: 'holding', select: 'name' }] },
+
+          { query: 'lean' },
+        ]
+      );
+    });
+
+    it('should return an empty array for followUp if histories is empty', async () => {
+      const questionnaireId = new ObjectId();
+      const courseId = new ObjectId();
+
+      const course = {
+        _id: courseId,
+        companies: [{ name: 'company' }],
+        holding: [{ name: 'société mère' }],
+        subProgram: { program: { name: 'test' } },
+        misc: 'infos',
+        type: INTRA,
+      };
+      const questionnaire = {
+        _id: questionnaireId,
+        type: SELF_POSITIONNING,
+        name: 'questionnaire',
+        histories: [],
+      };
+
+      courseFindOne.returns(SinonMongoose.stubChainedQueries(course, ['select', 'populate', 'lean']));
+      questionnaireFindOne.returns(SinonMongoose.stubChainedQueries(questionnaire, ['select', 'populate', 'lean']));
+
+      const query = { course: courseId, action: REVIEW };
+      const result = await QuestionnaireHelper.getFollowUp(questionnaireId, query, credentials);
+
+      expect(result).toEqual({
+        course: {
+          programName: 'test',
+          type: INTRA,
+          companies: [{ name: 'company' }],
+          holding: [{ name: 'société mère' }],
+          misc: 'infos',
+        },
+        followUp: [],
+      });
+
+      SinonMongoose.calledOnceWithExactly(
+        questionnaireFindOne,
+        [
+          { query: 'findOne', args: [{ _id: questionnaireId }] },
+          { query: 'select', args: ['type name'] },
+          {
+            query: 'populate',
+            args: [{
+              path: 'histories',
+              match: { course: courseId },
+              options: { isVendorUser: true },
+              select: '-__v -createdAt -updatedAt',
+              populate: [
+                { path: 'questionnaireAnswersList.card', select: '-__v -createdAt -updatedAt' },
+                {
+                  path: 'course',
+                  select: 'trainer subProgram',
+                  populate: { path: 'subProgram', select: 'program', populate: { path: 'program', select: '_id' } },
+                },
+              ],
+            }],
+          },
+          { query: 'lean' },
+        ]
+      );
+      SinonMongoose.calledOnceWithExactly(
+        courseFindOne,
+        [
+          { query: 'findOne', args: [{ _id: courseId }] },
+          { query: 'select', args: ['subProgram companies misc type holding'] },
+          {
+            query: 'populate',
+            args: [{ path: 'subProgram', select: 'program', populate: [{ path: 'program', select: 'name' }] }],
+          },
+          { query: 'populate', args: [{ path: 'companies', select: 'name' }] },
+          { query: 'populate', args: [{ path: 'holding', select: 'name' }] },
+
+          { query: 'lean' },
+        ]
+      );
+    });
+  });
+
+  describe('LIST', () => {
+    it('should return follow up for course', async () => {
+      const questionnaireId = new ObjectId();
+      const courseId = new ObjectId();
+      const companyId = new ObjectId();
+      const course = {
+        _id: courseId,
+        companies: [{ name: 'company' }],
+        subProgram: { program: { name: 'test' } },
+        misc: 'infos',
+        type: INTRA,
+      };
+      const cardsIds = [new ObjectId(), new ObjectId()];
+      const questionnaire = {
+        _id: questionnaireId,
+        type: EXPECTATIONS,
+        name: 'questionnaire',
+        histories: [
+          {
+            _id: new ObjectId(),
+            course: course._id,
+            company: companyId,
+            questionnaireAnswersList: [
+              {
+                card: { _id: cardsIds[0], template: OPEN_QUESTION, isMandatory: true, question: 'aimes-tu ce test ?' },
+                answerList: ['blabla'],
+              },
+              {
+                card: {
+                  _id: cardsIds[1],
+                  template: SURVEY,
+                  isMandatory: true,
+                  question: 'combien aimez vous ce test sur une échelle de 1 à 5 ?',
+                  labels: { 1: 'first', 5: 'last' },
+                },
+                answerList: ['3'],
+              },
+            ],
+          },
+          {
+            _id: new ObjectId(),
+            course: course._id,
+            company: companyId,
+            questionnaireAnswersList: [
+              {
+                card: {
+                  _id: cardsIds[0],
+                  template: OPEN_QUESTION,
+                  isMandatory: true,
+                  question: 'aimes-tu ce test ?',
+                },
+                answerList: ['test test'],
+              },
+              {
+                card: {
+                  _id: cardsIds[1],
+                  template: SURVEY,
+                  isMandatory: true,
+                  question: 'combien aimez vous ce test sur une échelle de 1 à 5 ?',
+                  labels: { 1: 'first', 5: 'last' },
+                },
+                answerList: ['2'],
+              },
+            ],
+          },
+        ],
+      };
+
+      courseFindOne.returns(SinonMongoose.stubChainedQueries(course, ['select', 'populate', 'lean']));
+      questionnaireFindOne.returns(SinonMongoose.stubChainedQueries(questionnaire, ['select', 'populate', 'lean']));
+
+      const query = { course: courseId, action: LIST };
+      const result = await QuestionnaireHelper.getFollowUp(questionnaireId, query, credentials);
+
+      expect(result).toMatchObject({
+        course: { programName: 'test', companyName: 'company', misc: 'infos' },
+        questionnaire: { type: EXPECTATIONS, name: 'questionnaire' },
+        followUp: [
+          {
+            answers: [
+              { answer: 'blabla', course: course._id, traineeCompany: companyId },
+              { answer: 'test test', course: course._id, traineeCompany: companyId },
+            ],
+            isMandatory: true,
+            question: 'aimes-tu ce test ?',
+            template: 'open_question',
+          },
+          {
+            answers: [
+              { answer: '3', course: course._id, traineeCompany: companyId },
+              { answer: '2', course: course._id, traineeCompany: companyId },
+            ],
+            isMandatory: true,
+            question: 'combien aimez vous ce test sur une échelle de 1 à 5 ?',
+            template: 'survey',
+            labels: { 1: 'first', 5: 'last' },
+          },
+        ],
+      });
+      SinonMongoose.calledOnceWithExactly(
+        courseFindOne,
+        [
+          { query: 'findOne', args: [{ _id: courseId }] },
+          { query: 'select', args: ['subProgram companies misc type'] },
+          {
+            query: 'populate',
+            args: [{ path: 'subProgram', select: 'program', populate: [{ path: 'program', select: 'name' }] }],
+          },
+          { query: 'populate', args: [{ path: 'companies', select: 'name' }] },
+          { query: 'lean' },
+        ]
+      );
+      SinonMongoose.calledOnceWithExactly(
+        questionnaireFindOne,
+        [
+          { query: 'findOne', args: [{ _id: questionnaireId }] },
+          { query: 'select', args: ['type name'] },
+          {
+            query: 'populate',
+            args: [{
+              path: 'histories',
+              match: { course: courseId },
+              options: { isVendorUser: true },
+              select: '-__v -createdAt -updatedAt',
+              populate: [
+                { path: 'questionnaireAnswersList.card', select: '-__v -createdAt -updatedAt' },
+                {
+                  path: 'course',
+                  select: 'trainer subProgram',
+                  populate: { path: 'subProgram', select: 'program', populate: { path: 'program', select: '_id' } },
+                },
+              ],
+            }],
+          },
+          { query: 'lean' },
+        ]
+      );
+    });
+
+    it('should return follow up for all courses', async () => {
+      const questionnaireId = new ObjectId();
+      const cardsIds = [new ObjectId(), new ObjectId()];
+      const companyId = new ObjectId();
+      const questionnaire = {
+        _id: questionnaireId,
+        type: EXPECTATIONS,
+        name: 'questionnaire',
+        histories: [
+          {
+            _id: new ObjectId(),
+            course: new ObjectId(),
+            company: companyId,
+            questionnaireAnswersList: [
+              {
+                card: { _id: cardsIds[0], template: OPEN_QUESTION, isMandatory: true, question: 'aimes-tu ce test ?' },
+                answerList: ['blabla'],
+              },
+              {
+                card: {
+                  _id: cardsIds[1],
+                  template: SURVEY,
+                  isMandatory: true,
+                  question: 'combien aimez vous ce test sur une échelle de 1 à 5 ?',
+                  labels: { 1: 'first', 5: 'last' },
+                },
+                answerList: ['3'],
+              },
+            ],
+          },
+          {
+            _id: new ObjectId(),
+            course: new ObjectId(),
+            company: companyId,
+            questionnaireAnswersList: [
+              {
+                card: { _id: cardsIds[0], template: OPEN_QUESTION, isMandatory: true, question: 'aimes-tu ce test ?' },
+                answerList: ['test test'],
+              },
+              {
+                card: {
+                  _id: cardsIds[1],
+                  template: SURVEY,
+                  isMandatory: true,
+                  question: 'combien aimez vous ce test sur une échelle de 1 à 5 ?',
+                  labels: { 1: 'first', 5: 'last' },
+                },
+                answerList: ['2'],
+              },
+            ],
+          },
+        ],
+      };
+
+      questionnaireFindOne.returns(SinonMongoose.stubChainedQueries(questionnaire, ['select', 'populate', 'lean']));
+
+      const result = await QuestionnaireHelper.getFollowUp(questionnaireId, { action: LIST }, credentials);
+
+      expect(result).toMatchObject({
+        questionnaire: { type: EXPECTATIONS, name: 'questionnaire' },
+        followUp: [
+          {
+            answers: [
+              { answer: 'blabla', course: questionnaire.histories[0].course },
+              { answer: 'test test', course: questionnaire.histories[1].course },
+            ],
+            isMandatory: true,
+            question: 'aimes-tu ce test ?',
+            template: OPEN_QUESTION,
+          },
+          {
+            answers: [
+              { answer: '3', course: questionnaire.histories[0].course },
+              { answer: '2', course: questionnaire.histories[1].course },
+            ],
+            isMandatory: true,
+            question: 'combien aimez vous ce test sur une échelle de 1 à 5 ?',
+            template: SURVEY,
+            labels: { 1: 'first', 5: 'last' },
+          },
+        ],
+      });
+      SinonMongoose.calledOnceWithExactly(
+        questionnaireFindOne,
+        [
+          { query: 'findOne', args: [{ _id: questionnaireId }] },
+          { query: 'select', args: ['type name'] },
+          {
+            query: 'populate',
+            args: [{
+              path: 'histories',
+              match: null,
+              options: { isVendorUser: true },
+              select: '-__v -createdAt -updatedAt',
+              populate: [
+                { path: 'questionnaireAnswersList.card', select: '-__v -createdAt -updatedAt' },
+                {
+                  path: 'course',
+                  select: 'trainer subProgram',
+                  populate: { path: 'subProgram', select: 'program', populate: { path: 'program', select: '_id' } },
+                },
+              ],
+            }],
+          },
+          { query: 'lean' },
+        ]
+      );
+    });
+
+    it('should return an empty array for followUp if answerList is empty', async () => {
+      const questionnaireId = new ObjectId();
+      const courseId = new ObjectId();
+      const companyId = new ObjectId();
+      const course = {
+        _id: courseId,
+        companies: [{ name: 'company' }],
+        subProgram: { program: { name: 'test' } },
+        misc: 'infos',
+        type: INTRA,
+      };
+      const questionnaire = {
+        _id: questionnaireId,
+        type: EXPECTATIONS,
+        name: 'questionnaire',
+        histories: [{
           _id: new ObjectId(),
           course: course._id,
           company: companyId,
-          questionnaireAnswersList: [
-            {
-              card: { _id: cardsIds[0], template: 'open_question', isMandatory: true, question: 'aimes-tu ce test ?' },
-              answerList: ['blabla'],
-            },
-            {
-              card: {
-                _id: cardsIds[1],
-                template: 'survey',
-                isMandatory: true,
-                question: 'combien aimez vous ce test sur une échelle de 1 à 5 ?',
-                labels: { 1: 'first', 5: 'last' },
-              },
-              answerList: ['3'],
-            },
-          ],
-        },
-        {
-          _id: new ObjectId(),
-          course: course._id,
-          company: companyId,
-          questionnaireAnswersList: [
-            {
-              card: {
-                _id: cardsIds[0],
-                template: 'open_question',
-                isMandatory: true,
-                question: 'aimes-tu ce test ?',
-              },
-              answerList: ['test test'],
-            },
-            {
-              card: {
-                _id: cardsIds[1],
-                template: 'survey',
-                isMandatory: true,
-                question: 'combien aimez vous ce test sur une échelle de 1 à 5 ?',
-                labels: { 1: 'first', 5: 'last' },
-              },
-              answerList: ['2'],
-            },
-          ],
-        },
-      ],
-    };
-
-    courseFindOne.returns(SinonMongoose.stubChainedQueries(course, ['select', 'populate', 'lean']));
-    questionnaireFindOne.returns(SinonMongoose.stubChainedQueries(questionnaire, ['select', 'populate', 'lean']));
-
-    const result = await QuestionnaireHelper.getFollowUp(questionnaireId, courseId, credentials);
-
-    expect(result).toMatchObject({
-      course: { programName: 'test', companyName: 'company', misc: 'infos' },
-      questionnaire: { type: EXPECTATIONS, name: 'questionnaire' },
-      followUp: [
-        {
-          answers: [
-            { answer: 'blabla', course: course._id, traineeCompany: companyId },
-            { answer: 'test test', course: course._id, traineeCompany: companyId },
-          ],
-          isMandatory: true,
-          question: 'aimes-tu ce test ?',
-          template: 'open_question',
-        },
-        {
-          answers: [
-            { answer: '3', course: course._id, traineeCompany: companyId },
-            { answer: '2', course: course._id, traineeCompany: companyId },
-          ],
-          isMandatory: true,
-          question: 'combien aimez vous ce test sur une échelle de 1 à 5 ?',
-          template: 'survey',
-          labels: { 1: 'first', 5: 'last' },
-        },
-      ],
-    });
-    SinonMongoose.calledOnceWithExactly(
-      courseFindOne,
-      [
-        { query: 'findOne', args: [{ _id: courseId }] },
-        { query: 'select', args: ['subProgram companies misc type'] },
-        {
-          query: 'populate',
-          args: [{ path: 'subProgram', select: 'program', populate: [{ path: 'program', select: 'name' }] }],
-        },
-        { query: 'populate', args: [{ path: 'companies', select: 'name' }] },
-        { query: 'lean' },
-      ]
-    );
-    SinonMongoose.calledOnceWithExactly(
-      questionnaireFindOne,
-      [
-        { query: 'findOne', args: [{ _id: questionnaireId }] },
-        { query: 'select', args: ['type name'] },
-        {
-          query: 'populate',
-          args: [{
-            path: 'histories',
-            match: { course: courseId },
-            options: { isVendorUser: true },
-            select: '-__v -createdAt -updatedAt',
-            populate: [
-              { path: 'questionnaireAnswersList.card', select: '-__v -createdAt -updatedAt' },
-              {
-                path: 'course',
-                select: 'trainer subProgram',
-                populate: { path: 'subProgram', select: 'program', populate: { path: 'program', select: '_id' } },
-              },
-            ],
+          questionnaireAnswersList: [{
+            card: { _id: new ObjectId(), template: OPEN_QUESTION, isMandatory: true, question: 'aimes-tu ce test ?' },
+            answerList: [''],
           }],
-        },
-        { query: 'lean' },
-      ]
-    );
-  });
-
-  it('should return follow up for for all courses', async () => {
-    const questionnaireId = new ObjectId();
-    const cardsIds = [new ObjectId(), new ObjectId()];
-    const companyId = new ObjectId();
-    const questionnaire = {
-      _id: questionnaireId,
-      type: EXPECTATIONS,
-      name: 'questionnaire',
-      histories: [
-        {
-          _id: new ObjectId(),
-          course: new ObjectId(),
-          company: companyId,
-          questionnaireAnswersList: [
-            {
-              card: { _id: cardsIds[0], template: 'open_question', isMandatory: true, question: 'aimes-tu ce test ?' },
-              answerList: ['blabla'],
-            },
-            {
-              card: {
-                _id: cardsIds[1],
-                template: 'survey',
-                isMandatory: true,
-                question: 'combien aimez vous ce test sur une échelle de 1 à 5 ?',
-                labels: { 1: 'first', 5: 'last' },
-              },
-              answerList: ['3'],
-            },
-          ],
-        },
-        {
-          _id: new ObjectId(),
-          course: new ObjectId(),
-          company: companyId,
-          questionnaireAnswersList: [
-            {
-              card: { _id: cardsIds[0], template: 'open_question', isMandatory: true, question: 'aimes-tu ce test ?' },
-              answerList: ['test test'],
-            },
-            {
-              card: {
-                _id: cardsIds[1],
-                template: 'survey',
-                isMandatory: true,
-                question: 'combien aimez vous ce test sur une échelle de 1 à 5 ?',
-                labels: { 1: 'first', 5: 'last' },
-              },
-              answerList: ['2'],
-            },
-          ],
-        },
-      ],
-    };
-
-    questionnaireFindOne.returns(SinonMongoose.stubChainedQueries(questionnaire, ['select', 'populate', 'lean']));
-
-    const result = await QuestionnaireHelper.getFollowUp(questionnaireId, null, credentials);
-
-    expect(result).toMatchObject({
-      questionnaire: { type: EXPECTATIONS, name: 'questionnaire' },
-      followUp: [
-        {
-          answers: [
-            { answer: 'blabla', course: questionnaire.histories[0].course },
-            { answer: 'test test', course: questionnaire.histories[1].course },
-          ],
-          isMandatory: true,
-          question: 'aimes-tu ce test ?',
-          template: 'open_question',
-        },
-        {
-          answers: [
-            { answer: '3', course: questionnaire.histories[0].course },
-            { answer: '2', course: questionnaire.histories[1].course },
-          ],
-          isMandatory: true,
-          question: 'combien aimez vous ce test sur une échelle de 1 à 5 ?',
-          template: 'survey',
-          labels: { 1: 'first', 5: 'last' },
-        },
-      ],
-    });
-    SinonMongoose.calledOnceWithExactly(
-      questionnaireFindOne,
-      [
-        { query: 'findOne', args: [{ _id: questionnaireId }] },
-        { query: 'select', args: ['type name'] },
-        {
-          query: 'populate',
-          args: [{
-            path: 'histories',
-            match: null,
-            options: { isVendorUser: true },
-            select: '-__v -createdAt -updatedAt',
-            populate: [
-              { path: 'questionnaireAnswersList.card', select: '-__v -createdAt -updatedAt' },
-              {
-                path: 'course',
-                select: 'trainer subProgram',
-                populate: { path: 'subProgram', select: 'program', populate: { path: 'program', select: '_id' } },
-              },
-            ],
-          }],
-        },
-        { query: 'lean' },
-      ]
-    );
-  });
-
-  it('should return an empty array for followUp if answerList is empty', async () => {
-    const questionnaireId = new ObjectId();
-    const courseId = new ObjectId();
-    const companyId = new ObjectId();
-    const course = {
-      _id: courseId,
-      companies: [{ name: 'company' }],
-      subProgram: { program: { name: 'test' } },
-      misc: 'infos',
-      type: INTRA,
-    };
-    const questionnaire = {
-      _id: questionnaireId,
-      type: EXPECTATIONS,
-      name: 'questionnaire',
-      histories: [{
-        _id: new ObjectId(),
-        course: course._id,
-        company: companyId,
-        questionnaireAnswersList: [{
-          card: { _id: new ObjectId(), template: 'open_question', isMandatory: true, question: 'aimes-tu ce test ?' },
-          answerList: [''],
         }],
-      }],
-    };
+      };
 
-    courseFindOne.returns(SinonMongoose.stubChainedQueries(course, ['select', 'populate', 'lean']));
-    questionnaireFindOne.returns(SinonMongoose.stubChainedQueries(questionnaire, ['select', 'populate', 'lean']));
+      courseFindOne.returns(SinonMongoose.stubChainedQueries(course, ['select', 'populate', 'lean']));
+      questionnaireFindOne.returns(SinonMongoose.stubChainedQueries(questionnaire, ['select', 'populate', 'lean']));
 
-    const result = await QuestionnaireHelper.getFollowUp(questionnaireId, courseId, credentials);
+      const query = { course: courseId, action: LIST };
+      const result = await QuestionnaireHelper.getFollowUp(questionnaireId, query, credentials);
 
-    expect(result).toMatchObject({
-      course: {
-        programName: 'test',
-        companyName: 'company',
-        misc: 'infos',
-      },
-      questionnaire: { type: EXPECTATIONS, name: 'questionnaire' },
-      followUp: [],
+      expect(result).toMatchObject({
+        course: {
+          programName: 'test',
+          companyName: 'company',
+          misc: 'infos',
+        },
+        questionnaire: { type: EXPECTATIONS, name: 'questionnaire' },
+        followUp: [],
+      });
+      SinonMongoose.calledOnceWithExactly(
+        courseFindOne,
+        [
+          { query: 'findOne', args: [{ _id: courseId }] },
+          { query: 'select', args: ['subProgram companies misc type'] },
+          {
+            query: 'populate',
+            args: [{ path: 'subProgram', select: 'program', populate: [{ path: 'program', select: 'name' }] }],
+          },
+          { query: 'populate', args: [{ path: 'companies', select: 'name' }] },
+          { query: 'lean' },
+        ]
+      );
+      SinonMongoose.calledOnceWithExactly(
+        questionnaireFindOne,
+        [
+          { query: 'findOne', args: [{ _id: questionnaireId }] },
+          { query: 'select', args: ['type name'] },
+          {
+            query: 'populate',
+            args: [{
+              path: 'histories',
+              match: { course: courseId },
+              options: { isVendorUser: true },
+              select: '-__v -createdAt -updatedAt',
+              populate: [
+                { path: 'questionnaireAnswersList.card', select: '-__v -createdAt -updatedAt' },
+                {
+                  path: 'course',
+                  select: 'trainer subProgram',
+                  populate: { path: 'subProgram', select: 'program', populate: { path: 'program', select: '_id' } },
+                },
+              ],
+            }],
+          },
+          { query: 'lean' },
+        ]
+      );
     });
-    SinonMongoose.calledOnceWithExactly(
-      courseFindOne,
-      [
-        { query: 'findOne', args: [{ _id: courseId }] },
-        { query: 'select', args: ['subProgram companies misc type'] },
-        {
-          query: 'populate',
-          args: [{ path: 'subProgram', select: 'program', populate: [{ path: 'program', select: 'name' }] }],
-        },
-        { query: 'populate', args: [{ path: 'companies', select: 'name' }] },
-        { query: 'lean' },
-      ]
-    );
-    SinonMongoose.calledOnceWithExactly(
-      questionnaireFindOne,
-      [
-        { query: 'findOne', args: [{ _id: questionnaireId }] },
-        { query: 'select', args: ['type name'] },
-        {
-          query: 'populate',
-          args: [{
-            path: 'histories',
-            match: { course: courseId },
-            options: { isVendorUser: true },
-            select: '-__v -createdAt -updatedAt',
-            populate: [
-              { path: 'questionnaireAnswersList.card', select: '-__v -createdAt -updatedAt' },
-              {
-                path: 'course',
-                select: 'trainer subProgram',
-                populate: { path: 'subProgram', select: 'program', populate: { path: 'program', select: '_id' } },
-              },
-            ],
-          }],
-        },
-        { query: 'lean' },
-      ]
-    );
-  });
 
-  it('should return an empty array for followUp if histories is empty', async () => {
-    const questionnaireId = new ObjectId();
-    const courseId = new ObjectId();
-    const course = {
-      _id: courseId,
-      companies: [{ name: 'company' }],
-      subProgram: { program: { name: 'test' } },
-      misc: 'infos',
-      type: INTRA,
-    };
-    const questionnaire = {
-      _id: questionnaireId,
-      type: EXPECTATIONS,
-      name: 'questionnaire',
-      histories: [],
-    };
-
-    courseFindOne.returns(SinonMongoose.stubChainedQueries(course, ['select', 'populate', 'lean']));
-    questionnaireFindOne.returns(SinonMongoose.stubChainedQueries(questionnaire, ['select', 'populate', 'lean']));
-
-    const result = await QuestionnaireHelper.getFollowUp(questionnaireId, courseId, credentials);
-
-    expect(result).toMatchObject({
-      course: {
-        programName: 'test',
-        companyName: 'company',
+    it('should return an empty array for followUp if histories is empty', async () => {
+      const questionnaireId = new ObjectId();
+      const courseId = new ObjectId();
+      const course = {
+        _id: courseId,
+        companies: [{ name: 'company' }],
+        subProgram: { program: { name: 'test' } },
         misc: 'infos',
-      },
-      questionnaire: { type: EXPECTATIONS, name: 'questionnaire' },
-      followUp: [],
+        type: INTRA,
+      };
+      const questionnaire = {
+        _id: questionnaireId,
+        type: EXPECTATIONS,
+        name: 'questionnaire',
+        histories: [],
+      };
+
+      courseFindOne.returns(SinonMongoose.stubChainedQueries(course, ['select', 'populate', 'lean']));
+      questionnaireFindOne.returns(SinonMongoose.stubChainedQueries(questionnaire, ['select', 'populate', 'lean']));
+
+      const query = { course: courseId, action: LIST };
+      const result = await QuestionnaireHelper.getFollowUp(questionnaireId, query, credentials);
+
+      expect(result).toMatchObject({
+        course: {
+          programName: 'test',
+          companyName: 'company',
+          misc: 'infos',
+        },
+        questionnaire: { type: EXPECTATIONS, name: 'questionnaire' },
+        followUp: [],
+      });
+      SinonMongoose.calledOnceWithExactly(
+        courseFindOne,
+        [
+          { query: 'findOne', args: [{ _id: courseId }] },
+          { query: 'select', args: ['subProgram companies misc type'] },
+          {
+            query: 'populate',
+            args: [{ path: 'subProgram', select: 'program', populate: [{ path: 'program', select: 'name' }] }],
+          },
+          { query: 'populate', args: [{ path: 'companies', select: 'name' }] },
+          { query: 'lean' },
+        ]
+      );
+      SinonMongoose.calledOnceWithExactly(
+        questionnaireFindOne,
+        [
+          { query: 'findOne', args: [{ _id: questionnaireId }] },
+          { query: 'select', args: ['type name'] },
+          {
+            query: 'populate',
+            args: [{
+              path: 'histories',
+              match: { course: courseId },
+              options: { isVendorUser: true },
+              select: '-__v -createdAt -updatedAt',
+              populate: [
+                { path: 'questionnaireAnswersList.card', select: '-__v -createdAt -updatedAt' },
+                {
+                  path: 'course',
+                  select: 'trainer subProgram',
+                  populate: { path: 'subProgram', select: 'program', populate: { path: 'program', select: '_id' } },
+                },
+              ],
+            }],
+          },
+          { query: 'lean' },
+        ]
+      );
     });
-    SinonMongoose.calledOnceWithExactly(
-      courseFindOne,
-      [
-        { query: 'findOne', args: [{ _id: courseId }] },
-        { query: 'select', args: ['subProgram companies misc type'] },
-        {
-          query: 'populate',
-          args: [{ path: 'subProgram', select: 'program', populate: [{ path: 'program', select: 'name' }] }],
-        },
-        { query: 'populate', args: [{ path: 'companies', select: 'name' }] },
-        { query: 'lean' },
-      ]
-    );
-    SinonMongoose.calledOnceWithExactly(
-      questionnaireFindOne,
-      [
-        { query: 'findOne', args: [{ _id: questionnaireId }] },
-        { query: 'select', args: ['type name'] },
-        {
-          query: 'populate',
-          args: [{
-            path: 'histories',
-            match: { course: courseId },
-            options: { isVendorUser: true },
-            select: '-__v -createdAt -updatedAt',
-            populate: [
-              { path: 'questionnaireAnswersList.card', select: '-__v -createdAt -updatedAt' },
-              {
-                path: 'course',
-                select: 'trainer subProgram',
-                populate: { path: 'subProgram', select: 'program', populate: { path: 'program', select: '_id' } },
-              },
-            ],
-          }],
-        },
-        { query: 'lean' },
-      ]
-    );
-  });
 
-  it('should return an empty array for followUp if questionnaireAnswersList is empty', async () => {
-    const questionnaireId = new ObjectId();
-    const courseId = new ObjectId();
-    const companyId = new ObjectId();
-    const course = {
-      _id: courseId,
-      companies: [{ name: 'company' }],
-      subProgram: { program: { name: 'test' } },
-      misc: 'infos',
-      type: INTRA,
-    };
-    const questionnaire = {
-      _id: questionnaireId,
-      type: EXPECTATIONS,
-      name: 'questionnaire',
-      histories: [{
-        _id: new ObjectId(),
-        course: course._id,
-        company: companyId,
-        questionnaireAnswersList: [],
-      }],
-    };
-
-    courseFindOne.returns(SinonMongoose.stubChainedQueries(course, ['select', 'populate', 'lean']));
-    questionnaireFindOne.returns(SinonMongoose.stubChainedQueries(questionnaire, ['select', 'populate', 'lean']));
-
-    const result = await QuestionnaireHelper.getFollowUp(questionnaireId, courseId, credentials);
-
-    expect(result).toMatchObject({
-      course: {
-        programName: 'test',
-        companyName: 'company',
+    it('should return an empty array for followUp if questionnaireAnswersList is empty', async () => {
+      const questionnaireId = new ObjectId();
+      const courseId = new ObjectId();
+      const companyId = new ObjectId();
+      const course = {
+        _id: courseId,
+        companies: [{ name: 'company' }],
+        subProgram: { program: { name: 'test' } },
         misc: 'infos',
-      },
-      questionnaire: { type: EXPECTATIONS, name: 'questionnaire' },
-      followUp: [],
+        type: INTRA,
+      };
+      const questionnaire = {
+        _id: questionnaireId,
+        type: EXPECTATIONS,
+        name: 'questionnaire',
+        histories: [{
+          _id: new ObjectId(),
+          course: course._id,
+          company: companyId,
+          questionnaireAnswersList: [],
+        }],
+      };
+
+      courseFindOne.returns(SinonMongoose.stubChainedQueries(course, ['select', 'populate', 'lean']));
+      questionnaireFindOne.returns(SinonMongoose.stubChainedQueries(questionnaire, ['select', 'populate', 'lean']));
+
+      const query = { course: courseId, action: LIST };
+      const result = await QuestionnaireHelper.getFollowUp(questionnaireId, query, credentials);
+
+      expect(result).toMatchObject({
+        course: {
+          programName: 'test',
+          companyName: 'company',
+          misc: 'infos',
+        },
+        questionnaire: { type: EXPECTATIONS, name: 'questionnaire' },
+        followUp: [],
+      });
+      SinonMongoose.calledOnceWithExactly(
+        courseFindOne,
+        [
+          { query: 'findOne', args: [{ _id: courseId }] },
+          { query: 'select', args: ['subProgram companies misc type'] },
+          {
+            query: 'populate',
+            args: [{ path: 'subProgram', select: 'program', populate: [{ path: 'program', select: 'name' }] }],
+          },
+          { query: 'populate', args: [{ path: 'companies', select: 'name' }] },
+          { query: 'lean' },
+        ]
+      );
+      SinonMongoose.calledOnceWithExactly(
+        questionnaireFindOne,
+        [
+          { query: 'findOne', args: [{ _id: questionnaireId }] },
+          { query: 'select', args: ['type name'] },
+          {
+            query: 'populate',
+            args: [{
+              path: 'histories',
+              match: { course: courseId },
+              options: { isVendorUser: true },
+              select: '-__v -createdAt -updatedAt',
+              populate: [
+                { path: 'questionnaireAnswersList.card', select: '-__v -createdAt -updatedAt' },
+                {
+                  path: 'course',
+                  select: 'trainer subProgram',
+                  populate: { path: 'subProgram', select: 'program', populate: { path: 'program', select: '_id' } },
+                },
+              ],
+            }],
+          },
+          { query: 'lean' },
+        ]
+      );
     });
-    SinonMongoose.calledOnceWithExactly(
-      courseFindOne,
-      [
-        { query: 'findOne', args: [{ _id: courseId }] },
-        { query: 'select', args: ['subProgram companies misc type'] },
-        {
-          query: 'populate',
-          args: [{ path: 'subProgram', select: 'program', populate: [{ path: 'program', select: 'name' }] }],
-        },
-        { query: 'populate', args: [{ path: 'companies', select: 'name' }] },
-        { query: 'lean' },
-      ]
-    );
-    SinonMongoose.calledOnceWithExactly(
-      questionnaireFindOne,
-      [
-        { query: 'findOne', args: [{ _id: questionnaireId }] },
-        { query: 'select', args: ['type name'] },
-        {
-          query: 'populate',
-          args: [{
-            path: 'histories',
-            match: { course: courseId },
-            options: { isVendorUser: true },
-            select: '-__v -createdAt -updatedAt',
-            populate: [
-              { path: 'questionnaireAnswersList.card', select: '-__v -createdAt -updatedAt' },
-              {
-                path: 'course',
-                select: 'trainer subProgram',
-                populate: { path: 'subProgram', select: 'program', populate: { path: 'program', select: '_id' } },
-              },
-            ],
-          }],
-        },
-        { query: 'lean' },
-      ]
-    );
   });
 });
