@@ -113,7 +113,10 @@ exports.authorizeGetFollowUp = async (req) => {
       const course = await Course.findOne(countQuery);
       if (!course) throw Boom.notFound();
     }
-  } else if (get(credentials, 'role.vendor.name') === TRAINER) throw Boom.forbidden();
+  } else {
+    if (get(credentials, 'role.vendor.name') === TRAINER) throw Boom.forbidden();
+    if (req.query.action === REVIEW) throw Boom.badRequest();
+  }
 
   return null;
 };

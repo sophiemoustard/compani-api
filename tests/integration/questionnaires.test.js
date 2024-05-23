@@ -678,6 +678,20 @@ describe('QUESTIONNAIRE ROUTES - GET /questionnaires/{_id}/follow-up', () => {
 
       expect(response.statusCode).toBe(403);
     });
+
+    it('should return 400 if user is ROF, action is REVIEW and course isn\'t in query', async () => {
+      authToken = await getToken('training_organisation_manager');
+
+      const questionnaireId = questionnairesList[3]._id;
+
+      const response = await app.inject({
+        method: 'GET',
+        url: `/questionnaires/${questionnaireId}/follow-up?action=review`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
   });
 });
 
