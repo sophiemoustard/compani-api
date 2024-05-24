@@ -1400,6 +1400,7 @@ describe('getFollowUp', () => {
 
       expect(result).toEqual({
         course: {
+          _id: courseId,
           subProgram: { program: { name: 'test' } },
           type: INTRA,
           companies: [{ name: 'company' }],
@@ -1531,6 +1532,7 @@ describe('getFollowUp', () => {
 
       expect(result).toEqual({
         course: {
+          _id: courseId,
           subProgram: { program: { name: 'test' } },
           type: INTRA,
           companies: [{ name: 'company' }],

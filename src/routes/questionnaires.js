@@ -100,7 +100,9 @@ exports.plugin = {
           params: Joi.object({ _id: Joi.objectId().required() }),
           query: Joi.object({
             course: Joi.objectId(),
-            action: Joi.string().valid(REVIEW, LIST).default(LIST),
+            action: Joi.string()
+              .when('course', { is: Joi.exist(), then: Joi.valid(LIST, REVIEW), otherwise: Joi.valid(LIST) })
+              .default(LIST),
           }),
         },
         auth: { scope: ['questionnaires:read'] },

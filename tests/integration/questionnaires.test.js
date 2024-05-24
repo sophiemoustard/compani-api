@@ -498,7 +498,19 @@ describe('QUESTIONNAIRE ROUTES - GET /questionnaires/{_id}/follow-up', () => {
         });
 
         expect(response.statusCode).toBe(200);
-        expect(response.result.data.followUp.followUp.length).toBe(1);
+        expect(response.result.data.followUp.length).toBe(1);
+      });
+
+      it('should return 400 if action is REVIEW and course isn\'t in query', async () => {
+        const questionnaireId = questionnairesList[3]._id;
+
+        const response = await app.inject({
+          method: 'GET',
+          url: `/questionnaires/${questionnaireId}/follow-up?action=review`,
+          headers: { Cookie: `alenvi_token=${authToken}` },
+        });
+
+        expect(response.statusCode).toBe(400);
       });
 
       it('should return 404 if questionnaire\'s type is not SELF_POSITIONNING', async () => {
@@ -565,7 +577,7 @@ describe('QUESTIONNAIRE ROUTES - GET /questionnaires/{_id}/follow-up', () => {
         });
 
         expect(response.statusCode).toBe(200);
-        expect(response.result.data.followUp.followUp.length).toBe(1);
+        expect(response.result.data.followUp.length).toBe(1);
       });
 
       it('should return 404 if course doesn\'t exist', async () => {
@@ -653,13 +665,13 @@ describe('QUESTIONNAIRE ROUTES - GET /questionnaires/{_id}/follow-up', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      expect(response.result.data.followUp.followUp.length).toBe(1);
-      expect(response.result.data.followUp.followUp[0].answers.length).toBe(2);
-      const answerForNewCompany = response.result.data.followUp.followUp[0].answers
+      expect(response.result.data.followUp.length).toBe(1);
+      expect(response.result.data.followUp[0].answers.length).toBe(2);
+      const answerForNewCompany = response.result.data.followUp[0].answers
         .find(a => UtilsHelper.areObjectIdsEquals(a.course._id, coursesList[0]._id));
       expect(answerForNewCompany.traineeCompany).toEqual(authCompany._id);
 
-      const answerForOldCompany = response.result.data.followUp.followUp[0].answers
+      const answerForOldCompany = response.result.data.followUp[0].answers
         .find(a => UtilsHelper.areObjectIdsEquals(a.course._id, coursesList[2]._id));
       expect(answerForOldCompany.traineeCompany).toEqual(companyWithoutSubscription._id);
     });
@@ -677,20 +689,6 @@ describe('QUESTIONNAIRE ROUTES - GET /questionnaires/{_id}/follow-up', () => {
       });
 
       expect(response.statusCode).toBe(403);
-    });
-
-    it('should return 400 if user is ROF, action is REVIEW and course isn\'t in query', async () => {
-      authToken = await getToken('training_organisation_manager');
-
-      const questionnaireId = questionnairesList[3]._id;
-
-      const response = await app.inject({
-        method: 'GET',
-        url: `/questionnaires/${questionnaireId}/follow-up?action=review`,
-        headers: { Cookie: `alenvi_token=${authToken}` },
-      });
-
-      expect(response.statusCode).toBe(400);
     });
   });
 });

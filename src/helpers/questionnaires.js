@@ -184,10 +184,7 @@ const getFollowUpForReview = async (questionnaire, courseId) => {
     .populate({ path: 'holding', select: 'name' })
     .lean();
 
-  return {
-    followUp,
-    course: { ...pick(course, ['misc', 'type', 'companies', 'holding', 'subProgram']) },
-  };
+  return { followUp, course };
 };
 
 const getFollowUpForList = async (questionnaire, courseId) => {
