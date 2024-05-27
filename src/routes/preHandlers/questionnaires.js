@@ -93,15 +93,20 @@ exports.authorizeCardDeletion = async (req) => {
 exports.authorizeGetFollowUp = async (req) => {
   const credentials = get(req, 'auth.credentials');
 
-  const questionnaire = await Questionnaire.findOne({ _id: req.params._id }, { type: 1 }).lean();
+  const questionnaire = await Questionnaire.findOne({ _id: req.params._id }, { type: 1, program: 1 }).lean();
   if (!questionnaire) throw Boom.notFound();
 
   if (req.query.course) {
     if (req.query.action === REVIEW) {
       if (questionnaire.type !== SELF_POSITIONNING) throw Boom.notFound();
 
-      const course = await Course.findOne({ _id: req.query.course, format: BLENDED }, { trainer: 1 }).lean();
+      const course = await Course
+        .findOne({ _id: req.query.course, format: BLENDED }, { trainer: 1, subProgram: 1 })
+        .populate({ path: 'subProgram', select: 'program', populate: { path: 'program', select: '_id' } })
+        .lean();
       if (!course) throw Boom.notFound();
+
+      if (!areObjectIdsEquals(questionnaire.program, course.subProgram.program._id)) throw Boom.notFound();
 
       const loggedUserIsCourseTrainer = areObjectIdsEquals(course.trainer, credentials._id);
       if (!loggedUserIsCourseTrainer) throw Boom.forbidden();

@@ -29,6 +29,7 @@ const {
   DRAFT,
   SELF_POSITIONNING,
   START_COURSE,
+  INTRA,
 } = require('../../../src/helpers/constants');
 const { trainerRoleId } = require('../../seed/authRolesSeed');
 const { companyWithoutSubscription, authCompany } = require('../../seed/authCompaniesSeed');
@@ -160,6 +161,17 @@ const coursesList = [
     trainer: trainerAndCoach._id,
     trainees: [traineeList[0]._id],
     companies: [companyWithoutSubscription._id],
+  },
+  {
+    _id: new ObjectId(),
+    format: 'blended',
+    subProgram: subProgramsList[1]._id,
+    type: INTRA,
+    operationsRepresentative: vendorAdmin._id,
+    trainer: courseTrainer._id,
+    maxTrainees: 4,
+    trainees: [traineeList[0]._id],
+    companies: [authCompany._id],
   },
 ];
 

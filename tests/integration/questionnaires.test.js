@@ -551,6 +551,19 @@ describe('QUESTIONNAIRE ROUTES - GET /questionnaires/{_id}/follow-up', () => {
         expect(response.statusCode).toBe(404);
       });
 
+      it('should return 404 if the questionnaire program is not the same as the course program', async () => {
+        const questionnaireId = questionnairesList[3]._id;
+        const courseId = coursesList[3]._id;
+
+        const response = await app.inject({
+          method: 'GET',
+          url: `/questionnaires/${questionnaireId}/follow-up?course=${courseId}&action=review`,
+          headers: { Cookie: `alenvi_token=${authToken}` },
+        });
+
+        expect(response.statusCode).toBe(404);
+      });
+
       it('should return 403 if user is trainer but not course trainer', async () => {
         const questionnaireId = questionnairesList[3]._id;
         const courseId = coursesList[2]._id;
