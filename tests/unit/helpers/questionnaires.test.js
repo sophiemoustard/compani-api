@@ -1324,6 +1324,10 @@ describe('getFollowUp', () => {
         subProgram: { program: { name: 'test' } },
         misc: 'infos',
         type: INTRA,
+        trainees: [
+          { identity: { firstname: 'tomTom', lastname: 'Nana' } },
+          { identity: { firstname: 'eleve', lastname: 'Ducobu' } },
+        ],
       };
       const cardsIds = [new ObjectId(), new ObjectId()];
       const questionnaire = {
@@ -1406,6 +1410,10 @@ describe('getFollowUp', () => {
           companies: [{ name: 'company' }],
           holding: [{ name: 'société mère' }],
           misc: 'infos',
+          trainees: [
+            { identity: { firstname: 'tomTom', lastname: 'Nana' } },
+            { identity: { firstname: 'eleve', lastname: 'Ducobu' } },
+          ],
         },
         followUp: [
           {
@@ -1492,14 +1500,14 @@ describe('getFollowUp', () => {
         courseFindOne,
         [
           { query: 'findOne', args: [{ _id: courseId }] },
-          { query: 'select', args: ['subProgram companies misc type holding'] },
+          { query: 'select', args: ['subProgram companies misc type holding trainees'] },
           {
             query: 'populate',
             args: [{ path: 'subProgram', select: 'program', populate: [{ path: 'program', select: 'name' }] }],
           },
           { query: 'populate', args: [{ path: 'companies', select: 'name' }] },
           { query: 'populate', args: [{ path: 'holding', select: 'name' }] },
-
+          { query: 'populate', args: [{ path: 'trainees', select: 'identity' }] },
           { query: 'lean' },
         ]
       );
@@ -1516,6 +1524,10 @@ describe('getFollowUp', () => {
         subProgram: { program: { name: 'test' } },
         misc: 'infos',
         type: INTRA,
+        trainees: [
+          { identity: { firstname: 'tomTom', lastname: 'Nana' } },
+          { identity: { firstname: 'eleve', lastname: 'Ducobu' } },
+        ],
       };
       const questionnaire = {
         _id: questionnaireId,
@@ -1538,6 +1550,10 @@ describe('getFollowUp', () => {
           companies: [{ name: 'company' }],
           holding: [{ name: 'société mère' }],
           misc: 'infos',
+          trainees: [
+            { identity: { firstname: 'tomTom', lastname: 'Nana' } },
+            { identity: { firstname: 'eleve', lastname: 'Ducobu' } },
+          ],
         },
         followUp: [],
       });
@@ -1571,14 +1587,14 @@ describe('getFollowUp', () => {
         courseFindOne,
         [
           { query: 'findOne', args: [{ _id: courseId }] },
-          { query: 'select', args: ['subProgram companies misc type holding'] },
+          { query: 'select', args: ['subProgram companies misc type holding trainees'] },
           {
             query: 'populate',
             args: [{ path: 'subProgram', select: 'program', populate: [{ path: 'program', select: 'name' }] }],
           },
           { query: 'populate', args: [{ path: 'companies', select: 'name' }] },
           { query: 'populate', args: [{ path: 'holding', select: 'name' }] },
-
+          { query: 'populate', args: [{ path: 'trainees', select: 'identity' }] },
           { query: 'lean' },
         ]
       );
