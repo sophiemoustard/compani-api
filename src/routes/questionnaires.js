@@ -33,6 +33,8 @@ const {
   SURVEY,
   QUESTION_ANSWER,
   SELF_POSITIONNING,
+  REVIEW,
+  LIST,
 } = require('../helpers/constants');
 
 const QUESTIONNAIRE_CARD_TEMPLATES = [
@@ -96,7 +98,12 @@ exports.plugin = {
       options: {
         validate: {
           params: Joi.object({ _id: Joi.objectId().required() }),
-          query: Joi.object({ course: Joi.objectId() }),
+          query: Joi.object({
+            course: Joi.objectId(),
+            action: Joi.string()
+              .when('course', { is: Joi.exist(), then: Joi.valid(LIST, REVIEW), otherwise: Joi.valid(LIST) })
+              .default(LIST),
+          }),
         },
         auth: { scope: ['questionnaires:read'] },
         pre: [{ method: authorizeGetFollowUp }],

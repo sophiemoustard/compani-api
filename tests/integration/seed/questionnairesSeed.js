@@ -28,6 +28,8 @@ const {
   EXPECTATIONS,
   DRAFT,
   SELF_POSITIONNING,
+  START_COURSE,
+  INTRA,
 } = require('../../../src/helpers/constants');
 const { trainerRoleId } = require('../../seed/authRolesSeed');
 const { companyWithoutSubscription, authCompany } = require('../../seed/authCompaniesSeed');
@@ -160,6 +162,17 @@ const coursesList = [
     trainees: [traineeList[0]._id],
     companies: [companyWithoutSubscription._id],
   },
+  {
+    _id: new ObjectId(),
+    format: 'blended',
+    subProgram: subProgramsList[1]._id,
+    type: INTRA,
+    operationsRepresentative: vendorAdmin._id,
+    trainer: courseTrainer._id,
+    maxTrainees: 4,
+    trainees: [traineeList[0]._id],
+    companies: [authCompany._id],
+  },
 ];
 
 const courseHistories = [
@@ -262,6 +275,17 @@ const questionnaireHistories = [
     questionnaire: questionnairesList[1]._id,
     user: traineeList[0]._id,
     questionnaireAnswersList: [{ card: cardsList[3]._id, answerList: ['blabla2'] }],
+  },
+  {
+    course: coursesList[0]._id,
+    company: authCompany._id,
+    questionnaire: questionnairesList[3]._id,
+    user: traineeList[0]._id,
+    questionnaireAnswersList: [
+      { card: cardsList[1]._id, answerList: ['test'] },
+      { card: cardsList[3]._id, answerList: ['blabla2'] },
+    ],
+    timeline: START_COURSE,
   },
 ];
 

@@ -434,10 +434,11 @@ module.exports = {
       { label: 'Question\t&\tRéponse', value: this.QUESTION_ANSWER, type: this.QUESTIONNAIRE },
     ];
   },
-  // QUESTIONNAIRE_TYPES
+  // QUESTIONNAIRE
   EXPECTATIONS: 'expectations',
   END_OF_COURSE: 'end_of_course',
   SELF_POSITIONNING: 'self_positionning',
+  REVIEW: 'review',
   // QUESTIONNAIRE_HISTORY
   START_COURSE: 'start_course',
   END_COURSE: 'end_course',

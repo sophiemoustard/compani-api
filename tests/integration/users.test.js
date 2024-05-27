@@ -505,7 +505,7 @@ describe('USERS ROUTES - GET /users', () => {
       authToken = await getToken('coach');
     });
 
-    it('should get all coachs users (company A), role as a string #tag', async () => {
+    it('should get all coachs users (company A), role as a string', async () => {
       const res = await app.inject({
         method: 'GET',
         url: `/users?company=${authCompany._id}&role=coach`,
