@@ -178,10 +178,11 @@ const getFollowUpForReview = async (questionnaire, courseId) => {
   const followUp = questionnaire.histories.map(h => pick(h, ['user', 'questionnaireAnswersList', 'timeline']));
 
   const course = await Course.findOne({ _id: courseId })
-    .select('subProgram companies misc type holding')
+    .select('subProgram companies misc type holding trainees')
     .populate({ path: 'subProgram', select: 'program', populate: [{ path: 'program', select: 'name' }] })
     .populate({ path: 'companies', select: 'name' })
     .populate({ path: 'holding', select: 'name' })
+    .populate({ path: 'trainees', select: 'identity' })
     .lean();
 
   return { followUp, course };
