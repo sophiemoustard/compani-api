@@ -13,6 +13,7 @@ const QuestionnaireHistorySchema = mongoose.Schema({
   company: { type: mongoose.Schema.Types.ObjectId, ref: 'Company', required: true },
   origin: { type: String, enum: ORIGIN_OPTIONS, required: true, immutable: true, default: MOBILE },
   timeline: { type: String, enum: TIMELINE_OPTIONS, immutable: true },
+  isValidated: { type: Boolean },
 }, { timestamps: true });
 
 QuestionnaireHistorySchema.pre('find', validateQuery);

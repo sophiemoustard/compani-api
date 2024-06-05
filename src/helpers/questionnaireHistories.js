@@ -48,3 +48,6 @@ exports.addQuestionnaireHistory = async (payload) => {
     { ...payload, company: traineesCompanyAtCourseRegistrationList[0].company, ...(timeline && { timeline }) }
   );
 };
+
+exports.updateQuestionnaireHistory = async questionnaireHistoryId => QuestionnaireHistory
+  .updateOne({ _id: questionnaireHistoryId }, { $set: { isValidated: true } });

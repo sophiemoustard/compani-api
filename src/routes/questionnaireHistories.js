@@ -2,9 +2,12 @@
 
 const Joi = require('joi');
 Joi.objectId = require('joi-objectid')(Joi);
-const { addQuestionnaireHistory } = require('../controllers/questionnaireHistoryController');
+const { addQuestionnaireHistory, update } = require('../controllers/questionnaireHistoryController');
 const { WEBAPP } = require('../helpers/constants');
-const { authorizeAddQuestionnaireHistory } = require('./preHandlers/questionnaireHistories');
+const {
+  authorizeAddQuestionnaireHistory,
+  authorizeQuestionnaireHistoryUpdate,
+} = require('./preHandlers/questionnaireHistories');
 
 exports.plugin = {
   name: 'routes-questionnaire-histories',
@@ -29,6 +32,21 @@ exports.plugin = {
         pre: [{ method: authorizeAddQuestionnaireHistory }],
       },
       handler: addQuestionnaireHistory,
+    });
+    server.route({
+      method: 'PUT',
+      path: '/{_id}',
+      options: {
+        validate: {
+          params: Joi.object({ _id: Joi.objectId().required() }),
+          payload: Joi.object({
+            trainerAnswers: Joi.array().items(Joi.object({ card: Joi.objectId() })),
+          }),
+        },
+        auth: { scope: ['questionnairehistories:edit'] },
+        pre: [{ method: authorizeQuestionnaireHistoryUpdate }],
+      },
+      handler: update,
     });
   },
 };
