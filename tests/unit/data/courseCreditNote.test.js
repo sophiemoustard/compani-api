@@ -59,6 +59,7 @@ describe('getPdfContent', () => {
             {
               stack: [
                 { text: 'Avoir', fontSize: 32 },
+                { text: 'Prestation de services' },
                 { text: 'AV-000045', bold: true },
                 { text: 'Date de l\'avoir : 21/08/1998' },
               ],
@@ -165,6 +166,12 @@ describe('getPdfContent', () => {
             ],
           ],
         },
+        {
+          text: 'En tant qu’organisme de formation, Compani est exonéré de la Taxe sur la Valeur Ajoutée (TVA) '
+          + 'en vertu de l’article 261 du Code Général des Impôts (CGI).',
+          fontSize: 8,
+          marginTop: 48,
+        },
       ],
       defaultStyle: { font: 'SourceSans', fontSize: 12 },
       styles: {
@@ -228,6 +235,7 @@ describe('getPdfContent', () => {
             {
               stack: [
                 { text: 'Avoir', fontSize: 32 },
+                { text: 'Prestation de services' },
                 { text: 'AV-000045', bold: true },
                 { text: 'Date de l\'avoir : 21/08/1998' },
               ],
@@ -309,6 +317,12 @@ describe('getPdfContent', () => {
               { text: '1000,00 €', alignment: 'right', width: 'auto', marginBottom: 8, bold: true },
             ],
           ],
+        },
+        {
+          text: 'En tant qu’organisme de formation, Compani est exonéré de la Taxe sur la Valeur Ajoutée (TVA) '
+          + 'en vertu de l’article 261 du Code Général des Impôts (CGI).',
+          fontSize: 8,
+          marginTop: 48,
         },
       ],
       defaultStyle: { font: 'SourceSans', fontSize: 12 },
