@@ -2,7 +2,6 @@ const Boom = require('@hapi/boom');
 const get = require('lodash/get');
 const Questionnaire = require('../../models/Questionnaire');
 const User = require('../../models/User');
-const Card = require('../../models/Card');
 const Course = require('../../models/Course');
 const QuestionnaireHistory = require('../../models/QuestionnaireHistory');
 const { END_COURSE } = require('../../helpers/constants');
@@ -46,13 +45,8 @@ exports.authorizeQuestionnaireHistoryUpdate = async (req) => {
     .lean();
   if (!questionnaire) throw Boom.notFound();
 
-  const answersHaGoodLength = trainerAnswers.length === questionnaireHistory.questionnaireAnswersList.length;
-  if (!answersHaGoodLength) throw Boom.badRequest();
-
-  for (const answer of trainerAnswers) {
-    const card = await Card.findOne({ _id: answer.card }, { labels: 1 }).lean();
-    if (!card) throw Boom.notFound();
-  }
+  const answersHasGoodLength = trainerAnswers.length === questionnaireHistory.questionnaireAnswersList.length;
+  if (!answersHasGoodLength) throw Boom.badRequest();
 
   return null;
 };
