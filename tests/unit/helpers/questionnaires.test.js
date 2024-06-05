@@ -1330,13 +1330,14 @@ describe('getFollowUp', () => {
         ],
       };
       const cardsIds = [new ObjectId(), new ObjectId()];
+      const historiesIds = [new ObjectId(), new ObjectId()];
       const questionnaire = {
         _id: questionnaireId,
         type: SELF_POSITIONNING,
         name: 'questionnaire',
         histories: [
           {
-            _id: new ObjectId(),
+            _id: historiesIds[0],
             course: course._id,
             company: companyId,
             user: trainees[0],
@@ -1365,7 +1366,7 @@ describe('getFollowUp', () => {
             timeline: START_COURSE,
           },
           {
-            _id: new ObjectId(),
+            _id: historiesIds[1],
             course: course._id,
             company: companyId,
             user: trainees[1],
@@ -1392,6 +1393,7 @@ describe('getFollowUp', () => {
               },
             ],
             timeline: END_COURSE,
+            isValidated: true,
           },
         ],
       };
@@ -1417,6 +1419,7 @@ describe('getFollowUp', () => {
         },
         followUp: [
           {
+            _id: historiesIds[0],
             user: trainees[0],
             timeline: START_COURSE,
             questionnaireAnswersList: [
@@ -1443,8 +1446,10 @@ describe('getFollowUp', () => {
             ],
           },
           {
+            _id: historiesIds[1],
             user: trainees[1],
             timeline: END_COURSE,
+            isValidated: true,
             questionnaireAnswersList: [
               {
                 card: {

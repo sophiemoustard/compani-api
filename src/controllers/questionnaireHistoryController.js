@@ -17,7 +17,7 @@ const addQuestionnaireHistory = async (req) => {
 
 const update = async (req) => {
   try {
-    await QuestionnaireHistoryHelper.updateQuestionnaireHistory(req.params._id, req.payload);
+    await QuestionnaireHistoryHelper.updateQuestionnaireHistory(req.params._id);
 
     return { message: translate[language].questionnaireHistoryUpdated };
   } catch (e) {

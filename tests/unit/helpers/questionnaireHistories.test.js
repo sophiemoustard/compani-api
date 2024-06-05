@@ -302,3 +302,22 @@ describe('addQuestionnaireHistory', () => {
     );
   });
 });
+
+describe('updateQuestionnaireHistory', () => {
+  const questionnaireHistoryId = new ObjectId();
+  let updateOne;
+
+  beforeEach(() => {
+    updateOne = sinon.stub(QuestionnaireHistory, 'updateOne');
+  });
+
+  afterEach(() => {
+    updateOne.restore();
+  });
+
+  it('should update questionnaireHistory', async () => {
+    await QuestionnaireHistoriesHelper.updateQuestionnaireHistory(questionnaireHistoryId);
+
+    sinon.assert.calledWithExactly(updateOne, { _id: questionnaireHistoryId }, { $set: { isValidated: true } });
+  });
+});
