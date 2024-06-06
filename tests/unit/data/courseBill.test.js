@@ -65,6 +65,7 @@ describe('getPdfContent', () => {
             {
               stack: [
                 { text: 'Facture', fontSize: 32 },
+                { text: 'Prestation de services' },
                 { text: 'FACT-000045', bold: true },
                 { text: 'Date de facture : 18/08/1998' },
                 { text: 'Facture acquitée le 02/01/2023 ☑', color: 'green' },
@@ -185,7 +186,8 @@ describe('getPdfContent', () => {
           ],
         },
         {
-          text: 'En tant qu’organisme de formation, Compani est exonéré de la Taxe sur la Valeur Ajoutée (TVA).',
+          text: 'En tant qu’organisme de formation, Compani est exonéré de la Taxe sur la Valeur Ajoutée (TVA) '
+          + 'en vertu de l’article 261 du Code Général des Impôts (CGI).',
           fontSize: 8,
           marginTop: 48,
         },
@@ -258,6 +260,7 @@ describe('getPdfContent', () => {
             {
               stack: [
                 { text: 'Facture', fontSize: 32 },
+                { text: 'Prestation de services' },
                 { text: 'FACT-000045', bold: true },
                 { text: 'Date de facture : 18/08/1998' },
               ],
@@ -352,7 +355,8 @@ describe('getPdfContent', () => {
           ],
         },
         {
-          text: 'En tant qu’organisme de formation, Compani est exonéré de la Taxe sur la Valeur Ajoutée (TVA).',
+          text: 'En tant qu’organisme de formation, Compani est exonéré de la Taxe sur la Valeur Ajoutée (TVA) '
+          + 'en vertu de l’article 261 du Code Général des Impôts (CGI).',
           fontSize: 8,
           marginTop: 48,
         },
@@ -418,7 +422,8 @@ describe('getPdf', () => {
           absolutePosition: { x: 40, y: 40 },
         },
         {
-          text: 'En tant qu’organisme de formation, Compani est exonéré de la Taxe sur la Valeur Ajoutée (TVA).',
+          text: 'En tant qu’organisme de formation, Compani est exonéré de la Taxe sur la Valeur Ajoutée (TVA) '
+            + 'en vertu de l’article 261 du Code Général des Impôts (CGI).',
           fontSize: 8,
           marginTop: 48,
         },
