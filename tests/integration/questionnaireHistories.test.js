@@ -442,7 +442,7 @@ describe('QUESTIONNAIRE HISTORIES ROUTES - POST /questionnairehistories', () => 
   });
 });
 
-describe('QUESTIONNAIRE HISTORIES ROUTES - PUT /questionnairehistorie/{_id}', () => {
+describe('QUESTIONNAIRE HISTORIES ROUTES - PUT /questionnairehistories/{_id}', () => {
   let authToken;
   beforeEach(populateDB);
   const endSelfPositionningQuestionnaireHistoryId = questionnaireHistoriesList[1]._id;
@@ -472,6 +472,20 @@ describe('QUESTIONNAIRE HISTORIES ROUTES - PUT /questionnairehistorie/{_id}', ()
       const response = await app.inject({
         method: 'PUT',
         url: `/questionnairehistories/${new ObjectId()}`,
+        payload,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(404);
+    });
+
+    it('should return 404 if questionnaireHistory has START_COURSE timeline', async () => {
+      const startSelfPositionningQuestionnaireHistoryId = questionnaireHistoriesList[2]._id;
+
+      const payload = { trainerAnswers: [{ card: cardsList[1]._id }] };
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/questionnairehistories/${startSelfPositionningQuestionnaireHistoryId}`,
         payload,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });

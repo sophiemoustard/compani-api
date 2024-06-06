@@ -23,6 +23,7 @@ const {
   SELF_POSITIONNING,
   ON_SITE,
   END_COURSE,
+  START_COURSE,
 } = require('../../../src/helpers/constants');
 const { authCompany, companyWithoutSubscription } = require('../../seed/authCompaniesSeed');
 
@@ -127,6 +128,15 @@ const questionnaireHistoriesList = [
     company: authCompany._id,
     timeline: END_COURSE,
     questionnaireAnswersList: [{ card: cardsList[1]._id, answerList: ['2'] }],
+  },
+  {
+    _id: new ObjectId(),
+    course: coursesList[1]._id,
+    user: questionnaireHistoriesUsersList[1],
+    questionnaire: questionnairesList[2]._id,
+    company: authCompany._id,
+    timeline: START_COURSE,
+    questionnaireAnswersList: [{ card: cardsList[1]._id, answerList: ['1'] }],
   },
 ];
 

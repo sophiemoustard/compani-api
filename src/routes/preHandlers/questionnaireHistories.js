@@ -5,7 +5,7 @@ const User = require('../../models/User');
 const Course = require('../../models/Course');
 const QuestionnaireHistory = require('../../models/QuestionnaireHistory');
 const { END_COURSE } = require('../../helpers/constants');
-const { areObjectIdsEquals } = require('../../helpers/utils');
+const UtilsHelper = require('../../helpers/utils');
 const { checkQuestionnaireAnswersList } = require('./utils');
 
 exports.authorizeAddQuestionnaireHistory = async (req) => {
@@ -36,7 +36,8 @@ exports.authorizeQuestionnaireHistoryUpdate = async (req) => {
     .lean();
   if (!questionnaireHistory) throw Boom.notFound();
 
-  const loggedUserIsCourseTrainer = areObjectIdsEquals(questionnaireHistory.course.trainer, credentials._id);
+  const courseTrainer = questionnaireHistory.course.trainer;
+  const loggedUserIsCourseTrainer = UtilsHelper.areObjectIdsEquals(courseTrainer, credentials._id);
   if (!loggedUserIsCourseTrainer) throw Boom.forbidden();
 
   const cardIds = trainerAnswers.map(answer => answer.card);
