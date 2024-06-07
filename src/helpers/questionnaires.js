@@ -175,7 +175,8 @@ const formatQuestionnaireAnswersWithCourse = async (courseId, questionnaireAnswe
 };
 
 const getFollowUpForReview = async (questionnaire, courseId) => {
-  const followUp = questionnaire.histories.map(h => pick(h, ['user', 'questionnaireAnswersList', 'timeline']));
+  const fieldsToPick = ['user', 'questionnaireAnswersList', 'timeline', '_id', 'isValidated'];
+  const followUp = questionnaire.histories.map(h => pick(h, fieldsToPick));
 
   const course = await Course.findOne({ _id: courseId })
     .select('subProgram companies misc type holding trainees')

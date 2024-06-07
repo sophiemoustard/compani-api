@@ -285,6 +285,7 @@ module.exports = {
     publishedQuestionnaireWithSameTypeExists: 'A questionnaire with the same type is already published.',
     questionnaireUpdated: 'questionnaire updated.',
     questionnaireHistoryCreated: 'Questionnaire history created.',
+    questionnaireHistoryUpdated: 'Questionnaire history updated.',
     questionnaireQRCodeGenerated: 'Questionnaire QR Code generated.',
     /*  QuestionnaireHistories */
     questionnaireHistoryConflict: 'A questionnaire history already exists.',
@@ -610,6 +611,7 @@ module.exports = {
     publishedQuestionnaireWithSameTypeExists: 'Un questionnaire du même type est déjà publié.',
     questionnaireUpdated: 'Questionnaire mis à jour.',
     questionnaireHistoryCreated: 'Historique de questionnaire créé.',
+    questionnaireHistoryUpdated: 'Historique de questionnaire mis à jour.',
     questionnaireQRCodeGenerated: 'QR Code généré.',
     /*  QuestionnaireHistories */
     questionnaireHistoryConflict: 'Vous avez déjà répondu à ce questionnaire.',
