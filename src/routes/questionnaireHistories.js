@@ -41,6 +41,7 @@ exports.plugin = {
           params: Joi.object({ _id: Joi.objectId().required() }),
           payload: Joi.object({
             trainerAnswers: Joi.array().items(Joi.object({ card: Joi.objectId() })),
+            trainerComment: Joi.string(),
           }),
         },
         auth: { scope: ['questionnairehistories:edit'] },

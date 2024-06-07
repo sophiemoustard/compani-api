@@ -49,5 +49,12 @@ exports.addQuestionnaireHistory = async (payload) => {
   );
 };
 
-exports.updateQuestionnaireHistory = async questionnaireHistoryId => QuestionnaireHistory
-  .updateOne({ _id: questionnaireHistoryId }, { $set: { isValidated: true } });
+exports.updateQuestionnaireHistory = async (questionnaireHistoryId, payload) => {
+  const { trainerComment } = payload;
+
+  return QuestionnaireHistory
+    .updateOne(
+      { _id: questionnaireHistoryId },
+      { $set: { isValidated: true, ...(trainerComment && { trainerComment }) } }
+    );
+};
