@@ -316,8 +316,20 @@ describe('updateQuestionnaireHistory', () => {
   });
 
   it('should update questionnaireHistory', async () => {
-    await QuestionnaireHistoriesHelper.updateQuestionnaireHistory(questionnaireHistoryId);
+    const payload = { trainerAnswers: [{ _id: new ObjectId() }], trainerComment: '' };
+    await QuestionnaireHistoriesHelper.updateQuestionnaireHistory(questionnaireHistoryId, payload);
 
     sinon.assert.calledWithExactly(updateOne, { _id: questionnaireHistoryId }, { $set: { isValidated: true } });
+  });
+
+  it('should update questionnaireHistory with trainer comment', async () => {
+    const payload = { trainerAnswers: [{ _id: new ObjectId() }], trainerComment: 'Test avec un commentaire' };
+    await QuestionnaireHistoriesHelper.updateQuestionnaireHistory(questionnaireHistoryId, payload);
+
+    sinon.assert.calledWithExactly(
+      updateOne,
+      { _id: questionnaireHistoryId },
+      { $set: { isValidated: true, trainerComment: payload.trainerComment } }
+    );
   });
 });
