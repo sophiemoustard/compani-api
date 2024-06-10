@@ -139,10 +139,10 @@
     teeny-request "^9.0.0"
     uuid "^8.0.0"
 
-"@googleapis/drive@~8.6.0":
-  version "8.6.0"
-  resolved "https://registry.yarnpkg.com/@googleapis/drive/-/drive-8.6.0.tgz#8fc84a1e101e16b7d47523242a98821db6d990b5"
-  integrity sha512-Af3/5i6h7gbjHnwFuO9zMTpYOy2yhhfZlNciUEjb14L3ZdT1WNIDM038viIAb9ovFzkrIDqLSfUbFCgh1pywkw==
+"@googleapis/drive@~8.10.0":
+  version "8.10.0"
+  resolved "https://registry.yarnpkg.com/@googleapis/drive/-/drive-8.10.0.tgz#5d603dee0ac1b0c1e1b48a28e34b27777ab73147"
+  integrity sha512-loumtaDmAn2JvU4KuFMhhtaYG1Hxw0RVS4vl+rOWMU7NAU151XYfIWFDJfFFZjvYZxH4tbsmHEnF+DKH1hQ75Q==
   dependencies:
     googleapis-common "^7.0.0"
 
