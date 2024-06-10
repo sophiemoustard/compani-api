@@ -34,7 +34,7 @@
     "@hapi/good": "~9.0.1",
     "@hapi/good-console": "~9.0.1",
     "@hapi/good-squeeze": "~6.0.0",
-    "@hapi/hapi": "~21.3.3",
+    "@hapi/hapi": "~21.3.9",
     "@hapi/inert": "~7.1.0",
     "axios": "^1.6.7",
     "bcryptjs": "^2.4.3",
