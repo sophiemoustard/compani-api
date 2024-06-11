@@ -14,6 +14,7 @@ const QuestionnaireHistorySchema = mongoose.Schema({
   origin: { type: String, enum: ORIGIN_OPTIONS, required: true, immutable: true, default: MOBILE },
   timeline: { type: String, enum: TIMELINE_OPTIONS, immutable: true },
   isValidated: { type: Boolean },
+  trainerComment: { type: String },
 }, { timestamps: true });
 
 QuestionnaireHistorySchema.pre('find', validateQuery);

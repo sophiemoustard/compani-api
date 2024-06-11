@@ -453,7 +453,7 @@ describe('QUESTIONNAIRE HISTORIES ROUTES - PUT /questionnairehistories/{_id}', (
     });
 
     it('should update questionnaireHistory', async () => {
-      const payload = { trainerAnswers: [{ card: cardsList[1]._id }] };
+      const payload = { trainerAnswers: [{ card: cardsList[1]._id }], trainerComment: 'Appréciation du formateur' };
       const response = await app.inject({
         method: 'PUT',
         url: `/questionnairehistories/${endSelfPositionningQuestionnaireHistoryId}`,
@@ -463,7 +463,12 @@ describe('QUESTIONNAIRE HISTORIES ROUTES - PUT /questionnairehistories/{_id}', (
 
       expect(response.statusCode).toBe(200);
       const questionnaireHistory = await QuestionnaireHistory
-        .countDocuments({ _id: endSelfPositionningQuestionnaireHistoryId, timeline: END_COURSE, isValidated: true });
+        .countDocuments({
+          _id: endSelfPositionningQuestionnaireHistoryId,
+          timeline: END_COURSE,
+          isValidated: true,
+          trainerComment: 'Appréciation du formateur',
+        });
       expect(questionnaireHistory).toBe(1);
     });
 
