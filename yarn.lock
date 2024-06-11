@@ -3444,10 +3444,10 @@ path-to-regexp@^6.2.1:
   resolved "https://registry.yarnpkg.com/path-to-regexp/-/path-to-regexp-6.2.1.tgz#d54934d6798eb9e5ef14e7af7962c945906918e5"
   integrity sha512-JLyh7xT1kizaEvcaXOQwOc2/Yhw6KZOvPf1S8401UyLk86CU79LN3vl7ztXGm/pZ+YjoyAJ4rxmHwbkBXJX+yw==
 
-pdfmake@~0.2.9:
-  version "0.2.9"
-  resolved "https://registry.yarnpkg.com/pdfmake/-/pdfmake-0.2.9.tgz#1768cf85b2b137afb47fb4bc2dd8c2cd3304ebbe"
-  integrity sha512-LAtYwlR8cCQqbxESK2d50DYaVAzAC9Id9NjilRte6Tb9pyHUB+Z50nhD0imuBL0eDyXQKvEYSNjo3P5AOc2ZCg==
+pdfmake@~0.2.10:
+  version "0.2.10"
+  resolved "https://registry.yarnpkg.com/pdfmake/-/pdfmake-0.2.10.tgz#a8a0ee8a5acca8f5d728e0dfe4db8be5f1b9ec6b"
+  integrity sha512-doipFnmE1UHSk+Z3wfQuVweVQqx2pE/Ns2G5gCqZmWwqjDj+mZHnZYH/ryXWoIfD+iVdZUAutgI/VHkTCN+Xrw==
   dependencies:
     "@foliojs-fork/linebreak" "^1.1.1"
     "@foliojs-fork/pdfkit" "^0.14.0"
