@@ -80,6 +80,6 @@
     "eslint-plugin-mocha": "~10.4.3",
     "expect": "~29.7.0",
     "mocha": "~10.4.0",
-    "sinon": "~17.0.1"
+    "sinon": "~18.0.0"
   }
 }
