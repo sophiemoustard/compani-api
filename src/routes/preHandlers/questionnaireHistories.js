@@ -43,11 +43,20 @@ exports.authorizeQuestionnaireHistoryUpdate = async (req) => {
   const cardIds = trainerAnswers.map(answer => answer.card);
   const questionnaire = await Questionnaire
     .findOne({ _id: questionnaireHistory.questionnaire, cards: { $in: cardIds } })
+    .populate({ path: 'cards', select: 'labels' })
     .lean();
   if (!questionnaire) throw Boom.notFound();
 
   const answersHasGoodLength = trainerAnswers.length === questionnaireHistory.questionnaireAnswersList.length;
   if (!answersHasGoodLength) throw Boom.badRequest();
+
+  const everyAnswerIsAuthorized = trainerAnswers.every((a) => {
+    const card = questionnaire.cards.find(c => UtilsHelper.areObjectIdsEquals(c._id, a.card));
+    const labels = get(card, 'labels');
+
+    return a.answer ? Object.keys(labels).includes(a.answer) : true;
+  });
+  if (!everyAnswerIsAuthorized) throw Boom.badRequest();
 
   return null;
 };

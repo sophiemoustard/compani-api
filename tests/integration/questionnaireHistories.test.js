@@ -453,7 +453,10 @@ describe('QUESTIONNAIRE HISTORIES ROUTES - PUT /questionnairehistories/{_id}', (
     });
 
     it('should update questionnaireHistory', async () => {
-      const payload = { trainerAnswers: [{ card: cardsList[1]._id }], trainerComment: 'Appréciation du formateur' };
+      const payload = {
+        trainerAnswers: [{ card: cardsList[1]._id, answer: '1' }],
+        trainerComment: 'Appréciation du formateur',
+      };
       const response = await app.inject({
         method: 'PUT',
         url: `/questionnairehistories/${endSelfPositionningQuestionnaireHistoryId}`,

@@ -13,6 +13,7 @@ const {
 } = require('./constants');
 const CourseHistoriesHelper = require('./courseHistories');
 const QuestionnaireHelper = require('./questionnaires');
+const UtilsHelper = require('./utils');
 const translate = require('./translate');
 
 const { language } = translate;
@@ -50,11 +51,33 @@ exports.addQuestionnaireHistory = async (payload) => {
 };
 
 exports.updateQuestionnaireHistory = async (questionnaireHistoryId, payload) => {
-  const { trainerComment } = payload;
+  const { trainerComment, trainerAnswers } = payload;
+  const questionnaireHistory = await QuestionnaireHistory.findOne({ _id: questionnaireHistoryId }).lean();
+
+  const questionnaireAnswersList = [];
+  for (const trainerAnswer of trainerAnswers) {
+    const qa = questionnaireHistory.questionnaireAnswersList
+      .find(q => UtilsHelper.areObjectIdsEquals(q.card, trainerAnswer.card));
+
+    if (!trainerAnswer.answer) {
+      questionnaireAnswersList.push(qa);
+      continue;
+    }
+
+    const updatedQuestionnaireAnswers = { ...qa, trainerAnswerList: [trainerAnswer.answer] };
+
+    questionnaireAnswersList.push(updatedQuestionnaireAnswers);
+  }
 
   return QuestionnaireHistory
     .updateOne(
       { _id: questionnaireHistoryId },
-      { $set: { isValidated: true, ...(trainerComment && { trainerComment }) } }
+      {
+        $set: {
+          isValidated: true,
+          ...(trainerComment && { trainerComment }),
+          ...(questionnaireAnswersList && { questionnaireAnswersList }),
+        },
+      }
     );
 };
