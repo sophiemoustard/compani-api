@@ -524,6 +524,21 @@ describe('QUESTIONNAIRE HISTORIES ROUTES - PUT /questionnairehistories/{_id}', (
 
       expect(response.statusCode).toBe(400);
     });
+
+    it('should return 400 if a trainerAnswer is not allowed', async () => {
+      const payload = {
+        trainerAnswers: [{ card: cardsList[1]._id, answer: 'test' }],
+        trainerComment: 'Appréciation du formateur',
+      };
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/questionnairehistories/${endSelfPositionningQuestionnaireHistoryId}`,
+        payload,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
   });
 
   describe('OTHER ROLES', () => {
