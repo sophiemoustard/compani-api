@@ -52,32 +52,28 @@ exports.addQuestionnaireHistory = async (payload) => {
 
 exports.updateQuestionnaireHistory = async (questionnaireHistoryId, payload) => {
   const { trainerComment, trainerAnswers } = payload;
-  const questionnaireHistory = await QuestionnaireHistory.findOne({ _id: questionnaireHistoryId }).lean();
 
-  const questionnaireAnswersList = [];
-  for (const trainerAnswer of trainerAnswers) {
-    const qa = questionnaireHistory.questionnaireAnswersList
-      .find(q => UtilsHelper.areObjectIdsEquals(q.card, trainerAnswer.card));
+  let setFields = { isValidated: true, ...(trainerComment && { trainerComment }) };
+  if (trainerAnswers.some(a => a.answer)) {
+    const questionnaireHistory = await QuestionnaireHistory.findOne({ _id: questionnaireHistoryId }).lean();
 
-    if (!trainerAnswer.answer) {
-      questionnaireAnswersList.push(qa);
-      continue;
+    const questionnaireAnswersList = [];
+    for (const trainerAnswer of trainerAnswers) {
+      const qa = questionnaireHistory.questionnaireAnswersList
+        .find(q => UtilsHelper.areObjectIdsEquals(q.card, trainerAnswer.card));
+
+      if (!trainerAnswer.answer) {
+        questionnaireAnswersList.push(qa);
+        continue;
+      }
+
+      const updatedQuestionnaireAnswers = { ...qa, trainerAnswerList: [trainerAnswer.answer] };
+
+      questionnaireAnswersList.push(updatedQuestionnaireAnswers);
     }
 
-    const updatedQuestionnaireAnswers = { ...qa, trainerAnswerList: [trainerAnswer.answer] };
-
-    questionnaireAnswersList.push(updatedQuestionnaireAnswers);
+    setFields = { ...setFields, questionnaireAnswersList };
   }
 
-  return QuestionnaireHistory
-    .updateOne(
-      { _id: questionnaireHistoryId },
-      {
-        $set: {
-          isValidated: true,
-          ...(trainerComment && { trainerComment }),
-          ...(questionnaireAnswersList && { questionnaireAnswersList }),
-        },
-      }
-    );
+  return QuestionnaireHistory.updateOne({ _id: questionnaireHistoryId }, { $set: setFields });
 };
