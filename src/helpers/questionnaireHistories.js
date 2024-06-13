@@ -1,4 +1,5 @@
 const Boom = require('@hapi/boom');
+const keyBy = require('lodash/keyBy');
 const QuestionnaireHistory = require('../models/QuestionnaireHistory');
 const Questionnaire = require('../models/Questionnaire');
 const {
@@ -13,7 +14,6 @@ const {
 } = require('./constants');
 const CourseHistoriesHelper = require('./courseHistories');
 const QuestionnaireHelper = require('./questionnaires');
-const UtilsHelper = require('./utils');
 const translate = require('./translate');
 
 const { language } = translate;
@@ -56,18 +56,19 @@ exports.updateQuestionnaireHistory = async (questionnaireHistoryId, payload) => 
   let setFields = { isValidated: true, ...(trainerComment && { trainerComment }) };
   if (trainerAnswers.some(a => a.answer)) {
     const questionnaireHistory = await QuestionnaireHistory.findOne({ _id: questionnaireHistoryId }).lean();
+    const questionnaireAnswersByCard = keyBy(questionnaireHistory.questionnaireAnswersList, 'card');
 
     const questionnaireAnswersList = [];
     for (const trainerAnswer of trainerAnswers) {
-      const qa = questionnaireHistory.questionnaireAnswersList
-        .find(q => UtilsHelper.areObjectIdsEquals(q.card, trainerAnswer.card));
-
       if (!trainerAnswer.answer) {
-        questionnaireAnswersList.push(qa);
+        questionnaireAnswersList.push(questionnaireAnswersByCard[trainerAnswer.card]);
         continue;
       }
 
-      const updatedQuestionnaireAnswers = { ...qa, trainerAnswerList: [trainerAnswer.answer] };
+      const updatedQuestionnaireAnswers = {
+        ...questionnaireAnswersByCard[trainerAnswer.card],
+        trainerAnswerList: [trainerAnswer.answer],
+      };
 
       questionnaireAnswersList.push(updatedQuestionnaireAnswers);
     }

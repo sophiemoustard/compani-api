@@ -1,5 +1,6 @@
 const Boom = require('@hapi/boom');
 const get = require('lodash/get');
+const keyBy = require('lodash/keyBy');
 const Questionnaire = require('../../models/Questionnaire');
 const User = require('../../models/User');
 const Course = require('../../models/Course');
@@ -50,11 +51,11 @@ exports.authorizeQuestionnaireHistoryUpdate = async (req) => {
   const answersHasGoodLength = trainerAnswers.length === questionnaireHistory.questionnaireAnswersList.length;
   if (!answersHasGoodLength) throw Boom.badRequest();
 
+  const cardsById = keyBy(questionnaire.cards, '_id');
   const everyAnswerIsAuthorized = trainerAnswers.every((a) => {
-    const card = questionnaire.cards.find(c => UtilsHelper.areObjectIdsEquals(c._id, a.card));
-    const labels = get(card, 'labels');
+    const labels = get(cardsById[a.card], 'labels');
 
-    return a.answer ? Object.keys(labels).includes(a.answer) : true;
+    return !a.answer || Object.keys(labels).includes(a.answer);
   });
   if (!everyAnswerIsAuthorized) throw Boom.badRequest();
 
