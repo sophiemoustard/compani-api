@@ -80,6 +80,8 @@ exports.getTaxCertificatesPayments = async (taxCertificate, companyId) => {
     },
   ]).option({ company: companyId });
 
+  if (!paidPrice[0]) return { paid: 0, cesu: 0 };
+
   const payments = paidPrice[0].payments
     .reduce((acc, p) => NumbersHelper.add(acc, p.netInclTaxes), NumbersHelper.toString(0));
   const refunds = paidPrice[0].refunds
