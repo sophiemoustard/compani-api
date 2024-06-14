@@ -6197,6 +6197,15 @@ describe('getQuestionnaires', () => {
             options: { isVendorUser: true },
           }],
         },
+        {
+          query: 'populate',
+          args: [{
+            path: 'histories',
+            select: 'timeline',
+            match: { course: courseId, questionnaireAnswersList: { $ne: [] } },
+            options: { isVendorUser: true },
+          }],
+        },
         { query: 'lean' },
       ]
     );

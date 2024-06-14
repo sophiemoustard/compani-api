@@ -1168,6 +1168,12 @@ exports.getQuestionnaires = async (courseId, credentials) => {
       match: { course: courseId, questionnaireAnswersList: { $ne: [] } },
       options: { isVendorUser },
     })
+    .populate({
+      path: 'histories',
+      select: 'timeline',
+      match: { course: courseId, questionnaireAnswersList: { $ne: [] } },
+      options: { isVendorUser },
+    })
     .lean();
 
   return questionnaires.filter(questionnaire => questionnaire.historiesCount);
