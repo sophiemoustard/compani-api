@@ -59,6 +59,7 @@ const {
   PDF,
   CUSTOM,
   OFFICIAL,
+  END_COURSE,
 } = require('../../../src/helpers/constants');
 const CourseRepository = require('../../../src/repositories/CourseRepository');
 const CourseHistoriesHelper = require('../../../src/helpers/courseHistories');
@@ -6202,7 +6203,7 @@ describe('getQuestionnaires', () => {
           args: [{
             path: 'histories',
             select: 'timeline',
-            match: { course: courseId, questionnaireAnswersList: { $ne: [] } },
+            match: { course: courseId, questionnaireAnswersList: { $ne: [] }, timeline: END_COURSE },
             options: { isVendorUser: true },
           }],
         },

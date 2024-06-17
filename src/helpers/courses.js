@@ -60,6 +60,7 @@ const {
   CUSTOM,
   OFFICIAL,
   SHORT_DURATION_H_MM,
+  END_COURSE,
 } = require('./constants');
 const CourseHistoriesHelper = require('./courseHistories');
 const NotificationHelper = require('./notifications');
@@ -1171,7 +1172,7 @@ exports.getQuestionnaires = async (courseId, credentials) => {
     .populate({
       path: 'histories',
       select: 'timeline',
-      match: { course: courseId, questionnaireAnswersList: { $ne: [] } },
+      match: { course: courseId, questionnaireAnswersList: { $ne: [] }, timeline: END_COURSE },
       options: { isVendorUser },
     })
     .lean();
