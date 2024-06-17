@@ -527,7 +527,7 @@ describe('QUESTIONNAIRE HISTORIES ROUTES - PUT /questionnairehistories/{_id}', (
 
     it('should return 400 if a trainerAnswer is not allowed', async () => {
       const payload = {
-        trainerAnswers: [{ card: cardsList[1]._id, answer: 'test' }],
+        trainerAnswers: [{ card: cardsList[1]._id, answer: 'mauvaiseReponse' }],
         trainerComment: 'Appréciation du formateur',
       };
       const response = await app.inject({
