@@ -42,9 +42,7 @@ exports.authorizeQuestionnaireHistoryUpdate = async (req) => {
 
   const cardIds = trainerAnswers.map(answer => answer.card);
   const questionnaire = await Questionnaire
-    .findOne({ _id: questionnaireHistory.questionnaire, cards: { $in: cardIds } })
-    .populate({ path: 'cards', select: 'labels' })
-    .lean();
+    .countDocuments({ _id: questionnaireHistory.questionnaire, cards: { $in: cardIds } });
   if (!questionnaire) throw Boom.notFound();
 
   const answersHasGoodLength = trainerAnswers.length === questionnaireHistory.questionnaireAnswersList.length;

@@ -366,7 +366,10 @@ describe('updateQuestionnaireHistory', () => {
 
     SinonMongoose.calledOnceWithExactly(
       findOne,
-      [{ query: 'findOne', args: [{ _id: questionnaireHistoryId }] }, { query: 'lean' }]
+      [
+        { query: 'findOne', args: [{ _id: questionnaireHistoryId }, { questionnaireAnswersList: 1 }] },
+        { query: 'lean' },
+      ]
     );
     sinon.assert.calledWithExactly(
       updateOne,

@@ -56,7 +56,9 @@ exports.updateQuestionnaireHistory = async (questionnaireHistoryId, payload) => 
   let setFields = { isValidated: true, ...(trainerComment && { trainerComment }) };
   if (trainerAnswers.some(a => a.answer)) {
     const trainerAnswersByCard = keyBy(trainerAnswers, 'card');
-    const questionnaireHistory = await QuestionnaireHistory.findOne({ _id: questionnaireHistoryId }).lean();
+    const questionnaireHistory = await QuestionnaireHistory
+      .findOne({ _id: questionnaireHistoryId }, { questionnaireAnswersList: 1 })
+      .lean();
 
     const questionnaireAnswersList = [];
     for (const bddAnswer of questionnaireHistory.questionnaireAnswersList) {
