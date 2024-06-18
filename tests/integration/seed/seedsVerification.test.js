@@ -2083,6 +2083,31 @@ describe('SEEDS VERIFICATION', () => {
 
           expect(everySelfPositionningHistoryHasTimeline).toBeTruthy();
         });
+
+        it('should pass if every trainee\'s answer is authorized (SELF POSITIONNING QUESTIONNAIRE)', () => {
+          const everySelfPositionningHistoryHasAuthorizedTraineeAnswer = questionnaireHistoryList
+            .filter(qh => qh.questionnaire.type === SELF_POSITIONNING)
+            .every(qh => qh.questionnaireAnswersList.every(a => ['1', '2', '3', '4', '5'].includes(a.answerList[0])));
+
+          expect(everySelfPositionningHistoryHasAuthorizedTraineeAnswer).toBeTruthy();
+        });
+
+        it('should pass if every trainer\'s answer is authorized (SELF POSITIONNING QUESTIONNAIRE)', () => {
+          const everySelfPositionningHistoryHasAuthorizedTrainerAnswer = questionnaireHistoryList
+            .filter(qh => qh.questionnaire.type === SELF_POSITIONNING)
+            .every(qh => qh.questionnaireAnswersList
+              .every(a => !a.trainerAnswerList || ['1', '2', '3', '4', '5'].includes(a.trainerAnswerList[0])));
+
+          expect(everySelfPositionningHistoryHasAuthorizedTrainerAnswer).toBeTruthy();
+        });
+
+        it('should pass if validated histories are linked to end self-positioning questionnaire', () => {
+          const everySelfPositionningHistoryHasAuthorizedTrainerAnswer = questionnaireHistoryList
+            .filter(qh => qh.isValidated)
+            .every(qh => qh.questionnaire.type === SELF_POSITIONNING && qh.timeline === END_COURSE);
+
+          expect(everySelfPositionningHistoryHasAuthorizedTrainerAnswer).toBeTruthy();
+        });
       });
 
       describe('Collection SectorHistory', () => {
