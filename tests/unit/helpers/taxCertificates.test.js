@@ -220,7 +220,7 @@ describe('generateTaxCertificatePdf', () => {
 
     const result = await TaxCertificateHelper.generateTaxCertificatePdf(taxCertificateId, credentials);
 
-    expect(result).toEqual('pdf');
+    expect(result).toEqual({ filename: 'attestation_fiscale_2019', pdf: 'pdf' });
     SinonMongoose.calledOnceWithExactly(
       findOne,
       [

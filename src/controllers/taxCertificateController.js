@@ -27,10 +27,11 @@ const generateTaxCertificatePdf = async (req, h) => {
     req.log('taxCertificateController - generateTaxCertificatePdf - params', req.params);
     req.log('taxCertificateController - generateTaxCertificatePdf - company', get(req, 'auth.credentials.company._id'));
 
-    const pdf = await TaxCertificateHelper.generateTaxCertificatePdf(req.params._id, req.auth.credentials);
+    const { pdf, filename } = await TaxCertificateHelper
+      .generateTaxCertificatePdf(req.params._id, req.auth.credentials);
 
     return h.response(pdf)
-      .header('content-disposition', 'inline; filename=taxcertificates.pdf')
+      .header('content-disposition', `inline; filename=${filename}.pdf`)
       .type('application/pdf');
   } catch (e) {
     req.log('error', e);
