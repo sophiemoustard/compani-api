@@ -3,6 +3,7 @@ const sinon = require('sinon');
 const { ObjectId } = require('mongodb');
 const has = require('lodash/has');
 const get = require('lodash/get');
+const flat = require('flat');
 const CourseBill = require('../../../src/models/CourseBill');
 const CourseBillHelper = require('../../../src/helpers/courseBills');
 const VendorCompaniesHelper = require('../../../src/helpers/vendorCompanies');
@@ -438,7 +439,7 @@ describe('updateCourseBill', () => {
     sinon.assert.calledOnceWithExactly(
       updateOne,
       { _id: courseBillId },
-      { $set: { 'payer.fundingOrganisation': fundingOrganisationId }, $unset: { 'payer.company': '' } }
+      { $set: flat(payload, { safe: true }), $unset: { 'payer.company': '' } }
     );
     sinon.assert.notCalled(findOneAndUpdateCourseBillsNumber);
   });
@@ -452,7 +453,7 @@ describe('updateCourseBill', () => {
     sinon.assert.calledOnceWithExactly(
       updateOne,
       { _id: courseBillId },
-      { $set: { 'payer.company': companyId }, $unset: { 'payer.fundingOrganisation': '' } }
+      { $set: flat(payload, { safe: true }), $unset: { 'payer.fundingOrganisation': '' } }
     );
     sinon.assert.notCalled(findOneAndUpdateCourseBillsNumber);
   });

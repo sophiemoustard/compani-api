@@ -1953,7 +1953,11 @@ describe('updateUser', () => {
       roleFindOne,
       [{ query: 'findOne', args: [{ name: HOLDING_ADMIN }] }, { query: 'lean' }]
     );
-    sinon.assert.calledOnceWithExactly(userUpdateOne, { _id: userId }, { $set: { 'role.holding': holdingRole._id } });
+    sinon.assert.calledOnceWithExactly(
+      userUpdateOne,
+      { _id: userId },
+      { $set: flat({ role: { holding: holdingRole._id } }) }
+    );
     sinon.assert.notCalled(createHelper);
     sinon.assert.notCalled(roleFindById);
   });
