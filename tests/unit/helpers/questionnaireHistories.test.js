@@ -306,30 +306,84 @@ describe('addQuestionnaireHistory', () => {
 describe('updateQuestionnaireHistory', () => {
   const questionnaireHistoryId = new ObjectId();
   let updateOne;
+  let findOne;
 
   beforeEach(() => {
     updateOne = sinon.stub(QuestionnaireHistory, 'updateOne');
+    findOne = sinon.stub(QuestionnaireHistory, 'findOne');
   });
 
   afterEach(() => {
     updateOne.restore();
+    findOne.restore();
   });
 
   it('should update questionnaireHistory', async () => {
-    const payload = { trainerAnswers: [{ _id: new ObjectId() }], trainerComment: '' };
+    const payload = { trainerAnswers: [{ card: new ObjectId() }], trainerComment: '' };
+
     await QuestionnaireHistoriesHelper.updateQuestionnaireHistory(questionnaireHistoryId, payload);
 
+    sinon.assert.notCalled(findOne);
     sinon.assert.calledWithExactly(updateOne, { _id: questionnaireHistoryId }, { $set: { isValidated: true } });
   });
 
   it('should update questionnaireHistory with trainer comment', async () => {
-    const payload = { trainerAnswers: [{ _id: new ObjectId() }], trainerComment: 'Test avec un commentaire' };
+    const payload = { trainerAnswers: [{ card: new ObjectId() }], trainerComment: 'Test avec un commentaire' };
+
     await QuestionnaireHistoriesHelper.updateQuestionnaireHistory(questionnaireHistoryId, payload);
 
+    sinon.assert.notCalled(findOne);
     sinon.assert.calledWithExactly(
       updateOne,
       { _id: questionnaireHistoryId },
       { $set: { isValidated: true, trainerComment: payload.trainerComment } }
+    );
+  });
+
+  it('should update questionnaireHistory with trainer answers', async () => {
+    const cardIds = [new ObjectId(), new ObjectId(), new ObjectId()];
+    const payload = {
+      trainerAnswers: [
+        { card: cardIds[0], answer: '4' },
+        { card: cardIds[1] },
+        { card: cardIds[2], answer: '5' },
+      ],
+    };
+    const questionnaireHistory = {
+      _id: questionnaireHistoryId,
+      questionnaire: new ObjectId(),
+      user: new ObjectId(),
+      timeline: END_COURSE,
+      questionnaireAnswersList: [
+        { card: cardIds[0], answerList: ['3'] },
+        { card: cardIds[1], answerList: ['4'] },
+        { card: cardIds[2], answerList: ['4'] },
+      ],
+    };
+    findOne.returns(SinonMongoose.stubChainedQueries(questionnaireHistory, ['lean']));
+
+    await QuestionnaireHistoriesHelper.updateQuestionnaireHistory(questionnaireHistoryId, payload);
+
+    SinonMongoose.calledOnceWithExactly(
+      findOne,
+      [
+        { query: 'findOne', args: [{ _id: questionnaireHistoryId }, { questionnaireAnswersList: 1 }] },
+        { query: 'lean' },
+      ]
+    );
+    sinon.assert.calledWithExactly(
+      updateOne,
+      { _id: questionnaireHistoryId },
+      {
+        $set: {
+          isValidated: true,
+          questionnaireAnswersList: [
+            { card: cardIds[0], answerList: ['3'], trainerAnswerList: ['4'] },
+            { card: cardIds[1], answerList: ['4'] },
+            { card: cardIds[2], answerList: ['4'], trainerAnswerList: ['5'] },
+          ],
+        },
+      }
     );
   });
 });

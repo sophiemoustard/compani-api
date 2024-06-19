@@ -282,8 +282,8 @@ const questionnaireHistories = [
     questionnaire: questionnairesList[3]._id,
     user: traineeList[0]._id,
     questionnaireAnswersList: [
-      { card: cardsList[1]._id, answerList: ['test'] },
-      { card: cardsList[3]._id, answerList: ['blabla2'] },
+      { card: cardsList[1]._id, answerList: ['3'] },
+      { card: cardsList[3]._id, answerList: ['4'] },
     ],
     timeline: START_COURSE,
   },

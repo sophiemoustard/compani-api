@@ -42,12 +42,14 @@ exports.authorizeQuestionnaireHistoryUpdate = async (req) => {
 
   const cardIds = trainerAnswers.map(answer => answer.card);
   const questionnaire = await Questionnaire
-    .findOne({ _id: questionnaireHistory.questionnaire, cards: { $in: cardIds } })
-    .lean();
+    .countDocuments({ _id: questionnaireHistory.questionnaire, cards: { $in: cardIds } });
   if (!questionnaire) throw Boom.notFound();
 
   const answersHasGoodLength = trainerAnswers.length === questionnaireHistory.questionnaireAnswersList.length;
   if (!answersHasGoodLength) throw Boom.badRequest();
+
+  const everyAnswerIsAuthorized = trainerAnswers.every(a => !a.answer || ['1', '2', '3', '4', '5'].includes(a.answer));
+  if (!everyAnswerIsAuthorized) throw Boom.badRequest();
 
   return null;
 };

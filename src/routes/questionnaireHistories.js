@@ -40,7 +40,7 @@ exports.plugin = {
         validate: {
           params: Joi.object({ _id: Joi.objectId().required() }),
           payload: Joi.object({
-            trainerAnswers: Joi.array().items(Joi.object({ card: Joi.objectId() })),
+            trainerAnswers: Joi.array().items(Joi.object({ card: Joi.objectId(), answer: Joi.string() })),
             trainerComment: Joi.string(),
           }),
         },

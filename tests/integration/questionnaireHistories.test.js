@@ -453,7 +453,10 @@ describe('QUESTIONNAIRE HISTORIES ROUTES - PUT /questionnairehistories/{_id}', (
     });
 
     it('should update questionnaireHistory', async () => {
-      const payload = { trainerAnswers: [{ card: cardsList[1]._id }], trainerComment: 'Appréciation du formateur' };
+      const payload = {
+        trainerAnswers: [{ card: cardsList[1]._id, answer: '1' }],
+        trainerComment: 'Appréciation du formateur',
+      };
       const response = await app.inject({
         method: 'PUT',
         url: `/questionnairehistories/${endSelfPositionningQuestionnaireHistoryId}`,
@@ -512,6 +515,21 @@ describe('QUESTIONNAIRE HISTORIES ROUTES - PUT /questionnairehistories/{_id}', (
 
     it('should return 400 if trainerAnswers has not good number of elements', async () => {
       const payload = { trainerAnswers: [{ card: cardsList[1]._id }, { card: cardsList[3]._id }] };
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/questionnairehistories/${endSelfPositionningQuestionnaireHistoryId}`,
+        payload,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
+
+    it('should return 400 if a trainerAnswer is not allowed', async () => {
+      const payload = {
+        trainerAnswers: [{ card: cardsList[1]._id, answer: 'mauvaiseReponse' }],
+        trainerComment: 'Appréciation du formateur',
+      };
       const response = await app.inject({
         method: 'PUT',
         url: `/questionnairehistories/${endSelfPositionningQuestionnaireHistoryId}`,
