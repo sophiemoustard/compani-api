@@ -9,8 +9,9 @@ const {
   questionnaireHistoriesUsersList,
   cardsList,
   coursesList,
+  questionnaireHistoriesList,
 } = require('./seed/questionnaireHistoriesSeed');
-const { getTokenByCredentials } = require('./helpers/authentication');
+const { getTokenByCredentials, getToken } = require('./helpers/authentication');
 const { companyWithoutSubscription } = require('../seed/authCompaniesSeed');
 const { noRoleNoCompany } = require('../seed/authUsersSeed');
 const QuestionnaireHistory = require('../../src/models/QuestionnaireHistory');
@@ -437,6 +438,143 @@ describe('QUESTIONNAIRE HISTORIES ROUTES - POST /questionnairehistories', () => 
       expect(response.statusCode).toBe(200);
       const questionnaireHistoriesCountAfter = await QuestionnaireHistory.countDocuments();
       expect(questionnaireHistoriesCountAfter).toBe(questionnaireHistoriesCountBefore + 1);
+    });
+  });
+});
+
+describe('QUESTIONNAIRE HISTORIES ROUTES - PUT /questionnairehistories/{_id}', () => {
+  let authToken;
+  beforeEach(populateDB);
+  const endSelfPositionningQuestionnaireHistoryId = questionnaireHistoriesList[1]._id;
+
+  describe('TRAINER', () => {
+    beforeEach(async () => {
+      authToken = await getToken('trainer');
+    });
+
+    it('should update questionnaireHistory', async () => {
+      const payload = {
+        trainerAnswers: [{ card: cardsList[1]._id, answer: '1' }],
+        trainerComment: 'Appréciation du formateur',
+      };
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/questionnairehistories/${endSelfPositionningQuestionnaireHistoryId}`,
+        payload,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(200);
+      const questionnaireHistory = await QuestionnaireHistory
+        .countDocuments({
+          _id: endSelfPositionningQuestionnaireHistoryId,
+          timeline: END_COURSE,
+          isValidated: true,
+          trainerComment: 'Appréciation du formateur',
+        });
+      expect(questionnaireHistory).toBe(1);
+    });
+
+    it('should return 404 if questionnaireHistory doesn\'t exist', async () => {
+      const payload = { trainerAnswers: [{ card: cardsList[1]._id }] };
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/questionnairehistories/${new ObjectId()}`,
+        payload,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(404);
+    });
+
+    it('should return 404 if questionnaireHistory has START_COURSE timeline', async () => {
+      const startSelfPositionningQuestionnaireHistoryId = questionnaireHistoriesList[2]._id;
+
+      const payload = { trainerAnswers: [{ card: cardsList[1]._id }] };
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/questionnairehistories/${startSelfPositionningQuestionnaireHistoryId}`,
+        payload,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(404);
+    });
+
+    it('should return 404 if card is not in questionnaire', async () => {
+      const payload = { trainerAnswers: [{ card: cardsList[2]._id }] };
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/questionnairehistories/${endSelfPositionningQuestionnaireHistoryId}`,
+        payload,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(404);
+    });
+
+    it('should return 400 if trainerAnswers has not good number of elements', async () => {
+      const payload = { trainerAnswers: [{ card: cardsList[1]._id }, { card: cardsList[3]._id }] };
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/questionnairehistories/${endSelfPositionningQuestionnaireHistoryId}`,
+        payload,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
+
+    it('should return 400 if a trainerAnswer is not allowed', async () => {
+      const payload = {
+        trainerAnswers: [{ card: cardsList[1]._id, answer: 'mauvaiseReponse' }],
+        trainerComment: 'Appréciation du formateur',
+      };
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/questionnairehistories/${endSelfPositionningQuestionnaireHistoryId}`,
+        payload,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
+  });
+
+  describe('OTHER ROLES', () => {
+    const roles = [
+      { name: 'helper', expectedCode: 403 },
+      { name: 'planning_referent', expectedCode: 403 },
+      { name: 'coach', expectedCode: 403 },
+    ];
+    roles.forEach((role) => {
+      it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+        authToken = await getToken(role.name);
+        const payload = { trainerAnswers: [{ card: cardsList[1]._id }] };
+
+        const response = await app.inject({
+          method: 'PUT',
+          url: `/questionnairehistories/${endSelfPositionningQuestionnaireHistoryId}`,
+          payload,
+          headers: { Cookie: `alenvi_token=${authToken}` },
+        });
+
+        expect(response.statusCode).toBe(role.expectedCode);
+      });
+    });
+
+    it('should return 403 if user is not course trainer', async () => {
+      authToken = await getToken('training_organisation_manager');
+
+      const payload = { trainerAnswers: [{ card: cardsList[1]._id }] };
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/questionnairehistories/${endSelfPositionningQuestionnaireHistoryId}`,
+        payload,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(403);
     });
   });
 });

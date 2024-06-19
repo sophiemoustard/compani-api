@@ -9,10 +9,13 @@ const QuestionnaireHistorySchema = mongoose.Schema({
   questionnaireAnswersList: [{
     card: { type: mongoose.Schema.Types.ObjectId, ref: 'Card' },
     answerList: { type: [String] },
+    trainerAnswerList: { type: [String], default: undefined },
   }],
   company: { type: mongoose.Schema.Types.ObjectId, ref: 'Company', required: true },
   origin: { type: String, enum: ORIGIN_OPTIONS, required: true, immutable: true, default: MOBILE },
   timeline: { type: String, enum: TIMELINE_OPTIONS, immutable: true },
+  isValidated: { type: Boolean },
+  trainerComment: { type: String },
 }, { timestamps: true });
 
 QuestionnaireHistorySchema.pre('find', validateQuery);

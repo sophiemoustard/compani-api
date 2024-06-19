@@ -50,6 +50,7 @@ exports.getHeader = (data, compani, isBill = false, isPaid = false) => {
         {
           stack: [
             { text: isBill ? 'Facture' : 'Avoir', fontSize: 32 },
+            { text: 'Prestation de services' },
             { text: data.number, bold: true },
             { text: `${isBill ? 'Date de facture' : 'Date de l\'avoir'} : ${data.date}` },
             ...(isPaid

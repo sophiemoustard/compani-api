@@ -8,7 +8,7 @@ const Step = require('../../../src/models/Step');
 const SubProgram = require('../../../src/models/SubProgram');
 const CourseSlot = require('../../../src/models/CourseSlot');
 const Program = require('../../../src/models/Program');
-const { userList, trainerOrganisationManager, vendorAdmin } = require('../../seed/authUsersSeed');
+const { userList, trainerOrganisationManager, vendorAdmin, trainer } = require('../../seed/authUsersSeed');
 const { deleteNonAuthenticationSeeds } = require('../helpers/db');
 const {
   INTER_B2B,
@@ -23,6 +23,7 @@ const {
   SELF_POSITIONNING,
   ON_SITE,
   END_COURSE,
+  START_COURSE,
 } = require('../../../src/helpers/constants');
 const { authCompany, companyWithoutSubscription } = require('../../seed/authCompaniesSeed');
 
@@ -102,6 +103,7 @@ const coursesList = [
     _id: new ObjectId(),
     format: 'blended',
     subProgram: subProgramsList[1]._id,
+    trainer: trainer._id,
     type: INTER_B2B,
     operationsRepresentative: vendorAdmin._id,
     trainees: [questionnaireHistoriesUsersList[1]],
@@ -111,6 +113,7 @@ const coursesList = [
 
 const questionnaireHistoriesList = [
   {
+    _id: new ObjectId(),
     course: coursesList[0]._id,
     user: questionnaireHistoriesUsersList[2],
     questionnaire: questionnairesList[0]._id,
@@ -118,12 +121,22 @@ const questionnaireHistoriesList = [
     questionnaireAnswersList: [{ card: cardsList[3]._id, answerList: ['blabla'] }],
   },
   {
+    _id: new ObjectId(),
     course: coursesList[1]._id,
     user: questionnaireHistoriesUsersList[1],
     questionnaire: questionnairesList[2]._id,
     company: authCompany._id,
     timeline: END_COURSE,
-    questionnaireAnswersList: [{ card: cardsList[3]._id, answerList: ['blabla'] }],
+    questionnaireAnswersList: [{ card: cardsList[1]._id, answerList: ['2'] }],
+  },
+  {
+    _id: new ObjectId(),
+    course: coursesList[1]._id,
+    user: questionnaireHistoriesUsersList[1],
+    questionnaire: questionnairesList[2]._id,
+    company: authCompany._id,
+    timeline: START_COURSE,
+    questionnaireAnswersList: [{ card: cardsList[1]._id, answerList: ['1'] }],
   },
 ];
 
@@ -211,4 +224,5 @@ module.exports = {
   coursesList,
   questionnaireHistoriesUsersList,
   cardsList,
+  questionnaireHistoriesList,
 };

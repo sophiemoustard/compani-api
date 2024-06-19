@@ -3,7 +3,6 @@ const groupBy = require('lodash/groupBy');
 const get = require('lodash/get');
 const has = require('lodash/has');
 const compact = require('lodash/compact');
-const omit = require('lodash/omit');
 const Activity = require('../../../src/models/Activity');
 const ActivityHistory = require('../../../src/models/ActivityHistory');
 const Attendance = require('../../../src/models/Attendance');
@@ -519,8 +518,7 @@ describe('SEEDS VERIFICATION', () => {
           it(`should pass if every field in '${template.name}' card is allowed`, () => {
             const someKeysAreNotAllowed = cardList
               .filter(card => card.template === template.name)
-              // [temporary] omit can be removed when postHook addLabelForAppCompatibility is removed.
-              .some(card => UtilsHelper.getKeysOf2DepthObject(omit(card, ['label']))
+              .some(card => UtilsHelper.getKeysOf2DepthObject(card)
                 .filter(key => !['_id', 'template'].includes(key))
                 .some(key => !template.allowedKeys.includes(key)));
 
@@ -2084,6 +2082,31 @@ describe('SEEDS VERIFICATION', () => {
             .every(qh => qh.timeline);
 
           expect(everySelfPositionningHistoryHasTimeline).toBeTruthy();
+        });
+
+        it('should pass if every trainee\'s answer is authorized (SELF POSITIONNING QUESTIONNAIRE)', () => {
+          const everySelfPositionningHistoryHasAuthorizedTraineeAnswer = questionnaireHistoryList
+            .filter(qh => qh.questionnaire.type === SELF_POSITIONNING)
+            .every(qh => qh.questionnaireAnswersList.every(a => ['1', '2', '3', '4', '5'].includes(a.answerList[0])));
+
+          expect(everySelfPositionningHistoryHasAuthorizedTraineeAnswer).toBeTruthy();
+        });
+
+        it('should pass if every trainer\'s answer is authorized (SELF POSITIONNING QUESTIONNAIRE)', () => {
+          const everySelfPositionningHistoryHasAuthorizedTrainerAnswer = questionnaireHistoryList
+            .filter(qh => qh.questionnaire.type === SELF_POSITIONNING)
+            .every(qh => qh.questionnaireAnswersList
+              .every(a => !a.trainerAnswerList || ['1', '2', '3', '4', '5'].includes(a.trainerAnswerList[0])));
+
+          expect(everySelfPositionningHistoryHasAuthorizedTrainerAnswer).toBeTruthy();
+        });
+
+        it('should pass if validated histories are linked to end self-positioning questionnaire', () => {
+          const everySelfPositionningHistoryHasAuthorizedTrainerAnswer = questionnaireHistoryList
+            .filter(qh => qh.isValidated)
+            .every(qh => qh.questionnaire.type === SELF_POSITIONNING && qh.timeline === END_COURSE);
+
+          expect(everySelfPositionningHistoryHasAuthorizedTrainerAnswer).toBeTruthy();
         });
       });
 

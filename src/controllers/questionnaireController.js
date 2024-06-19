@@ -96,9 +96,9 @@ const getUserQuestionnaires = async (req) => {
 
 const getFollowUp = async (req) => {
   try {
-    const followUp = await QuestionnaireHelper.getFollowUp(req.params._id, req.query.course, req.auth.credentials);
+    const followUp = await QuestionnaireHelper.getFollowUp(req.params._id, req.query, req.auth.credentials);
 
-    return { message: translate[language].questionnaireFound, data: { followUp } };
+    return { message: translate[language].questionnaireFound, data: { ...followUp } };
   } catch (e) {
     req.log('error', e);
     return Boom.isBoom(e) ? e : Boom.badImplementation(e);

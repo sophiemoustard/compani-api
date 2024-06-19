@@ -17,12 +17,7 @@ const {
   UPLOAD_VIDEO,
   UPLOAD_AUDIO,
 } = require('../helpers/constants');
-const {
-  formatQuery,
-  queryMiddlewareList,
-  getDocMiddlewareList,
-  getDocListMiddlewareList,
-} = require('./preHooks/validate');
+const { formatQuery, queryMiddlewareList } = require('./preHooks/validate');
 const { cardValidationByTemplate } = require('./validations/cardValidation');
 
 const CARD_TEMPLATES = [
@@ -129,31 +124,9 @@ function setIsValid() {
   return !validation.error;
 }
 
-// [temporary] This function can be removed when mobile versions prior to 2.24.0 have been deprecated.
-function addLabelForAppCompatibility(doc, next) {
-  if (doc && doc.labels) {
-    // eslint-disable-next-line no-param-reassign
-    doc.label = { left: doc.labels[1], right: doc.labels[5] };
-  }
-
-  return next();
-}
-
-// [temporary] This function can be removed when mobile versions prior to 2.24.0 have been deprecated.
-function addLabelForAppCompatibilityList(docs, next) {
-  for (const doc of docs) {
-    addLabelForAppCompatibility(doc, next);
-  }
-
-  return next();
-}
-
 CardSchema.pre('save', save);
 CardSchema.virtual('isValid').get(setIsValid);
 queryMiddlewareList.map(middleware => CardSchema.pre(middleware, formatQuery));
-
-getDocMiddlewareList.map(middleware => CardSchema.post(middleware, addLabelForAppCompatibility));
-getDocListMiddlewareList.map(middleware => CardSchema.post(middleware, addLabelForAppCompatibilityList));
 
 CardSchema.plugin(mongooseLeanVirtuals);
 

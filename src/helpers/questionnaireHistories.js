@@ -1,4 +1,5 @@
 const Boom = require('@hapi/boom');
+const keyBy = require('lodash/keyBy');
 const QuestionnaireHistory = require('../models/QuestionnaireHistory');
 const Questionnaire = require('../models/Questionnaire');
 const {
@@ -47,4 +48,32 @@ exports.addQuestionnaireHistory = async (payload) => {
   return QuestionnaireHistory.create(
     { ...payload, company: traineesCompanyAtCourseRegistrationList[0].company, ...(timeline && { timeline }) }
   );
+};
+
+exports.updateQuestionnaireHistory = async (questionnaireHistoryId, payload) => {
+  const { trainerComment, trainerAnswers } = payload;
+
+  let setFields = { isValidated: true, ...(trainerComment && { trainerComment }) };
+  if (trainerAnswers.some(a => a.answer)) {
+    const trainerAnswersByCard = keyBy(trainerAnswers, 'card');
+    const questionnaireHistory = await QuestionnaireHistory
+      .findOne({ _id: questionnaireHistoryId }, { questionnaireAnswersList: 1 })
+      .lean();
+
+    const questionnaireAnswersList = [];
+    for (const bddAnswer of questionnaireHistory.questionnaireAnswersList) {
+      const trainerAnswer = trainerAnswersByCard[bddAnswer.card];
+
+      if (!trainerAnswer.answer) {
+        questionnaireAnswersList.push(bddAnswer);
+        continue;
+      }
+
+      questionnaireAnswersList.push({ ...bddAnswer, trainerAnswerList: [trainerAnswer.answer] });
+    }
+
+    setFields = { ...setFields, questionnaireAnswersList };
+  }
+
+  return QuestionnaireHistory.updateOne({ _id: questionnaireHistoryId }, { $set: setFields });
 };

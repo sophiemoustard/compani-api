@@ -61,8 +61,3 @@ exports.createReferentHistory = async (customerId, referent, company) => Referen
   startDate: moment().startOf('d').toDate(),
   company: company._id,
 });
-
-exports.unassignReferentOnContractEnd = async contract => ReferentHistory.updateMany(
-  { auxiliary: contract.user._id, $or: [{ endDate: { $exists: false } }, { endDate: null }] },
-  { $set: { endDate: moment(contract.endDate).endOf('d').toDate() } }
-);

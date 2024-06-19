@@ -1,4 +1,5 @@
 const get = require('lodash/get');
+const pick = require('lodash/pick');
 const QRCode = require('qrcode');
 const Questionnaire = require('../models/Questionnaire');
 const Course = require('../models/Course');
@@ -17,6 +18,7 @@ const {
   BEFORE_MIDDLE_COURSE_END_DATE,
   BETWEEN_MID_AND_END_COURSE,
   ENDED,
+  REVIEW,
 } = require('./constants');
 const DatesUtilsHelper = require('./dates/utils');
 const { CompaniDate } = require('./dates/companiDates');
@@ -172,26 +174,22 @@ const formatQuestionnaireAnswersWithCourse = async (courseId, questionnaireAnswe
   };
 };
 
-exports.getFollowUp = async (id, courseId, credentials) => {
-  const isVendorUser = !!get(credentials, 'role.vendor');
-  const questionnaire = await Questionnaire.findOne({ _id: id })
-    .select('type name')
-    .populate({
-      path: 'histories',
-      match: courseId ? { course: courseId } : null,
-      options: { isVendorUser },
-      select: '-__v -createdAt -updatedAt',
-      populate: [
-        { path: 'questionnaireAnswersList.card', select: '-__v -createdAt -updatedAt' },
-        {
-          path: 'course',
-          select: 'trainer subProgram',
-          populate: { path: 'subProgram', select: 'program', populate: { path: 'program', select: '_id' } },
-        },
-      ],
-    })
+const getFollowUpForReview = async (questionnaire, courseId) => {
+  const fieldsToPick = ['user', 'questionnaireAnswersList', 'timeline', '_id', 'isValidated'];
+  const followUp = questionnaire.histories.map(h => pick(h, fieldsToPick));
+
+  const course = await Course.findOne({ _id: courseId })
+    .select('subProgram companies misc type holding trainees')
+    .populate({ path: 'subProgram', select: 'program', populate: [{ path: 'program', select: 'name' }] })
+    .populate({ path: 'companies', select: 'name' })
+    .populate({ path: 'holding', select: 'name' })
+    .populate({ path: 'trainees', select: 'identity' })
     .lean();
 
+  return { followUp, course };
+};
+
+const getFollowUpForList = async (questionnaire, courseId) => {
   const followUp = {};
   for (const history of questionnaire.histories) {
     for (const answer of history.questionnaireAnswersList) {
@@ -210,6 +208,33 @@ exports.getFollowUp = async (id, courseId, credentials) => {
   };
 
   return courseId ? formatQuestionnaireAnswersWithCourse(courseId, questionnaireAnswers) : questionnaireAnswers;
+};
+
+exports.getFollowUp = async (questionnaireId, query, credentials) => {
+  const isVendorUser = !!get(credentials, 'role.vendor');
+  const { course, action } = query;
+
+  const questionnaire = await Questionnaire.findOne({ _id: questionnaireId })
+    .select('type name')
+    .populate({
+      path: 'histories',
+      match: course ? { course } : null,
+      options: { isVendorUser },
+      select: '-__v -createdAt -updatedAt',
+      populate: [
+        { path: 'questionnaireAnswersList.card', select: '-__v -createdAt -updatedAt' },
+        {
+          path: 'course',
+          select: 'trainer subProgram',
+          populate: { path: 'subProgram', select: 'program', populate: { path: 'program', select: '_id' } },
+        },
+      ],
+    })
+    .lean();
+
+  return action === REVIEW
+    ? getFollowUpForReview(questionnaire, course)
+    : getFollowUpForList(questionnaire, course);
 };
 
 exports.generateQRCode = async (courseId) => {

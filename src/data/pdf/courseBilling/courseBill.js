@@ -20,7 +20,8 @@ exports.getPdfContent = async (bill) => {
 
   const footer = [
     {
-      text: 'En tant qu’organisme de formation, Compani est exonéré de la Taxe sur la Valeur Ajoutée (TVA).',
+      text: 'En tant qu’organisme de formation, Compani est exonéré de la Taxe sur la Valeur Ajoutée (TVA) '
+        + 'en vertu de l’article 261 du Code Général des Impôts (CGI).',
       fontSize: 8,
       marginTop: 48,
     },

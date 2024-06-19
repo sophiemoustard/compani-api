@@ -52,26 +52,7 @@ module.exports = {
     companyLinkRequestCreated: 'Company link request created.',
     companyLinkRequestsFound: 'Company link requests found.',
     companyLinkRequestDeleted: 'Company link request deleted.',
-    companyInternalHourCreated: 'Company internal hour created.',
-    companyInternalHourNotFound: 'Company internal hour not found.',
     companyInternalHoursFound: 'Company internal hours found.',
-    companyInternalHourRemoved: 'Company internal hour removed.',
-    companyInternalHourCreationNotAllowed: 'Company internal hour creation not allowed.',
-    administrativeDocumentNotFound: 'Administrative document not found.',
-    administrativeDocumentFound: 'Administrative documents found.',
-    administrativeDocumentCreated: 'Administrative documents found.',
-    administrativeDocumentRemoved: 'Administrative documents removed.',
-    /* Contracts */
-    contractsFound: 'Contracts found.',
-    contractsNotFound: 'Contracts not found.',
-    contractUpdated: 'Contract updated.',
-    contractHasTimeStampedEventAfterEndDate: 'There are timestamped events after the end date of the contract.',
-    contractEndDateBeforeStartDate: 'End date is before last version start date.',
-    contractHasBilledEventAfterEndDate: 'There are billed events after contract end date.',
-    /* Contracts amendments */
-    contractVersionAdded: 'Contract amendment added.',
-    contractVersionRemoved: 'Contract amendment removed.',
-    contractVersionUpdated: 'Contract amendment updated.',
     /* Customers */
     customersFound: 'Customers found.',
     customerFound: 'Customer found.',
@@ -106,16 +87,7 @@ module.exports = {
     endDateBeforeStartDate: 'End date must be later than start date.',
     customerAbsenceNotFound: 'Customer absence not found.',
     customerAbsencesFound: 'Customer absences found.',
-    /* Customer notes */
-    customerNotesFound: 'Customer notes found.',
-    customerNotesNotFound: 'Customer notes not found.',
-    customerNoteUpdated: 'Customer note updated.',
-    /* ESign */
-    documentNotFound: 'Eversign document not found.',
-    documentFound: 'Eversign document found.',
     /* Google drive */
-    googleDriveFolderCreationFailed: 'Google drive folder creation failed.',
-    googleDriveFolderNotFound: 'Google drive folder not found.',
     googleDriveFileNotFound: 'Google drive file not found.',
     /* Events */
     eventsNotFound: 'Events not found.',
@@ -184,14 +156,8 @@ module.exports = {
     paymentRemoved: 'Payment removed.',
     /* Event history */
     eventHistoriesFound: 'Event histories found.',
-    /* Pay documents */
-    payDocumentCreated: 'Pay document created.',
-    payDocumentsFound: 'Pay documents found.',
-    payDocumentsNotFound: 'Pay documents not found.',
-    payDocumentDeleted: 'Pay document deleted.',
     /* Stats */
     statsFound: 'Stats found.',
-    statsNotFound: 'Stats not found.',
     /* Bill slip */
     billSlipsFound: 'Bill slips found.',
     /* Tax certificates */
@@ -319,24 +285,14 @@ module.exports = {
     publishedQuestionnaireWithSameTypeExists: 'A questionnaire with the same type is already published.',
     questionnaireUpdated: 'questionnaire updated.',
     questionnaireHistoryCreated: 'Questionnaire history created.',
+    questionnaireHistoryUpdated: 'Questionnaire history updated.',
     questionnaireQRCodeGenerated: 'Questionnaire QR Code generated.',
     /*  QuestionnaireHistories */
     questionnaireHistoryConflict: 'A questionnaire history already exists.',
-    /* PartnerOrganization */
-    partnersFound: 'Partners found.',
-    partnersNotFound: 'Partners not found.',
-    partnerUpdated: 'Partner updated.',
     /* Helper */
     helpersFound: 'Helpers found.',
     helpersNotFound: 'Helpers not found.',
     helperUpdated: 'Helper updated.',
-    /* CustomerPartners */
-    customerPartnerCreated: 'Customer partner created.',
-    customerPartnersFound: 'Customer partners found.',
-    customerPartnersNotFound: 'Customer partners not found.',
-    customerPartnerAlreadyExists: 'Customer partner already exists.',
-    customerPartnerUpdated: 'Customer partner updated.',
-    customerPartnerRemoved: 'Customer partner removed.',
     /* BillingItems */
     billingItemCreated: 'Billing item created.',
     billingItemsFound: 'Billing items found.',
@@ -422,28 +378,7 @@ module.exports = {
     companyLinkRequestCreated: 'Demande de rattachement à une structure créée.',
     companyLinkRequestsFound: 'Demandes de rattachement à la structure trouvées.',
     companyLinkRequestDeleted: 'Demande de rattachement à la structure supprimée.',
-    companyInternalHourCreated: 'Heure interne de l\'entreprise créée.',
-    companyInternalHourNotFound: 'Heure interne de l\'entreprise non trouvée.',
     companyInternalHoursFound: 'Heures internes de l\'entreprise trouvées.',
-    companyInternalHourRemoved: 'Heure interne de l\'entreprise supprimé.',
-    companyInternalHourCreationNotAllowed: 'Creation de l\'heure interne non autorisée.',
-    administrativeDocumentNotFound: 'Document administratif non trouvé.',
-    administrativeDocumentFound: 'Document administratif trouvé.',
-    administrativeDocumentCreated: 'Document administratif créé.',
-    administrativeDocumentRemoved: 'Document administratif supprimé.',
-    /* Contracts */
-    contractsFound: 'Contrats trouvés.',
-    contractsNotFound: 'Contrats non trouvés.',
-    contractUpdated: 'Contrat mis à jour.',
-    contractHasTimeStampedEventAfterEndDate:
-      'Impossible: il y a des évènements horodatés après la date de fin du contrat.',
-    contractEndDateBeforeStartDate:
-      'Impossible de mettre fin à un contrat avant sa date de début.',
-    contractHasBilledEventAfterEndDate: 'Impossible: il y a des évènements facturés après la date de fin de contrat.',
-    /* Contracts amendments */
-    contractVersionAdded: 'Avenant au contrat ajouté.',
-    contractVersionRemoved: 'Avenant au contrat supprimé.',
-    contractVersionUpdated: 'Avenant au contrat modifié.',
     /* Customers */
     customersFound: 'Bénéficiaires trouvés.',
     customerFound: 'Bénéficiaire trouvé(e).',
@@ -478,16 +413,7 @@ module.exports = {
     endDateBeforeStartDate: 'Impossible: la date de fin doit être postérieure à la date de début.',
     customerAbsenceNotFound: 'Absence bénéficiaire non trouvée.',
     customerAbsencesFound: 'Absences bénéficiaire trouvées.',
-    /* Customer notes */
-    customerNotesFound: 'Notes de suivi trouvées.',
-    customerNotesNotFound: 'Notes de suivi non trouvées.',
-    customerNoteUpdated: 'Note de suivi mise à jour.',
-    /* ESign */
-    documentNotFound: 'Document eversign non trouvé.',
-    documentFound: 'Document eversign trouvé.',
     /* Google drive */
-    googleDriveFolderCreationFailed: 'Echec de la création du dossier google drive.',
-    googleDriveFolderNotFound: 'Dossier google drive non trouvé.',
     googleDriveFileNotFound: 'Fichier google drive non trouvé.',
     /* Events */
     eventsNotFound: 'Evènements non trouvés.',
@@ -556,14 +482,8 @@ module.exports = {
     paymentRemoved: 'Règlement supprimé.',
     /* Event history */
     eventHistoriesFound: 'Historique des évènements trouvés.',
-    /* Pay documents */
-    payDocumentCreated: 'Document de paie créé.',
-    payDocumentsFound: 'Documents de paie trouvés.',
-    payDocumentsNotFound: 'Documents de paie non trouvés.',
-    payDocumentDeleted: 'Document de paie supprimé.',
     /* Stats */
     statsFound: 'Statistiques trouvées.',
-    statsNotFound: 'Statistiques non trouvées.',
     /* Bill slip */
     billSlipsFound: 'Bordereaux trouvés.',
     /* Tax certificates */
@@ -691,24 +611,14 @@ module.exports = {
     publishedQuestionnaireWithSameTypeExists: 'Un questionnaire du même type est déjà publié.',
     questionnaireUpdated: 'Questionnaire mis à jour.',
     questionnaireHistoryCreated: 'Historique de questionnaire créé.',
+    questionnaireHistoryUpdated: 'Historique de questionnaire mis à jour.',
     questionnaireQRCodeGenerated: 'QR Code généré.',
     /*  QuestionnaireHistories */
     questionnaireHistoryConflict: 'Vous avez déjà répondu à ce questionnaire.',
-    /* PartnerOrganization */
-    partnersFound: 'Liste des partenaires trouvée.',
-    partnersNotFound: 'Liste des partenaires non trouvée.',
-    partnerUpdated: 'Partenaire mis(e) à jour.',
     /* Helper */
     helpersFound: 'Liste des aidants trouvée.',
     helpersNotFound: 'Liste des aidants non trouvée.',
     helperUpdated: 'Aidant(e) mis(e) à jour.',
-    /* CustomerPartners */
-    customerPartnerCreated: 'Partenaire bénéficiaire créé.',
-    customerPartnersFound: 'Liste des partenaires bénéficiaire trouvée.',
-    customerPartnersNotFound: 'Liste des partenaires bénéficiaire non trouvée.',
-    customerPartnerAlreadyExists: 'Le/la partenaire existe déjà.',
-    customerPartnerUpdated: 'Partenaire mis(e) à jour.',
-    customerPartnerRemoved: 'Partenaire supprimé(e).',
     /* BillingItems */
     billingItemCreated: 'Article de facturation créé.',
     billingItemsFound: 'Articles de facturation trouvés.',

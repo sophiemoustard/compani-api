@@ -70,8 +70,9 @@ exports.generateTaxCertificatePdf = async (taxCertificateId, credentials) => {
   const payments = await PaymentRepository.getTaxCertificatesPayments(taxCertificate, companyId);
 
   const data = exports.formatPdf(taxCertificate, credentials.company, interventions, payments);
+  const pdf = await TaxCertificatePdf.getPdf(data);
 
-  return TaxCertificatePdf.getPdf(data);
+  return { pdf, filename: `attestation_fiscale_${taxCertificate.year}` };
 };
 
 exports.remove = async (taxCertificateId) => {
