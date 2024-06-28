@@ -5,6 +5,8 @@ const { deleteNonAuthenticationSeeds } = require('../helpers/db');
 const vendorCompany = {
   name: 'Test Company',
   siret: '12345678901234',
+  iban: 'FR9210096000302523177152Q14',
+  bic: 'BPCEFRPP',
   activityDeclarationNumber: '13736343575',
   address: {
     fullAddress: '12 rue du test 92160 Antony',

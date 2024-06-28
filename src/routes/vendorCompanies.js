@@ -26,6 +26,8 @@ exports.plugin = {
             name: Joi.string(),
             address: addressValidation,
             siret: siretValidation,
+            iban: Joi.string(),
+            bic: Joi.string(),
             activityDeclarationNumber: Joi.string(),
             billingRepresentative: Joi.objectId(),
           }),
