@@ -31,6 +31,8 @@ describe('VENDOR COMPANY ROUTES - GET /vendorcompanies', () => {
       expect(response.result.data.vendorCompany).toMatchObject({
         name: 'Test Company',
         siret: '12345678901234',
+        iban: 'FR9210096000302523177152Q14',
+        bic: 'BPCEFRPP',
         address: {
           fullAddress: '12 rue du test 92160 Antony',
           street: '12 rue du test',
@@ -63,6 +65,8 @@ describe('VENDOR COMPANY ROUTES - GET /vendorcompanies', () => {
       expect(response.result.data.vendorCompany).toMatchObject({
         name: 'Test Company',
         siret: '12345678901234',
+        iban: 'FR9210096000302523177152Q14',
+        bic: 'BPCEFRPP',
         address: {
           fullAddress: '12 rue du test 92160 Antony',
           street: '12 rue du test',
@@ -123,6 +127,8 @@ describe('VENDOR COMPANY ROUTES - PUT /vendorcompanies', () => {
         },
       },
       { key: 'siret', value: '12345678901235' },
+      { key: 'iban', value: 'FR0314508000306574351512P33' },
+      { key: 'bic', value: 'BPCEFRPPXXX' },
       { key: 'activityDeclarationNumber', value: '10736353175' },
       { key: 'billingRepresentative', value: vendorAdmin._id },
     ];
@@ -159,6 +165,8 @@ describe('VENDOR COMPANY ROUTES - PUT /vendorcompanies', () => {
         value: '12 rue de ponthieu 75008 Paris',
       },
       { key: 'siret', value: '13244' },
+      { key: 'iban', value: 'GD0314508000306574351512P33' },
+      { key: 'bic', value: 'TJDKLK' },
       { key: 'activityDeclarationNumber', value: '' },
     ];
     wrongValues.forEach((payload) => {
