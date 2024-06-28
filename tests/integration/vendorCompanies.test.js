@@ -165,8 +165,8 @@ describe('VENDOR COMPANY ROUTES - PUT /vendorcompanies', () => {
         value: '12 rue de ponthieu 75008 Paris',
       },
       { key: 'siret', value: '13244' },
-      { key: 'iban', value: 13244 },
-      { key: 'bic', value: 13244 },
+      { key: 'iban', value: 'GD0314508000306574351512P33' },
+      { key: 'bic', value: 'TJDKLK' },
       { key: 'activityDeclarationNumber', value: '' },
     ];
     wrongValues.forEach((payload) => {
