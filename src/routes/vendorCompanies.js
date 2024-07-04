@@ -3,7 +3,7 @@
 const Joi = require('joi');
 const { get, update } = require('../controllers/vendorCompanyController');
 const { authorizeVendorCompanyUpdate } = require('./preHandlers/vendorCompanies');
-const { addressValidation, siretValidation } = require('./validations/utils');
+const { addressValidation, siretValidation, ibanValidation, bicValidation } = require('./validations/utils');
 
 exports.plugin = {
   name: 'routes-vendor-companies',
@@ -26,6 +26,8 @@ exports.plugin = {
             name: Joi.string(),
             address: addressValidation,
             siret: siretValidation,
+            iban: ibanValidation,
+            bic: bicValidation,
             activityDeclarationNumber: Joi.string(),
             billingRepresentative: Joi.objectId(),
           }),
