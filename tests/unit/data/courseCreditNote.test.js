@@ -55,10 +55,10 @@ describe('getPdfContent', () => {
       content: [
         {
           columns: [
-            { image: paths[0], width: 200, height: 42, alignment: 'right' },
+            { image: paths[0], width: 150, height: 32, alignment: 'right' },
             {
               stack: [
-                { text: 'Avoir', fontSize: 32 },
+                { text: 'Avoir', fontSize: 18 },
                 { text: 'Prestation de services' },
                 { text: 'AV-000045', bold: true },
                 { text: 'Date de l\'avoir : 21/08/1998' },
@@ -69,7 +69,7 @@ describe('getPdfContent', () => {
           marginBottom: 4,
         },
         {
-          canvas: [{ type: 'rect', x: 0, y: 0, w: 200, h: 42, r: 0, fillOpacity: 0.5, color: 'white' }],
+          canvas: [{ type: 'rect', x: 0, y: 0, w: 150, h: 32, r: 0, fillOpacity: 0.5, color: 'white' }],
           absolutePosition: { x: 40, y: 40 },
         },
         {
@@ -173,7 +173,7 @@ describe('getPdfContent', () => {
           marginTop: 48,
         },
       ],
-      defaultStyle: { font: 'SourceSans', fontSize: 12 },
+      defaultStyle: { font: 'SourceSans', fontSize: 10 },
       styles: {
         header: { fillColor: ORANGE_600, color: 'white' },
         description: { alignment: 'left', marginLeft: 8, fontSize: 10 },
@@ -231,10 +231,10 @@ describe('getPdfContent', () => {
       content: [
         {
           columns: [
-            { image: paths[0], width: 200, height: 42, alignment: 'right' },
+            { image: paths[0], width: 150, height: 32, alignment: 'right' },
             {
               stack: [
-                { text: 'Avoir', fontSize: 32 },
+                { text: 'Avoir', fontSize: 18 },
                 { text: 'Prestation de services' },
                 { text: 'AV-000045', bold: true },
                 { text: 'Date de l\'avoir : 21/08/1998' },
@@ -245,7 +245,7 @@ describe('getPdfContent', () => {
           marginBottom: 4,
         },
         {
-          canvas: [{ type: 'rect', x: 0, y: 0, w: 200, h: 42, r: 0, fillOpacity: 0.5, color: 'white' }],
+          canvas: [{ type: 'rect', x: 0, y: 0, w: 150, h: 32, r: 0, fillOpacity: 0.5, color: 'white' }],
           absolutePosition: { x: 40, y: 40 },
         },
         {
@@ -325,7 +325,7 @@ describe('getPdfContent', () => {
           marginTop: 48,
         },
       ],
-      defaultStyle: { font: 'SourceSans', fontSize: 12 },
+      defaultStyle: { font: 'SourceSans', fontSize: 10 },
       styles: {
         header: { fillColor: ORANGE_600, color: 'white' },
         description: { alignment: 'left', marginLeft: 8, fontSize: 10 },
@@ -376,12 +376,12 @@ describe('getPdf', () => {
       content: [
         {
           columns: [
-            { stack: [{ text: 'Avoir', fontSize: 32 }, { text: 'AV-000045', bold: true }], alignment: 'right' },
+            { stack: [{ text: 'Avoir', fontSize: 18 }, { text: 'AV-000045', bold: true }], alignment: 'right' },
           ],
           marginBottom: 4,
         },
         {
-          canvas: [{ type: 'rect', x: 0, y: 0, w: 200, h: 42, r: 0, fillOpacity: 0.5, color: 'white' }],
+          canvas: [{ type: 'rect', x: 0, y: 0, w: 150, h: 32, r: 0, fillOpacity: 0.5, color: 'white' }],
           absolutePosition: { x: 40, y: 40 },
         },
         {

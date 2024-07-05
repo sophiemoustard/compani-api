@@ -36,6 +36,8 @@ describe('getPdfContent', () => {
           location: { type: 'Point', coordinates: [-0.573054, 44.837914] },
         },
         siret: '27272727274124',
+        iban: 'FR9210096000302523177152Q14',
+        bic: 'BPCEFRPP',
       },
       companies: [{ name: 'Test structure' }],
       payer: {
@@ -61,10 +63,10 @@ describe('getPdfContent', () => {
       content: [
         {
           columns: [
-            { image: paths[0], width: 200, height: 42, alignment: 'right' },
+            { image: paths[0], width: 150, height: 32, alignment: 'right' },
             {
               stack: [
-                { text: 'Facture', fontSize: 32 },
+                { text: 'Facture', fontSize: 18 },
                 { text: 'Prestation de services' },
                 { text: 'FACT-000045', bold: true },
                 { text: 'Date de facture : 18/08/1998' },
@@ -76,7 +78,7 @@ describe('getPdfContent', () => {
           marginBottom: 4,
         },
         {
-          canvas: [{ type: 'rect', x: 0, y: 0, w: 200, h: 42, r: 0, fillOpacity: 0.5, color: 'white' }],
+          canvas: [{ type: 'rect', x: 0, y: 0, w: 150, h: 32, r: 0, fillOpacity: 0.5, color: 'white' }],
           absolutePosition: { x: 40, y: 40 },
         },
         {
@@ -185,15 +187,26 @@ describe('getPdfContent', () => {
             ],
           ],
         },
+        { text: 'Modes de paiement', fontSize: 8, decoration: 'underline', marginTop: 8 },
+        { text: '- Prélèvement ou virement bancaire', fontSize: 8 },
+        { text: '- Pour les virements: IBAN : FR9210096000302523177152Q14 / BIC : BPCEFRPP', fontSize: 8 },
+        { text: 'Conditions de paiement', fontSize: 8, decoration: 'underline', marginTop: 8 },
+        { text: '- 1er paiement à réception, le solde selon l’échéancier contractuel', fontSize: 8 },
+        { text: '- Escompte en cas de paiement anticipé : aucun', fontSize: 8 },
+        {
+          text: '- Pénalité en cas de retard de paiement : trois fois le taux de l’intérêt légal, conformément aux '
+      + 'dispositions légales en vigueur, majoré d’une indemnité  forfaitaire de 40€ pour frais de recouvrement',
+          fontSize: 8,
+        },
         {
           text: 'En tant qu’organisme de formation, Compani est exonéré de la Taxe sur la Valeur Ajoutée (TVA) '
           + 'en vertu de l’article 261 du Code Général des Impôts (CGI).',
           fontSize: 8,
-          marginTop: 48,
+          marginTop: 8,
         },
-        { image: paths[1], width: 144, marginTop: 8, alignment: 'right' },
+        { image: paths[1], width: 112, marginTop: 8, alignment: 'right' },
       ],
-      defaultStyle: { font: 'SourceSans', fontSize: 12 },
+      defaultStyle: { font: 'SourceSans', fontSize: 10 },
       styles: {
         header: { fillColor: COPPER_600, color: 'white' },
         description: { alignment: 'left', marginLeft: 8, fontSize: 10 },
@@ -239,6 +252,8 @@ describe('getPdfContent', () => {
           location: { type: 'Point', coordinates: [-0.573054, 44.837914] },
         },
         siret: '27272727274124',
+        iban: 'FR9210096000302523177152Q14',
+        bic: 'BPCEFRPP',
       },
       companies: [{ name: 'Test structure' }],
       payer: {
@@ -256,10 +271,10 @@ describe('getPdfContent', () => {
       content: [
         {
           columns: [
-            { image: paths[0], width: 200, height: 42, alignment: 'right' },
+            { image: paths[0], width: 150, height: 32, alignment: 'right' },
             {
               stack: [
-                { text: 'Facture', fontSize: 32 },
+                { text: 'Facture', fontSize: 18 },
                 { text: 'Prestation de services' },
                 { text: 'FACT-000045', bold: true },
                 { text: 'Date de facture : 18/08/1998' },
@@ -270,7 +285,7 @@ describe('getPdfContent', () => {
           marginBottom: 4,
         },
         {
-          canvas: [{ type: 'rect', x: 0, y: 0, w: 200, h: 42, r: 0, fillOpacity: 0.5, color: 'white' }],
+          canvas: [{ type: 'rect', x: 0, y: 0, w: 150, h: 32, r: 0, fillOpacity: 0.5, color: 'white' }],
           absolutePosition: { x: 40, y: 40 },
         },
         {
@@ -354,14 +369,25 @@ describe('getPdfContent', () => {
             ],
           ],
         },
+        { text: 'Modes de paiement', fontSize: 8, decoration: 'underline', marginTop: 8 },
+        { text: '- Prélèvement ou virement bancaire', fontSize: 8 },
+        { text: '- Pour les virements: IBAN : FR9210096000302523177152Q14 / BIC : BPCEFRPP', fontSize: 8 },
+        { text: 'Conditions de paiement', fontSize: 8, decoration: 'underline', marginTop: 8 },
+        { text: '- 1er paiement à réception, le solde selon l’échéancier contractuel', fontSize: 8 },
+        { text: '- Escompte en cas de paiement anticipé : aucun', fontSize: 8 },
+        {
+          text: '- Pénalité en cas de retard de paiement : trois fois le taux de l’intérêt légal, conformément aux '
+      + 'dispositions légales en vigueur, majoré d’une indemnité  forfaitaire de 40€ pour frais de recouvrement',
+          fontSize: 8,
+        },
         {
           text: 'En tant qu’organisme de formation, Compani est exonéré de la Taxe sur la Valeur Ajoutée (TVA) '
           + 'en vertu de l’article 261 du Code Général des Impôts (CGI).',
           fontSize: 8,
-          marginTop: 48,
+          marginTop: 8,
         },
       ],
-      defaultStyle: { font: 'SourceSans', fontSize: 12 },
+      defaultStyle: { font: 'SourceSans', fontSize: 10 },
       styles: {
         header: { fillColor: COPPER_600, color: 'white' },
         description: { alignment: 'left', marginLeft: 8, fontSize: 10 },
@@ -414,21 +440,32 @@ describe('getPdf', () => {
     const template = {
       content: [
         {
-          columns: [{ stack: [{ text: 'Facture', fontSize: 32 }], alignment: 'right' }],
+          columns: [{ stack: [{ text: 'Facture', fontSize: 18 }], alignment: 'right' }],
           marginBottom: 4,
         },
         {
-          canvas: [{ type: 'rect', x: 0, y: 0, w: 200, h: 42, r: 0, fillOpacity: 0.5, color: 'white' }],
+          canvas: [{ type: 'rect', x: 0, y: 0, w: 150, h: 32, r: 0, fillOpacity: 0.5, color: 'white' }],
           absolutePosition: { x: 40, y: 40 },
+        },
+        { text: 'Modes de paiement', fontSize: 8, decoration: 'underline', marginTop: 8 },
+        { text: '- Prélèvement ou virement bancaire', fontSize: 8 },
+        { text: '- Pour les virements: IBAN : FR9210096000302523177152Q14 / BIC : BPCEFRPP', fontSize: 8 },
+        { text: 'Conditions de paiement', fontSize: 8, decoration: 'underline', marginTop: 8 },
+        { text: '- 1er paiement à réception, le solde selon l’échéancier contractuel', fontSize: 8 },
+        { text: '- Escompte en cas de paiement anticipé : aucun', fontSize: 8 },
+        {
+          text: '- Pénalité en cas de retard de paiement : trois fois le taux de l’intérêt légal, conformément aux '
+      + 'dispositions légales en vigueur, majoré d’une indemnité  forfaitaire de 40€ pour frais de recouvrement',
+          fontSize: 8,
         },
         {
           text: 'En tant qu’organisme de formation, Compani est exonéré de la Taxe sur la Valeur Ajoutée (TVA) '
             + 'en vertu de l’article 261 du Code Général des Impôts (CGI).',
           fontSize: 8,
-          marginTop: 48,
+          marginTop: 8,
         },
       ],
-      defaultStyle: { font: 'SourceSans', fontSize: 12 },
+      defaultStyle: { font: 'SourceSans', fontSize: 10 },
       styles: {
         header: { fillColor: COPPER_600, color: 'white' },
         description: { alignment: 'left', marginLeft: 8, fontSize: 10 },
