@@ -1198,6 +1198,7 @@ const coursesList = [
     expectedBillsCount: 1,
     trainees: [traineeList[0]._id, traineeList[2]._id, traineeList[3]._id],
     companies: [authCompany._id],
+    archivedAt: '2024-07-07T22:00:00.000Z',
   },
   { // 1 with 2 bills
     _id: new ObjectId(),

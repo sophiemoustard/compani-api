@@ -219,6 +219,8 @@ exports.exportCourseHistory = async (startDate, endDate, credentials) => {
       'Nombre de stagiaires non prévus': unsubscribedTrainees,
       'Nombre de présences non prévues': unsubscribedAttendances,
       Avancement: getProgress(pastSlots, course),
+      Archivée: course.archivedAt ? 'Oui' : 'Non',
+      'Date d\'archivage': course.archivedAt ? CompaniDate(course.archivedAt).format(DD_MM_YYYY) : '',
       'Nombre de factures': billsCountForExport,
       Facturée: isBilled ? 'Oui' : 'Non',
       'Montant facturé': UtilsHelper.formatFloatForExport(netInclTaxes),
