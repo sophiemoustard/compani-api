@@ -21,7 +21,7 @@ exports.getPdfContent = async (bill) => {
   const footer = [
     { text: 'Modes de paiement', fontSize: 8, decoration: 'underline', marginTop: 8 },
     { text: '- Prélèvement ou virement bancaire', fontSize: 8 },
-    { text: `- Pour les virements: IBAN : ${bill.vendorCompany.iban} / BIC : ${bill.vendorCompany.bic}`, fontSize: 8 },
+    { text: `- Pour les virements : IBAN : ${bill.vendorCompany.iban} / BIC : ${bill.vendorCompany.bic}`, fontSize: 8 },
     { text: 'Conditions de paiement', fontSize: 8, decoration: 'underline', marginTop: 8 },
     { text: '- 1er paiement à réception, le solde selon l’échéancier contractuel', fontSize: 8 },
     { text: '- Escompte en cas de paiement anticipé : aucun', fontSize: 8 },
