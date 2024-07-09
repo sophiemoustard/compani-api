@@ -97,11 +97,6 @@ module.exports = {
     timeStampCancelledEvent: 'Can\'t timestamp a cancelled event.',
     /* Repetitions */
     invalidRepetition: 'Forbidden action : Invalid repetition.',
-    /* Surcharges */
-    surchargesFound: 'Surcharges found.',
-    surchargeCreated: 'Surcharge created.',
-    surchargeDeleted: 'Surcharge deleted.',
-    surchargeUpdated: 'Surcharge updated.',
     /* Bills */
     billsCreated: 'Bills created.',
     billCreated: 'Bill created.',
@@ -372,11 +367,6 @@ module.exports = {
     timeStampCancelledEvent: 'Vous ne pouvez pas horodater un évènement annulé.',
     /* Repetitions */
     invalidRepetition: 'Action impossible : La répétition est invalide.',
-    /* Surcharges */
-    surchargesFound: 'Plans de majorations trouvés.',
-    surchargeCreated: 'Plan de majoration créé.',
-    surchargeDeleted: 'Plan de majoration supprimé.',
-    surchargeUpdated: 'Plan de majoration modifié.',
     /* Bills */
     billsCreated: 'Factures créées.',
     billCreated: 'Facture créée.',
