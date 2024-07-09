@@ -88,11 +88,6 @@ module.exports = {
     paymentRemoved: 'Payment removed.',
     /* Event history */
     eventHistoriesFound: 'Event histories found.',
-    /* Tax certificates */
-    taxCertificatesNotFound: 'Tax certificates not found.',
-    taxCertificateNotFound: 'Tax certificate not found.',
-    taxCertificatesFound: 'Tax certificates found.',
-    taxCertificateCreated: 'Tax certificate created.',
     /* Programs */
     programsFound: 'Programs found.',
     programsNotFound: 'Programs not found.',
@@ -329,11 +324,6 @@ module.exports = {
     paymentRemoved: 'Règlement supprimé.',
     /* Event history */
     eventHistoriesFound: 'Historique des évènements trouvés.',
-    /* Tax certificates */
-    taxCertificatesNotFound: 'Attestations fiscales non trouvées.',
-    taxCertificateNotFound: 'Attestation fiscale non trouvée.',
-    taxCertificatesFound: 'Attestations fiscales trouvées.',
-    taxCertificateCreated: 'Attestation fiscale créée.',
     /* Programs */
     programsFound: 'Liste des programmes trouvée.',
     programsNotFound: 'Liste des programmes non trouvée.',
