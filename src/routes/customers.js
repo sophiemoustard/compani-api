@@ -5,7 +5,6 @@ Joi.objectId = require('joi-objectid')(Joi);
 
 const {
   create,
-  update,
   list,
   listWithFirstIntervention,
   listWithSubscriptions,
@@ -13,7 +12,6 @@ const {
   listWithBilledEvents,
   listWithIntervention,
   show,
-  remove,
   addSubscription,
   updateSubscription,
   deleteSubscription,
@@ -28,9 +26,8 @@ const {
   deleteFunding,
   getQRCode,
 } = require('../controllers/customerController');
-const { FUNDING_FREQUENCIES, FUNDING_NATURES, SITUATION_OPTIONS, STOP_REASONS } = require('../models/Customer');
+const { FUNDING_FREQUENCIES, FUNDING_NATURES } = require('../models/Customer');
 const {
-  authorizeCustomerDelete,
   authorizeCustomerUpdate,
   authorizeFundingDeletion,
   authorizeCustomerGet,
@@ -40,7 +37,7 @@ const {
   authorizeSubscriptionDeletion,
 } = require('./preHandlers/customers');
 const { CIVILITY_OPTIONS } = require('../models/schemaDefinitions/identity');
-const { addressValidation, objectIdOrArray, phoneNumberValidation, formDataPayload } = require('./validations/utils');
+const { addressValidation, objectIdOrArray, formDataPayload } = require('./validations/utils');
 const { fundingValidation } = require('./validations/customer');
 
 exports.plugin = {
@@ -63,52 +60,6 @@ exports.plugin = {
         },
       },
       handler: create,
-    });
-
-    server.route({
-      method: 'PUT',
-      path: '/{_id}',
-      options: {
-        auth: { scope: ['customers:edit', 'customer-{params._id}'] },
-        validate: {
-          params: Joi.object({ _id: Joi.objectId().required() }),
-          payload: Joi.object().keys({
-            referent: Joi.objectId().allow(null, ''),
-            identity: Joi.object().keys({
-              title: Joi.string().valid(...CIVILITY_OPTIONS),
-              firstname: Joi.string().allow('', null),
-              lastname: Joi.string(),
-              birthDate: Joi.date().allow(''),
-            }).min(1),
-            email: Joi.string().email(),
-            contact: Joi.object().keys({
-              phone: phoneNumberValidation.allow('', null),
-              primaryAddress: addressValidation,
-              secondaryAddress: Joi.alternatives().try(addressValidation, {}),
-              accessCodes: Joi.string().allow('', null),
-              others: Joi.string().allow('', null),
-            }).min(1),
-            followUp: Joi.object().keys({
-              situation: Joi.string().valid(...SITUATION_OPTIONS),
-              environment: Joi.string().allow('', null),
-              objectives: Joi.string().allow('', null),
-              misc: Joi.string().allow('', null),
-            }).min(1),
-            payment: Joi.object().keys({
-              bankAccountOwner: Joi.string(),
-              iban: Joi.string(),
-              bic: Joi.string(),
-            }).min(1),
-            stoppedAt: Joi.date(),
-            archivedAt: Joi.date(),
-            stopReason: Joi.string().valid(...STOP_REASONS),
-          })
-            .and('stoppedAt', 'stopReason')
-            .oxor('stoppedAt', 'archivedAt'),
-        },
-        pre: [{ method: authorizeCustomerUpdate }],
-      },
-      handler: update,
     });
 
     server.route({
@@ -181,19 +132,6 @@ exports.plugin = {
         pre: [{ method: authorizeCustomerGet }],
       },
       handler: show,
-    });
-
-    server.route({
-      method: 'DELETE',
-      path: '/{_id}',
-      options: {
-        auth: { scope: ['customers:create'] },
-        validate: {
-          params: Joi.object({ _id: Joi.objectId().required() }),
-        },
-        pre: [{ method: authorizeCustomerDelete }],
-      },
-      handler: remove,
     });
 
     server.route({

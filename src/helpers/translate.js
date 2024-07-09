@@ -81,12 +81,7 @@ module.exports = {
     /* Customer absence */
     stoppedCustomer: 'Can\'t create an absence on a period where customer is stopped.',
     customerAlreadyAbsent: 'Customer absence already exists on this period.',
-    customerAbsenceUpdated: 'Customer absence updated.',
-    customerAbsenceDeleted: 'Customer absence deleted.',
-    customerAbsencesConflict: 'A customer absence already exists for this period.',
     endDateBeforeStartDate: 'End date must be later than start date.',
-    customerAbsenceNotFound: 'Customer absence not found.',
-    customerAbsencesFound: 'Customer absences found.',
     /* Google drive */
     googleDriveFileNotFound: 'Google drive file not found.',
     /* Events */
@@ -400,12 +395,7 @@ module.exports = {
     /* Customer absence */
     stoppedCustomer: 'Impossible: la personne est arrêtée sur cette période.',
     customerAlreadyAbsent: 'Impossible: une absence existe déjà sur cette période.',
-    customerAbsenceUpdated: 'Absence modifiée.',
-    customerAbsenceDeleted: 'Absence supprimée.',
-    customerAbsencesConflict: 'Impossible: une absence existe déjà sur cette période.',
     endDateBeforeStartDate: 'Impossible: la date de fin doit être postérieure à la date de début.',
-    customerAbsenceNotFound: 'Absence bénéficiaire non trouvée.',
-    customerAbsencesFound: 'Absences bénéficiaire trouvées.',
     /* Google drive */
     googleDriveFileNotFound: 'Fichier google drive non trouvé.',
     /* Events */

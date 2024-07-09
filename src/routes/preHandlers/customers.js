@@ -3,7 +3,7 @@ const get = require('lodash/get');
 const translate = require('../../helpers/translate');
 const UtilsHelper = require('../../helpers/utils');
 const DatesHelper = require('../../helpers/dates');
-const { INTERVENTION, NOT_INVOICED_AND_NOT_PAID, HOURLY, FIXED } = require('../../helpers/constants');
+const { NOT_INVOICED_AND_NOT_PAID, HOURLY, FIXED } = require('../../helpers/constants');
 const Customer = require('../../models/Customer');
 const UserCompany = require('../../models/UserCompany');
 const Event = require('../../models/Event');
@@ -12,9 +12,6 @@ const Sector = require('../../models/Sector');
 const Service = require('../../models/Service');
 const ThirdPartyPayer = require('../../models/ThirdPartyPayer');
 const Bill = require('../../models/Bill');
-const Payment = require('../../models/Payment');
-const CreditNote = require('../../models/CreditNote');
-const TaxCertificate = require('../../models/TaxCertificate');
 
 const { language } = translate;
 
@@ -178,31 +175,6 @@ exports.authorizeCustomerGetBySector = async (req) => {
     const sectorsCount = await Sector.countDocuments({ _id: { $in: sectors }, company: companyId });
     if (sectors.length !== sectorsCount) throw Boom.forbidden();
   }
-
-  return null;
-};
-
-exports.authorizeCustomerDelete = async (req) => {
-  const companyId = get(req, 'auth.credentials.company._id', null);
-  const customerId = get(req, 'params._id', null);
-
-  const customer = await Customer.countDocuments({ _id: customerId, company: companyId });
-  if (!customer) throw Boom.notFound(translate[language].customerNotFound);
-
-  const interventionsCount = await Event.countDocuments({ customer: customerId, type: INTERVENTION });
-  if (interventionsCount) throw Boom.forbidden();
-
-  const billsCount = await Bill.countDocuments({ customer: customerId, company: companyId });
-  if (billsCount) throw Boom.forbidden();
-
-  const paymentsCount = await Payment.countDocuments({ customer: customerId, company: companyId });
-  if (paymentsCount) throw Boom.forbidden();
-
-  const creditNotesCount = await CreditNote.countDocuments({ customer: customerId, company: companyId });
-  if (creditNotesCount) throw Boom.forbidden();
-
-  const taxCertificatesCount = await TaxCertificate.countDocuments({ customer: customerId, company: companyId });
-  if (taxCertificatesCount) throw Boom.forbidden();
 
   return null;
 };

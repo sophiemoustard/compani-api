@@ -1,24 +1,17 @@
 const Boom = require('@hapi/boom');
-const omit = require('lodash/omit');
-const get = require('lodash/get');
 const {
   INTERVENTION,
   ABSENCE,
-  UNAVAILABILITY,
   NEVER,
-  DAILY,
   TIME_STAMPING_ACTIONS,
 } = require('./constants');
 const User = require('../models/User');
 const Customer = require('../models/Customer');
-const Contract = require('../models/Contract');
 const EventHistory = require('../models/EventHistory');
 const ContractsHelper = require('./contracts');
-const CustomerAbsencesHelper = require('./customerAbsences');
 const EventRepository = require('../repositories/EventRepository');
 const UtilsHelper = require('./utils');
 const translate = require('./translate');
-const { CompaniDate } = require('./dates/companiDates');
 
 const { language } = translate;
 
@@ -60,81 +53,7 @@ exports.hasConflicts = async (event) => {
   });
 };
 
-const isOneDayEvent = event => CompaniDate(event.startDate).isSame(event.endDate, 'day');
-
-const isAuxiliaryUpdated = (payload, eventFromDB) => payload.auxiliary &&
-  !UtilsHelper.areObjectIdsEquals(payload.auxiliary, eventFromDB.auxiliary);
-
 const isRepetition = event => event.repetition && event.repetition.frequency && event.repetition.frequency !== NEVER;
-
-exports.isEditionAllowed = async (event) => {
-  if ((event.type !== ABSENCE || event.absenceNature !== DAILY) && !isOneDayEvent(event)) return false;
-  if (event.type !== INTERVENTION && !event.auxiliary) return false;
-
-  if (event.auxiliary) {
-    const isUserContractValidOnEventDates = await exports.isUserContractValidOnEventDates(event);
-    if (!isUserContractValidOnEventDates) return false;
-  }
-
-  if (event.type === INTERVENTION) {
-    const customerIsAbsent = await CustomerAbsencesHelper.isAbsent(event.customer, event.startDate);
-    if (customerIsAbsent) throw Boom.conflict(translate[language].customerIsAbsent);
-
-    return exports.isCustomerSubscriptionValid(event);
-  }
-
-  return true;
-};
-
-exports.isCreationAllowed = async (event, credentials) => {
-  const isConflict = event.auxiliary && !(isRepetition(event) && event.type === INTERVENTION) &&
-    await exports.hasConflicts(event);
-  if (isConflict) throw Boom.conflict(translate[language].eventsConflict);
-
-  return exports.isEditionAllowed(event, credentials);
-};
-
-exports.isUpdateAllowed = async (eventFromDB, payload) => {
-  const updateStartDate = payload.startDate && !CompaniDate(eventFromDB.startDate).isSame(payload.startDate);
-  const updateEndDate = payload.endDate && !CompaniDate(eventFromDB.endDate).isSame(payload.endDate);
-  const updateAuxiliary = payload.auxiliary &&
-    !UtilsHelper.areObjectIdsEquals(eventFromDB.auxiliary, payload.auxiliary);
-  const cancelEvent = payload.isCancelled;
-  const forbiddenUpdateOnTimeStampedEvent = updateAuxiliary || cancelEvent;
-  const { startDateTimeStamp, endDateTimeStamp } = eventFromDB;
-  if (startDateTimeStamp && (updateStartDate || forbiddenUpdateOnTimeStampedEvent)) return false;
-  if (endDateTimeStamp && (updateEndDate || forbiddenUpdateOnTimeStampedEvent)) return false;
-
-  if (eventFromDB.type === INTERVENTION && eventFromDB.isBilled) return false;
-  if ([ABSENCE, UNAVAILABILITY].includes(eventFromDB.type) && isAuxiliaryUpdated(payload, eventFromDB)) return false;
-
-  if (payload.shouldUpdateRepetition && isAuxiliaryUpdated(payload, eventFromDB)) {
-    const eventDate = payload.startDate || eventFromDB.startDate;
-    const hasContractWithEndDateOnEventDate = await Contract.countDocuments({
-      user: payload.auxiliary,
-      endDate: { $exists: true, $gte: CompaniDate(eventDate).toDate() },
-      startDate: { $lte: CompaniDate(eventDate).toDate() },
-    });
-    if (hasContractWithEndDateOnEventDate) return false;
-  }
-
-  const keysToOmit = payload.auxiliary ? ['repetition'] : ['auxiliary', 'repetition'];
-  const frequency = get(payload, 'repetition.frequency') || get(eventFromDB, 'repetition.frequency');
-  const event = {
-    ...omit(eventFromDB, keysToOmit),
-    ...omit(payload, 'repetition.frequency'),
-    ...(!!frequency && { repetition: { frequency } }),
-  };
-
-  const isSingleEventNotCancelled = !(isRepetition(event) && event.type === INTERVENTION) && !event.isCancelled;
-  const undoCancellation = eventFromDB.isCancelled && !payload.isCancelled;
-  const hasConflicts = await exports.hasConflicts(event);
-  if (event.auxiliary && (isSingleEventNotCancelled || undoCancellation) && hasConflicts) {
-    throw Boom.conflict(translate[language].eventsConflict);
-  }
-
-  return exports.isEditionAllowed(event);
-};
 
 exports.checkDeletionIsAllowed = async (events) => {
   if (events.some(event => event.type === INTERVENTION && event.isBilled)) {

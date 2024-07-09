@@ -6,7 +6,6 @@ const has = require('lodash/has');
 const omit = require('lodash/omit');
 const isEqual = require('lodash/isEqual');
 const groupBy = require('lodash/groupBy');
-const cloneDeep = require('lodash/cloneDeep');
 const momentRange = require('moment-range');
 const { ObjectId } = require('mongodb');
 const {
@@ -20,13 +19,11 @@ const {
 } = require('./constants');
 const translate = require('./translate');
 const UtilsHelper = require('./utils');
-const CustomerAbsencesHelper = require('./customerAbsences');
 const EventHistoriesHelper = require('./eventHistories');
 const EventsValidationHelper = require('./eventsValidation');
 const EventsRepetitionHelper = require('./eventsRepetition');
 const DraftPayHelper = require('./draftPay');
 const ContractHelper = require('./contracts');
-const RepetitionsHelper = require('./repetitions');
 const Event = require('../models/Event');
 const Repetition = require('../models/Repetition');
 const User = require('../models/User');
@@ -65,44 +62,6 @@ exports.detachAuxiliaryFromEvent = async (event, companyId) => {
   };
 };
 
-exports.createEvent = async (payload, credentials) => {
-  const companyId = get(credentials, 'company._id', null);
-  let eventPayload = { ...cloneDeep(payload), company: companyId };
-  if (!await EventsValidationHelper.isCreationAllowed(eventPayload, credentials)) throw Boom.badData();
-
-  const isRepeatedEvent = exports.isRepetition(eventPayload);
-  const hasConflicts = await EventsValidationHelper.hasConflicts(eventPayload);
-  if (eventPayload.type === INTERVENTION && eventPayload.auxiliary && isRepeatedEvent && hasConflicts) {
-    eventPayload = await exports.detachAuxiliaryFromEvent(eventPayload, companyId);
-  }
-
-  const event = (await Event.create(eventPayload)).toObject();
-  const populatedEvent = await EventRepository.getEvent(event._id, credentials);
-
-  if (!isRepeatedEvent) await EventHistoriesHelper.createEventHistoryOnCreate(event, credentials);
-  else {
-    await EventsRepetitionHelper.createRepetitions(populatedEvent, payload, credentials);
-
-    const eventHistoryPayload = {
-      ...RepetitionsHelper.formatPayloadForRepetitionCreation(populatedEvent, payload, companyId),
-      _id: event._id,
-    };
-    await EventHistoriesHelper.createEventHistoryOnCreate(eventHistoryPayload, credentials);
-  }
-
-  if (payload.type === ABSENCE) {
-    const { startDate, endDate } = populatedEvent;
-    const dates = { startDate, endDate };
-    const auxiliary = await User.findOne({ _id: populatedEvent.auxiliary._id })
-      .populate({ path: 'sector', select: '_id sector', match: { company: companyId } })
-      .lean({ autopopulate: true, virtuals: true });
-    await exports.deleteConflictInternalHoursAndUnavailabilities(populatedEvent, auxiliary, credentials);
-    await exports.unassignConflictInterventions(dates, auxiliary, credentials);
-  }
-
-  return exports.populateEventSubscription(populatedEvent);
-};
-
 exports.deleteConflictInternalHoursAndUnavailabilities = async (event, auxiliary, credentials) => {
   const types = [INTERNAL_HOUR, UNAVAILABILITY];
   const dates = { startDate: event.startDate, endDate: event.endDate };
@@ -110,17 +69,6 @@ exports.deleteConflictInternalHoursAndUnavailabilities = async (event, auxiliary
   const query = await EventRepository.formatEventsInConflictQuery(dates, auxiliary._id, types, companyId, event._id);
 
   await exports.deleteEventsAndRepetition(query, false, credentials);
-};
-
-exports.unassignConflictInterventions = async (dates, auxiliary, credentials) => {
-  const companyId = get(credentials, 'company._id', null);
-  const query = await EventRepository.formatEventsInConflictQuery(dates, auxiliary._id, [INTERVENTION], companyId);
-  const interventions = await Event.find(query).lean();
-
-  for (let i = 0, l = interventions.length; i < l; i++) {
-    const payload = { ...omit(interventions[i], ['_id', 'auxiliary', 'repetition']), sector: auxiliary.sector };
-    await exports.updateEvent(interventions[i], payload, credentials);
-  }
 };
 
 exports.getListQuery = (query, credentials) => {
@@ -254,81 +202,6 @@ const getEventSector = async (event, companyId) => {
     .populate({ path: 'sector', select: '_id sector', match: { company: companyId } })
     .lean();
   return user.sector;
-};
-
-/**
- * 1. If the event is in a repetition and we update it without updating the repetition, we should remove it from the
- * repetition i.e. delete the repetition object. EXCEPT if we are only updating the misc field
- *
- * 2. if the event is cancelled and the payload doesn't contain any cancellation info, it means we should remove the
- * cancellation i.e. delete the cancel object and set isCancelled to false.
- */
-exports.updateEvent = async (event, eventPayload, credentials) => {
-  const companyId = get(credentials, 'company._id');
-  if (event.type !== ABSENCE && !CompaniDate(eventPayload.startDate).isSame(eventPayload.endDate, 'day')) {
-    throw Boom.badRequest(translate[language].eventDatesNotOnSameDay);
-  }
-
-  if (eventPayload.shouldUpdateRepetition) {
-    if (!EventsRepetitionHelper.isRepetitionValid(event.repetition)) {
-      throw Boom.badData(translate[language].invalidRepetition);
-    }
-
-    const isUpdateAllowed = await EventsValidationHelper.isUpdateAllowed(event, eventPayload);
-    if (!isUpdateAllowed) throw Boom.badData();
-
-    await EventHistoriesHelper.createEventHistoryOnUpdate(eventPayload, event, credentials);
-
-    const sectorId = await getEventSector(event, companyId);
-    await EventsRepetitionHelper.updateRepetition(event, eventPayload, credentials, sectorId);
-
-    await EventsRepetitionHelper.updateEventBelongingToRepetition(eventPayload, event, companyId, sectorId);
-  } else {
-    const detachFromRepetition = exports.isRepetition(event) && exports.shouldDetachFromRepetition(event, eventPayload);
-    const payload = exports.formatEditionPayload(event, eventPayload, detachFromRepetition);
-
-    const isUpdateAllowed = await EventsValidationHelper.isUpdateAllowed(event, payload.$set);
-    if (!isUpdateAllowed) throw Boom.badData();
-
-    await EventHistoriesHelper.createEventHistoryOnUpdate(payload.$set, event, credentials);
-    await Event.updateOne({ _id: event._id }, payload);
-  }
-
-  const updatedEvent = await Event.findOne({ _id: event._id })
-    .populate({
-      path: 'auxiliary',
-      select: 'identity administrative.driveFolder administrative.transportInvoice company picture',
-      populate: { path: 'sector', select: '_id sector', match: { company: get(credentials, 'company._id') } },
-    })
-    .populate({ path: 'customer', select: 'identity subscriptions contact' })
-    .populate({ path: 'internalHour', match: { company: get(credentials, 'company._id') } })
-    .lean();
-
-  if (updatedEvent.type === ABSENCE) {
-    const dates = { startDate: updatedEvent.startDate, endDate: updatedEvent.endDate };
-    await exports.deleteConflictInternalHoursAndUnavailabilities(updatedEvent, updatedEvent.auxiliary, credentials);
-    await exports.unassignConflictInterventions(dates, updatedEvent.auxiliary, credentials);
-  }
-
-  return exports.populateEventSubscription(updatedEvent);
-};
-
-exports.deleteCustomerEvents = async (customer, startDate, endDate, absenceType, credentials) => {
-  const companyId = get(credentials, 'company._id', null);
-  const query = {
-    customer: new ObjectId(customer),
-    startDate: { $gte: moment(startDate).toDate() },
-    company: companyId,
-  };
-
-  if (endDate) query.startDate.$lte = endDate;
-
-  await exports.deleteEventsAndRepetition(query, !endDate, credentials);
-
-  if (absenceType) {
-    const queryCustomerAbsence = { customer, startDate, endDate, absenceType };
-    await CustomerAbsencesHelper.create(queryCustomerAbsence, companyId);
-  }
 };
 
 exports.deleteEvent = async (eventId, credentials) => {

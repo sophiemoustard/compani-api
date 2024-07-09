@@ -127,31 +127,6 @@ const create = async (req) => {
   }
 };
 
-const remove = async (req) => {
-  try {
-    await CustomerHelper.removeCustomer(req.params._id);
-    return { message: translate[language].customerRemoved };
-  } catch (e) {
-    req.log('error', e);
-    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
-  }
-};
-
-const update = async (req) => {
-  try {
-    const customer = await CustomerHelper.updateCustomer(req.params._id, req.payload, req.auth.credentials);
-    if (!customer) Boom.notFound(translate[language].customerNotFound);
-
-    return {
-      message: translate[language].customerUpdated,
-      data: { customer },
-    };
-  } catch (e) {
-    req.log('error', e);
-    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
-  }
-};
-
 const updateSubscription = async (req) => {
   try {
     const customer = await SubscriptionHelper.updateSubscription(req.params, req.payload);
@@ -339,8 +314,6 @@ module.exports = {
   listWithIntervention,
   show,
   create,
-  remove,
-  update,
   addSubscription,
   updateSubscription,
   deleteSubscription,

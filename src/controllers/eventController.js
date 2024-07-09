@@ -38,38 +38,6 @@ const listForCreditNotes = async (req) => {
   }
 };
 
-const create = async (req) => {
-  try {
-    const { payload, auth } = req;
-    const event = await EventsHelper.createEvent(payload, auth.credentials);
-
-    return {
-      message: translate[language].eventCreated,
-      data: { event },
-    };
-  } catch (e) {
-    req.log('error', e);
-    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
-  }
-};
-
-const update = async (req) => {
-  try {
-    const { payload, auth } = req;
-    let { event } = req.pre;
-
-    event = await EventsHelper.updateEvent(event, payload, auth.credentials);
-
-    return {
-      message: translate[language].eventUpdated,
-      data: { event },
-    };
-  } catch (e) {
-    req.log('error', e);
-    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
-  }
-};
-
 const remove = async (req) => {
   try {
     const { auth, params } = req;
@@ -88,25 +56,6 @@ const removeRepetition = async (req) => {
     await deleteRepetition(pre.event, auth.credentials);
 
     return { message: translate[language].eventDeleted };
-  } catch (e) {
-    req.log('error', e);
-    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
-  }
-};
-
-const deleteList = async (req) => {
-  try {
-    const { query, auth } = req;
-
-    await EventsHelper.deleteCustomerEvents(
-      query.customer,
-      query.startDate,
-      query.endDate,
-      query.absenceType,
-      auth.credentials
-    );
-
-    return { message: translate[language].eventsDeleted };
   } catch (e) {
     req.log('error', e);
     return Boom.isBoom(e) ? e : Boom.badImplementation(e);
@@ -144,11 +93,8 @@ const timeStampEvent = async (req) => {
 
 module.exports = {
   list,
-  create,
-  update,
   remove,
   removeRepetition,
-  deleteList,
   listForCreditNotes,
   getWorkingStats,
   timeStampEvent,
