@@ -102,12 +102,6 @@ module.exports = {
     surchargeCreated: 'Surcharge created.',
     surchargeDeleted: 'Surcharge deleted.',
     surchargeUpdated: 'Surcharge updated.',
-    /* Third party payers */
-    thirdPartyPayerCreated: 'Company third party payer created.',
-    thirdPartyPayersFound: 'Company third party payers found.',
-    thirdPartyPayerExits: 'Company third party payer already exists.',
-    thirdPartyPayersNotFound: 'Company third party payers not found.',
-    thirdPartyPayerDeleted: 'Company third party payer deleted.',
     /* Bills */
     billsCreated: 'Bills created.',
     billCreated: 'Bill created.',
@@ -385,12 +379,6 @@ module.exports = {
     surchargeCreated: 'Plan de majoration créé.',
     surchargeDeleted: 'Plan de majoration supprimé.',
     surchargeUpdated: 'Plan de majoration modifié.',
-    /* Third party payers */
-    thirdPartyPayerCreated: 'Tiers payeur de l\'entreprise créé.',
-    thirdPartyPayersFound: 'Tiers payeurs de l\'entreprise trouvés.',
-    thirdPartyPayerExits: 'Tiers payeur déjà existant.',
-    thirdPartyPayersNotFound: 'Tiers payeurs de l\'entreprise non trouvés.',
-    thirdPartyPayerDeleted: 'Tiers payeur de l\'entreprise supprimé.',
     /* Bills */
     billsCreated: 'Factures créées.',
     billCreated: 'Facture créée.',

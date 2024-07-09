@@ -37,7 +37,6 @@ exports.routes = [
   { plugin: require('./subPrograms'), routes: { prefix: '/subprograms' } },
   { plugin: require('./surcharges'), routes: { prefix: '/surcharges' } },
   { plugin: require('./taxCertificates'), routes: { prefix: '/taxcertificates' } },
-  { plugin: require('./thirdPartyPayers'), routes: { prefix: '/thirdpartypayers' } },
   { plugin: require('./trainerMissions'), routes: { prefix: '/trainermissions' } },
   { plugin: require('./trainingContracts'), routes: { prefix: '/trainingcontracts' } },
   { plugin: require('./users'), routes: { prefix: '/users' } },
