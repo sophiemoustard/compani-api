@@ -12,16 +12,13 @@ const {
   INTERVENTION,
   INTERNAL_HOUR,
   NEVER,
-  ABSENCE,
   UNAVAILABILITY,
   AUXILIARY,
   CUSTOMER,
 } = require('./constants');
-const translate = require('./translate');
 const UtilsHelper = require('./utils');
 const EventHistoriesHelper = require('./eventHistories');
 const EventsValidationHelper = require('./eventsValidation');
-const EventsRepetitionHelper = require('./eventsRepetition');
 const DraftPayHelper = require('./draftPay');
 const ContractHelper = require('./contracts');
 const Event = require('../models/Event');
@@ -33,8 +30,6 @@ const UserCompany = require('../models/UserCompany');
 const { CompaniDate } = require('./dates/companiDates');
 
 momentRange.extendMoment(moment);
-
-const { language } = translate;
 
 exports.isRepetition = event => has(event, 'repetition.frequency') && get(event, 'repetition.frequency') !== NEVER;
 
@@ -193,15 +188,6 @@ exports.shouldDetachFromRepetition = (event, payload) => {
   };
 
   return !isEqual(mainEventInfo, mainPayloadInfo);
-};
-
-const getEventSector = async (event, companyId) => {
-  if (event.sector) return event.sector;
-
-  const user = await User.findOne({ _id: event.auxiliary }, { _id: 1 })
-    .populate({ path: 'sector', select: '_id sector', match: { company: companyId } })
-    .lean();
-  return user.sector;
 };
 
 exports.deleteEvent = async (eventId, credentials) => {

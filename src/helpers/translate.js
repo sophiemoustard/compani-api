@@ -156,12 +156,6 @@ module.exports = {
     taxCertificateNotFound: 'Tax certificate not found.',
     taxCertificatesFound: 'Tax certificates found.',
     taxCertificateCreated: 'Tax certificate created.',
-    /* Establishments */
-    establishmentCreated: 'Establishment created.',
-    establishmentNotFound: 'Establishment not found.',
-    establishmentsFound: 'Establishments found.',
-    establishmentRemoved: 'Establishment removed.',
-    siretAlreadyExists: 'Siret already used by another establishment.',
     /* Programs */
     programsFound: 'Programs found.',
     programsNotFound: 'Programs not found.',
@@ -466,12 +460,6 @@ module.exports = {
     taxCertificateNotFound: 'Attestation fiscale non trouvée.',
     taxCertificatesFound: 'Attestations fiscales trouvées.',
     taxCertificateCreated: 'Attestation fiscale créée.',
-    /* Establishments */
-    establishmentCreated: 'Établissement créé.',
-    establishmentNotFound: 'Établissement non trouvé.',
-    establishmentsFound: 'Établissements trouvés.',
-    establishmentRemoved: 'Établissement supprimé.',
-    siretAlreadyExists: 'Siret déjà utilisé par un autre établissement.',
     /* Programs */
     programsFound: 'Liste des programmes trouvée.',
     programsNotFound: 'Liste des programmes non trouvée.',
