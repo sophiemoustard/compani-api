@@ -97,13 +97,6 @@ module.exports = {
     timeStampCancelledEvent: 'Can\'t timestamp a cancelled event.',
     /* Repetitions */
     invalidRepetition: 'Forbidden action : Invalid repetition.',
-    /* Sectors */
-    sectorCreated: 'Sector created.',
-    sectorUpdated: 'Sector updated.',
-    sectorNotFound: 'Sector not found.',
-    sectorsFound: 'Sectors found.',
-    sectorDeleted: 'Sector deleted.',
-    sectorAlreadyExists: 'Sector already exists.',
     /* Services */
     servicesFound: 'Services found.',
     serviceCreated: 'Service created.',
@@ -397,13 +390,6 @@ module.exports = {
     timeStampCancelledEvent: 'Vous ne pouvez pas horodater un évènement annulé.',
     /* Repetitions */
     invalidRepetition: 'Action impossible : La répétition est invalide.',
-    /* Sectors */
-    sectorCreated: 'Équipe créée.',
-    sectorUpdated: 'Équipe modifiée.',
-    sectorNotFound: 'Équipe non trouvée.',
-    sectorsFound: 'Équipes trouvées.',
-    sectorDeleted: 'Équipe supprimée.',
-    sectorAlreadyExists: 'Équipe déjà existante.',
     /* Services */
     servicesFound: 'Services trouvés.',
     serviceCreated: 'Service créé.',

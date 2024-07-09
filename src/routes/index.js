@@ -33,7 +33,6 @@ exports.routes = [
   { plugin: require('./questionnaireHistories'), routes: { prefix: '/questionnairehistories' } },
   { plugin: require('./questionnaires'), routes: { prefix: '/questionnaires' } },
   { plugin: require('./roles'), routes: { prefix: '/roles' } },
-  { plugin: require('./sectors'), routes: { prefix: '/sectors' } },
   { plugin: require('./services'), routes: { prefix: '/services' } },
   { plugin: require('./stats'), routes: { prefix: '/stats' } },
   { plugin: require('./steps'), routes: { prefix: '/steps' } },
