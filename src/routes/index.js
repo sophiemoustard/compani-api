@@ -28,7 +28,6 @@ exports.routes = [
   { plugin: require('./exports'), routes: { prefix: '/exports' } },
   { plugin: require('./helpers'), routes: { prefix: '/helpers' } },
   { plugin: require('./holdings'), routes: { prefix: '/holdings' } },
-  { plugin: require('./pay'), routes: { prefix: '/pay' } },
   { plugin: require('./payments'), routes: { prefix: '/payments' } },
   { plugin: require('./programs'), routes: { prefix: '/programs' } },
   { plugin: require('./questionnaireHistories'), routes: { prefix: '/questionnairehistories' } },
