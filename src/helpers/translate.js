@@ -128,8 +128,6 @@ module.exports = {
     paymentRemoved: 'Payment removed.',
     /* Event history */
     eventHistoriesFound: 'Event histories found.',
-    /* Stats */
-    statsFound: 'Stats found.',
     /* Bill slip */
     billSlipsFound: 'Bill slips found.',
     /* Tax certificates */
@@ -415,8 +413,6 @@ module.exports = {
     paymentRemoved: 'Règlement supprimé.',
     /* Event history */
     eventHistoriesFound: 'Historique des évènements trouvés.',
-    /* Stats */
-    statsFound: 'Statistiques trouvées.',
     /* Bill slip */
     billSlipsFound: 'Bordereaux trouvés.',
     /* Tax certificates */
