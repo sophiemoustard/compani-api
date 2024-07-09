@@ -97,12 +97,6 @@ module.exports = {
     timeStampCancelledEvent: 'Can\'t timestamp a cancelled event.',
     /* Repetitions */
     invalidRepetition: 'Forbidden action : Invalid repetition.',
-    /* Services */
-    servicesFound: 'Services found.',
-    serviceCreated: 'Service created.',
-    serviceDeleted: 'Service deleted.',
-    servicesNotFound: 'Services not found.',
-    serviceNotFound: 'Service not found.',
     /* Surcharges */
     surchargesFound: 'Surcharges found.',
     surchargeCreated: 'Surcharge created.',
@@ -390,12 +384,6 @@ module.exports = {
     timeStampCancelledEvent: 'Vous ne pouvez pas horodater un évènement annulé.',
     /* Repetitions */
     invalidRepetition: 'Action impossible : La répétition est invalide.',
-    /* Services */
-    servicesFound: 'Services trouvés.',
-    serviceCreated: 'Service créé.',
-    serviceDeleted: 'Service supprimé.',
-    servicesNotFound: 'Services non trouvés.',
-    serviceNotFound: 'Service non trouvé.',
     /* Surcharges */
     surchargesFound: 'Plans de majorations trouvés.',
     surchargeCreated: 'Plan de majoration créé.',
