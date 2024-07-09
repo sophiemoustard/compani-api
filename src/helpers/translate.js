@@ -31,11 +31,6 @@ module.exports = {
     /* Reset password token */
     resetPasswordTokenFound: 'Reset password token found.',
     /* Uploader */
-    fileNotFound: 'File not found.',
-    filesNotFound: 'Files not found.',
-    fileFound: 'File found.',
-    filesFound: 'Files found.',
-    fileDeleted: 'File Deleted.',
     fileCreated: 'File successfully created.',
     /* Company */
     companyCreated: 'Company created.',
@@ -337,9 +332,6 @@ module.exports = {
     /* Reset password token */
     resetPasswordTokenFound: 'Token de changement de password trouvé.',
     /* Uploader */
-    fileNotFound: 'Fichier non trouvé.',
-    fileFound: 'Fichier trouvé.',
-    fileDeleted: 'Fichier supprimé.',
     fileCreated: 'Fichier créé.',
     /* Company */
     companyCreated: 'Entreprise créée.',

@@ -26,7 +26,6 @@ exports.routes = [
   { plugin: require('./eventHistories'), routes: { prefix: '/eventhistories' } },
   { plugin: require('./events'), routes: { prefix: '/events' } },
   { plugin: require('./exports'), routes: { prefix: '/exports' } },
-  { plugin: require('./Google/drive'), routes: { prefix: '/gdrive' } },
   { plugin: require('./helpers'), routes: { prefix: '/helpers' } },
   { plugin: require('./holdings'), routes: { prefix: '/holdings' } },
   { plugin: require('./internalHours'), routes: { prefix: '/internalhours' } },
