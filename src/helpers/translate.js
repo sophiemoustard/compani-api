@@ -122,8 +122,6 @@ module.exports = {
     paymentRemoved: 'Payment removed.',
     /* Event history */
     eventHistoriesFound: 'Event histories found.',
-    /* Bill slip */
-    billSlipsFound: 'Bill slips found.',
     /* Tax certificates */
     taxCertificatesNotFound: 'Tax certificates not found.',
     taxCertificateNotFound: 'Tax certificate not found.',
@@ -399,8 +397,6 @@ module.exports = {
     paymentRemoved: 'Règlement supprimé.',
     /* Event history */
     eventHistoriesFound: 'Historique des évènements trouvés.',
-    /* Bill slip */
-    billSlipsFound: 'Bordereaux trouvés.',
     /* Tax certificates */
     taxCertificatesNotFound: 'Attestations fiscales non trouvées.',
     taxCertificateNotFound: 'Attestation fiscale non trouvée.',

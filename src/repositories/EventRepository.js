@@ -1,8 +1,6 @@
-const { ObjectId } = require('mongodb');
 const moment = require('moment');
 const omit = require('lodash/omit');
 const get = require('lodash/get');
-const has = require('lodash/has');
 const groupBy = require('lodash/groupBy');
 const { cloneDeep } = require('lodash');
 const Event = require('../models/Event');
@@ -13,7 +11,6 @@ const {
   INTERVENTION,
   ABSENCE,
   INVOICED_AND_PAID,
-  NOT_INVOICED_AND_NOT_PAID,
   INVOICED_AND_NOT_PAID,
 } = require('../helpers/constants');
 const { CompaniDuration } = require('../helpers/dates/companiDurations');
@@ -245,103 +242,6 @@ exports.getEventsToPay = async (start, end, auxiliaries, companyId) => {
     },
   ])
     .option({ company: companyId });
-};
-
-exports.getEventsToBill = async (query, companyId) => {
-  const rules = [];
-  if (has(query, 'eventIds')) rules.push({ _id: { $in: query.eventIds.map(id => new ObjectId(id)) } });
-  else {
-    rules.push(
-      { endDate: { $lt: query.endDate } },
-      { $or: [{ isBilled: false }, { isBilled: { $exists: false } }] },
-      { auxiliary: { $exists: true, $ne: '' } },
-      { type: INTERVENTION },
-      { 'cancel.condition': { $not: { $eq: NOT_INVOICED_AND_NOT_PAID } } }
-    );
-    if (query.startDate) rules.push({ startDate: { $gte: query.startDate } });
-    if (query.customer) rules.push({ customer: new ObjectId(query.customer) });
-  }
-
-  return Event.aggregate([
-    { $match: { $and: rules } },
-    { $lookup: { from: 'contracts', as: 'contracts', localField: 'auxiliary', foreignField: 'user' } },
-    {
-      $addFields: {
-        contract: {
-          $filter: {
-            input: '$contracts',
-            as: 'c',
-            cond: {
-              $and: [
-                { $lte: ['$$c.startDate', '$startDate'] },
-                { $gte: [{ $ifNull: ['$$c.endDate', query.endDate] }, '$startDate'] },
-              ],
-            },
-          },
-        },
-      },
-    },
-    { $unwind: { path: '$contract' } },
-    {
-      $group: {
-        _id: { SUBS: '$subscription', CUSTOMER: '$customer' },
-        count: { $sum: 1 },
-        events: { $push: '$$ROOT' },
-      },
-    },
-    {
-      $lookup: {
-        from: 'customers',
-        as: 'customer',
-        let: { customerId: '$_id.CUSTOMER' },
-        pipeline: [{ $match: { $and: [{ $expr: { $eq: ['$_id', '$$customerId'] }, archivedAt: { $eq: null } }] } }],
-      },
-    },
-    { $unwind: { path: '$customer' } },
-    {
-      $addFields: {
-        sub: { $filter: { input: '$customer.subscriptions', as: 'sub', cond: { $eq: ['$$sub._id', '$_id.SUBS'] } } },
-      },
-    },
-    { $unwind: { path: '$sub' } },
-    { $lookup: { from: 'services', localField: 'sub.service', foreignField: '_id', as: 'sub.service' } },
-    { $unwind: { path: '$sub.service' } },
-    {
-      $addFields: {
-        fund: {
-          $filter: { input: '$customer.fundings', as: 'fund', cond: { $eq: ['$$fund.subscription', '$_id.SUBS'] } },
-        },
-      },
-    },
-    {
-      $project: {
-        idCustomer: '$_id.CUSTOMER',
-        subId: '$_id.SUBS',
-        events: { startDate: 1, subscription: 1, endDate: 1, auxiliary: 1, _id: 1, isCancelled: 1 },
-        customer: 1,
-        sub: 1,
-        fund: 1,
-      },
-    },
-    {
-      $group: {
-        _id: '$idCustomer',
-        customer: { $addToSet: '$customer' },
-        eventsBySubscriptions: {
-          $push: { subscription: '$sub', eventsNumber: { $size: '$events' }, events: '$events', fundings: '$fund' },
-        },
-      },
-    },
-    { $unwind: { path: '$customer' } },
-    {
-      $project: {
-        _id: 0,
-        customer: { _id: 1, identity: 1, driveFolder: 1 },
-        eventsBySubscriptions: 1,
-      },
-    },
-    { $sort: { 'customer.identity.lastname': 1 } },
-  ]).option({ company: companyId });
 };
 
 exports.getCustomersWithBilledEvents = async (query, companyId) => Event.aggregate([
