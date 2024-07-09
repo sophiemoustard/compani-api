@@ -5,7 +5,6 @@ exports.routes = [
   { plugin: require('./attendanceSheets'), routes: { prefix: '/attendancesheets' } },
   { plugin: require('./authentication'), routes: { prefix: '/users' } },
   { plugin: require('./balances'), routes: { prefix: '/balances' } },
-  { plugin: require('./billingItems'), routes: { prefix: '/billingitems' } },
   { plugin: require('./bills'), routes: { prefix: '/bills' } },
   { plugin: require('./billSlips'), routes: { prefix: '/billslips' } },
   { plugin: require('./cards'), routes: { prefix: '/cards' } },

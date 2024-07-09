@@ -293,13 +293,6 @@ module.exports = {
     helpersFound: 'Helpers found.',
     helpersNotFound: 'Helpers not found.',
     helperUpdated: 'Helper updated.',
-    /* BillingItems */
-    billingItemCreated: 'Billing item created.',
-    billingItemsFound: 'Billing items found.',
-    billingItemsConflict: 'This billing item already exists.',
-    billingItemRemoved: 'Billing item removed.',
-    billingItemHasServiceLinked: 'Billing item is linked to a service.',
-    billingItemHasBillLinked: 'Billing item is linked to a bill.',
     /* Télétransmission */
     deliveryCreated: 'Delivery file created',
     /* userCompanies */
@@ -619,13 +612,6 @@ module.exports = {
     helpersFound: 'Liste des aidants trouvée.',
     helpersNotFound: 'Liste des aidants non trouvée.',
     helperUpdated: 'Aidant(e) mis(e) à jour.',
-    /* BillingItems */
-    billingItemCreated: 'Article de facturation créé.',
-    billingItemsFound: 'Articles de facturation trouvés.',
-    billingItemsConflict: 'Cet article de facturation existe déjà.',
-    billingItemRemoved: 'Article de facturation supprimé.',
-    billingItemHasServiceLinked: 'Impossible: l\'article de facturation est relié à un service.',
-    billingItemHasBillLinked: 'Impossible: l\'article de facturation est relié à une facture.',
     /* Télétransmission */
     deliveryCreated: 'Fichier de delivery créé',
     /* UserCompanies */
