@@ -82,8 +82,6 @@ module.exports = {
     stoppedCustomer: 'Can\'t create an absence on a period where customer is stopped.',
     customerAlreadyAbsent: 'Customer absence already exists on this period.',
     endDateBeforeStartDate: 'End date must be later than start date.',
-    /* Google drive */
-    googleDriveFileNotFound: 'Google drive file not found.',
     /* Events */
     eventsNotFound: 'Events not found.',
     eventNotFound: 'Event not found.',
@@ -138,9 +136,7 @@ module.exports = {
     creditNotesFound: 'Credit notes found.',
     creditNoteCreated: 'Credit note found.',
     creditNoteDeleted: 'Credit note deleted.',
-    creditNotesNotFound: 'Credit notes not found.',
     creditNoteNotFound: 'Credit note not found.',
-    creditNoteUpdated: 'Credit note updated.',
     creditNoteNotCompani: 'Credit note\'s origin must be \'Compani\'.',
     /* Balances */
     balancesFound: 'Balances found.',
@@ -396,8 +392,6 @@ module.exports = {
     stoppedCustomer: 'Impossible: la personne est arrêtée sur cette période.',
     customerAlreadyAbsent: 'Impossible: une absence existe déjà sur cette période.',
     endDateBeforeStartDate: 'Impossible: la date de fin doit être postérieure à la date de début.',
-    /* Google drive */
-    googleDriveFileNotFound: 'Fichier google drive non trouvé.',
     /* Events */
     eventsNotFound: 'Evènements non trouvés.',
     eventNotFound: 'Evènement non trouvé.',
@@ -452,9 +446,7 @@ module.exports = {
     creditNotesFound: 'Avoirs trouvés.',
     creditNoteCreated: 'Avoir créé.',
     creditNoteDeleted: 'Avoir supprimé.',
-    creditNotesNotFound: 'Avoirs non trouvés.',
     creditNoteNotFound: 'Avoir non trouvé.',
-    creditNoteUpdated: 'Avoir modifié.',
     creditNoteNotCompani: 'L\'origine de l\'avoir doit être \'Compani\'.',
     /* Balances */
     balancesFound: 'Balances trouvées.',
