@@ -32,7 +32,6 @@ const {
   HOLDING_ADMIN,
 } = require('./constants');
 const UtilsHelper = require('./utils');
-const HelpersHelper = require('./helpers');
 const UserCompaniesHelper = require('./userCompanies');
 const DatesUtilsHelper = require('./dates/utils');
 const { CompaniDate } = require('./dates/companiDates');
@@ -347,8 +346,6 @@ exports.createUser = async (userPayload, credentials) => {
     ...(payload.userCompanyStartDate && { startDate: payload.userCompanyStartDate }),
   });
 
-  if (userPayload.customer) await HelpersHelper.create(user._id, userPayload.customer, companyId);
-
   return User.findOne({ _id: user._id })
     .populate({ path: 'sector', select: '_id sector', match: { company: companyId } })
     .lean({ virtuals: true, autopopulate: true });
@@ -373,11 +370,8 @@ const formatUpdatePayload = async (updatedUser) => {
   return payload;
 };
 
-exports.updateUser = async (userId, userPayload, credentials) => {
-  const companyId = get(credentials, 'company._id');
-
+exports.updateUser = async (userId, userPayload) => {
   const payload = await formatUpdatePayload(userPayload);
-  if (userPayload.customer) await HelpersHelper.create(userId, userPayload.customer, companyId);
   if (userPayload.company) {
     await UserCompaniesHelper.create({
       user: userId,
@@ -397,15 +391,7 @@ exports.removeUser = async (user, credentials) => {
     await Course.updateMany({ trainees: user._id }, { $pull: { trainees: user._id } });
     await ActivityHistory.deleteMany({ user: user._id });
     await User.deleteOne({ _id: user._id });
-  } else {
-    await exports.removeHelper(user);
   }
-};
-
-exports.removeHelper = async (user) => {
-  await HelpersHelper.remove(user._id);
-  await UserCompany.deleteOne({ user: user._id });
-  await User.updateOne({ _id: user._id }, { $unset: { 'role.client': '' } });
 };
 
 exports.uploadPicture = async (userId, payload) => {

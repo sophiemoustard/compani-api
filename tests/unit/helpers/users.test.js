@@ -11,7 +11,6 @@ const UtilsMock = require('../../utilsMock');
 const UsersHelper = require('../../../src/helpers/users');
 const translate = require('../../../src/helpers/translate');
 const GCloudStorageHelper = require('../../../src/helpers/gCloudStorage');
-const HelpersHelper = require('../../../src/helpers/helpers');
 const UserCompaniesHelper = require('../../../src/helpers/userCompanies');
 const User = require('../../../src/models/User');
 const Course = require('../../../src/models/Course');
@@ -1778,20 +1777,17 @@ describe('removeUser', () => {
   let deleteOne;
   let deleteOneCompanyLinkRequest;
   let updateManyCourse;
-  let removeHelper;
   let deleteManyActivityHistories;
   beforeEach(() => {
     deleteOne = sinon.stub(User, 'deleteOne');
     deleteOneCompanyLinkRequest = sinon.stub(CompanyLinkRequest, 'deleteOne');
     updateManyCourse = sinon.stub(Course, 'updateMany');
-    removeHelper = sinon.stub(UsersHelper, 'removeHelper');
     deleteManyActivityHistories = sinon.stub(ActivityHistory, 'deleteMany');
   });
   afterEach(() => {
     deleteOne.restore();
     deleteOneCompanyLinkRequest.restore();
     updateManyCourse.restore();
-    removeHelper.restore();
     deleteManyActivityHistories.restore();
   });
 
@@ -1805,92 +1801,35 @@ describe('removeUser', () => {
     sinon.assert.calledOnceWithExactly(deleteOneCompanyLinkRequest, { user: userId });
     sinon.assert.calledOnceWithExactly(updateManyCourse, { trainees: userId }, { $pull: { trainees: userId } });
   });
-
-  it('should call removeHelper', async () => {
-    const userId = new ObjectId();
-    await UsersHelper.removeUser({ _id: userId }, { _id: new ObjectId() });
-
-    sinon.assert.calledOnceWithExactly(UsersHelper.removeHelper, { _id: userId });
-  });
-});
-
-describe('removeHelper', () => {
-  let updateOne;
-  let remove;
-  let deleteOne;
-  beforeEach(() => {
-    updateOne = sinon.stub(User, 'updateOne');
-    remove = sinon.stub(HelpersHelper, 'remove');
-    deleteOne = sinon.stub(UserCompany, 'deleteOne');
-  });
-  afterEach(() => {
-    updateOne.restore();
-    remove.restore();
-    deleteOne.restore();
-  });
-
-  it('should remove client role and customers', async () => {
-    const userId = new ObjectId();
-    await UsersHelper.removeHelper({ _id: userId });
-
-    sinon.assert.calledOnceWithExactly(updateOne, { _id: userId }, { $unset: { 'role.client': '' } });
-    sinon.assert.calledOnceWithExactly(remove, userId);
-    sinon.assert.calledOnceWithExactly(deleteOne, { user: userId });
-  });
 });
 
 describe('updateUser', () => {
   let userUpdateOne;
   let roleFindById;
   let roleFindOne;
-  let createHelper;
   let userHoldingCreate;
-  const credentials = { company: { _id: new ObjectId() } };
   const userId = new ObjectId();
 
   beforeEach(() => {
     userUpdateOne = sinon.stub(User, 'updateOne');
     roleFindById = sinon.stub(Role, 'findById');
     roleFindOne = sinon.stub(Role, 'findOne');
-    createHelper = sinon.stub(HelpersHelper, 'create');
     userHoldingCreate = sinon.stub(UserHolding, 'create');
   });
   afterEach(() => {
     userUpdateOne.restore();
     roleFindById.restore();
     roleFindOne.restore();
-    createHelper.restore();
     userHoldingCreate.restore();
   });
 
   it('should update a user', async () => {
     const payload = { identity: { firstname: 'Titi' } };
 
-    await UsersHelper.updateUser(userId, payload, credentials);
+    await UsersHelper.updateUser(userId, payload);
 
     sinon.assert.calledOnceWithExactly(userUpdateOne, { _id: userId }, { $set: flat(payload) });
     sinon.assert.notCalled(roleFindById);
-    sinon.assert.notCalled(userHoldingCreate);
-    sinon.assert.notCalled(roleFindOne);
-  });
-
-  it('should update a user and create helper', async () => {
-    const payload = { role: new ObjectId(), customer: new ObjectId() };
-    const payloadWithRole = { 'role.client': payload.role.toHexString() };
-
-    roleFindById.returns(SinonMongoose.stubChainedQueries(
-      { _id: payload.role, name: 'test', interface: 'client' },
-      ['lean']
-    ));
-
-    await UsersHelper.updateUser(userId, payload, credentials);
-
-    sinon.assert.calledOnceWithExactly(userUpdateOne, { _id: userId }, { $set: payloadWithRole });
-    sinon.assert.calledOnceWithExactly(createHelper, userId, payload.customer, credentials.company._id);
-    SinonMongoose.calledOnceWithExactly(
-      roleFindById,
-      [{ query: 'findById', args: [payload.role, { name: 1, interface: 1 }] }, { query: 'lean' }]
-    );
     sinon.assert.notCalled(userHoldingCreate);
     sinon.assert.notCalled(roleFindOne);
   });
@@ -1904,10 +1843,9 @@ describe('updateUser', () => {
       ['lean']
     ));
 
-    await UsersHelper.updateUser(userId, payload, credentials);
+    await UsersHelper.updateUser(userId, payload);
 
     sinon.assert.calledOnceWithExactly(userUpdateOne, { _id: userId }, { $set: payloadWithRole });
-    sinon.assert.notCalled(createHelper);
     SinonMongoose.calledOnceWithExactly(
       roleFindById,
       [{ query: 'findById', args: [payload.role, { name: 1, interface: 1 }] }, { query: 'lean' }]
@@ -1922,7 +1860,7 @@ describe('updateUser', () => {
     roleFindById.returns(SinonMongoose.stubChainedQueries(null, ['lean']));
 
     try {
-      await UsersHelper.updateUser(userId, payload, credentials);
+      await UsersHelper.updateUser(userId, payload);
     } catch (e) {
       expect(e).toEqual(Boom.badRequest('Le rôle n\'existe pas.'));
     } finally {
@@ -1930,7 +1868,6 @@ describe('updateUser', () => {
         roleFindById,
         [{ query: 'findById', args: [payload.role, { name: 1, interface: 1 }] }, { query: 'lean' }]
       );
-      sinon.assert.notCalled(createHelper);
       sinon.assert.notCalled(userUpdateOne);
       sinon.assert.notCalled(userHoldingCreate);
       sinon.assert.notCalled(roleFindOne);
@@ -1943,7 +1880,7 @@ describe('updateUser', () => {
 
     roleFindOne.returns(SinonMongoose.stubChainedQueries(holdingRole, ['lean']));
 
-    await UsersHelper.updateUser(userId, payload, credentials);
+    await UsersHelper.updateUser(userId, payload);
 
     sinon.assert.calledOnceWithExactly(
       userHoldingCreate,
@@ -1954,7 +1891,6 @@ describe('updateUser', () => {
       [{ query: 'findOne', args: [{ name: HOLDING_ADMIN }] }, { query: 'lean' }]
     );
     sinon.assert.calledOnceWithExactly(userUpdateOne, { _id: userId }, { $set: { 'role.holding': holdingRole._id } });
-    sinon.assert.notCalled(createHelper);
     sinon.assert.notCalled(roleFindById);
   });
 });

@@ -96,7 +96,7 @@ const exists = async (req) => {
 
 const update = async (req) => {
   try {
-    await UsersHelper.updateUser(req.params._id, req.payload, req.auth.credentials);
+    await UsersHelper.updateUser(req.params._id, req.payload);
 
     return { message: translate[language].userUpdated };
   } catch (e) {

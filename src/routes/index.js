@@ -22,7 +22,6 @@ exports.routes = [
   { plugin: require('./email'), routes: { prefix: '/email' } },
   { plugin: require('./endToEnd'), routes: { prefix: '/end-to-end' } },
   { plugin: require('./exports'), routes: { prefix: '/exports' } },
-  { plugin: require('./helpers'), routes: { prefix: '/helpers' } },
   { plugin: require('./holdings'), routes: { prefix: '/holdings' } },
   { plugin: require('./payments'), routes: { prefix: '/payments' } },
   { plugin: require('./programs'), routes: { prefix: '/programs' } },

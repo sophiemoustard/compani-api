@@ -183,10 +183,6 @@ module.exports = {
     questionnaireQRCodeGenerated: 'Questionnaire QR Code generated.',
     /*  QuestionnaireHistories */
     questionnaireHistoryConflict: 'A questionnaire history already exists.',
-    /* Helper */
-    helpersFound: 'Helpers found.',
-    helpersNotFound: 'Helpers not found.',
-    helperUpdated: 'Helper updated.',
     /* userCompanies */
     userCompanyNotFound: 'User company doesn\'t exist.',
     userCompanyUpdated: 'User company updated.',
@@ -396,10 +392,6 @@ module.exports = {
     questionnaireQRCodeGenerated: 'QR Code généré.',
     /*  QuestionnaireHistories */
     questionnaireHistoryConflict: 'Vous avez déjà répondu à ce questionnaire.',
-    /* Helper */
-    helpersFound: 'Liste des aidants trouvée.',
-    helpersNotFound: 'Liste des aidants non trouvée.',
-    helperUpdated: 'Aidant(e) mis(e) à jour.',
     /* UserCompanies */
     userCompanyNotFound: 'Impossible de mettre à jour les informations liées à la structure de cet(te) apprenant(e).',
     userCompanyUpdated: 'Informations sur la structure de l\'apprenant(e) mises à jour.',
