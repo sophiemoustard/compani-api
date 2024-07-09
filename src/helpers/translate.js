@@ -65,8 +65,6 @@ module.exports = {
     paymentCreated: 'Payment created.',
     paymentUpdated: 'Payment updated.',
     paymentRemoved: 'Payment removed.',
-    /* Event history */
-    eventHistoriesFound: 'Event histories found.',
     /* Programs */
     programsFound: 'Programs found.',
     programsNotFound: 'Programs not found.',
@@ -280,8 +278,6 @@ module.exports = {
     paymentNotFound: 'Règlement non trouvé.',
     paymentUpdated: 'Règlement modifié.',
     paymentRemoved: 'Règlement supprimé.',
-    /* Event history */
-    eventHistoriesFound: 'Historique des évènements trouvés.',
     /* Programs */
     programsFound: 'Liste des programmes trouvée.',
     programsNotFound: 'Liste des programmes non trouvée.',

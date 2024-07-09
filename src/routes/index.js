@@ -21,7 +21,6 @@ exports.routes = [
   { plugin: require('./creditNotes'), routes: { prefix: '/creditNotes' } },
   { plugin: require('./email'), routes: { prefix: '/email' } },
   { plugin: require('./endToEnd'), routes: { prefix: '/end-to-end' } },
-  { plugin: require('./eventHistories'), routes: { prefix: '/eventhistories' } },
   { plugin: require('./exports'), routes: { prefix: '/exports' } },
   { plugin: require('./helpers'), routes: { prefix: '/helpers' } },
   { plugin: require('./holdings'), routes: { prefix: '/holdings' } },
