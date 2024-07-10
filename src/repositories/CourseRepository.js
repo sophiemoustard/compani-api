@@ -58,7 +58,7 @@ exports.findCoursesForExport = async (startDate, endDate, credentials) => {
         ],
       }
     )
-    .select('_id type misc estimatedStartDate expectedBillsCount')
+    .select('_id type misc estimatedStartDate expectedBillsCount archivedAt')
     .populate({ path: 'companies', select: 'name' })
     .populate({
       path: 'subProgram',

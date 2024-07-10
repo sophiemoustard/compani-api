@@ -46,10 +46,10 @@ exports.getHeader = (data, compani, isBill = false, isPaid = false) => {
   const header = [
     {
       columns: [
-        { image: compani, width: 200, height: 42, alignment: 'right' },
+        { image: compani, width: 150, height: 32, alignment: 'right' },
         {
           stack: [
-            { text: isBill ? 'Facture' : 'Avoir', fontSize: 32 },
+            { text: isBill ? 'Facture' : 'Avoir', fontSize: 18 },
             { text: 'Prestation de services' },
             { text: data.number, bold: true },
             { text: `${isBill ? 'Date de facture' : 'Date de l\'avoir'} : ${data.date}` },
@@ -68,7 +68,7 @@ exports.getHeader = (data, compani, isBill = false, isPaid = false) => {
       marginBottom: 4,
     },
     {
-      canvas: [{ type: 'rect', x: 0, y: 0, w: 200, h: 42, r: 0, fillOpacity: 0.5, color: 'white' }],
+      canvas: [{ type: 'rect', x: 0, y: 0, w: 150, h: 32, r: 0, fillOpacity: 0.5, color: 'white' }],
       absolutePosition: { x: 40, y: 40 },
     },
     {

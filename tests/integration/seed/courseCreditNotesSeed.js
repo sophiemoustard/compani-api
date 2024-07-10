@@ -23,6 +23,8 @@ const vendorCompany = {
   _id: new ObjectId(),
   name: 'Vendor Company',
   siret: '12345678901234',
+  iban: 'FR9210096000302523177152Q14',
+  bic: 'BPCEFRPP',
   activityDeclarationNumber: '13736343575',
   address: {
     fullAddress: '32 Rue du Loup 33000 Bordeaux',
