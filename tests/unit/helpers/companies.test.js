@@ -6,7 +6,6 @@ const Company = require('../../../src/models/Company');
 const CompanyHolding = require('../../../src/models/CompanyHolding');
 const CompanyHelper = require('../../../src/helpers/companies');
 const GDriveStorageHelper = require('../../../src/helpers/gDriveStorage');
-const Drive = require('../../../src/models/Google/Drive');
 const SinonMongoose = require('../sinonMongoose');
 
 describe('createCompany', () => {
@@ -179,56 +178,6 @@ describe('getCompany', () => {
         { query: 'findOne', args: [{ _id: company._id }] },
         { query: 'populate', args: [{ path: 'billingRepresentative', select: '_id picture contact identity local' }] },
         { query: 'populate', args: [{ path: 'salesRepresentative', select: '_id picture contact identity local' }] },
-        { query: 'lean', args: [] },
-      ]
-    );
-  });
-});
-
-describe('uploadFile', () => {
-  let findOneAndUpdate;
-  let addStub;
-  let getFileByIdStub;
-  beforeEach(() => {
-    findOneAndUpdate = sinon.stub(Company, 'findOneAndUpdate');
-    addStub = sinon.stub(Drive, 'add');
-    getFileByIdStub = sinon.stub(Drive, 'getFileById');
-  });
-  afterEach(() => {
-    findOneAndUpdate.restore();
-    addStub.restore();
-    getFileByIdStub.restore();
-  });
-
-  it('should upload a file', async () => {
-    const payload = { fileName: 'mandat_signe', file: 'true', type: 'contract' };
-    const params = { _id: new ObjectId(), driveId: new ObjectId() };
-    const uploadedFile = { id: new ObjectId() };
-    const driveFileInfo = { webViewLink: 'test' };
-    addStub.returns(uploadedFile);
-    getFileByIdStub.returns(driveFileInfo);
-    const companyPayload = {
-      rhConfig: {
-        templates: {
-          contract: { driveId: uploadedFile.id, link: driveFileInfo.webViewLink },
-        },
-      },
-    };
-    findOneAndUpdate.returns(SinonMongoose.stubChainedQueries(null, ['lean']));
-
-    await CompanyHelper.uploadFile(payload, params);
-    sinon.assert.calledWithExactly(addStub, {
-      body: 'true',
-      folder: false,
-      name: payload.fileName,
-      parentFolderId: params.driveId,
-      type: undefined,
-    });
-    sinon.assert.calledWithExactly(getFileByIdStub, { fileId: uploadedFile.id });
-    SinonMongoose.calledOnceWithExactly(
-      findOneAndUpdate,
-      [
-        { query: 'findOneAndUpdate', args: [{ _id: params._id }, { $set: flat(companyPayload) }, { new: true }] },
         { query: 'lean', args: [] },
       ]
     );

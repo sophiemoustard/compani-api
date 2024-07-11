@@ -5,12 +5,10 @@ Joi.objectId = require('joi-objectid')(Joi);
 
 const {
   update,
-  uploadFile,
   create,
   list,
   show,
 } = require('../controllers/companyController');
-const { DOCUMENT_TYPE_LIST } = require('../helpers/constants');
 const { COMPANY_BILLING_PERIODS, COMPANY_TYPES, TRADE_NAME_REGEX, APE_CODE_REGEX } = require('../models/Company');
 const {
   authorizeCompanyUpdate,
@@ -19,7 +17,7 @@ const {
   authorizeGetCompanies,
   authorizeGetCompany,
 } = require('./preHandlers/companies');
-const { addressValidation, formDataPayload } = require('./validations/utils');
+const { addressValidation } = require('./validations/utils');
 
 const tradeNameValidation = Joi.string().regex(TRADE_NAME_REGEX);
 
@@ -87,25 +85,6 @@ exports.plugin = {
         ],
       },
       handler: update,
-    });
-
-    server.route({
-      method: 'POST',
-      path: '/{_id}/gdrive/{driveId}/upload',
-      handler: uploadFile,
-      options: {
-        auth: { scope: ['company-{params._id}'] },
-        payload: formDataPayload(),
-        validate: {
-          params: Joi.object({ _id: Joi.objectId().required(), driveId: Joi.string().required() }),
-          payload: Joi.object({
-            fileName: Joi.string().required(),
-            type: Joi.string().required().valid(...DOCUMENT_TYPE_LIST),
-            file: Joi.any().required(),
-          }),
-        },
-        pre: [{ method: authorizeCompanyUpdate }],
-      },
     });
 
     server.route({

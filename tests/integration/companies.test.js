@@ -3,7 +3,6 @@ const sinon = require('sinon');
 const { ObjectId } = require('mongodb');
 const GDriveStorageHelper = require('../../src/helpers/gDriveStorage');
 const Company = require('../../src/models/Company');
-const Drive = require('../../src/models/Google/Drive');
 const app = require('../../server');
 const { company, populateDB, usersList } = require('./seed/companiesSeed');
 const { getToken, getTokenByCredentials } = require('./helpers/authentication');
@@ -21,7 +20,6 @@ const {
   vendorAdmin,
   userList: authUsersList,
 } = require('../seed/authUsersSeed');
-const { generateFormData, getStream } = require('./utils');
 
 describe('NODE ENV', () => {
   it('should be \'test\'', () => {
@@ -360,89 +358,6 @@ describe('COMPANIES ROUTES - PUT /companies/:id', () => {
           url: `/companies/${company._id}`,
           headers: { Cookie: `alenvi_token=${authToken}` },
           payload,
-        });
-
-        expect(response.statusCode).toBe(role.expectedCode);
-      });
-    });
-  });
-});
-
-describe('COMPANIES ROUTES - POST /{_id}/gdrive/{driveId}/upload', () => {
-  let authToken;
-  const fakeDriveId = 'fakeDriveId';
-  let addStub;
-  let getFileByIdStub;
-
-  beforeEach(() => {
-    addStub = sinon.stub(Drive, 'add');
-    getFileByIdStub = sinon.stub(Drive, 'getFileById');
-  });
-
-  afterEach(() => {
-    addStub.restore();
-    getFileByIdStub.restore();
-  });
-
-  describe('CLIENT_ADMIN', () => {
-    beforeEach(populateDB);
-    beforeEach(async () => {
-      authToken = await getTokenByCredentials(usersList[0].local);
-    });
-
-    it('should upload a file', async () => {
-      addStub.returns({ id: 'fakeFileDriveId' });
-      getFileByIdStub.returns({ webViewLink: 'fakeWebViewLink' });
-
-      const payload = { fileName: 'mandat_signe', file: 'true', type: 'contract' };
-      const form = generateFormData(payload);
-      const response = await app.inject({
-        method: 'POST',
-        url: `/companies/${company._id}/gdrive/${fakeDriveId}/upload`,
-        payload: getStream(form),
-        headers: { ...form.getHeaders(), Cookie: `alenvi_token=${authToken}` },
-      });
-
-      expect(response.statusCode).toEqual(200);
-      sinon.assert.calledOnce(addStub);
-      sinon.assert.calledOnce(getFileByIdStub);
-    });
-
-    it('should not upload file if the user is not from the same company', async () => {
-      const payload = { fileName: 'mandat_signe', file: 'true', type: 'contract' };
-      const form = generateFormData(payload);
-
-      const response = await app.inject({
-        method: 'POST',
-        url: `/companies/${otherCompany._id}/gdrive/${fakeDriveId}/upload`,
-        payload: getStream(form),
-        headers: { ...form.getHeaders(), Cookie: `alenvi_token=${authToken}` },
-      });
-      expect(response.statusCode).toBe(403);
-    });
-  });
-
-  describe('Other roles', () => {
-    const roles = [
-      { name: 'helper', expectedCode: 403 },
-      { name: 'planning_referent', expectedCode: 403 },
-      { name: 'coach', expectedCode: 403 },
-      { name: 'vendor_admin', expectedCode: 403 },
-    ];
-
-    roles.forEach((role) => {
-      it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
-        authToken = await getToken(role.name);
-        addStub.returns({ id: 'fakeFileDriveId' });
-        getFileByIdStub.returns({ webViewLink: 'fakeWebViewLink' });
-
-        const payload = { fileName: 'mandat_signe', file: 'true', type: 'contract' };
-        const form = generateFormData(payload);
-        const response = await app.inject({
-          method: 'POST',
-          url: `/companies/${company._id}/gdrive/${fakeDriveId}/upload`,
-          payload: getStream(form),
-          headers: { ...form.getHeaders(), Cookie: `alenvi_token=${authToken}` },
         });
 
         expect(response.statusCode).toBe(role.expectedCode);

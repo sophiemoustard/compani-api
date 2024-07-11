@@ -3,7 +3,6 @@ const get = require('lodash/get');
 const Company = require('../models/Company');
 const CompanyHolding = require('../models/CompanyHolding');
 const GDriveStorageHelper = require('./gDriveStorage');
-const drive = require('../models/Google/Drive');
 
 exports.createCompany = async (companyPayload) => {
   const companyFolder = await GDriveStorageHelper.createFolderForCompany(companyPayload.name);
@@ -45,27 +44,6 @@ exports.list = async (query) => {
   }
 
   return Company.find({ _id: { $nin: linkedCompanyList } }, { name: 1, salesRepresentative: 1 }).lean();
-};
-
-exports.uploadFile = async (payload, params) => {
-  const { fileName, type, file } = payload;
-
-  const uploadedFile = await GDriveStorageHelper.addFile({
-    driveFolderId: params.driveId,
-    name: fileName,
-    type: payload['Content-Type'],
-    body: file,
-  });
-  const driveFileInfo = await drive.getFileById({ fileId: uploadedFile.id });
-  const configKey = (type.match(/contract/i)) ? 'rhConfig' : 'customersConfig';
-  const companyPayload = {
-    [configKey]: {
-      templates: {
-        [type]: { driveId: uploadedFile.id, link: driveFileInfo.webViewLink },
-      },
-    },
-  };
-  return Company.findOneAndUpdate({ _id: params._id }, { $set: flat(companyPayload) }, { new: true }).lean();
 };
 
 exports.updateCompany = async (companyId, payload) => {
