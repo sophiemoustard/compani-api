@@ -6,7 +6,6 @@ Joi.objectId = require('joi-objectid')(Joi);
 const {
   create,
   list,
-  listWithSectorHistories,
   learnerList,
   show,
   exists,
@@ -97,17 +96,6 @@ exports.plugin = {
         pre: [{ method: authorizeUsersGet }],
       },
       handler: list,
-    });
-
-    server.route({
-      method: 'GET',
-      path: '/sector-histories',
-      options: {
-        auth: { scope: ['users:list'] },
-        validate: { query: Joi.object({ company: Joi.objectId() }) },
-        pre: [{ method: authorizeUsersGet }],
-      },
-      handler: listWithSectorHistories,
     });
 
     server.route({

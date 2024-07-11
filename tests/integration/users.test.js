@@ -826,61 +826,6 @@ describe('USERS ROUTES - GET /users/exists', () => {
   });
 });
 
-describe('USERS ROUTES - GET /users/sector-histories', () => {
-  let authToken;
-  beforeEach(populateDB);
-
-  describe('COACH', () => {
-    beforeEach(async () => {
-      authToken = await getToken('coach');
-    });
-
-    it('should get all auxiliary users (company A in present or future)', async () => {
-      const res = await app.inject({
-        method: 'GET',
-        url: `/users/sector-histories?company=${authCompany._id}`,
-        headers: { Cookie: `alenvi_token=${authToken}` },
-      });
-
-      expect(res.statusCode).toBe(200);
-      expect(res.result.data.users.length).toBe(7);
-    });
-
-    it('should return a 403 if try to get other company', async () => {
-      const res = await app.inject({
-        method: 'GET',
-        url: `/users/sector-histories?company=${otherCompany._id}`,
-        headers: { Cookie: `alenvi_token=${authToken}` },
-      });
-
-      expect(res.statusCode).toBe(403);
-    });
-  });
-
-  describe('Other roles', () => {
-    const roles = [
-      { name: 'helper', expectedCode: 403 },
-      { name: 'auxiliary', expectedCode: 200 },
-      { name: 'auxiliary_without_company', expectedCode: 403 },
-      { name: 'trainer', expectedCode: 403 },
-      { name: 'training_organisation_manager', expectedCode: 200 },
-    ];
-
-    roles.forEach((role) => {
-      it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
-        authToken = await getToken(role.name);
-        const response = await app.inject({
-          method: 'GET',
-          url: `/users/sector-histories?company=${authCompany._id}`,
-          headers: { Cookie: `alenvi_token=${authToken}` },
-        });
-
-        expect(response.statusCode).toBe(role.expectedCode);
-      });
-    });
-  });
-});
-
 describe('USERS ROUTES - GET /users/learners', () => {
   let authToken;
   beforeEach(populateDB);

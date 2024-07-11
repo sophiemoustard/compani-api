@@ -29,7 +29,6 @@ const IdentityVerification = require('../../../src/models/IdentityVerification')
 const Program = require('../../../src/models/Program');
 const Questionnaire = require('../../../src/models/Questionnaire');
 const QuestionnaireHistory = require('../../../src/models/QuestionnaireHistory');
-const SectorHistory = require('../../../src/models/SectorHistory');
 const Step = require('../../../src/models/Step');
 const SubProgram = require('../../../src/models/SubProgram');
 const TrainerMission = require('../../../src/models/TrainerMission');
@@ -2107,27 +2106,6 @@ describe('SEEDS VERIFICATION', () => {
             .every(qh => qh.questionnaire.type === SELF_POSITIONNING && qh.timeline === END_COURSE);
 
           expect(everySelfPositionningHistoryHasAuthorizedTrainerAnswer).toBeTruthy();
-        });
-      });
-
-      describe('Collection SectorHistory', () => {
-        let sectorHistoryList;
-        before(async () => {
-          sectorHistoryList = await SectorHistory
-            .find()
-            .populate({ path: 'auxiliary', select: '_id', populate: { path: 'userCompanyList' } })
-            .setOptions({ allCompanies: true })
-            .lean();
-        });
-
-        it('should pass if all auxiliaries are in company at sector history startDate', () => {
-          const areAuxiliariesInCompanyAtSectorHistoryStartDate = sectorHistoryList
-            .every(sh => sh.auxiliary.userCompanyList
-              .some(uc => UtilsHelper.areObjectIdsEquals(uc.company, sh.company) &&
-                CompaniDate(sh.startDate).isAfter(uc.startDate)
-              )
-            );
-          expect(areAuxiliariesInCompanyAtSectorHistoryStartDate).toBeTruthy();
         });
       });
 

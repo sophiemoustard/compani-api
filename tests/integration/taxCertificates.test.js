@@ -1,7 +1,7 @@
 const { expect } = require('expect');
 const app = require('../../server');
-const { populateDB, taxCertificatesList, helper } = require('./seed/taxCertificatesSeed');
-const { getToken, getTokenByCredentials } = require('./helpers/authentication');
+const { populateDB, taxCertificatesList } = require('./seed/taxCertificatesSeed');
+const { getToken } = require('./helpers/authentication');
 
 describe('NODE ENV', () => {
   it('should be \'test\'', () => {
@@ -39,16 +39,6 @@ describe('TAX CERTIFICATES ROUTES - GET /{_id}/pdf', () => {
   });
 
   describe('Other roles', () => {
-    it('should return tax certificates pdf if I am its helper', async () => {
-      authToken = await getTokenByCredentials(helper.local);
-      const response = await app.inject({
-        method: 'GET',
-        url: `/taxcertificates/${taxCertificatesList[0]._id}/pdfs`,
-        headers: { Cookie: `alenvi_token=${authToken}` },
-      });
-      expect(response.statusCode).toBe(200);
-    });
-
     const roles = [
       { name: 'vendor_admin', expectedCode: 403 },
       { name: 'planning_referent', expectedCode: 403 },

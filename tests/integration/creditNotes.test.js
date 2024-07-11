@@ -3,10 +3,9 @@ const app = require('../../server');
 const {
   populateDB,
   creditNotesList,
-  creditNoteUserList,
   otherCompanyCreditNote,
 } = require('./seed/creditNotesSeed');
-const { getToken, getTokenByCredentials } = require('./helpers/authentication');
+const { getToken } = require('./helpers/authentication');
 
 describe('NODE ENV', () => {
   it('should be \'test\'', () => {
@@ -45,16 +44,6 @@ describe('CREDIT NOTES ROUTES - GET /creditNotes/pdfs', () => {
   });
 
   describe('Other roles', () => {
-    it('should return customer creditnotes pdfs if I am its helper', async () => {
-      authToken = await getTokenByCredentials(creditNoteUserList[0].local);
-      const res = await app.inject({
-        method: 'GET',
-        url: `/creditNotes/${creditNotesList[0]._id}/pdfs`,
-        headers: { Cookie: `alenvi_token=${authToken}` },
-      });
-      expect(res.statusCode).toBe(200);
-    });
-
     const roles = [
       { name: 'helper', expectedCode: 403 },
       { name: 'planning_referent', expectedCode: 403 },

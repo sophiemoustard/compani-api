@@ -1,6 +1,6 @@
 const { expect } = require('expect');
-const { populateDB, balanceCustomerList, balanceUserList, customerFromOtherCompany } = require('./seed/balanceSeed');
-const { getToken, getTokenByCredentials } = require('./helpers/authentication');
+const { populateDB, balanceCustomerList, customerFromOtherCompany } = require('./seed/balanceSeed');
+const { getToken } = require('./helpers/authentication');
 const app = require('../../server');
 const UtilsHelper = require('../../src/helpers/utils');
 
@@ -90,17 +90,6 @@ describe('BALANCES ROUTES - GET /details', () => {
   });
 
   describe('Other roles', () => {
-    it('should return customer balance if I am its helper', async () => {
-      authToken = await getTokenByCredentials(balanceUserList[0].local);
-      const res = await app.inject({
-        method: 'GET',
-        url: `/balances/details?customer=${balanceCustomerList[0]._id}&startDate=2019-10-10&endDate=2019-11-10`,
-        headers: { Cookie: `alenvi_token=${authToken}` },
-      });
-
-      expect(res.statusCode).toBe(200);
-    });
-
     const roles = [
       { name: 'helper', expectedCode: 403 },
       { name: 'planning_referent', expectedCode: 403 },

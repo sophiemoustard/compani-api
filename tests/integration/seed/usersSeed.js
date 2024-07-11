@@ -5,9 +5,6 @@ const User = require('../../../src/models/User');
 const Step = require('../../../src/models/Step');
 const SubProgram = require('../../../src/models/SubProgram');
 const Activity = require('../../../src/models/Activity');
-const Customer = require('../../../src/models/Customer');
-const Sector = require('../../../src/models/Sector');
-const SectorHistory = require('../../../src/models/SectorHistory');
 const UserCompany = require('../../../src/models/UserCompany');
 const IdentityVerification = require('../../../src/models/IdentityVerification');
 const Contract = require('../../../src/models/Contract');
@@ -31,7 +28,6 @@ const {
   E_LEARNING,
   ON_SITE,
 } = require('../../../src/helpers/constants');
-const Helper = require('../../../src/models/Helper');
 const {
   helperRoleId,
   coachRoleId,
@@ -78,23 +74,6 @@ const establishmentList = [
     company: otherCompany._id,
   },
 ];
-
-const customerFromOtherCompany = {
-  _id: new ObjectId(),
-  identity: { title: 'mr', firstname: 'toto', lastname: 'test' },
-  company: otherCompany._id,
-  contact: {
-    primaryAddress: {
-      fullAddress: '37 rue de ponthieu 75008 Paris',
-      zipCode: '75008',
-      city: 'Paris',
-      street: '37 rue de Ponthieu',
-      location: { type: 'Point', coordinates: [2.377133, 48.801389] },
-    },
-    phone: '0123456789',
-    accessCodes: 'porte c3po',
-  },
-};
 
 const helperFromOtherCompany = {
   _id: new ObjectId(),
@@ -284,39 +263,6 @@ const companyLinkRequest = {
   company: authCompany._id,
 };
 
-const customer = {
-  _id: new ObjectId(),
-  company: authCompany._id,
-  identity: { title: 'mr', firstname: 'Romain', lastname: 'Bardet' },
-  contact: {
-    primaryAddress: {
-      fullAddress: '37 rue de ponthieu 75008 Paris',
-      zipCode: '75008',
-      city: 'Paris',
-      street: '37 rue de Ponthieu',
-      location: { type: 'Point', coordinates: [2.377133, 48.801389] },
-    },
-    phone: '0123456789',
-  },
-};
-
-const helpers = [
-  {
-    _id: new ObjectId(),
-    customer: customer._id,
-    user: usersSeedList[3]._id,
-    company: authCompany._id,
-    referent: true,
-  },
-  {
-    _id: new ObjectId(),
-    customer: customerFromOtherCompany._id,
-    user: helperFromOtherCompany._id,
-    company: otherCompany._id,
-    referent: true,
-  },
-];
-
 const userCompanies = [
   {
     user: auxiliaryFromOtherCompany._id,
@@ -368,12 +314,6 @@ const userCompanies = [
   },
 ];
 
-const userSectors = [
-  { _id: new ObjectId(), name: 'Terre', company: authCompany._id },
-  { _id: new ObjectId(), name: 'Lune', company: authCompany._id },
-  { _id: new ObjectId(), name: 'Soleil', company: authCompany._id },
-];
-
 const contracts = [
   {
     _id: contractId,
@@ -398,27 +338,6 @@ const contracts = [
     startDate: '2022-01-02T00:00:00.000Z',
     createdAt: '2022-01-01T23:59:59.000Z',
     company: authCompany._id,
-  },
-];
-
-const sectorHistories = [
-  {
-    auxiliary: usersSeedList[0]._id,
-    sector: userSectors[0]._id,
-    company: authCompany._id,
-    startDate: '2022-12-10T10:00:00.000Z',
-  },
-  {
-    auxiliary: usersSeedList[1]._id,
-    sector: userSectors[0]._id,
-    company: authCompany._id,
-    startDate: '2022-12-10T10:00:00.000Z',
-  },
-  {
-    auxiliary: usersSeedList[4]._id,
-    sector: userSectors[0]._id,
-    company: authCompany._id,
-    startDate: '2022-12-10T10:00:00.000Z',
   },
 ];
 
@@ -503,12 +422,8 @@ const populateDB = async () => {
     Card.create(cardsList),
     Contract.create(contracts),
     Course.create(coursesList),
-    Customer.create(customer, customerFromOtherCompany),
     Establishment.create(establishmentList),
-    Helper.create(helpers),
     IdentityVerification.create(identityVerifications),
-    Sector.create(userSectors),
-    SectorHistory.create(sectorHistories),
     Step.create(stepList),
     SubProgram.create(subProgramsList),
     User.create([...usersSeedList, ...usersFromDifferentCompanyList]),
@@ -522,12 +437,8 @@ module.exports = {
   usersFromDifferentCompanyList,
   populateDB,
   isInList,
-  customer,
-  customerFromOtherCompany,
   helperFromOtherCompany,
   traineeWhoLeftCompanyWithoutSubscription,
-  userSectors,
-  sectorHistories,
   establishmentList,
   coachFromOtherCompany,
   auxiliaryFromOtherCompany,

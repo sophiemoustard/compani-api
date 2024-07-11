@@ -3,11 +3,10 @@ const sinon = require('sinon');
 const app = require('../../server');
 const {
   populateDB,
-  billUserList,
   billList,
   authBillList,
 } = require('./seed/billsSeed');
-const { getToken, getTokenByCredentials } = require('./helpers/authentication');
+const { getToken } = require('./helpers/authentication');
 const PdfHelper = require('../../src/helpers/pdf');
 
 describe('NODE ENV', () => {
@@ -53,17 +52,6 @@ describe('BILL ROUTES - GET /bills/pdfs', () => {
     });
     afterEach(() => {
       generatePdf.restore();
-    });
-
-    it('should return customer bills pdf if I am its helper', async () => {
-      generatePdf.returns('pdf');
-      authToken = await getTokenByCredentials(billUserList[0].local);
-      const res = await app.inject({
-        method: 'GET',
-        url: `/bills/${authBillList[0]._id}/pdfs`,
-        headers: { Cookie: `alenvi_token=${authToken}` },
-      });
-      expect(res.statusCode).toBe(200);
     });
 
     const roles = [

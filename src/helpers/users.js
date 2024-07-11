@@ -21,7 +21,6 @@ const translate = require('./translate');
 const GCloudStorageHelper = require('./gCloudStorage');
 const {
   TRAINER,
-  AUXILIARY_ROLES,
   HELPER,
   AUXILIARY_WITHOUT_COMPANY,
   CLIENT_ADMIN,
@@ -97,30 +96,6 @@ exports.getUsersList = async (query, credentials) => {
     .populate({ path: 'role.client', select: '-__v -createdAt -updatedAt' })
     .populate({ path: 'role.holding', select: '-__v -createdAt -updatedAt' })
     .populate({ path: 'company', populate: { path: 'company' }, select: '-__v -createdAt -updatedAt' })
-    .populate({
-      path: 'sector',
-      select: '_id sector',
-      match: { company: get(credentials, 'company._id') },
-      options: { isVendorUser: has(credentials, 'role.vendor') },
-    })
-    .populate({ path: 'contracts', select: 'startDate endDate' })
-    .setOptions({ isVendorUser: has(credentials, 'role.vendor') })
-    .lean({ virtuals: true, autopopulate: true });
-};
-
-exports.getUsersListWithSectorHistories = async (query, credentials) => {
-  const params = await exports.formatQueryForUsersList({ ...query, role: AUXILIARY_ROLES });
-
-  return User.find(params, {}, { autopopulate: false })
-    .populate({ path: 'role.client', select: '-__v -createdAt -updatedAt' })
-    .populate({ path: 'company', populate: { path: 'company' }, select: '-__v -createdAt -updatedAt' })
-    .populate({
-      path: 'sectorHistories',
-      select: '_id sector startDate endDate',
-      match: { company: get(credentials, 'company._id') },
-      options: { isVendorUser: has(credentials, 'role.vendor') },
-    })
-    .populate({ path: 'contracts', select: 'startDate endDate' })
     .setOptions({ isVendorUser: has(credentials, 'role.vendor') })
     .lean({ virtuals: true, autopopulate: true });
 };
@@ -226,12 +201,10 @@ exports.getLearnerList = async (query, credentials) => {
 };
 
 exports.getUser = async (userId, credentials) => {
-  const companyId = get(credentials, 'company._id') || null;
   const isVendorUser = has(credentials, 'role.vendor');
   const requestingOwnInfos = UtilsHelper.areObjectIdsEquals(userId, credentials._id);
 
   const user = await User.findOne({ _id: userId })
-    .populate({ path: 'contracts', select: '-__v -createdAt -updatedAt' })
     .populate({
       path: 'company',
       populate: { path: 'company', populate: { path: 'billingRepresentative salesRepresentative' } },
@@ -242,20 +215,7 @@ exports.getUser = async (userId, credentials) => {
       populate: { path: 'holding', populate: { path: 'companies' } },
       select: '-__v -createdAt -updatedAt',
     })
-    .populate({
-      path: 'sector',
-      select: '_id sector',
-      match: { company: companyId },
-      options: { isVendorUser, requestingOwnInfos },
-    })
-    .populate({
-      path: 'customers',
-      select: '-__v -createdAt -updatedAt',
-      match: { company: companyId },
-      options: { isVendorUser, requestingOwnInfos },
-    })
     .populate({ path: 'companyLinkRequest', populate: { path: 'company', select: '_id name' } })
-    .populate({ path: 'establishment', select: 'siret' })
     .populate({ path: 'userCompanyList' })
     .lean({ autopopulate: true, virtuals: true });
 
@@ -324,12 +284,11 @@ exports.userExists = async (email, credentials) => {
  *  - Vendor admin creates program tester
  * 2nd case : Client role creates user for his organization => set company with the one in credentials
  * + role (if needed)
- *  - if sector is given => add sector history (for auxiliary and planning referent)
  * 3rd case : Vendor role creates user for one organization => set company with the one in payload + role (if needed)
  * 4th case : Vendor role creates trainer => do no set company
  */
 exports.createUser = async (userPayload, credentials) => {
-  const payload = { ...omit(userPayload, ['role', 'sector', 'customer']), refreshToken: uuidv4() };
+  const payload = { ...omit(userPayload, ['role']), refreshToken: uuidv4() };
 
   const role = userPayload.role ? await Role.findById(userPayload.role, { name: 1, interface: 1 }).lean() : null;
   if (userPayload.role && !role) throw Boom.badRequest(translate[language].unknownRole);
@@ -346,13 +305,11 @@ exports.createUser = async (userPayload, credentials) => {
     ...(payload.userCompanyStartDate && { startDate: payload.userCompanyStartDate }),
   });
 
-  return User.findOne({ _id: user._id })
-    .populate({ path: 'sector', select: '_id sector', match: { company: companyId } })
-    .lean({ virtuals: true, autopopulate: true });
+  return User.findOne({ _id: user._id }).lean({ virtuals: true, autopopulate: true });
 };
 
 const formatUpdatePayload = async (updatedUser) => {
-  const payload = omit(updatedUser, ['role', 'customer', 'sector', 'company', 'holding']);
+  const payload = omit(updatedUser, ['role', 'company', 'holding']);
 
   if (updatedUser.role) {
     const role = await Role.findById(updatedUser.role, { name: 1, interface: 1 }).lean();
