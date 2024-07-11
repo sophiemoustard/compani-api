@@ -16,14 +16,6 @@ const {
 } = require('./constants');
 const { CompaniDate } = require('./dates/companiDates');
 
-exports.getBills = async (query, credentials) => {
-  const { startDate, endDate, ...billsQuery } = query;
-  if (startDate || endDate) billsQuery.date = UtilsHelper.getDateQuery({ startDate, endDate });
-  billsQuery.company = get(credentials, 'company._id', null);
-
-  return Bill.find(billsQuery).populate({ path: 'thirdPartyPayer', select: '_id name' }).lean();
-};
-
 exports.filterFundingVersion = date => ver => DatesHelper.isSameOrBefore(ver.createdAt, date);
 
 const getMatchingFunding = (bill, event) => bill.customer.fundings

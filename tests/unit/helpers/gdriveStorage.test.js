@@ -4,30 +4,6 @@ const Boom = require('@hapi/boom');
 const Gdrive = require('../../../src/models/Google/Drive');
 const GDriveStorageHelper = require('../../../src/helpers/gDriveStorage');
 
-describe('addFile', () => {
-  it('should add file to google drive', async () => {
-    const addStub = sinon.stub(Gdrive, 'add').returns({ id: '123456780' });
-    const payload = {
-      name: 'Test',
-      driveFolderId: '0987654321',
-      type: 'application/pdf',
-      body: 'This is a file',
-    };
-
-    const result = await GDriveStorageHelper.addFile(payload);
-
-    expect(result).toEqual({ id: '123456780' });
-    sinon.assert.calledWithExactly(addStub, {
-      name: payload.name,
-      parentFolderId: payload.driveFolderId,
-      type: payload.type,
-      body: payload.body,
-      folder: false,
-    });
-    addStub.restore();
-  });
-});
-
 describe('createFolder', () => {
   let addStub;
   const parentFolderId = '1234567890';

@@ -62,19 +62,6 @@ exports.getMatchingObject = (date, list, dateKey) => {
   return filteredAndSortedList[0];
 };
 
-exports.getDateQuery = (dates) => {
-  if (dates.startDate && dates.endDate) {
-    return {
-      $lte: moment(dates.endDate).endOf('day').toISOString(),
-      $gte: moment(dates.startDate).startOf('day').toISOString(),
-    };
-  }
-
-  if (dates.startDate) return { $gte: dates.startDate };
-
-  return { $lt: dates.endDate };
-};
-
 exports.getFixedNumber = (number, toFixedNb = 2) =>
   (Math.round(number * (10 ** toFixedNb)) / (10 ** toFixedNb)).toFixed(toFixedNb);
 

@@ -1,18 +1,6 @@
 const Boom = require('@hapi/boom');
 const Gdrive = require('../models/Google/Drive');
 
-exports.addFile = async (params) => {
-  const parentFolderId = params.driveFolderId;
-  const uploadedFile = await Gdrive.add({
-    name: params.name,
-    parentFolderId,
-    folder: false,
-    type: params.type,
-    body: params.body,
-  });
-  return uploadedFile;
-};
-
 exports.createFolder = async (identity, parentFolderId) => {
   const folder = await Gdrive.add({
     name: typeof identity === 'string' ? identity : `${identity.lastname.toUpperCase()} ${identity.firstname || ''}`,

@@ -6,9 +6,6 @@ const _ = require('lodash');
 const ThirdPartyPayer = require('../../../src/models/ThirdPartyPayer');
 const Customer = require('../../../src/models/Customer');
 const BalanceHelper = require('../../../src/helpers/balances');
-const BillHelper = require('../../../src/helpers/bills');
-const PaymentHelper = require('../../../src/helpers/payments');
-const CreditNoteHelper = require('../../../src/helpers/creditNotes');
 const UtilsHelper = require('../../../src/helpers/utils');
 const BillRepository = require('../../../src/repositories/BillRepository');
 const CreditNoteRepository = require('../../../src/repositories/CreditNoteRepository');
@@ -951,46 +948,5 @@ describe('getBalances', () => {
     sinon.assert.notCalled(getBalance);
     sinon.assert.notCalled(getBalancesFromCreditNotes);
     sinon.assert.notCalled(getBalancesFromPayments);
-  });
-});
-
-describe('getBalancesWithDetails', () => {
-  let getBalancesStub;
-  let getBillsStub;
-  let getPaymentsStub;
-  let getCreditNotesStub;
-
-  beforeEach(() => {
-    getBalancesStub = sinon.stub(BalanceHelper, 'getBalances');
-    getBillsStub = sinon.stub(BillHelper, 'getBills');
-    getPaymentsStub = sinon.stub(PaymentHelper, 'getPayments');
-    getCreditNotesStub = sinon.stub(CreditNoteHelper, 'getCreditNotes');
-  });
-  afterEach(() => {
-    getBalancesStub.restore();
-    getBillsStub.restore();
-    getPaymentsStub.restore();
-    getCreditNotesStub.restore();
-  });
-
-  it('should get balances with details', async () => {
-    const credentials = { company: { _id: new ObjectId() } };
-    const query = { customer: new ObjectId(), startDate: '2019-12-01', endDate: '2019-12-05' };
-
-    getBalancesStub.returns({ balance: 10 });
-    getBillsStub.returns([{ name: 'bills' }]);
-    getPaymentsStub.returns([{ name: 'payments' }]);
-    getCreditNotesStub.returns([{ name: 'creditNotes' }]);
-
-    const result = await BalanceHelper.getBalancesWithDetails(query, credentials);
-
-    expect(result.balances).toEqual({ balance: 10 });
-    expect(result.bills).toEqual([{ name: 'bills' }]);
-    expect(result.payments).toEqual([{ name: 'payments' }]);
-    expect(result.creditNotes).toEqual([{ name: 'creditNotes' }]);
-    sinon.assert.calledOnceWithExactly(getBalancesStub, credentials, query.customer, query.startDate);
-    sinon.assert.calledOnceWithExactly(getBillsStub, query, credentials);
-    sinon.assert.calledOnceWithExactly(getPaymentsStub, query, credentials);
-    sinon.assert.calledOnceWithExactly(getCreditNotesStub, query, credentials);
   });
 });
