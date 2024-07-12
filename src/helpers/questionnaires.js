@@ -64,7 +64,8 @@ exports.list = async (credentials, query = {}) => {
   const { course: courseId } = query;
 
   if (!courseId) {
-    return Questionnaire.find(query).populate({ path: 'historiesCount', options: { isVendorUser } }).lean();
+    const findQuery = query.program ? query : { type: [EXPECTATIONS, END_OF_COURSE] };
+    return Questionnaire.find(findQuery).populate({ path: 'historiesCount', options: { isVendorUser } }).lean();
   }
 
   const { isStrictlyELearning, courseTimeline, programId } = await exports.getCourseInfos(courseId);
