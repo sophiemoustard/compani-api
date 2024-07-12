@@ -38,38 +38,8 @@ describe('COMPANIES ROUTES - PUT /companies/:id', () => {
     it('should update company', async () => {
       const payload = {
         name: 'Alenvi Alenvi',
-        apeCode: '8110Z',
-        type: 'company',
-        customersConfig: {
-          billingPeriod: 'month',
-          billFooter: 'Bonjour, je suis un footer pour les factures',
-          templates: {
-            debitMandate: { driveId: 'skusku1', link: 'http://test.com/sku' },
-            quote: { driveId: 'skusku2', link: 'http://test.com/sku' },
-            gcs: { driveId: 'skusku3', link: 'http://test.com/sku' },
-          },
-        },
-        rcs: '1234567890',
-        subscriptions: { erp: true },
-        billingAssistance: 'bonjour@toi.com',
-        legalRepresentative: {
-          lastname: 'As',
-          firstname: 'Legal',
-          position: '1-2, c\'est bon ça',
-        },
-        rhConfig: {
-          grossHourlyRate: 25,
-          phoneFeeAmount: 26,
-          amountPerKm: 27,
-          templates: {
-            contract: { driveId: 'skusku4', link: 'http://test.com/sku' },
-            contractVersion: { driveId: 'skusku5', link: 'http://test.com/sku' },
-          },
-        },
-        tradeName: 'TT',
         iban: 'FR3514508000505917721779B12',
         bic: 'RTYUIKJHBFRG',
-        ics: '12345678',
       };
       const response = await app.inject({
         method: 'PUT',
@@ -208,7 +178,7 @@ describe('COMPANIES ROUTES - PUT /companies/:id', () => {
     });
 
     it('should update company', async () => {
-      const payload = { name: 'Alenvi Alenvi', rhConfig: { phoneFeeAmount: 70 }, apeCode: '8110Z' };
+      const payload = { name: 'Alenvi Alenvi' };
       const response = await app.inject({
         method: 'PUT',
         url: `/companies/${company._id}`,
@@ -257,13 +227,6 @@ describe('COMPANIES ROUTES - PUT /companies/:id', () => {
     });
 
     const falsyAssertions = [
-      { payload: { apeCode: '12A' }, case: 'ape code length is lower than 4' },
-      { payload: { type: 'falsy type' }, case: 'wrong type' },
-      { payload: { apeCode: '12345Z' }, case: 'ape code length is greater than 5' },
-      { payload: { apeCode: '12345' }, case: 'ape code is missing a letter' },
-      { payload: { apeCode: '1234a' }, case: 'ape code letter is in lowercase' },
-      { payload: { billingAssistance: 'test@test.f' }, case: 'billing assistance email format is wrong' },
-      { payload: { customersConfig: { billingPeriod: 'falsy billing period' } }, case: 'wrong billing period' },
       { payload: { address: { street: '38 rue de ponthieu' } }, case: 'wrong address' },
     ];
     falsyAssertions.forEach((assertion) => {
@@ -305,7 +268,7 @@ describe('COMPANIES ROUTES - PUT /companies/:id', () => {
     });
 
     it('should update company from holding', async () => {
-      const payload = { rhConfig: { phoneFeeAmount: 70 }, apeCode: '8110Z' };
+      const payload = { name: 'Nouveau nom' };
       const response = await app.inject({
         method: 'PUT',
         url: `/companies/${companyWithoutSubscription._id}`,

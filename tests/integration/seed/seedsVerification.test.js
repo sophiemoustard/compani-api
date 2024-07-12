@@ -86,8 +86,6 @@ const {
   HOLDING_ADMIN,
   PAYMENT,
   REFUND,
-  COMPANY,
-  ASSOCIATION,
   EXPECTATIONS,
   END_OF_COURSE,
   INTRA_HOLDING,
@@ -584,15 +582,6 @@ describe('SEEDS VERIFICATION', () => {
                 get(company.billingRepresentative, 'role.holding.name') === HOLDING_ADMIN)
             );
           expect(doesEveryUserExistAndHasGoodRole).toBeTruthy();
-        });
-
-        it('should pass if every company has good register code type', () => {
-          const hasGoodRegisterCode = companyList.every((company) => {
-            if (company.rcs) return company.type === COMPANY;
-            if (company.rna) return company.type === ASSOCIATION;
-            return true;
-          });
-          expect(hasGoodRegisterCode).toBeTruthy();
         });
       });
 

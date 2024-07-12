@@ -3,7 +3,6 @@ const omit = require('lodash/omit');
 const isEmpty = require('lodash/isEmpty');
 const { ObjectId } = require('mongodb');
 const Intl = require('intl');
-const moment = require('../extensions/moment');
 const { CIVILITY_LIST, SHORT_DURATION_H_MM, HHhMM, SECOND } = require('./constants');
 const DatesHelper = require('./dates');
 const { CompaniDate } = require('./dates/companiDates');
@@ -126,23 +125,6 @@ exports.formatArrayOrStringQueryParam = (param, keyName) =>
 exports.capitalize = (s) => {
   if (typeof s !== 'string') return '';
   return s.charAt(0).toUpperCase() + s.slice(1);
-};
-
-exports.getDaysRatioBetweenTwoDates = (start, end, shouldPayHolidays) => {
-  let holidays = 0;
-  let sundays = 0;
-  let businessDays = 0;
-  if (moment(end).isBefore(start)) return { holidays, sundays, businessDays };
-
-  const range = Array.from(moment().range(start, end).by('days'));
-  for (const day of range) {
-    // startOf('day') is necessery to check fr holidays in business day
-    if (shouldPayHolidays && day.startOf('d').isHoliday() && day.day() !== 0) holidays += 1;
-    else if (day.day() !== 0) businessDays += 1;
-    else sundays += 1;
-  }
-
-  return { holidays, sundays, businessDays };
 };
 
 exports.formatIdentity = (identity, format) => {

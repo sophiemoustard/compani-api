@@ -9,7 +9,6 @@ const {
   list,
   show,
 } = require('../controllers/companyController');
-const { COMPANY_BILLING_PERIODS, COMPANY_TYPES, TRADE_NAME_REGEX, APE_CODE_REGEX } = require('../models/Company');
 const {
   authorizeCompanyUpdate,
   authorizeCompanyCreation,
@@ -18,8 +17,6 @@ const {
   authorizeGetCompany,
 } = require('./preHandlers/companies');
 const { addressValidation } = require('./validations/utils');
-
-const tradeNameValidation = Joi.string().regex(TRADE_NAME_REGEX);
 
 exports.plugin = {
   name: 'routes-companies',
@@ -33,49 +30,10 @@ exports.plugin = {
           params: Joi.object({ _id: Joi.objectId().required() }),
           payload: Joi.object().keys({
             name: Joi.string(),
-            tradeName: tradeNameValidation.allow('', null),
-            type: Joi.string().valid(...COMPANY_TYPES),
             address: addressValidation,
-            subscriptions: Joi.object().keys({ erp: Joi.boolean() }).min(1),
-            ics: Joi.string(),
-            rcs: Joi.string(),
-            rna: Joi.string(),
             iban: Joi.string(),
             bic: Joi.string(),
-            billingAssistance: Joi.string().email().allow(''),
-            legalRepresentative: Joi.object().keys({
-              lastname: Joi.string(),
-              firstname: Joi.string(),
-              position: Joi.string(),
-            }),
             billingRepresentative: Joi.objectId(),
-            apeCode: Joi.string().regex(APE_CODE_REGEX),
-            rhConfig: Joi.object().keys({
-              grossHourlyRate: Joi.number(),
-              phoneFeeAmount: Joi.number(),
-              amountPerKm: Joi.number(),
-              transportSubs: [
-                Joi.array().items({ department: Joi.string(), price: Joi.number() }),
-                Joi.object().keys({ subId: Joi.objectId().required(), price: Joi.number() }),
-              ],
-              templates: Joi.object().keys({
-                contract: Joi.object().keys({ driveId: Joi.string().allow(null), link: Joi.string().allow(null) }),
-                contractVersion: Joi.object().keys({
-                  driveId: Joi.string().allow(null),
-                  link: Joi.string().allow(null),
-                }),
-              }),
-              shouldPayHolidays: Joi.boolean(),
-            }),
-            customersConfig: Joi.object().keys({
-              billingPeriod: Joi.string().valid(...COMPANY_BILLING_PERIODS),
-              billFooter: Joi.string().allow(''),
-              templates: Joi.object().keys({
-                debitMandate: Joi.object().keys({ driveId: Joi.string().allow(null), link: Joi.string().allow(null) }),
-                quote: Joi.object().keys({ driveId: Joi.string().allow(null), link: Joi.string().allow(null) }),
-                gcs: Joi.object().keys({ driveId: Joi.string().allow(null), link: Joi.string().allow(null) }),
-              }),
-            }),
             salesRepresentative: Joi.objectId(),
           }),
         },

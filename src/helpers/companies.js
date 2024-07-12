@@ -1,5 +1,4 @@
 const flat = require('flat');
-const get = require('lodash/get');
 const Company = require('../models/Company');
 const CompanyHolding = require('../models/CompanyHolding');
 const GDriveStorageHelper = require('./gDriveStorage');
@@ -46,21 +45,8 @@ exports.list = async (query) => {
   return Company.find({ _id: { $nin: linkedCompanyList } }, { name: 1, salesRepresentative: 1 }).lean();
 };
 
-exports.updateCompany = async (companyId, payload) => {
-  const transportSubs = get(payload, 'rhConfig.transportSubs');
-  if (transportSubs && !Array.isArray(transportSubs)) {
-    const { subId } = payload.rhConfig.transportSubs;
-    const set = { 'rhConfig.transportSubs.$': transportSubs };
-
-    return Company.findOneAndUpdate(
-      { _id: companyId, 'rhConfig.transportSubs._id': subId },
-      { $set: flat(set) },
-      { new: true }
-    );
-  }
-
-  return Company.findOneAndUpdate({ _id: companyId }, { $set: flat(payload) }, { new: true });
-};
+exports.updateCompany = async (companyId, payload) =>
+  Company.findOneAndUpdate({ _id: companyId }, { $set: flat(payload) }, { new: true });
 
 exports.getCompany = async companyId => Company
   .findOne({ _id: companyId })

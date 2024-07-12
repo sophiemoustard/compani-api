@@ -10,16 +10,13 @@ const holdings = [
 const company = {
   _id: new ObjectId(),
   name: 'Company',
-  tradeName: 'comp',
   prefixNumber: 107,
   iban: '1234',
   bic: '5678',
-  ics: '9876',
   folderId: '1234567890',
   directDebitsFolderId: '1234567890',
   customersFolderId: 'qwerty',
   auxiliariesFolderId: 'asdfgh',
-  customersConfig: { billingPeriod: 'two_weeks' },
   subscriptions: { erp: false },
 };
 

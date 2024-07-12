@@ -7,25 +7,18 @@ const UserCompany = require('../../../src/models/UserCompany');
 const { authCompany, companyWithoutSubscription, otherCompany } = require('../../seed/authCompaniesSeed');
 const { deleteNonAuthenticationSeeds } = require('../helpers/db');
 const { clientAdminRoleId } = require('../../seed/authRolesSeed');
-const { INTERVENTION, MOBILE, WEBAPP, COMPANY } = require('../../../src/helpers/constants');
+const { INTERVENTION, MOBILE, WEBAPP } = require('../../../src/helpers/constants');
 
 const company = {
   _id: new ObjectId(),
-  rcs: '1234567890',
-  siren: '1234567890',
   name: 'Test',
-  tradeName: 'TT',
-  rhConfig: { phoneFeeAmount: 12 },
   iban: 'FR3514508000505917721779B12',
   bic: 'RTYUIKJHBFRG',
-  ics: '12345678',
   folderId: '0987654321',
   directDebitsFolderId: '1234567890',
-  customersConfig: { billingPeriod: 'two_weeks' },
   customersFolderId: 'mnbvcxz',
   auxiliariesFolderId: 'kjhgf',
   prefixNumber: 104,
-  type: COMPANY,
 };
 
 const event = {
