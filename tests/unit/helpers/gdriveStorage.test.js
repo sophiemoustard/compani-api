@@ -105,31 +105,3 @@ describe('createFolderForCompany', () => {
     }
   });
 });
-
-describe('deleteFile', () => {
-  let deleteFile;
-
-  beforeEach(() => {
-    deleteFile = sinon.stub(Gdrive, 'deleteFile');
-    process.env.NODE_ENV = 'sku';
-  });
-
-  afterEach(() => {
-    deleteFile.restore();
-    delete process.env.NODE_ENV;
-  });
-
-  it('should delete a file in google drive', async () => {
-    await GDriveStorageHelper.deleteFile('skusku');
-
-    sinon.assert.calledWithExactly(deleteFile, { fileId: 'skusku' });
-  });
-
-  it('should not delete a file if process.env.NODE_ENV is test', async () => {
-    process.env.NODE_ENV = 'test';
-
-    await GDriveStorageHelper.deleteFile('skusku');
-
-    sinon.assert.notCalled(deleteFile);
-  });
-});

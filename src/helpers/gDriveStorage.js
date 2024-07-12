@@ -21,7 +21,3 @@ exports.createFolderForCompany = async (companyName) => {
 
   return folder;
 };
-
-exports.deleteFile = async (driveFileId) => {
-  if (process.env.NODE_ENV !== 'test') await Gdrive.deleteFile({ fileId: driveFileId });
-};
