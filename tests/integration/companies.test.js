@@ -4,7 +4,7 @@ const { ObjectId } = require('mongodb');
 const GDriveStorageHelper = require('../../src/helpers/gDriveStorage');
 const Company = require('../../src/models/Company');
 const app = require('../../server');
-const { company, populateDB, usersList } = require('./seed/companiesSeed');
+const { companies, populateDB, usersList } = require('./seed/companiesSeed');
 const { getToken, getTokenByCredentials } = require('./helpers/authentication');
 const {
   authCompany,
@@ -43,7 +43,7 @@ describe('COMPANIES ROUTES - PUT /companies/:id', () => {
       };
       const response = await app.inject({
         method: 'PUT',
-        url: `/companies/${company._id}`,
+        url: `/companies/${companies[0]._id}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
         payload,
       });
@@ -66,33 +66,34 @@ describe('COMPANIES ROUTES - PUT /companies/:id', () => {
     it('should update name even if only case or diacritics have changed', async () => {
       const response = await app.inject({
         method: 'PUT',
-        url: `/companies/${company._id}`,
+        url: `/companies/${companies[0]._id}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
         payload: { name: 'Tèst' },
       });
 
       expect(response.statusCode).toBe(200);
-      const updatedCompany = await Company.countDocuments({ _id: company._id, name: 'Tèst' });
+      const updatedCompany = await Company.countDocuments({ _id: companies[0]._id, name: 'Tèst' });
       expect(updatedCompany).toBe(1);
     });
 
     it('should update salesRepresentative', async () => {
       const response = await app.inject({
         method: 'PUT',
-        url: `/companies/${company._id}`,
+        url: `/companies/${companies[0]._id}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
         payload: { salesRepresentative: vendorAdmin._id },
       });
 
       expect(response.statusCode).toBe(200);
-      const updatedCompany = await Company.countDocuments({ _id: company._id, salesRepresentative: vendorAdmin._id });
+      const updatedCompany = await Company
+        .countDocuments({ _id: companies[0]._id, salesRepresentative: vendorAdmin._id });
       expect(updatedCompany).toBe(1);
     });
 
     it('should return 409 if other company has exact same name', async () => {
       const response = await app.inject({
         method: 'PUT',
-        url: `/companies/${company._id}`,
+        url: `/companies/${companies[0]._id}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
         payload: { name: authCompany.name },
       });
@@ -103,7 +104,7 @@ describe('COMPANIES ROUTES - PUT /companies/:id', () => {
     it('should return 409 if other company has same name (case and diacritics insensitive)', async () => {
       const response = await app.inject({
         method: 'PUT',
-        url: `/companies/${company._id}`,
+        url: `/companies/${companies[0]._id}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
         payload: { name: 'tEST sas' },
       });
@@ -127,7 +128,7 @@ describe('COMPANIES ROUTES - PUT /companies/:id', () => {
       const payload = { name: 'Alenvi Alenvi', billingRepresentative: usersList[1]._id };
       const response = await app.inject({
         method: 'PUT',
-        url: `/companies/${company._id}`,
+        url: `/companies/${companies[0]._id}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
         payload,
       });
@@ -151,7 +152,7 @@ describe('COMPANIES ROUTES - PUT /companies/:id', () => {
       const payload = { name: 'Alenvi Alenvi', billingRepresentative: coach._id };
       const response = await app.inject({
         method: 'PUT',
-        url: `/companies/${company._id}`,
+        url: `/companies/${companies[0]._id}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
         payload,
       });
@@ -162,7 +163,7 @@ describe('COMPANIES ROUTES - PUT /companies/:id', () => {
     it('should return 404 if salesRepresentative has wrong role', async () => {
       const response = await app.inject({
         method: 'PUT',
-        url: `/companies/${company._id}`,
+        url: `/companies/${companies[0]._id}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
         payload: { salesRepresentative: usersList[1]._id },
       });
@@ -181,7 +182,7 @@ describe('COMPANIES ROUTES - PUT /companies/:id', () => {
       const payload = { name: 'Alenvi Alenvi' };
       const response = await app.inject({
         method: 'PUT',
-        url: `/companies/${company._id}`,
+        url: `/companies/${companies[0]._id}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
         payload,
       });
@@ -206,7 +207,7 @@ describe('COMPANIES ROUTES - PUT /companies/:id', () => {
       const payload = { name: 'Alenvi Alenvi', billingRepresentative: usersList[1]._id };
       const response = await app.inject({
         method: 'PUT',
-        url: `/companies/${company._id}`,
+        url: `/companies/${companies[0]._id}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
         payload,
       });
@@ -218,7 +219,7 @@ describe('COMPANIES ROUTES - PUT /companies/:id', () => {
       const payload = { name: 'Alenvi Alenvi', billingRepresentative: coach._id };
       const response = await app.inject({
         method: 'PUT',
-        url: `/companies/${company._id}`,
+        url: `/companies/${companies[0]._id}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
         payload,
       });
@@ -233,7 +234,7 @@ describe('COMPANIES ROUTES - PUT /companies/:id', () => {
       it(`should return a 400 error if ${assertion.case}`, async () => {
         const response = await app.inject({
           method: 'PUT',
-          url: `/companies/${company._id}`,
+          url: `/companies/${companies[0]._id}`,
           headers: { Cookie: `alenvi_token=${authToken}` },
           payload: assertion.payload,
         });
@@ -271,7 +272,7 @@ describe('COMPANIES ROUTES - PUT /companies/:id', () => {
       const payload = { name: 'Nouveau nom' };
       const response = await app.inject({
         method: 'PUT',
-        url: `/companies/${companyWithoutSubscription._id}`,
+        url: `/companies/${companies[0]._id}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
         payload,
       });
@@ -318,7 +319,7 @@ describe('COMPANIES ROUTES - PUT /companies/:id', () => {
         const payload = { name: 'SuperTest' };
         const response = await app.inject({
           method: 'PUT',
-          url: `/companies/${company._id}`,
+          url: `/companies/${companies[0]._id}`,
           headers: { Cookie: `alenvi_token=${authToken}` },
           payload,
         });
@@ -457,7 +458,7 @@ describe('COMPANIES ROUTES - GET /companies', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      expect(response.result.data.companies.length).toEqual(4);
+      expect(response.result.data.companies.length).toEqual(5);
     });
 
     it('should list companies not in holdings', async () => {
@@ -486,7 +487,7 @@ describe('COMPANIES ROUTES - GET /companies', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      expect(response.result.data.companies.length).toEqual(2);
+      expect(response.result.data.companies.length).toEqual(3);
     });
 
     it('should return 404 if holding doesn\'t exists', async () => {
