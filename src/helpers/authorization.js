@@ -29,8 +29,6 @@ const validate = async (decoded) => {
     const user = await User.findById(decoded._id, '_id identity role local')
       .populate({ path: 'company', populate: { path: 'company' } })
       .populate({ path: 'holding', populate: { path: 'holding', select: '_id', populate: { path: 'companies' } } })
-      .populate({ path: 'sector', options: { requestingOwnInfos: true } })
-      .populate({ path: 'customers', options: { requestingOwnInfos: true } })
       .lean({ autopopulate: true });
 
     const userRoles = user.role ? Object.values(user.role).filter(role => !!role) : [];
@@ -38,13 +36,11 @@ const validate = async (decoded) => {
     const userRolesName = userRoles.map(role => role.name);
     const userRights = formatRights(userRoles, user.company);
 
-    const customersScopes = user.customers ? user.customers.map(id => `customer-${id.toHexString()}`) : [];
     const scope = [
       `user:read-${decoded._id}`,
       `user:edit-${decoded._id}`,
       ...userRolesName,
       ...userRights,
-      ...customersScopes,
     ];
 
     if (get(user, 'role.client.name') === CLIENT_ADMIN) scope.push(`company-${user.company._id}`);
@@ -60,7 +56,6 @@ const validate = async (decoded) => {
       identity: user.identity || null,
       company: user.company || null,
       holding: user.holding || null,
-      sector: user.sector ? user.sector.toHexString() : null,
       role: pick(user.role, ['client.name', 'vendor.name', 'holding.name']),
       scope,
     };

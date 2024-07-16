@@ -6,7 +6,6 @@ const Company = require('../../../src/models/Company');
 const CompanyHolding = require('../../../src/models/CompanyHolding');
 const CompanyHelper = require('../../../src/helpers/companies');
 const GDriveStorageHelper = require('../../../src/helpers/gDriveStorage');
-const Drive = require('../../../src/models/Google/Drive');
 const SinonMongoose = require('../sinonMongoose');
 
 describe('createCompany', () => {
@@ -28,7 +27,7 @@ describe('createCompany', () => {
   });
 
   it('should create a company', async () => {
-    const payload = { name: 'Test SAS', tradeName: 'Test' };
+    const payload = { name: 'Test SAS' };
     const createdCompany = {
       ...payload,
       folderId: '1234567890',
@@ -185,56 +184,6 @@ describe('getCompany', () => {
   });
 });
 
-describe('uploadFile', () => {
-  let findOneAndUpdate;
-  let addStub;
-  let getFileByIdStub;
-  beforeEach(() => {
-    findOneAndUpdate = sinon.stub(Company, 'findOneAndUpdate');
-    addStub = sinon.stub(Drive, 'add');
-    getFileByIdStub = sinon.stub(Drive, 'getFileById');
-  });
-  afterEach(() => {
-    findOneAndUpdate.restore();
-    addStub.restore();
-    getFileByIdStub.restore();
-  });
-
-  it('should upload a file', async () => {
-    const payload = { fileName: 'mandat_signe', file: 'true', type: 'contract' };
-    const params = { _id: new ObjectId(), driveId: new ObjectId() };
-    const uploadedFile = { id: new ObjectId() };
-    const driveFileInfo = { webViewLink: 'test' };
-    addStub.returns(uploadedFile);
-    getFileByIdStub.returns(driveFileInfo);
-    const companyPayload = {
-      rhConfig: {
-        templates: {
-          contract: { driveId: uploadedFile.id, link: driveFileInfo.webViewLink },
-        },
-      },
-    };
-    findOneAndUpdate.returns(SinonMongoose.stubChainedQueries(null, ['lean']));
-
-    await CompanyHelper.uploadFile(payload, params);
-    sinon.assert.calledWithExactly(addStub, {
-      body: 'true',
-      folder: false,
-      name: payload.fileName,
-      parentFolderId: params.driveId,
-      type: undefined,
-    });
-    sinon.assert.calledWithExactly(getFileByIdStub, { fileId: uploadedFile.id });
-    SinonMongoose.calledOnceWithExactly(
-      findOneAndUpdate,
-      [
-        { query: 'findOneAndUpdate', args: [{ _id: params._id }, { $set: flat(companyPayload) }, { new: true }] },
-        { query: 'lean', args: [] },
-      ]
-    );
-  });
-});
-
 describe('updateCompany', () => {
   let findOneAndUpdate;
   beforeEach(() => {
@@ -244,27 +193,9 @@ describe('updateCompany', () => {
     findOneAndUpdate.restore();
   });
 
-  it('should update transport sub', async () => {
-    const companyId = new ObjectId();
-    const subId = new ObjectId();
-    const payload = {
-      rhConfig: { transportSubs: { subId } },
-    };
-    findOneAndUpdate.returns({ _id: companyId });
-
-    const result = await CompanyHelper.updateCompany(companyId, payload);
-
-    expect(result).toEqual({ _id: companyId });
-    sinon.assert.calledWithExactly(
-      findOneAndUpdate,
-      { _id: companyId, 'rhConfig.transportSubs._id': subId },
-      { $set: flat({ 'rhConfig.transportSubs.$': { subId } }) },
-      { new: true }
-    );
-  });
   it('should update company', async () => {
     const companyId = new ObjectId();
-    const payload = { tradeName: 'toto', rhConfig: { shouldPayHolidays: true } };
+    const payload = { name: 'Nouveau nom' };
     findOneAndUpdate.returns({ _id: companyId });
 
     const result = await CompanyHelper.updateCompany(companyId, payload);
@@ -273,7 +204,7 @@ describe('updateCompany', () => {
     sinon.assert.calledWithExactly(
       findOneAndUpdate,
       { _id: companyId },
-      { $set: flat({ tradeName: 'toto', rhConfig: { shouldPayHolidays: true } }) },
+      { $set: flat({ name: 'Nouveau nom' }) },
       { new: true }
     );
   });

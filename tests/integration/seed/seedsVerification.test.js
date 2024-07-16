@@ -29,7 +29,6 @@ const IdentityVerification = require('../../../src/models/IdentityVerification')
 const Program = require('../../../src/models/Program');
 const Questionnaire = require('../../../src/models/Questionnaire');
 const QuestionnaireHistory = require('../../../src/models/QuestionnaireHistory');
-const SectorHistory = require('../../../src/models/SectorHistory');
 const Step = require('../../../src/models/Step');
 const SubProgram = require('../../../src/models/SubProgram');
 const TrainerMission = require('../../../src/models/TrainerMission');
@@ -87,8 +86,6 @@ const {
   HOLDING_ADMIN,
   PAYMENT,
   REFUND,
-  COMPANY,
-  ASSOCIATION,
   EXPECTATIONS,
   END_OF_COURSE,
   INTRA_HOLDING,
@@ -585,15 +582,6 @@ describe('SEEDS VERIFICATION', () => {
                 get(company.billingRepresentative, 'role.holding.name') === HOLDING_ADMIN)
             );
           expect(doesEveryUserExistAndHasGoodRole).toBeTruthy();
-        });
-
-        it('should pass if every company has good register code type', () => {
-          const hasGoodRegisterCode = companyList.every((company) => {
-            if (company.rcs) return company.type === COMPANY;
-            if (company.rna) return company.type === ASSOCIATION;
-            return true;
-          });
-          expect(hasGoodRegisterCode).toBeTruthy();
         });
       });
 
@@ -2107,27 +2095,6 @@ describe('SEEDS VERIFICATION', () => {
             .every(qh => qh.questionnaire.type === SELF_POSITIONNING && qh.timeline === END_COURSE);
 
           expect(everySelfPositionningHistoryHasAuthorizedTrainerAnswer).toBeTruthy();
-        });
-      });
-
-      describe('Collection SectorHistory', () => {
-        let sectorHistoryList;
-        before(async () => {
-          sectorHistoryList = await SectorHistory
-            .find()
-            .populate({ path: 'auxiliary', select: '_id', populate: { path: 'userCompanyList' } })
-            .setOptions({ allCompanies: true })
-            .lean();
-        });
-
-        it('should pass if all auxiliaries are in company at sector history startDate', () => {
-          const areAuxiliariesInCompanyAtSectorHistoryStartDate = sectorHistoryList
-            .every(sh => sh.auxiliary.userCompanyList
-              .some(uc => UtilsHelper.areObjectIdsEquals(uc.company, sh.company) &&
-                CompaniDate(sh.startDate).isAfter(uc.startDate)
-              )
-            );
-          expect(areAuxiliariesInCompanyAtSectorHistoryStartDate).toBeTruthy();
         });
       });
 

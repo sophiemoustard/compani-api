@@ -11,7 +11,6 @@ const { language } = translate;
 
 describe('sendWelcome', () => {
   let trainerCustomContent;
-  let helperCustomContent;
   let coachCustomContent;
   let baseWelcomeContent;
   let createPasswordToken;
@@ -20,7 +19,6 @@ describe('sendWelcome', () => {
   let welcomeTraineeContent;
 
   const email = 't@t.com';
-  const helperWelcomeCustomText = 'content for helper';
   const coachWelcomeCustomText = 'content for coach';
   const baseWelcomeText = 'base content';
   const passwordToken = 'passwordToken';
@@ -28,7 +26,6 @@ describe('sendWelcome', () => {
 
   beforeEach(() => {
     trainerCustomContent = sinon.stub(EmailOptionsHelper, 'trainerCustomContent');
-    helperCustomContent = sinon.stub(EmailOptionsHelper, 'helperCustomContent');
     coachCustomContent = sinon.stub(EmailOptionsHelper, 'coachCustomContent');
     baseWelcomeContent = sinon.stub(EmailOptionsHelper, 'baseWelcomeContent');
     createPasswordToken = sinon.stub(AuthenticationHelper, 'createPasswordToken');
@@ -38,7 +35,6 @@ describe('sendWelcome', () => {
   });
   afterEach(() => {
     trainerCustomContent.restore();
-    helperCustomContent.restore();
     coachCustomContent.restore();
     baseWelcomeContent.restore();
     createPasswordToken.restore();
@@ -74,69 +70,6 @@ describe('sendWelcome', () => {
         html: baseWelcomeText,
       }
     );
-    sinon.assert.notCalled(helperCustomContent);
-    sinon.assert.notCalled(coachCustomContent);
-    sinon.assert.notCalled(welcomeTraineeContent);
-  });
-
-  it('should send email to helper with company trade name', async () => {
-    createPasswordToken.returns(passwordToken);
-    helperCustomContent.returns(helperWelcomeCustomText);
-    baseWelcomeContent.returns(baseWelcomeText);
-    sendinBlueTransporter.returns({ sendMail });
-    sendMail.returns(sentObj);
-
-    const result = await EmailHelper.sendWelcome('helper', email, { tradeName: 'test', name: 'ok' });
-
-    expect(result).toEqual(sentObj);
-    sinon.assert.calledWithExactly(helperCustomContent);
-    sinon.assert.calledWithExactly(
-      baseWelcomeContent,
-      helperWelcomeCustomText,
-      { passwordToken, companyName: 'ok' }
-    );
-    sinon.assert.calledWithExactly(sendinBlueTransporter);
-    sinon.assert.calledOnceWithExactly(
-      sendMail,
-      {
-        from: 'Compani <nepasrepondre@compani.fr>',
-        to: email,
-        subject: 'ok - Bienvenue dans votre espace Compani',
-        html: baseWelcomeText,
-      }
-    );
-    sinon.assert.notCalled(trainerCustomContent);
-    sinon.assert.notCalled(coachCustomContent);
-    sinon.assert.notCalled(welcomeTraineeContent);
-  });
-
-  it('should send email to helper even if no trade name and use company name', async () => {
-    createPasswordToken.returns(passwordToken);
-    helperCustomContent.returns(helperWelcomeCustomText);
-    baseWelcomeContent.returns(baseWelcomeText);
-    sendinBlueTransporter.returns({ sendMail });
-    sendMail.returns(sentObj);
-
-    const result = await EmailHelper.sendWelcome('helper', email, { name: 'ok' });
-
-    expect(result).toEqual(sentObj);
-    sinon.assert.calledWithExactly(helperCustomContent);
-    sinon.assert.calledWithExactly(
-      baseWelcomeContent,
-      helperWelcomeCustomText,
-      { passwordToken, companyName: 'ok' }
-    );
-    sinon.assert.calledWithExactly(sendinBlueTransporter);
-    sinon.assert.calledOnceWithExactly(
-      sendMail,
-      {
-        from: 'Compani <nepasrepondre@compani.fr>',
-        to: email,
-        subject: 'ok - Bienvenue dans votre espace Compani',
-        html: baseWelcomeText,
-      }
-    );
-    sinon.assert.notCalled(trainerCustomContent);
     sinon.assert.notCalled(coachCustomContent);
     sinon.assert.notCalled(welcomeTraineeContent);
   });
@@ -167,7 +100,6 @@ describe('sendWelcome', () => {
         html: baseWelcomeText,
       }
     );
-    sinon.assert.notCalled(helperCustomContent);
     sinon.assert.notCalled(trainerCustomContent);
     sinon.assert.notCalled(welcomeTraineeContent);
   });
@@ -198,7 +130,6 @@ describe('sendWelcome', () => {
         html: baseWelcomeText,
       }
     );
-    sinon.assert.notCalled(helperCustomContent);
     sinon.assert.notCalled(trainerCustomContent);
     sinon.assert.notCalled(welcomeTraineeContent);
   });
@@ -222,7 +153,6 @@ describe('sendWelcome', () => {
         html: 'Bonjour à tous et passez une bonne journée',
       }
     );
-    sinon.assert.notCalled(helperCustomContent);
     sinon.assert.notCalled(trainerCustomContent);
     sinon.assert.notCalled(coachCustomContent);
   });
@@ -238,7 +168,6 @@ describe('sendWelcome', () => {
       sinon.assert.calledOnceWithExactly(welcomeTraineeContent);
       sinon.assert.calledWithExactly(sendinBlueTransporter);
       sinon.assert.notCalled(sendMail);
-      sinon.assert.notCalled(helperCustomContent);
       sinon.assert.notCalled(trainerCustomContent);
       sinon.assert.notCalled(coachCustomContent);
     }
