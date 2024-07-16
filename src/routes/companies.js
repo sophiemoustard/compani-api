@@ -17,6 +17,7 @@ const {
   authorizeGetCompany,
 } = require('./preHandlers/companies');
 const { addressValidation } = require('./validations/utils');
+const { LIST, DIRECTORY } = require('../helpers/constants');
 
 exports.plugin = {
   name: 'routes-companies',
@@ -67,6 +68,7 @@ exports.plugin = {
           query: Joi.object({
             withoutHoldingCompanies: Joi.boolean(),
             holding: Joi.objectId(),
+            action: Joi.string().valid(LIST, DIRECTORY).default(LIST),
           }).oxor('withoutHoldingCompanies', 'holding'),
         },
         auth: { mode: 'optional' },
