@@ -163,7 +163,7 @@ describe('QUESTIONNAIRES ROUTES - GET /questionnaires', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      expect(response.result.data.questionnaires.length).toEqual(questionnairesList.length);
+      expect(response.result.data.questionnaires.length).toEqual(3);
     });
 
     it('should get published questionnaires linked to a course (EXPECTATIONS and SELF_POSITIONNING)', async () => {
