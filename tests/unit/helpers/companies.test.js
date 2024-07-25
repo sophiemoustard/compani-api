@@ -7,6 +7,7 @@ const CompanyHolding = require('../../../src/models/CompanyHolding');
 const CompanyHelper = require('../../../src/helpers/companies');
 const GDriveStorageHelper = require('../../../src/helpers/gDriveStorage');
 const SinonMongoose = require('../sinonMongoose');
+const { DIRECTORY } = require('../../../src/helpers/constants');
 
 describe('createCompany', () => {
   let find;
@@ -87,6 +88,24 @@ describe('list', () => {
       [
         { query: 'find', args: [{ _id: { $nin: [] } }, { name: 1, salesRepresentative: 1 }] },
         { query: 'lean', args: [] },
+      ]
+    );
+    sinon.assert.notCalled(companyHoldingFind);
+  });
+
+  it('should return all companies and populate holding', async () => {
+    const companyList = [{ _id: new ObjectId(), name: 'Alenvi', holding: { _id: new ObjectId(), name: 'Holding' } }];
+    find.returns(SinonMongoose.stubChainedQueries(companyList));
+
+    const result = await CompanyHelper.list({ action: DIRECTORY });
+
+    expect(result).toEqual(companyList);
+    SinonMongoose.calledOnceWithExactly(
+      find,
+      [
+        { query: 'find', args: [{ _id: { $nin: [] } }, { name: 1, salesRepresentative: 1 }] },
+        { query: 'populate', args: [{ path: 'holding', populate: { path: 'holding', select: 'name' } }] },
+        { query: 'lean' },
       ]
     );
     sinon.assert.notCalled(companyHoldingFind);

@@ -2,6 +2,7 @@ const flat = require('flat');
 const Company = require('../models/Company');
 const CompanyHolding = require('../models/CompanyHolding');
 const GDriveStorageHelper = require('./gDriveStorage');
+const { DIRECTORY } = require('./constants');
 
 exports.createCompany = async (companyPayload) => {
   const companyFolder = await GDriveStorageHelper.createFolderForCompany(companyPayload.name);
@@ -42,7 +43,12 @@ exports.list = async (query) => {
     linkedCompanyList = companyHoldings.map(ch => ch.company);
   }
 
-  return Company.find({ _id: { $nin: linkedCompanyList } }, { name: 1, salesRepresentative: 1 }).lean();
+  return query.action === DIRECTORY
+    ? Company
+      .find({ _id: { $nin: linkedCompanyList } }, { name: 1, salesRepresentative: 1 })
+      .populate({ path: 'holding', populate: { path: 'holding', select: 'name' } })
+      .lean()
+    : Company.find({ _id: { $nin: linkedCompanyList } }, { name: 1, salesRepresentative: 1 }).lean();
 };
 
 exports.updateCompany = async (companyId, payload) =>

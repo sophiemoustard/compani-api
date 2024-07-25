@@ -63,7 +63,31 @@ const CompanySchema = mongoose.Schema({
   salesRepresentative: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
 }, { timestamps: true });
 
+function populateHolding(doc, next) {
+  if (!doc) next();
+  // eslint-disable-next-line no-param-reassign
+  doc.holding = doc.holding && doc.holding.holding;
+
+  return next();
+}
+
+function populateHoldings(docs, next) {
+  for (const doc of docs) {
+    if (doc && doc.holding) {
+      doc.holding = doc.holding.holding;
+    }
+  }
+
+  return next();
+}
+
+CompanySchema.virtual('holding', { ref: 'CompanyHolding', localField: '_id', foreignField: 'company', justOne: true });
+
 queryMiddlewareList.map(middleware => CompanySchema.pre(middleware, formatQuery));
+
+CompanySchema.post('find', populateHoldings);
+CompanySchema.post('findOne', populateHolding);
+CompanySchema.post('findOneAndUpdate', populateHolding);
 
 module.exports = mongoose.model('Company', CompanySchema);
 module.exports.COMPANY_BILLING_PERIODS = COMPANY_BILLING_PERIODS;
