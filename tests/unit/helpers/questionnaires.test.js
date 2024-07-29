@@ -1493,8 +1493,11 @@ describe('getFollowUp', () => {
                 { path: 'questionnaireAnswersList.card', select: '-__v -createdAt -updatedAt' },
                 {
                   path: 'course',
-                  select: 'trainer subProgram',
-                  populate: { path: 'subProgram', select: 'program', populate: { path: 'program', select: '_id' } },
+                  select: 'trainer subProgram misc companies type',
+                  populate: [
+                    { path: 'subProgram', select: 'program', populate: { path: 'program', select: '_id name' } },
+                    { path: 'companies', select: 'name' },
+                  ],
                 },
               ],
             }],
@@ -1580,8 +1583,11 @@ describe('getFollowUp', () => {
                 { path: 'questionnaireAnswersList.card', select: '-__v -createdAt -updatedAt' },
                 {
                   path: 'course',
-                  select: 'trainer subProgram',
-                  populate: { path: 'subProgram', select: 'program', populate: { path: 'program', select: '_id' } },
+                  select: 'trainer subProgram misc companies type',
+                  populate: [
+                    { path: 'subProgram', select: 'program', populate: { path: 'program', select: '_id name' } },
+                    { path: 'companies', select: 'name' },
+                  ],
                 },
               ],
             }],
@@ -1735,8 +1741,11 @@ describe('getFollowUp', () => {
                 { path: 'questionnaireAnswersList.card', select: '-__v -createdAt -updatedAt' },
                 {
                   path: 'course',
-                  select: 'trainer subProgram',
-                  populate: { path: 'subProgram', select: 'program', populate: { path: 'program', select: '_id' } },
+                  select: 'trainer subProgram misc companies type',
+                  populate: [
+                    { path: 'subProgram', select: 'program', populate: { path: 'program', select: '_id name' } },
+                    { path: 'companies', select: 'name' },
+                  ],
                 },
               ],
             }],
@@ -1844,8 +1853,11 @@ describe('getFollowUp', () => {
                 { path: 'questionnaireAnswersList.card', select: '-__v -createdAt -updatedAt' },
                 {
                   path: 'course',
-                  select: 'trainer subProgram',
-                  populate: { path: 'subProgram', select: 'program', populate: { path: 'program', select: '_id' } },
+                  select: 'trainer subProgram misc companies type',
+                  populate: [
+                    { path: 'subProgram', select: 'program', populate: { path: 'program', select: '_id name' } },
+                    { path: 'companies', select: 'name' },
+                  ],
                 },
               ],
             }],
@@ -1925,8 +1937,11 @@ describe('getFollowUp', () => {
                 { path: 'questionnaireAnswersList.card', select: '-__v -createdAt -updatedAt' },
                 {
                   path: 'course',
-                  select: 'trainer subProgram',
-                  populate: { path: 'subProgram', select: 'program', populate: { path: 'program', select: '_id' } },
+                  select: 'trainer subProgram misc companies type',
+                  populate: [
+                    { path: 'subProgram', select: 'program', populate: { path: 'program', select: '_id name' } },
+                    { path: 'companies', select: 'name' },
+                  ],
                 },
               ],
             }],
@@ -1997,8 +2012,11 @@ describe('getFollowUp', () => {
                 { path: 'questionnaireAnswersList.card', select: '-__v -createdAt -updatedAt' },
                 {
                   path: 'course',
-                  select: 'trainer subProgram',
-                  populate: { path: 'subProgram', select: 'program', populate: { path: 'program', select: '_id' } },
+                  select: 'trainer subProgram misc companies type',
+                  populate: [
+                    { path: 'subProgram', select: 'program', populate: { path: 'program', select: '_id name' } },
+                    { path: 'companies', select: 'name' },
+                  ],
                 },
               ],
             }],
@@ -2075,8 +2093,11 @@ describe('getFollowUp', () => {
                 { path: 'questionnaireAnswersList.card', select: '-__v -createdAt -updatedAt' },
                 {
                   path: 'course',
-                  select: 'trainer subProgram',
-                  populate: { path: 'subProgram', select: 'program', populate: { path: 'program', select: '_id' } },
+                  select: 'trainer subProgram misc companies type',
+                  populate: [
+                    { path: 'subProgram', select: 'program', populate: { path: 'program', select: '_id name' } },
+                    { path: 'companies', select: 'name' },
+                  ],
                 },
               ],
             }],
