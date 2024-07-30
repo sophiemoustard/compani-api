@@ -199,7 +199,15 @@ const getFollowUpForList = async (questionnaire, courseId) => {
 
       if (!followUp[answer.card._id]) followUp[answer.card._id] = { ...answer.card, answers: [] };
       followUp[answer.card._id].answers
-        .push(...answerList.map(a => ({ answer: a, course: history.course, traineeCompany: history.company })));
+        .push(
+          ...answerList.map(a => ({
+            answer: a,
+            course: history.course,
+            traineeCompany: history.company,
+            trainee: history.user,
+            history: history._id,
+          }))
+        );
     }
   }
 
