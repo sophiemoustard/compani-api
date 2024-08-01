@@ -497,7 +497,17 @@ describe('getLearnerList', () => {
           query: 'populate',
           args: [{ path: 'activityHistories', select: 'updatedAt', options: { sort: { updatedAt: -1 } } }],
         },
-        { query: 'populate', args: [{ path: 'userCompanyList', populate: { path: 'company', select: 'name' } }] },
+        {
+          query: 'populate',
+          args: [{
+            path: 'userCompanyList',
+            populate: {
+              path: 'company',
+              select: 'name',
+              populate: { path: 'holding', populate: { path: 'holding', select: 'name' } },
+            },
+          }],
+        },
         { query: 'setOptions', args: [{ isVendorUser: !!get(credentials, 'role.vendor') }] },
         { query: 'lean' },
       ]
@@ -622,7 +632,17 @@ describe('getLearnerList', () => {
           query: 'populate',
           args: [{ path: 'activityHistories', select: 'updatedAt', options: { sort: { updatedAt: -1 } } }],
         },
-        { query: 'populate', args: [{ path: 'userCompanyList', populate: { path: 'company', select: 'name' } }] },
+        {
+          query: 'populate',
+          args: [{
+            path: 'userCompanyList',
+            populate: {
+              path: 'company',
+              select: 'name',
+              populate: { path: 'holding', populate: { path: 'holding', select: 'name' } },
+            },
+          }],
+        },
         { query: 'setOptions', args: [{ isVendorUser: !!get(credentials, 'role.vendor') }] },
         { query: 'lean' },
       ]
@@ -707,7 +727,17 @@ describe('getLearnerList', () => {
         },
         { query: 'populate', args: [{ path: 'company', populate: { path: 'company', select: 'name' } }] },
         { query: 'populate', args: [false] },
-        { query: 'populate', args: [{ path: 'userCompanyList', populate: { path: 'company', select: 'name' } }] },
+        {
+          query: 'populate',
+          args: [{
+            path: 'userCompanyList',
+            populate: {
+              path: 'company',
+              select: 'name',
+              populate: { path: 'holding', populate: { path: 'holding', select: 'name' } },
+            },
+          }],
+        },
         { query: 'setOptions', args: [{ isVendorUser: false }] },
         { query: 'lean' },
       ]
@@ -768,7 +798,17 @@ describe('getLearnerList', () => {
         },
         { query: 'populate', args: [{ path: 'company', populate: { path: 'company', select: 'name' } }] },
         { query: 'populate', args: [false] },
-        { query: 'populate', args: [{ path: 'userCompanyList', populate: { path: 'company', select: 'name' } }] },
+        {
+          query: 'populate',
+          args: [{
+            path: 'userCompanyList',
+            populate: {
+              path: 'company',
+              select: 'name',
+              populate: { path: 'holding', populate: { path: 'holding', select: 'name' } },
+            },
+          }],
+        },
         { query: 'setOptions', args: [{ isVendorUser: false }] },
         { query: 'lean' },
       ]
@@ -835,7 +875,17 @@ describe('getLearnerList', () => {
         },
         { query: 'populate', args: [{ path: 'company', populate: { path: 'company', select: 'name' } }] },
         { query: 'populate', args: [false] },
-        { query: 'populate', args: [{ path: 'userCompanyList', populate: { path: 'company', select: 'name' } }] },
+        {
+          query: 'populate',
+          args: [{
+            path: 'userCompanyList',
+            populate: {
+              path: 'company',
+              select: 'name',
+              populate: { path: 'holding', populate: { path: 'holding', select: 'name' } },
+            },
+          }],
+        },
         { query: 'setOptions', args: [{ isVendorUser: false }] },
         { query: 'lean' },
       ]
