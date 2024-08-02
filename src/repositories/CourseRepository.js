@@ -11,7 +11,11 @@ exports.findCourseAndPopulate = (query, origin, populateVirtual = false) => Cour
       : 'misc'
   )
   .populate([
-    { path: 'companies', select: 'name' },
+    {
+      path: 'companies',
+      select: 'name',
+      ...!query.company && { populate: { path: 'holding', populate: { path: 'holding', select: 'name' } } },
+    },
     { path: 'holding', select: 'name' },
     {
       path: 'subProgram',
