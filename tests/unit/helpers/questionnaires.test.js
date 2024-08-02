@@ -58,12 +58,13 @@ describe('list', () => {
     UtilsMock.unmockCurrentDate();
   });
 
-  it('should return all EXPECTATIONS OR END_OF_COURSE questionnaires (DRAFT OR PUBLISHED)', async () => {
+  it('should return all questionnaires (DRAFT OR PUBLISHED)', async () => {
     const credentials = { role: { vendor: { name: TRAINING_ORGANISATION_MANAGER } } };
     const questionnairesList = [
       { name: 'test', type: EXPECTATIONS, status: PUBLISHED },
       { name: 'test2', type: EXPECTATIONS, status: DRAFT },
       { name: 'test2', type: END_OF_COURSE, status: DRAFT },
+      { name: 'auto-eval', type: SELF_POSITIONNING, status: PUBLISHED },
     ];
 
     findQuestionnaires.returns(SinonMongoose.stubChainedQueries(questionnairesList));
@@ -74,8 +75,11 @@ describe('list', () => {
     SinonMongoose.calledOnceWithExactly(
       findQuestionnaires,
       [
-        { query: 'find', args: [{ type: [EXPECTATIONS, END_OF_COURSE] }] },
-        { query: 'populate', args: [{ path: 'historiesCount', options: { isVendorUser: true } }] },
+        { query: 'find', args: [{}] },
+        {
+          query: 'populate',
+          args: [[{ path: 'historiesCount', options: { isVendorUser: true } }, { path: 'program', select: 'name' }]],
+        },
         { query: 'lean' },
       ]
     );
