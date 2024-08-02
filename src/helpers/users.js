@@ -180,7 +180,14 @@ exports.getLearnerList = async (query, credentials) => {
       select: 'updatedAt',
       options: { sort: { updatedAt: -1 } },
     })
-    .populate({ path: 'userCompanyList', populate: { path: 'company', select: 'name' } })
+    .populate({
+      path: 'userCompanyList',
+      populate: {
+        path: 'company',
+        select: 'name',
+        populate: { path: 'holding', populate: { path: 'holding', select: 'name' } },
+      },
+    })
     .setOptions({ isVendorUser: !!get(credentials, 'role.vendor') })
     .lean();
 

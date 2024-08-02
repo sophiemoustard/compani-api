@@ -428,8 +428,16 @@ describe('getLearnerList', () => {
     const query = { action: DIRECTORY };
     const credentials = { role: { vendor: new ObjectId() } };
     const users = [
-      { _id: new ObjectId(), activityHistories: [{ _id: new ObjectId() }] },
-      { _id: new ObjectId(), activityHistories: [{ _id: new ObjectId() }] },
+      {
+        _id: new ObjectId(),
+        activityHistories: [{ _id: new ObjectId() }],
+        company: { name: 'Alenvi', holding: 'holding' },
+      },
+      {
+        _id: new ObjectId(),
+        activityHistories: [{ _id: new ObjectId() }],
+        company: { name: 'Fontainebleau', holding: 'holding' },
+      },
     ];
     const learnerList = [
       {
@@ -438,6 +446,7 @@ describe('getLearnerList', () => {
         lastActivityHistory: users[0].activityHistories[0],
         blendedCoursesCount: 1,
         eLearningCoursesCount: 2,
+        company: { name: 'Alenvi', holding: 'holding' },
       },
       {
         _id: users[1]._id,
@@ -445,6 +454,7 @@ describe('getLearnerList', () => {
         lastActivityHistory: users[1].activityHistories[0],
         blendedCoursesCount: 1,
         eLearningCoursesCount: 2,
+        company: { name: 'Fontainebleau', holding: 'holding' },
       },
     ];
     const courseIds = [new ObjectId()];
@@ -497,7 +507,17 @@ describe('getLearnerList', () => {
           query: 'populate',
           args: [{ path: 'activityHistories', select: 'updatedAt', options: { sort: { updatedAt: -1 } } }],
         },
-        { query: 'populate', args: [{ path: 'userCompanyList', populate: { path: 'company', select: 'name' } }] },
+        {
+          query: 'populate',
+          args: [{
+            path: 'userCompanyList',
+            populate: {
+              path: 'company',
+              select: 'name',
+              populate: { path: 'holding', populate: { path: 'holding', select: 'name' } },
+            },
+          }],
+        },
         { query: 'setOptions', args: [{ isVendorUser: !!get(credentials, 'role.vendor') }] },
         { query: 'lean' },
       ]
@@ -527,8 +547,16 @@ describe('getLearnerList', () => {
     const roleId2 = new ObjectId();
     const rolesToExclude = [{ _id: roleId1 }, { _id: roleId2 }];
     const users = [
-      { _id: new ObjectId(), activityHistories: [{ _id: new ObjectId() }] },
-      { _id: new ObjectId(), activityHistories: [{ _id: new ObjectId() }] },
+      {
+        _id: new ObjectId(),
+        activityHistories: [{ _id: new ObjectId() }],
+        company: { name: 'Alenvi', holding: 'holding' },
+      },
+      {
+        _id: new ObjectId(),
+        activityHistories: [{ _id: new ObjectId() }],
+        company: { name: 'Alenvi', holding: 'holding' },
+      },
     ];
     const usersCompany = [
       { user: users[0]._id, startDate: '2022-12-20T15:30:00.000Z' },
@@ -541,6 +569,7 @@ describe('getLearnerList', () => {
         lastActivityHistory: users[0].activityHistories[0],
         blendedCoursesCount: 1,
         eLearningCoursesCount: 1,
+        company: { name: 'Alenvi', holding: 'holding' },
       },
       {
         _id: users[1]._id,
@@ -548,6 +577,7 @@ describe('getLearnerList', () => {
         lastActivityHistory: users[1].activityHistories[0],
         blendedCoursesCount: 1,
         eLearningCoursesCount: 2,
+        company: { name: 'Alenvi', holding: 'holding' },
       },
     ];
     const courseIds = [new ObjectId()];
@@ -622,7 +652,17 @@ describe('getLearnerList', () => {
           query: 'populate',
           args: [{ path: 'activityHistories', select: 'updatedAt', options: { sort: { updatedAt: -1 } } }],
         },
-        { query: 'populate', args: [{ path: 'userCompanyList', populate: { path: 'company', select: 'name' } }] },
+        {
+          query: 'populate',
+          args: [{
+            path: 'userCompanyList',
+            populate: {
+              path: 'company',
+              select: 'name',
+              populate: { path: 'holding', populate: { path: 'holding', select: 'name' } },
+            },
+          }],
+        },
         { query: 'setOptions', args: [{ isVendorUser: !!get(credentials, 'role.vendor') }] },
         { query: 'lean' },
       ]
@@ -707,7 +747,17 @@ describe('getLearnerList', () => {
         },
         { query: 'populate', args: [{ path: 'company', populate: { path: 'company', select: 'name' } }] },
         { query: 'populate', args: [false] },
-        { query: 'populate', args: [{ path: 'userCompanyList', populate: { path: 'company', select: 'name' } }] },
+        {
+          query: 'populate',
+          args: [{
+            path: 'userCompanyList',
+            populate: {
+              path: 'company',
+              select: 'name',
+              populate: { path: 'holding', populate: { path: 'holding', select: 'name' } },
+            },
+          }],
+        },
         { query: 'setOptions', args: [{ isVendorUser: false }] },
         { query: 'lean' },
       ]
@@ -722,7 +772,9 @@ describe('getLearnerList', () => {
     const roleId1 = new ObjectId();
     const roleId2 = new ObjectId();
     const rolesToExclude = [{ _id: roleId1 }, { _id: roleId2 }];
-    const users = [{ _id: new ObjectId() }, { _id: new ObjectId() }];
+    const users = [
+      { _id: new ObjectId(), company: { name: 'Alenvi', holding: 'holding' } },
+      { _id: new ObjectId(), company: { name: 'Alenvi', holding: 'holding' } }];
     const usersCompany = [
       { user: users[0]._id, startDate: '2022-12-20T15:30:00.000Z' },
       { user: users[1]._id, startDate: '2022-12-19T15:30:00.000Z' },
@@ -768,7 +820,17 @@ describe('getLearnerList', () => {
         },
         { query: 'populate', args: [{ path: 'company', populate: { path: 'company', select: 'name' } }] },
         { query: 'populate', args: [false] },
-        { query: 'populate', args: [{ path: 'userCompanyList', populate: { path: 'company', select: 'name' } }] },
+        {
+          query: 'populate',
+          args: [{
+            path: 'userCompanyList',
+            populate: {
+              path: 'company',
+              select: 'name',
+              populate: { path: 'holding', populate: { path: 'holding', select: 'name' } },
+            },
+          }],
+        },
         { query: 'setOptions', args: [{ isVendorUser: false }] },
         { query: 'lean' },
       ]
@@ -788,7 +850,10 @@ describe('getLearnerList', () => {
     const roleId1 = new ObjectId();
     const roleId2 = new ObjectId();
     const rolesToExclude = [{ _id: roleId1 }, { _id: roleId2 }];
-    const users = [{ _id: new ObjectId() }, { _id: new ObjectId() }];
+    const users = [
+      { _id: new ObjectId(), company: { name: 'Alenvi', holding: 'holding' } },
+      { _id: new ObjectId(), company: { name: 'Alenvi', holding: 'holding' } },
+    ];
     const usersCompany = [
       { user: users[0]._id, startDate: '2020-12-20T15:30:00.000Z' },
       { user: users[1]._id, startDate: '2020-12-19T15:30:00.000Z' },
@@ -835,7 +900,17 @@ describe('getLearnerList', () => {
         },
         { query: 'populate', args: [{ path: 'company', populate: { path: 'company', select: 'name' } }] },
         { query: 'populate', args: [false] },
-        { query: 'populate', args: [{ path: 'userCompanyList', populate: { path: 'company', select: 'name' } }] },
+        {
+          query: 'populate',
+          args: [{
+            path: 'userCompanyList',
+            populate: {
+              path: 'company',
+              select: 'name',
+              populate: { path: 'holding', populate: { path: 'holding', select: 'name' } },
+            },
+          }],
+        },
         { query: 'setOptions', args: [{ isVendorUser: false }] },
         { query: 'lean' },
       ]
