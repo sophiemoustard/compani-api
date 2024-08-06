@@ -208,6 +208,7 @@ const getFollowUpForList = async (questionnaire, courseId) => {
             traineeCompany: history.company,
             trainee: history.user,
             history: history._id,
+            createdAt: history.createdAt,
           }))
         );
     }
@@ -231,7 +232,7 @@ exports.getFollowUp = async (questionnaireId, query, credentials) => {
       path: 'histories',
       match: course ? { course } : null,
       options: { isVendorUser },
-      select: '-__v -createdAt -updatedAt',
+      select: '-__v -updatedAt',
       populate: [
         { path: 'questionnaireAnswersList.card', select: '-__v -createdAt -updatedAt' },
         {
