@@ -911,6 +911,9 @@ describe('COURSES ROUTES - GET /courses', () => {
 
       expect(response.statusCode).toBe(200);
       expect(response.result.data.courses.length).toEqual(11);
+      const course =
+         response.result.data.courses.find(c => UtilsHelper.areObjectIdsEquals(coursesList[2]._id, c._id));
+      expect(course.companies).toEqual([pick(authCompany, ['_id', 'name'])]);
     });
 
     it('should get courses for a specific holding (ops webapp)', async () => {
