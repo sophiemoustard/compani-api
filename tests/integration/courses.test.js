@@ -679,7 +679,9 @@ describe('COURSES ROUTES - GET /courses', () => {
       expect(course).toEqual(expect.objectContaining({
         misc: 'second team formation',
         type: INTRA,
-        companies: [pick(otherCompany, ['_id', 'name'])],
+        companies: [
+          { ...pick(otherCompany, ['_id', 'name']), holding: { _id: otherHolding._id, name: otherHolding.name } },
+        ],
         subProgram: expect.objectContaining({
           _id: expect.any(ObjectId),
           program: {
@@ -856,7 +858,9 @@ describe('COURSES ROUTES - GET /courses', () => {
          response.result.data.courses.find(c => UtilsHelper.areObjectIdsEquals(coursesList[2]._id, c._id));
       expect(course).toEqual(expect.objectContaining({
         misc: 'second session',
-        companies: [pick(authCompany, ['_id', 'name'])],
+        companies: [
+          { ...pick(authCompany, ['_id', 'name']), holding: { _id: authHolding._id, name: authHolding.name } },
+        ],
         subProgram: expect.objectContaining({
           _id: expect.any(ObjectId),
           program: {
@@ -907,6 +911,9 @@ describe('COURSES ROUTES - GET /courses', () => {
 
       expect(response.statusCode).toBe(200);
       expect(response.result.data.courses.length).toEqual(11);
+      const course =
+         response.result.data.courses.find(c => UtilsHelper.areObjectIdsEquals(coursesList[2]._id, c._id));
+      expect(course.companies).toEqual([pick(authCompany, ['_id', 'name'])]);
     });
 
     it('should get courses for a specific holding (ops webapp)', async () => {
