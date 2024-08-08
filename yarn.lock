@@ -118,10 +118,10 @@
   resolved "https://registry.yarnpkg.com/@google-cloud/promisify/-/promisify-4.0.0.tgz#a906e533ebdd0f754dca2509933334ce58b8c8b1"
   integrity sha512-Orxzlfb9c67A15cq2JQEyVc7wEsmFBmHjZWZYQMUyJ1qivXyMwdyNOs9odi79hze+2zqdTtu1E19IM/FtqZ10g==
 
-"@google-cloud/storage@~7.11.2":
-  version "7.11.2"
-  resolved "https://registry.yarnpkg.com/@google-cloud/storage/-/storage-7.11.2.tgz#a8942d9a4a75634186d262b82c5b41e90649f11c"
-  integrity sha512-jJOrKyOdujfrSF8EJODW9yY6hqO4jSTk6eVITEj2gsD43BSXuDlnMlLOaBUQhXL29VGnSkxDgYl5tlFhA6LKSA==
+"@google-cloud/storage@~7.12.1":
+  version "7.12.1"
+  resolved "https://registry.yarnpkg.com/@google-cloud/storage/-/storage-7.12.1.tgz#7963bdc3b5266e4698047f6158a043d53231ec9c"
+  integrity sha512-Z3ZzOnF3YKLuvpkvF+TjQ6lztxcAyTILp+FjKonmVpEwPa9vFvxpZjubLR4sB6bf19i/8HL2AXRjA0YFgHFRmQ==
   dependencies:
     "@google-cloud/paginator" "^5.0.0"
     "@google-cloud/projectify" "^4.0.0"
@@ -129,7 +129,7 @@
     abort-controller "^3.0.0"
     async-retry "^1.3.3"
     duplexify "^4.1.3"
-    fast-xml-parser "^4.3.0"
+    fast-xml-parser "^4.4.1"
     gaxios "^6.0.2"
     google-auth-library "^9.6.3"
     html-entities "^2.5.2"
@@ -139,10 +139,10 @@
     teeny-request "^9.0.0"
     uuid "^8.0.0"
 
-"@googleapis/drive@~8.10.0":
-  version "8.10.0"
-  resolved "https://registry.yarnpkg.com/@googleapis/drive/-/drive-8.10.0.tgz#5d603dee0ac1b0c1e1b48a28e34b27777ab73147"
-  integrity sha512-loumtaDmAn2JvU4KuFMhhtaYG1Hxw0RVS4vl+rOWMU7NAU151XYfIWFDJfFFZjvYZxH4tbsmHEnF+DKH1hQ75Q==
+"@googleapis/drive@~8.11.0":
+  version "8.11.0"
+  resolved "https://registry.yarnpkg.com/@googleapis/drive/-/drive-8.11.0.tgz#6c12f7feea93e0e9cae03de936d3f2da0fb3e8e6"
+  integrity sha512-HW6/2oThc4X086mGkZxpdP4P+aHpYbjHa6wr9l1F/R+snpk6G8/EuRXEcTkgQUl2t/NdNz3lj8re0AQBG5faSA==
   dependencies:
     googleapis-common "^7.0.0"
 
@@ -196,10 +196,10 @@
     "@hapi/boom" "^10.0.1"
     "@hapi/hoek" "^11.0.2"
 
-"@hapi/catbox-memory@^6.0.1":
-  version "6.0.1"
-  resolved "https://registry.yarnpkg.com/@hapi/catbox-memory/-/catbox-memory-6.0.1.tgz#8f6b04c0cf2ce25da470324df360bd4e8d68b6ec"
-  integrity sha512-sVb+/ZxbZIvaMtJfAbdyY+QJUQg9oKTwamXpEg/5xnfG5WbJLTjvEn4kIGKz9pN3ENNbIL/bIdctmHmqi/AdGA==
+"@hapi/catbox-memory@^6.0.2":
+  version "6.0.2"
+  resolved "https://registry.yarnpkg.com/@hapi/catbox-memory/-/catbox-memory-6.0.2.tgz#399fa83e85134d45a548eee978e4c3c1523e1a70"
+  integrity sha512-H1l4ugoFW/ZRkqeFrIo8p1rWN0PA4MDTfu4JmcoNDvnY975o29mqoZblqFTotxNHlEkMPpIiIBJTV+Mbi+aF0g==
   dependencies:
     "@hapi/boom" "^10.0.1"
     "@hapi/hoek" "^11.0.2"
@@ -265,10 +265,10 @@
     "@hapi/validate" "1.x.x"
     pumpify "2.x.x"
 
-"@hapi/hapi@~21.3.9":
-  version "21.3.9"
-  resolved "https://registry.yarnpkg.com/@hapi/hapi/-/hapi-21.3.9.tgz#953220abe26d12a7cbd308a57e434dedf0278cb3"
-  integrity sha512-AT5m+Rb8iSOFG3zWaiEuTJazf4HDYl5UpRpyxMJ3yR+g8tOEmqDv6FmXrLHShdvDOStAAepHGnr1G7egkFSRdw==
+"@hapi/hapi@~21.3.10":
+  version "21.3.10"
+  resolved "https://registry.yarnpkg.com/@hapi/hapi/-/hapi-21.3.10.tgz#0357db7ca49415e50e5df80ba50ad3964f2a62f3"
+  integrity sha512-CmEcmTREW394MaGGKvWpoOK4rG8tKlpZLs30tbaBzhCrhiL2Ti/HARek9w+8Ya4nMBGcd+kDAzvU44OX8Ms0Jg==
   dependencies:
     "@hapi/accept" "^6.0.1"
     "@hapi/ammo" "^6.0.1"
@@ -276,7 +276,7 @@
     "@hapi/bounce" "^3.0.1"
     "@hapi/call" "^9.0.1"
     "@hapi/catbox" "^12.1.1"
-    "@hapi/catbox-memory" "^6.0.1"
+    "@hapi/catbox-memory" "^6.0.2"
     "@hapi/heavy" "^8.0.1"
     "@hapi/hoek" "^11.0.2"
     "@hapi/mimos" "^7.0.1"
@@ -1004,10 +1004,10 @@ available-typed-arrays@^1.0.6:
   resolved "https://registry.yarnpkg.com/available-typed-arrays/-/available-typed-arrays-1.0.6.tgz#ac812d8ce5a6b976d738e1c45f08d0b00bc7d725"
   integrity sha512-j1QzY8iPNPG4o4xmO3ptzpRxTciqD3MgEHtifP/YnJpIo58Xu+ne4BejlbkuaLfXn/nz6HFiw29bLpj2PNMdGg==
 
-axios@~1.7.2:
-  version "1.7.2"
-  resolved "https://registry.yarnpkg.com/axios/-/axios-1.7.2.tgz#b625db8a7051fbea61c35a3cbb3a1daa7b9c7621"
-  integrity sha512-2A8QhOMrbomlDuiLeK9XibIBzuHeRcqqNOHp0Cyp5EoJ1IFDh+XZH3A6BkXtv0K4gFGCI0Y4BM7B1wOEi0Rmgw==
+axios@~1.7.3:
+  version "1.7.3"
+  resolved "https://registry.yarnpkg.com/axios/-/axios-1.7.3.tgz#a1125f2faf702bc8e8f2104ec3a76fab40257d85"
+  integrity sha512-Ar7ND9pU99eJ9GpoGQKhKf58GpUOgnzuaB7ueNQ5BMi0p+LZ5oaEnfF999fAArcTIBwXTCHAmGcHOZJaWPq9Nw==
   dependencies:
     follow-redirects "^1.15.6"
     form-data "^4.0.0"
@@ -1497,10 +1497,10 @@ doctrine@^3.0.0:
   dependencies:
     esutils "^2.0.2"
 
-docxtemplater@~3.47.4:
-  version "3.47.4"
-  resolved "https://registry.yarnpkg.com/docxtemplater/-/docxtemplater-3.47.4.tgz#a8e6126e71b34b342f4442953fe814c89e1a8c5d"
-  integrity sha512-anA34zXLh6TC46viknKb1qtgGPwEeL/IMrUpqpp1lAUyIaQuHPci4w7O6jQAUwZamqfZRxbCy+EEwQ/hWGyA/w==
+docxtemplater@~3.49.2:
+  version "3.49.2"
+  resolved "https://registry.yarnpkg.com/docxtemplater/-/docxtemplater-3.49.2.tgz#2cc1bdb5747feac8ee2e96f49e8719a2d604eba6"
+  integrity sha512-bIvY63iCidFNT1ISmTUZouALySoCAj9ceLnJAAKaBODOe82U4XC77++zi+nYp0refFV0yabZ/Z4VFnacBQbfAw==
   dependencies:
     "@xmldom/xmldom" "^0.8.10"
 
@@ -2036,10 +2036,10 @@ fast-safe-stringify@2.x.x:
   resolved "https://registry.yarnpkg.com/fast-safe-stringify/-/fast-safe-stringify-2.1.1.tgz#c406a83b6e70d9e35ce3b30a81141df30aeba884"
   integrity sha512-W+KJc2dmILlPplD/H4K9l9LcAHAfPtP6BY84uVLXQ6Evcz9Lcg33Y2z1IVblT6xdY54PXYVHEv+0Wpq8Io6zkA==
 
-fast-xml-parser@^4.3.0:
-  version "4.3.4"
-  resolved "https://registry.yarnpkg.com/fast-xml-parser/-/fast-xml-parser-4.3.4.tgz#385cc256ad7bbc57b91515a38a22502a9e1fca0d"
-  integrity sha512-utnwm92SyozgA3hhH2I8qldf2lBqm6qHOICawRNRFu1qMe3+oqr+GcXjGqTmXTMGE5T4eC03kr/rlh5C1IRdZA==
+fast-xml-parser@^4.4.1:
+  version "4.4.1"
+  resolved "https://registry.yarnpkg.com/fast-xml-parser/-/fast-xml-parser-4.4.1.tgz#86dbf3f18edf8739326447bcaac31b4ae7f6514f"
+  integrity sha512-xkjOecfnKGkSsOwtZ5Pz7Us/T6mrbPQrq0nh+aCO5V9nk5NLWmasAHumTKjiPJPWANe+kAZ84Jc8ooJkzZ88Sw==
   dependencies:
     strnum "^1.0.5"
 
