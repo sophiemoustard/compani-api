@@ -1492,7 +1492,7 @@ describe('getFollowUp', () => {
               path: 'histories',
               match: { course: courseId },
               options: { isVendorUser: true },
-              select: '-__v -createdAt -updatedAt',
+              select: '-__v -updatedAt',
               populate: [
                 { path: 'questionnaireAnswersList.card', select: '-__v -createdAt -updatedAt' },
                 {
@@ -1582,7 +1582,7 @@ describe('getFollowUp', () => {
               path: 'histories',
               match: { course: courseId },
               options: { isVendorUser: true },
-              select: '-__v -createdAt -updatedAt',
+              select: '-__v -updatedAt',
               populate: [
                 { path: 'questionnaireAnswersList.card', select: '-__v -createdAt -updatedAt' },
                 {
@@ -1658,6 +1658,7 @@ describe('getFollowUp', () => {
               },
             ],
             user: traineeIds[0],
+            createdAt: '2024-08-01T11:00:00.000Z',
           },
           {
             _id: historyIds[1],
@@ -1685,6 +1686,7 @@ describe('getFollowUp', () => {
               },
             ],
             user: traineeIds[1],
+            createdAt: '2024-08-02T11:00:00.000Z',
           },
         ],
       };
@@ -1708,6 +1710,8 @@ describe('getFollowUp', () => {
                 traineeCompany: companyId,
                 history: historyIds[0],
                 trainee: traineeIds[0],
+                createdAt: '2024-08-01T11:00:00.000Z',
+
               },
               {
                 answer: 'test test',
@@ -1715,6 +1719,7 @@ describe('getFollowUp', () => {
                 traineeCompany: companyId,
                 history: historyIds[1],
                 trainee: traineeIds[1],
+                createdAt: '2024-08-02T11:00:00.000Z',
               },
             ],
             isMandatory: true,
@@ -1730,6 +1735,7 @@ describe('getFollowUp', () => {
                 traineeCompany: companyId,
                 history: historyIds[0],
                 trainee: traineeIds[0],
+                createdAt: '2024-08-01T11:00:00.000Z',
               },
               {
                 answer: '2',
@@ -1737,6 +1743,7 @@ describe('getFollowUp', () => {
                 traineeCompany: companyId,
                 history: historyIds[1],
                 trainee: traineeIds[1],
+                createdAt: '2024-08-02T11:00:00.000Z',
               },
             ],
             isMandatory: true,
@@ -1770,7 +1777,7 @@ describe('getFollowUp', () => {
               path: 'histories',
               match: { course: courseId },
               options: { isVendorUser: true },
-              select: '-__v -createdAt -updatedAt',
+              select: '-__v -updatedAt',
               populate: [
                 { path: 'questionnaireAnswersList.card', select: '-__v -createdAt -updatedAt' },
                 {
@@ -1821,6 +1828,7 @@ describe('getFollowUp', () => {
               },
             ],
             user: traineeId,
+            createdAt: '2024-08-01T11:00:00.000Z',
           },
           {
             _id: historyIds[1],
@@ -1843,6 +1851,7 @@ describe('getFollowUp', () => {
               },
             ],
             user: traineeId,
+            createdAt: '2024-08-01T13:00:00.000Z',
           },
         ],
       };
@@ -1863,6 +1872,7 @@ describe('getFollowUp', () => {
                 traineeCompany: companyId,
                 trainee: traineeId,
                 history: historyIds[0],
+                createdAt: '2024-08-01T11:00:00.000Z',
               },
               {
                 answer: 'test test',
@@ -1870,6 +1880,7 @@ describe('getFollowUp', () => {
                 traineeCompany: companyId,
                 trainee: traineeId,
                 history: historyIds[1],
+                createdAt: '2024-08-01T13:00:00.000Z',
               },
             ],
             isMandatory: true,
@@ -1885,6 +1896,7 @@ describe('getFollowUp', () => {
                 traineeCompany: companyId,
                 trainee: traineeId,
                 history: historyIds[0],
+                createdAt: '2024-08-01T11:00:00.000Z',
               },
               {
                 answer: '2',
@@ -1892,6 +1904,7 @@ describe('getFollowUp', () => {
                 traineeCompany: companyId,
                 trainee: traineeId,
                 history: historyIds[1],
+                createdAt: '2024-08-01T13:00:00.000Z',
               },
             ],
             isMandatory: true,
@@ -1912,7 +1925,7 @@ describe('getFollowUp', () => {
               path: 'histories',
               match: null,
               options: { isVendorUser: true },
-              select: '-__v -createdAt -updatedAt',
+              select: '-__v -updatedAt',
               populate: [
                 { path: 'questionnaireAnswersList.card', select: '-__v -createdAt -updatedAt' },
                 {
@@ -1996,7 +2009,7 @@ describe('getFollowUp', () => {
               path: 'histories',
               match: { course: courseId },
               options: { isVendorUser: true },
-              select: '-__v -createdAt -updatedAt',
+              select: '-__v -updatedAt',
               populate: [
                 { path: 'questionnaireAnswersList.card', select: '-__v -createdAt -updatedAt' },
                 {
@@ -2071,7 +2084,7 @@ describe('getFollowUp', () => {
               path: 'histories',
               match: { course: courseId },
               options: { isVendorUser: true },
-              select: '-__v -createdAt -updatedAt',
+              select: '-__v -updatedAt',
               populate: [
                 { path: 'questionnaireAnswersList.card', select: '-__v -createdAt -updatedAt' },
                 {
@@ -2152,7 +2165,7 @@ describe('getFollowUp', () => {
               path: 'histories',
               match: { course: courseId },
               options: { isVendorUser: true },
-              select: '-__v -createdAt -updatedAt',
+              select: '-__v -updatedAt',
               populate: [
                 { path: 'questionnaireAnswersList.card', select: '-__v -createdAt -updatedAt' },
                 {
