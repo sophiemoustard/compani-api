@@ -65,7 +65,7 @@
     "pdfmake": "~0.2.10",
     "pizzip": "~3.1.7",
     "qrcode": "git+https://github.com/sophiemoustard/node-qrcode.git",
-    "qs": "~6.12.1",
+    "qs": "~6.13.0",
     "randomatic": "~3.1.1",
     "shelljs": "~0.8.5",
     "util": "~0.12.3",
@@ -77,9 +77,9 @@
     "eslint": "~8.56.0",
     "eslint-config-airbnb-base": "~15.0.0",
     "eslint-plugin-import": "~2.29.1",
-    "eslint-plugin-mocha": "~10.4.3",
+    "eslint-plugin-mocha": "~10.5.0",
     "expect": "~29.7.0",
-    "mocha": "~10.4.0",
+    "mocha": "~10.7.0",
     "sinon": "~18.0.0"
   }
 }
