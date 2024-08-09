@@ -4,8 +4,6 @@ const get = require('lodash/get');
 const fs = require('fs');
 const os = require('os');
 const path = require('path');
-const cloneDeep = require('lodash/cloneDeep');
-const drive = require('../models/Google/Drive');
 
 const fsPromises = fs.promises;
 
@@ -31,13 +29,4 @@ exports.createDocx = async (filePath, data) => {
   const tmpOutputPath = path.join(os.tmpdir(), `template-filled-${date.getTime()}.docx`);
   await fsPromises.writeFile(tmpOutputPath, filledZip);
   return tmpOutputPath;
-};
-
-exports.generateDocx = async (params) => {
-  const payload = cloneDeep(params);
-  const tmpFilePath = path.join(os.tmpdir(), 'template.docx');
-  payload.file.tmpFilePath = tmpFilePath;
-  await drive.downloadFileById(payload.file);
-
-  return exports.createDocx(payload.file.tmpFilePath, payload.data);
 };

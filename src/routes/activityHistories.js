@@ -21,6 +21,10 @@ exports.plugin = {
               card: Joi.objectId().required(),
               answerList: Joi.array().items(Joi.string()).min(1).required(),
             })),
+            quizzAnswersList: Joi.array().items(Joi.object({
+              card: Joi.objectId().required(),
+              answerList: Joi.array().items(Joi.string()).min(1).required(),
+            })),
             score: Joi.number().required(),
             duration: durationPositive,
           }),

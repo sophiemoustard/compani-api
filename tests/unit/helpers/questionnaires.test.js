@@ -61,8 +61,10 @@ describe('list', () => {
   it('should return all questionnaires (DRAFT OR PUBLISHED)', async () => {
     const credentials = { role: { vendor: { name: TRAINING_ORGANISATION_MANAGER } } };
     const questionnairesList = [
-      { name: 'test', stauts: PUBLISHED },
-      { name: 'test2', status: DRAFT },
+      { name: 'test', type: EXPECTATIONS, status: PUBLISHED },
+      { name: 'test2', type: EXPECTATIONS, status: DRAFT },
+      { name: 'test2', type: END_OF_COURSE, status: DRAFT },
+      { name: 'auto-eval', type: SELF_POSITIONNING, status: PUBLISHED },
     ];
 
     findQuestionnaires.returns(SinonMongoose.stubChainedQueries(questionnairesList));
@@ -74,7 +76,10 @@ describe('list', () => {
       findQuestionnaires,
       [
         { query: 'find', args: [{}] },
-        { query: 'populate', args: [{ path: 'historiesCount', options: { isVendorUser: true } }] },
+        {
+          query: 'populate',
+          args: [[{ path: 'historiesCount', options: { isVendorUser: true } }, { path: 'program', select: 'name' }]],
+        },
         { query: 'lean' },
       ]
     );
@@ -1492,8 +1497,11 @@ describe('getFollowUp', () => {
                 { path: 'questionnaireAnswersList.card', select: '-__v -createdAt -updatedAt' },
                 {
                   path: 'course',
-                  select: 'trainer subProgram',
-                  populate: { path: 'subProgram', select: 'program', populate: { path: 'program', select: '_id' } },
+                  select: 'trainer subProgram misc companies type',
+                  populate: [
+                    { path: 'subProgram', select: 'program', populate: { path: 'program', select: '_id name' } },
+                    { path: 'companies', select: 'name' },
+                  ],
                 },
               ],
             }],
@@ -1579,8 +1587,11 @@ describe('getFollowUp', () => {
                 { path: 'questionnaireAnswersList.card', select: '-__v -createdAt -updatedAt' },
                 {
                   path: 'course',
-                  select: 'trainer subProgram',
-                  populate: { path: 'subProgram', select: 'program', populate: { path: 'program', select: '_id' } },
+                  select: 'trainer subProgram misc companies type',
+                  populate: [
+                    { path: 'subProgram', select: 'program', populate: { path: 'program', select: '_id name' } },
+                    { path: 'companies', select: 'name' },
+                  ],
                 },
               ],
             }],
@@ -1618,14 +1629,16 @@ describe('getFollowUp', () => {
         misc: 'infos',
         type: INTRA,
       };
+      const traineeIds = [new ObjectId(), new ObjectId()];
       const cardsIds = [new ObjectId(), new ObjectId()];
+      const historyIds = [new ObjectId(), new ObjectId(), new ObjectId()];
       const questionnaire = {
         _id: questionnaireId,
         type: EXPECTATIONS,
         name: 'questionnaire',
         histories: [
           {
-            _id: new ObjectId(),
+            _id: historyIds[0],
             course: course._id,
             company: companyId,
             questionnaireAnswersList: [
@@ -1644,9 +1657,10 @@ describe('getFollowUp', () => {
                 answerList: ['3'],
               },
             ],
+            user: traineeIds[0],
           },
           {
-            _id: new ObjectId(),
+            _id: historyIds[1],
             course: course._id,
             company: companyId,
             questionnaireAnswersList: [
@@ -1670,6 +1684,7 @@ describe('getFollowUp', () => {
                 answerList: ['2'],
               },
             ],
+            user: traineeIds[1],
           },
         ],
       };
@@ -1680,23 +1695,49 @@ describe('getFollowUp', () => {
       const query = { course: courseId, action: LIST };
       const result = await QuestionnaireHelper.getFollowUp(questionnaireId, query, credentials);
 
-      expect(result).toMatchObject({
+      expect(result).toEqual({
         course: { programName: 'test', companyName: 'company', misc: 'infos' },
         questionnaire: { type: EXPECTATIONS, name: 'questionnaire' },
         followUp: [
           {
+            _id: cardsIds[0],
             answers: [
-              { answer: 'blabla', course: course._id, traineeCompany: companyId },
-              { answer: 'test test', course: course._id, traineeCompany: companyId },
+              {
+                answer: 'blabla',
+                course: course._id,
+                traineeCompany: companyId,
+                history: historyIds[0],
+                trainee: traineeIds[0],
+              },
+              {
+                answer: 'test test',
+                course: course._id,
+                traineeCompany: companyId,
+                history: historyIds[1],
+                trainee: traineeIds[1],
+              },
             ],
             isMandatory: true,
             question: 'aimes-tu ce test ?',
             template: 'open_question',
           },
           {
+            _id: cardsIds[1],
             answers: [
-              { answer: '3', course: course._id, traineeCompany: companyId },
-              { answer: '2', course: course._id, traineeCompany: companyId },
+              {
+                answer: '3',
+                course: course._id,
+                traineeCompany: companyId,
+                history: historyIds[0],
+                trainee: traineeIds[0],
+              },
+              {
+                answer: '2',
+                course: course._id,
+                traineeCompany: companyId,
+                history: historyIds[1],
+                trainee: traineeIds[1],
+              },
             ],
             isMandatory: true,
             question: 'combien aimez vous ce test sur une échelle de 1 à 5 ?',
@@ -1734,8 +1775,11 @@ describe('getFollowUp', () => {
                 { path: 'questionnaireAnswersList.card', select: '-__v -createdAt -updatedAt' },
                 {
                   path: 'course',
-                  select: 'trainer subProgram',
-                  populate: { path: 'subProgram', select: 'program', populate: { path: 'program', select: '_id' } },
+                  select: 'trainer subProgram misc companies type',
+                  populate: [
+                    { path: 'subProgram', select: 'program', populate: { path: 'program', select: '_id name' } },
+                    { path: 'companies', select: 'name' },
+                  ],
                 },
               ],
             }],
@@ -1749,13 +1793,15 @@ describe('getFollowUp', () => {
       const questionnaireId = new ObjectId();
       const cardsIds = [new ObjectId(), new ObjectId()];
       const companyId = new ObjectId();
+      const traineeId = new ObjectId();
+      const historyIds = [new ObjectId(), new ObjectId()];
       const questionnaire = {
         _id: questionnaireId,
         type: EXPECTATIONS,
         name: 'questionnaire',
         histories: [
           {
-            _id: new ObjectId(),
+            _id: historyIds[0],
             course: new ObjectId(),
             company: companyId,
             questionnaireAnswersList: [
@@ -1774,9 +1820,10 @@ describe('getFollowUp', () => {
                 answerList: ['3'],
               },
             ],
+            user: traineeId,
           },
           {
-            _id: new ObjectId(),
+            _id: historyIds[1],
             course: new ObjectId(),
             company: companyId,
             questionnaireAnswersList: [
@@ -1795,6 +1842,7 @@ describe('getFollowUp', () => {
                 answerList: ['2'],
               },
             ],
+            user: traineeId,
           },
         ],
       };
@@ -1803,22 +1851,48 @@ describe('getFollowUp', () => {
 
       const result = await QuestionnaireHelper.getFollowUp(questionnaireId, { action: LIST }, credentials);
 
-      expect(result).toMatchObject({
+      expect(result).toEqual({
         questionnaire: { type: EXPECTATIONS, name: 'questionnaire' },
         followUp: [
           {
+            _id: cardsIds[0],
             answers: [
-              { answer: 'blabla', course: questionnaire.histories[0].course },
-              { answer: 'test test', course: questionnaire.histories[1].course },
+              {
+                answer: 'blabla',
+                course: questionnaire.histories[0].course,
+                traineeCompany: companyId,
+                trainee: traineeId,
+                history: historyIds[0],
+              },
+              {
+                answer: 'test test',
+                course: questionnaire.histories[1].course,
+                traineeCompany: companyId,
+                trainee: traineeId,
+                history: historyIds[1],
+              },
             ],
             isMandatory: true,
             question: 'aimes-tu ce test ?',
             template: OPEN_QUESTION,
           },
           {
+            _id: cardsIds[1],
             answers: [
-              { answer: '3', course: questionnaire.histories[0].course },
-              { answer: '2', course: questionnaire.histories[1].course },
+              {
+                answer: '3',
+                course: questionnaire.histories[0].course,
+                traineeCompany: companyId,
+                trainee: traineeId,
+                history: historyIds[0],
+              },
+              {
+                answer: '2',
+                course: questionnaire.histories[1].course,
+                traineeCompany: companyId,
+                trainee: traineeId,
+                history: historyIds[1],
+              },
             ],
             isMandatory: true,
             question: 'combien aimez vous ce test sur une échelle de 1 à 5 ?',
@@ -1843,8 +1917,11 @@ describe('getFollowUp', () => {
                 { path: 'questionnaireAnswersList.card', select: '-__v -createdAt -updatedAt' },
                 {
                   path: 'course',
-                  select: 'trainer subProgram',
-                  populate: { path: 'subProgram', select: 'program', populate: { path: 'program', select: '_id' } },
+                  select: 'trainer subProgram misc companies type',
+                  populate: [
+                    { path: 'subProgram', select: 'program', populate: { path: 'program', select: '_id name' } },
+                    { path: 'companies', select: 'name' },
+                  ],
                 },
               ],
             }],
@@ -1924,8 +2001,11 @@ describe('getFollowUp', () => {
                 { path: 'questionnaireAnswersList.card', select: '-__v -createdAt -updatedAt' },
                 {
                   path: 'course',
-                  select: 'trainer subProgram',
-                  populate: { path: 'subProgram', select: 'program', populate: { path: 'program', select: '_id' } },
+                  select: 'trainer subProgram misc companies type',
+                  populate: [
+                    { path: 'subProgram', select: 'program', populate: { path: 'program', select: '_id name' } },
+                    { path: 'companies', select: 'name' },
+                  ],
                 },
               ],
             }],
@@ -1996,8 +2076,11 @@ describe('getFollowUp', () => {
                 { path: 'questionnaireAnswersList.card', select: '-__v -createdAt -updatedAt' },
                 {
                   path: 'course',
-                  select: 'trainer subProgram',
-                  populate: { path: 'subProgram', select: 'program', populate: { path: 'program', select: '_id' } },
+                  select: 'trainer subProgram misc companies type',
+                  populate: [
+                    { path: 'subProgram', select: 'program', populate: { path: 'program', select: '_id name' } },
+                    { path: 'companies', select: 'name' },
+                  ],
                 },
               ],
             }],
@@ -2074,8 +2157,11 @@ describe('getFollowUp', () => {
                 { path: 'questionnaireAnswersList.card', select: '-__v -createdAt -updatedAt' },
                 {
                   path: 'course',
-                  select: 'trainer subProgram',
-                  populate: { path: 'subProgram', select: 'program', populate: { path: 'program', select: '_id' } },
+                  select: 'trainer subProgram misc companies type',
+                  populate: [
+                    { path: 'subProgram', select: 'program', populate: { path: 'program', select: '_id name' } },
+                    { path: 'companies', select: 'name' },
+                  ],
                 },
               ],
             }],

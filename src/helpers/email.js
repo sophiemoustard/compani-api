@@ -2,16 +2,15 @@ const Boom = require('@hapi/boom');
 const NodemailerHelper = require('./nodemailer');
 const EmailOptionsHelper = require('./emailOptions');
 const AuthenticationHelper = require('./authentication');
-const { SENDER_MAIL, TRAINER, HELPER, COACH, CLIENT_ADMIN, TRAINEE } = require('./constants');
+const { SENDER_MAIL, TRAINER, COACH, CLIENT_ADMIN, TRAINEE } = require('./constants');
 const translate = require('./translate');
 
 const { language } = translate;
 
-exports.sendWelcome = async (type, email, company) => {
+exports.sendWelcome = async (type, email) => {
   const passwordToken = await AuthenticationHelper.createPasswordToken(email);
 
-  let companyName;
-  let subject = 'Bienvenue dans votre espace Compani';
+  const subject = 'Bienvenue dans votre espace Compani';
   let customContent;
   const options = { passwordToken, companyName: 'Compani' };
 
@@ -30,12 +29,6 @@ exports.sendWelcome = async (type, email, company) => {
   }
 
   switch (type) {
-    case HELPER:
-      companyName = company.name;
-      subject = `${companyName} - Bienvenue dans votre espace Compani`;
-      options.companyName = companyName;
-      customContent = EmailOptionsHelper.helperCustomContent();
-      break;
     case TRAINER:
       customContent = EmailOptionsHelper.trainerCustomContent();
       break;

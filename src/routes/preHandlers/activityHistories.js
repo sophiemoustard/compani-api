@@ -3,10 +3,10 @@ const get = require('lodash/get');
 const Activity = require('../../models/Activity');
 const User = require('../../models/User');
 const Course = require('../../models/Course');
-const { checkQuestionnaireAnswersList } = require('./utils');
+const { checkAnswersList } = require('./utils');
 
 exports.authorizeAddActivityHistory = async (req) => {
-  const { user: userId, activity: activityId, questionnaireAnswersList } = req.payload;
+  const { user: userId, activity: activityId, questionnaireAnswersList, quizzAnswersList } = req.payload;
 
   const activity = await Activity.findOne({ _id: activityId })
     .populate({ path: 'steps', select: '_id -activities', populate: { path: 'subPrograms', select: '_id -steps' } })
@@ -24,8 +24,12 @@ exports.authorizeAddActivityHistory = async (req) => {
     .countDocuments({ subProgram: { $in: activitySubPrograms }, trainees: userId });
 
   if (!coursesWithActivityAndFollowedByUser) throw Boom.notFound();
+  const answersList = [
+    ...questionnaireAnswersList ? [...questionnaireAnswersList] : [],
+    ...quizzAnswersList ? [...quizzAnswersList] : [],
+  ];
 
-  if (questionnaireAnswersList) await checkQuestionnaireAnswersList(questionnaireAnswersList, activityId);
+  if (questionnaireAnswersList) await checkAnswersList(answersList, activityId, true);
 
   return null;
 };

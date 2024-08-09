@@ -5,9 +5,6 @@ const { PAYMENT, CESU } = require('./constants');
 const BillRepository = require('../repositories/BillRepository');
 const CreditNoteRepository = require('../repositories/CreditNoteRepository');
 const PaymentRepository = require('../repositories/PaymentRepository');
-const BillHelper = require('./bills');
-const CreditNoteHelper = require('./creditNotes');
-const PaymentHelper = require('./payments');
 const DatesHelper = require('./dates');
 const NumbersHelper = require('./numbers');
 const UtilsHelper = require('./utils');
@@ -170,15 +167,4 @@ exports.getBalances = async (credentials, customerId = null, maxDate = null) => 
   }
 
   return balances;
-};
-
-exports.getBalancesWithDetails = async (query, credentials) => {
-  const [balances, bills, payments, creditNotes] = await Promise.all([
-    exports.getBalances(credentials, query.customer, query.startDate),
-    BillHelper.getBills(query, credentials),
-    PaymentHelper.getPayments(query, credentials),
-    CreditNoteHelper.getCreditNotes(query, credentials),
-  ]);
-
-  return { balances, bills, payments, creditNotes };
 };

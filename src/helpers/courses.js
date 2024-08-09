@@ -437,7 +437,9 @@ exports.formatActivity = (activity) => {
       if (answerList.length === 1 && !answerList[0].trim()) continue;
 
       if (!followUp[answer.card._id]) followUp[answer.card._id] = { ...answer.card, answers: [] };
-      followUp[answer.card._id].answers.push(...answerList);
+      followUp[answer.card._id].answers.push(
+        ...answerList.map(a => ({ answer: a, trainee: history.user, history: history._id }))
+      );
     }
   }
 

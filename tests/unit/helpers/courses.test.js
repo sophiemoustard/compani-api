@@ -2803,27 +2803,29 @@ describe('formatActivity', () => {
   });
 
   it('should return format activity with histories', () => {
+    const userIds = [new ObjectId(), new ObjectId(), new ObjectId()];
+    const historyIds = [new ObjectId(), new ObjectId(), new ObjectId()];
     const activity = {
       activityHistories: [
         {
-          _id: 'rfvgtgb',
-          user: 'qwertyuiop',
+          _id: historyIds[0],
+          user: userIds[0],
           questionnaireAnswersList: [
             { card: { _id: '1234567', title: 'Bonjour' }, answerList: ['2'] },
             { card: { _id: '0987654', title: 'Hello' }, answerList: ['3'] },
           ],
         },
         {
-          _id: 'yhnjujm',
-          user: 'poiuytre',
+          _id: historyIds[1],
+          user: userIds[1],
           questionnaireAnswersList: [
             { card: { _id: '1234567', title: 'Bonjour' }, answerList: ['3'] },
             { card: { _id: '0987654', title: 'Hello' }, answerList: ['', '4'] },
           ],
         },
         {
-          _id: 'zxcvbnm',
-          user: 'xzcvbnm',
+          _id: historyIds[2],
+          user: userIds[2],
           questionnaireAnswersList: [
             { card: { _id: '1234567', title: 'Bonjour' }, answerList: ['1'] },
             { card: { _id: '0987654', title: 'Hello' }, answerList: ['4'] },
@@ -2836,10 +2838,28 @@ describe('formatActivity', () => {
     const result = CourseHelper.formatActivity(activity);
 
     expect(result).toEqual({
-      activityHistories: ['rfvgtgb', 'yhnjujm', 'zxcvbnm'],
+      activityHistories: historyIds,
       followUp: [
-        { _id: '1234567', title: 'Bonjour', answers: ['2', '3', '1'] },
-        { _id: '0987654', title: 'Hello', answers: ['3', '', '4', '4'] },
+        {
+          _id: '1234567',
+          title: 'Bonjour',
+          answers: [
+            { answer: '2', trainee: userIds[0], history: historyIds[0] },
+            { answer: '3', trainee: userIds[1], history: historyIds[1] },
+            { answer: '1', trainee: userIds[2], history: historyIds[2] },
+
+          ],
+        },
+        {
+          _id: '0987654',
+          title: 'Hello',
+          answers: [
+            { answer: '3', trainee: userIds[0], history: historyIds[0] },
+            { answer: '', trainee: userIds[1], history: historyIds[1] },
+            { answer: '4', trainee: userIds[1], history: historyIds[1] },
+            { answer: '4', trainee: userIds[2], history: historyIds[2] },
+          ],
+        },
       ],
     });
   });

@@ -38,20 +38,6 @@ const list = async (req) => {
   }
 };
 
-const listWithSectorHistories = async (req) => {
-  try {
-    const users = await UsersHelper.getUsersListWithSectorHistories(req.query, req.auth.credentials);
-
-    return {
-      message: users.length === 0 ? translate[language].usersNotFound : translate[language].userFound,
-      data: { users },
-    };
-  } catch (e) {
-    req.log('error', e);
-    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
-  }
-};
-
 const learnerList = async (req) => {
   try {
     const users = await UsersHelper.getLearnerList(req.query, req.auth.credentials);
@@ -96,7 +82,7 @@ const exists = async (req) => {
 
 const update = async (req) => {
   try {
-    await UsersHelper.updateUser(req.params._id, req.payload, req.auth.credentials);
+    await UsersHelper.updateUser(req.params._id, req.payload);
 
     return { message: translate[language].userUpdated };
   } catch (e) {
@@ -170,7 +156,6 @@ const removeExpoToken = async (req) => {
 module.exports = {
   create,
   list,
-  listWithSectorHistories,
   learnerList,
   show,
   exists,

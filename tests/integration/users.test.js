@@ -28,8 +28,6 @@ const {
   usersSeedList,
   usersFromDifferentCompanyList,
   populateDB,
-  customer,
-  customerFromOtherCompany,
   helperFromOtherCompany,
   auxiliaryFromOtherCompany,
   coachFromOtherCompany,
@@ -244,25 +242,6 @@ describe('USERS ROUTES - POST /users', () => {
       });
 
       expect(response.statusCode).toBe(400);
-    });
-
-    it('should return a 404 if customer is not from the same company', async () => {
-      const payload = {
-        identity: { firstname: 'coucou', lastname: 'Kirk' },
-        local: { email: 'kirk@alenvi.io' },
-        origin: WEBAPP,
-        customer: customerFromOtherCompany._id,
-        contact: { phone: '0712345678' },
-      };
-
-      const response = await app.inject({
-        method: 'POST',
-        url: '/users',
-        payload,
-        headers: { Cookie: `alenvi_token=${authToken}` },
-      });
-
-      expect(response.statusCode).toBe(404);
     });
 
     ['local.email', 'identity.lastname', 'origin'].forEach((param) => {
@@ -847,61 +826,6 @@ describe('USERS ROUTES - GET /users/exists', () => {
   });
 });
 
-describe('USERS ROUTES - GET /users/sector-histories', () => {
-  let authToken;
-  beforeEach(populateDB);
-
-  describe('COACH', () => {
-    beforeEach(async () => {
-      authToken = await getToken('coach');
-    });
-
-    it('should get all auxiliary users (company A in present or future)', async () => {
-      const res = await app.inject({
-        method: 'GET',
-        url: `/users/sector-histories?company=${authCompany._id}`,
-        headers: { Cookie: `alenvi_token=${authToken}` },
-      });
-
-      expect(res.statusCode).toBe(200);
-      expect(res.result.data.users.length).toBe(7);
-    });
-
-    it('should return a 403 if try to get other company', async () => {
-      const res = await app.inject({
-        method: 'GET',
-        url: `/users/sector-histories?company=${otherCompany._id}`,
-        headers: { Cookie: `alenvi_token=${authToken}` },
-      });
-
-      expect(res.statusCode).toBe(403);
-    });
-  });
-
-  describe('Other roles', () => {
-    const roles = [
-      { name: 'helper', expectedCode: 403 },
-      { name: 'auxiliary', expectedCode: 200 },
-      { name: 'auxiliary_without_company', expectedCode: 403 },
-      { name: 'trainer', expectedCode: 403 },
-      { name: 'training_organisation_manager', expectedCode: 200 },
-    ];
-
-    roles.forEach((role) => {
-      it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
-        authToken = await getToken(role.name);
-        const response = await app.inject({
-          method: 'GET',
-          url: `/users/sector-histories?company=${authCompany._id}`,
-          headers: { Cookie: `alenvi_token=${authToken}` },
-        });
-
-        expect(response.statusCode).toBe(role.expectedCode);
-      });
-    });
-  });
-});
-
 describe('USERS ROUTES - GET /users/learners', () => {
   let authToken;
   beforeEach(populateDB);
@@ -1278,60 +1202,6 @@ describe('USERS ROUTES - PUT /users/:id', () => {
       expect(userCount).toEqual(1);
     });
 
-    it('should add helper role to user', async () => {
-      const role = await Role.findOne({ name: HELPER }).lean();
-      const res = await app.inject({
-        method: 'PUT',
-        url: `/users/${usersSeedList[10]._id}`,
-        payload: { customer: customer._id, role: role._id },
-        headers: { Cookie: `alenvi_token=${authToken}` },
-      });
-
-      expect(res.statusCode).toBe(200);
-      const userUpdated = await User.countDocuments({ _id: usersSeedList[10]._id, 'role.client': role._id });
-      expect(userUpdated).toBeTruthy();
-    });
-
-    it('should add helper role and company to user with previously no company', async () => {
-      const role = await Role.findOne({ name: HELPER }).lean();
-      const userId = usersSeedList[7]._id;
-
-      const res = await app.inject({
-        method: 'PUT',
-        url: `/users/${userId}`,
-        payload: { customer: customer._id, role: role._id },
-        headers: { Cookie: `alenvi_token=${authToken}` },
-      });
-
-      expect(res.statusCode).toBe(200);
-      const updatedRole = await User.countDocuments({ _id: userId, 'role.client': role._id });
-      expect(updatedRole).toBeTruthy();
-    });
-
-    it('should not add helper role to user if customer is not from the same company as user', async () => {
-      const role = await Role.findOne({ name: HELPER }).lean();
-      const res = await app.inject({
-        method: 'PUT',
-        url: `/users/${usersSeedList[10]._id}`,
-        payload: { customer: customerFromOtherCompany._id, role: role._id },
-        headers: { Cookie: `alenvi_token=${authToken}` },
-      });
-
-      expect(res.statusCode).toBe(403);
-    });
-
-    it('should not add helper role to user if already has a client role', async () => {
-      const role = await Role.findOne({ name: HELPER }).lean();
-      const res = await app.inject({
-        method: 'PUT',
-        url: `/users/${usersSeedList[0]._id}`,
-        payload: { customer: customer._id, role: role._id },
-        headers: { Cookie: `alenvi_token=${authToken}` },
-      });
-
-      expect(res.statusCode).toBe(409);
-    });
-
     it('should return a 409 if the role switch is not allowed', async () => {
       const roleAuxiliary = await Role.findOne({ name: AUXILIARY }).lean();
       const userId = usersSeedList[2]._id;
@@ -1644,7 +1514,6 @@ describe('USERS ROUTES - DELETE /users/:id', () => {
       { clientRole: 'planning_referent', expectedCode: 403 },
       { clientRole: 'auxiliary_without_company', expectedCode: 403 },
       { clientRole: '', expectedCode: 403 },
-      { clientRole: 'helper', expectedCode: 200 },
     ];
     usersToDelete.forEach((test) => {
       it(`should return ${test.expectedCode} if deleting ${test.clientRole || 'user without role'}`, async () => {

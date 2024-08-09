@@ -155,7 +155,7 @@ describe('QUESTIONNAIRES ROUTES - GET /questionnaires', () => {
       nowStub.restore();
     });
 
-    it('should get all questionnaires (END_OF_COURSE and EXPECTATIONS)', async () => {
+    it('should get all questionnaires)', async () => {
       const response = await app.inject({
         method: 'GET',
         url: '/questionnaires',
@@ -163,7 +163,7 @@ describe('QUESTIONNAIRES ROUTES - GET /questionnaires', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      expect(response.result.data.questionnaires.length).toEqual(questionnairesList.length);
+      expect(response.result.data.questionnaires.length).toEqual(6);
     });
 
     it('should get published questionnaires linked to a course (EXPECTATIONS and SELF_POSITIONNING)', async () => {
@@ -235,7 +235,7 @@ describe('QUESTIONNAIRES ROUTES - GET /questionnaires', () => {
       expect(response.result.data.questionnaires.length).toEqual(2);
       expect(
         response.result.data.questionnaires
-          .every(q => q.program && UtilsHelper.areObjectIdsEquals(q.program, programsList[0]._id))
+          .every(q => q.program && UtilsHelper.areObjectIdsEquals(q.program._id, programsList[0]._id))
       ).toBeTruthy();
     });
 

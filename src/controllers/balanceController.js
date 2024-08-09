@@ -1,7 +1,7 @@
 const Boom = require('@hapi/boom');
 const get = require('lodash/get');
 
-const { getBalances, getBalancesWithDetails } = require('../helpers/balances');
+const { getBalances } = require('../helpers/balances');
 const translate = require('../helpers/translate');
 
 const { language } = translate;
@@ -24,21 +24,4 @@ const list = async (req) => {
   }
 };
 
-const listWithDetails = async (req) => {
-  try {
-    req.log('balanceController - listWithDetails - query', req.query);
-    req.log('balanceController - listWithDetails - company', get(req, 'auth.credentials.company._id'));
-
-    const balancesWithDetails = await getBalancesWithDetails(req.query, req.auth.credentials);
-
-    return {
-      message: translate[language].balancesFound,
-      data: balancesWithDetails,
-    };
-  } catch (e) {
-    req.log('error', e);
-    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
-  }
-};
-
-module.exports = { list, listWithDetails };
+module.exports = { list };

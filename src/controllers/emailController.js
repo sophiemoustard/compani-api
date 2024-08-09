@@ -6,7 +6,7 @@ const { language } = translate;
 
 const sendWelcome = async (req) => {
   try {
-    const mailInfo = await EmailHelper.sendWelcome(req.payload.type, req.payload.email, req.auth.credentials.company);
+    const mailInfo = await EmailHelper.sendWelcome(req.payload.type, req.payload.email);
 
     return { message: translate[language].emailSent, data: { mailInfo } };
   } catch (e) {

@@ -15,6 +15,10 @@ const ActivityHistorySchema = mongoose.Schema({
     card: { type: mongoose.Schema.Types.ObjectId, ref: 'Card' },
     answerList: { type: [String] },
   }],
+  quizzAnswersList: [{
+    card: { type: mongoose.Schema.Types.ObjectId, ref: 'Card' },
+    answerList: { type: [String] },
+  }],
   score: { type: Number },
   duration: { type: Number },
 }, { timestamps: true });

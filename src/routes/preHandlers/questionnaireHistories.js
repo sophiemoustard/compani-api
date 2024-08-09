@@ -6,7 +6,7 @@ const Course = require('../../models/Course');
 const QuestionnaireHistory = require('../../models/QuestionnaireHistory');
 const { END_COURSE } = require('../../helpers/constants');
 const UtilsHelper = require('../../helpers/utils');
-const { checkQuestionnaireAnswersList } = require('./utils');
+const { checkAnswersList } = require('./utils');
 
 exports.authorizeAddQuestionnaireHistory = async (req) => {
   const { user: userId, questionnaire: questionnaireId, course: courseId, questionnaireAnswersList } = req.payload;
@@ -17,7 +17,7 @@ exports.authorizeAddQuestionnaireHistory = async (req) => {
 
   if (!questionnaire || !user || !isCourseFollowedByUser) throw Boom.notFound();
 
-  if (questionnaireAnswersList) await checkQuestionnaireAnswersList(questionnaireAnswersList, questionnaireId);
+  if (questionnaireAnswersList) await checkAnswersList(questionnaireAnswersList, questionnaireId);
 
   return null;
 };

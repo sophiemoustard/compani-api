@@ -1,18 +1,13 @@
 const get = require('lodash/get');
 const pick = require('lodash/pick');
-const Boom = require('@hapi/boom');
 const UtilsHelper = require('./utils');
 const SubscriptionsHelper = require('./subscriptions');
 const moment = require('../extensions/moment');
-const GDriveStorageHelper = require('./gDriveStorage');
 const TaxCertificate = require('../models/TaxCertificate');
 const EventRepository = require('../repositories/EventRepository');
 const PaymentRepository = require('../repositories/PaymentRepository');
 const TaxCertificatePdf = require('../data/pdf/taxCertificates');
 const NumbersHelper = require('./numbers');
-
-exports.list = async (customer, credentials) =>
-  TaxCertificate.find({ customer, company: get(credentials, 'company._id') }).lean();
 
 exports.formatInterventions = interventions => interventions.map((int) => {
   const service = SubscriptionsHelper.populateService(int.subscription.service);
@@ -73,30 +68,4 @@ exports.generateTaxCertificatePdf = async (taxCertificateId, credentials) => {
   const pdf = await TaxCertificatePdf.getPdf(data);
 
   return { pdf, filename: `attestation_fiscale_${taxCertificate.year}` };
-};
-
-exports.remove = async (taxCertificateId) => {
-  const taxCertificate = await TaxCertificate.findOneAndDelete({ _id: taxCertificateId }).lean();
-  if (taxCertificate.driveFile) await GDriveStorageHelper.deleteFile(taxCertificate.driveFile.driveId);
-};
-
-exports.create = async (certificatePayload, credentials) => {
-  const uploadedFile = await GDriveStorageHelper.addFile({
-    driveFolderId: certificatePayload.driveFolderId,
-    name: certificatePayload.fileName || certificatePayload.taxCertificate.hapi.fileName,
-    type: certificatePayload.mimeType,
-    body: certificatePayload.taxCertificate,
-  });
-  if (!uploadedFile) throw Boom.failedDependency('Google drive: File not uploaded');
-
-  const { id: driveId, webViewLink: link } = uploadedFile;
-  const taxCertificate = await TaxCertificate.create({
-    company: get(credentials, 'company._id', null),
-    date: certificatePayload.date,
-    year: certificatePayload.year,
-    customer: certificatePayload.customer,
-    driveFile: { driveId, link },
-  });
-
-  return taxCertificate.toObject();
 };
