@@ -23,6 +23,9 @@ describe('ACTIVITY HISTORIES ROUTES - POST /activityhistories', () => {
       { card: cardsList[4]._id, answerList: [new ObjectId(), new ObjectId()] },
       { card: cardsList[5]._id, answerList: [new ObjectId()] },
     ],
+    quizzAnswersList: [
+      { card: cardsList[6]._id, answerList: [new ObjectId()] },
+    ],
     score: 1,
     duration: 'PT23S',
   };
@@ -53,6 +56,28 @@ describe('ACTIVITY HISTORIES ROUTES - POST /activityhistories', () => {
         method: 'POST',
         url: '/activityhistories',
         payload: omit(payload, 'questionnaireAnswersList'),
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(200);
+    });
+
+    it('should create activityHistory without quizzAnswersList', async () => {
+      const response = await app.inject({
+        method: 'POST',
+        url: '/activityhistories',
+        payload: omit(payload, 'quizzAnswersList'),
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(200);
+    });
+
+    it('should create activityHistory without quizzAnswersList and questionnaireAnswersList', async () => {
+      const response = await app.inject({
+        method: 'POST',
+        url: '/activityhistories',
+        payload: omit(payload, ['quizzAnswersList', 'questionnaireAnswersList']),
         headers: { 'x-access-token': authToken },
       });
 
@@ -125,6 +150,28 @@ describe('ACTIVITY HISTORIES ROUTES - POST /activityhistories', () => {
       expect(response.statusCode).toBe(400);
     });
 
+    it('should return 400 if quizz answer without card', async () => {
+      const response = await app.inject({
+        method: 'POST',
+        url: '/activityhistories',
+        payload: { ...payload, quizzAnswersList: [{ answerList: [new ObjectId(), new ObjectId()] }] },
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
+
+    it('should return 400 if quizz answer without answer', async () => {
+      const response = await app.inject({
+        method: 'POST',
+        url: '/activityhistories',
+        payload: { ...payload, quizzAnswersList: [{ card: cardsList[6]._id }] },
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
+
     it('should return 404 if card does not exist', async () => {
       const response = await app.inject({
         method: 'POST',
@@ -147,7 +194,7 @@ describe('ACTIVITY HISTORIES ROUTES - POST /activityhistories', () => {
       expect(response.statusCode).toBe(404);
     });
 
-    it('should return 422 if card not a survey, an open question or a question/answer', async () => {
+    it('should return 422 if card not a survey, an open question, a question/answer or a qcm', async () => {
       const response = await app.inject({
         method: 'POST',
         url: '/activityhistories',
