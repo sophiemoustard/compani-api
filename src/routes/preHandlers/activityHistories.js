@@ -26,7 +26,7 @@ exports.authorizeAddActivityHistory = async (req) => {
   if (!coursesWithActivityAndFollowedByUser) throw Boom.notFound();
   const answersList = [...(questionnaireAnswersList || []), ...(quizzAnswersList || [])];
 
-  if (questionnaireAnswersList) await checkAnswersList(answersList, activityId, true);
+  if (answersList) await checkAnswersList(answersList, activityId, true);
 
   return null;
 };
