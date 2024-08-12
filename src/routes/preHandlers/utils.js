@@ -16,24 +16,25 @@ const {
 } = require('../../helpers/constants');
 const UtilsHelper = require('../../helpers/utils');
 
-exports.checkAnswersList = async (questionnaireAnswersList, parentId, isActivityAnswers = false) => {
-  const cards = await Card.find({ _id: { $in: questionnaireAnswersList.map(qa => qa.card) } }).lean();
-  for (const qa of questionnaireAnswersList) {
-    const card = cards.find(c => UtilsHelper.areObjectIdsEquals(c._id, qa.card));
+exports.checkAnswersList = async (answersList, parentId, isActivityAnswers = false) => {
+  const cards = await Card.find({ _id: { $in: answersList.map(qa => qa.card) } }).lean();
+  for (const answer of answersList) {
+    const card = cards.find(c => UtilsHelper.areObjectIdsEquals(c._id, answer.card));
     if (!card) throw Boom.notFound();
+
+    const QUIZZ_TEMPLATES = isActivityAnswers ? [MULTIPLE_CHOICE_QUESTION] : [];
     const authorizedTemplates = [
       SURVEY,
       OPEN_QUESTION,
       QUESTION_ANSWER,
-      ...isActivityAnswers ? [MULTIPLE_CHOICE_QUESTION] : [],
+      ...QUIZZ_TEMPLATES,
     ];
     const isWrongTemplate = !authorizedTemplates.includes(card.template);
     const shouldHaveOneAnswer = [SURVEY, OPEN_QUESTION].includes(card.template) ||
       ([QUESTION_ANSWER].includes(card.template) && !card.isQuestionAnswerMultipleChoiced);
-    const tooManyAnswers = qa.answerList.length !== 1 && shouldHaveOneAnswer;
-    const objectIDTemplates = [QUESTION_ANSWER, ...isActivityAnswers ? [MULTIPLE_CHOICE_QUESTION] : []];
-    const answerIsNotObjectID = objectIDTemplates.includes(card.template) &&
-      Joi.array().items(Joi.objectId()).validate(qa.answerList).error;
+    const tooManyAnswers = answer.answerList.length !== 1 && shouldHaveOneAnswer;
+    const answerIsNotObjectID = [QUESTION_ANSWER, ...QUIZZ_TEMPLATES].includes(card.template) &&
+      Joi.array().items(Joi.objectId()).validate(answer.answerList).error;
 
     if (isWrongTemplate || tooManyAnswers || answerIsNotObjectID) throw Boom.badData();
 

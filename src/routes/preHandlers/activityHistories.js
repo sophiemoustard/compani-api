@@ -24,10 +24,7 @@ exports.authorizeAddActivityHistory = async (req) => {
     .countDocuments({ subProgram: { $in: activitySubPrograms }, trainees: userId });
 
   if (!coursesWithActivityAndFollowedByUser) throw Boom.notFound();
-  const answersList = [
-    ...questionnaireAnswersList ? [...questionnaireAnswersList] : [],
-    ...quizzAnswersList ? [...quizzAnswersList] : [],
-  ];
+  const answersList = [...(questionnaireAnswersList || []), ...(quizzAnswersList || [])];
 
   if (questionnaireAnswersList) await checkAnswersList(answersList, activityId, true);
 
