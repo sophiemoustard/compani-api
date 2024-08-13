@@ -353,7 +353,7 @@ describe('COMPANIES ROUTES - POST /companies', () => {
     });
 
     it('should create a new company (without holding)', async () => {
-      const companiesBefore = await Company.find().lean();
+      const companiesBefore = await Company.countDocuments();
       createFolderForCompany.returns({ id: '1234567890' });
       createFolder.onCall(0).returns({ id: '0987654321' });
       createFolder.onCall(1).returns({ id: 'qwerty' });
@@ -368,11 +368,11 @@ describe('COMPANIES ROUTES - POST /companies', () => {
 
       expect(response.statusCode).toBe(200);
       const companiesCount = await Company.countDocuments();
-      expect(companiesCount).toEqual(companiesBefore.length + 1);
+      expect(companiesCount).toEqual(companiesBefore + 1);
     });
 
     it('should create a new company (with holding)', async () => {
-      const companiesBefore = await Company.find().lean();
+      const companiesBefore = await Company.countDocuments();
       const auhtHoldingCompaniesBefore = await CompanyHolding.countDocuments({ holding: authHolding._id });
       createFolderForCompany.returns({ id: '1234567890' });
       createFolder.onCall(0).returns({ id: '0987654321' });
@@ -388,7 +388,7 @@ describe('COMPANIES ROUTES - POST /companies', () => {
 
       expect(response.statusCode).toBe(200);
       const companiesCount = await Company.countDocuments();
-      expect(companiesCount).toEqual(companiesBefore.length + 1);
+      expect(companiesCount).toEqual(companiesBefore + 1);
       const authHoldingCompaniesCount = await CompanyHolding.countDocuments({ holding: authHolding._id });
       expect(authHoldingCompaniesCount).toEqual(auhtHoldingCompaniesBefore + 1);
     });

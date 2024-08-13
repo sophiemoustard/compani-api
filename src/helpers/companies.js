@@ -23,6 +23,7 @@ exports.createCompany = async (companyPayload) => {
     customersFolderId: customersFolder.id,
     auxiliariesFolderId: auxiliariesFolder.id,
   });
+
   if (companyPayload.holding) {
     await HoldingHelper.update(companyPayload.holding, { company: company._id });
   }
