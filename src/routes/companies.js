@@ -53,7 +53,11 @@ exports.plugin = {
       options: {
         auth: { scope: ['companies:create'] },
         validate: {
-          payload: Joi.object().keys({ name: Joi.string().required(), salesRepresentative: Joi.objectId() }),
+          payload: Joi.object().keys({
+            name: Joi.string().required(),
+            salesRepresentative: Joi.objectId(),
+            holding: Joi.objectId(),
+          }),
         },
         pre: [{ method: authorizeCompanyCreation }],
       },

@@ -1,7 +1,9 @@
 const flat = require('flat');
+const { omit } = require('lodash');
 const Company = require('../models/Company');
 const CompanyHolding = require('../models/CompanyHolding');
 const GDriveStorageHelper = require('./gDriveStorage');
+const HoldingHelper = require('./holdings');
 const { DIRECTORY } = require('./constants');
 
 exports.createCompany = async (companyPayload) => {
@@ -13,14 +15,17 @@ exports.createCompany = async (companyPayload) => {
   ]);
   const lastCompany = await Company.find().sort({ prefixNumber: -1 }).limit(1).lean();
 
-  return Company.create({
-    ...companyPayload,
+  const company = await Company.create({
+    ...omit(companyPayload, 'holding'),
     prefixNumber: lastCompany[0].prefixNumber + 1,
     directDebitsFolderId: directDebitsFolder.id,
     folderId: companyFolder.id,
     customersFolderId: customersFolder.id,
     auxiliariesFolderId: auxiliariesFolder.id,
   });
+  if (companyPayload.holding) {
+    await HoldingHelper.update(companyPayload.holding, { company: company._id });
+  }
 };
 
 exports.list = async (query) => {

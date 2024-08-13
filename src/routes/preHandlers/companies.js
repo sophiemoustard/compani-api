@@ -66,7 +66,7 @@ exports.authorizeCompanyUpdate = async (req) => {
 };
 
 exports.authorizeCompanyCreation = async (req) => {
-  const { name, salesRepresentative } = req.payload;
+  const { name, salesRepresentative, holding } = req.payload;
   const nameAlreadyExists = await Company
     .countDocuments({ name }, { limit: 1 })
     .collation({ locale: 'fr', strength: 1 });
@@ -74,6 +74,11 @@ exports.authorizeCompanyCreation = async (req) => {
 
   if (salesRepresentative) {
     await checkVendorUserExistsAndHasRightRole(salesRepresentative, true);
+  }
+
+  if (holding) {
+    const holdingExists = await Holding.countDocuments({ _id: holding });
+    if (!holdingExists) throw Boom.notFound();
   }
 
   return null;
