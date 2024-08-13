@@ -6,6 +6,7 @@ const Company = require('../../../src/models/Company');
 const CompanyHolding = require('../../../src/models/CompanyHolding');
 const CompanyHelper = require('../../../src/helpers/companies');
 const GDriveStorageHelper = require('../../../src/helpers/gDriveStorage');
+const HoldingHelper = require('../../../src/helpers/holdings');
 const SinonMongoose = require('../sinonMongoose');
 const { DIRECTORY } = require('../../../src/helpers/constants');
 
@@ -14,20 +15,23 @@ describe('createCompany', () => {
   let createCompany;
   let createFolderForCompanyStub;
   let createFolderStub;
+  let updateHolding;
   beforeEach(() => {
     find = sinon.stub(Company, 'find');
     createCompany = sinon.stub(Company, 'create');
     createFolderForCompanyStub = sinon.stub(GDriveStorageHelper, 'createFolderForCompany');
     createFolderStub = sinon.stub(GDriveStorageHelper, 'createFolder');
+    updateHolding = sinon.stub(HoldingHelper, 'update');
   });
   afterEach(() => {
     find.restore();
     createCompany.restore();
     createFolderForCompanyStub.restore();
     createFolderStub.restore();
+    updateHolding.restore();
   });
 
-  it('should create a company', async () => {
+  it('should create a company (without holding)', async () => {
     const payload = { name: 'Test SAS' };
     const createdCompany = {
       ...payload,
@@ -44,6 +48,47 @@ describe('createCompany', () => {
       [{ _id: new ObjectId(), prefixNumber: 345 }],
       ['sort', 'limit', 'lean']
     ));
+    createCompany.returns(createdCompany);
+
+    await CompanyHelper.createCompany(payload);
+
+    sinon.assert.notCalled(updateHolding);
+    sinon.assert.calledOnceWithExactly(createFolderForCompanyStub, payload.name);
+    sinon.assert.calledWithExactly(createFolderStub.getCall(0), 'direct debits', '1234567890');
+    sinon.assert.calledWithExactly(createFolderStub.getCall(1), 'customers', '1234567890');
+    sinon.assert.calledWithExactly(createFolderStub.getCall(2), 'auxiliaries', '1234567890');
+    sinon.assert.calledOnceWithExactly(createCompany, { ...createdCompany, prefixNumber: 346 });
+    SinonMongoose.calledOnceWithExactly(
+      find,
+      [
+        { query: 'find' },
+        { query: 'sort', args: [{ prefixNumber: -1 }] },
+        { query: 'limit', args: [1] },
+        { query: 'lean' },
+      ]
+    );
+  });
+
+  it('should create a company (with holding)', async () => {
+    const payload = { name: 'Test SAS', holding: new ObjectId() };
+    const formattedPayload = {
+      name: 'Test SAS',
+      folderId: '1234567890',
+      directDebitsFolderId: '0987654321',
+      customersFolderId: 'qwertyuiop',
+      auxiliariesFolderId: 'asdfghj',
+    };
+    const company = { _id: new ObjectId(), ...formattedPayload };
+
+    createFolderForCompanyStub.returns({ id: '1234567890' });
+    createFolderStub.onCall(0).returns({ id: '0987654321' });
+    createFolderStub.onCall(1).returns({ id: 'qwertyuiop' });
+    createFolderStub.onCall(2).returns({ id: 'asdfghj' });
+    find.returns(SinonMongoose.stubChainedQueries(
+      [{ _id: new ObjectId(), prefixNumber: 345 }],
+      ['sort', 'limit', 'lean']
+    ));
+    createCompany.returns(company);
 
     await CompanyHelper.createCompany(payload);
 
@@ -51,7 +96,8 @@ describe('createCompany', () => {
     sinon.assert.calledWithExactly(createFolderStub.getCall(0), 'direct debits', '1234567890');
     sinon.assert.calledWithExactly(createFolderStub.getCall(1), 'customers', '1234567890');
     sinon.assert.calledWithExactly(createFolderStub.getCall(2), 'auxiliaries', '1234567890');
-    sinon.assert.calledOnceWithExactly(createCompany, { ...createdCompany, prefixNumber: 346 });
+    sinon.assert.calledOnceWithExactly(createCompany, { ...formattedPayload, prefixNumber: 346 });
+    sinon.assert.calledOnceWithExactly(updateHolding, payload.holding, { company: company._id });
     SinonMongoose.calledOnceWithExactly(
       find,
       [

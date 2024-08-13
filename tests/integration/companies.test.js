@@ -3,6 +3,7 @@ const sinon = require('sinon');
 const { ObjectId } = require('mongodb');
 const GDriveStorageHelper = require('../../src/helpers/gDriveStorage');
 const Company = require('../../src/models/Company');
+const CompanyHolding = require('../../src/models/CompanyHolding');
 const app = require('../../server');
 const { companies, populateDB, usersList } = require('./seed/companiesSeed');
 const { getToken, getTokenByCredentials } = require('./helpers/authentication');
@@ -351,8 +352,8 @@ describe('COMPANIES ROUTES - POST /companies', () => {
       authToken = await getToken('training_organisation_manager');
     });
 
-    it('should create a new company', async () => {
-      const companiesBefore = await Company.find().lean();
+    it('should create a new company (without holding)', async () => {
+      const companiesBefore = await Company.countDocuments();
       createFolderForCompany.returns({ id: '1234567890' });
       createFolder.onCall(0).returns({ id: '0987654321' });
       createFolder.onCall(1).returns({ id: 'qwerty' });
@@ -367,7 +368,29 @@ describe('COMPANIES ROUTES - POST /companies', () => {
 
       expect(response.statusCode).toBe(200);
       const companiesCount = await Company.countDocuments();
-      expect(companiesCount).toEqual(companiesBefore.length + 1);
+      expect(companiesCount).toEqual(companiesBefore + 1);
+    });
+
+    it('should create a new company (with holding)', async () => {
+      const companiesBefore = await Company.countDocuments();
+      const auhtHoldingCompaniesBefore = await CompanyHolding.countDocuments({ holding: authHolding._id });
+      createFolderForCompany.returns({ id: '1234567890' });
+      createFolder.onCall(0).returns({ id: '0987654321' });
+      createFolder.onCall(1).returns({ id: 'qwerty' });
+      createFolder.onCall(2).returns({ id: 'asdfgh' });
+
+      const response = await app.inject({
+        method: 'POST',
+        url: '/companies',
+        payload: { ...payload, holding: authHolding._id },
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(200);
+      const companiesCount = await Company.countDocuments();
+      expect(companiesCount).toEqual(companiesBefore + 1);
+      const authHoldingCompaniesCount = await CompanyHolding.countDocuments({ holding: authHolding._id });
+      expect(authHoldingCompaniesCount).toEqual(auhtHoldingCompaniesBefore + 1);
     });
 
     it('should return 409 if other company has exact same name', async () => {
@@ -408,6 +431,17 @@ describe('COMPANIES ROUTES - POST /companies', () => {
         method: 'POST',
         url: '/companies',
         payload: { name: 'Test other company', salesRepresentative: usersList[1]._id },
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(404);
+    });
+
+    it('should return 404 if holding doesn\'t exist', async () => {
+      const response = await app.inject({
+        method: 'POST',
+        url: '/companies',
+        payload: { ...payload, holding: new ObjectId() },
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
