@@ -1659,6 +1659,7 @@ describe('getFollowUp', () => {
             ],
             user: traineeIds[0],
             createdAt: '2024-08-01T11:00:00.000Z',
+            timeline: START_COURSE,
           },
           {
             _id: historyIds[1],
@@ -1687,6 +1688,7 @@ describe('getFollowUp', () => {
             ],
             user: traineeIds[1],
             createdAt: '2024-08-02T11:00:00.000Z',
+            timeline: END_COURSE,
           },
         ],
       };
@@ -1711,7 +1713,7 @@ describe('getFollowUp', () => {
                 history: historyIds[0],
                 trainee: traineeIds[0],
                 createdAt: '2024-08-01T11:00:00.000Z',
-
+                timeline: START_COURSE,
               },
               {
                 answer: 'test test',
@@ -1720,6 +1722,7 @@ describe('getFollowUp', () => {
                 history: historyIds[1],
                 trainee: traineeIds[1],
                 createdAt: '2024-08-02T11:00:00.000Z',
+                timeline: END_COURSE,
               },
             ],
             isMandatory: true,
@@ -1736,6 +1739,7 @@ describe('getFollowUp', () => {
                 history: historyIds[0],
                 trainee: traineeIds[0],
                 createdAt: '2024-08-01T11:00:00.000Z',
+                timeline: START_COURSE,
               },
               {
                 answer: '2',
@@ -1744,6 +1748,7 @@ describe('getFollowUp', () => {
                 history: historyIds[1],
                 trainee: traineeIds[1],
                 createdAt: '2024-08-02T11:00:00.000Z',
+                timeline: END_COURSE,
               },
             ],
             isMandatory: true,
@@ -1829,6 +1834,7 @@ describe('getFollowUp', () => {
             ],
             user: traineeId,
             createdAt: '2024-08-01T11:00:00.000Z',
+            timeline: START_COURSE,
           },
           {
             _id: historyIds[1],
@@ -1852,6 +1858,7 @@ describe('getFollowUp', () => {
             ],
             user: traineeId,
             createdAt: '2024-08-01T13:00:00.000Z',
+            timeline: START_COURSE,
           },
         ],
       };
@@ -1873,6 +1880,7 @@ describe('getFollowUp', () => {
                 trainee: traineeId,
                 history: historyIds[0],
                 createdAt: '2024-08-01T11:00:00.000Z',
+                timeline: START_COURSE,
               },
               {
                 answer: 'test test',
@@ -1881,6 +1889,7 @@ describe('getFollowUp', () => {
                 trainee: traineeId,
                 history: historyIds[1],
                 createdAt: '2024-08-01T13:00:00.000Z',
+                timeline: START_COURSE,
               },
             ],
             isMandatory: true,
@@ -1897,6 +1906,7 @@ describe('getFollowUp', () => {
                 trainee: traineeId,
                 history: historyIds[0],
                 createdAt: '2024-08-01T11:00:00.000Z',
+                timeline: START_COURSE,
               },
               {
                 answer: '2',
@@ -1905,6 +1915,7 @@ describe('getFollowUp', () => {
                 trainee: traineeId,
                 history: historyIds[1],
                 createdAt: '2024-08-01T13:00:00.000Z',
+                timeline: START_COURSE,
               },
             ],
             isMandatory: true,
