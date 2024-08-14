@@ -209,6 +209,7 @@ const getFollowUpForList = async (questionnaire, courseId) => {
             trainee: history.user,
             history: history._id,
             createdAt: history.createdAt,
+            timeline: history.timeline,
           }))
         );
     }
