@@ -764,6 +764,16 @@ describe('CARDS ROUTES - DELETE /cards/{_id}/answers/{answerId}', () => {
 
       expect(response.statusCode).toBe(400);
     });
+
+    it('should return 403 if qcu card and delete good answer', async () => {
+      const response = await app.inject({
+        method: 'DELETE',
+        url: `/cards/${cardsList[7]._id}/answers/${cardsList[7].qcAnswers[0]._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
   });
 
   describe('Other roles', () => {
