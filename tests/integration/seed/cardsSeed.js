@@ -45,9 +45,10 @@ const cardsList = [
     _id: new ObjectId(),
     template: SINGLE_CHOICE_QUESTION,
     qcAnswers: [
-      { _id: new ObjectId(), text: 'uel' },
-      { _id: new ObjectId(), text: 'ile' },
-      { _id: new ObjectId(), text: 'o' },
+      { _id: new ObjectId(), text: 'uel', correct: true },
+      { _id: new ObjectId(), text: 'ile', correct: false },
+      { _id: new ObjectId(), text: 'o', correct: false },
+      { _id: new ObjectId(), text: 'test', correct: false },
     ],
     question: 'what is the question ?',
   },

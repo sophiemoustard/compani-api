@@ -18,7 +18,7 @@ const {
   authorizeCardAnswerDeletion,
   getCardMediaPublicId,
 } = require('./preHandlers/cards');
-const { QC_ANSWER_MAX_LENGTH, QUESTION_MAX_LENGTH, FLASHCARD_TEXT_MAX_LENGTH } = require('../helpers/constants');
+const { QUESTION_MAX_LENGTH, FLASHCARD_TEXT_MAX_LENGTH } = require('../helpers/constants');
 
 exports.plugin = {
   name: 'routes-cards',
@@ -40,7 +40,6 @@ exports.plugin = {
             }),
             gappedText: Joi.string(),
             question: Joi.string().max(QUESTION_MAX_LENGTH),
-            qcuGoodAnswer: Joi.string().max(QC_ANSWER_MAX_LENGTH),
             isQuestionAnswerMultipleChoiced: Joi.boolean(),
             explanation: Joi.string(),
             labels: Joi.object().keys({

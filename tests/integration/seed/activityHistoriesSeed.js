@@ -60,8 +60,11 @@ const cardsList = [
     _id: new ObjectId(),
     template: SINGLE_CHOICE_QUESTION,
     question: 'test3?',
-    qcuGoodAnswer: 'test',
-    qcAnswers: [{ _id: new ObjectId(), text: 'test2' }],
+    qcAnswers: [
+      { _id: new ObjectId(), text: 'test', correct: true },
+      { _id: new ObjectId(), text: 'test2', correct: false },
+      { _id: new ObjectId(), text: 'test3', correct: false },
+    ],
     explanation: 'test',
   },
   { _id: new ObjectId(), template: 'open_question', question: 'test4?' },

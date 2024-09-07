@@ -467,7 +467,7 @@ describe('SEEDS VERIFICATION', () => {
           },
           {
             name: SINGLE_CHOICE_QUESTION,
-            allowedKeys: ['question', 'qcuGoodAnswer', 'qcAnswers', 'explanation'],
+            allowedKeys: ['question', 'qcAnswers', 'explanation'],
           },
           {
             name: QUESTION_ANSWER,
@@ -534,10 +534,10 @@ describe('SEEDS VERIFICATION', () => {
           });
         });
 
-        it('should pass if only \'multiple choice question\' card has correct key in \'qcAnswers\' field', () => {
+        it('should pass if only \'choice question\' cards has correct key in \'qcAnswers\' field', () => {
           const someSubKeysAreWrong = cardList
-            .some(card => card.template !== MULTIPLE_CHOICE_QUESTION && has(card, 'qcAnswers') &&
-              card.qcAnswers.some(object => has(object, 'correct')));
+            .some(card => ![MULTIPLE_CHOICE_QUESTION, SINGLE_CHOICE_QUESTION].includes(card.template) &&
+              has(card, 'qcAnswers') && card.qcAnswers.some(object => has(object, 'correct')));
 
           expect(someSubKeysAreWrong).toBeFalsy();
         });

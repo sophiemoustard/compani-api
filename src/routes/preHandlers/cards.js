@@ -12,10 +12,8 @@ const {
   MULTIPLE_CHOICE_QUESTION,
   QUESTION_ANSWER,
   SINGLE_CHOICE_QUESTION,
-  MULTIPLE_CHOICE_QUESTION_MAX_ANSWERS_COUNT,
-  MULTIPLE_CHOICE_QUESTION_MIN_ANSWERS_COUNT,
-  SINGLE_CHOICE_QUESTION_MAX_FALSY_ANSWERS_COUNT,
-  SINGLE_CHOICE_QUESTION_MIN_FALSY_ANSWERS_COUNT,
+  CHOICE_QUESTION_MAX_ANSWERS_COUNT,
+  CHOICE_QUESTION_MIN_ANSWERS_COUNT,
   ORDER_THE_SEQUENCE,
   ORDER_THE_SEQUENCE_MAX_ANSWERS_COUNT,
   ORDER_THE_SEQUENCE_MIN_ANSWERS_COUNT,
@@ -25,6 +23,7 @@ const {
   SURVEY,
   OPEN_QUESTION,
 } = require('../../helpers/constants');
+const UtilsHelper = require('../../helpers/utils');
 const Activity = require('../../models/Activity');
 const Questionnaire = require('../../models/Questionnaire');
 
@@ -112,11 +111,9 @@ exports.authorizeCardAnswerCreation = async (req) => {
     case QUESTION_ANSWER:
       if (card.qcAnswers.length >= QUESTION_ANSWER_MAX_ANSWERS_COUNT) return Boom.forbidden();
       break;
-    case SINGLE_CHOICE_QUESTION:
-      if (card.qcAnswers.length >= SINGLE_CHOICE_QUESTION_MAX_FALSY_ANSWERS_COUNT) return Boom.forbidden();
-      break;
     case MULTIPLE_CHOICE_QUESTION:
-      if (card.qcAnswers.length >= MULTIPLE_CHOICE_QUESTION_MAX_ANSWERS_COUNT) return Boom.forbidden();
+    case SINGLE_CHOICE_QUESTION:
+      if (card.qcAnswers.length >= CHOICE_QUESTION_MAX_ANSWERS_COUNT) return Boom.forbidden();
       break;
     case ORDER_THE_SEQUENCE:
       if (card.orderedAnswers.length >= ORDER_THE_SEQUENCE_MAX_ANSWERS_COUNT) return Boom.forbidden();
@@ -166,11 +163,14 @@ exports.authorizeCardAnswerDeletion = async (req) => {
     case QUESTION_ANSWER:
       if (card.qcAnswers.length <= QUESTION_ANSWER_MIN_ANSWERS_COUNT) return Boom.forbidden();
       break;
-    case SINGLE_CHOICE_QUESTION:
-      if (card.qcAnswers.length <= SINGLE_CHOICE_QUESTION_MIN_FALSY_ANSWERS_COUNT) return Boom.forbidden();
-      break;
     case MULTIPLE_CHOICE_QUESTION:
-      if (card.qcAnswers.length <= MULTIPLE_CHOICE_QUESTION_MIN_ANSWERS_COUNT) return Boom.forbidden();
+      if (card.qcAnswers.length <= CHOICE_QUESTION_MIN_ANSWERS_COUNT) return Boom.forbidden();
+      break;
+    case SINGLE_CHOICE_QUESTION:
+      if (card.qcAnswers.length <= CHOICE_QUESTION_MIN_ANSWERS_COUNT) return Boom.forbidden();
+      if (card.qcAnswers.find(a => UtilsHelper.areObjectIdsEquals(a._id, req.params.answerId)).correct) {
+        return Boom.forbidden();
+      }
       break;
     case ORDER_THE_SEQUENCE:
       if (card.orderedAnswers.length <= ORDER_THE_SEQUENCE_MIN_ANSWERS_COUNT) return Boom.forbidden();
