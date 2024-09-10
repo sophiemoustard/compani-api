@@ -23,11 +23,6 @@ const baseWelcomeContent = (customContent, options) => {
     <p>L'équipe ${options.companyName}</p>`;
 };
 
-const helperCustomContent = () => `<p>
-    Votre espace Compani vous permettra de suivre au quotidien le planning des interventions des auxiliaires
-    d’envie chez votre proche, ainsi que les éléments de facturation. Si ça n’est pas déjà fait, nous vous remercions
-    également de finaliser votre souscription en remplissant la page “Abonnement”.<p>`;
-
 const trainerCustomContent = () => `<p>Bienvenue chez Compani, nous venons de vous créer votre espace Formateur. :)<p>
     <p>Depuis cet espace, vous pourrez gérer en toute simplicité les formations que vous animez pour Compani.<p>`;
 
@@ -92,7 +87,6 @@ const GooglePlayAndAppStoreButtons = () => `
 
 module.exports = {
   baseWelcomeContent,
-  helperCustomContent,
   trainerCustomContent,
   coachCustomContent,
   forgotPasswordEmail,

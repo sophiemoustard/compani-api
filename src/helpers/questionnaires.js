@@ -64,7 +64,10 @@ exports.list = async (credentials, query = {}) => {
   const { course: courseId } = query;
 
   if (!courseId) {
-    return Questionnaire.find(query).populate({ path: 'historiesCount', options: { isVendorUser } }).lean();
+    return Questionnaire
+      .find(query)
+      .populate([{ path: 'historiesCount', options: { isVendorUser } }, { path: 'program', select: 'name' }])
+      .lean();
   }
 
   const { isStrictlyELearning, courseTimeline, programId } = await exports.getCourseInfos(courseId);
@@ -198,7 +201,17 @@ const getFollowUpForList = async (questionnaire, courseId) => {
 
       if (!followUp[answer.card._id]) followUp[answer.card._id] = { ...answer.card, answers: [] };
       followUp[answer.card._id].answers
-        .push(...answerList.map(a => ({ answer: a, course: history.course, traineeCompany: history.company })));
+        .push(
+          ...answerList.map(a => ({
+            answer: a,
+            course: history.course,
+            traineeCompany: history.company,
+            trainee: history.user,
+            history: history._id,
+            createdAt: history.createdAt,
+            timeline: history.timeline,
+          }))
+        );
     }
   }
 
@@ -220,13 +233,16 @@ exports.getFollowUp = async (questionnaireId, query, credentials) => {
       path: 'histories',
       match: course ? { course } : null,
       options: { isVendorUser },
-      select: '-__v -createdAt -updatedAt',
+      select: '-__v -updatedAt',
       populate: [
         { path: 'questionnaireAnswersList.card', select: '-__v -createdAt -updatedAt' },
         {
           path: 'course',
-          select: 'trainer subProgram',
-          populate: { path: 'subProgram', select: 'program', populate: { path: 'program', select: '_id' } },
+          select: 'trainer subProgram misc companies type',
+          populate: [
+            { path: 'subProgram', select: 'program', populate: { path: 'program', select: '_id name' } },
+            { path: 'companies', select: 'name' },
+          ],
         },
       ],
     })

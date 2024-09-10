@@ -6,7 +6,6 @@ const CompanyHolding = require('../../models/CompanyHolding');
 const Holding = require('../../models/Holding');
 const User = require('../../models/User');
 const Role = require('../../models/Role');
-const Customer = require('../../models/Customer');
 const Establishment = require('../../models/Establishment');
 const UserHolding = require('../../models/UserHolding');
 const translate = require('../../helpers/translate');
@@ -91,7 +90,6 @@ exports.authorizeUserUpdate = async (req) => {
 
   // ERP checks : updated user is linked to client logged user company
   if (get(req, 'payload.establishment')) await checkEstablishment(loggedUserCompany, req.payload);
-  if (get(req, 'payload.customer')) await checkCustomer(loggedUserCompany, req.payload);
 
   if (get(req, 'payload.role')) await checkRole(userFromDB, req.payload);
   if (get(req, 'payload.holding')) {
@@ -141,14 +139,6 @@ const checkRole = async (userFromDB, payload) => {
 
   const vendorRoleChange = role.interface === VENDOR && !!get(userFromDB, 'role.vendor');
   if (vendorRoleChange) throw Boom.conflict(translate[language].userRoleConflict);
-};
-
-const checkCustomer = async (userCompany, payload) => {
-  const role = await Role.findOne({ name: HELPER }).lean();
-  if (!UtilsHelper.areObjectIdsEquals(payload.role, role._id)) throw Boom.forbidden();
-
-  const customerCount = await Customer.countDocuments({ _id: payload.customer, company: userCompany });
-  if (!customerCount) throw Boom.forbidden();
 };
 
 const checkUpdateAndCreateRestrictions = (payload) => {
@@ -220,12 +210,6 @@ exports.authorizeUserCreation = async (req) => {
   if (scope && !scope.includes('users:edit')) throw Boom.forbidden();
   if (isOnlyTrainer(get(credentials, 'role')) && (!get(req, 'payload.company') || get(req, 'payload.role'))) {
     throw Boom.forbidden();
-  }
-
-  if (req.payload.customer) {
-    const { customer } = req.payload;
-    const customerCount = await Customer.countDocuments({ _id: customer, company: get(credentials, 'company._id') });
-    if (!customerCount) throw Boom.notFound();
   }
 
   const vendorRole = get(credentials, 'role.vendor.name');

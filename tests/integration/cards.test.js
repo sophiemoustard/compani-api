@@ -69,11 +69,7 @@ describe('CARDS ROUTES - PUT /cards/{_id}', () => {
       },
       {
         template: 'single_choice_question',
-        payload: {
-          question: 'Que faire dans cette situation ?',
-          qcuGoodAnswer: 'plein de trucs',
-          explanation: 'en fait on doit faire ça',
-        },
+        payload: { question: 'Que faire dans cette situation ?', explanation: 'en fait on doit faire ça' },
         id: singleChoiceQuestionId,
       },
       {
@@ -195,33 +191,6 @@ describe('CARDS ROUTES - PUT /cards/{_id}', () => {
           const response = await app.inject({
             method: 'PUT',
             url: `/cards/${orderTheSequenceId}`,
-            payload: request.payload,
-            headers: { Cookie: `alenvi_token=${authToken}` },
-          });
-
-          expect(response.statusCode).toBe(request.code);
-        });
-      });
-    });
-
-    describe('Single choice question', () => {
-      const requests = [
-        { msg: 'valid good answer', payload: { qcuGoodAnswer: 'c\'est le S' }, code: 200 },
-        { msg: 'missing good answer', payload: { qcuGoodAnswer: '' }, code: 400 },
-        {
-          msg: 'too many chars in good answer',
-          payload: {
-            qcuGoodAnswer: 'eeeeeyuiolkjhgfdasdfghjklzasdfghjklzasdfghjklzasdfghjklzasdvdvdvfghjklzasdfghjklz',
-          },
-          code: 400,
-        },
-      ];
-
-      requests.forEach((request) => {
-        it(`should return a ${request.code} if ${request.msg}`, async () => {
-          const response = await app.inject({
-            method: 'PUT',
-            url: `/cards/${singleChoiceQuestionId}`,
             payload: request.payload,
             headers: { Cookie: `alenvi_token=${authToken}` },
           });
@@ -794,6 +763,16 @@ describe('CARDS ROUTES - DELETE /cards/{_id}/answers/{answerId}', () => {
       });
 
       expect(response.statusCode).toBe(400);
+    });
+
+    it('should return 403 if qcu card and delete good answer', async () => {
+      const response = await app.inject({
+        method: 'DELETE',
+        url: `/cards/${cardsList[7]._id}/answers/${cardsList[7].qcAnswers[0]._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(403);
     });
   });
 

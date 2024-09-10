@@ -12,23 +12,31 @@ const {
   VENDOR_ADMIN,
   TRAINING_ORGANISATION_MANAGER,
   TRAINER,
+  MULTIPLE_CHOICE_QUESTION,
 } = require('../../helpers/constants');
 const UtilsHelper = require('../../helpers/utils');
 
-exports.checkQuestionnaireAnswersList = async (questionnaireAnswersList, parentId) => {
-  const cards = await Card.find({ _id: { $in: questionnaireAnswersList.map(qa => qa.card) } }).lean();
-  for (const qa of questionnaireAnswersList) {
-    const card = cards.find(c => UtilsHelper.areObjectIdsEquals(c._id, qa.card));
+exports.checkAnswersList = async (answersList, parentId, isActivityAnswers = false) => {
+  const cards = await Card.find({ _id: { $in: answersList.map(qa => qa.card) } }).lean();
+  for (const answer of answersList) {
+    const card = cards.find(c => UtilsHelper.areObjectIdsEquals(c._id, answer.card));
     if (!card) throw Boom.notFound();
 
-    const isNotQuestionnaireTemplate = ![SURVEY, OPEN_QUESTION, QUESTION_ANSWER].includes(card.template);
+    const QUIZZ_TEMPLATES = isActivityAnswers ? [MULTIPLE_CHOICE_QUESTION] : [];
+    const authorizedTemplates = [
+      SURVEY,
+      OPEN_QUESTION,
+      QUESTION_ANSWER,
+      ...QUIZZ_TEMPLATES,
+    ];
+    const isWrongTemplate = !authorizedTemplates.includes(card.template);
     const shouldHaveOneAnswer = [SURVEY, OPEN_QUESTION].includes(card.template) ||
       ([QUESTION_ANSWER].includes(card.template) && !card.isQuestionAnswerMultipleChoiced);
-    const tooManyAnswers = qa.answerList.length !== 1 && shouldHaveOneAnswer;
-    const answerIsNotObjectID = [QUESTION_ANSWER].includes(card.template) &&
-      Joi.array().items(Joi.objectId()).validate(qa.answerList).error;
+    const tooManyAnswers = answer.answerList.length !== 1 && shouldHaveOneAnswer;
+    const answerIsNotObjectID = [QUESTION_ANSWER, ...QUIZZ_TEMPLATES].includes(card.template) &&
+      Joi.array().items(Joi.objectId()).validate(answer.answerList).error;
 
-    if (isNotQuestionnaireTemplate || tooManyAnswers || answerIsNotObjectID) throw Boom.badData();
+    if (isWrongTemplate || tooManyAnswers || answerIsNotObjectID) throw Boom.badData();
 
     const activityCount = await Activity.countDocuments({ _id: parentId, cards: card._id });
     const questionnaireCount = await Questionnaire.countDocuments({ _id: parentId, cards: card._id });

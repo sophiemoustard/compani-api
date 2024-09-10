@@ -17,6 +17,7 @@ const {
   SINGLE_CHOICE_QUESTION,
   QUESTION_ANSWER,
   LESSON,
+  MULTIPLE_CHOICE_QUESTION,
 } = require('../../../src/helpers/constants');
 const { deleteNonAuthenticationSeeds } = require('../helpers/db');
 const { vendorAdminRoleId } = require('../../seed/authRolesSeed');
@@ -59,8 +60,11 @@ const cardsList = [
     _id: new ObjectId(),
     template: SINGLE_CHOICE_QUESTION,
     question: 'test3?',
-    qcuGoodAnswer: 'test',
-    qcAnswers: [{ _id: new ObjectId(), text: 'test2' }],
+    qcAnswers: [
+      { _id: new ObjectId(), text: 'test', correct: true },
+      { _id: new ObjectId(), text: 'test2', correct: false },
+      { _id: new ObjectId(), text: 'test3', correct: false },
+    ],
     explanation: 'test',
   },
   { _id: new ObjectId(), template: 'open_question', question: 'test4?' },
@@ -78,6 +82,16 @@ const cardsList = [
     isQuestionAnswerMultipleChoiced: false,
     qcAnswers: [{ _id: new ObjectId(), text: 'test2' }, { _id: new ObjectId(), text: 'test3' }],
   },
+  {
+    _id: new ObjectId(),
+    template: MULTIPLE_CHOICE_QUESTION,
+    question: 'test7?',
+    qcAnswers: [
+      { _id: new ObjectId(), text: 'test7', correct: false },
+      { _id: new ObjectId(), text: 'test7 good', correct: true },
+    ],
+    explanation: 'test',
+  },
 ];
 
 const activitiesList = [
@@ -85,7 +99,7 @@ const activitiesList = [
     _id: new ObjectId(),
     name: 'bouger',
     type: LESSON,
-    cards: [cardsList[0]._id, cardsList[2]._id, cardsList[3]._id, cardsList[4]._id, cardsList[5]._id],
+    cards: [cardsList[0]._id, cardsList[2]._id, cardsList[3]._id, cardsList[4]._id, cardsList[5]._id, cardsList[6]._id],
     status: PUBLISHED,
   },
 ];

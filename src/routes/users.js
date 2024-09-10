@@ -6,7 +6,6 @@ Joi.objectId = require('joi-objectid')(Joi);
 const {
   create,
   list,
-  listWithSectorHistories,
   learnerList,
   show,
   exists,
@@ -71,7 +70,6 @@ exports.plugin = {
               phone: phoneNumberValidation.allow('', null),
               address: addressValidation,
             }),
-            customer: Joi.objectId(),
           }).required(),
         },
         pre: [{ method: authorizeUserCreation }],
@@ -98,17 +96,6 @@ exports.plugin = {
         pre: [{ method: authorizeUsersGet }],
       },
       handler: list,
-    });
-
-    server.route({
-      method: 'GET',
-      path: '/sector-histories',
-      options: {
-        auth: { scope: ['users:list'] },
-        validate: { query: Joi.object({ company: Joi.objectId() }) },
-        pre: [{ method: authorizeUsersGet }],
-      },
-      handler: listWithSectorHistories,
     });
 
     server.route({
@@ -186,7 +173,6 @@ exports.plugin = {
             }),
             contact: Joi.object().keys({ phone: phoneNumberValidation.allow('', null), address: addressValidation }),
             biography: Joi.string().allow(''),
-            customer: Joi.objectId(),
             holding: Joi.objectId(),
           }).required(),
         },

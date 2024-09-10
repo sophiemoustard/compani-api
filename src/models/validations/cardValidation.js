@@ -13,11 +13,9 @@ const {
   OPEN_QUESTION,
   SURVEY,
   QUESTION_ANSWER,
-  SINGLE_CHOICE_QUESTION_MIN_FALSY_ANSWERS_COUNT,
-  SINGLE_CHOICE_QUESTION_MAX_FALSY_ANSWERS_COUNT,
   FILL_THE_GAPS_MAX_ANSWERS_COUNT,
-  MULTIPLE_CHOICE_QUESTION_MIN_ANSWERS_COUNT,
-  MULTIPLE_CHOICE_QUESTION_MAX_ANSWERS_COUNT,
+  CHOICE_QUESTION_MIN_ANSWERS_COUNT,
+  CHOICE_QUESTION_MAX_ANSWERS_COUNT,
   ORDER_THE_SEQUENCE_MIN_ANSWERS_COUNT,
   ORDER_THE_SEQUENCE_MAX_ANSWERS_COUNT,
   QUESTION_ANSWER_MIN_ANSWERS_COUNT,
@@ -90,10 +88,21 @@ exports.cardValidationByTemplate = (template, labels = {}) => {
     case SINGLE_CHOICE_QUESTION:
       return Joi.object().keys({
         question: Joi.string().required().max(QUESTION_MAX_LENGTH),
-        qcuGoodAnswer: Joi.string().required().max(QC_ANSWER_MAX_LENGTH),
-        qcAnswers: Joi.array().items(Joi.object({
-          text: Joi.string().max(QC_ANSWER_MAX_LENGTH).required(),
-        })).min(SINGLE_CHOICE_QUESTION_MIN_FALSY_ANSWERS_COUNT).max(SINGLE_CHOICE_QUESTION_MAX_FALSY_ANSWERS_COUNT),
+        qcAnswers: Joi.array()
+          .items(Joi.object({
+            text: Joi.string().required().max(QC_ANSWER_MAX_LENGTH),
+            correct: Joi.boolean().required(),
+          }))
+          .has(Joi.object({ correct: true }))
+          .min(CHOICE_QUESTION_MIN_ANSWERS_COUNT)
+          .max(CHOICE_QUESTION_MAX_ANSWERS_COUNT)
+          .custom((values, helpers) => {
+            const correctAnswers = values.filter(answer => answer.correct);
+            if (correctAnswers.length !== 1) {
+              return helpers.message('There must be exactly one correct answer');
+            }
+            return values;
+          }),
         explanation: Joi.string().required(),
       });
     case ORDER_THE_SEQUENCE:
@@ -113,8 +122,8 @@ exports.cardValidationByTemplate = (template, labels = {}) => {
             correct: Joi.boolean().required(),
           }))
           .has(Joi.object({ correct: true }))
-          .min(MULTIPLE_CHOICE_QUESTION_MIN_ANSWERS_COUNT)
-          .max(MULTIPLE_CHOICE_QUESTION_MAX_ANSWERS_COUNT),
+          .min(CHOICE_QUESTION_MIN_ANSWERS_COUNT)
+          .max(CHOICE_QUESTION_MAX_ANSWERS_COUNT),
         explanation: Joi.string().required(),
       });
     case SURVEY:

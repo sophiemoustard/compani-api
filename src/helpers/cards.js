@@ -24,7 +24,7 @@ exports.updateCard = async (cardId, payload) => {
 
 exports.addCardAnswer = async (card) => {
   const key = exports.getAnswerKeyToUpdate(card.template);
-  const payload = card.template === MULTIPLE_CHOICE_QUESTION
+  const payload = [MULTIPLE_CHOICE_QUESTION, SINGLE_CHOICE_QUESTION].includes(card.template)
     ? { text: '', correct: false }
     : { text: '' };
 
