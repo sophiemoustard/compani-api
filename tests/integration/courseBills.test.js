@@ -374,7 +374,7 @@ describe('COURSE BILL ROUTES - POST /coursebills', () => {
   const payload = {
     course: coursesList[2]._id,
     companies: [otherCompany._id],
-    mainFee: { price: 120, count: 1, countUnit: GROUP },
+    mainFee: { price: 120, count: 1, countUnit: GROUP, description: 'test' },
     payer: { fundingOrganisation: courseFundingOrganisationList[0]._id },
   };
 
