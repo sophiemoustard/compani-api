@@ -33,7 +33,7 @@ const create = async (req) => {
 
 const deleteAttendanceSheet = async (req) => {
   try {
-    await AttendanceSheetHelper.delete(req.pre.attendanceSheet);
+    await AttendanceSheetHelper.delete(req.params._id);
 
     return { message: translate[language].attendanceSheetDeleted };
   } catch (e) {

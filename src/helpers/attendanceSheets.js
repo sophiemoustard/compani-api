@@ -52,8 +52,12 @@ exports.list = async (query, credentials) => {
   return attendanceSheets;
 };
 
-exports.delete = async (attendanceSheet) => {
-  await AttendanceSheet.deleteOne({ _id: attendanceSheet._id });
+exports.delete = async attendanceSheetId => exports.deleteMany([attendanceSheetId]);
 
-  return GCloudStorageHelper.deleteCourseFile(attendanceSheet.file.publicId);
+exports.deleteMany = async (attendanceSheetIdList) => {
+  const attendanceSheets = await AttendanceSheet.find({ _id: { $in: attendanceSheetIdList } }).lean();
+
+  await AttendanceSheet.deleteMany({ _id: { $in: attendanceSheetIdList } });
+
+  return Promise.all([attendanceSheets.map(ash => GCloudStorageHelper.deleteCourseFile(ash.file.publicId))]);
 };

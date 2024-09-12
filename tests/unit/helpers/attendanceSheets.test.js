@@ -246,24 +246,55 @@ describe('create', () => {
   });
 });
 
-describe('delete', () => {
-  let deleteOne;
+describe('deleteMany', () => {
+  let find;
+  let deleteMany;
   let deleteCourseFile;
   beforeEach(() => {
-    deleteOne = sinon.stub(AttendanceSheet, 'deleteOne');
+    find = sinon.stub(AttendanceSheet, 'find');
+    deleteMany = sinon.stub(AttendanceSheet, 'deleteMany');
     deleteCourseFile = sinon.stub(GCloudStorageHelper, 'deleteCourseFile');
   });
   afterEach(() => {
-    deleteOne.restore();
+    find.restore();
+    deleteMany.restore();
     deleteCourseFile.restore();
   });
 
+  it('should remove attendance sheets', async () => {
+    const attendanceSheets = [
+      { _id: new ObjectId(), file: { publicId: 'yo' } },
+      { _id: new ObjectId(), file: { publicId: 'ya' } },
+    ];
+
+    find.returns(SinonMongoose.stubChainedQueries(attendanceSheets, ['lean']));
+
+    await attendanceSheetHelper.deleteMany(attendanceSheets.map(tc => tc._id));
+
+    sinon.assert.calledWithExactly(deleteCourseFile.getCall(0), 'yo');
+    sinon.assert.calledWithExactly(deleteCourseFile.getCall(1), 'ya');
+    sinon.assert.calledOnceWithExactly(deleteMany, { _id: { $in: attendanceSheets.map(tc => tc._id) } });
+    SinonMongoose.calledOnceWithExactly(
+      find,
+      [{ query: 'find', args: [{ _id: { $in: attendanceSheets.map(tc => tc._id) } }] }, { query: 'lean' }]
+    );
+  });
+});
+
+describe('delete', () => {
+  let deleteMany;
+  beforeEach(() => {
+    deleteMany = sinon.stub(attendanceSheetHelper, 'deleteMany');
+  });
+  afterEach(() => {
+    deleteMany.restore();
+  });
+
   it('should remove an attendance sheet', async () => {
-    const attendanceSheet = { _id: new ObjectId(), file: { publicId: 'yo' } };
+    const attendanceSheetId = new ObjectId();
 
-    await attendanceSheetHelper.delete(attendanceSheet);
+    await attendanceSheetHelper.delete(attendanceSheetId);
 
-    sinon.assert.calledOnceWithExactly(deleteCourseFile, 'yo');
-    sinon.assert.calledOnceWithExactly(deleteOne, { _id: attendanceSheet._id });
+    sinon.assert.calledOnceWithExactly(deleteMany, [attendanceSheetId]);
   });
 });

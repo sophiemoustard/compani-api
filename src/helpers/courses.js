@@ -11,10 +11,12 @@ const fs = require('fs');
 const os = require('os');
 const Boom = require('@hapi/boom');
 const { CompaniDate } = require('./dates/companiDates');
+const AttendanceSheet = require('../models/AttendanceSheet');
 const Company = require('../models/Company');
 const Course = require('../models/Course');
 const User = require('../models/User');
 const Questionnaire = require('../models/Questionnaire');
+const QuestionnaireHistory = require('../models/QuestionnaireHistory');
 const CourseSmsHistory = require('../models/CourseSmsHistory');
 const Attendance = require('../models/Attendance');
 const SubProgram = require('../models/SubProgram');
@@ -26,6 +28,7 @@ const ZipHelper = require('./zip');
 const SmsHelper = require('./sms');
 const DocxHelper = require('./docx');
 const StepsHelper = require('./steps');
+const AttendanceSheetsHelper = require('./attendanceSheets');
 const TrainingContractsHelper = require('./trainingContracts');
 const drive = require('../models/Google/Drive');
 const {
@@ -678,6 +681,11 @@ exports.deleteCourse = async (courseId) => {
     .setOptions({ isVendorUser: true })
     .lean();
 
+  const attendanceSheetList = await AttendanceSheet
+    .find({ course: courseId }, { _id: 1 })
+    .setOptions({ isVendorUser: true })
+    .lean();
+
   return Promise.all([
     Course.deleteOne({ _id: courseId }),
     CourseBill.deleteMany({
@@ -685,6 +693,11 @@ exports.deleteCourse = async (courseId) => {
       $or: [{ billedAt: { $exists: false } }, { billedAt: { $not: { $type: 'date' } } }],
     }),
     CourseSmsHistory.deleteMany({ course: courseId }),
+    ...(attendanceSheetList.length
+      ? [AttendanceSheetsHelper.deleteMany(attendanceSheetList.map(tc => tc._id))]
+      : []
+    ),
+    QuestionnaireHistory.deleteMany({ course: courseId }),
     CourseHistory.deleteMany({ course: courseId }),
     CourseSlot.deleteMany({ course: courseId }),
     ...(trainingContractList.length
