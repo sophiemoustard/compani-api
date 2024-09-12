@@ -323,7 +323,11 @@ const getCourseForOperations = async (courseId, credentials, origin) => {
 
   const fetchedCourse = await Course.findOne({ _id: courseId })
     .populate([
-      { path: 'companies', select: 'name' },
+      {
+        path: 'companies',
+        select: 'name',
+        ...(origin === WEBAPP && { populate: { path: 'holding', populate: { path: 'holding', select: 'name' } } }),
+      },
       {
         path: 'trainees',
         select: 'identity.firstname identity.lastname local.email contact picture.link '

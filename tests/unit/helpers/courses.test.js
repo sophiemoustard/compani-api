@@ -1800,7 +1800,11 @@ describe('getCourse', () => {
           {
             query: 'populate',
             args: [[
-              { path: 'companies', select: 'name' },
+              {
+                path: 'companies',
+                select: 'name',
+                populate: { path: 'holding', populate: { path: 'holding', select: 'name' } },
+              },
               {
                 path: 'trainees',
                 select: 'identity.firstname identity.lastname local.email contact picture.link '
@@ -1893,7 +1897,11 @@ describe('getCourse', () => {
             query: 'populate',
             args: [
               [
-                { path: 'companies', select: 'name' },
+                {
+                  path: 'companies',
+                  select: 'name',
+                  populate: { path: 'holding', populate: { path: 'holding', select: 'name' } },
+                },
                 {
                   path: 'trainees',
                   select: 'identity.firstname identity.lastname local.email contact picture.link '
@@ -1987,7 +1995,11 @@ describe('getCourse', () => {
             query: 'populate',
             args: [
               [
-                { path: 'companies', select: 'name' },
+                {
+                  path: 'companies',
+                  select: 'name',
+                  populate: { path: 'holding', populate: { path: 'holding', select: 'name' } },
+                },
                 {
                   path: 'trainees',
                   select: 'identity.firstname identity.lastname local.email contact picture.link '
@@ -2148,7 +2160,11 @@ describe('getCourse', () => {
           {
             query: 'populate',
             args: [[
-              { path: 'companies', select: 'name' },
+              {
+                path: 'companies',
+                select: 'name',
+                populate: { path: 'holding', populate: { path: 'holding', select: 'name' } },
+              },
               {
                 path: 'trainees',
                 select: 'identity.firstname identity.lastname local.email contact picture.link '
