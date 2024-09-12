@@ -92,6 +92,7 @@ const cardsList = [
     ],
     explanation: 'test',
   },
+  { _id: new ObjectId(), template: 'transition', title: 'test8' },
 ];
 
 const activitiesList = [
