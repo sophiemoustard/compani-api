@@ -14,6 +14,7 @@ const {
   TRAINER,
   MULTIPLE_CHOICE_QUESTION,
   SINGLE_CHOICE_QUESTION,
+  ORDER_THE_SEQUENCE,
 } = require('../../helpers/constants');
 const UtilsHelper = require('../../helpers/utils');
 
@@ -23,7 +24,9 @@ exports.checkAnswersList = async (answersList, parentId, isActivityAnswers = fal
     const card = cards.find(c => UtilsHelper.areObjectIdsEquals(c._id, answer.card));
     if (!card) throw Boom.notFound();
 
-    const QUIZZ_TEMPLATES = isActivityAnswers ? [MULTIPLE_CHOICE_QUESTION, SINGLE_CHOICE_QUESTION] : [];
+    const QUIZZ_TEMPLATES = isActivityAnswers
+      ? [MULTIPLE_CHOICE_QUESTION, SINGLE_CHOICE_QUESTION, ORDER_THE_SEQUENCE]
+      : [];
     const authorizedTemplates = [
       SURVEY,
       OPEN_QUESTION,
