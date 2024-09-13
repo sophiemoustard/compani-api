@@ -261,7 +261,7 @@ describe('delete', () => {
     deleteCourseFile.restore();
   });
 
-  it('should remove attendance sheets', async () => {
+  it('should remove an attendance sheet', async () => {
     const attendanceSheetId = new ObjectId();
     const attendanceSheet = { _id: attendanceSheetId, file: { publicId: 'yo' } };
 
@@ -269,7 +269,7 @@ describe('delete', () => {
 
     await attendanceSheetHelper.delete(attendanceSheetId);
 
-    sinon.assert.calledWithExactly(deleteCourseFile.getCall(0), 'yo');
+    sinon.assert.calledWithExactly(deleteCourseFile, 'yo');
     sinon.assert.calledOnceWithExactly(deleteOne, { _id: attendanceSheetId });
     SinonMongoose.calledOnceWithExactly(
       findOne,

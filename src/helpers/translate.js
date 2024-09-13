@@ -322,8 +322,7 @@ module.exports = {
       trainees: 'Suppression impossible : des apprenants sont inscrits',
       slots: 'Suppression impossible : des créneaux sont rattachés',
       billed: 'Suppression impossible : la formation a une facture',
-      attendanceSheets: 'Suppression impossible : la formation a une feuille d\'émargement',
-
+      attendanceSheets: 'Suppression impossible : la formation a au moins une feuille d\'émargement',
     },
     courseTraineeAdded: 'Stagiaire ajouté(e) à la formation.',
     courseCompanyAdded: 'Structure rattachée à la formation.',
