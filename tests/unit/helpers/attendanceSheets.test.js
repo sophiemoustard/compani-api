@@ -246,55 +246,34 @@ describe('create', () => {
   });
 });
 
-describe('deleteMany', () => {
-  let find;
-  let deleteMany;
+describe('delete', () => {
+  let findOne;
+  let deleteOne;
   let deleteCourseFile;
   beforeEach(() => {
-    find = sinon.stub(AttendanceSheet, 'find');
-    deleteMany = sinon.stub(AttendanceSheet, 'deleteMany');
+    findOne = sinon.stub(AttendanceSheet, 'findOne');
+    deleteOne = sinon.stub(AttendanceSheet, 'deleteOne');
     deleteCourseFile = sinon.stub(GCloudStorageHelper, 'deleteCourseFile');
   });
   afterEach(() => {
-    find.restore();
-    deleteMany.restore();
+    findOne.restore();
+    deleteOne.restore();
     deleteCourseFile.restore();
   });
 
   it('should remove attendance sheets', async () => {
-    const attendanceSheets = [
-      { _id: new ObjectId(), file: { publicId: 'yo' } },
-      { _id: new ObjectId(), file: { publicId: 'ya' } },
-    ];
-
-    find.returns(SinonMongoose.stubChainedQueries(attendanceSheets, ['lean']));
-
-    await attendanceSheetHelper.deleteMany(attendanceSheets.map(tc => tc._id));
-
-    sinon.assert.calledWithExactly(deleteCourseFile.getCall(0), 'yo');
-    sinon.assert.calledWithExactly(deleteCourseFile.getCall(1), 'ya');
-    sinon.assert.calledOnceWithExactly(deleteMany, { _id: { $in: attendanceSheets.map(tc => tc._id) } });
-    SinonMongoose.calledOnceWithExactly(
-      find,
-      [{ query: 'find', args: [{ _id: { $in: attendanceSheets.map(tc => tc._id) } }] }, { query: 'lean' }]
-    );
-  });
-});
-
-describe('delete', () => {
-  let deleteMany;
-  beforeEach(() => {
-    deleteMany = sinon.stub(attendanceSheetHelper, 'deleteMany');
-  });
-  afterEach(() => {
-    deleteMany.restore();
-  });
-
-  it('should remove an attendance sheet', async () => {
     const attendanceSheetId = new ObjectId();
+    const attendanceSheet = { _id: attendanceSheetId, file: { publicId: 'yo' } };
+
+    findOne.returns(SinonMongoose.stubChainedQueries(attendanceSheet, ['lean']));
 
     await attendanceSheetHelper.delete(attendanceSheetId);
 
-    sinon.assert.calledOnceWithExactly(deleteMany, [attendanceSheetId]);
+    sinon.assert.calledWithExactly(deleteCourseFile.getCall(0), 'yo');
+    sinon.assert.calledOnceWithExactly(deleteOne, { _id: attendanceSheetId });
+    SinonMongoose.calledOnceWithExactly(
+      findOne,
+      [{ query: 'findOne', args: [{ _id: attendanceSheetId }] }, { query: 'lean' }]
+    );
   });
 });

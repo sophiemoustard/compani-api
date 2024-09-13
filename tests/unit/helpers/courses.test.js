@@ -28,7 +28,6 @@ const ZipHelper = require('../../../src/helpers/zip');
 const DocxHelper = require('../../../src/helpers/docx');
 const StepsHelper = require('../../../src/helpers/steps');
 const TrainingContractsHelper = require('../../../src/helpers/trainingContracts');
-const AttendanceSheetsHelper = require('../../../src/helpers/attendanceSheets');
 const NotificationHelper = require('../../../src/helpers/notifications');
 const VendorCompaniesHelper = require('../../../src/helpers/vendorCompanies');
 const {
@@ -71,7 +70,6 @@ const CourseConvocation = require('../../../src/data/pdf/courseConvocation');
 const CompletionCertificate = require('../../../src/data/pdf/completionCertificate');
 const TrainingContractPdf = require('../../../src/data/pdf/trainingContract');
 const QuestionnaireHistory = require('../../../src/models/QuestionnaireHistory');
-const AttendanceSheet = require('../../../src/models/AttendanceSheet');
 
 describe('createCourse', () => {
   let create;
@@ -3696,9 +3694,7 @@ describe('deleteCourse', () => {
   let deleteCourseSlot;
   let deleteQuestionnaireHistory;
   let findTrainingContract;
-  let findAttendanceSheet;
   let deleteManyTrainingContract;
-  let deleteManyAttendanceSheet;
   beforeEach(() => {
     deleteCourse = sinon.stub(Course, 'deleteOne');
     deleteCourseBill = sinon.stub(CourseBill, 'deleteMany');
@@ -3707,9 +3703,7 @@ describe('deleteCourse', () => {
     deleteCourseSlot = sinon.stub(CourseSlot, 'deleteMany');
     deleteQuestionnaireHistory = sinon.stub(QuestionnaireHistory, 'deleteMany');
     findTrainingContract = sinon.stub(TrainingContract, 'find');
-    findAttendanceSheet = sinon.stub(AttendanceSheet, 'find');
     deleteManyTrainingContract = sinon.stub(TrainingContractsHelper, 'deleteMany');
-    deleteManyAttendanceSheet = sinon.stub(AttendanceSheetsHelper, 'deleteMany');
   });
   afterEach(() => {
     deleteCourse.restore();
@@ -3719,18 +3713,14 @@ describe('deleteCourse', () => {
     deleteCourseSlot.restore();
     deleteQuestionnaireHistory.restore();
     findTrainingContract.restore();
-    findAttendanceSheet.restore();
     deleteManyTrainingContract.restore();
-    deleteManyAttendanceSheet.restore();
   });
 
   it('should delete course and sms history', async () => {
     const courseId = new ObjectId();
     const trainingContractList = [{ _id: new ObjectId() }, { _id: new ObjectId() }];
-    const attendanceSheetList = [{ _id: new ObjectId() }, { _id: new ObjectId() }];
 
     findTrainingContract.returns(SinonMongoose.stubChainedQueries(trainingContractList, ['setOptions', 'lean']));
-    findAttendanceSheet.returns(SinonMongoose.stubChainedQueries(attendanceSheetList, ['setOptions', 'lean']));
 
     await CourseHelper.deleteCourse(courseId);
 
@@ -3744,7 +3734,6 @@ describe('deleteCourse', () => {
     sinon.assert.calledOnceWithExactly(deleteCourseSlot, { course: courseId });
     sinon.assert.calledOnceWithExactly(deleteQuestionnaireHistory, { course: courseId });
     sinon.assert.calledOnceWithExactly(deleteManyTrainingContract, trainingContractList.map(tc => tc._id));
-    sinon.assert.calledOnceWithExactly(deleteManyAttendanceSheet, attendanceSheetList.map(as => as._id));
     SinonMongoose.calledOnceWithExactly(
       findTrainingContract,
       [
