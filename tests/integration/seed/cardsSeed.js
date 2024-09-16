@@ -27,7 +27,11 @@ const cardsList = [
   {
     _id: new ObjectId(),
     template: FILL_THE_GAPS,
-    falsyGapAnswers: [{ _id: new ObjectId(), text: 'ase' }, { _id: new ObjectId(), text: 'énué' }],
+    gapAnswers: [
+      { _id: new ObjectId(), text: 'ase', correct: false },
+      { _id: new ObjectId(), text: 'énué', correct: false },
+      { _id: new ObjectId(), text: 'test', correct: true },
+    ],
   },
   {
     _id: new ObjectId(),
@@ -101,13 +105,15 @@ const cardsList = [
   {
     _id: new ObjectId(),
     template: FILL_THE_GAPS,
-    falsyGapAnswers: [
-      { _id: new ObjectId(), text: 'ase' },
-      { _id: new ObjectId(), text: 'énué' },
-      { _id: new ObjectId(), text: 'olard' },
-      { _id: new ObjectId(), text: 'ension' },
-      { _id: new ObjectId(), text: 'rien' },
-      { _id: new ObjectId(), text: 'des trucs' },
+    gapAnswers: [
+      { _id: new ObjectId(), text: 'ase', correct: false },
+      { _id: new ObjectId(), text: 'énué', correct: false },
+      { _id: new ObjectId(), text: 'olard', correct: false },
+      { _id: new ObjectId(), text: 'ension', correct: false },
+      { _id: new ObjectId(), text: 'rien', correct: false },
+      { _id: new ObjectId(), text: 'des trucs', correct: true },
+      { _id: new ObjectId(), text: 'des choses', correct: true },
+      { _id: new ObjectId(), text: 'des machins', correct: false },
     ],
   },
   {

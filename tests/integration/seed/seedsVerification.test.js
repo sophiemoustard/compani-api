@@ -463,7 +463,7 @@ describe('SEEDS VERIFICATION', () => {
         const templateList = [
           {
             name: FILL_THE_GAPS,
-            allowedKeys: ['gappedText', 'explanation', 'falsyGapAnswers', 'canSwitchAnswers'],
+            allowedKeys: ['gappedText', 'explanation', 'gapAnswers', 'canSwitchAnswers'],
           },
           {
             name: SINGLE_CHOICE_QUESTION,
@@ -523,7 +523,7 @@ describe('SEEDS VERIFICATION', () => {
           });
         });
 
-        const keysWithTextSubKey = ['falsyGapAnswers', 'qcAnswers', 'orderedAnswers'];
+        const keysWithTextSubKey = ['gapAnswers', 'qcAnswers', 'orderedAnswers'];
 
         keysWithTextSubKey.forEach((key) => {
           it(`should pass if in '${key}' objects we have 'text'`, () => {

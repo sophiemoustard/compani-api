@@ -80,9 +80,21 @@ exports.cardValidationByTemplate = (template, labels = {}) => {
     case FILL_THE_GAPS:
       return Joi.object().keys({
         gappedText: Joi.string().required(),
-        falsyGapAnswers: Joi.array().items(Joi.object({
-          text: Joi.string().max(GAP_ANSWER_MAX_LENGTH).required(),
-        })).min(FILL_THE_GAPS_MIN_ANSWERS_COUNT).max(FILL_THE_GAPS_MAX_ANSWERS_COUNT),
+        gapAnswers: Joi.array()
+          .items(Joi.object({
+            text: Joi.string().max(GAP_ANSWER_MAX_LENGTH).required(),
+            correct: Joi.boolean().required(),
+          }))
+          .has(Joi.object({ correct: true }))
+          .min(FILL_THE_GAPS_MIN_ANSWERS_COUNT)
+          .max(FILL_THE_GAPS_MAX_ANSWERS_COUNT)
+          .custom((values, helpers) => {
+            const correctAnswers = values.filter(answer => answer.correct);
+            if (correctAnswers.length < 1 || correctAnswers.length > 2) {
+              return helpers.message('There must be one or two correct answers');
+            }
+            return values;
+          }),
         explanation: Joi.string().required(),
       });
     case SINGLE_CHOICE_QUESTION:
