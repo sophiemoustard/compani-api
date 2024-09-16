@@ -15,6 +15,7 @@ const Company = require('../models/Company');
 const Course = require('../models/Course');
 const User = require('../models/User');
 const Questionnaire = require('../models/Questionnaire');
+const QuestionnaireHistory = require('../models/QuestionnaireHistory');
 const CourseSmsHistory = require('../models/CourseSmsHistory');
 const Attendance = require('../models/Attendance');
 const SubProgram = require('../models/SubProgram');
@@ -685,6 +686,7 @@ exports.deleteCourse = async (courseId) => {
       $or: [{ billedAt: { $exists: false } }, { billedAt: { $not: { $type: 'date' } } }],
     }),
     CourseSmsHistory.deleteMany({ course: courseId }),
+    QuestionnaireHistory.deleteMany({ course: courseId }),
     CourseHistory.deleteMany({ course: courseId }),
     CourseSlot.deleteMany({ course: courseId }),
     ...(trainingContractList.length

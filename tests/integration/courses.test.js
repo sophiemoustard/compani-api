@@ -2619,6 +2619,16 @@ describe('COURSES ROUTES - DELETE /courses/{_id}', () => {
       const courseCount = await Course.countDocuments({ _id: coursesList[14]._id });
       expect(courseCount).toBe(1);
     });
+
+    it('should return 403 if course has attendance sheets', async () => {
+      const response = await app.inject({
+        method: 'DELETE',
+        url: `/courses/${coursesList[12]._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
   });
 
   describe('Other roles', () => {

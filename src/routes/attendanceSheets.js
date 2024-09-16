@@ -59,7 +59,7 @@ exports.plugin = {
           params: Joi.object({ _id: Joi.objectId().required() }),
         },
         auth: { scope: ['attendances:edit'] },
-        pre: [{ method: authorizeAttendanceSheetDeletion, assign: 'attendanceSheet' }],
+        pre: [{ method: authorizeAttendanceSheetDeletion }],
       },
       handler: deleteAttendanceSheet,
     });

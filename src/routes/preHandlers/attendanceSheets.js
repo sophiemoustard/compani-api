@@ -92,5 +92,5 @@ exports.authorizeAttendanceSheetDeletion = async (req) => {
 
   if (!isVendorAndAuthorized(get(attendanceSheet, 'course.trainer'), credentials)) throw Boom.forbidden();
 
-  return attendanceSheet;
+  return null;
 };

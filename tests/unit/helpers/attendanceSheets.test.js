@@ -247,23 +247,33 @@ describe('create', () => {
 });
 
 describe('delete', () => {
+  let findOne;
   let deleteOne;
   let deleteCourseFile;
   beforeEach(() => {
+    findOne = sinon.stub(AttendanceSheet, 'findOne');
     deleteOne = sinon.stub(AttendanceSheet, 'deleteOne');
     deleteCourseFile = sinon.stub(GCloudStorageHelper, 'deleteCourseFile');
   });
   afterEach(() => {
+    findOne.restore();
     deleteOne.restore();
     deleteCourseFile.restore();
   });
 
   it('should remove an attendance sheet', async () => {
-    const attendanceSheet = { _id: new ObjectId(), file: { publicId: 'yo' } };
+    const attendanceSheetId = new ObjectId();
+    const attendanceSheet = { _id: attendanceSheetId, file: { publicId: 'yo' } };
 
-    await attendanceSheetHelper.delete(attendanceSheet);
+    findOne.returns(SinonMongoose.stubChainedQueries(attendanceSheet, ['lean']));
 
-    sinon.assert.calledOnceWithExactly(deleteCourseFile, 'yo');
-    sinon.assert.calledOnceWithExactly(deleteOne, { _id: attendanceSheet._id });
+    await attendanceSheetHelper.delete(attendanceSheetId);
+
+    sinon.assert.calledWithExactly(deleteCourseFile, 'yo');
+    sinon.assert.calledOnceWithExactly(deleteOne, { _id: attendanceSheetId });
+    SinonMongoose.calledOnceWithExactly(
+      findOne,
+      [{ query: 'findOne', args: [{ _id: attendanceSheetId }] }, { query: 'lean' }]
+    );
   });
 });
