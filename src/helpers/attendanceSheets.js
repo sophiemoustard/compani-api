@@ -52,7 +52,9 @@ exports.list = async (query, credentials) => {
   return attendanceSheets;
 };
 
-exports.delete = async (attendanceSheet) => {
+exports.delete = async (attendanceSheetId) => {
+  const attendanceSheet = await AttendanceSheet.findOne({ _id: attendanceSheetId }).lean();
+
   await AttendanceSheet.deleteOne({ _id: attendanceSheet._id });
 
   return GCloudStorageHelper.deleteCourseFile(attendanceSheet.file.publicId);

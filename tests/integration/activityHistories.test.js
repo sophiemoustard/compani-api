@@ -194,11 +194,22 @@ describe('ACTIVITY HISTORIES ROUTES - POST /activityhistories', () => {
       expect(response.statusCode).toBe(404);
     });
 
-    it('should return 422 if card not a survey, an open question, a question/answer or a qcm', async () => {
+    it('should return 422 if card not a survey, an open question, a question/answer', async () => {
       const response = await app.inject({
         method: 'POST',
         url: '/activityhistories',
-        payload: { ...payload, questionnaireAnswersList: [{ card: cardsList[2]._id, answerList: ['blabla'] }] },
+        payload: { ...payload, questionnaireAnswersList: [{ card: cardsList[7]._id, answerList: [new ObjectId()] }] },
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(422);
+    });
+
+    it('should return 422 if card not a quizz card', async () => {
+      const response = await app.inject({
+        method: 'POST',
+        url: '/activityhistories',
+        payload: { ...payload, quizzAnswersList: [{ card: cardsList[7]._id, answerList: ['blabla'] }] },
         headers: { 'x-access-token': authToken },
       });
 
@@ -241,6 +252,20 @@ describe('ACTIVITY HISTORIES ROUTES - POST /activityhistories', () => {
       expect(response.statusCode).toBe(422);
     });
 
+    it('should return 422 if card is a qcu and has more than one item in answerList', async () => {
+      const response = await app.inject({
+        method: 'POST',
+        url: '/activityhistories',
+        payload: {
+          ...payload,
+          quizzAnswersList: [{ card: cardsList[2]._id, answerList: [new ObjectId(), new ObjectId()] }],
+        },
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(422);
+    });
+
     it('should return 422 if is a q/a and items in answerList are not ObjectId', async () => {
       const response = await app.inject({
         method: 'POST',
@@ -262,6 +287,34 @@ describe('ACTIVITY HISTORIES ROUTES - POST /activityhistories', () => {
         payload: {
           ...payload,
           questionnaireAnswersList: [{ card: cardsList[6]._id, answerList: ['blabla'] }],
+        },
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(422);
+    });
+
+    it('should return 422 if is a qcu and items in answerList are not ObjectId', async () => {
+      const response = await app.inject({
+        method: 'POST',
+        url: '/activityhistories',
+        payload: {
+          ...payload,
+          quizzAnswersList: [{ card: cardsList[2]._id, answerList: ['blabla'] }],
+        },
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(422);
+    });
+
+    it('should return 422 if is order the sequence and items in answerList are not ObjectId', async () => {
+      const response = await app.inject({
+        method: 'POST',
+        url: '/activityhistories',
+        payload: {
+          ...payload,
+          quizzAnswersList: [{ card: cardsList[8]._id, answerList: ['blabla', 'truc', 'rien'] }],
         },
         headers: { 'x-access-token': authToken },
       });

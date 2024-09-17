@@ -15,6 +15,7 @@ const Company = require('../models/Company');
 const Course = require('../models/Course');
 const User = require('../models/User');
 const Questionnaire = require('../models/Questionnaire');
+const QuestionnaireHistory = require('../models/QuestionnaireHistory');
 const CourseSmsHistory = require('../models/CourseSmsHistory');
 const Attendance = require('../models/Attendance');
 const SubProgram = require('../models/SubProgram');
@@ -323,7 +324,11 @@ const getCourseForOperations = async (courseId, credentials, origin) => {
 
   const fetchedCourse = await Course.findOne({ _id: courseId })
     .populate([
-      { path: 'companies', select: 'name' },
+      {
+        path: 'companies',
+        select: 'name',
+        ...(origin === WEBAPP && { populate: { path: 'holding', populate: { path: 'holding', select: 'name' } } }),
+      },
       {
         path: 'trainees',
         select: 'identity.firstname identity.lastname local.email contact picture.link '
@@ -681,6 +686,7 @@ exports.deleteCourse = async (courseId) => {
       $or: [{ billedAt: { $exists: false } }, { billedAt: { $not: { $type: 'date' } } }],
     }),
     CourseSmsHistory.deleteMany({ course: courseId }),
+    QuestionnaireHistory.deleteMany({ course: courseId }),
     CourseHistory.deleteMany({ course: courseId }),
     CourseSlot.deleteMany({ course: courseId }),
     ...(trainingContractList.length

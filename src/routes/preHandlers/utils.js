@@ -13,6 +13,8 @@ const {
   TRAINING_ORGANISATION_MANAGER,
   TRAINER,
   MULTIPLE_CHOICE_QUESTION,
+  SINGLE_CHOICE_QUESTION,
+  ORDER_THE_SEQUENCE,
 } = require('../../helpers/constants');
 const UtilsHelper = require('../../helpers/utils');
 
@@ -22,7 +24,9 @@ exports.checkAnswersList = async (answersList, parentId, isActivityAnswers = fal
     const card = cards.find(c => UtilsHelper.areObjectIdsEquals(c._id, answer.card));
     if (!card) throw Boom.notFound();
 
-    const QUIZZ_TEMPLATES = isActivityAnswers ? [MULTIPLE_CHOICE_QUESTION] : [];
+    const QUIZZ_TEMPLATES = isActivityAnswers
+      ? [MULTIPLE_CHOICE_QUESTION, SINGLE_CHOICE_QUESTION, ORDER_THE_SEQUENCE]
+      : [];
     const authorizedTemplates = [
       SURVEY,
       OPEN_QUESTION,
@@ -30,7 +34,7 @@ exports.checkAnswersList = async (answersList, parentId, isActivityAnswers = fal
       ...QUIZZ_TEMPLATES,
     ];
     const isWrongTemplate = !authorizedTemplates.includes(card.template);
-    const shouldHaveOneAnswer = [SURVEY, OPEN_QUESTION].includes(card.template) ||
+    const shouldHaveOneAnswer = [SURVEY, OPEN_QUESTION, SINGLE_CHOICE_QUESTION].includes(card.template) ||
       ([QUESTION_ANSWER].includes(card.template) && !card.isQuestionAnswerMultipleChoiced);
     const tooManyAnswers = answer.answerList.length !== 1 && shouldHaveOneAnswer;
     const answerIsNotObjectID = [QUESTION_ANSWER, ...QUIZZ_TEMPLATES].includes(card.template) &&

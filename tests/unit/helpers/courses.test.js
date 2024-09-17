@@ -69,6 +69,7 @@ const IntraAttendanceSheet = require('../../../src/data/pdf/attendanceSheet/intr
 const CourseConvocation = require('../../../src/data/pdf/courseConvocation');
 const CompletionCertificate = require('../../../src/data/pdf/completionCertificate');
 const TrainingContractPdf = require('../../../src/data/pdf/trainingContract');
+const QuestionnaireHistory = require('../../../src/models/QuestionnaireHistory');
 
 describe('createCourse', () => {
   let create;
@@ -1800,7 +1801,11 @@ describe('getCourse', () => {
           {
             query: 'populate',
             args: [[
-              { path: 'companies', select: 'name' },
+              {
+                path: 'companies',
+                select: 'name',
+                populate: { path: 'holding', populate: { path: 'holding', select: 'name' } },
+              },
               {
                 path: 'trainees',
                 select: 'identity.firstname identity.lastname local.email contact picture.link '
@@ -1893,7 +1898,11 @@ describe('getCourse', () => {
             query: 'populate',
             args: [
               [
-                { path: 'companies', select: 'name' },
+                {
+                  path: 'companies',
+                  select: 'name',
+                  populate: { path: 'holding', populate: { path: 'holding', select: 'name' } },
+                },
                 {
                   path: 'trainees',
                   select: 'identity.firstname identity.lastname local.email contact picture.link '
@@ -1987,7 +1996,11 @@ describe('getCourse', () => {
             query: 'populate',
             args: [
               [
-                { path: 'companies', select: 'name' },
+                {
+                  path: 'companies',
+                  select: 'name',
+                  populate: { path: 'holding', populate: { path: 'holding', select: 'name' } },
+                },
                 {
                   path: 'trainees',
                   select: 'identity.firstname identity.lastname local.email contact picture.link '
@@ -2148,7 +2161,11 @@ describe('getCourse', () => {
           {
             query: 'populate',
             args: [[
-              { path: 'companies', select: 'name' },
+              {
+                path: 'companies',
+                select: 'name',
+                populate: { path: 'holding', populate: { path: 'holding', select: 'name' } },
+              },
               {
                 path: 'trainees',
                 select: 'identity.firstname identity.lastname local.email contact picture.link '
@@ -3675,6 +3692,7 @@ describe('deleteCourse', () => {
   let deleteCourseSmsHistory;
   let deleteCourseHistory;
   let deleteCourseSlot;
+  let deleteQuestionnaireHistory;
   let findTrainingContract;
   let deleteManyTrainingContract;
   beforeEach(() => {
@@ -3683,6 +3701,7 @@ describe('deleteCourse', () => {
     deleteCourseSmsHistory = sinon.stub(CourseSmsHistory, 'deleteMany');
     deleteCourseHistory = sinon.stub(CourseHistory, 'deleteMany');
     deleteCourseSlot = sinon.stub(CourseSlot, 'deleteMany');
+    deleteQuestionnaireHistory = sinon.stub(QuestionnaireHistory, 'deleteMany');
     findTrainingContract = sinon.stub(TrainingContract, 'find');
     deleteManyTrainingContract = sinon.stub(TrainingContractsHelper, 'deleteMany');
   });
@@ -3692,6 +3711,7 @@ describe('deleteCourse', () => {
     deleteCourseSmsHistory.restore();
     deleteCourseHistory.restore();
     deleteCourseSlot.restore();
+    deleteQuestionnaireHistory.restore();
     findTrainingContract.restore();
     deleteManyTrainingContract.restore();
   });
@@ -3712,6 +3732,7 @@ describe('deleteCourse', () => {
     sinon.assert.calledOnceWithExactly(deleteCourseSmsHistory, { course: courseId });
     sinon.assert.calledOnceWithExactly(deleteCourseHistory, { course: courseId });
     sinon.assert.calledOnceWithExactly(deleteCourseSlot, { course: courseId });
+    sinon.assert.calledOnceWithExactly(deleteQuestionnaireHistory, { course: courseId });
     sinon.assert.calledOnceWithExactly(deleteManyTrainingContract, trainingContractList.map(tc => tc._id));
     SinonMongoose.calledOnceWithExactly(
       findTrainingContract,

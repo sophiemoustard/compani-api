@@ -18,6 +18,7 @@ const {
   QUESTION_ANSWER,
   LESSON,
   MULTIPLE_CHOICE_QUESTION,
+  ORDER_THE_SEQUENCE,
 } = require('../../../src/helpers/constants');
 const { deleteNonAuthenticationSeeds } = require('../helpers/db');
 const { vendorAdminRoleId } = require('../../seed/authRolesSeed');
@@ -92,6 +93,18 @@ const cardsList = [
     ],
     explanation: 'test',
   },
+  { _id: new ObjectId(), template: 'transition', title: 'test8' },
+  {
+    _id: new ObjectId(),
+    template: ORDER_THE_SEQUENCE,
+    question: 'question ?',
+    explanation: 'explanation',
+    orderedAnswers: [
+      { _id: new ObjectId(), text: 'rien' },
+      { _id: new ObjectId(), text: 'des trucs' },
+      { _id: new ObjectId(), text: 'encore des trucs' },
+    ],
+  },
 ];
 
 const activitiesList = [
@@ -99,7 +112,14 @@ const activitiesList = [
     _id: new ObjectId(),
     name: 'bouger',
     type: LESSON,
-    cards: [cardsList[0]._id, cardsList[2]._id, cardsList[3]._id, cardsList[4]._id, cardsList[5]._id, cardsList[6]._id],
+    cards: [
+      cardsList[0]._id,
+      cardsList[2]._id,
+      cardsList[3]._id,
+      cardsList[4]._id,
+      cardsList[5]._id,
+      cardsList[6]._id,
+      cardsList[8]._id],
     status: PUBLISHED,
   },
 ];
