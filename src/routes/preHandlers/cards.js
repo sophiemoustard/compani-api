@@ -22,6 +22,7 @@ const {
   QC_ANSWER_MAX_LENGTH,
   SURVEY,
   OPEN_QUESTION,
+  GAP_ANSWER_MAX_LENGTH,
 } = require('../../helpers/constants');
 const UtilsHelper = require('../../helpers/utils');
 const Activity = require('../../models/Activity');
@@ -185,4 +186,5 @@ exports.getCardMediaPublicId = async (req) => {
   return get(card, 'media.publicId') || '';
 };
 
-const isValidAnswer = ans => /^[a-zA-Z0-9àâçéèêëîïôûùü\040'-]*$/.test(ans) && (ans.length > 0 && ans.length < 15);
+const isValidAnswer = ans => /^[a-zA-Z0-9àâçéèêëîïôûùü\040'-]*$/.test(ans) &&
+  (ans.length > 0 && ans.length <= GAP_ANSWER_MAX_LENGTH);

@@ -85,7 +85,6 @@ exports.cardValidationByTemplate = (template, labels = {}) => {
             text: Joi.string().max(GAP_ANSWER_MAX_LENGTH).required(),
             correct: Joi.boolean().required(),
           }))
-          .has(Joi.object({ correct: true }))
           .min(FILL_THE_GAPS_MIN_ANSWERS_COUNT)
           .max(FILL_THE_GAPS_MAX_ANSWERS_COUNT)
           .custom((values, helpers) => {
@@ -105,7 +104,6 @@ exports.cardValidationByTemplate = (template, labels = {}) => {
             text: Joi.string().required().max(QC_ANSWER_MAX_LENGTH),
             correct: Joi.boolean().required(),
           }))
-          .has(Joi.object({ correct: true }))
           .min(CHOICE_QUESTION_MIN_ANSWERS_COUNT)
           .max(CHOICE_QUESTION_MAX_ANSWERS_COUNT)
           .custom((values, helpers) => {
