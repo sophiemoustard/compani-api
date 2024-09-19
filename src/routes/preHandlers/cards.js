@@ -38,10 +38,9 @@ const checkFillTheGap = (card, payload) => {
   const { gappedText } = payload;
 
   if (!gappedText) return null;
-  const splitedStr = gappedText.match(/<trou>/g);
-  if (!splitedStr || splitedStr.length > 2) return Boom.badRequest();
+  const tagsCount = get(gappedText.match(/<trou>/g), 'length') || 0;
   const correctAnswers = card.gapAnswers.filter(a => a.correct);
-  if (splitedStr.length !== correctAnswers.length) return Boom.badRequest();
+  if (!tagsCount || tagsCount > 2 || tagsCount !== correctAnswers.length) return Boom.badRequest();
 
   return null;
 };
