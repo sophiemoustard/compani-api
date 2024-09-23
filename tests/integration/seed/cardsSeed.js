@@ -19,21 +19,16 @@ const {
 const { deleteNonAuthenticationSeeds } = require('../helpers/db');
 
 const cardsList = [
-  { // 0
-    _id: new ObjectId(), template: TRANSITION, title: 'Lala',
-  },
-  { // 1
-    _id: new ObjectId(), template: TITLE_TEXT_MEDIA, media: { type: 'video', link: 'link', publicId: 'publicId' },
-  },
-  { // 2
-    _id: new ObjectId(), template: TITLE_TEXT,
-  },
-  { // 3
-    _id: new ObjectId(), template: TEXT_MEDIA,
-  },
-  { // 4
-    _id: new ObjectId(), template: FLASHCARD, text: 'text', backText: 'back text',
-  },
+  // 0
+  { _id: new ObjectId(), template: TRANSITION, title: 'Lala' },
+  // 1
+  { _id: new ObjectId(), template: TITLE_TEXT_MEDIA, media: { type: 'video', link: 'link', publicId: 'publicId' } },
+  // 2
+  { _id: new ObjectId(), template: TITLE_TEXT },
+  // 3
+  { _id: new ObjectId(), template: TEXT_MEDIA },
+  // 4
+  { _id: new ObjectId(), template: FLASHCARD, text: 'text', backText: 'back text' },
   { // 5
     _id: new ObjectId(),
     template: FILL_THE_GAPS,
@@ -75,14 +70,10 @@ const cardsList = [
       { _id: new ObjectId(), text: 'encore des trucs' },
     ],
   },
-
-  { // 9
-    _id: new ObjectId(), template: SURVEY, labels: { 1: 'first', 5: 'last' }, question: 'question ?',
-  },
-
-  { // 10
-    _id: new ObjectId(), template: OPEN_QUESTION,
-  },
+  // 9
+  { _id: new ObjectId(), template: SURVEY, labels: { 1: 'first', 5: 'last' }, question: 'question ?' },
+  // 10
+  { _id: new ObjectId(), template: OPEN_QUESTION },
   { // 11
     _id: new ObjectId(),
     template: QUESTION_ANSWER,
@@ -122,6 +113,8 @@ const cardsList = [
   { // 17
     _id: new ObjectId(),
     template: FILL_THE_GAPS,
+    gappedText: '<trou> et <trou> sont dans un bateau',
+    explanation: 'rien',
     gapAnswers: [
       { _id: new ObjectId(), text: 'ase', correct: false },
       { _id: new ObjectId(), text: 'énué', correct: false },
@@ -139,6 +132,16 @@ const cardsList = [
     labels: { 1: 'first', 2: 'second', 3: 'third', 4: 'fourth', 5: 'last' },
     question: 'question ?',
   },
+  { // 19
+    _id: new ObjectId(),
+    template: FILL_THE_GAPS,
+    gapAnswers: [
+      { _id: new ObjectId(), text: 'ase', correct: false },
+      { _id: new ObjectId(), text: 'énué', correct: false },
+      { _id: new ObjectId(), text: 'test', correct: true },
+      { _id: new ObjectId(), text: 'truc', correct: false },
+    ],
+  },
 ];
 
 const activitiesList = [
@@ -153,7 +156,7 @@ const activitiesList = [
       cardsList[8]._id,
       cardsList[16]._id,
       cardsList[5]._id,
-      cardsList[17]._id,
+      cardsList[19]._id,
     ],
     type: 'video',
     status: 'draft',
@@ -161,7 +164,7 @@ const activitiesList = [
   {
     _id: new ObjectId(),
     name: 'la peche',
-    cards: [cardsList[4]._id, cardsList[13]._id],
+    cards: [cardsList[4]._id, cardsList[13]._id, cardsList[17]._id],
     type: 'quiz',
     status: 'published',
   },

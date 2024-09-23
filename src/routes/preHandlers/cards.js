@@ -23,6 +23,7 @@ const {
   SURVEY,
   OPEN_QUESTION,
   GAP_ANSWER_MAX_LENGTH,
+  FILL_THE_GAPS_MAX_GAPS_COUNT,
 } = require('../../helpers/constants');
 const UtilsHelper = require('../../helpers/utils');
 const Activity = require('../../models/Activity');
@@ -35,13 +36,17 @@ const checkFlashCard = (payload) => {
   return null;
 };
 
-const checkFillTheGap = (card, payload) => {
+const checkFillTheGap = async (dbCard, payload) => {
   const { gappedText } = payload;
 
   if (!gappedText) return null;
-  const tagsCount = get(gappedText.match(/<trou>/g), 'length') || 0;
-  const correctAnswers = card.gapAnswers.filter(a => a.correct);
-  if (!tagsCount || tagsCount > 2 || tagsCount !== correctAnswers.length) return Boom.badRequest();
+
+  const tagsCount = (gappedText.match(/<trou>/g) || []).length;
+  const correctAnswers = dbCard.gapAnswers.filter(a => a.correct);
+  const isParentActvityPublished = await Activity.countDocuments({ cards: dbCard._id, status: PUBLISHED });
+  const wrongTagsCount = !tagsCount || tagsCount > FILL_THE_GAPS_MAX_GAPS_COUNT;
+  const notMatchingtagsCount = tagsCount !== correctAnswers.length && isParentActvityPublished;
+  if (wrongTagsCount || notMatchingtagsCount) return Boom.badRequest();
 
   return null;
 };

@@ -672,7 +672,7 @@ describe('CARDS ROUTES - DELETE /cards/{_id}/answers/{answerId}', () => {
     });
 
     it('should delete a false gap answer', async () => {
-      const card = cardsList[17];
+      const card = cardsList[19];
       const answer = card.gapAnswers[0];
 
       const response = await app.inject({
@@ -683,15 +683,7 @@ describe('CARDS ROUTES - DELETE /cards/{_id}/answers/{answerId}', () => {
 
       expect(response.statusCode).toBe(200);
 
-      const gapAnswers = [
-        card.gapAnswers[1],
-        card.gapAnswers[2],
-        card.gapAnswers[3],
-        card.gapAnswers[4],
-        card.gapAnswers[5],
-        card.gapAnswers[6],
-        card.gapAnswers[7],
-      ];
+      const gapAnswers = [card.gapAnswers[1], card.gapAnswers[2], card.gapAnswers[3]];
       const cardUpdated = await Card.countDocuments({ _id: card._id, gapAnswers });
       expect(cardUpdated).toEqual(1);
     });
