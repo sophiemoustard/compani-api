@@ -734,7 +734,7 @@ describe('SEEDS VERIFICATION', () => {
               select: '_id',
               populate: [{ path: 'role.vendor', select: 'name' }],
             })
-            .populate({ path: 'trainer', select: '_id role.vendor' })
+            .populate({ path: 'trainers', select: '_id role.vendor' })
             .populate({ path: 'companies', select: '_id', transform })
             .populate({ path: 'holding', select: '_id', populate: { path: 'companies' } })
             .populate({ path: 'accessRules', select: '_id', transform })
@@ -935,8 +935,10 @@ describe('SEEDS VERIFICATION', () => {
 
         it('should pass if trainer is never in trainees list', () => {
           const isTrainerIncludedInTrainees = courseList
-            .some(c => has(c, 'trainer') &&
-              UtilsHelper.doesArrayIncludeId(c.trainees.map(t => get(t, '_id')), c.trainer._id));
+            .some(c => has(c, 'trainers') &&
+              c.trainers
+                .some(trainer => UtilsHelper.doesArrayIncludeId(c.trainees.map(t => get(t, '_id')), trainer._id))
+            );
           expect(isTrainerIncludedInTrainees).toBeFalsy();
         });
 
@@ -955,8 +957,9 @@ describe('SEEDS VERIFICATION', () => {
           expect(someTraineesAreDuplicated).toBeFalsy();
         });
 
-        it('should pass if trainer has good role', () => {
-          const haveTrainersVendorRole = courseList.every(c => !has(c, 'trainer') || has(c.trainer, 'role.vendor'));
+        it('should pass if every trainer has good role', () => {
+          const haveTrainersVendorRole = courseList
+            .every(c => !has(c, 'trainers') || c.trainers.every(t => has(t, 'role.vendor')));
           expect(haveTrainersVendorRole).toBeTruthy();
         });
 
@@ -966,7 +969,7 @@ describe('SEEDS VERIFICATION', () => {
             .every((c) => {
               const acceptedUsers = compact([
                 get(c, 'operationsRepresentative._id'),
-                get(c, 'trainer._id'),
+                ...get(c, 'trainers').map(t => t._id),
                 get(c, 'companyRepresentative._id'),
               ]);
 
@@ -983,7 +986,7 @@ describe('SEEDS VERIFICATION', () => {
         it('should pass if only blended courses have interlocutors', () => {
           const doELearningCoursesHaveInterlocutors = courseList
             .some(c => c.format === STRICTLY_E_LEARNING &&
-              (c.operationsRepresentative || c.trainer || c.companyRepresentative));
+              (c.operationsRepresentative || c.trainers.length || c.companyRepresentative));
           expect(doELearningCoursesHaveInterlocutors).toBeFalsy();
         });
 
@@ -1041,7 +1044,7 @@ describe('SEEDS VERIFICATION', () => {
             const userList = [
               ...(has(c, 'companyRepresentative') ? [c.companyRepresentative] : []),
               ...(has(c, 'operationsRepresentative') ? [c.operationsRepresentative] : []),
-              ...(has(c, 'trainer') ? [c.trainer] : []),
+              ...(has(c, 'trainers') ? c.trainers : []),
             ];
 
             return userList.every(u => u);
@@ -1444,7 +1447,7 @@ describe('SEEDS VERIFICATION', () => {
         before(async () => {
           courseSmsHistoryList = await CourseSmsHistory
             .find({})
-            .populate({ path: 'course', select: 'format type companies trainer' })
+            .populate({ path: 'course', select: 'format type companies trainers' })
             .populate({
               path: 'sender',
               select: 'role',
@@ -1480,7 +1483,7 @@ describe('SEEDS VERIFICATION', () => {
 
               const { course } = ch;
               const isCourseTrainer = vendorRole === TRAINER &&
-                UtilsHelper.areObjectIdsEquals(course.trainer, ch.sender._id);
+                UtilsHelper.doesArrayIncludeId(course.trainers, ch.sender._id);
               if (isCourseTrainer) return true;
 
               const clientRole = get(ch.sender, 'role.client.name');
@@ -1526,7 +1529,7 @@ describe('SEEDS VERIFICATION', () => {
                 { path: 'userCompanyList' },
               ],
             })
-            .populate({ path: 'course', select: 'trainer companies trainees' })
+            .populate({ path: 'course', select: 'trainers companies trainees' })
             .lean();
         });
 
@@ -1570,7 +1573,7 @@ describe('SEEDS VERIFICATION', () => {
               .includes(get(ch.createdBy, 'role.vendor.name'));
 
             const isCourseTrainer = get(ch.createdBy, 'role.vendor.name') === TRAINER &&
-              UtilsHelper.areObjectIdsEquals(ch.createdBy._id, ch.course.trainer);
+              UtilsHelper.doesArrayIncludeId(ch.course.trainers, ch.createdBy._id);
 
             const isFromCompanyLinkedToCourse = [COACH, CLIENT_ADMIN].includes(get(ch.createdBy, 'role.client.name')) &&
               ch.course.type === INTRA &&
@@ -2263,7 +2266,7 @@ describe('SEEDS VERIFICATION', () => {
               populate: [{ path: 'role.vendor', select: 'name' }],
               transform,
             })
-            .populate({ path: 'courses', select: 'trainer', transform })
+            .populate({ path: 'courses', select: 'trainers', transform })
             .setOptions({ isVendorUser: true })
             .lean();
         });
@@ -2276,7 +2279,11 @@ describe('SEEDS VERIFICATION', () => {
 
         it('should pass if every trainer is course trainer', () => {
           const hasEveryCourseGoodTrainer = trainerMissionList
-            .every(tm => tm.courses.every(course => UtilsHelper.areObjectIdsEquals(course.trainer, tm.trainer._id)));
+            .every(tm => tm.courses
+              .every(course =>
+                !course.trainers.length || UtilsHelper.doesArrayIncludeId(course.trainers, tm.trainer._id))
+            );
+
           expect(hasEveryCourseGoodTrainer).toBeTruthy();
         });
 
