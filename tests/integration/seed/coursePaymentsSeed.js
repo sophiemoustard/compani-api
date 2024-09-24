@@ -21,7 +21,7 @@ const coursesList = [
     type: INTRA,
     subProgram: subProgramList[0]._id,
     misc: 'group inter',
-    trainer: trainer._id,
+    trainers: [trainer._id],
     operationsRepresentative: vendorAdmin._id,
     contact: vendorAdmin._id,
     trainees: [auxiliary._id],
