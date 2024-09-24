@@ -103,7 +103,7 @@ const coursesList = [
     _id: new ObjectId(),
     format: 'blended',
     subProgram: subProgramsList[1]._id,
-    trainer: trainer._id,
+    trainers: [trainer._id],
     type: INTER_B2B,
     operationsRepresentative: vendorAdmin._id,
     trainees: [questionnaireHistoriesUsersList[1]],
