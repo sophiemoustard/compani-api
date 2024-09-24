@@ -250,7 +250,7 @@ const coursesList = [
     _id: new ObjectId(),
     subProgram: subProgramsList[0]._id,
     misc: 'first session',
-    trainer: trainer._id,
+    trainers: [trainer._id],
     trainees: [usersSeedList[8]._id],
     companies: [company._id],
     type: INTRA,

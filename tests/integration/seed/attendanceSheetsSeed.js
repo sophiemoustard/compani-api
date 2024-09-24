@@ -88,7 +88,7 @@ const coursesList = [
     trainees: [userList[1]._id],
     companies: [authCompany._id],
     operationsRepresentative: userList[0]._id,
-    trainer: trainer._id,
+    trainers: [trainer._id],
   },
   { // 1
     _id: new ObjectId(),
@@ -97,7 +97,7 @@ const coursesList = [
     trainees: [userList[1]._id, userList[2]._id, userList[4]._id],
     companies: [authCompany._id, otherCompany._id, companyWithoutSubscription._id],
     operationsRepresentative: userList[0]._id,
-    trainer: trainer._id,
+    trainers: [trainer._id],
   },
   { // 2
     _id: new ObjectId(),
@@ -106,7 +106,7 @@ const coursesList = [
     maxTrainees: 8,
     trainees: [userList[1]._id],
     companies: [authCompany._id],
-    trainer: userList[3]._id,
+    trainers: [userList[3]._id],
     operationsRepresentative: userList[0]._id,
   },
   { // 3 - archived
@@ -117,7 +117,7 @@ const coursesList = [
     trainees: [userList[1]._id],
     companies: [authCompany._id],
     operationsRepresentative: userList[0]._id,
-    trainer: trainer._id,
+    trainers: [trainer._id],
   },
   { // 4
     _id: new ObjectId(),
@@ -126,7 +126,7 @@ const coursesList = [
     maxTrainees: 8,
     trainees: [userList[2]._id],
     companies: [otherCompany._id],
-    trainer: userList[3]._id,
+    trainers: [userList[3]._id],
     operationsRepresentative: userList[0]._id,
   },
   { // 5
@@ -137,7 +137,7 @@ const coursesList = [
     trainees: [userList[2]._id],
     companies: [otherCompany._id],
     holding: otherHolding._id,
-    trainer: trainer._id,
+    trainers: [trainer._id],
     operationsRepresentative: userList[0]._id,
   },
   { // 6
