@@ -22,7 +22,7 @@ const CourseSchema = mongoose.Schema({
   },
   type: { type: String, required: true, enum: COURSE_TYPES },
   format: { type: String, enum: COURSE_FORMATS, default: BLENDED },
-  trainer: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+  trainers: { type: [mongoose.Schema.Types.ObjectId], ref: 'User' },
   trainees: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
   contact: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
   accessRules: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Company' }],
