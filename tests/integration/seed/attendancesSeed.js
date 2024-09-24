@@ -140,7 +140,7 @@ const coursesList = [
     maxTrainees: 8,
     trainees: [traineeList[0]._id, traineeList[3]._id, traineeList[8]._id],
     companies: [authCompany._id],
-    trainer: userList[0]._id,
+    trainers: [userList[0]._id],
     operationsRepresentative: userList[2]._id,
   },
   { // 1
@@ -150,7 +150,7 @@ const coursesList = [
     maxTrainees: 8,
     trainees: [traineeList[0]._id],
     companies: [authCompany._id],
-    trainer: userList[0]._id,
+    trainers: [userList[0]._id],
     operationsRepresentative: userList[2]._id,
   },
   { // 2
@@ -160,7 +160,7 @@ const coursesList = [
     maxTrainees: 8,
     trainees: [traineeList[9]._id, traineeList[2]._id],
     companies: [otherCompany._id],
-    trainer: userList[0]._id,
+    trainers: [userList[0]._id],
     operationsRepresentative: userList[2]._id,
   },
   { // 3 interb2b
@@ -169,7 +169,7 @@ const coursesList = [
     type: INTER_B2B,
     trainees: [traineeList[2]._id, traineeList[3]._id],
     companies: [otherCompany._id, authCompany._id],
-    trainer: userList[0]._id,
+    trainers: [userList[0]._id],
     operationsRepresentative: userList[2]._id,
   },
   { // 4 interb2b with only trainees from otherCompany
@@ -178,7 +178,7 @@ const coursesList = [
     type: INTER_B2B,
     trainees: [traineeList[4]._id],
     companies: [otherCompany._id],
-    trainer: userList[0]._id,
+    trainers: [userList[0]._id],
     operationsRepresentative: userList[2]._id,
   },
   { // 5 archived
@@ -188,7 +188,7 @@ const coursesList = [
     maxTrainees: 8,
     trainees: [traineeList[0]._id, traineeList[8]._id],
     companies: [authCompany._id],
-    trainer: userList[0]._id,
+    trainers: [userList[0]._id],
     operationsRepresentative: userList[2]._id,
     archivedAt: '2021-11-17T23:00:00.000Z',
   },
@@ -198,7 +198,7 @@ const coursesList = [
     type: INTER_B2B,
     trainees: [traineeList[5]._id, traineeList[0]._id],
     companies: [authCompany._id, companyWithoutSubscription._id],
-    trainer: trainer._id,
+    trainers: [trainer._id],
     operationsRepresentative: userList[2]._id,
   },
   { // 7 no company linked
@@ -207,7 +207,7 @@ const coursesList = [
     type: INTER_B2B,
     trainees: [],
     companies: [],
-    trainer: trainer._id,
+    trainers: [trainer._id],
     operationsRepresentative: userList[2]._id,
   },
   { // 8 intra_holding no company
@@ -218,7 +218,7 @@ const coursesList = [
     companies: [],
     holding: authHolding._id,
     maxTrainees: 9,
-    trainer: trainer._id,
+    trainers: [trainer._id],
     operationsRepresentative: userList[2]._id,
   },
   { // 9 intra_holding with companies
@@ -229,7 +229,7 @@ const coursesList = [
     companies: [authCompany._id],
     holding: authHolding._id,
     maxTrainees: 9,
-    trainer: trainer._id,
+    trainers: [trainer._id],
     operationsRepresentative: userList[2]._id,
   },
 ];
