@@ -278,7 +278,7 @@ describe('list', () => {
               },
             ],
           },
-          trainer: { _id: trainerId, identity: { firstname: 'Un nouveau', lastname: 'Prof' } },
+          trainers: [{ _id: trainerId, identity: { firstname: 'Un nouveau', lastname: 'Prof' } }],
           trainees: [],
           operationsRepresentative: { identity: { firstname: 'charge', lastname: 'operations' } },
           salesRepresentative: { identity: { firstname: 'charge', lastname: 'd\'accompagnement' } },
@@ -307,7 +307,7 @@ describe('list', () => {
               },
             ],
           },
-          trainer: { _id: trainerId, identity: { firstname: 'Un autre', lastname: 'Prof' } },
+          trainers: [{ _id: trainerId, identity: { firstname: 'Un autre', lastname: 'Prof' } }],
           trainees: [],
           operationsRepresentative: { identity: { firstname: 'charge', lastname: 'operations' } },
           salesRepresentative: { identity: { firstname: 'charge', lastname: 'd\'accompagnement' } },
@@ -317,7 +317,7 @@ describe('list', () => {
       findCourseAndPopulate.returns(coursesList);
 
       const query = {
-        trainer: trainerId,
+        trainers: [trainerId],
         format: 'blended',
         action: 'operations',
         origin: 'webapp',
@@ -328,7 +328,7 @@ describe('list', () => {
       expect(result).toMatchObject(coursesList);
       sinon.assert.calledOnceWithExactly(
         findCourseAndPopulate,
-        { trainer: trainerId, format: 'blended', archivedAt: { $exists: false } },
+        { trainers: [trainerId], format: 'blended', archivedAt: { $exists: false } },
         'webapp'
       );
       sinon.assert.notCalled(getTotalTheoreticalDurationSpy);
@@ -404,7 +404,7 @@ describe('list', () => {
 
       const query = {
         company: authCompany.toHexString(),
-        trainer: '1234567890abcdef12345678',
+        trainers: ['1234567890abcdef12345678'],
         format: 'blended',
         action: 'operations',
         origin: 'webapp',
@@ -415,7 +415,7 @@ describe('list', () => {
       expect(result).toMatchObject(coursesList);
       sinon.assert.calledOnceWithExactly(
         findCourseAndPopulate,
-        { companies: authCompany.toHexString(), trainer: '1234567890abcdef12345678', format: 'blended' },
+        { companies: authCompany.toHexString(), trainers: ['1234567890abcdef12345678'], format: 'blended' },
         'webapp',
         true
       );
