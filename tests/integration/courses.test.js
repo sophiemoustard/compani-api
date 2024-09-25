@@ -3,7 +3,7 @@ const { expect } = require('expect');
 // const path = require('path');
 const { ObjectId } = require('mongodb');
 const omit = require('lodash/omit');
-// const pick = require('lodash/pick');
+const pick = require('lodash/pick');
 // const get = require('lodash/get');
 const app = require('../../server');
 const Course = require('../../src/models/Course');
@@ -22,7 +22,7 @@ const {
   ESTIMATED_START_DATE_EDITION,
   COMPANY_ADDITION,
   COMPANY_DELETION,
-  // ON_SITE,
+  ON_SITE,
   INTRA_HOLDING,
   // ALL_PDF,
   // ALL_WORD,
@@ -34,16 +34,16 @@ const {
   populateDB,
   coursesList,
   subProgramsList,
-  // programsList,
+  programsList,
   traineeFromOtherCompany,
   // traineeFromAuthCompanyWithFormationExpoToken,
-  // userCompanies,
+  userCompanies,
   // coachFromOtherCompany,
   // traineeFormerlyInAuthCompany,
   // traineeComingUpInAuthCompany,
-  // traineeFromAuthFormerlyInOther,
+  traineeFromAuthFormerlyInOther,
   // clientAdminFromThirdCompany,
-  // traineeFromThirdCompany,
+  traineeFromThirdCompany,
   fourthCompany,
 } = require('./seed/coursesSeed');
 const { getToken, getTokenByCredentials } = require('./helpers/authentication');
@@ -52,16 +52,16 @@ const {
   authCompany,
   companyWithoutSubscription: thirdCompany,
   authHolding,
-  // otherHolding,
+  otherHolding,
 } = require('../seed/authCompaniesSeed');
 const {
   noRoleNoCompany,
   // coach,
-  // trainer,
+  trainer,
   clientAdmin,
   vendorAdmin,
-  // trainerAndCoach,
-  // noRole,
+  trainerAndCoach,
+  noRole,
   holdingAdminFromAuthCompany,
   holdingAdminFromOtherCompany,
   trainerOrganisationManager,
@@ -69,10 +69,10 @@ const {
 // const SmsHelper = require('../../src/helpers/sms');
 // const DocxHelper = require('../../src/helpers/docx');
 // const NotificationHelper = require('../../src/helpers/notifications');
-// const UtilsHelper = require('../../src/helpers/utils');
+const UtilsHelper = require('../../src/helpers/utils');
 const translate = require('../../src/helpers/translate');
 // const UtilsMock = require('../utilsMock');
-// const { CompaniDate } = require('../../src/helpers/dates/companiDates');
+const { CompaniDate } = require('../../src/helpers/dates/companiDates');
 
 const { language } = translate;
 
@@ -642,425 +642,424 @@ describe('COURSES ROUTES - POST /courses', () => {
   });
 });
 
-// describe('COURSES ROUTES - GET /courses', () => {
-//   let authToken;
-//   beforeEach(populateDB);
-
-//   it('should return 200 as user is logged in (pedagogy mobile)', async () => {
-//     authToken = await getTokenByCredentials(noRole.local);
-
-//     const response = await app.inject({
-//       method: 'GET',
-//       url: '/courses?action=pedagogy&origin=mobile',
-//       headers: { 'x-access-token': authToken },
-//     });
-
-//     expect(response.statusCode).toBe(200);
-//     expect(response.result.data.courses.length).toBe(2);
-//   });
-
-//   describe('TRAINING_ORGANISATION_MANAGER', () => {
-//     beforeEach(async () => {
-//       authToken = await getToken('training_organisation_manager');
-//     });
-
-//     it('should get all courses (ops webapp)', async () => {
-//       const response = await app.inject({
-//         method: 'GET',
-//         url: '/courses?action=operations&origin=webapp',
-//         headers: { Cookie: `alenvi_token=${authToken}` },
-//       });
-
-//       expect(response.statusCode).toBe(200);
-//       expect(response.result.data.courses.length).toEqual(coursesList.length);
-
-//       const course =
-//          response.result.data.courses.find(c => UtilsHelper.areObjectIdsEquals(coursesList[3]._id, c._id));
-//       expect(course).toEqual(expect.objectContaining({
-//         misc: 'second team formation',
-//         type: INTRA,
-//         companies: [
-//           { ...pick(otherCompany, ['_id', 'name']), holding: { _id: otherHolding._id, name: otherHolding.name } },
-//         ],
-//         subProgram: expect.objectContaining({
-//           _id: expect.any(ObjectId),
-//           program: {
-//             _id: programsList[0]._id,
-//             name: programsList[0].name,
-//             subPrograms: [expect.any(ObjectId)],
-//           },
-//         }),
-//         trainer: pick(trainerAndCoach, ['_id', 'identity.firstname', 'identity.lastname']),
-//         slots: [{
-//           _id: expect.any(ObjectId),
-//           startDate: CompaniDate('2020-03-05T08:00:00.000Z').toDate(),
-//           endDate: CompaniDate('2020-03-05T10:00:00.000Z').toDate(),
-//           course: coursesList[3]._id,
-//           address: {
-//             fullAddress: '37 rue de ponthieu 75008 Paris',
-//             zipCode: '75008',
-//             city: 'Paris',
-//             street: '37 rue de Ponthieu',
-//             location: { type: 'Point', coordinates: [2.377133, 48.801389] },
-//           },
-//           step: { _id: expect.any(ObjectId), type: ON_SITE },
-//         }],
-//         trainees: expect.arrayContaining([expect.any(ObjectId)]),
-//         slotsToPlan: [{ _id: expect.any(ObjectId), course: course._id }],
-//       }));
-
-//       const archivedCourse = response.result.data.courses
-//         .find(c => UtilsHelper.areObjectIdsEquals(coursesList[14]._id, c._id));
-//       expect(archivedCourse.archivedAt).toEqual(CompaniDate('2021-01-01T00:00:00.000Z').toDate());
-//       expect(archivedCourse.estimatedStartDate).toEqual(CompaniDate('2020-11-03T10:00:00.000Z').toDate());
-//     });
-
-//     it('should get blended unarchived courses (ops webapp)', async () => {
-//       const response = await app.inject({
-//         method: 'GET',
-//         url: '/courses?action=operations&origin=webapp&format=blended&isArchived=false',
-//         headers: { Cookie: `alenvi_token=${authToken}` },
-//       });
-
-//       expect(response.statusCode).toBe(200);
-//       expect(response.result.data.courses.length).toEqual(18);
-//     });
-
-//     it('should get blended archived courses (ops webapp)', async () => {
-//       const response = await app.inject({
-//         method: 'GET',
-//         url: '/courses?action=operations&origin=webapp&format=blended&isArchived=true',
-//         headers: { Cookie: `alenvi_token=${authToken}` },
-//       });
-
-//       expect(response.statusCode).toBe(200);
-//       expect(response.result.data.courses.length).toEqual(2);
-//     });
-
-//     it('should get strictly e-learning courses (ops webapp)', async () => {
-//       const response = await app.inject({
-//         method: 'GET',
-//         url: '/courses?action=operations&origin=webapp&format=strictly_e_learning',
-//         headers: { Cookie: `alenvi_token=${authToken}` },
-//       });
-
-//       expect(response.statusCode).toBe(200);
-//       expect(response.result.data.courses.length).toEqual(4);
-//     });
-
-//     it('should get all trainee courses (pedagogy webapp)', async () => {
-//       const response = await app.inject({
-//         method: 'GET',
-//         url: `/courses?action=pedagogy&origin=webapp&trainee=${traineeFromAuthFormerlyInOther._id.toHexString()}`,
-//         headers: { Cookie: `alenvi_token=${authToken}` },
-//       });
-
-//       expect(response.statusCode).toBe(200);
-//       expect(response.result.data.courses.length).toEqual(5);
-//     });
-
-//     it('should return 400 if no action', async () => {
-//       const response = await app.inject({
-//         method: 'GET',
-//         url: '/courses?origin=mobile',
-//         headers: { Cookie: `alenvi_token=${authToken}` },
-//       });
-
-//       expect(response.statusCode).toBe(400);
-//     });
-
-//     it('should return 400 if no origin', async () => {
-//       const response = await app.inject({
-//         method: 'GET',
-//         url: '/courses?action=operations',
-//         headers: { Cookie: `alenvi_token=${authToken}` },
-//       });
-
-//       expect(response.statusCode).toBe(400);
-//     });
-
-//     it('should return 400 if query \'isArchived\' for non blended courses', async () => {
-//       const response = await app.inject({
-//         method: 'GET',
-//         url: '/courses?action=operations&origin=webapp&isArchived=false',
-//         headers: { Cookie: `alenvi_token=${authToken}` },
-//       });
-
-//       expect(response.statusCode).toBe(400);
-//     });
-
-//     it('should return 404 if trainee doesn\'t exist (pedagogy webapp)', async () => {
-//       const response = await app.inject({
-//         method: 'GET',
-//         url: `/courses?action=pedagogy&origin=webapp&trainee=${new ObjectId()}`,
-//         headers: { Cookie: `alenvi_token=${authToken}` },
-//       });
-
-//       expect(response.statusCode).toBe(404);
-//     });
-
-//     it('should return 400 if no trainee (pedagogy webapp)', async () => {
-//       const response = await app.inject({
-//         method: 'GET',
-//         url: '/courses?action=pedagogy&origin=webapp}',
-//         headers: { Cookie: `alenvi_token=${authToken}` },
-//       });
-
-//       expect(response.statusCode).toBe(400);
-//     });
-
-//     it('should return 400 if action is operations but with trainee', async () => {
-//       const response = await app.inject({
-//         method: 'GET',
-//         url: `/courses?action=operations&origin=webapp&trainee=${userCompanies[1].user.toHexString()}`,
-//         headers: { Cookie: `alenvi_token=${authToken}` },
-//       });
-
-//       expect(response.statusCode).toBe(400);
-//     });
-
-//     it('should return 400 if origin is mobile but with trainee', async () => {
-//       const response = await app.inject({
-//         method: 'GET',
-//         url: `/courses?action=pedagogy&origin=mobile&trainee=${userCompanies[1].user.toHexString()}`,
-//         headers: { Cookie: `alenvi_token=${authToken}` },
-//       });
-
-//       expect(response.statusCode).toBe(400);
-//     });
-//   });
-
-//   describe('Other roles', () => {
-//     it('should get courses with a specific trainer (ops webapp)', async () => {
-//       authToken = await getToken('trainer');
-//       const response = await app.inject({
-//         method: 'GET',
-//         url: `/courses?action=operations&origin=webapp&trainer=${trainer._id}`,
-//         headers: { Cookie: `alenvi_token=${authToken}` },
-//       });
-
-//       expect(response.statusCode).toBe(200);
-//       expect(response.result.data.courses.length).toEqual(13);
-//     });
-
-//     it('should get trainer\'s course (ops mobile)', async () => {
-//       authToken = await getToken('trainer');
-//       const response = await app.inject({
-//         method: 'GET',
-//         url: `/courses?action=operations&origin=mobile&trainer=${trainer._id}`,
-//         headers: { Cookie: `alenvi_token=${authToken}` },
-//       });
-
-//       expect(response.statusCode).toBe(200);
-//       expect(response.result.data.courses.length).toEqual(13);
-
-//       const course =
-//          response.result.data.courses.find(c => UtilsHelper.areObjectIdsEquals(coursesList[2]._id, c._id));
-//       expect(course).toEqual(expect.objectContaining({
-//         misc: 'second session',
-//         companies: [
-//           { ...pick(authCompany, ['_id', 'name']), holding: { _id: authHolding._id, name: authHolding.name } },
-//         ],
-//         subProgram: expect.objectContaining({
-//           _id: expect.any(ObjectId),
-//           program: {
-//             _id: programsList[0]._id,
-//             name: programsList[0].name,
-//             image: programsList[0].image,
-//             description: programsList[0].description,
-//             subPrograms: [expect.any(ObjectId)],
-//           },
-//         }),
-//         slots: [{
-//           startDate: CompaniDate('2020-03-04T08:00:00.000Z').toDate(),
-//           endDate: CompaniDate('2020-03-04T10:00:00.000Z').toDate(),
-//           course: coursesList[2]._id,
-//           step: {
-//             _id: expect.any(ObjectId),
-//             type: 'on_site',
-//           },
-//           _id: expect.any(ObjectId),
-//         }],
-//         slotsToPlan: [
-//           { _id: expect.any(ObjectId), course: course._id },
-//           { _id: expect.any(ObjectId), course: course._id },
-//         ],
-//       }));
-//       expect(course.trainer).toBeUndefined();
-//       expect(course.trainees).toBeUndefined();
-//       expect(course.operationsRepresentative).toBeUndefined();
-//     });
-
-//     it('should return 400 if no trainer (ops mobile)', async () => {
-//       const response = await app.inject({
-//         method: 'GET',
-//         url: '/courses?action=operations&origin=mobile',
-//         headers: { Cookie: `alenvi_token=${authToken}` },
-//       });
-
-//       expect(response.statusCode).toBe(400);
-//     });
-
-//     it('should get courses for a specific company (ops webapp)', async () => {
-//       authToken = await getToken('coach');
-//       const response = await app.inject({
-//         method: 'GET',
-//         url: `/courses?action=operations&origin=webapp&company=${authCompany._id}`,
-//         headers: { Cookie: `alenvi_token=${authToken}` },
-//       });
-
-//       expect(response.statusCode).toBe(200);
-//       expect(response.result.data.courses.length).toEqual(11);
-//       const course =
-//          response.result.data.courses.find(c => UtilsHelper.areObjectIdsEquals(coursesList[2]._id, c._id));
-//       expect(course.companies).toEqual([pick(authCompany, ['_id', 'name'])]);
-//     });
-
-//     it('should get courses for a specific holding (ops webapp)', async () => {
-//       authToken = await getTokenByCredentials(holdingAdminFromOtherCompany.local);
-//       const response = await app.inject({
-//         method: 'GET',
-//         url: `/courses?action=operations&origin=webapp&holding=${otherHolding._id}`,
-//         headers: { Cookie: `alenvi_token=${authToken}` },
-//       });
-
-//       expect(response.statusCode).toBe(200);
-//       expect(response.result.data.courses.length).toEqual(10);
-//     });
-
-//     it('should return 200 if coach and same company (pedagogy webapp)', async () => {
-//       authToken = await getToken('coach');
-//       const url = `/courses?action=pedagogy&origin=webapp&trainee=${traineeFromAuthFormerlyInOther._id
-// .toHexString()}`
-//         + `&company=${authCompany._id.toHexString()}`;
-
-//       const response = await app.inject({
-//         method: 'GET',
-//         url,
-//         headers: { Cookie: `alenvi_token=${authToken}` },
-//       });
-
-//       expect(response.statusCode).toBe(200);
-
-//       const resultCourseIds = response.result.data.courses.map(course => course._id);
-//       expect(resultCourseIds.length).toBe(2);
-//       expect(UtilsHelper.doesArrayIncludeId(resultCourseIds, coursesList[19]._id)).toBeFalsy();
-//       [coursesList[7]._id, coursesList[8]._id]
-//         .forEach(courseId => expect(UtilsHelper.doesArrayIncludeId(resultCourseIds, courseId)).toBeTruthy());
-//     });
-
-//     it('should return 200 if coach and trainer and same company (pedagogy webapp)', async () => {
-//       authToken = await getTokenByCredentials(trainerAndCoach.local);
-//       const url = `/courses?action=pedagogy&origin=webapp&trainee=${userCompanies[2].user.toHexString()}`
-//         + `&company=${authCompany._id.toHexString()}`;
-
-//       const response = await app.inject({
-//         method: 'GET',
-//         url,
-//         headers: { Cookie: `alenvi_token=${authToken}` },
-//       });
-
-//       expect(response.statusCode).toBe(200);
-//     });
-
-//     it('should return 200 if holding admin and same holding (pedagogy webapp)', async () => {
-//       authToken = await getTokenByCredentials(holdingAdminFromOtherCompany.local);
-//       const url = `/courses?action=pedagogy&origin=webapp&trainee=${traineeFromThirdCompany._id.toHexString()}`
-//         + `&holding=${otherHolding._id.toHexString()}`;
-
-//       const response = await app.inject({
-//         method: 'GET',
-//         url,
-//         headers: { Cookie: `alenvi_token=${authToken}` },
-//       });
-
-//       expect(response.statusCode).toBe(200);
-
-//       const resultCourseIds = response.result.data.courses.map(course => course._id);
-//       expect(resultCourseIds.length).toBe(2);
-//       expect(UtilsHelper.doesArrayIncludeId(resultCourseIds, coursesList[20]._id)).toBeTruthy();
-//     });
-
-//     it('should return 403 if client admin and different company (pedagogy webapp)', async () => {
-//       authToken = await getToken('client_admin');
-//       const response = await app.inject({
-//         method: 'GET',
-//         url: `/courses?action=pedagogy&origin=webapp&trainee=${userCompanies[1].user.toHexString()}`
-//         + `&company=${authCompany._id.toHexString()}`,
-//         headers: { Cookie: `alenvi_token=${authToken}` },
-//       });
-
-//       expect(response.statusCode).toBe(403);
-//     });
-
-//     it('should return 403 if holding admin and different holding (pedagogy webapp)', async () => {
-//       authToken = await getTokenByCredentials(holdingAdminFromAuthCompany.local);
-//       const url = `/courses?action=pedagogy&origin=webapp&trainee=${traineeFromThirdCompany._id.toHexString()}`
-//         + `&holding=${otherHolding._id.toHexString()}`;
-
-//       const response = await app.inject({
-//         method: 'GET',
-//         url,
-//         headers: { Cookie: `alenvi_token=${authToken}` },
-//       });
-
-//       expect(response.statusCode).toBe(403);
-//     });
-
-//     it('should return 400 if company and holding in query', async () => {
-//       authToken = await getTokenByCredentials(holdingAdminFromOtherCompany.local);
-//       const response = await app.inject({
-//         method: 'GET',
-//         url: `/courses?action=operations&origin=webapp&holding=${otherHolding._id}&company=${otherCompany._id}`,
-//         headers: { Cookie: `alenvi_token=${authToken}` },
-//       });
-
-//       expect(response.statusCode).toBe(400);
-//     });
-
-//     it('should return 403 if has no holding role (ops webapp)', async () => {
-//       authToken = await getToken('client_admin');
-//       const response = await app.inject({
-//         method: 'GET',
-//         url: `/courses?action=operations&origin=webapp&holding=${authHolding._id}`,
-//         headers: { Cookie: `alenvi_token=${authToken}` },
-//       });
-
-//       expect(response.statusCode).toBe(403);
-//     });
-
-//     it('should return 403 if not linked to good holding (ops webapp)', async () => {
-//       authToken = await getTokenByCredentials(holdingAdminFromAuthCompany.local);
-//       const response = await app.inject({
-//         method: 'GET',
-//         url: `/courses?action=operations&origin=webapp&holding=${otherHolding._id}`,
-//         headers: { Cookie: `alenvi_token=${authToken}` },
-//       });
-
-//       expect(response.statusCode).toBe(403);
-//     });
-
-//     const roles = [
-//       { name: 'helper', expectedCode: 403 },
-//       { name: 'client_admin', expectedCode: 403 },
-//       { name: 'planning_referent', expectedCode: 403 },
-//       { name: 'trainer', expectedCode: 403 },
-//     ];
-//     roles.forEach((role) => {
-//       it(`should return ${role.expectedCode} as user is ${role.name}
-//        requesting all courses (ops webapp)`, async () => {
-//         authToken = await getToken(role.name);
-//         const response = await app.inject({
-//           method: 'GET',
-//           url: '/courses?action=operations&origin=webapp',
-//           headers: { Cookie: `alenvi_token=${authToken}` },
-//         });
-
-//         expect(response.statusCode).toBe(role.expectedCode);
-//       });
-//     });
-//   });
-// });
+describe('COURSES ROUTES - GET /courses #tag', () => {
+  let authToken;
+  beforeEach(populateDB);
+
+  it('should return 200 as user is logged in (pedagogy mobile)', async () => {
+    authToken = await getTokenByCredentials(noRole.local);
+
+    const response = await app.inject({
+      method: 'GET',
+      url: '/courses?action=pedagogy&origin=mobile',
+      headers: { 'x-access-token': authToken },
+    });
+
+    expect(response.statusCode).toBe(200);
+    expect(response.result.data.courses.length).toBe(2);
+  });
+
+  describe('TRAINING_ORGANISATION_MANAGER', () => {
+    beforeEach(async () => {
+      authToken = await getToken('training_organisation_manager');
+    });
+
+    it('should get all courses (ops webapp)', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: '/courses?action=operations&origin=webapp',
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(200);
+      expect(response.result.data.courses.length).toEqual(coursesList.length);
+
+      const course =
+         response.result.data.courses.find(c => UtilsHelper.areObjectIdsEquals(coursesList[3]._id, c._id));
+      expect(course).toEqual(expect.objectContaining({
+        misc: 'second team formation',
+        type: INTRA,
+        companies: [
+          { ...pick(otherCompany, ['_id', 'name']), holding: { _id: otherHolding._id, name: otherHolding.name } },
+        ],
+        subProgram: expect.objectContaining({
+          _id: expect.any(ObjectId),
+          program: {
+            _id: programsList[0]._id,
+            name: programsList[0].name,
+            subPrograms: [expect.any(ObjectId)],
+          },
+        }),
+        trainers: [pick(trainerAndCoach, ['_id', 'identity.firstname', 'identity.lastname'])],
+        slots: [{
+          _id: expect.any(ObjectId),
+          startDate: CompaniDate('2020-03-05T08:00:00.000Z').toDate(),
+          endDate: CompaniDate('2020-03-05T10:00:00.000Z').toDate(),
+          course: coursesList[3]._id,
+          address: {
+            fullAddress: '37 rue de ponthieu 75008 Paris',
+            zipCode: '75008',
+            city: 'Paris',
+            street: '37 rue de Ponthieu',
+            location: { type: 'Point', coordinates: [2.377133, 48.801389] },
+          },
+          step: { _id: expect.any(ObjectId), type: ON_SITE },
+        }],
+        trainees: expect.arrayContaining([expect.any(ObjectId)]),
+        slotsToPlan: [{ _id: expect.any(ObjectId), course: course._id }],
+      }));
+
+      const archivedCourse = response.result.data.courses
+        .find(c => UtilsHelper.areObjectIdsEquals(coursesList[14]._id, c._id));
+      expect(archivedCourse.archivedAt).toEqual(CompaniDate('2021-01-01T00:00:00.000Z').toDate());
+      expect(archivedCourse.estimatedStartDate).toEqual(CompaniDate('2020-11-03T10:00:00.000Z').toDate());
+    });
+
+    it('should get blended unarchived courses (ops webapp)', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: '/courses?action=operations&origin=webapp&format=blended&isArchived=false',
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(200);
+      expect(response.result.data.courses.length).toEqual(18);
+    });
+
+    it('should get blended archived courses (ops webapp)', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: '/courses?action=operations&origin=webapp&format=blended&isArchived=true',
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(200);
+      expect(response.result.data.courses.length).toEqual(2);
+    });
+
+    it('should get strictly e-learning courses (ops webapp)', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: '/courses?action=operations&origin=webapp&format=strictly_e_learning',
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(200);
+      expect(response.result.data.courses.length).toEqual(4);
+    });
+
+    it('should get all trainee courses (pedagogy webapp)', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/courses?action=pedagogy&origin=webapp&trainee=${traineeFromAuthFormerlyInOther._id.toHexString()}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(200);
+      expect(response.result.data.courses.length).toEqual(5);
+    });
+
+    it('should return 400 if no action', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: '/courses?origin=mobile',
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
+
+    it('should return 400 if no origin', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: '/courses?action=operations',
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
+
+    it('should return 400 if query \'isArchived\' for non blended courses', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: '/courses?action=operations&origin=webapp&isArchived=false',
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
+
+    it('should return 404 if trainee doesn\'t exist (pedagogy webapp)', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/courses?action=pedagogy&origin=webapp&trainee=${new ObjectId()}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(404);
+    });
+
+    it('should return 400 if no trainee (pedagogy webapp)', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: '/courses?action=pedagogy&origin=webapp}',
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
+
+    it('should return 400 if action is operations but with trainee', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/courses?action=operations&origin=webapp&trainee=${userCompanies[1].user.toHexString()}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
+
+    it('should return 400 if origin is mobile but with trainee', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/courses?action=pedagogy&origin=mobile&trainee=${userCompanies[1].user.toHexString()}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
+  });
+
+  describe('Other roles', () => {
+    it('should get courses with a specific trainer (ops webapp)', async () => {
+      authToken = await getToken('trainer');
+      const response = await app.inject({
+        method: 'GET',
+        url: `/courses?action=operations&origin=webapp&trainer=${trainer._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(200);
+      expect(response.result.data.courses.length).toEqual(13);
+    });
+
+    it('should get trainer\'s course (ops mobile)', async () => {
+      authToken = await getToken('trainer');
+      const response = await app.inject({
+        method: 'GET',
+        url: `/courses?action=operations&origin=mobile&trainer=${trainer._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(200);
+      expect(response.result.data.courses.length).toEqual(13);
+
+      const course =
+         response.result.data.courses.find(c => UtilsHelper.areObjectIdsEquals(coursesList[2]._id, c._id));
+      expect(course).toEqual(expect.objectContaining({
+        misc: 'second session',
+        companies: [
+          { ...pick(authCompany, ['_id', 'name']), holding: { _id: authHolding._id, name: authHolding.name } },
+        ],
+        subProgram: expect.objectContaining({
+          _id: expect.any(ObjectId),
+          program: {
+            _id: programsList[0]._id,
+            name: programsList[0].name,
+            image: programsList[0].image,
+            description: programsList[0].description,
+            subPrograms: [expect.any(ObjectId)],
+          },
+        }),
+        slots: [{
+          startDate: CompaniDate('2020-03-04T08:00:00.000Z').toDate(),
+          endDate: CompaniDate('2020-03-04T10:00:00.000Z').toDate(),
+          course: coursesList[2]._id,
+          step: {
+            _id: expect.any(ObjectId),
+            type: 'on_site',
+          },
+          _id: expect.any(ObjectId),
+        }],
+        slotsToPlan: [
+          { _id: expect.any(ObjectId), course: course._id },
+          { _id: expect.any(ObjectId), course: course._id },
+        ],
+      }));
+      expect(course.trainer).toBeUndefined();
+      expect(course.trainees).toBeUndefined();
+      expect(course.operationsRepresentative).toBeUndefined();
+    });
+
+    it('should return 400 if no trainer (ops mobile)', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: '/courses?action=operations&origin=mobile',
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
+
+    it('should get courses for a specific company (ops webapp)', async () => {
+      authToken = await getToken('coach');
+      const response = await app.inject({
+        method: 'GET',
+        url: `/courses?action=operations&origin=webapp&company=${authCompany._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(200);
+      expect(response.result.data.courses.length).toEqual(11);
+      const course =
+         response.result.data.courses.find(c => UtilsHelper.areObjectIdsEquals(coursesList[2]._id, c._id));
+      expect(course.companies).toEqual([pick(authCompany, ['_id', 'name'])]);
+    });
+
+    it('should get courses for a specific holding (ops webapp)', async () => {
+      authToken = await getTokenByCredentials(holdingAdminFromOtherCompany.local);
+      const response = await app.inject({
+        method: 'GET',
+        url: `/courses?action=operations&origin=webapp&holding=${otherHolding._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(200);
+      expect(response.result.data.courses.length).toEqual(10);
+    });
+
+    it('should return 200 if coach and same company (pedagogy webapp)', async () => {
+      authToken = await getToken('coach');
+      const url = `/courses?action=pedagogy&origin=webapp&trainee=${traineeFromAuthFormerlyInOther._id.toHexString()}`
+        + `&company=${authCompany._id.toHexString()}`;
+
+      const response = await app.inject({
+        method: 'GET',
+        url,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(200);
+
+      const resultCourseIds = response.result.data.courses.map(course => course._id);
+      expect(resultCourseIds.length).toBe(2);
+      expect(UtilsHelper.doesArrayIncludeId(resultCourseIds, coursesList[19]._id)).toBeFalsy();
+      [coursesList[7]._id, coursesList[8]._id]
+        .forEach(courseId => expect(UtilsHelper.doesArrayIncludeId(resultCourseIds, courseId)).toBeTruthy());
+    });
+
+    it('should return 200 if coach and trainer and same company (pedagogy webapp)', async () => {
+      authToken = await getTokenByCredentials(trainerAndCoach.local);
+      const url = `/courses?action=pedagogy&origin=webapp&trainee=${userCompanies[2].user.toHexString()}`
+        + `&company=${authCompany._id.toHexString()}`;
+
+      const response = await app.inject({
+        method: 'GET',
+        url,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(200);
+    });
+
+    it('should return 200 if holding admin and same holding (pedagogy webapp)', async () => {
+      authToken = await getTokenByCredentials(holdingAdminFromOtherCompany.local);
+      const url = `/courses?action=pedagogy&origin=webapp&trainee=${traineeFromThirdCompany._id.toHexString()}`
+        + `&holding=${otherHolding._id.toHexString()}`;
+
+      const response = await app.inject({
+        method: 'GET',
+        url,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(200);
+
+      const resultCourseIds = response.result.data.courses.map(course => course._id);
+      expect(resultCourseIds.length).toBe(2);
+      expect(UtilsHelper.doesArrayIncludeId(resultCourseIds, coursesList[20]._id)).toBeTruthy();
+    });
+
+    it('should return 403 if client admin and different company (pedagogy webapp)', async () => {
+      authToken = await getToken('client_admin');
+      const response = await app.inject({
+        method: 'GET',
+        url: `/courses?action=pedagogy&origin=webapp&trainee=${userCompanies[1].user.toHexString()}`
+        + `&company=${authCompany._id.toHexString()}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
+
+    it('should return 403 if holding admin and different holding (pedagogy webapp)', async () => {
+      authToken = await getTokenByCredentials(holdingAdminFromAuthCompany.local);
+      const url = `/courses?action=pedagogy&origin=webapp&trainee=${traineeFromThirdCompany._id.toHexString()}`
+        + `&holding=${otherHolding._id.toHexString()}`;
+
+      const response = await app.inject({
+        method: 'GET',
+        url,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
+
+    it('should return 400 if company and holding in query', async () => {
+      authToken = await getTokenByCredentials(holdingAdminFromOtherCompany.local);
+      const response = await app.inject({
+        method: 'GET',
+        url: `/courses?action=operations&origin=webapp&holding=${otherHolding._id}&company=${otherCompany._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
+
+    it('should return 403 if has no holding role (ops webapp)', async () => {
+      authToken = await getToken('client_admin');
+      const response = await app.inject({
+        method: 'GET',
+        url: `/courses?action=operations&origin=webapp&holding=${authHolding._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
+
+    it('should return 403 if not linked to good holding (ops webapp)', async () => {
+      authToken = await getTokenByCredentials(holdingAdminFromAuthCompany.local);
+      const response = await app.inject({
+        method: 'GET',
+        url: `/courses?action=operations&origin=webapp&holding=${otherHolding._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
+
+    const roles = [
+      { name: 'helper', expectedCode: 403 },
+      { name: 'client_admin', expectedCode: 403 },
+      { name: 'planning_referent', expectedCode: 403 },
+      { name: 'trainer', expectedCode: 403 },
+    ];
+    roles.forEach((role) => {
+      it(`should return ${role.expectedCode} as user is ${role.name}
+       requesting all courses (ops webapp)`, async () => {
+        authToken = await getToken(role.name);
+        const response = await app.inject({
+          method: 'GET',
+          url: '/courses?action=operations&origin=webapp',
+          headers: { Cookie: `alenvi_token=${authToken}` },
+        });
+
+        expect(response.statusCode).toBe(role.expectedCode);
+      });
+    });
+  });
+});
 
 // describe('COURSES ROUTES - GET /courses/{_id}', () => {
 //   let authToken;
