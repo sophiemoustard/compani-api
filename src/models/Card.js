@@ -49,8 +49,8 @@ const CardSchema = mongoose.Schema({
   },
   gappedText: { type: String },
   question: { type: String },
-  falsyGapAnswers: {
-    type: [mongoose.Schema({ text: { type: String } }, { id: false })],
+  gapAnswers: {
+    type: [mongoose.Schema({ text: { type: String }, correct: { type: Boolean } }, { id: false })],
     default: undefined,
   },
   canSwitchAnswers: { type: Boolean },
@@ -82,7 +82,9 @@ function save(next) {
   if (this.isNew) {
     switch (this.template) {
       case FILL_THE_GAPS:
-        if (!this.falsyGapAnswers) this.falsyGapAnswers = [{ text: '' }, { text: '' }];
+        if (!this.gapAnswers) {
+          this.gapAnswers = [{ text: '', correct: true }, { text: '', correct: false }, { text: '', correct: false }];
+        }
         if (!this.canSwitchAnswers) this.canSwitchAnswers = false;
         break;
       case SINGLE_CHOICE_QUESTION:

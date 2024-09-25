@@ -19,17 +19,26 @@ const {
 const { deleteNonAuthenticationSeeds } = require('../helpers/db');
 
 const cardsList = [
+  // 0
   { _id: new ObjectId(), template: TRANSITION, title: 'Lala' },
+  // 1
   { _id: new ObjectId(), template: TITLE_TEXT_MEDIA, media: { type: 'video', link: 'link', publicId: 'publicId' } },
+  // 2
   { _id: new ObjectId(), template: TITLE_TEXT },
+  // 3
   { _id: new ObjectId(), template: TEXT_MEDIA },
+  // 4
   { _id: new ObjectId(), template: FLASHCARD, text: 'text', backText: 'back text' },
-  {
+  { // 5
     _id: new ObjectId(),
     template: FILL_THE_GAPS,
-    falsyGapAnswers: [{ _id: new ObjectId(), text: 'ase' }, { _id: new ObjectId(), text: 'énué' }],
+    gapAnswers: [
+      { _id: new ObjectId(), text: 'ase', correct: false },
+      { _id: new ObjectId(), text: 'énué', correct: false },
+      { _id: new ObjectId(), text: 'test', correct: true },
+    ],
   },
-  {
+  { // 6
     _id: new ObjectId(),
     template: MULTIPLE_CHOICE_QUESTION,
     qcAnswers: [
@@ -41,7 +50,7 @@ const cardsList = [
     question: 'what is the question ?',
     explanation: 'explanation',
   },
-  {
+  { // 7
     _id: new ObjectId(),
     template: SINGLE_CHOICE_QUESTION,
     qcAnswers: [
@@ -52,7 +61,7 @@ const cardsList = [
     ],
     question: 'what is the question ?',
   },
-  {
+  { // 8
     _id: new ObjectId(),
     template: ORDER_THE_SEQUENCE,
     orderedAnswers: [
@@ -61,14 +70,16 @@ const cardsList = [
       { _id: new ObjectId(), text: 'encore des trucs' },
     ],
   },
+  // 9
   { _id: new ObjectId(), template: SURVEY, labels: { 1: 'first', 5: 'last' }, question: 'question ?' },
+  // 10
   { _id: new ObjectId(), template: OPEN_QUESTION },
-  {
+  { // 11
     _id: new ObjectId(),
     template: QUESTION_ANSWER,
     qcAnswers: [{ text: 'hallo', _id: new ObjectId() }, { text: 'shalom', _id: new ObjectId() }],
   },
-  {
+  { // 12
     _id: new ObjectId(),
     template: QUESTION_ANSWER,
     qcAnswers: [
@@ -78,14 +89,15 @@ const cardsList = [
       { text: 'bye bye', _id: new ObjectId() },
     ],
   },
-  {
+  { // 13
     _id: new ObjectId(),
     template: QUESTION_ANSWER,
     question: 'what is the question ?',
     qcAnswers: [{ text: 'hallo', _id: new ObjectId() }, { text: 'shalom', _id: new ObjectId() }],
   },
+  // 14
   { _id: new ObjectId(), template: SINGLE_CHOICE_QUESTION, qcAnswers: [{ _id: new ObjectId(), text: 'uel' }] },
-  {
+  { // 15
     _id: new ObjectId(),
     template: MULTIPLE_CHOICE_QUESTION,
     qcAnswers: [
@@ -93,28 +105,42 @@ const cardsList = [
       { _id: new ObjectId(), correct: true, text: 'Avery' },
     ],
   },
-  {
+  { // 16
     _id: new ObjectId(),
     template: ORDER_THE_SEQUENCE,
     orderedAnswers: [{ _id: new ObjectId(), text: 'rien' }, { _id: new ObjectId(), text: 'des trucs' }],
   },
-  {
+  { // 17
     _id: new ObjectId(),
     template: FILL_THE_GAPS,
-    falsyGapAnswers: [
-      { _id: new ObjectId(), text: 'ase' },
-      { _id: new ObjectId(), text: 'énué' },
-      { _id: new ObjectId(), text: 'olard' },
-      { _id: new ObjectId(), text: 'ension' },
-      { _id: new ObjectId(), text: 'rien' },
-      { _id: new ObjectId(), text: 'des trucs' },
+    gappedText: '<trou> et <trou> sont dans un bateau',
+    explanation: 'rien',
+    gapAnswers: [
+      { _id: new ObjectId(), text: 'ase', correct: false },
+      { _id: new ObjectId(), text: 'énué', correct: false },
+      { _id: new ObjectId(), text: 'olard', correct: false },
+      { _id: new ObjectId(), text: 'ension', correct: false },
+      { _id: new ObjectId(), text: 'rien', correct: false },
+      { _id: new ObjectId(), text: 'des trucs', correct: true },
+      { _id: new ObjectId(), text: 'des choses', correct: true },
+      { _id: new ObjectId(), text: 'des machins', correct: false },
     ],
   },
-  {
+  { // 18
     _id: new ObjectId(),
     template: SURVEY,
     labels: { 1: 'first', 2: 'second', 3: 'third', 4: 'fourth', 5: 'last' },
     question: 'question ?',
+  },
+  { // 19
+    _id: new ObjectId(),
+    template: FILL_THE_GAPS,
+    gapAnswers: [
+      { _id: new ObjectId(), text: 'ase', correct: false },
+      { _id: new ObjectId(), text: 'énué', correct: false },
+      { _id: new ObjectId(), text: 'test', correct: true },
+      { _id: new ObjectId(), text: 'truc', correct: false },
+    ],
   },
 ];
 
@@ -130,7 +156,7 @@ const activitiesList = [
       cardsList[8]._id,
       cardsList[16]._id,
       cardsList[5]._id,
-      cardsList[17]._id,
+      cardsList[19]._id,
     ],
     type: 'video',
     status: 'draft',
@@ -138,7 +164,7 @@ const activitiesList = [
   {
     _id: new ObjectId(),
     name: 'la peche',
-    cards: [cardsList[4]._id, cardsList[13]._id],
+    cards: [cardsList[4]._id, cardsList[13]._id, cardsList[17]._id],
     type: 'quiz',
     status: 'published',
   },
