@@ -163,13 +163,15 @@ const listBlendedForCompany = async (query, origin) => {
 };
 
 const formatQuery = (query, credentials) => {
-  const formattedQuery = omit(query, ['isArchived', 'holding']);
+  const formattedQuery = omit(query, ['isArchived', 'holding', 'trainer']);
 
   if (has(query, 'isArchived')) set(formattedQuery, 'archivedAt', { $exists: !!query.isArchived });
 
   if (has(query, 'holding')) {
     set(formattedQuery, '$or', [{ companies: { $in: credentials.holding.companies } }, { holding: query.holding }]);
   }
+
+  if (has(query, 'trainer')) set(formattedQuery, 'trainers', query.trainer);
 
   return formattedQuery;
 };
