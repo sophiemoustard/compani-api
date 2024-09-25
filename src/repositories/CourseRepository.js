@@ -34,7 +34,7 @@ exports.findCourseAndPopulate = (query, origin, populateVirtual = false) => Cour
     { path: 'slotsToPlan', select: '_id' },
     ...(origin === WEBAPP
       ? [
-        { path: 'trainer', select: 'identity' },
+        { path: 'trainers', select: 'identity' },
         ...(query.accessRules ? [{
           path: 'trainees',
           select: '_id company',
