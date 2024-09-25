@@ -45,7 +45,7 @@ const { checkVendorUserExistsAndHasRightRole } = require('./utils');
 
 const { language } = translate;
 
-exports.checkAuthorization = (credentials, courseTrainerId, companies, holding = null) => {
+exports.checkAuthorization = (credentials, courseTrainerIds, companies, holding = null) => {
   const userVendorRole = get(credentials, 'role.vendor.name');
   const userClientRole = get(credentials, 'role.client.name');
   const userHoldingRole = get(credentials, 'role.holding.name');
@@ -53,7 +53,7 @@ exports.checkAuthorization = (credentials, courseTrainerId, companies, holding =
 
   const isAdminVendor = userVendorRole === VENDOR_ADMIN;
   const isTOM = userVendorRole === TRAINING_ORGANISATION_MANAGER;
-  const isTrainerAndAuthorized = userVendorRole === TRAINER && UtilsHelper.areObjectIdsEquals(userId, courseTrainerId);
+  const isTrainerAndAuthorized = userVendorRole === TRAINER && UtilsHelper.doesArrayIncludeId(courseTrainerIds, userId);
 
   const hasAccessToHolding = UtilsHelper.areObjectIdsEquals(holding, get(credentials, 'holding._id'));
   const hasAccessToCompany = companies.some(company => UtilsHelper.hasUserAccessToCompany(credentials, company));
@@ -287,14 +287,12 @@ exports.authorizeCourseEdit = async (req) => {
 };
 
 const authorizeGetListForOperations = (credentials, query) => {
-  const courseTrainerId = query.trainer;
-
   if (query.holding) {
     if (!get(credentials, 'holding._id') || !UtilsHelper.areObjectIdsEquals(credentials.holding._id, query.holding)) {
       throw Boom.forbidden();
     }
   } else {
-    this.checkAuthorization(credentials, courseTrainerId, [query.company]);
+    this.checkAuthorization(credentials, [query.trainer], [query.company]);
   }
 
   return null;
