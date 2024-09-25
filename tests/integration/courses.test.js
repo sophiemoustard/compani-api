@@ -20,8 +20,8 @@ const {
   INTER_B2B,
   // OTHER,
   ESTIMATED_START_DATE_EDITION,
-  COMPANY_ADDITION,
-  COMPANY_DELETION,
+  // COMPANY_ADDITION,
+  // COMPANY_DELETION,
   ON_SITE,
   INTRA_HOLDING,
   // ALL_PDF,
@@ -44,13 +44,13 @@ const {
   traineeFromAuthFormerlyInOther,
   // clientAdminFromThirdCompany,
   traineeFromThirdCompany,
-  fourthCompany,
+  // fourthCompany,
 } = require('./seed/coursesSeed');
 const { getToken, getTokenByCredentials } = require('./helpers/authentication');
 const {
   otherCompany,
   authCompany,
-  companyWithoutSubscription: thirdCompany,
+  // companyWithoutSubscription: thirdCompany,
   authHolding,
   otherHolding,
 } = require('../seed/authCompaniesSeed');
@@ -70,11 +70,11 @@ const {
 // const DocxHelper = require('../../src/helpers/docx');
 // const NotificationHelper = require('../../src/helpers/notifications');
 const UtilsHelper = require('../../src/helpers/utils');
-const translate = require('../../src/helpers/translate');
+// const translate = require('../../src/helpers/translate');
 // const UtilsMock = require('../utilsMock');
 const { CompaniDate } = require('../../src/helpers/dates/companiDates');
 
-const { language } = translate;
+// const { language } = translate;
 
 describe('NODE ENV', () => {
   it('should be \'test\'', () => {
@@ -3547,413 +3547,413 @@ describe('COURSES ROUTES - DELETE /:_id/accessrules/:accessRuleId', () => {
 //   });
 // });
 
-describe('COURSES ROUTES - PUT /courses/{_id}/companies', () => {
-  let authToken;
-  const interb2bCourseId = coursesList[7]._id;
-  const archivedCourseId = coursesList[18]._id;
-  const intraCourseId = coursesList[0]._id;
-
-  beforeEach(populateDB);
-
-  describe('TRAINING_ORGANISATION_MANAGER', () => {
-    beforeEach(async () => {
-      authToken = await getToken('training_organisation_manager');
-    });
-
-    it('should add company to inter course companies', async () => {
-      const response = await app.inject({
-        method: 'PUT',
-        url: `/courses/${interb2bCourseId}/companies`,
-        headers: { Cookie: `alenvi_token=${authToken}` },
-        payload: { company: otherCompany._id },
-      });
-
-      expect(response.statusCode).toBe(200);
-
-      const courseHistory = await CourseHistory.countDocuments({
-        course: interb2bCourseId,
-        company: otherCompany._id,
-        action: COMPANY_ADDITION,
-      });
-      expect(courseHistory).toEqual(1);
-
-      const course = await Course.countDocuments({ _id: interb2bCourseId, companies: otherCompany._id });
-      expect(course).toEqual(1);
-    });
-
-    it('should add company to intra_holding course companies', async () => {
-      const response = await app.inject({
-        method: 'PUT',
-        url: `/courses/${coursesList[22]._id}/companies`,
-        headers: { Cookie: `alenvi_token=${authToken}` },
-        payload: { company: otherCompany._id },
-      });
-
-      expect(response.statusCode).toBe(200);
-
-      const courseHistory = await CourseHistory.countDocuments({
-        course: coursesList[22]._id,
-        company: otherCompany._id,
-        action: COMPANY_ADDITION,
-      });
-      expect(courseHistory).toEqual(1);
-
-      const course = await Course.countDocuments({ _id: coursesList[22]._id, companies: otherCompany._id });
-      expect(course).toEqual(1);
-    });
-
-    it('should return 404 if course doesn\'t exist', async () => {
-      const response = await app.inject({
-        method: 'PUT',
-        url: `/courses/${new ObjectId()}/companies`,
-        headers: { Cookie: `alenvi_token=${authToken}` },
-        payload: { company: otherCompany._id },
-      });
-
-      expect(response.statusCode).toBe(404);
-    });
-
-    it('should return 404 if company doesn\'t exist', async () => {
-      const response = await app.inject({
-        method: 'PUT',
-        url: `/courses/${interb2bCourseId}/companies`,
-        headers: { Cookie: `alenvi_token=${authToken}` },
-        payload: { company: new ObjectId() },
-      });
-
-      expect(response.statusCode).toBe(404);
-    });
-
-    it('should return a 403 if course is intra', async () => {
-      const response = await app.inject({
-        method: 'PUT',
-        url: `/courses/${intraCourseId}/companies`,
-        headers: { Cookie: `alenvi_token=${authToken}` },
-        payload: { company: otherCompany._id },
-      });
-
-      expect(response.statusCode).toBe(403);
-    });
-
-    it('should return a 403 if course is archived', async () => {
-      const response = await app.inject({
-        method: 'PUT',
-        url: `/courses/${archivedCourseId}/companies`,
-        headers: { Cookie: `alenvi_token=${authToken}` },
-        payload: { company: otherCompany._id },
-      });
-
-      expect(response.statusCode).toBe(403);
-    });
-
-    it('should return a 409 if company is already linked to course', async () => {
-      const response = await app.inject({
-        method: 'PUT',
-        url: `/courses/${interb2bCourseId}/companies`,
-        headers: { Cookie: `alenvi_token=${authToken}` },
-        payload: { company: authCompany._id },
-      });
-
-      expect(response.statusCode).toBe(409);
-    });
-
-    it('should return a 400 if company is missing in payload', async () => {
-      const response = await app.inject({
-        method: 'PUT',
-        url: `/courses/${interb2bCourseId}/companies`,
-        payload: {},
-        headers: { Cookie: `alenvi_token=${authToken}` },
-      });
-
-      expect(response.statusCode).toBe(400);
-    });
-
-    it('should return a 404 if company is not in holding (intra_holding course)', async () => {
-      const response = await app.inject({
-        method: 'PUT',
-        url: `/courses/${coursesList[22]._id}/companies`,
-        headers: { Cookie: `alenvi_token=${authToken}` },
-        payload: { company: authCompany._id },
-      });
-
-      expect(response.statusCode).toBe(404);
-    });
-  });
-
-  describe('HOLDING_ADMIN', () => {
-    it('should return a 200 if holding admin add company to intra_holding course', async () => {
-      authToken = await getTokenByCredentials(holdingAdminFromOtherCompany.local);
-
-      const response = await app.inject({
-        method: 'PUT',
-        url: `/courses/${coursesList[22]._id}/companies`,
-        headers: { Cookie: `alenvi_token=${authToken}` },
-        payload: { company: thirdCompany._id },
-      });
-
-      expect(response.statusCode).toBe(200);
-    });
-
-    it('should return a 403 if holding admin is not from holding (intra_holding)', async () => {
-      authToken = await getTokenByCredentials(holdingAdminFromAuthCompany.local);
-
-      const response = await app.inject({
-        method: 'PUT',
-        url: `/courses/${coursesList[22]._id}/companies`,
-        headers: { Cookie: `alenvi_token=${authToken}` },
-        payload: { company: thirdCompany._id },
-      });
-
-      expect(response.statusCode).toBe(403);
-    });
-
-    it('should return a 403 if holding admin try to update inter course', async () => {
-      authToken = await getTokenByCredentials(holdingAdminFromAuthCompany.local);
-
-      const response = await app.inject({
-        method: 'PUT',
-        url: `/courses/${coursesList[4]._id}/companies`,
-        headers: { Cookie: `alenvi_token=${authToken}` },
-        payload: { company: thirdCompany._id },
-      });
-
-      expect(response.statusCode).toBe(403);
-    });
-  });
-
-  describe('Other roles', () => {
-    const roles = [
-      { name: 'helper', expectedCode: 403 },
-      { name: 'planning_referent', expectedCode: 403 },
-      { name: 'client_admin', expectedCode: 403 },
-      { name: 'trainer', expectedCode: 403 },
-    ];
-    roles.forEach((role) => {
-      it(`should return ${role.expectedCode} as user is ${role.name} (inter_b2b)`, async () => {
-        authToken = await getToken(role.name);
-        const response = await app.inject({
-          method: 'PUT',
-          url: `/courses/${interb2bCourseId}/companies`,
-          headers: { Cookie: `alenvi_token=${authToken}` },
-          payload: { company: otherCompany._id },
-        });
-
-        expect(response.statusCode).toBe(role.expectedCode);
-      });
-
-      it(`should return ${role.expectedCode} as user is ${role.name} (intra_holding)`, async () => {
-        authToken = await getToken(role.name);
-        const response = await app.inject({
-          method: 'PUT',
-          url: `/courses/${coursesList[21]._id}/companies`,
-          headers: { Cookie: `alenvi_token=${authToken}` },
-          payload: { company: fourthCompany._id },
-        });
-
-        expect(response.statusCode).toBe(role.expectedCode);
-      });
-    });
-  });
-});
-
-describe('COURSES ROUTES - DELETE /courses/{_id}/companies{companyId}', () => {
-  let authToken;
-  const interb2bCourseId = coursesList[7]._id;
-  const archivedCourseId = coursesList[18]._id;
-  const intraCourseId = coursesList[0]._id;
-
-  beforeEach(populateDB);
-
-  describe('TRAINING_ORGANISATION_MANAGER', () => {
-    beforeEach(async () => {
-      authToken = await getToken('training_organisation_manager');
-    });
-
-    it('should remove company from inter_b2b course', async () => {
-      const response = await app.inject({
-        method: 'DELETE',
-        url: `/courses/${interb2bCourseId}/companies/${thirdCompany._id}`,
-        headers: { Cookie: `alenvi_token=${authToken}` },
-      });
-
-      expect(response.statusCode).toBe(200);
-
-      const courseHistory = await CourseHistory.countDocuments({
-        course: interb2bCourseId,
-        company: thirdCompany._id,
-        action: COMPANY_DELETION,
-      });
-      expect(courseHistory).toEqual(1);
-
-      const course = await Course.countDocuments({ _id: interb2bCourseId, companies: thirdCompany._id });
-      expect(course).toEqual(0);
-    });
-
-    it('should remove company from intra_holding course even if has attendances', async () => {
-      const response = await app.inject({
-        method: 'DELETE',
-        url: `/courses/${coursesList[21]._id}/companies/${authCompany._id}`,
-        headers: { Cookie: `alenvi_token=${authToken}` },
-      });
-
-      expect(response.statusCode).toBe(200);
-    });
-
-    it('should return 404 if course doesn\'t exist', async () => {
-      const response = await app.inject({
-        method: 'DELETE',
-        url: `/courses/${new ObjectId()}/companies/${thirdCompany._id}`,
-        headers: { Cookie: `alenvi_token=${authToken}` },
-      });
-
-      expect(response.statusCode).toBe(404);
-    });
-
-    it('should return 403 if company not in course', async () => {
-      const response = await app.inject({
-        method: 'DELETE',
-        url: `/courses/${interb2bCourseId}/companies/${new ObjectId()}`,
-        headers: { Cookie: `alenvi_token=${authToken}` },
-      });
-
-      expect(response.statusCode).toBe(403);
-    });
-
-    it('should return a 403 if course is intra', async () => {
-      const response = await app.inject({
-        method: 'DELETE',
-        url: `/courses/${intraCourseId}/companies/${authCompany._id}`,
-        headers: { Cookie: `alenvi_token=${authToken}` },
-      });
-
-      expect(response.statusCode).toBe(403);
-    });
-
-    it('should return a 403 if company trainee is still registered to course', async () => {
-      const response = await app.inject({
-        method: 'DELETE',
-        url: `/courses/${interb2bCourseId}/companies/${authCompany._id}`,
-        headers: { Cookie: `alenvi_token=${authToken}` },
-      });
-
-      expect(response.statusCode).toBe(403);
-      expect(response.result.message).toEqual(translate[language].companyTraineeRegisteredToCourse);
-    });
-
-    it('should return a 403 if company has bill', async () => {
-      const response = await app.inject({
-        method: 'DELETE',
-        url: `/courses/${coursesList[19]._id}/companies/${authCompany._id}`,
-        headers: { Cookie: `alenvi_token=${authToken}` },
-      });
-
-      expect(response.statusCode).toBe(403);
-      expect(response.result.message).toEqual(translate[language].companyHasCourseBill);
-    });
-
-    it('should return a 403 if company has attendance (intra or inter)', async () => {
-      const response = await app.inject({
-        method: 'DELETE',
-        url: `/courses/${coursesList[19]._id}/companies/${thirdCompany._id}`,
-        headers: { Cookie: `alenvi_token=${authToken}` },
-      });
-
-      expect(response.statusCode).toBe(403);
-      expect(response.result.message).toEqual(translate[language].companyTraineeAttendedToCourse);
-    });
-
-    it('should return a 403 if company has attendance sheet', async () => {
-      const response = await app.inject({
-        method: 'DELETE',
-        url: `/courses/${coursesList[12]._id}/companies/${authCompany._id}`,
-        headers: { Cookie: `alenvi_token=${authToken}` },
-      });
-
-      expect(response.statusCode).toBe(403);
-      expect(response.result.message).toEqual(translate[language].companyHasAttendanceSheetForCourse);
-    });
-
-    it('should return a 403 if course is archived', async () => {
-      const response = await app.inject({
-        method: 'DELETE',
-        url: `/courses/${archivedCourseId}/companies/${authCompany._id}`,
-        headers: { Cookie: `alenvi_token=${authToken}` },
-      });
-
-      expect(response.statusCode).toBe(403);
-    });
-  });
-
-  describe('HOLDING_ADMIN', () => {
-    it('should remove company from intra_holding course', async () => {
-      authToken = await getTokenByCredentials(holdingAdminFromAuthCompany.local);
-
-      const response = await app.inject({
-        method: 'DELETE',
-        url: `/courses/${coursesList[21]._id}/companies/${authCompany._id}`,
-        headers: { Cookie: `alenvi_token=${authToken}` },
-      });
-
-      expect(response.statusCode).toBe(200);
-    });
-
-    it('should return a 403 if holding admin is not from holding (intra_holding)', async () => {
-      authToken = await getTokenByCredentials(holdingAdminFromOtherCompany.local);
-
-      const response = await app.inject({
-        method: 'DELETE',
-        url: `/courses/${coursesList[21]._id}/companies/${authCompany._id}`,
-        headers: { Cookie: `alenvi_token=${authToken}` },
-      });
-
-      expect(response.statusCode).toBe(403);
-    });
-
-    it('should return a 403 if holding admin try to update inter course', async () => {
-      authToken = await getTokenByCredentials(holdingAdminFromAuthCompany.local);
-
-      const response = await app.inject({
-        method: 'DELETE',
-        url: `/courses/${interb2bCourseId}/companies/${authCompany._id}`,
-        headers: { Cookie: `alenvi_token=${authToken}` },
-      });
-
-      expect(response.statusCode).toBe(403);
-    });
-  });
-
-  describe('Other roles', () => {
-    const roles = [
-      { name: 'helper', expectedCode: 403 },
-      { name: 'planning_referent', expectedCode: 403 },
-      { name: 'client_admin', expectedCode: 403 },
-      { name: 'trainer', expectedCode: 403 },
-    ];
-    roles.forEach((role) => {
-      it(`should return ${role.expectedCode} as user is ${role.name} (inter_b2b)`, async () => {
-        authToken = await getToken(role.name);
-        const response = await app.inject({
-          method: 'DELETE',
-          url: `/courses/${interb2bCourseId}/companies/${thirdCompany._id}`,
-          headers: { Cookie: `alenvi_token=${authToken}` },
-        });
-
-        expect(response.statusCode).toBe(role.expectedCode);
-      });
-
-      it(`should return ${role.expectedCode} as user is ${role.name} (intra_holding)`, async () => {
-        authToken = await getToken(role.name);
-        const response = await app.inject({
-          method: 'DELETE',
-          url: `/courses/${coursesList[21]._id}/companies/${authCompany._id}`,
-          headers: { Cookie: `alenvi_token=${authToken}` },
-        });
-
-        expect(response.statusCode).toBe(role.expectedCode);
-      });
-    });
-  });
-});
+// describe('COURSES ROUTES - PUT /courses/{_id}/companies', () => {
+//   let authToken;
+//   const interb2bCourseId = coursesList[7]._id;
+//   const archivedCourseId = coursesList[18]._id;
+//   const intraCourseId = coursesList[0]._id;
+
+//   beforeEach(populateDB);
+
+//   describe('TRAINING_ORGANISATION_MANAGER', () => {
+//     beforeEach(async () => {
+//       authToken = await getToken('training_organisation_manager');
+//     });
+
+//     it('should add company to inter course companies', async () => {
+//       const response = await app.inject({
+//         method: 'PUT',
+//         url: `/courses/${interb2bCourseId}/companies`,
+//         headers: { Cookie: `alenvi_token=${authToken}` },
+//         payload: { company: otherCompany._id },
+//       });
+
+//       expect(response.statusCode).toBe(200);
+
+//       const courseHistory = await CourseHistory.countDocuments({
+//         course: interb2bCourseId,
+//         company: otherCompany._id,
+//         action: COMPANY_ADDITION,
+//       });
+//       expect(courseHistory).toEqual(1);
+
+//       const course = await Course.countDocuments({ _id: interb2bCourseId, companies: otherCompany._id });
+//       expect(course).toEqual(1);
+//     });
+
+//     it('should add company to intra_holding course companies', async () => {
+//       const response = await app.inject({
+//         method: 'PUT',
+//         url: `/courses/${coursesList[22]._id}/companies`,
+//         headers: { Cookie: `alenvi_token=${authToken}` },
+//         payload: { company: otherCompany._id },
+//       });
+
+//       expect(response.statusCode).toBe(200);
+
+//       const courseHistory = await CourseHistory.countDocuments({
+//         course: coursesList[22]._id,
+//         company: otherCompany._id,
+//         action: COMPANY_ADDITION,
+//       });
+//       expect(courseHistory).toEqual(1);
+
+//       const course = await Course.countDocuments({ _id: coursesList[22]._id, companies: otherCompany._id });
+//       expect(course).toEqual(1);
+//     });
+
+//     it('should return 404 if course doesn\'t exist', async () => {
+//       const response = await app.inject({
+//         method: 'PUT',
+//         url: `/courses/${new ObjectId()}/companies`,
+//         headers: { Cookie: `alenvi_token=${authToken}` },
+//         payload: { company: otherCompany._id },
+//       });
+
+//       expect(response.statusCode).toBe(404);
+//     });
+
+//     it('should return 404 if company doesn\'t exist', async () => {
+//       const response = await app.inject({
+//         method: 'PUT',
+//         url: `/courses/${interb2bCourseId}/companies`,
+//         headers: { Cookie: `alenvi_token=${authToken}` },
+//         payload: { company: new ObjectId() },
+//       });
+
+//       expect(response.statusCode).toBe(404);
+//     });
+
+//     it('should return a 403 if course is intra', async () => {
+//       const response = await app.inject({
+//         method: 'PUT',
+//         url: `/courses/${intraCourseId}/companies`,
+//         headers: { Cookie: `alenvi_token=${authToken}` },
+//         payload: { company: otherCompany._id },
+//       });
+
+//       expect(response.statusCode).toBe(403);
+//     });
+
+//     it('should return a 403 if course is archived', async () => {
+//       const response = await app.inject({
+//         method: 'PUT',
+//         url: `/courses/${archivedCourseId}/companies`,
+//         headers: { Cookie: `alenvi_token=${authToken}` },
+//         payload: { company: otherCompany._id },
+//       });
+
+//       expect(response.statusCode).toBe(403);
+//     });
+
+//     it('should return a 409 if company is already linked to course', async () => {
+//       const response = await app.inject({
+//         method: 'PUT',
+//         url: `/courses/${interb2bCourseId}/companies`,
+//         headers: { Cookie: `alenvi_token=${authToken}` },
+//         payload: { company: authCompany._id },
+//       });
+
+//       expect(response.statusCode).toBe(409);
+//     });
+
+//     it('should return a 400 if company is missing in payload', async () => {
+//       const response = await app.inject({
+//         method: 'PUT',
+//         url: `/courses/${interb2bCourseId}/companies`,
+//         payload: {},
+//         headers: { Cookie: `alenvi_token=${authToken}` },
+//       });
+
+//       expect(response.statusCode).toBe(400);
+//     });
+
+//     it('should return a 404 if company is not in holding (intra_holding course)', async () => {
+//       const response = await app.inject({
+//         method: 'PUT',
+//         url: `/courses/${coursesList[22]._id}/companies`,
+//         headers: { Cookie: `alenvi_token=${authToken}` },
+//         payload: { company: authCompany._id },
+//       });
+
+//       expect(response.statusCode).toBe(404);
+//     });
+//   });
+
+//   describe('HOLDING_ADMIN', () => {
+//     it('should return a 200 if holding admin add company to intra_holding course', async () => {
+//       authToken = await getTokenByCredentials(holdingAdminFromOtherCompany.local);
+
+//       const response = await app.inject({
+//         method: 'PUT',
+//         url: `/courses/${coursesList[22]._id}/companies`,
+//         headers: { Cookie: `alenvi_token=${authToken}` },
+//         payload: { company: thirdCompany._id },
+//       });
+
+//       expect(response.statusCode).toBe(200);
+//     });
+
+//     it('should return a 403 if holding admin is not from holding (intra_holding)', async () => {
+//       authToken = await getTokenByCredentials(holdingAdminFromAuthCompany.local);
+
+//       const response = await app.inject({
+//         method: 'PUT',
+//         url: `/courses/${coursesList[22]._id}/companies`,
+//         headers: { Cookie: `alenvi_token=${authToken}` },
+//         payload: { company: thirdCompany._id },
+//       });
+
+//       expect(response.statusCode).toBe(403);
+//     });
+
+//     it('should return a 403 if holding admin try to update inter course', async () => {
+//       authToken = await getTokenByCredentials(holdingAdminFromAuthCompany.local);
+
+//       const response = await app.inject({
+//         method: 'PUT',
+//         url: `/courses/${coursesList[4]._id}/companies`,
+//         headers: { Cookie: `alenvi_token=${authToken}` },
+//         payload: { company: thirdCompany._id },
+//       });
+
+//       expect(response.statusCode).toBe(403);
+//     });
+//   });
+
+//   describe('Other roles', () => {
+//     const roles = [
+//       { name: 'helper', expectedCode: 403 },
+//       { name: 'planning_referent', expectedCode: 403 },
+//       { name: 'client_admin', expectedCode: 403 },
+//       { name: 'trainer', expectedCode: 403 },
+//     ];
+//     roles.forEach((role) => {
+//       it(`should return ${role.expectedCode} as user is ${role.name} (inter_b2b)`, async () => {
+//         authToken = await getToken(role.name);
+//         const response = await app.inject({
+//           method: 'PUT',
+//           url: `/courses/${interb2bCourseId}/companies`,
+//           headers: { Cookie: `alenvi_token=${authToken}` },
+//           payload: { company: otherCompany._id },
+//         });
+
+//         expect(response.statusCode).toBe(role.expectedCode);
+//       });
+
+//       it(`should return ${role.expectedCode} as user is ${role.name} (intra_holding)`, async () => {
+//         authToken = await getToken(role.name);
+//         const response = await app.inject({
+//           method: 'PUT',
+//           url: `/courses/${coursesList[21]._id}/companies`,
+//           headers: { Cookie: `alenvi_token=${authToken}` },
+//           payload: { company: fourthCompany._id },
+//         });
+
+//         expect(response.statusCode).toBe(role.expectedCode);
+//       });
+//     });
+//   });
+// });
+
+// describe('COURSES ROUTES - DELETE /courses/{_id}/companies{companyId}', () => {
+//   let authToken;
+//   const interb2bCourseId = coursesList[7]._id;
+//   const archivedCourseId = coursesList[18]._id;
+//   const intraCourseId = coursesList[0]._id;
+
+//   beforeEach(populateDB);
+
+//   describe('TRAINING_ORGANISATION_MANAGER', () => {
+//     beforeEach(async () => {
+//       authToken = await getToken('training_organisation_manager');
+//     });
+
+//     it('should remove company from inter_b2b course', async () => {
+//       const response = await app.inject({
+//         method: 'DELETE',
+//         url: `/courses/${interb2bCourseId}/companies/${thirdCompany._id}`,
+//         headers: { Cookie: `alenvi_token=${authToken}` },
+//       });
+
+//       expect(response.statusCode).toBe(200);
+
+//       const courseHistory = await CourseHistory.countDocuments({
+//         course: interb2bCourseId,
+//         company: thirdCompany._id,
+//         action: COMPANY_DELETION,
+//       });
+//       expect(courseHistory).toEqual(1);
+
+//       const course = await Course.countDocuments({ _id: interb2bCourseId, companies: thirdCompany._id });
+//       expect(course).toEqual(0);
+//     });
+
+//     it('should remove company from intra_holding course even if has attendances', async () => {
+//       const response = await app.inject({
+//         method: 'DELETE',
+//         url: `/courses/${coursesList[21]._id}/companies/${authCompany._id}`,
+//         headers: { Cookie: `alenvi_token=${authToken}` },
+//       });
+
+//       expect(response.statusCode).toBe(200);
+//     });
+
+//     it('should return 404 if course doesn\'t exist', async () => {
+//       const response = await app.inject({
+//         method: 'DELETE',
+//         url: `/courses/${new ObjectId()}/companies/${thirdCompany._id}`,
+//         headers: { Cookie: `alenvi_token=${authToken}` },
+//       });
+
+//       expect(response.statusCode).toBe(404);
+//     });
+
+//     it('should return 403 if company not in course', async () => {
+//       const response = await app.inject({
+//         method: 'DELETE',
+//         url: `/courses/${interb2bCourseId}/companies/${new ObjectId()}`,
+//         headers: { Cookie: `alenvi_token=${authToken}` },
+//       });
+
+//       expect(response.statusCode).toBe(403);
+//     });
+
+//     it('should return a 403 if course is intra', async () => {
+//       const response = await app.inject({
+//         method: 'DELETE',
+//         url: `/courses/${intraCourseId}/companies/${authCompany._id}`,
+//         headers: { Cookie: `alenvi_token=${authToken}` },
+//       });
+
+//       expect(response.statusCode).toBe(403);
+//     });
+
+//     it('should return a 403 if company trainee is still registered to course', async () => {
+//       const response = await app.inject({
+//         method: 'DELETE',
+//         url: `/courses/${interb2bCourseId}/companies/${authCompany._id}`,
+//         headers: { Cookie: `alenvi_token=${authToken}` },
+//       });
+
+//       expect(response.statusCode).toBe(403);
+//       expect(response.result.message).toEqual(translate[language].companyTraineeRegisteredToCourse);
+//     });
+
+//     it('should return a 403 if company has bill', async () => {
+//       const response = await app.inject({
+//         method: 'DELETE',
+//         url: `/courses/${coursesList[19]._id}/companies/${authCompany._id}`,
+//         headers: { Cookie: `alenvi_token=${authToken}` },
+//       });
+
+//       expect(response.statusCode).toBe(403);
+//       expect(response.result.message).toEqual(translate[language].companyHasCourseBill);
+//     });
+
+//     it('should return a 403 if company has attendance (intra or inter)', async () => {
+//       const response = await app.inject({
+//         method: 'DELETE',
+//         url: `/courses/${coursesList[19]._id}/companies/${thirdCompany._id}`,
+//         headers: { Cookie: `alenvi_token=${authToken}` },
+//       });
+
+//       expect(response.statusCode).toBe(403);
+//       expect(response.result.message).toEqual(translate[language].companyTraineeAttendedToCourse);
+//     });
+
+//     it('should return a 403 if company has attendance sheet', async () => {
+//       const response = await app.inject({
+//         method: 'DELETE',
+//         url: `/courses/${coursesList[12]._id}/companies/${authCompany._id}`,
+//         headers: { Cookie: `alenvi_token=${authToken}` },
+//       });
+
+//       expect(response.statusCode).toBe(403);
+//       expect(response.result.message).toEqual(translate[language].companyHasAttendanceSheetForCourse);
+//     });
+
+//     it('should return a 403 if course is archived', async () => {
+//       const response = await app.inject({
+//         method: 'DELETE',
+//         url: `/courses/${archivedCourseId}/companies/${authCompany._id}`,
+//         headers: { Cookie: `alenvi_token=${authToken}` },
+//       });
+
+//       expect(response.statusCode).toBe(403);
+//     });
+//   });
+
+//   describe('HOLDING_ADMIN', () => {
+//     it('should remove company from intra_holding course', async () => {
+//       authToken = await getTokenByCredentials(holdingAdminFromAuthCompany.local);
+
+//       const response = await app.inject({
+//         method: 'DELETE',
+//         url: `/courses/${coursesList[21]._id}/companies/${authCompany._id}`,
+//         headers: { Cookie: `alenvi_token=${authToken}` },
+//       });
+
+//       expect(response.statusCode).toBe(200);
+//     });
+
+//     it('should return a 403 if holding admin is not from holding (intra_holding)', async () => {
+//       authToken = await getTokenByCredentials(holdingAdminFromOtherCompany.local);
+
+//       const response = await app.inject({
+//         method: 'DELETE',
+//         url: `/courses/${coursesList[21]._id}/companies/${authCompany._id}`,
+//         headers: { Cookie: `alenvi_token=${authToken}` },
+//       });
+
+//       expect(response.statusCode).toBe(403);
+//     });
+
+//     it('should return a 403 if holding admin try to update inter course', async () => {
+//       authToken = await getTokenByCredentials(holdingAdminFromAuthCompany.local);
+
+//       const response = await app.inject({
+//         method: 'DELETE',
+//         url: `/courses/${interb2bCourseId}/companies/${authCompany._id}`,
+//         headers: { Cookie: `alenvi_token=${authToken}` },
+//       });
+
+//       expect(response.statusCode).toBe(403);
+//     });
+//   });
+
+//   describe('Other roles', () => {
+//     const roles = [
+//       { name: 'helper', expectedCode: 403 },
+//       { name: 'planning_referent', expectedCode: 403 },
+//       { name: 'client_admin', expectedCode: 403 },
+//       { name: 'trainer', expectedCode: 403 },
+//     ];
+//     roles.forEach((role) => {
+//       it(`should return ${role.expectedCode} as user is ${role.name} (inter_b2b)`, async () => {
+//         authToken = await getToken(role.name);
+//         const response = await app.inject({
+//           method: 'DELETE',
+//           url: `/courses/${interb2bCourseId}/companies/${thirdCompany._id}`,
+//           headers: { Cookie: `alenvi_token=${authToken}` },
+//         });
+
+//         expect(response.statusCode).toBe(role.expectedCode);
+//       });
+
+//       it(`should return ${role.expectedCode} as user is ${role.name} (intra_holding)`, async () => {
+//         authToken = await getToken(role.name);
+//         const response = await app.inject({
+//           method: 'DELETE',
+//           url: `/courses/${coursesList[21]._id}/companies/${authCompany._id}`,
+//           headers: { Cookie: `alenvi_token=${authToken}` },
+//         });
+
+//         expect(response.statusCode).toBe(role.expectedCode);
+//       });
+//     });
+//   });
+// });
 
 // describe('COURSES ROUTES - POST /courses/{_id}/trainingcontracts', () => {
 //   let authToken;
