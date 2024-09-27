@@ -15,6 +15,7 @@ const {
   MULTIPLE_CHOICE_QUESTION,
   SINGLE_CHOICE_QUESTION,
   ORDER_THE_SEQUENCE,
+  FILL_THE_GAPS,
 } = require('../../helpers/constants');
 const UtilsHelper = require('../../helpers/utils');
 
@@ -25,7 +26,7 @@ exports.checkAnswersList = async (answersList, parentId, isActivityAnswers = fal
     if (!card) throw Boom.notFound();
 
     const QUIZZ_TEMPLATES = isActivityAnswers
-      ? [MULTIPLE_CHOICE_QUESTION, SINGLE_CHOICE_QUESTION, ORDER_THE_SEQUENCE]
+      ? [MULTIPLE_CHOICE_QUESTION, SINGLE_CHOICE_QUESTION, ORDER_THE_SEQUENCE, FILL_THE_GAPS]
       : [];
     const authorizedTemplates = [
       SURVEY,
