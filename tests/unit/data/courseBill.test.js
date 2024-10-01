@@ -70,7 +70,7 @@ describe('getPdfContent', () => {
                 { text: 'Prestation de services' },
                 { text: 'FACT-000045', bold: true },
                 { text: 'Date de facture : 18/08/1998' },
-                { text: 'Facture acquitée le 02/01/2023 ☑', color: 'green' },
+                { text: 'Facture acquittée le 02/01/2023 ☑', color: 'green' },
               ],
               alignment: 'right',
             },
