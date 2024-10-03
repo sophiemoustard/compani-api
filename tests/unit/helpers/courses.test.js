@@ -60,6 +60,8 @@ const {
   CUSTOM,
   OFFICIAL,
   END_COURSE,
+  SELF_POSITIONNING,
+  EXPECTATIONS,
 } = require('../../../src/helpers/constants');
 const CourseRepository = require('../../../src/repositories/CourseRepository');
 const CourseHistoriesHelper = require('../../../src/helpers/courseHistories');
@@ -6217,15 +6219,21 @@ describe('getQuestionnaires', () => {
     const credentials = { role: { vendor: { name: TRAINER } } };
     const courseId = new ObjectId();
     const questionnaires = [
-      { name: 'test', type: 'expectations', historiesCount: 1 },
-      { name: 'test2', type: 'expectations', historiesCount: 0 },
+      { name: 'test', type: EXPECTATIONS, historiesCount: 1 },
+      { name: 'test2', type: EXPECTATIONS, historiesCount: 0 },
+      {
+        name: 'auto-eval',
+        type: SELF_POSITIONNING,
+        historiesCount: 1,
+        histories: [{ timeline: END_COURSE, isValidated: true }],
+      },
     ];
 
     findQuestionnaire.returns(SinonMongoose.stubChainedQueries(questionnaires, ['select', 'populate', 'lean']));
 
     const result = await CourseHelper.getQuestionnaires(courseId, credentials);
 
-    expect(result).toMatchObject([questionnaires[0]]);
+    expect(result).toMatchObject([questionnaires[0], questionnaires[2]]);
     SinonMongoose.calledOnceWithExactly(
       findQuestionnaire,
       [
@@ -6243,7 +6251,7 @@ describe('getQuestionnaires', () => {
           query: 'populate',
           args: [{
             path: 'histories',
-            select: 'timeline',
+            select: 'timeline isValidated',
             match: { course: courseId, questionnaireAnswersList: { $ne: [] }, timeline: END_COURSE },
             options: { isVendorUser: true },
           }],
