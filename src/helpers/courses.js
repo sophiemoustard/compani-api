@@ -1179,7 +1179,7 @@ exports.getQuestionnaires = async (courseId, credentials) => {
     })
     .populate({
       path: 'histories',
-      select: 'timeline',
+      select: 'timeline isValidated',
       match: { course: courseId, questionnaireAnswersList: { $ne: [] }, timeline: END_COURSE },
       options: { isVendorUser },
     })
