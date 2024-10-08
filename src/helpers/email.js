@@ -23,7 +23,7 @@ exports.sendWelcome = async (type, email) => {
     };
     try {
       return NodemailerHelper.sendinBlueTransporter().sendMail(mailOptions);
-    } catch (error) {
+    } catch (_) {
       throw Boom.failedDependency(translate[language].emailNotSent);
     }
   }
