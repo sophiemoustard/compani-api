@@ -1823,7 +1823,7 @@ describe('getCourse', () => {
               { path: 'slots', select: 'step startDate endDate address meetingLink' },
               { path: 'slotsToPlan', select: '_id step' },
               {
-                path: 'trainer',
+                path: 'trainers',
                 select: 'identity.firstname identity.lastname contact.phone local.email picture.link',
               },
               { path: 'accessRules', select: 'name' },
@@ -1922,7 +1922,7 @@ describe('getCourse', () => {
                 { path: 'slots', select: 'step startDate endDate address meetingLink' },
                 { path: 'slotsToPlan', select: '_id step' },
                 {
-                  path: 'trainer',
+                  path: 'trainers',
                   select: 'identity.firstname identity.lastname contact.phone local.email picture.link',
                 },
                 { path: 'accessRules', select: 'name' },
@@ -2020,7 +2020,7 @@ describe('getCourse', () => {
                 { path: 'slots', select: 'step startDate endDate address meetingLink' },
                 { path: 'slotsToPlan', select: '_id step' },
                 {
-                  path: 'trainer',
+                  path: 'trainers',
                   select: 'identity.firstname identity.lastname contact.phone local.email picture.link',
                 },
                 { path: 'accessRules', select: 'name' },
@@ -2185,7 +2185,7 @@ describe('getCourse', () => {
               { path: 'slots', select: 'step startDate endDate address meetingLink' },
               { path: 'slotsToPlan', select: '_id step' },
               {
-                path: 'trainer',
+                path: 'trainers',
                 select: 'identity.firstname identity.lastname contact.phone local.email picture.link',
               },
               { path: 'accessRules', select: 'name' },
