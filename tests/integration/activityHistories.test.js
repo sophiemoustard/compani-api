@@ -322,6 +322,20 @@ describe('ACTIVITY HISTORIES ROUTES - POST /activityhistories', () => {
       expect(response.statusCode).toBe(422);
     });
 
+    it('should return 422 if is fill the gaps and items in answerList are not ObjectId', async () => {
+      const response = await app.inject({
+        method: 'POST',
+        url: '/activityhistories',
+        payload: {
+          ...payload,
+          quizzAnswersList: [{ card: cardsList[9]._id, answerList: ['blabla'] }],
+        },
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(422);
+    });
+
     const missingParams = ['activity', 'user', 'score'];
     missingParams.forEach((param) => {
       it(`should return 400 as ${param} is missing`, async () => {

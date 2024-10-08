@@ -19,6 +19,7 @@ const {
   LESSON,
   MULTIPLE_CHOICE_QUESTION,
   ORDER_THE_SEQUENCE,
+  FILL_THE_GAPS,
 } = require('../../../src/helpers/constants');
 const { deleteNonAuthenticationSeeds } = require('../helpers/db');
 const { vendorAdminRoleId } = require('../../seed/authRolesSeed');
@@ -55,9 +56,11 @@ const userCompaniesList = [
 ];
 
 const cardsList = [
+  // 0
   { _id: new ObjectId(), template: SURVEY, labels: { 1: 'first', 5: 'last' }, question: 'question ?' },
+  // 1
   { _id: new ObjectId(), template: SURVEY, question: 'test2?' },
-  {
+  { // 2
     _id: new ObjectId(),
     template: SINGLE_CHOICE_QUESTION,
     question: 'test3?',
@@ -68,22 +71,23 @@ const cardsList = [
     ],
     explanation: 'test',
   },
+  // 3
   { _id: new ObjectId(), template: 'open_question', question: 'test4?' },
-  {
+  { // 4
     _id: new ObjectId(),
     template: QUESTION_ANSWER,
     question: 'test5?',
     isQuestionAnswerMultipleChoiced: true,
     qcAnswers: [{ _id: new ObjectId(), text: 'test2' }, { _id: new ObjectId(), text: 'test3' }],
   },
-  {
+  { // 5
     _id: new ObjectId(),
     template: QUESTION_ANSWER,
     question: 'test6?',
     isQuestionAnswerMultipleChoiced: false,
     qcAnswers: [{ _id: new ObjectId(), text: 'test2' }, { _id: new ObjectId(), text: 'test3' }],
   },
-  {
+  { // 6
     _id: new ObjectId(),
     template: MULTIPLE_CHOICE_QUESTION,
     question: 'test7?',
@@ -93,8 +97,9 @@ const cardsList = [
     ],
     explanation: 'test',
   },
+  // 7
   { _id: new ObjectId(), template: 'transition', title: 'test8' },
-  {
+  { // 8
     _id: new ObjectId(),
     template: ORDER_THE_SEQUENCE,
     question: 'question ?',
@@ -103,6 +108,17 @@ const cardsList = [
       { _id: new ObjectId(), text: 'rien' },
       { _id: new ObjectId(), text: 'des trucs' },
       { _id: new ObjectId(), text: 'encore des trucs' },
+    ],
+  },
+  { // 9
+    _id: new ObjectId(),
+    template: FILL_THE_GAPS,
+    gappedText: 'texte à <trou>',
+    explanation: 'explanation',
+    gapAnswers: [
+      { _id: new ObjectId(), text: 'vide', correct: false },
+      { _id: new ObjectId(), text: 'trou', correct: true },
+      { _id: new ObjectId(), text: 'texte', correct: false },
     ],
   },
 ];
@@ -119,7 +135,9 @@ const activitiesList = [
       cardsList[4]._id,
       cardsList[5]._id,
       cardsList[6]._id,
-      cardsList[8]._id],
+      cardsList[8]._id,
+      cardsList[9]._id,
+    ],
     status: PUBLISHED,
   },
 ];
