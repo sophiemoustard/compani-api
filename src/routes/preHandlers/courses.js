@@ -110,10 +110,11 @@ exports.checkContact = (req, course, isRofOrAdmin) => {
   if (!isRofOrAdmin && !isCompanyRepContactAndUpdated) throw Boom.forbidden();
 
   const payloadInterlocutors = pick(req.payload, ['operationsRepresentative', 'trainer', 'companyRepresentative']);
-  const courseInterlocutors = pick(course, ['operationsRepresentative', 'trainer', 'companyRepresentative']);
+  const courseInterlocutors = pick(course, ['operationsRepresentative', 'trainers', 'companyRepresentative']);
   const interlocutors = { ...courseInterlocutors, ...payloadInterlocutors };
+  const interlocutorIds = Object.values(interlocutors).flat();
 
-  if (!UtilsHelper.doesArrayIncludeId(Object.values(interlocutors), req.payload.contact)) throw Boom.forbidden();
+  if (!UtilsHelper.doesArrayIncludeId(interlocutorIds, req.payload.contact)) throw Boom.forbidden('');
 };
 
 exports.authorizeCourseCreation = async (req) => {
@@ -236,10 +237,10 @@ exports.authorizeCourseEdit = async (req) => {
     const unarchiveCourse = has(payload, 'archivedAt') && payload.archivedAt === '';
     if (course.archivedAt && !unarchiveCourse) throw Boom.forbidden();
 
-    const courseTrainerId = get(course, 'trainer') || null;
+    const courseTrainerIds = get(course, 'trainers').map(t => t._id) || null;
     const companies = [INTRA, INTRA_HOLDING].includes(course.type) ? course.companies : [];
     const holding = course.type === INTRA_HOLDING ? course.holding : null;
-    this.checkAuthorization(credentials, courseTrainerId, companies, holding);
+    this.checkAuthorization(credentials, courseTrainerIds, companies, holding);
 
     const userVendorRole = get(credentials, 'role.vendor.name');
     const isRofOrAdmin = [TRAINING_ORGANISATION_MANAGER, VENDOR_ADMIN].includes(userVendorRole);
