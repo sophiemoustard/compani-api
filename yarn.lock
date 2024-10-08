@@ -118,10 +118,10 @@
   resolved "https://registry.yarnpkg.com/@google-cloud/promisify/-/promisify-4.0.0.tgz#a906e533ebdd0f754dca2509933334ce58b8c8b1"
   integrity sha512-Orxzlfb9c67A15cq2JQEyVc7wEsmFBmHjZWZYQMUyJ1qivXyMwdyNOs9odi79hze+2zqdTtu1E19IM/FtqZ10g==
 
-"@google-cloud/storage@~7.12.1":
-  version "7.12.1"
-  resolved "https://registry.yarnpkg.com/@google-cloud/storage/-/storage-7.12.1.tgz#7963bdc3b5266e4698047f6158a043d53231ec9c"
-  integrity sha512-Z3ZzOnF3YKLuvpkvF+TjQ6lztxcAyTILp+FjKonmVpEwPa9vFvxpZjubLR4sB6bf19i/8HL2AXRjA0YFgHFRmQ==
+"@google-cloud/storage@~7.13.0":
+  version "7.13.0"
+  resolved "https://registry.yarnpkg.com/@google-cloud/storage/-/storage-7.13.0.tgz#b59a495861fe7c48f78c1b482b9404f07aa60e66"
+  integrity sha512-Y0rYdwM5ZPW3jw/T26sMxxfPrVQTKm9vGrZG8PRyGuUmUJ8a2xNuQ9W/NNA1prxqv2i54DSydV8SJqxF2oCVgA==
   dependencies:
     "@google-cloud/paginator" "^5.0.0"
     "@google-cloud/projectify" "^4.0.0"
@@ -139,10 +139,10 @@
     teeny-request "^9.0.0"
     uuid "^8.0.0"
 
-"@googleapis/drive@~8.11.0":
-  version "8.11.0"
-  resolved "https://registry.yarnpkg.com/@googleapis/drive/-/drive-8.11.0.tgz#6c12f7feea93e0e9cae03de936d3f2da0fb3e8e6"
-  integrity sha512-HW6/2oThc4X086mGkZxpdP4P+aHpYbjHa6wr9l1F/R+snpk6G8/EuRXEcTkgQUl2t/NdNz3lj8re0AQBG5faSA==
+"@googleapis/drive@~8.14.0":
+  version "8.14.0"
+  resolved "https://registry.yarnpkg.com/@googleapis/drive/-/drive-8.14.0.tgz#e9633c76cc3585dffd0b0d38f8f5551a647f8ded"
+  integrity sha512-AOokfpP6pCdcJXWA8khaCEgbGpWYavWTdAAhL4idbbf2VCQcJ2f7vPalAYNu6a4Sfj0Ly4Ehnd1xw9J9TixB1A==
   dependencies:
     googleapis-common "^7.0.0"
 
