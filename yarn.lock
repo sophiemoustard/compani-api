@@ -904,14 +904,6 @@ array.prototype.findlastindex@^1.2.3:
     es-shim-unscopables "^1.0.0"
     get-intrinsic "^1.2.1"
 
-array.prototype.flat@1.2.3:
-  version "1.2.3"
-  resolved "https://registry.yarnpkg.com/array.prototype.flat/-/array.prototype.flat-1.2.3.tgz#0de82b426b0318dbfdb940089e38b043d37f6c7b"
-  integrity sha512-gBlRZV0VSmfPIeWfuuy56XZMvbVfbEUnOXUvt3F/eUUUSyzlgLxhEX4YAEpxNAogRGehPSnfXyPtYyKAhkzQhQ==
-  dependencies:
-    define-properties "^1.1.3"
-    es-abstract "^1.17.0-next.1"
-
 array.prototype.flat@^1.3.2:
   version "1.3.2"
   resolved "https://registry.yarnpkg.com/array.prototype.flat/-/array.prototype.flat-1.3.2.tgz#1476217df8cff17d72ee8f3ba06738db5b387d18"
@@ -1562,7 +1554,7 @@ end-of-stream@^1.1.0, end-of-stream@^1.4.1:
   dependencies:
     once "^1.4.0"
 
-es-abstract@^1.17.0-next.1, es-abstract@^1.19.0, es-abstract@^1.20.4:
+es-abstract@^1.19.0, es-abstract@^1.20.4:
   version "1.22.1"
   resolved "https://registry.yarnpkg.com/es-abstract/-/es-abstract-1.22.1.tgz#8b4e5fc5cefd7f1660f0f8e1a52900dfbc9d9ccc"
   integrity sha512-ioRRcXMO6OFyRpyzV3kE1IIBd4WG5/kltnzdxSCqoP8CMGs/Li+M1uF5o7lOkZVFjDs+NLesthnF66Pg/0q0Lw==
@@ -3223,12 +3215,11 @@ mongoose-autopopulate@~1.1.0:
   resolved "https://registry.yarnpkg.com/mongoose-autopopulate/-/mongoose-autopopulate-1.1.0.tgz#6c89baa2a5b3f9c04a68d65a80f85c0fc56c2227"
   integrity sha512-nTlTMlu1fLQ1bmJT7ILKbZmPGt2fHErLO4UJwzMDsHSigjtUYz0l3nvFhg511QkOkZcKBRzOnPn3DmmLIUENzg==
 
-mongoose-lean-virtuals@~0.9.0:
-  version "0.9.1"
-  resolved "https://registry.yarnpkg.com/mongoose-lean-virtuals/-/mongoose-lean-virtuals-0.9.1.tgz#7e5e8b7471237606d1a0d785f1b7240f86547d85"
-  integrity sha512-jx4rhXuaQPam/lwef3z/FfYHlKdbFkDr9Qb7JEMeoa7y4pOuyJ83RkcNL25HRaoi4Bt71zKmV1cuJdv243t9aA==
+mongoose-lean-virtuals@~1.0.0:
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/mongoose-lean-virtuals/-/mongoose-lean-virtuals-1.0.0.tgz#59519d18f929e809fde0ae1d040483e3ac7666f8"
+  integrity sha512-ZwfhiDv8LGHvjubLGT9RzsbHFgBnpmrRHTQo0gXaLbRMxZy1HFZ/mBbmKNWTSu3q3GMGB4kIXXCZTDAb2nwf7g==
   dependencies:
-    array.prototype.flat "1.2.3"
     mpath "^0.8.4"
 
 mongoose@~8.1.1:
