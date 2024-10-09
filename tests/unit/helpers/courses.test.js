@@ -6586,3 +6586,25 @@ describe('generateTrainingContract', () => {
     );
   });
 });
+
+describe('addTrainer', () => {
+  let courseUpdateOne;
+
+  beforeEach(() => {
+    courseUpdateOne = sinon.stub(Course, 'updateOne');
+  });
+
+  afterEach(() => {
+    courseUpdateOne.restore();
+  });
+
+  it('should add trainer to course', async () => {
+    const trainerId = new ObjectId();
+    const course = { _id: new ObjectId(), misc: 'Test', trainers: [new ObjectId()] };
+    const payload = { trainer: trainerId };
+
+    await CourseHelper.addTrainer(course._id, payload);
+
+    sinon.assert.calledOnceWithExactly(courseUpdateOne, { _id: course._id }, { $addToSet: { trainers: trainerId } });
+  });
+});

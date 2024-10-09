@@ -288,6 +288,17 @@ const generateTrainingContract = async (req, h) => {
   }
 };
 
+const addTrainer = async (req) => {
+  try {
+    await CoursesHelper.addTrainer(req.params._id, req.payload);
+
+    return { message: translate[language].courseTrainerAdded };
+  } catch (e) {
+    req.log('error', e);
+    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
+  }
+};
+
 module.exports = {
   list,
   create,
@@ -310,4 +321,5 @@ module.exports = {
   addCompany,
   removeCompany,
   generateTrainingContract,
+  addTrainer,
 };

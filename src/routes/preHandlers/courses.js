@@ -742,3 +742,20 @@ exports.authorizeGenerateTrainingContract = async (req) => {
 
   return null;
 };
+
+exports.authorizeTrainerAddition = async (req) => {
+  const { payload, params } = req;
+
+  const course = await Course.findOne({ _id: params._id }, { trainers: 1, trainees: 1 }).lean();
+  if (!course) throw Boom.notFound();
+
+  await checkVendorUserExistsAndHasRightRole(payload.trainer, true, true);
+
+  const trainerIsTrainee = UtilsHelper.doesArrayIncludeId(course.trainees, payload.trainer);
+  if (trainerIsTrainee) throw Boom.forbidden(translate[language].courseTrainerIsTrainee);
+
+  const trainerIsAlreadyCourseTrainer = UtilsHelper.doesArrayIncludeId(course.trainers, payload.trainer);
+  if (trainerIsAlreadyCourseTrainer) throw Boom.conflict(translate[language].courseTrainerAlreadyAdded);
+
+  return null;
+};
