@@ -747,7 +747,7 @@ exports.authorizeTrainerAddition = async (req) => {
   const trainerIsTrainee = UtilsHelper.doesArrayIncludeId(course.trainees, payload.trainer);
   if (trainerIsTrainee) throw Boom.forbidden(translate[language].courseTrainerIsTrainee);
 
-  const trainerIsAlreadyCourseTrainer = UtilsHelper.doesArrayIncludeId(course.trainers, payload.trainer);
+  const trainerIsAlreadyCourseTrainer = UtilsHelper.doesArrayIncludeId(get(course, 'trainers', []), payload.trainer);
   if (trainerIsAlreadyCourseTrainer) throw Boom.conflict(translate[language].courseTrainerAlreadyAdded);
 
   return null;
