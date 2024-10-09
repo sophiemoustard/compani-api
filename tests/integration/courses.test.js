@@ -1672,7 +1672,7 @@ describe('COURSES ROUTES - GET /courses/{_id}/activities', () => {
 //   });
 // });
 
-describe('COURSES ROUTES - PUT /courses/{_id}', () => {
+describe('COURSES ROUTES - PUT /courses/{_id} #tag', () => {
   let authToken;
   const courseIdFromAuthCompany = coursesList[0]._id;
   const archivedCourse = coursesList[14]._id;
@@ -1743,23 +1743,6 @@ describe('COURSES ROUTES - PUT /courses/{_id}', () => {
 
       const course = await Course.countDocuments({ _id: coursesList[20]._id, ...payload }).lean();
       expect(course).toEqual(1);
-    });
-
-    it('should remove the course trainer who is contact', async () => {
-      const payload = { trainer: '', contact: '' };
-
-      const response = await app.inject({
-        method: 'PUT',
-        url: `/courses/${coursesList[17]._id}`,
-        headers: { Cookie: `alenvi_token=${authToken}` },
-        payload,
-      });
-
-      expect(response.statusCode).toBe(200);
-
-      const courseUpdated = await Course
-        .countDocuments({ _id: coursesList[17]._id, contact: { $exists: false }, trainer: { $exists: false } });
-      expect(courseUpdated).toEqual(1);
     });
 
     it('should return 400 if try to remove estimated start date', async () => {
@@ -1873,7 +1856,6 @@ describe('COURSES ROUTES - PUT /courses/{_id}', () => {
 
     const payloads = [
       { misc: 'new name' },
-      { trainer: new ObjectId() },
       { contact: vendorAdmin._id },
       { operationsRepresentative: new ObjectId() },
       { maxTrainees: 15 },
@@ -1903,30 +1885,6 @@ describe('COURSES ROUTES - PUT /courses/{_id}', () => {
       });
 
       expect(response.statusCode).toBe(404);
-    });
-
-    it('should return 404 if invalid trainer', async () => {
-      const payload = { trainer: coachFromOtherCompany._id };
-      const response = await app.inject({
-        method: 'PUT',
-        url: `/courses/${courseIdFromAuthCompany}`,
-        headers: { Cookie: `alenvi_token=${authToken}` },
-        payload,
-      });
-
-      expect(response.statusCode).toBe(404);
-    });
-
-    it('should return 403 if trainer is trainee', async () => {
-      const payload = { trainer: vendorAdmin._id };
-      const response = await app.inject({
-        method: 'PUT',
-        url: `/courses/${courseIdFromAuthCompany}`,
-        headers: { Cookie: `alenvi_token=${authToken}` },
-        payload,
-      });
-
-      expect(response.statusCode).toBe(403);
     });
 
     it('should return 403 if invalid companyRepresentative', async () => {
@@ -2242,17 +2200,6 @@ describe('COURSES ROUTES - PUT /courses/{_id}', () => {
       expect(response.statusCode).toBe(403);
     });
 
-    it('should return 403 as user is trainer but not course trainer', async () => {
-      const response = await app.inject({
-        method: 'PUT',
-        url: `/courses/${coursesList[1]._id}`,
-        headers: { Cookie: `alenvi_token=${authToken}` },
-        payload: { misc: 'new name' },
-      });
-
-      expect(response.statusCode).toBe(403);
-    });
-
     it('should return 403 if try to update estimated start date', async () => {
       const response = await app.inject({
         method: 'PUT',
@@ -2402,17 +2349,6 @@ describe('COURSES ROUTES - PUT /courses/{_id}', () => {
       expect(response.statusCode).toBe(403);
     });
 
-    it('should return 403 if try to update trainer', async () => {
-      const response = await app.inject({
-        method: 'PUT',
-        url: `/courses/${courseIdFromAuthCompany}`,
-        headers: { Cookie: `alenvi_token=${authToken}` },
-        payload: { trainer: new ObjectId() },
-      });
-
-      expect(response.statusCode).toBe(403);
-    });
-
     it('should return 403 if try to update estimated start date', async () => {
       const response = await app.inject({
         method: 'PUT',
@@ -2451,7 +2387,7 @@ describe('COURSES ROUTES - PUT /courses/{_id}', () => {
         method: 'PUT',
         url: `/courses/${coursesList[1]._id}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
-        payload: { misc: 'new name', trainer: new ObjectId() },
+        payload: { misc: 'new name' },
       });
 
       expect(response.statusCode).toBe(403);
