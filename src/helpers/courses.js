@@ -1246,3 +1246,6 @@ exports.composeCourseName = (course) => {
 
   return companyName + course.subProgram.program.name + misc;
 };
+
+exports.addTrainer = async (courseId, payload) => Course
+  .updateOne({ _id: courseId }, { $addToSet: { trainers: payload.trainer } });
