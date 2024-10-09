@@ -201,15 +201,8 @@ const checkCertification = async (payload, course, isRofOrAdmin) => {
 };
 
 const checkInterlocutors = async (payload, course, isRofOrAdmin, req) => {
-  const trainerIsTrainee = UtilsHelper.doesArrayIncludeId(course.trainees, get(payload, 'trainer'));
-  if (trainerIsTrainee) throw Boom.forbidden();
-
   if (get(payload, 'operationsRepresentative')) {
     await checkVendorUserExistsAndHasRightRole(payload.operationsRepresentative, isRofOrAdmin);
-  }
-
-  if (get(payload, 'trainer')) {
-    await checkVendorUserExistsAndHasRightRole(payload.trainer, isRofOrAdmin, true);
   }
 
   if (get(payload, 'companyRepresentative')) {
