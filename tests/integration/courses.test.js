@@ -4944,3 +4944,106 @@ describe('COURSES ROUTES - DELETE /:_id/accessrules/:accessRuleId', () => {
 //     });
 //   });
 // });
+
+describe('COURSES ROUTES - PUT /courses/{_id}/trainers', () => {
+  let authToken;
+
+  beforeEach(populateDB);
+
+  describe('TRAINING_ORGANISATION_MANAGER', () => {
+    beforeEach(async () => {
+      authToken = await getToken('training_organisation_manager');
+    });
+
+    it('should add trainer to course', async () => {
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/courses/${coursesList[7]._id}/trainers`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload: { trainer: trainerAndCoach._id },
+      });
+
+      expect(response.statusCode).toBe(200);
+
+      const course = await Course.countDocuments({ _id: coursesList[7]._id, trainers: trainerAndCoach._id });
+      expect(course).toEqual(1);
+    });
+
+    it('should return 404 if course doesn\'t exist', async () => {
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/courses/${new ObjectId()}/trainers`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload: { trainer: trainerAndCoach._id },
+      });
+
+      expect(response.statusCode).toBe(404);
+    });
+
+    it('should return 404 if trainer doesn\'t exist', async () => {
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/courses/${coursesList[7]._id}/trainers`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload: { trainer: new ObjectId() },
+      });
+
+      expect(response.statusCode).toBe(404);
+    });
+
+    it('should return 403 if trainer is trainee', async () => {
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/courses/${coursesList[0]._id}/trainers`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload: { trainer: vendorAdmin._id },
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
+
+    it('should return 400 if trainer is not in payload', async () => {
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/courses/${coursesList[7]._id}/trainers`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload: {},
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
+
+    it('should return 409 if trainer is already trainer', async () => {
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/courses/${coursesList[7]._id}/trainers`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload: { trainer: trainer._id },
+      });
+
+      expect(response.statusCode).toBe(409);
+    });
+  });
+
+  describe('Other roles', () => {
+    const roles = [
+      { name: 'helper', expectedCode: 403 },
+      { name: 'planning_referent', expectedCode: 403 },
+      { name: 'client_admin', expectedCode: 403 },
+      { name: 'trainer', expectedCode: 403 },
+    ];
+    roles.forEach((role) => {
+      it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+        authToken = await getToken(role.name);
+        const response = await app.inject({
+          method: 'PUT',
+          url: `/courses/${coursesList[7]._id}/trainers`,
+          payload: { trainer: trainerAndCoach._id },
+          headers: { Cookie: `alenvi_token=${authToken}` },
+        });
+
+        expect(response.statusCode).toBe(role.expectedCode);
+      });
+    });
+  });
+});
