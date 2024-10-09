@@ -648,11 +648,6 @@ exports.updateCourse = async (courseId, payload, credentials) => {
     unsetFields = { ...unsetFields, salesRepresentative: '' };
   }
 
-  if (payload.trainer === '') {
-    setFields = omit(setFields, 'trainer');
-    unsetFields = { ...unsetFields, trainer: '' };
-  }
-
   if (payload.contact === '') {
     setFields = omit(setFields, 'contact');
     unsetFields = { ...unsetFields, contact: '' };
