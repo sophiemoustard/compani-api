@@ -25,6 +25,7 @@ const {
   removeCompany,
   generateTrainingContract,
   addTrainer,
+  removeTrainer,
 } = require('../controllers/courseController');
 const { MESSAGE_TYPE } = require('../models/CourseSmsHistory');
 const { COURSE_TYPES, COURSE_FORMATS } = require('../models/Course');
@@ -51,6 +52,7 @@ const {
   authorizeGenerateTrainingContract,
   authorizeGetCompletionCertificates,
   authorizeTrainerAddition,
+  authorizeRemoveTrainer,
 } = require('./preHandlers/courses');
 const {
   INTRA,
@@ -429,6 +431,19 @@ exports.plugin = {
         pre: [{ method: authorizeTrainerAddition }],
       },
       handler: addTrainer,
+    });
+
+    server.route({
+      method: 'DELETE',
+      path: '/{_id}/trainers/{trainerId}',
+      options: {
+        auth: { scope: 'courses:create' },
+        validate: {
+          params: Joi.object({ _id: Joi.objectId().required(), trainerId: Joi.objectId().required() }),
+        },
+        pre: [{ method: authorizeRemoveTrainer }],
+      },
+      handler: removeTrainer,
     });
   },
 };
