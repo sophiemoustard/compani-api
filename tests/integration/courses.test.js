@@ -1672,7 +1672,7 @@ describe('COURSES ROUTES - GET /courses/{_id}/activities', () => {
 //   });
 // });
 
-describe('COURSES ROUTES - PUT /courses/{_id} #tag', () => {
+describe('COURSES ROUTES - PUT /courses/{_id}', () => {
   let authToken;
   const courseIdFromAuthCompany = coursesList[0]._id;
   const archivedCourse = coursesList[14]._id;
