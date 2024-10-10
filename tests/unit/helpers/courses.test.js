@@ -1835,7 +1835,7 @@ describe('getCourse', () => {
               { path: 'slots', select: 'step startDate endDate address meetingLink' },
               { path: 'slotsToPlan', select: '_id step' },
               {
-                path: 'trainer',
+                path: 'trainers',
                 select: 'identity.firstname identity.lastname contact.phone local.email picture.link',
               },
               { path: 'accessRules', select: 'name' },
@@ -1934,7 +1934,7 @@ describe('getCourse', () => {
                 { path: 'slots', select: 'step startDate endDate address meetingLink' },
                 { path: 'slotsToPlan', select: '_id step' },
                 {
-                  path: 'trainer',
+                  path: 'trainers',
                   select: 'identity.firstname identity.lastname contact.phone local.email picture.link',
                 },
                 { path: 'accessRules', select: 'name' },
@@ -2032,7 +2032,7 @@ describe('getCourse', () => {
                 { path: 'slots', select: 'step startDate endDate address meetingLink' },
                 { path: 'slotsToPlan', select: '_id step' },
                 {
-                  path: 'trainer',
+                  path: 'trainers',
                   select: 'identity.firstname identity.lastname contact.phone local.email picture.link',
                 },
                 { path: 'accessRules', select: 'name' },
@@ -2196,7 +2196,7 @@ describe('getCourse', () => {
               { path: 'slots', select: 'step startDate endDate address meetingLink' },
               { path: 'slotsToPlan', select: '_id step' },
               {
-                path: 'trainer',
+                path: 'trainers',
                 select: 'identity.firstname identity.lastname contact.phone local.email picture.link',
               },
               { path: 'accessRules', select: 'name' },
@@ -6555,5 +6555,27 @@ describe('generateTrainingContract', () => {
       { key: COURSE, value: course._id },
       { key: TRAINEE, value: course.trainees }
     );
+  });
+});
+
+describe('addTrainer', () => {
+  let courseUpdateOne;
+
+  beforeEach(() => {
+    courseUpdateOne = sinon.stub(Course, 'updateOne');
+  });
+
+  afterEach(() => {
+    courseUpdateOne.restore();
+  });
+
+  it('should add trainer to course', async () => {
+    const trainerId = new ObjectId();
+    const course = { _id: new ObjectId(), misc: 'Test', trainers: [new ObjectId()] };
+    const payload = { trainer: trainerId };
+
+    await CourseHelper.addTrainer(course._id, payload);
+
+    sinon.assert.calledOnceWithExactly(courseUpdateOne, { _id: course._id }, { $addToSet: { trainers: trainerId } });
   });
 });

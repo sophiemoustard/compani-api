@@ -110,10 +110,11 @@ exports.checkContact = (req, course, isRofOrAdmin) => {
   if (!isRofOrAdmin && !isCompanyRepContactAndUpdated) throw Boom.forbidden();
 
   const payloadInterlocutors = pick(req.payload, ['operationsRepresentative', 'trainer', 'companyRepresentative']);
-  const courseInterlocutors = pick(course, ['operationsRepresentative', 'trainer', 'companyRepresentative']);
+  const courseInterlocutors = pick(course, ['operationsRepresentative', 'trainers', 'companyRepresentative']);
   const interlocutors = { ...courseInterlocutors, ...payloadInterlocutors };
+  const interlocutorIds = Object.values(interlocutors).flat();
 
-  if (!UtilsHelper.doesArrayIncludeId(Object.values(interlocutors), req.payload.contact)) throw Boom.forbidden();
+  if (!UtilsHelper.doesArrayIncludeId(interlocutorIds, req.payload.contact)) throw Boom.forbidden();
 };
 
 exports.authorizeCourseCreation = async (req) => {
@@ -200,15 +201,8 @@ const checkCertification = async (payload, course, isRofOrAdmin) => {
 };
 
 const checkInterlocutors = async (payload, course, isRofOrAdmin, req) => {
-  const trainerIsTrainee = UtilsHelper.doesArrayIncludeId(course.trainees, get(payload, 'trainer'));
-  if (trainerIsTrainee) throw Boom.forbidden();
-
   if (get(payload, 'operationsRepresentative')) {
     await checkVendorUserExistsAndHasRightRole(payload.operationsRepresentative, isRofOrAdmin);
-  }
-
-  if (get(payload, 'trainer')) {
-    await checkVendorUserExistsAndHasRightRole(payload.trainer, isRofOrAdmin, true);
   }
 
   if (get(payload, 'companyRepresentative')) {
@@ -236,10 +230,10 @@ exports.authorizeCourseEdit = async (req) => {
     const unarchiveCourse = has(payload, 'archivedAt') && payload.archivedAt === '';
     if (course.archivedAt && !unarchiveCourse) throw Boom.forbidden();
 
-    const courseTrainerId = get(course, 'trainer') || null;
+    const courseTrainerIds = get(course, 'trainers', []);
     const companies = [INTRA, INTRA_HOLDING].includes(course.type) ? course.companies : [];
     const holding = course.type === INTRA_HOLDING ? course.holding : null;
-    this.checkAuthorization(credentials, courseTrainerId, companies, holding);
+    this.checkAuthorization(credentials, courseTrainerIds, companies, holding);
 
     const userVendorRole = get(credentials, 'role.vendor.name');
     const isRofOrAdmin = [TRAINING_ORGANISATION_MANAGER, VENDOR_ADMIN].includes(userVendorRole);
@@ -471,7 +465,7 @@ exports.authorizeGetCourse = async (req) => {
     const course = await Course
       .findOne(
         { _id: req.params._id },
-        { trainer: 1, format: 1, trainees: 1, companies: 1, accessRules: 1, holding: 1 }
+        { trainers: 1, format: 1, trainees: 1, companies: 1, accessRules: 1, holding: 1 }
       )
       .lean();
     if (!course) throw Boom.notFound();
@@ -493,7 +487,7 @@ exports.authorizeGetCourse = async (req) => {
     if (isTrainee) return null;
 
     const isTrainerAndAuthorized = userVendorRole === TRAINER &&
-      UtilsHelper.areObjectIdsEquals(course.trainer, credentials._id);
+      UtilsHelper.doesArrayIncludeId(course.trainers, credentials._id);
     if (isTrainerAndAuthorized) return null;
 
     if (!userClientRole || ![COACH, CLIENT_ADMIN].includes(userClientRole)) throw Boom.forbidden();
@@ -738,6 +732,23 @@ exports.authorizeGenerateTrainingContract = async (req) => {
   const company = course.companies.find(c => UtilsHelper.areObjectIdsEquals(c._id, req.payload.company));
   if (!company) throw Boom.forbidden();
   if (!company.address) throw Boom.forbidden(translate[language].courseCompanyAddressMissing);
+
+  return null;
+};
+
+exports.authorizeTrainerAddition = async (req) => {
+  const { payload, params } = req;
+
+  const course = await Course.findOne({ _id: params._id }, { trainers: 1, trainees: 1 }).lean();
+  if (!course) throw Boom.notFound();
+
+  await checkVendorUserExistsAndHasRightRole(payload.trainer, true, true);
+
+  const trainerIsTrainee = UtilsHelper.doesArrayIncludeId(course.trainees, payload.trainer);
+  if (trainerIsTrainee) throw Boom.forbidden(translate[language].courseTrainerIsTrainee);
+
+  const trainerIsAlreadyCourseTrainer = UtilsHelper.doesArrayIncludeId(get(course, 'trainers', []), payload.trainer);
+  if (trainerIsAlreadyCourseTrainer) throw Boom.conflict(translate[language].courseTrainerAlreadyAdded);
 
   return null;
 };

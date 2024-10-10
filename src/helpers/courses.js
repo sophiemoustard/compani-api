@@ -365,7 +365,7 @@ const getCourseForOperations = async (courseId, credentials, origin) => {
           { path: 'slots', select: 'step startDate endDate address meetingLink' },
           { path: 'slotsToPlan', select: '_id step' },
           {
-            path: 'trainer',
+            path: 'trainers',
             select: 'identity.firstname identity.lastname contact.phone local.email picture.link',
           },
           { path: 'accessRules', select: 'name' },
@@ -642,11 +642,6 @@ exports.updateCourse = async (courseId, payload, credentials) => {
   if (payload.salesRepresentative === '') {
     setFields = omit(setFields, 'salesRepresentative');
     unsetFields = { ...unsetFields, salesRepresentative: '' };
-  }
-
-  if (payload.trainer === '') {
-    setFields = omit(setFields, 'trainer');
-    unsetFields = { ...unsetFields, trainer: '' };
   }
 
   if (payload.contact === '') {
@@ -1243,3 +1238,6 @@ exports.composeCourseName = (course) => {
 
   return companyName + course.subProgram.program.name + misc;
 };
+
+exports.addTrainer = async (courseId, payload) => Course
+  .updateOne({ _id: courseId }, { $addToSet: { trainers: payload.trainer } });
