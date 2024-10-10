@@ -114,7 +114,7 @@ exports.checkContact = (req, course, isRofOrAdmin) => {
   const interlocutors = { ...courseInterlocutors, ...payloadInterlocutors };
   const interlocutorIds = Object.values(interlocutors).flat();
 
-  if (!UtilsHelper.doesArrayIncludeId(interlocutorIds, req.payload.contact)) throw Boom.forbidden('');
+  if (!UtilsHelper.doesArrayIncludeId(interlocutorIds, req.payload.contact)) throw Boom.forbidden();
 };
 
 exports.authorizeCourseCreation = async (req) => {
@@ -230,7 +230,7 @@ exports.authorizeCourseEdit = async (req) => {
     const unarchiveCourse = has(payload, 'archivedAt') && payload.archivedAt === '';
     if (course.archivedAt && !unarchiveCourse) throw Boom.forbidden();
 
-    const courseTrainerIds = get(course, 'trainers').map(t => t._id) || null;
+    const courseTrainerIds = get(course, 'trainers', []);
     const companies = [INTRA, INTRA_HOLDING].includes(course.type) ? course.companies : [];
     const holding = course.type === INTRA_HOLDING ? course.holding : null;
     this.checkAuthorization(credentials, courseTrainerIds, companies, holding);
