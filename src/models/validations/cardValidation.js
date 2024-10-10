@@ -16,8 +16,7 @@ const {
   FILL_THE_GAPS_MAX_ANSWERS_COUNT,
   CHOICE_QUESTION_MIN_ANSWERS_COUNT,
   CHOICE_QUESTION_MAX_ANSWERS_COUNT,
-  ORDER_THE_SEQUENCE_MIN_ANSWERS_COUNT,
-  ORDER_THE_SEQUENCE_MAX_ANSWERS_COUNT,
+  ORDER_THE_SEQUENCE_ANSWERS_COUNT,
   QUESTION_ANSWER_MIN_ANSWERS_COUNT,
   QUESTION_ANSWER_MAX_ANSWERS_COUNT,
   QC_ANSWER_MAX_LENGTH,
@@ -142,7 +141,7 @@ exports.cardValidationByTemplate = (template, labels = {}) => {
         question: Joi.string().required().max(QUESTION_MAX_LENGTH),
         orderedAnswers: Joi.array().items(Joi.object({
           text: Joi.string().required(),
-        })).min(ORDER_THE_SEQUENCE_MIN_ANSWERS_COUNT).max(ORDER_THE_SEQUENCE_MAX_ANSWERS_COUNT),
+        })).length(ORDER_THE_SEQUENCE_ANSWERS_COUNT),
         explanation: Joi.string().required(),
       });
     case MULTIPLE_CHOICE_QUESTION:
