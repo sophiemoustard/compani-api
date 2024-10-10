@@ -62,7 +62,9 @@ const {
   END_COURSE,
   SELF_POSITIONNING,
   EXPECTATIONS,
+  DAY,
 } = require('../../../src/helpers/constants');
+const { CompaniDate } = require('../../../src/helpers/dates/companiDates');
 const CourseRepository = require('../../../src/repositories/CourseRepository');
 const CourseHistoriesHelper = require('../../../src/helpers/courseHistories');
 const SinonMongoose = require('../sinonMongoose');
@@ -72,6 +74,7 @@ const CourseConvocation = require('../../../src/data/pdf/courseConvocation');
 const CompletionCertificate = require('../../../src/data/pdf/completionCertificate');
 const TrainingContractPdf = require('../../../src/data/pdf/trainingContract');
 const QuestionnaireHistory = require('../../../src/models/QuestionnaireHistory');
+const TrainerMission = require('../../../src/models/TrainerMission');
 
 describe('createCourse', () => {
   let create;
@@ -6619,21 +6622,42 @@ describe('addTrainer', () => {
 
 describe('removeTrainer', () => {
   let courseUpdateOne;
+  let trainerMissionFindOneAndUpdate;
 
   beforeEach(() => {
+    trainerMissionFindOneAndUpdate = sinon.stub(TrainerMission, 'findOneAndUpdate');
     courseUpdateOne = sinon.stub(Course, 'updateOne');
   });
 
   afterEach(() => {
+    trainerMissionFindOneAndUpdate.restore();
     courseUpdateOne.restore();
   });
 
-  it('should remove trainer from course', async () => {
+  it('should remove trainer from course and cancelled trainerMission', async () => {
     const trainerId = new ObjectId();
     const course = { _id: new ObjectId(), misc: 'Test', trainers: [trainerId] };
+    const trainerMission = { _id: new ObjectId(), courses: [course._id], trainer: trainerId };
+
+    trainerMissionFindOneAndUpdate.returns(
+      SinonMongoose.stubChainedQueries({ ...trainerMission, cancelledAt: CompaniDate().startOf(DAY).toISO() }, ['lean'])
+    );
 
     await CourseHelper.removeTrainer(course._id, trainerId);
 
+    SinonMongoose.calledOnceWithExactly(
+      trainerMissionFindOneAndUpdate,
+      [
+        {
+          query: 'findOneAndUpdate',
+          args: [
+            { courses: course._id, trainer: trainerId, cancelledAt: { $exists: false } },
+            { $set: { cancelledAt: CompaniDate().startOf(DAY).toISO() } },
+          ],
+        },
+        { query: 'lean' },
+      ]
+    );
     sinon.assert.calledOnceWithExactly(courseUpdateOne, { _id: course._id }, { $pull: { trainers: trainerId } });
   });
 });
