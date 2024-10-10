@@ -331,7 +331,7 @@ module.exports = {
     courseTraineeAdded: 'Stagiaire ajouté(e) à la formation.',
     courseCompanyAdded: 'Structure rattachée à la formation.',
     courseTrainerAdded: 'Intervenant(e) rattaché(e) à la formation.',
-    courseTrainerRemoved: 'Intervenant(e) détaché(e) à la formation.',
+    courseTrainerRemoved: 'Intervenant(e) détaché(e) de la formation.',
     courseTraineeRemoved: 'Stagiaire supprimé(e) de la formation.',
     courseCompanyRemoved: 'Structure détachée de la formation.',
     companyTraineeRegisteredToCourse: 'Un(e) apprenant(e) de la structure est inscrit(e) à la formation.',
