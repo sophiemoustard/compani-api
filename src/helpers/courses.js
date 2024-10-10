@@ -1244,3 +1244,6 @@ exports.composeCourseName = (course) => {
 
 exports.addTrainer = async (courseId, payload) => Course
   .updateOne({ _id: courseId }, { $addToSet: { trainers: payload.trainer } });
+
+exports.removeTrainer = async (courseId, trainerId) => Course
+  .updateOne({ _id: courseId }, { $pull: { trainers: trainerId } });
