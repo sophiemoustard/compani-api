@@ -4983,3 +4983,76 @@ describe('COURSES ROUTES - PUT /courses/{_id}/trainers', () => {
     });
   });
 });
+
+describe('COURSES ROUTES - DELETE /courses/{_id}/trainers/{trainerId}', () => {
+  let authToken;
+
+  beforeEach(populateDB);
+
+  describe('TRAINING_ORGANISATION_MANAGER', () => {
+    beforeEach(async () => {
+      authToken = await getToken('training_organisation_manager');
+    });
+
+    it('should remove trainer from course', async () => {
+      const response = await app.inject({
+        method: 'DELETE',
+        url: `/courses/${coursesList[0]._id}/trainers/${trainer._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(200);
+    });
+
+    it('should return 404 if course\'s _id doesn\'t exist', async () => {
+      const response = await app.inject({
+        method: 'DELETE',
+        url: `/courses/${new ObjectId()}/trainers/${trainer._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(404);
+    });
+
+    it('should return 404 if trainerId doesn\'t exist', async () => {
+      const response = await app.inject({
+        method: 'DELETE',
+        url: `/courses/${coursesList[0]._id}/trainers/${new ObjectId()}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(404);
+    });
+
+    it('should return 403 if trainerId is not in course\'s trainers', async () => {
+      const response = await app.inject({
+        method: 'DELETE',
+        url: `/courses/${coursesList[0]._id}/trainers/${vendorAdmin._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
+  });
+
+  describe('OTHERS ROLES', () => {
+    const roles = [
+      { name: 'helper', expectedCode: 403 },
+      { name: 'planning_referent', expectedCode: 403 },
+      { name: 'client_admin', expectedCode: 403 },
+      { name: 'trainer', expectedCode: 403 },
+    ];
+    roles.forEach((role) => {
+      it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+        authToken = await getToken(role.name);
+        const response = await app.inject({
+          method: 'DELETE',
+          url: `/courses/${coursesList[0]._id}/trainers/${trainer._id}`,
+          headers: { Cookie: `alenvi_token=${authToken}` },
+        });
+
+        expect(response.statusCode).toBe(role.expectedCode);
+      });
+    });
+  });
+});

@@ -6579,3 +6579,24 @@ describe('addTrainer', () => {
     sinon.assert.calledOnceWithExactly(courseUpdateOne, { _id: course._id }, { $addToSet: { trainers: trainerId } });
   });
 });
+
+describe('removeTrainer', () => {
+  let courseUpdateOne;
+
+  beforeEach(() => {
+    courseUpdateOne = sinon.stub(Course, 'updateOne');
+  });
+
+  afterEach(() => {
+    courseUpdateOne.restore();
+  });
+
+  it('should remove trainer from course', async () => {
+    const trainerId = new ObjectId();
+    const course = { _id: new ObjectId(), misc: 'Test', trainers: [trainerId] };
+
+    await CourseHelper.removeTrainer(course._id, trainerId);
+
+    sinon.assert.calledOnceWithExactly(courseUpdateOne, { _id: course._id }, { $pull: { trainers: trainerId } });
+  });
+});
