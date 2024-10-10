@@ -20,6 +20,7 @@ const CourseSmsHistory = require('../models/CourseSmsHistory');
 const Attendance = require('../models/Attendance');
 const SubProgram = require('../models/SubProgram');
 const TrainingContract = require('../models/TrainingContract');
+const TrainerMission = require('../models/TrainerMission');
 const CourseRepository = require('../repositories/CourseRepository');
 const UtilsHelper = require('./utils');
 const DatesUtilsHelper = require('./dates/utils');
@@ -1246,5 +1247,12 @@ exports.composeCourseName = (course) => {
 exports.addTrainer = async (courseId, payload) => Course
   .updateOne({ _id: courseId }, { $addToSet: { trainers: payload.trainer } });
 
-exports.removeTrainer = async (courseId, trainerId) => Course
-  .updateOne({ _id: courseId }, { $pull: { trainers: trainerId } });
+exports.removeTrainer = async (courseId, trainerId) => {
+  await TrainerMission
+    .findOneAndUpdate(
+      { courses: courseId, trainer: trainerId, cancelledAt: { $exists: false } },
+      { $set: { cancelledAt: CompaniDate().startOf(DAY).toISO() } }
+    ).lean();
+
+  await Course.updateOne({ _id: courseId }, { $pull: { trainers: trainerId } });
+};
