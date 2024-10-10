@@ -15,8 +15,7 @@ const {
   CHOICE_QUESTION_MAX_ANSWERS_COUNT,
   CHOICE_QUESTION_MIN_ANSWERS_COUNT,
   ORDER_THE_SEQUENCE,
-  ORDER_THE_SEQUENCE_MAX_ANSWERS_COUNT,
-  ORDER_THE_SEQUENCE_MIN_ANSWERS_COUNT,
+  ORDER_THE_SEQUENCE_ANSWERS_COUNT,
   FILL_THE_GAPS_MAX_ANSWERS_COUNT,
   FILL_THE_GAPS_MIN_ANSWERS_COUNT,
   QC_ANSWER_MAX_LENGTH,
@@ -114,8 +113,7 @@ exports.authorizeCardAnswerCreation = async (req) => {
       if (card.qcAnswers.length >= CHOICE_QUESTION_MAX_ANSWERS_COUNT) return Boom.forbidden();
       break;
     case ORDER_THE_SEQUENCE:
-      if (card.orderedAnswers.length >= ORDER_THE_SEQUENCE_MAX_ANSWERS_COUNT) return Boom.forbidden();
-      break;
+      return Boom.forbidden();
     case FILL_THE_GAPS:
       if (card.gapAnswers.length >= FILL_THE_GAPS_MAX_ANSWERS_COUNT) return Boom.forbidden();
       break;
@@ -172,7 +170,7 @@ exports.authorizeCardAnswerDeletion = async (req) => {
       }
       break;
     case ORDER_THE_SEQUENCE:
-      if (card.orderedAnswers.length <= ORDER_THE_SEQUENCE_MIN_ANSWERS_COUNT) return Boom.forbidden();
+      if (card.orderedAnswers.length !== ORDER_THE_SEQUENCE_ANSWERS_COUNT) return Boom.forbidden();
       break;
     case FILL_THE_GAPS:
       if (card.gapAnswers.length <= FILL_THE_GAPS_MIN_ANSWERS_COUNT) return Boom.forbidden();

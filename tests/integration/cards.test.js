@@ -323,22 +323,6 @@ describe('CARDS ROUTES - POST /cards/{_id}/answer', () => {
       expect(cardUpdated).toEqual(1);
     });
 
-    it('should add an ordered answer', async () => {
-      const response = await app.inject({
-        method: 'POST',
-        url: `/cards/${cardsList[16]._id}/answers`,
-        headers: { 'x-access-token': authToken },
-      });
-
-      expect(response.statusCode).toBe(200);
-
-      const cardUpdated = await Card.countDocuments({
-        _id: cardsList[16]._id,
-        orderedAnswers: { $size: cardsList[16].orderedAnswers.length + 1 },
-      });
-      expect(cardUpdated).toEqual(1);
-    });
-
     it('should add a gap answer', async () => {
       const response = await app.inject({
         method: 'POST',

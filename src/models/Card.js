@@ -96,7 +96,7 @@ function save(next) {
         if (!this.isMandatory) this.isMandatory = false;
         break;
       case ORDER_THE_SEQUENCE:
-        if (!this.orderedAnswers) this.orderedAnswers = [{ text: '' }, { text: '' }];
+        if (!this.orderedAnswers) this.orderedAnswers = [{ text: '' }, { text: '' }, { text: '' }];
         break;
       case MULTIPLE_CHOICE_QUESTION:
         if (!this.qcAnswers) this.qcAnswers = [{ text: '', correct: false }, { text: '', correct: false }];
