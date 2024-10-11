@@ -66,12 +66,11 @@ CourseSchema.virtual('bills', {
   options: { sort: { createdAt: -1 } },
 });
 
-CourseSchema.virtual('trainerMission', {
+CourseSchema.virtual('trainerMissions', {
   ref: 'TrainerMission',
   localField: '_id',
   foreignField: 'courses',
   options: { match: { cancelledAt: { $exists: false } } },
-  justOne: true,
 });
 
 queryMiddlewareList.map(middleware => CourseSchema.pre(middleware, formatQuery));
