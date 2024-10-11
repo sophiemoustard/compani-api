@@ -376,7 +376,9 @@ const getCourseForOperations = async (courseId, credentials, origin) => {
             select: 'identity.firstname identity.lastname contact.phone local.email picture.link',
           },
           { path: 'contact', select: 'identity.firstname identity.lastname contact.phone' },
-          ...(isRofOrAdmin ? [{ path: 'trainerMission', select: '_id', options: { isVendorUser: true } }] : []),
+          ...(isRofOrAdmin
+            ? [{ path: 'trainerMissions', select: '_id trainer', options: { isVendorUser: true } }]
+            : []),
         ]
         : [{ path: 'slots', select: 'step startDate endDate', options: { sort: { startDate: 1 } } }]
       ),
