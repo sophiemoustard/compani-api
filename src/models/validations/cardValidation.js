@@ -139,9 +139,9 @@ exports.cardValidationByTemplate = (template, labels = {}) => {
     case ORDER_THE_SEQUENCE:
       return Joi.object().keys({
         question: Joi.string().required().max(QUESTION_MAX_LENGTH),
-        orderedAnswers: Joi.array().items(Joi.object({
-          text: Joi.string().required(),
-        })).length(ORDER_THE_SEQUENCE_ANSWERS_COUNT),
+        orderedAnswers: Joi.array()
+          .items(Joi.object({ text: Joi.string().required() }))
+          .length(ORDER_THE_SEQUENCE_ANSWERS_COUNT),
         explanation: Joi.string().required(),
       });
     case MULTIPLE_CHOICE_QUESTION:
