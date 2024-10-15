@@ -1255,5 +1255,12 @@ exports.removeTrainer = async (courseId, trainerId) => {
       { $set: { cancelledAt: CompaniDate().startOf(DAY).toISO() } }
     ).lean();
 
-  await Course.updateOne({ _id: courseId }, { $pull: { trainers: trainerId } });
+  const course = await Course.findOne({ _id: courseId }).lean();
+  const trainerIsContact = UtilsHelper.areObjectIdsEquals(get(course, 'contact'), trainerId);
+
+  const query = trainerIsContact
+    ? { $pull: { trainers: trainerId }, $unset: { contact: '' } }
+    : { $pull: { trainers: trainerId } };
+
+  await Course.updateOne({ _id: courseId }, query);
 };
