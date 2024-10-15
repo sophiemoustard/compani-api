@@ -386,6 +386,16 @@ describe('CARDS ROUTES - POST /cards/{_id}/answer', () => {
 
       expect(response.statusCode).toBe(403);
     });
+
+    it('should return 403 if add an ordered answer', async () => {
+      const response = await app.inject({
+        method: 'POST',
+        url: `/cards/${cardsList[8]._id}/answers`,
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
   });
 
   describe('Other roles', () => {
@@ -638,23 +648,6 @@ describe('CARDS ROUTES - DELETE /cards/{_id}/answers/{answerId}', () => {
       expect(cardUpdated).toEqual(1);
     });
 
-    it('should delete an ordered answer', async () => {
-      const card = cardsList[8];
-      const answer = card.orderedAnswers[0];
-
-      const response = await app.inject({
-        method: 'DELETE',
-        url: `/cards/${card._id}/answers/${answer._id}`,
-        headers: { 'x-access-token': authToken },
-      });
-
-      expect(response.statusCode).toBe(200);
-
-      const cardUpdated = await Card
-        .countDocuments({ _id: card._id, orderedAnswers: [card.orderedAnswers[1], card.orderedAnswers[2]] });
-      expect(cardUpdated).toEqual(1);
-    });
-
     it('should delete a false gap answer', async () => {
       const card = cardsList[19];
       const answer = card.gapAnswers[0];
@@ -719,11 +712,23 @@ describe('CARDS ROUTES - DELETE /cards/{_id}/answers/{answerId}', () => {
       expect(response.statusCode).toBe(403);
     });
 
+    it('should return 403 if delete an ordered answer', async () => {
+      const card = cardsList[8];
+      const answer = card.orderedAnswers[0];
+
+      const response = await app.inject({
+        method: 'DELETE',
+        url: `/cards/${card._id}/answers/${answer._id}`,
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
+
     const templates = [
       { name: 'question_answer', card: cardsList[11], key: 'qcAnswers' },
       { name: 'single_choice_question', card: cardsList[14], key: 'qcAnswers' },
       { name: 'multiple_choice_question', card: cardsList[15], key: 'qcAnswers' },
-      { name: 'order_the_sequence', card: cardsList[16], key: 'orderedAnswers' },
       { name: 'fill_the_gaps', card: cardsList[5], key: 'gapAnswers' },
     ];
     templates.forEach((template) => {

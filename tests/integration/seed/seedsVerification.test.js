@@ -534,13 +534,23 @@ describe('SEEDS VERIFICATION', () => {
           });
         });
 
-        it('should pass if only \'choice question\' cards has correct key in \'qcAnswers\' field', () => {
-          const someSubKeysAreWrong = cardList
-            .some(card => ![MULTIPLE_CHOICE_QUESTION, SINGLE_CHOICE_QUESTION].includes(card.template) &&
-              has(card, 'qcAnswers') && card.qcAnswers.some(object => has(object, 'correct')));
+        it('should pass if only \'choice question\' or \'fill the gap \' cards has correct key in \'qcAnswers\' field',
+          () => {
+            const someSubKeysAreWrong = cardList
+              .some(card =>
+                ![MULTIPLE_CHOICE_QUESTION, SINGLE_CHOICE_QUESTION, FILL_THE_GAPS].includes(card.template) &&
+                has(card, 'qcAnswers') && card.qcAnswers.some(object => has(object, 'correct')));
 
-          expect(someSubKeysAreWrong).toBeFalsy();
-        });
+            expect(someSubKeysAreWrong).toBeFalsy();
+          });
+
+        it('should pass if every \'order the sequence\' cards has 3 answers',
+          () => {
+            const orderedAnswersCountIsGood = cardList
+              .every(card => card.template !== ORDER_THE_SEQUENCE || card.orderedAnswers.length === 3);
+
+            expect(orderedAnswersCountIsGood).toBeTruthy();
+          });
 
         it('should pass if every card with \'labels\' field contains right keys', () => {
           const someSubKeysAreMissing = cardList
