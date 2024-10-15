@@ -28,13 +28,20 @@ exports.create = async (payload) => {
       );
     companies = [get(traineeCompanyAtCourseRegistration[0], 'company')];
   }
-
-  const fileUploaded = await GCloudStorageHelper.uploadCourseFile({
-    fileName: `emargement_${fileName}`,
-    file: payload.file,
-  });
-
-  await AttendanceSheet.create({ ...omit(payload, 'file'), companies, file: fileUploaded });
+  if (payload.file) {
+    const fileUploaded = await GCloudStorageHelper.uploadCourseFile({
+      fileName: `emargement_${fileName}`,
+      file: payload.file,
+    });
+    await AttendanceSheet.create({ ...omit(payload, 'file'), companies, file: fileUploaded });
+  }
+  if (payload.signature) {
+    const fileUploaded = await GCloudStorageHelper.uploadCourseFile({
+      fileName: `signature_${fileName}`,
+      file: payload.signature,
+    });
+    await AttendanceSheet.create({ ...omit(payload, 'file'), companies, signature: fileUploaded });
+  }
 };
 
 exports.list = async (query, credentials) => {

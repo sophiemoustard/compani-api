@@ -39,11 +39,13 @@ exports.plugin = {
         validate: {
           payload: Joi.object({
             course: Joi.objectId().required(),
-            file: Joi.any().required(),
+            file: Joi.any(),
+            signature: Joi.any(),
             trainee: Joi.objectId(),
             date: Joi.date(),
+            slot: Joi.objectId(),
             origin: Joi.string().valid(...ORIGIN_OPTIONS).default(MOBILE),
-          }).xor('trainee', 'date'),
+          }).xor('trainee', 'date').xor('signature', 'file'),
         },
         auth: { scope: ['attendances:edit'] },
         pre: [{ method: authorizeAttendanceSheetCreation }],
