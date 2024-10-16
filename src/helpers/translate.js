@@ -117,7 +117,7 @@ module.exports = {
     courseTraineeAdded: 'Course trainee added.',
     courseCompanyAdded: 'Course company added.',
     courseTrainerAdded: 'Course trainer added.',
-    courseTrainerRemoved: 'Course trainer removed',
+    courseTrainerRemoved: 'Course trainer removed.',
     courseTraineeRemoved: 'Course trainee removed.',
     courseCompanyRemoved: 'Course company removed.',
     companyTraineeRegisteredToCourse: 'Company trainee registered to course.',
