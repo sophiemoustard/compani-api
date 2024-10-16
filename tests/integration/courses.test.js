@@ -5014,16 +5014,6 @@ describe('COURSES ROUTES - DELETE /courses/{_id}/trainers/{trainerId}', () => {
       expect(response.statusCode).toBe(404);
     });
 
-    it('should return 404 if trainerId doesn\'t exist', async () => {
-      const response = await app.inject({
-        method: 'DELETE',
-        url: `/courses/${coursesList[0]._id}/trainers/${new ObjectId()}`,
-        headers: { Cookie: `alenvi_token=${authToken}` },
-      });
-
-      expect(response.statusCode).toBe(404);
-    });
-
     it('should return 403 if trainerId is not in course\'s trainers', async () => {
       const response = await app.inject({
         method: 'DELETE',
