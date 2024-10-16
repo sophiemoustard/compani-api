@@ -40,7 +40,7 @@ exports.create = async (payload) => {
       fileName: `signature_${fileName}`,
       file: payload.signature,
     });
-    await AttendanceSheet.create({ ...omit(payload, 'file'), companies, signature: fileUploaded });
+    await AttendanceSheet.create({ ...omit(payload, 'signature'), companies, signature: fileUploaded });
   }
 };
 

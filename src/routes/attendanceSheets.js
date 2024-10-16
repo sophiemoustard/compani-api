@@ -43,9 +43,11 @@ exports.plugin = {
             signature: Joi.any(),
             trainee: Joi.objectId(),
             date: Joi.date(),
-            slot: Joi.objectId(),
+            slot: Joi.objectId()
+              .when('signature', { is: Joi.exist(), then: Joi.required(), otherwise: Joi.forbidden() }),
             origin: Joi.string().valid(...ORIGIN_OPTIONS).default(MOBILE),
-          }).xor('trainee', 'date').xor('signature', 'file'),
+          }).xor('trainee', 'date')
+            .xor('signature', 'file'),
         },
         auth: { scope: ['attendances:edit'] },
         pre: [{ method: authorizeAttendanceSheetCreation }],
