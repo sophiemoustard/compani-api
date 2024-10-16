@@ -63,9 +63,11 @@ exports.authorizeAttendanceSheetCreation = async (req) => {
   if (!course.companies.length) throw Boom.forbidden();
 
   const { credentials } = req.auth;
-  if (!isVendorAndAuthorized(course.trainer, credentials)) throw Boom.forbidden();
+  if (!isVendorAndAuthorized(course.trainer, credentials)) {
+    if (!req.payload.signature) throw Boom.forbidden();
+  }
 
-  if ([INTRA, INTRA_HOLDING].includes(course.type)) {
+  if ([INTRA, INTRA_HOLDING].includes(course.type) && !req.payload.slot) {
     if (req.payload.trainee) throw Boom.badRequest();
     const isCourseSlotDate = course.slots.some(slot => CompaniDate(slot.startDate).isSame(req.payload.date, DAY));
     if (!isCourseSlotDate) throw Boom.forbidden();
