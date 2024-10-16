@@ -52,7 +52,7 @@ const {
   authorizeGenerateTrainingContract,
   authorizeGetCompletionCertificates,
   authorizeTrainerAddition,
-  authorizeRemoveTrainer,
+  authorizeTrainerDeletion,
 } = require('./preHandlers/courses');
 const {
   INTRA,
@@ -441,7 +441,7 @@ exports.plugin = {
         validate: {
           params: Joi.object({ _id: Joi.objectId().required(), trainerId: Joi.objectId().required() }),
         },
-        pre: [{ method: authorizeRemoveTrainer }],
+        pre: [{ method: authorizeTrainerDeletion }],
       },
       handler: removeTrainer,
     });
