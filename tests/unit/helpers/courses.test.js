@@ -62,7 +62,9 @@ const {
   END_COURSE,
   SELF_POSITIONNING,
   EXPECTATIONS,
+  DAY,
 } = require('../../../src/helpers/constants');
+const { CompaniDate } = require('../../../src/helpers/dates/companiDates');
 const CourseRepository = require('../../../src/repositories/CourseRepository');
 const CourseHistoriesHelper = require('../../../src/helpers/courseHistories');
 const SinonMongoose = require('../sinonMongoose');
@@ -72,6 +74,7 @@ const CourseConvocation = require('../../../src/data/pdf/courseConvocation');
 const CompletionCertificate = require('../../../src/data/pdf/completionCertificate');
 const TrainingContractPdf = require('../../../src/data/pdf/trainingContract');
 const QuestionnaireHistory = require('../../../src/models/QuestionnaireHistory');
+const TrainerMission = require('../../../src/models/TrainerMission');
 
 describe('createCourse', () => {
   let create;
@@ -1848,7 +1851,7 @@ describe('getCourse', () => {
                 select: 'identity.firstname identity.lastname contact.phone local.email picture.link',
               },
               { path: 'contact', select: 'identity.firstname identity.lastname contact.phone' },
-              { path: 'trainerMission', select: '_id', options: { isVendorUser: true } },
+              { path: 'trainerMissions', select: '_id trainer', options: { isVendorUser: true } },
             ]],
           },
           { query: 'lean' },
@@ -6577,5 +6580,59 @@ describe('addTrainer', () => {
     await CourseHelper.addTrainer(course._id, payload);
 
     sinon.assert.calledOnceWithExactly(courseUpdateOne, { _id: course._id }, { $addToSet: { trainers: trainerId } });
+  });
+});
+
+describe('removeTrainer', () => {
+  let courseUpdateOne;
+  let trainerMissionFindOneAndUpdate;
+  let courseFindOne;
+
+  beforeEach(() => {
+    trainerMissionFindOneAndUpdate = sinon.stub(TrainerMission, 'findOneAndUpdate');
+    courseUpdateOne = sinon.stub(Course, 'updateOne');
+    courseFindOne = sinon.stub(Course, 'findOne');
+  });
+
+  afterEach(() => {
+    trainerMissionFindOneAndUpdate.restore();
+    courseUpdateOne.restore();
+    courseFindOne.restore();
+  });
+
+  it('should remove trainer and contact from course and cancelled trainerMission', async () => {
+    const trainerId = new ObjectId();
+    const course = { _id: new ObjectId(), misc: 'Test', trainers: [trainerId], contact: trainerId };
+    const trainerMission = { _id: new ObjectId(), courses: [course._id], trainer: trainerId };
+
+    trainerMissionFindOneAndUpdate.returns(
+      SinonMongoose.stubChainedQueries({ ...trainerMission, cancelledAt: CompaniDate().startOf(DAY).toISO() }, ['lean'])
+    );
+    courseFindOne.returns(SinonMongoose.stubChainedQueries(course, ['lean']));
+
+    await CourseHelper.removeTrainer(course._id, trainerId);
+
+    SinonMongoose.calledOnceWithExactly(
+      trainerMissionFindOneAndUpdate,
+      [
+        {
+          query: 'findOneAndUpdate',
+          args: [
+            { courses: course._id, trainer: trainerId, cancelledAt: { $exists: false } },
+            { $set: { cancelledAt: CompaniDate().startOf(DAY).toISO() } },
+          ],
+        },
+        { query: 'lean' },
+      ]
+    );
+    SinonMongoose.calledOnceWithExactly(
+      courseFindOne,
+      [{ query: 'findOne', args: [{ _id: course._id }] }, { query: 'lean' }]
+    );
+    sinon.assert.calledOnceWithExactly(
+      courseUpdateOne,
+      { _id: course._id },
+      { $pull: { trainers: trainerId }, $unset: { contact: '' } }
+    );
   });
 });

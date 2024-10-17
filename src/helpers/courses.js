@@ -20,6 +20,7 @@ const CourseSmsHistory = require('../models/CourseSmsHistory');
 const Attendance = require('../models/Attendance');
 const SubProgram = require('../models/SubProgram');
 const TrainingContract = require('../models/TrainingContract');
+const TrainerMission = require('../models/TrainerMission');
 const CourseRepository = require('../repositories/CourseRepository');
 const UtilsHelper = require('./utils');
 const DatesUtilsHelper = require('./dates/utils');
@@ -378,7 +379,9 @@ const getCourseForOperations = async (courseId, credentials, origin) => {
             select: 'identity.firstname identity.lastname contact.phone local.email picture.link',
           },
           { path: 'contact', select: 'identity.firstname identity.lastname contact.phone' },
-          ...(isRofOrAdmin ? [{ path: 'trainerMission', select: '_id', options: { isVendorUser: true } }] : []),
+          ...(isRofOrAdmin
+            ? [{ path: 'trainerMissions', select: '_id trainer', options: { isVendorUser: true } }]
+            : []),
         ]
         : [{ path: 'slots', select: 'startDate' }]
       ),
@@ -1241,3 +1244,20 @@ exports.composeCourseName = (course) => {
 
 exports.addTrainer = async (courseId, payload) => Course
   .updateOne({ _id: courseId }, { $addToSet: { trainers: payload.trainer } });
+
+exports.removeTrainer = async (courseId, trainerId) => {
+  await TrainerMission
+    .findOneAndUpdate(
+      { courses: courseId, trainer: trainerId, cancelledAt: { $exists: false } },
+      { $set: { cancelledAt: CompaniDate().startOf(DAY).toISO() } }
+    ).lean();
+
+  const course = await Course.findOne({ _id: courseId }).lean();
+  const trainerIsContact = UtilsHelper.areObjectIdsEquals(get(course, 'contact'), trainerId);
+
+  const query = trainerIsContact
+    ? { $pull: { trainers: trainerId }, $unset: { contact: '' } }
+    : { $pull: { trainers: trainerId } };
+
+  await Course.updateOne({ _id: courseId }, query);
+};

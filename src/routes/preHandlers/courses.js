@@ -752,3 +752,15 @@ exports.authorizeTrainerAddition = async (req) => {
 
   return null;
 };
+
+exports.authorizeTrainerDeletion = async (req) => {
+  const { params } = req;
+
+  const course = await Course.findOne({ _id: params._id }, { trainers: 1 }).lean();
+  if (!course) throw Boom.notFound();
+
+  const trainerIsCourseTrainer = UtilsHelper.doesArrayIncludeId(course.trainers, params.trainerId);
+  if (!trainerIsCourseTrainer) throw Boom.forbidden();
+
+  return null;
+};

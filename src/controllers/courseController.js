@@ -299,6 +299,17 @@ const addTrainer = async (req) => {
   }
 };
 
+const removeTrainer = async (req) => {
+  try {
+    await CoursesHelper.removeTrainer(req.params._id, req.params.trainerId);
+
+    return { message: translate[language].courseTrainerRemoved };
+  } catch (e) {
+    req.log('error', e);
+    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
+  }
+};
+
 module.exports = {
   list,
   create,
@@ -322,4 +333,5 @@ module.exports = {
   removeCompany,
   generateTrainingContract,
   addTrainer,
+  removeTrainer,
 };
