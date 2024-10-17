@@ -413,9 +413,9 @@ const getCourseForOperations = async (courseId, credentials, origin) => {
 };
 
 const getCourseForQuestionnaire = async courseId => Course
-  .findOne({ _id: courseId }, { subProgram: 1, type: 1, trainer: 1, trainees: 1, misc: 1 })
+  .findOne({ _id: courseId }, { subProgram: 1, type: 1, trainers: 1, trainees: 1, misc: 1 })
   .populate({ path: 'subProgram', select: 'program', populate: [{ path: 'program', select: 'name' }] })
-  .populate({ path: 'trainer', select: 'identity.firstname identity.lastname' })
+  .populate({ path: 'trainers', select: 'identity.firstname identity.lastname' })
   .populate({ path: 'trainees', select: 'identity.firstname identity.lastname local.email' })
   .lean({ virtuals: true });
 
