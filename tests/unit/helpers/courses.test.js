@@ -2771,7 +2771,7 @@ describe('getCourse', () => {
       const course = {
         _id: new ObjectId(),
         subProgram: { program: { name: 'Savoir évoluer en équipe autonome' } },
-        trainer: { identity: { firstname: 'super', lastname: 'formateur' } },
+        trainers: [{ identity: { firstname: 'super', lastname: 'formateur' } }],
         trainees: [
           { identity: { firstname: 'titi', lastname: 'grosminet' }, local: { email: 'titi@compa.fr' } },
           { identity: { firstname: 'asterix', lastname: 'obelix' }, local: { email: 'aasterix@compa.fr' } },
@@ -2789,7 +2789,7 @@ describe('getCourse', () => {
         [
           {
             query: 'findOne',
-            args: [{ _id: course._id }, { subProgram: 1, type: 1, trainer: 1, trainees: 1, misc: 1 }],
+            args: [{ _id: course._id }, { subProgram: 1, type: 1, trainers: 1, trainees: 1, misc: 1 }],
           },
           {
             query: 'populate',
@@ -2797,7 +2797,7 @@ describe('getCourse', () => {
           },
           {
             query: 'populate',
-            args: [{ path: 'trainer', select: 'identity.firstname identity.lastname' }],
+            args: [{ path: 'trainers', select: 'identity.firstname identity.lastname' }],
           },
           {
             query: 'populate',
