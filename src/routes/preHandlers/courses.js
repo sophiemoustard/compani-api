@@ -739,8 +739,9 @@ exports.authorizeGenerateTrainingContract = async (req) => {
 exports.authorizeTrainerAddition = async (req) => {
   const { payload, params } = req;
 
-  const course = await Course.findOne({ _id: params._id }, { trainers: 1, trainees: 1 }).lean();
+  const course = await Course.findOne({ _id: params._id }, { trainers: 1, trainees: 1, archivedAt: 1 }).lean();
   if (!course) throw Boom.notFound();
+  if (course.archivedAt) throw Boom.forbidden();
 
   await checkVendorUserExistsAndHasRightRole(payload.trainer, true, true);
 
@@ -756,8 +757,9 @@ exports.authorizeTrainerAddition = async (req) => {
 exports.authorizeTrainerDeletion = async (req) => {
   const { params } = req;
 
-  const course = await Course.findOne({ _id: params._id }, { trainers: 1 }).lean();
+  const course = await Course.findOne({ _id: params._id }, { trainers: 1, archivedAt: 1 }).lean();
   if (!course) throw Boom.notFound();
+  if (course.archivedAt) throw Boom.forbidden();
 
   const trainerIsCourseTrainer = UtilsHelper.doesArrayIncludeId(course.trainers, params.trainerId);
   if (!trainerIsCourseTrainer) throw Boom.forbidden();
