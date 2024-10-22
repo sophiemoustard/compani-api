@@ -576,7 +576,7 @@ const canAccessSms = (course, credentials) => {
   const userHoldingRole = get(credentials, 'role.holding.name');
   if (course.type === INTRA_HOLDING && !(userVendorRole || userHoldingRole)) throw Boom.forbidden();
 
-  const courseTrainerIds = get(course, 'trainers') || null;
+  const courseTrainerIds = get(course, 'trainers') || [];
   const companies = [INTRA, INTRA_HOLDING].includes(course.type) ? course.companies : [];
   const holding = course.type === INTRA_HOLDING ? course.holding : null;
   this.checkAuthorization(credentials, courseTrainerIds, companies, holding);
