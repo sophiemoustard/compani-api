@@ -2952,7 +2952,7 @@ describe('COURSES ROUTES - GET /courses/{_id}/sms', () => {
 
       expect(response.statusCode).toBe(200);
       expect(response.result.data.sms.every(sms =>
-UtilsHelper.areObjectIdsEquals(sms.course, courseIdFromAuthCompany)))
+        UtilsHelper.areObjectIdsEquals(sms.course, courseIdFromAuthCompany)))
         .toBeTruthy();
     });
 
