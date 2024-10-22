@@ -2588,7 +2588,7 @@ describe('COURSES ROUTES - DELETE /courses/{_id}', () => {
   });
 });
 
-describe('COURSES ROUTES - POST /courses/{_id}/sms #tag', () => {
+describe('COURSES ROUTES - POST /courses/{_id}/sms', () => {
   let authToken;
   const courseIdFromAuthCompany = coursesList[2]._id;
   const courseIdFromOtherCompany = coursesList[1]._id;
