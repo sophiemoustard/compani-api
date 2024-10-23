@@ -4943,7 +4943,7 @@ describe('COURSES ROUTES - PUT /courses/{_id}/trainers', () => {
         method: 'PUT',
         url: `/courses/${coursesList[14]._id}/trainers`,
         headers: { Cookie: `alenvi_token=${authToken}` },
-        payload: { trainer: trainer._id },
+        payload: { trainer: trainerAndCoach._id },
       });
 
       expect(response.statusCode).toBe(403);
@@ -5040,7 +5040,6 @@ describe('COURSES ROUTES - DELETE /courses/{_id}/trainers/{trainerId}', () => {
         method: 'DELETE',
         url: `/courses/${coursesList[14]._id}/trainers/${trainer._id}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
-        payload: { trainers: trainer._id },
       });
 
       expect(response.statusCode).toBe(403);
