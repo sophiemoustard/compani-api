@@ -576,17 +576,17 @@ const canAccessSms = (course, credentials) => {
   const userHoldingRole = get(credentials, 'role.holding.name');
   if (course.type === INTRA_HOLDING && !(userVendorRole || userHoldingRole)) throw Boom.forbidden();
 
-  const courseTrainerId = get(course, 'trainer') || null;
+  const courseTrainerIds = get(course, 'trainers') || [];
   const companies = [INTRA, INTRA_HOLDING].includes(course.type) ? course.companies : [];
   const holding = course.type === INTRA_HOLDING ? course.holding : null;
-  this.checkAuthorization(credentials, courseTrainerId, companies, holding);
+  this.checkAuthorization(credentials, courseTrainerIds, companies, holding);
 
   return null;
 };
 
 exports.authorizeSmsSending = async (req) => {
   const course = await Course
-    .findById(req.params._id, { slots: 1, trainees: 1, type: 1, companies: 1, trainer: 1, holding: 1 })
+    .findById(req.params._id, { slots: 1, trainees: 1, type: 1, companies: 1, trainers: 1, holding: 1 })
     .populate({ path: 'slots', select: 'endDate' })
     .populate({ path: 'trainees', select: 'contact.phone' })
     .lean();
@@ -606,7 +606,7 @@ exports.authorizeSmsSending = async (req) => {
 
 exports.authorizeSmsGet = async (req) => {
   const course = await Course
-    .findById(req.params._id, { type: 1, companies: 1, trainer: 1, holding: 1 })
+    .findById(req.params._id, { type: 1, companies: 1, trainers: 1, holding: 1 })
     .lean();
   if (!course) throw Boom.notFound();
 

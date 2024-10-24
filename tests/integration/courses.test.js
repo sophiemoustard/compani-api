@@ -1,24 +1,24 @@
 const { expect } = require('expect');
-// const sinon = require('sinon');
+const sinon = require('sinon');
 // const path = require('path');
 const { ObjectId } = require('mongodb');
 const omit = require('lodash/omit');
 const pick = require('lodash/pick');
-// const get = require('lodash/get');
+const get = require('lodash/get');
 const app = require('../../server');
 const Course = require('../../src/models/Course');
 const CourseSlot = require('../../src/models/CourseSlot');
 // const drive = require('../../src/models/Google/Drive');
-// const CourseSmsHistory = require('../../src/models/CourseSmsHistory');
+const CourseSmsHistory = require('../../src/models/CourseSmsHistory');
 const CourseHistory = require('../../src/models/CourseHistory');
 const {
-  // CONVOCATION,
-  // COURSE_SMS,
+  CONVOCATION,
+  COURSE_SMS,
   // TRAINEE_ADDITION,
   // TRAINEE_DELETION,
   INTRA,
   INTER_B2B,
-  // OTHER,
+  OTHER,
   ESTIMATED_START_DATE_EDITION,
   // COMPANY_ADDITION,
   // COMPANY_DELETION,
@@ -66,12 +66,12 @@ const {
   holdingAdminFromOtherCompany,
   trainerOrganisationManager,
 } = require('../seed/authUsersSeed');
-// const SmsHelper = require('../../src/helpers/sms');
+const SmsHelper = require('../../src/helpers/sms');
 // const DocxHelper = require('../../src/helpers/docx');
 // const NotificationHelper = require('../../src/helpers/notifications');
 const UtilsHelper = require('../../src/helpers/utils');
 // const translate = require('../../src/helpers/translate');
-// const UtilsMock = require('../utilsMock');
+const UtilsMock = require('../utilsMock');
 const { CompaniDate } = require('../../src/helpers/dates/companiDates');
 
 // const { language } = translate;
@@ -2588,439 +2588,439 @@ describe('COURSES ROUTES - DELETE /courses/{_id}', () => {
   });
 });
 
-// describe('COURSES ROUTES - POST /courses/{_id}/sms', () => {
-//   let authToken;
-//   const courseIdFromAuthCompany = coursesList[2]._id;
-//   const courseIdFromOtherCompany = coursesList[1]._id;
-//   const archivedCourseId = coursesList[14]._id;
-//   const courseIdWithoutReceiver = coursesList[7]._id;
-//   let SmsHelperStub;
-//   const payload = { content: 'Ceci est un test', type: CONVOCATION };
-
-//   beforeEach(populateDB);
-//   beforeEach(async () => {
-//     SmsHelperStub = sinon.stub(SmsHelper, 'send');
-//     UtilsMock.mockCurrentDate('2020-03-03T15:00:00.000Z');
-//   });
-//   afterEach(() => {
-//     SmsHelperStub.restore();
-//     UtilsMock.unmockCurrentDate();
-//   });
-
-//   describe('TRAINING_ORGANISATION_MANAGER', () => {
-//     beforeEach(async () => {
-//       authToken = await getToken('training_organisation_manager');
-//     });
-
-//     it('should send a SMS to user from compani', async () => {
-//       SmsHelperStub.returns('SMS SENT !');
-//       const smsHistoryBefore = await CourseSmsHistory.countDocuments({ course: courseIdFromAuthCompany });
-
-//       const response = await app.inject({
-//         method: 'POST',
-//         url: `/courses/${courseIdFromAuthCompany}/sms`,
-//         payload,
-//         headers: { Cookie: `alenvi_token=${authToken}` },
-//       });
-
-//       expect(response.statusCode).toBe(200);
-//       const smsHistoryAfter = await CourseSmsHistory.countDocuments({ course: courseIdFromAuthCompany });
-//       expect(smsHistoryAfter).toEqual(smsHistoryBefore + 1);
-//       sinon.assert.calledWithExactly(
-//         SmsHelperStub,
-//         {
-//           recipient: `+33${coach.contact.phone.substring(1)}`,
-//           sender: 'Compani',
-//           content: payload.content,
-//           tag: COURSE_SMS,
-//         }
-//       );
-//     });
-
-//     it('should send a sms if type is other and course is finished', async () => {
-//       SmsHelperStub.returns('SMS SENT !');
-//       const smsHistoryBefore = await CourseSmsHistory.countDocuments({ course: courseIdFromAuthCompany });
-
-//       const response = await app.inject({
-//         method: 'POST',
-//         url: `/courses/${courseIdFromAuthCompany}/sms`,
-//         payload: { content: 'test', type: OTHER },
-//         headers: { Cookie: `alenvi_token=${authToken}` },
-//       });
-
-//       expect(response.statusCode).toBe(200);
-//       const smsHistoryAfter = await CourseSmsHistory.countDocuments({ course: courseIdFromAuthCompany });
-//       expect(smsHistoryAfter).toEqual(smsHistoryBefore + 1);
-//       sinon.assert.calledWithExactly(
-//         SmsHelperStub,
-//         {
-//           recipient: `+33${coach.contact.phone.substring(1)}`,
-//           sender: 'Compani',
-//           content: 'test',
-//           tag: COURSE_SMS,
-//         }
-//       );
-//     });
-
-//     it('should return a 200 if course is archived and type is other', async () => {
-//       const smsHistoryBefore = await CourseSmsHistory.countDocuments({ course: archivedCourseId });
-
-//       const response = await app.inject({
-//         method: 'POST',
-//         url: `/courses/${archivedCourseId}/sms`,
-//         payload: { content: 'Ceci est un test', type: OTHER },
-//         headers: { Cookie: `alenvi_token=${authToken}` },
-//       });
-
-//       expect(response.statusCode).toBe(200);
-
-//       const courseIsArchived = !!await Course.countDocuments({ _id: archivedCourseId }, { archivedAt: 1 });
-//       expect(courseIsArchived).toBeTruthy();
-
-//       const smsHistoryAfter = await CourseSmsHistory.countDocuments({ course: archivedCourseId });
-//       expect(smsHistoryAfter).toEqual(smsHistoryBefore + 1);
-//       sinon.assert.calledWithExactly(
-//         SmsHelperStub,
-//         {
-//           recipient: `+33${coach.contact.phone.substring(1)}`,
-//           sender: 'Compani',
-//           content: 'Ceci est un test',
-//           tag: COURSE_SMS,
-//         }
-//       );
-//     });
-
-//     it('should return 200 if course is intra holding', async () => {
-//       SmsHelperStub.returns('SMS SENT !');
-//       const response = await app.inject({
-//         method: 'POST',
-//         url: `/courses/${coursesList[23]._id}/sms`,
-//         headers: { Cookie: `alenvi_token=${authToken}` },
-//         payload,
-//       });
-
-//       expect(response.statusCode).toBe(200);
-//     });
-
-//     it('should return a 400 error if type is invalid', async () => {
-//       const response = await app.inject({
-//         method: 'POST',
-//         url: `/courses/${courseIdFromAuthCompany}/sms`,
-//         payload: { ...payload, type: 'qwert' },
-//         headers: { Cookie: `alenvi_token=${authToken}` },
-//       });
-
-//       expect(response.statusCode).toBe(400);
-//       sinon.assert.notCalled(SmsHelperStub);
-//     });
-
-//     it('should return 404 if course doesn\'t exist', async () => {
-//       const response = await app.inject({
-//         method: 'POST',
-//         url: `/courses/${new ObjectId()}/sms`,
-//         headers: { Cookie: `alenvi_token=${authToken}` },
-//         payload,
-//       });
-
-//       expect(response.statusCode).toBe(404);
-//     });
-
-//     it('should return a 403 if course has no slot to come and type is not other', async () => {
-//       const response = await app.inject({
-//         method: 'POST',
-//         url: `/courses/${coursesList[0]._id}/sms`,
-//         payload,
-//         headers: { Cookie: `alenvi_token=${authToken}` },
-//       });
-
-//       expect(response.statusCode).toBe(403);
-
-//       const course = await Course.findById(coursesList[0]._id)
-//         .populate({ path: 'slots', select: 'startDate endDate' })
-//         .populate({ path: 'slotsToPlan' })
-//         .populate({ path: 'trainees', select: 'contact.phone' })
-//         .lean();
-
-//       const hasSlotToCome = course.slots && course.slots.some(slot => CompaniDate().isBefore(slot.startDate));
-//       const hasReceiver = course.trainees && course.trainees.some(trainee => get(trainee, 'contact.phone'));
-//       expect(hasSlotToCome).toBeFalsy();
-//       expect(hasReceiver).toBeTruthy();
-
-//       sinon.assert.notCalled(SmsHelperStub);
-//       UtilsMock.unmockCurrentDate();
-//     });
-
-//     it('should return a 403 if course is started and type is convocation', async () => {
-//       const response = await app.inject({
-//         method: 'POST',
-//         url: `/courses/${courseIdFromOtherCompany}/sms`,
-//         payload,
-//         headers: { Cookie: `alenvi_token=${authToken}` },
-//       });
-
-//       expect(response.statusCode).toBe(403);
-
-//       const course = await Course.findById(courseIdFromOtherCompany)
-//         .populate({ path: 'slots', select: 'startDate endDate' })
-//         .populate({ path: 'slotsToPlan' })
-//         .populate({ path: 'trainees', select: 'contact.phone' })
-//         .lean();
-
-//       const IsStartedAndHasSlotToCome = course.slots.some(slot => CompaniDate().isAfter(slot.endDate)) &&
-//         course.slots.some(slot => CompaniDate().isBefore(slot.startDate));
-//       const hasReceiver = course.trainees && course.trainees.some(trainee => get(trainee, 'contact.phone'));
-//       expect(IsStartedAndHasSlotToCome).toBeTruthy();
-//       expect(hasReceiver).toBeTruthy();
-
-//       sinon.assert.notCalled(SmsHelperStub);
-//       UtilsMock.unmockCurrentDate();
-//     });
-
-//     it('should return a 403 if sms have no receiver', async () => {
-//       const response = await app.inject({
-//         method: 'POST',
-//         url: `/courses/${courseIdWithoutReceiver}/sms`,
-//         payload,
-//         headers: { Cookie: `alenvi_token=${authToken}` },
-//       });
-
-//       expect(response.statusCode).toBe(403);
-
-//       const course = await Course.findById(courseIdWithoutReceiver)
-//         .populate({ path: 'slots', select: 'startDate endDate' })
-//         .populate({ path: 'slotsToPlan' })
-//         .populate({ path: 'trainees', select: 'contact.phone' })
-//         .lean();
-
-//       const hasSlotToCome = course.slots && course.slots.some(slot => CompaniDate().isBefore(slot.startDate));
-//       const hasReceiver = course.trainees && course.trainees.some(trainee => get(trainee, 'contact.phone'));
-//       expect(hasSlotToCome).toBeTruthy();
-//       expect(hasReceiver).toBeFalsy();
-
-//       sinon.assert.notCalled(SmsHelperStub);
-//     });
-
-//     ['content', 'type'].forEach((param) => {
-//       it(`should return a 400 error if missing ${param} parameter`, async () => {
-//         const response = await app.inject({
-//           method: 'POST',
-//           url: `/courses/${courseIdFromAuthCompany}/sms`,
-//           payload: omit(payload, param),
-//           headers: { Cookie: `alenvi_token=${authToken}` },
-//         });
-
-//         expect(response.statusCode).toBe(400);
-//         sinon.assert.notCalled(SmsHelperStub);
-//       });
-//     });
-//   });
-
-//   describe('HOLDING_ADMIN', () => {
-//     it('should return 200 if course is intra holding', async () => {
-//       SmsHelperStub.returns('SMS SENT !');
-//       authToken = await getTokenByCredentials(holdingAdminFromOtherCompany.local);
-//       const response = await app.inject({
-//         method: 'POST',
-//         url: `/courses/${coursesList[23]._id}/sms`,
-//         headers: { Cookie: `alenvi_token=${authToken}` },
-//         payload,
-//       });
-
-//       expect(response.statusCode).toBe(200);
-//     });
-
-//     it('should return 403 if course is intra holding from other holding', async () => {
-//       authToken = await getTokenByCredentials(holdingAdminFromAuthCompany.local);
-//       const response = await app.inject({
-//         method: 'POST',
-//         url: `/courses/${coursesList[23]._id}/sms`,
-//         headers: { Cookie: `alenvi_token=${authToken}` },
-//         payload,
-//       });
-
-//       expect(response.statusCode).toBe(403);
-//       sinon.assert.notCalled(SmsHelperStub);
-//     });
-//   });
-
-//   describe('OTHER ROLES', () => {
-//     const roles = [
-//       { name: 'helper', expectedCode: 403 },
-//       { name: 'planning_referent', expectedCode: 403 },
-//       { name: 'coach', expectedCode: 200 },
-//     ];
-//     roles.forEach((role) => {
-//       it(`should return ${role.expectedCode} as user is ${role.name}, requesting on his company`, async () => {
-//         SmsHelperStub.returns('SMS SENT !');
-//         authToken = await getToken(role.name);
-//         const response = await app.inject({
-//           method: 'POST',
-//           url: `/courses/${courseIdFromAuthCompany}/sms`,
-//           headers: { Cookie: `alenvi_token=${authToken}` },
-//           payload,
-//         });
-
-//         expect(response.statusCode).toBe(role.expectedCode);
-//       });
-//     });
-
-//     it('should return 200 as user is the course trainer', async () => {
-//       SmsHelperStub.returns('SMS SENT !');
-//       authToken = await getTokenByCredentials(trainer.local);
-//       const response = await app.inject({
-//         method: 'POST',
-//         url: `/courses/${courseIdFromAuthCompany}/sms`,
-//         headers: { Cookie: `alenvi_token=${authToken}` },
-//         payload,
-//       });
-
-//       expect(response.statusCode).toBe(200);
-//     });
-
-//     it('should return 200 as user is intra_holding course trainer', async () => {
-//       SmsHelperStub.returns('SMS SENT !');
-//       authToken = await getToken('trainer');
-//       const response = await app.inject({
-//         method: 'POST',
-//         url: `/courses/${coursesList[23]._id}/sms`,
-//         headers: { Cookie: `alenvi_token=${authToken}` },
-//         payload,
-//       });
-
-//       expect(response.statusCode).toBe(200);
-//     });
-
-//     it('should return 403 as user is trainer if not one of his courses', async () => {
-//       SmsHelperStub.returns('SMS SENT !');
-//       authToken = await getToken('trainer');
-//       const response = await app.inject({
-//         method: 'POST',
-//         url: `/courses/${coursesList[1]._id}/sms`,
-//         headers: { Cookie: `alenvi_token=${authToken}` },
-//         payload,
-//       });
-
-//       expect(response.statusCode).toBe(403);
-//     });
-
-//     it('should return 403 as user is client_admin requesting on an other company', async () => {
-//       SmsHelperStub.returns('SMS SENT !');
-//       authToken = await getToken('client_admin');
-//       const response = await app.inject({
-//         method: 'POST',
-//         url: `/courses/${courseIdFromOtherCompany}/sms`,
-//         headers: { Cookie: `alenvi_token=${authToken}` },
-//         payload,
-//       });
-
-//       expect(response.statusCode).toBe(403);
-//     });
-
-//     it('should return 403 as user is client_admin and course is intra_holding', async () => {
-//       authToken = await getTokenByCredentials(clientAdminFromThirdCompany.local);
-//       const response = await app.inject({
-//         method: 'POST',
-//         url: `/courses/${coursesList[23]._id}/sms`,
-//         headers: { Cookie: `alenvi_token=${authToken}` },
-//         payload,
-//       });
-
-//       expect(response.statusCode).toBe(403);
-//       sinon.assert.notCalled(SmsHelperStub);
-//     });
-//   });
-// });
-
-// describe('COURSES ROUTES - GET /courses/{_id}/sms', () => {
-//   let authToken;
-//   const courseIdFromAuthCompany = coursesList[0]._id;
-//   const courseIdFromOtherCompany = coursesList[1]._id;
-
-//   beforeEach(populateDB);
-
-//   describe('TRAINING_ORGANISATION_MANAGER', () => {
-//     beforeEach(async () => {
-//       authToken = await getToken('training_organisation_manager');
-//     });
-
-//     it('should get SMS from course', async () => {
-//       const response = await app.inject({
-//         method: 'GET',
-//         url: `/courses/${courseIdFromAuthCompany}/sms`,
-//         headers: { Cookie: `alenvi_token=${authToken}` },
-//       });
-
-//       expect(response.statusCode).toBe(200);
-//       expect(response.result.data.sms.every(sms =>
-// UtilsHelper.areObjectIdsEquals(sms.course, courseIdFromAuthCompany)))
-//         .toBeTruthy();
-//     });
-
-//     it('should return a 404 error if course does not exist', async () => {
-//       const response = await app.inject({
-//         method: 'GET',
-//         url: `/courses/${new ObjectId()}/sms`,
-//         headers: { Cookie: `alenvi_token=${authToken}` },
-//       });
-
-//       expect(response.statusCode).toBe(404);
-//     });
-//   });
-
-//   describe('OTHER ROLES', () => {
-//     const roles = [
-//       { name: 'helper', expectedCode: 403 },
-//       { name: 'planning_referent', expectedCode: 403 },
-//       { name: 'coach', expectedCode: 200 },
-//       { name: 'trainer', expectedCode: 200 },
-//     ];
-//     roles.forEach((role) => {
-//       it(`should return ${role.expectedCode} as user is ${role.name}, requesting on his company`, async () => {
-//         authToken = await getToken(role.name);
-//         const response = await app.inject({
-//           method: 'GET',
-//           url: `/courses/${courseIdFromAuthCompany}/sms`,
-//           headers: { Cookie: `alenvi_token=${authToken}` },
-//         });
-
-//         expect(response.statusCode).toBe(role.expectedCode);
-//       });
-//     });
-
-//     it('should return 403 as user is trainer if not one of his courses', async () => {
-//       authToken = await getToken('trainer');
-//       const response = await app.inject({
-//         method: 'GET',
-//         url: `/courses/${coursesList[1]._id}/sms`,
-//         headers: { Cookie: `alenvi_token=${authToken}` },
-//       });
-
-//       expect(response.statusCode).toBe(403);
-//     });
-
-//     it('should return 403 as user is client_admin requesting on an other company (intra)', async () => {
-//       authToken = await getToken('client_admin');
-//       const response = await app.inject({
-//         method: 'GET',
-//         url: `/courses/${courseIdFromOtherCompany}/sms`,
-//         headers: { Cookie: `alenvi_token=${authToken}` },
-//       });
-
-//       expect(response.statusCode).toBe(403);
-//     });
-
-//     it('should return 403 as user is client_admin requesting intra_holding course', async () => {
-//       authToken = await getToken('client_admin');
-//       const response = await app.inject({
-//         method: 'GET',
-//         url: `/courses/${coursesList[21]._id}/sms`,
-//         headers: { Cookie: `alenvi_token=${authToken}` },
-//       });
-
-//       expect(response.statusCode).toBe(403);
-//     });
-//   });
-// });
+describe('COURSES ROUTES - POST /courses/{_id}/sms', () => {
+  let authToken;
+  const courseIdFromAuthCompany = coursesList[2]._id;
+  const courseIdFromOtherCompany = coursesList[1]._id;
+  const archivedCourseId = coursesList[14]._id;
+  const courseIdWithoutReceiver = coursesList[7]._id;
+  let SmsHelperStub;
+  const payload = { content: 'Ceci est un test', type: CONVOCATION };
+
+  beforeEach(populateDB);
+  beforeEach(async () => {
+    SmsHelperStub = sinon.stub(SmsHelper, 'send');
+    UtilsMock.mockCurrentDate('2020-03-03T15:00:00.000Z');
+  });
+  afterEach(() => {
+    SmsHelperStub.restore();
+    UtilsMock.unmockCurrentDate();
+  });
+
+  describe('TRAINING_ORGANISATION_MANAGER', () => {
+    beforeEach(async () => {
+      authToken = await getToken('training_organisation_manager');
+    });
+
+    it('should send a SMS to user from compani', async () => {
+      SmsHelperStub.returns('SMS SENT !');
+      const smsHistoryBefore = await CourseSmsHistory.countDocuments({ course: courseIdFromAuthCompany });
+
+      const response = await app.inject({
+        method: 'POST',
+        url: `/courses/${courseIdFromAuthCompany}/sms`,
+        payload,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(200);
+      const smsHistoryAfter = await CourseSmsHistory.countDocuments({ course: courseIdFromAuthCompany });
+      expect(smsHistoryAfter).toEqual(smsHistoryBefore + 1);
+      sinon.assert.calledWithExactly(
+        SmsHelperStub,
+        {
+          recipient: `+33${coach.contact.phone.substring(1)}`,
+          sender: 'Compani',
+          content: payload.content,
+          tag: COURSE_SMS,
+        }
+      );
+    });
+
+    it('should send a sms if type is other and course is finished', async () => {
+      SmsHelperStub.returns('SMS SENT !');
+      const smsHistoryBefore = await CourseSmsHistory.countDocuments({ course: courseIdFromAuthCompany });
+
+      const response = await app.inject({
+        method: 'POST',
+        url: `/courses/${courseIdFromAuthCompany}/sms`,
+        payload: { content: 'test', type: OTHER },
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(200);
+      const smsHistoryAfter = await CourseSmsHistory.countDocuments({ course: courseIdFromAuthCompany });
+      expect(smsHistoryAfter).toEqual(smsHistoryBefore + 1);
+      sinon.assert.calledWithExactly(
+        SmsHelperStub,
+        {
+          recipient: `+33${coach.contact.phone.substring(1)}`,
+          sender: 'Compani',
+          content: 'test',
+          tag: COURSE_SMS,
+        }
+      );
+    });
+
+    it('should return a 200 if course is archived and type is other', async () => {
+      const smsHistoryBefore = await CourseSmsHistory.countDocuments({ course: archivedCourseId });
+
+      const response = await app.inject({
+        method: 'POST',
+        url: `/courses/${archivedCourseId}/sms`,
+        payload: { content: 'Ceci est un test', type: OTHER },
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(200);
+
+      const courseIsArchived = !!await Course.countDocuments({ _id: archivedCourseId }, { archivedAt: 1 });
+      expect(courseIsArchived).toBeTruthy();
+
+      const smsHistoryAfter = await CourseSmsHistory.countDocuments({ course: archivedCourseId });
+      expect(smsHistoryAfter).toEqual(smsHistoryBefore + 1);
+      sinon.assert.calledWithExactly(
+        SmsHelperStub,
+        {
+          recipient: `+33${coach.contact.phone.substring(1)}`,
+          sender: 'Compani',
+          content: 'Ceci est un test',
+          tag: COURSE_SMS,
+        }
+      );
+    });
+
+    it('should return 200 if course is intra holding', async () => {
+      SmsHelperStub.returns('SMS SENT !');
+      const response = await app.inject({
+        method: 'POST',
+        url: `/courses/${coursesList[23]._id}/sms`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload,
+      });
+
+      expect(response.statusCode).toBe(200);
+    });
+
+    it('should return a 400 error if type is invalid', async () => {
+      const response = await app.inject({
+        method: 'POST',
+        url: `/courses/${courseIdFromAuthCompany}/sms`,
+        payload: { ...payload, type: 'qwert' },
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(400);
+      sinon.assert.notCalled(SmsHelperStub);
+    });
+
+    it('should return 404 if course doesn\'t exist', async () => {
+      const response = await app.inject({
+        method: 'POST',
+        url: `/courses/${new ObjectId()}/sms`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload,
+      });
+
+      expect(response.statusCode).toBe(404);
+    });
+
+    it('should return a 403 if course has no slot to come and type is not other', async () => {
+      const response = await app.inject({
+        method: 'POST',
+        url: `/courses/${coursesList[0]._id}/sms`,
+        payload,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(403);
+
+      const course = await Course.findById(coursesList[0]._id)
+        .populate({ path: 'slots', select: 'startDate endDate' })
+        .populate({ path: 'slotsToPlan' })
+        .populate({ path: 'trainees', select: 'contact.phone' })
+        .lean();
+
+      const hasSlotToCome = course.slots && course.slots.some(slot => CompaniDate().isBefore(slot.startDate));
+      const hasReceiver = course.trainees && course.trainees.some(trainee => get(trainee, 'contact.phone'));
+      expect(hasSlotToCome).toBeFalsy();
+      expect(hasReceiver).toBeTruthy();
+
+      sinon.assert.notCalled(SmsHelperStub);
+      UtilsMock.unmockCurrentDate();
+    });
+
+    it('should return a 403 if course is started and type is convocation', async () => {
+      const response = await app.inject({
+        method: 'POST',
+        url: `/courses/${courseIdFromOtherCompany}/sms`,
+        payload,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(403);
+
+      const course = await Course.findById(courseIdFromOtherCompany)
+        .populate({ path: 'slots', select: 'startDate endDate' })
+        .populate({ path: 'slotsToPlan' })
+        .populate({ path: 'trainees', select: 'contact.phone' })
+        .lean();
+
+      const IsStartedAndHasSlotToCome = course.slots.some(slot => CompaniDate().isAfter(slot.endDate)) &&
+        course.slots.some(slot => CompaniDate().isBefore(slot.startDate));
+      const hasReceiver = course.trainees && course.trainees.some(trainee => get(trainee, 'contact.phone'));
+      expect(IsStartedAndHasSlotToCome).toBeTruthy();
+      expect(hasReceiver).toBeTruthy();
+
+      sinon.assert.notCalled(SmsHelperStub);
+      UtilsMock.unmockCurrentDate();
+    });
+
+    it('should return a 403 if sms have no receiver', async () => {
+      const response = await app.inject({
+        method: 'POST',
+        url: `/courses/${courseIdWithoutReceiver}/sms`,
+        payload,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(403);
+
+      const course = await Course.findById(courseIdWithoutReceiver)
+        .populate({ path: 'slots', select: 'startDate endDate' })
+        .populate({ path: 'slotsToPlan' })
+        .populate({ path: 'trainees', select: 'contact.phone' })
+        .lean();
+
+      const hasSlotToCome = course.slots && course.slots.some(slot => CompaniDate().isBefore(slot.startDate));
+      const hasReceiver = course.trainees && course.trainees.some(trainee => get(trainee, 'contact.phone'));
+      expect(hasSlotToCome).toBeTruthy();
+      expect(hasReceiver).toBeFalsy();
+
+      sinon.assert.notCalled(SmsHelperStub);
+    });
+
+    ['content', 'type'].forEach((param) => {
+      it(`should return a 400 error if missing ${param} parameter`, async () => {
+        const response = await app.inject({
+          method: 'POST',
+          url: `/courses/${courseIdFromAuthCompany}/sms`,
+          payload: omit(payload, param),
+          headers: { Cookie: `alenvi_token=${authToken}` },
+        });
+
+        expect(response.statusCode).toBe(400);
+        sinon.assert.notCalled(SmsHelperStub);
+      });
+    });
+  });
+
+  describe('HOLDING_ADMIN', () => {
+    it('should return 200 if course is intra holding', async () => {
+      SmsHelperStub.returns('SMS SENT !');
+      authToken = await getTokenByCredentials(holdingAdminFromOtherCompany.local);
+      const response = await app.inject({
+        method: 'POST',
+        url: `/courses/${coursesList[23]._id}/sms`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload,
+      });
+
+      expect(response.statusCode).toBe(200);
+    });
+
+    it('should return 403 if course is intra holding from other holding', async () => {
+      authToken = await getTokenByCredentials(holdingAdminFromAuthCompany.local);
+      const response = await app.inject({
+        method: 'POST',
+        url: `/courses/${coursesList[23]._id}/sms`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload,
+      });
+
+      expect(response.statusCode).toBe(403);
+      sinon.assert.notCalled(SmsHelperStub);
+    });
+  });
+
+  describe('OTHER ROLES', () => {
+    const roles = [
+      { name: 'helper', expectedCode: 403 },
+      { name: 'planning_referent', expectedCode: 403 },
+      { name: 'coach', expectedCode: 200 },
+    ];
+    roles.forEach((role) => {
+      it(`should return ${role.expectedCode} as user is ${role.name}, requesting on his company`, async () => {
+        SmsHelperStub.returns('SMS SENT !');
+        authToken = await getToken(role.name);
+        const response = await app.inject({
+          method: 'POST',
+          url: `/courses/${courseIdFromAuthCompany}/sms`,
+          headers: { Cookie: `alenvi_token=${authToken}` },
+          payload,
+        });
+
+        expect(response.statusCode).toBe(role.expectedCode);
+      });
+    });
+
+    it('should return 200 as user is the course trainer', async () => {
+      SmsHelperStub.returns('SMS SENT !');
+      authToken = await getTokenByCredentials(trainer.local);
+      const response = await app.inject({
+        method: 'POST',
+        url: `/courses/${courseIdFromAuthCompany}/sms`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload,
+      });
+
+      expect(response.statusCode).toBe(200);
+    });
+
+    it('should return 200 as user is intra_holding course trainer', async () => {
+      SmsHelperStub.returns('SMS SENT !');
+      authToken = await getToken('trainer');
+      const response = await app.inject({
+        method: 'POST',
+        url: `/courses/${coursesList[23]._id}/sms`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload,
+      });
+
+      expect(response.statusCode).toBe(200);
+    });
+
+    it('should return 403 as user is trainer if not one of his courses', async () => {
+      SmsHelperStub.returns('SMS SENT !');
+      authToken = await getToken('trainer');
+      const response = await app.inject({
+        method: 'POST',
+        url: `/courses/${coursesList[1]._id}/sms`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload,
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
+
+    it('should return 403 as user is client_admin requesting on an other company', async () => {
+      SmsHelperStub.returns('SMS SENT !');
+      authToken = await getToken('client_admin');
+      const response = await app.inject({
+        method: 'POST',
+        url: `/courses/${courseIdFromOtherCompany}/sms`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload,
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
+
+    it('should return 403 as user is client_admin and course is intra_holding', async () => {
+      authToken = await getTokenByCredentials(clientAdminFromThirdCompany.local);
+      const response = await app.inject({
+        method: 'POST',
+        url: `/courses/${coursesList[23]._id}/sms`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload,
+      });
+
+      expect(response.statusCode).toBe(403);
+      sinon.assert.notCalled(SmsHelperStub);
+    });
+  });
+});
+
+describe('COURSES ROUTES - GET /courses/{_id}/sms', () => {
+  let authToken;
+  const courseIdFromAuthCompany = coursesList[0]._id;
+  const courseIdFromOtherCompany = coursesList[1]._id;
+
+  beforeEach(populateDB);
+
+  describe('TRAINING_ORGANISATION_MANAGER', () => {
+    beforeEach(async () => {
+      authToken = await getToken('training_organisation_manager');
+    });
+
+    it('should get SMS from course', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/courses/${courseIdFromAuthCompany}/sms`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(200);
+      expect(response.result.data.sms.every(sms =>
+        UtilsHelper.areObjectIdsEquals(sms.course, courseIdFromAuthCompany)))
+        .toBeTruthy();
+    });
+
+    it('should return a 404 error if course does not exist', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/courses/${new ObjectId()}/sms`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(404);
+    });
+  });
+
+  describe('OTHER ROLES', () => {
+    const roles = [
+      { name: 'helper', expectedCode: 403 },
+      { name: 'planning_referent', expectedCode: 403 },
+      { name: 'coach', expectedCode: 200 },
+      { name: 'trainer', expectedCode: 200 },
+    ];
+    roles.forEach((role) => {
+      it(`should return ${role.expectedCode} as user is ${role.name}, requesting on his company`, async () => {
+        authToken = await getToken(role.name);
+        const response = await app.inject({
+          method: 'GET',
+          url: `/courses/${courseIdFromAuthCompany}/sms`,
+          headers: { Cookie: `alenvi_token=${authToken}` },
+        });
+
+        expect(response.statusCode).toBe(role.expectedCode);
+      });
+    });
+
+    it('should return 403 as user is trainer if not one of his courses', async () => {
+      authToken = await getToken('trainer');
+      const response = await app.inject({
+        method: 'GET',
+        url: `/courses/${coursesList[1]._id}/sms`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
+
+    it('should return 403 as user is client_admin requesting on an other company (intra)', async () => {
+      authToken = await getToken('client_admin');
+      const response = await app.inject({
+        method: 'GET',
+        url: `/courses/${courseIdFromOtherCompany}/sms`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
+
+    it('should return 403 as user is client_admin requesting intra_holding course', async () => {
+      authToken = await getToken('client_admin');
+      const response = await app.inject({
+        method: 'GET',
+        url: `/courses/${coursesList[21]._id}/sms`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
+  });
+});
 
 // describe('COURSES ROUTES - PUT /courses/{_id}/trainees', () => {
 //   let authToken;
