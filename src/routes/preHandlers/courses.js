@@ -340,7 +340,7 @@ exports.authorizeTraineeAddition = async (req) => {
     if (course.trainees.length + 1 > course.maxTrainees) throw Boom.forbidden(translate[language].maxTraineesReached);
 
     const traineeIsTrainer = UtilsHelper.doesArrayIncludeId(course.trainers, payload.trainee);
-    if (traineeIsTrainer) throw Boom.forbidden(translate[language].courseTrainerAlreadyAdded);
+    if (traineeIsTrainer) throw Boom.forbidden(translate[language].courseTraineeIsTrainer);
 
     const traineeAlreadyRegistered = course.trainees.some(t => UtilsHelper.areObjectIdsEquals(t, payload.trainee));
     if (traineeAlreadyRegistered) throw Boom.conflict(translate[language].courseTraineeAlreadyExists);
