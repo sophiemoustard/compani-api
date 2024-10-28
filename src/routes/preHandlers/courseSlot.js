@@ -72,13 +72,13 @@ exports.authorizeUpdate = async (req) => {
 
     const courseId = get(courseSlot, 'course') || '';
     const course = await Course
-      .findOne({ _id: courseId }, { archivedAt: 1, trainer: 1, type: 1, companies: 1, holding: 1 })
+      .findOne({ _id: courseId }, { archivedAt: 1, trainers: 1, type: 1, companies: 1, holding: 1 })
       .lean();
     if (course.archivedAt) throw Boom.forbidden();
 
     const courseCompanies = [INTRA, INTRA_HOLDING].includes(course.type) ? course.companies : [];
     const courseHolding = course.type === INTRA_HOLDING ? course.holding : null;
-    checkAuthorization(req.auth.credentials, get(course, 'trainer'), courseCompanies, courseHolding);
+    checkAuthorization(req.auth.credentials, get(course, 'trainers'), courseCompanies, courseHolding);
     await checkPayload(courseSlot, req.payload);
 
     return null;
