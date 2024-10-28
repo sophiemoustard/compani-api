@@ -333,14 +333,14 @@ exports.authorizeTraineeAddition = async (req) => {
     const course = await Course
       .findOne(
         { _id: req.params._id },
-        { trainees: 1, type: 1, companies: 1, maxTrainees: 1, trainer: 1, hasCertifyingTest: 1 }
+        { trainees: 1, type: 1, companies: 1, maxTrainees: 1, trainers: 1, hasCertifyingTest: 1 }
       )
       .lean();
 
     if (course.trainees.length + 1 > course.maxTrainees) throw Boom.forbidden(translate[language].maxTraineesReached);
 
-    const traineeIsTrainer = UtilsHelper.areObjectIdsEquals(course.trainer, payload.trainee);
-    if (traineeIsTrainer) throw Boom.forbidden();
+    const traineeIsTrainer = UtilsHelper.doesArrayIncludeId(course.trainers, payload.trainee);
+    if (traineeIsTrainer) throw Boom.forbidden(translate[language].courseTraineeIsTrainer);
 
     const traineeAlreadyRegistered = course.trainees.some(t => UtilsHelper.areObjectIdsEquals(t, payload.trainee));
     if (traineeAlreadyRegistered) throw Boom.conflict(translate[language].courseTraineeAlreadyExists);
