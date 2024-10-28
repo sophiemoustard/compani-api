@@ -41,7 +41,7 @@ const coursesList = [
     misc: 'first session',
     type: INTRA,
     maxTrainees: 8,
-    trainers: [userList[0]._id],
+    trainers: [userList[0]._id, userList[1]._id],
     trainees: [],
     companies: [authCompany._id],
     operationsRepresentative: userList[1]._id,
