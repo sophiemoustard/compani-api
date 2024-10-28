@@ -11,7 +11,7 @@ exports.authorizeGetCourseHistories = async (req) => {
   if (vendorRole) {
     if ([VENDOR_ADMIN, TRAINING_ORGANISATION_MANAGER].includes(vendorRole)) return null;
 
-    const isTrainer = await Course.countDocuments({ _id: courseId, trainer: credentials._id });
+    const isTrainer = await Course.countDocuments({ _id: courseId, trainers: credentials._id });
     if (isTrainer) return null;
   }
 
