@@ -1,11 +1,11 @@
 const { expect } = require('expect');
 const app = require('../../server');
 const { populateDB, coursesList, courseHistoriesList, userList } = require('./seed/courseHistoriesSeed');
-// const {
-//   trainerAndCoach,
-//   holdingAdminFromOtherCompany,
-//   holdingAdminFromAuthCompany,
-// } = require('../seed/authUsersSeed');
+const {
+  trainerAndCoach,
+  holdingAdminFromOtherCompany,
+  holdingAdminFromAuthCompany,
+} = require('../seed/authUsersSeed');
 const { getToken, getTokenByCredentials } = require('./helpers/authentication');
 const { CompaniDate } = require('../../src/helpers/dates/companiDates');
 
@@ -15,7 +15,7 @@ describe('NODE ENV', () => {
   });
 });
 
-describe('COURSE HISTORIES ROUTES - GET /coursehistories #tag', () => {
+describe('COURSE HISTORIES ROUTES - GET /coursehistories', () => {
   let authToken;
   beforeEach(populateDB);
 
@@ -63,98 +63,97 @@ describe('COURSE HISTORIES ROUTES - GET /coursehistories #tag', () => {
     });
   });
 
-  //   describe('HOLDING_ADMIN', () => {
-  //     it('should return 200 as user is holding admin and course is from user holding (intra)', async () => {
-  //       authToken = await getTokenByCredentials(holdingAdminFromOtherCompany.local);
-  //       const response = await app.inject({
-  //         method: 'GET',
-  //         url: `/coursehistories?course=${coursesList[1]._id}`,
-  //         headers: { Cookie: `alenvi_token=${authToken}` },
-  //       });
+  describe('HOLDING_ADMIN', () => {
+    it('should return 200 as user is holding admin and course is from user holding (intra)', async () => {
+      authToken = await getTokenByCredentials(holdingAdminFromOtherCompany.local);
+      const response = await app.inject({
+        method: 'GET',
+        url: `/coursehistories?course=${coursesList[1]._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
 
-  //       expect(response.statusCode).toEqual(200);
-  //     });
+      expect(response.statusCode).toEqual(200);
+    });
 
-  //     it('should return 200 as user is holding admin and course is from user holding (intra_holding)', async () => {
-  //       authToken = await getTokenByCredentials(holdingAdminFromAuthCompany.local);
-  //       const response = await app.inject({
-  //         method: 'GET',
-  //         url: `/coursehistories?course=${coursesList[3]._id}`,
-  //         headers: { Cookie: `alenvi_token=${authToken}` },
-  //       });
+    it('should return 200 as user is holding admin and course is from user holding (intra_holding)', async () => {
+      authToken = await getTokenByCredentials(holdingAdminFromAuthCompany.local);
+      const response = await app.inject({
+        method: 'GET',
+        url: `/coursehistories?course=${coursesList[3]._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
 
-  //       expect(response.statusCode).toEqual(200);
-  //     });
+      expect(response.statusCode).toEqual(200);
+    });
 
-  //     it('should return 403 as user is holding admin and course is not from user holding (intra)', async () => {
-  //       authToken = await getTokenByCredentials(holdingAdminFromOtherCompany.local);
-  //       const response = await app.inject({
-  //         method: 'GET',
-  //         url: `/coursehistories?course=${coursesList[0]._id}`,
-  //         headers: { Cookie: `alenvi_token=${authToken}` },
-  //       });
+    it('should return 403 as user is holding admin and course is not from user holding (intra)', async () => {
+      authToken = await getTokenByCredentials(holdingAdminFromOtherCompany.local);
+      const response = await app.inject({
+        method: 'GET',
+        url: `/coursehistories?course=${coursesList[0]._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
 
-  //       expect(response.statusCode).toEqual(403);
-  //     });
+      expect(response.statusCode).toEqual(403);
+    });
 
-  //     it('should return 403 as user is holding admin and course is not from user holding
-  // (intra_holding)', async () => {
-  //       authToken = await getTokenByCredentials(holdingAdminFromOtherCompany.local);
-  //       const response = await app.inject({
-  //         method: 'GET',
-  //         url: `/coursehistories?course=${coursesList[3]._id}`,
-  //         headers: { Cookie: `alenvi_token=${authToken}` },
-  //       });
+    it('should return 403 as user is holding admin and course is not from user holding (intra_holding)', async () => {
+      authToken = await getTokenByCredentials(holdingAdminFromOtherCompany.local);
+      const response = await app.inject({
+        method: 'GET',
+        url: `/coursehistories?course=${coursesList[3]._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
 
-  //       expect(response.statusCode).toEqual(403);
-  //     });
-  //   });
+      expect(response.statusCode).toEqual(403);
+    });
+  });
 
-  //   describe('COACH/CLIENT_ADMIN', () => {
-  //     it('should return 200 as user is coach and course is intra from coach company', async () => {
-  //       authToken = await getToken('coach');
-  //       const response = await app.inject({
-  //         method: 'GET',
-  //         url: `/coursehistories?course=${coursesList[0]._id}`,
-  //         headers: { Cookie: `alenvi_token=${authToken}` },
-  //       });
+  describe('COACH/CLIENT_ADMIN', () => {
+    it('should return 200 as user is coach and course is intra from coach company', async () => {
+      authToken = await getToken('coach');
+      const response = await app.inject({
+        method: 'GET',
+        url: `/coursehistories?course=${coursesList[0]._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
 
-  //       expect(response.statusCode).toEqual(200);
-  //     });
+      expect(response.statusCode).toEqual(200);
+    });
 
-  //     it('should return 403 as user is client_admin and course is inter_b2b', async () => {
-  //       authToken = await getToken('client_admin');
-  //       const response = await app.inject({
-  //         method: 'GET',
-  //         url: `/coursehistories?course=${coursesList[2]._id}`,
-  //         headers: { Cookie: `alenvi_token=${authToken}` },
-  //       });
+    it('should return 403 as user is client_admin and course is inter_b2b', async () => {
+      authToken = await getToken('client_admin');
+      const response = await app.inject({
+        method: 'GET',
+        url: `/coursehistories?course=${coursesList[2]._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
 
-  //       expect(response.statusCode).toEqual(403);
-  //     });
+      expect(response.statusCode).toEqual(403);
+    });
 
-  //     it('should return 403 as user is client_admin and course is intra_holding', async () => {
-  //       authToken = await getToken('client_admin');
-  //       const response = await app.inject({
-  //         method: 'GET',
-  //         url: `/coursehistories?course=${coursesList[3]._id}`,
-  //         headers: { Cookie: `alenvi_token=${authToken}` },
-  //       });
+    it('should return 403 as user is client_admin and course is intra_holding', async () => {
+      authToken = await getToken('client_admin');
+      const response = await app.inject({
+        method: 'GET',
+        url: `/coursehistories?course=${coursesList[3]._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
 
-  //       expect(response.statusCode).toEqual(403);
-  //     });
+      expect(response.statusCode).toEqual(403);
+    });
 
-  //     it('should return 200 as user is coach and trainer, but not course trainer', async () => {
-  //       authToken = await getTokenByCredentials(trainerAndCoach.local);
-  //       const response = await app.inject({
-  //         method: 'GET',
-  //         url: `/coursehistories?course=${coursesList[0]._id}`,
-  //         headers: { Cookie: `alenvi_token=${authToken}` },
-  //       });
+    it('should return 200 as user is coach and trainer, but not course trainer', async () => {
+      authToken = await getTokenByCredentials(trainerAndCoach.local);
+      const response = await app.inject({
+        method: 'GET',
+        url: `/coursehistories?course=${coursesList[0]._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
 
-  //       expect(response.statusCode).toEqual(200);
-  //     });
-  //   });
+      expect(response.statusCode).toEqual(200);
+    });
+  });
 
   describe('Other roles', () => {
     it('should return 200 as user is course trainer', async () => {
