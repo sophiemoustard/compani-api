@@ -28,6 +28,14 @@ const userList = [
     role: { vendor: vendorAdminRoleId },
     origin: WEBAPP,
   },
+  {
+    _id: new ObjectId(),
+    identity: { firstname: 'courseHistories', lastname: 'TrainerBis' },
+    refreshToken: uuidv4(),
+    local: { email: 'otherTrainer@compani.fr', password: '123456!eR' },
+    role: { vendor: trainerRoleId },
+    origin: WEBAPP,
+  },
 ];
 
 const steps = [{ _id: new ObjectId(), type: 'on_site', name: 'étape', status: PUBLISHED, theoreticalDuration: 60 }];
@@ -41,7 +49,7 @@ const coursesList = [
     misc: 'first session',
     type: INTRA,
     maxTrainees: 8,
-    trainers: [userList[0]._id, userList[1]._id],
+    trainers: [userList[0]._id, userList[2]._id],
     trainees: [],
     companies: [authCompany._id],
     operationsRepresentative: userList[1]._id,
