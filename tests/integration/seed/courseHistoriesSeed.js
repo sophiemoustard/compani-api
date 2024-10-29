@@ -30,7 +30,7 @@ const userList = [
   },
   {
     _id: new ObjectId(),
-    identity: { firstname: 'courseHistories', lastname: 'TrainerBis' },
+    identity: { firstname: 'otherTrainer', lastname: 'otherTrainers' },
     refreshToken: uuidv4(),
     local: { email: 'otherTrainer@compani.fr', password: '123456!eR' },
     role: { vendor: trainerRoleId },
