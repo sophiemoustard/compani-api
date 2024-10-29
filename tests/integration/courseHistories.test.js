@@ -1,11 +1,7 @@
 const { expect } = require('expect');
 const app = require('../../server');
 const { populateDB, coursesList, courseHistoriesList, userList } = require('./seed/courseHistoriesSeed');
-const {
-  trainerAndCoach,
-  holdingAdminFromOtherCompany,
-  holdingAdminFromAuthCompany,
-} = require('../seed/authUsersSeed');
+const { trainerAndCoach, holdingAdminFromOtherCompany, holdingAdminFromAuthCompany } = require('../seed/authUsersSeed');
 const { getToken, getTokenByCredentials } = require('./helpers/authentication');
 const { CompaniDate } = require('../../src/helpers/dates/companiDates');
 
