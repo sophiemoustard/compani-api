@@ -141,7 +141,7 @@ describe('COURSE SLOTS ROUTES - POST /courseslots', () => {
   });
 });
 
-describe('COURSE SLOTS ROUTES - PUT /courseslots/{_id} ', () => {
+describe('COURSE SLOTS ROUTES - PUT /courseslots/{_id}', () => {
   let authToken;
   beforeEach(populateDB);
 
@@ -576,7 +576,7 @@ describe('COURSE SLOTS ROUTES - PUT /courseslots/{_id} ', () => {
       });
   });
 
-  describe('Other roles', () => {
+  describe('TRAINER', () => {
     it('should a 200 as user is course trainer', async () => {
       authToken = await getTokenByCredentials(trainer.local);
       const payload = { startDate: '2020-03-04T09:00:00.000Z', endDate: '2020-03-04T11:00:00.000Z' };
@@ -590,10 +590,24 @@ describe('COURSE SLOTS ROUTES - PUT /courseslots/{_id} ', () => {
       expect(response.statusCode).toBe(200);
     });
 
+    it('should return 403 as user is trainer but not course trainer', async () => {
+      authToken = await getToken('trainer');
+      const payload = { startDate: '2020-03-04T09:00:00.000Z', endDate: '2020-03-04T11:00:00.000Z' };
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/courseslots/${courseSlotsList[3]._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload,
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
+  });
+
+  describe('Other roles', () => {
     const roles = [
       { name: 'helper', expectedCode: 403 },
       { name: 'planning_referent', expectedCode: 403 },
-      { name: 'trainer', expectedCode: 403 },
     ];
 
     roles.forEach((role) => {
