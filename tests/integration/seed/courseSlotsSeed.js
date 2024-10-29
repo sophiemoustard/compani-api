@@ -100,7 +100,7 @@ const coursesList = [
     misc: 'first session',
     type: INTRA,
     maxTrainees: 8,
-    trainers: [trainer._id, trainerAndCoach],
+    trainers: [trainer._id, trainerAndCoach._id],
     operationsRepresentative: vendorAdmin._id,
   },
   { // 1
