@@ -78,7 +78,8 @@ exports.authorizeUpdate = async (req) => {
 
     const courseCompanies = [INTRA, INTRA_HOLDING].includes(course.type) ? course.companies : [];
     const courseHolding = course.type === INTRA_HOLDING ? course.holding : null;
-    checkAuthorization(req.auth.credentials, get(course, 'trainers'), courseCompanies, courseHolding);
+    const courseTrainerIds = get(course, 'trainers', []);
+    checkAuthorization(req.auth.credentials, courseTrainerIds, courseCompanies, courseHolding);
     await checkPayload(courseSlot, req.payload);
 
     return null;
