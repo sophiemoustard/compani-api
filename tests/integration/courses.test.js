@@ -4324,29 +4324,29 @@ describe('COURSES ROUTES - DELETE /:_id/accessrules/:accessRuleId', () => {
   });
 });
 
-// describe('COURSES ROUTES - GET /:_id/convocations', () => {
-//   beforeEach(populateDB);
+describe('COURSES ROUTES - GET /:_id/convocations', () => {
+  beforeEach(populateDB);
 
-//   describe('NOT LOGGED', () => {
-//     it('should return 200', async () => {
-//       const response = await app.inject({
-//         method: 'GET',
-//         url: `/courses/${coursesList[5]._id}/convocations`,
-//       });
+  describe('NOT LOGGED', () => {
+    it('should return 200', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/courses/${coursesList[5]._id}/convocations`,
+      });
 
-//       expect(response.statusCode).toBe(200);
-//     });
+      expect(response.statusCode).toBe(200);
+    });
 
-//     it('should return 404 if course doen\'t exist', async () => {
-//       const response = await app.inject({
-//         method: 'GET',
-//         url: `/courses/${new ObjectId()}/convocations`,
-//       });
+    it('should return 404 if course doen\'t exist', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/courses/${new ObjectId()}/convocations`,
+      });
 
-//       expect(response.statusCode).toBe(404);
-//     });
-//   });
-// });
+      expect(response.statusCode).toBe(404);
+    });
+  });
+});
 
 // describe('COURSES ROUTES - PUT /courses/{_id}/companies', () => {
 //   let authToken;
