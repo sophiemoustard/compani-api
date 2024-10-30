@@ -1144,12 +1144,12 @@ exports.formatCourseForConvocationPdf = (course) => {
     email: get(course, 'contact.local.email'),
     formattedPhone: UtilsHelper.formatPhoneNumber(get(course, 'contact.contact.phone')),
   };
-  const trainer = {
-    ...course.trainer,
+  const formattedTrainers = course.trainers.map(trainer => ({
+    ...trainer,
     formattedIdentity: UtilsHelper.formatIdentity(get(course, 'trainer.identity'), 'FL'),
-  };
+  }));
 
-  return { ...course, trainer, contact, slots };
+  return { ...course, formattedTrainers, contact, slots };
 };
 
 exports.generateConvocationPdf = async (courseId) => {
@@ -1162,7 +1162,7 @@ exports.generateConvocationPdf = async (courseId) => {
     .populate({ path: 'slots', select: 'startDate endDate address meetingLink' })
     .populate({ path: 'slotsToPlan', select: '_id' })
     .populate({ path: 'contact', select: 'identity.firstname identity.lastname contact.phone local.email' })
-    .populate({ path: 'trainer', select: 'identity.firstname identity.lastname biography' })
+    .populate({ path: 'trainers', select: 'identity.firstname identity.lastname biography' })
     .lean();
 
   const courseName = get(course, 'subProgram.program.name', '').split(' ').join('-') || 'Formation';
