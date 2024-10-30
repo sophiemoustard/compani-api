@@ -1145,7 +1145,7 @@ exports.formatCourseForConvocationPdf = (course) => {
   };
   const formattedTrainers = course.trainers.map(trainer => ({
     ...trainer,
-    formattedIdentity: UtilsHelper.formatIdentity(get(course, 'trainer.identity'), 'FL'),
+    formattedIdentity: UtilsHelper.formatIdentity(trainer.identity, 'FL'),
   }));
 
   return { ...course, formattedTrainers, contact, slots };
