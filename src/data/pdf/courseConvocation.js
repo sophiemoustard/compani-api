@@ -104,32 +104,31 @@ const getProgramInfo = (image, program) => ({
   columnGap: 12,
 });
 
-const getTrainerAndContactInfo = (trainerImg, trainer, contactImg, contact) => ({
+const getTrainersInfo = (trainerImg, trainer) => ({
   columns: [
-    {
-      columns: [
-        { image: trainerImg, width: 64, style: 'img' },
-        [
-          { text: 'Intervenant(e)', style: 'infoTitle' },
-          { text: get(trainer, 'formattedIdentity') || '', style: 'infoSubTitle' },
-          { text: get(trainer, 'biography') || '', style: 'infoContent' },
-        ],
-      ],
-      width: 'auto',
-    },
-    {
-      columns: [
-        { image: contactImg, width: 64, style: 'img' },
-        [
-          { text: 'Votre contact pour la formation', style: 'infoTitle' },
-          { text: get(contact, 'formattedIdentity') || '', style: 'infoSubTitle' },
-          { text: get(contact, 'formattedPhone') || '', style: 'infoSubTitle' },
-          { text: get(contact, 'email') || '', style: 'infoSubTitle' },
-        ],
-      ],
-      width: 'auto',
-    },
+    { image: trainerImg, width: 64, style: 'img' },
+    [
+      { text: 'Intervenant(e)', style: 'infoTitle' },
+      { text: get(trainer, 'formattedIdentity') || '', style: 'infoSubTitle' },
+      { text: get(trainer, 'biography') || '', style: 'infoContent' },
+    ],
   ],
+  width: 'auto',
+  marginTop: 24,
+  columnGap: 12,
+});
+
+const getContactInfo = (contactImg, contact) => ({
+  columns: [
+    { image: contactImg, width: 64, style: 'img' },
+    [
+      { text: 'Votre contact pour la formation', style: 'infoTitle' },
+      { text: get(contact, 'formattedIdentity') || '', style: 'infoSubTitle' },
+      { text: get(contact, 'formattedPhone') || '', style: 'infoSubTitle' },
+      { text: get(contact, 'email') || '', style: 'infoSubTitle' },
+    ],
+  ],
+  width: 'auto',
   marginTop: 24,
   columnGap: 12,
 });
@@ -140,11 +139,12 @@ exports.getPdfContent = async (data) => {
   const header = getHeader(thumb, data.misc, data.subProgram);
   const table = getTable(data.slots, data.slotsToPlan);
   const programInfo = getProgramInfo(explanation, data.subProgram.program);
-  const trainerAndContactInfo = getTrainerAndContactInfo(quizz, data.trainer, confused, data.contact);
+  const trainersInfo = getTrainersInfo(quizz, data.trainer, confused);
+  const contactInfo = getContactInfo(data.contact);
 
   return {
     template: {
-      content: [header, table, programInfo, trainerAndContactInfo].flat(),
+      content: [header, table, programInfo, contactInfo, trainersInfo].flat(),
       defaultStyle: { font: 'SourceSans', fontSize: 10 },
       styles: {
         title: { fontSize: 20, bold: true, color: COPPER_500, marginLeft: 24 },
