@@ -104,19 +104,19 @@ const getProgramInfo = (image, program) => ({
   columnGap: 12,
 });
 
-const getTrainersInfo = (trainerImg, trainer) => ({
-  columns: [
-    { image: trainerImg, width: 64, style: 'img' },
-    [
-      { text: 'Intervenant(e)', style: 'infoTitle' },
-      { text: get(trainer, 'formattedIdentity') || '', style: 'infoSubTitle' },
-      { text: get(trainer, 'biography') || '', style: 'infoContent' },
+const getTrainersInfo = (trainerImg, trainers) =>
+  trainers.map(trainer => ({
+    columns: [
+      { image: trainerImg, width: 64, style: 'img' },
+      [
+        { text: 'Intervenant(e)', style: 'infoTitle' },
+        { text: get(trainer, 'formattedIdentity') || '', style: 'infoSubTitle' },
+        { text: get(trainer, 'biography') || '', style: 'infoContent' },
+      ],
     ],
-  ],
-  width: 'auto',
-  marginTop: 24,
-  columnGap: 12,
-});
+    marginTop: 24,
+    columnGap: 12,
+  }));
 
 const getContactInfo = (contactImg, contact) => ({
   columns: [
@@ -128,7 +128,6 @@ const getContactInfo = (contactImg, contact) => ({
       { text: get(contact, 'email') || '', style: 'infoSubTitle' },
     ],
   ],
-  width: 'auto',
   marginTop: 24,
   columnGap: 12,
 });
@@ -139,8 +138,8 @@ exports.getPdfContent = async (data) => {
   const header = getHeader(thumb, data.misc, data.subProgram);
   const table = getTable(data.slots, data.slotsToPlan);
   const programInfo = getProgramInfo(explanation, data.subProgram.program);
-  const trainersInfo = getTrainersInfo(quizz, data.trainer, confused);
-  const contactInfo = getContactInfo(data.contact);
+  const contactInfo = getContactInfo(confused, data.contact);
+  const trainersInfo = getTrainersInfo(quizz, data.formattedTrainers);
 
   return {
     template: {
