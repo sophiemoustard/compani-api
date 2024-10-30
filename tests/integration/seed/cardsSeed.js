@@ -64,6 +64,8 @@ const cardsList = [
   { // 8
     _id: new ObjectId(),
     template: ORDER_THE_SEQUENCE,
+    question: 'question ?',
+    explanation: 'explanation',
     orderedAnswers: [
       { _id: new ObjectId(), text: 'rien' },
       { _id: new ObjectId(), text: 'des trucs' },
@@ -108,7 +110,12 @@ const cardsList = [
   { // 16
     _id: new ObjectId(),
     template: ORDER_THE_SEQUENCE,
-    orderedAnswers: [{ _id: new ObjectId(), text: 'rien' }, { _id: new ObjectId(), text: 'des trucs' }],
+    question: 'question ?',
+    orderedAnswers: [
+      { _id: new ObjectId(), text: 'rien' },
+      { _id: new ObjectId(), text: 'des trucs' },
+      { _id: new ObjectId(), text: 'des choses' },
+    ],
   },
   { // 17
     _id: new ObjectId(),
