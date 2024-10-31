@@ -574,7 +574,7 @@ describe('COURSE SLOTS ROUTES - PUT /courseslots/{_id}', () => {
   });
 
   describe('TRAINER', () => {
-    it('should return a 200 as user is course trainer', async () => {
+    it('should return 200 as user is course trainer', async () => {
       authToken = await getTokenByCredentials(trainer.local);
       const payload = { startDate: '2020-03-04T09:00:00.000Z', endDate: '2020-03-04T11:00:00.000Z' };
       const response = await app.inject({
