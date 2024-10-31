@@ -35,7 +35,10 @@ describe('getPdfContent', () => {
         { date: '15/01/2020', hours: '12h - 14h', meetingLink: 'https://pointerpointer.com/' },
       ],
       slotsToPlan: [{ _id: new ObjectId() }],
-      trainer: { formattedIdentity: 'test OK', biography: 'Voici ma bio' },
+      formattedTrainers: [
+        { formattedIdentity: 'Toto TITI', biography: 'Voici ma bio' },
+        { formattedIdentity: 'Tata TUTU', biography: 'Voici ma bio' },
+      ],
       contact: { formattedIdentity: 'Ca roule', formattedPhone: '09 87 65 43 21', email: 'test@test.fr' },
     };
 
@@ -53,6 +56,7 @@ describe('getPdfContent', () => {
         ],
       },
     ];
+
     const table = [
       {
         table: {
@@ -104,6 +108,7 @@ describe('getPdfContent', () => {
       },
       { text: 'Il reste 1 créneau(x) à planifier.', style: 'notes' },
     ];
+
     const programInfo = {
       columns: [
         { image: 'src/data/pdf/tmp/doct-explication.png', width: 64, style: 'img' },
@@ -112,37 +117,50 @@ describe('getPdfContent', () => {
       marginTop: 24,
       columnGap: 12,
     };
-    const trainerAndContactInfo = {
+
+    const trainersInfo = [
+      {
+        columns: [
+          { image: 'src/data/pdf/tmp/doct-explication.png', width: 64, style: 'img' },
+          [
+            { text: 'Intervenant(e)', style: 'infoTitle' },
+            { text: 'Toto TITI', style: 'infoSubTitle' },
+            { text: 'Voici ma bio', style: 'infoContent' },
+          ],
+        ],
+        marginTop: 24,
+        columnGap: 12,
+      },
+      {
+        columns: [
+          { image: 'src/data/pdf/tmp/doct-explication.png', width: 64, style: 'img' },
+          [
+            { text: 'Intervenant(e)', style: 'infoTitle' },
+            { text: 'Tata TUTU', style: 'infoSubTitle' },
+            { text: 'Voici ma bio', style: 'infoContent' },
+          ],
+        ],
+        marginTop: 24,
+        columnGap: 12,
+      },
+    ];
+
+    const contactInfo = {
       columns: [
-        {
-          columns: [
-            { image: 'src/data/pdf/tmp/doct-explication.png', width: 64, style: 'img' },
-            [
-              { text: 'Intervenant(e)', style: 'infoTitle' },
-              { text: 'test OK', style: 'infoSubTitle' },
-              { text: 'Voici ma bio', style: 'infoContent' },
-            ],
-          ],
-          width: 'auto',
-        },
-        {
-          columns: [
-            { image: 'src/data/pdf/tmp/aux-perplexite.png', width: 64, style: 'img' },
-            [
-              { text: 'Votre contact pour la formation', style: 'infoTitle' },
-              { text: 'Ca roule', style: 'infoSubTitle' },
-              { text: '09 87 65 43 21', style: 'infoSubTitle' },
-              { text: 'test@test.fr', style: 'infoSubTitle' },
-            ],
-          ],
-          width: 'auto',
-        },
+        { image: 'src/data/pdf/tmp/aux-perplexite.png', width: 64, style: 'img' },
+        [
+          { text: 'Votre contact pour la formation', style: 'infoTitle' },
+          { text: 'Ca roule', style: 'infoSubTitle' },
+          { text: '09 87 65 43 21', style: 'infoSubTitle' },
+          { text: 'test@test.fr', style: 'infoSubTitle' },
+        ],
       ],
       marginTop: 24,
       columnGap: 12,
     };
+
     const pdf = {
-      content: [header, table, programInfo, trainerAndContactInfo].flat(),
+      content: [header, table, programInfo, contactInfo, trainersInfo].flat(),
       defaultStyle: { font: 'SourceSans', fontSize: 10 },
       styles: {
         title: { fontSize: 20, bold: true, color: COPPER_500, marginLeft: 24 },
@@ -184,6 +202,10 @@ describe('getPdfContent', () => {
         { date: '14/01/2020', hours: '12h - 14h', address: '24 avenue du test' },
         { date: '22/01/2020', hours: '12h - 14h', meetingLink: 'https://mondrianandme.com/' },
       ],
+      formattedTrainers: [
+        { formattedIdentity: '', biography: '' },
+        { formattedIdentity: '', biography: '' },
+      ],
     };
 
     const result = await CourseConvocation.getPdfContent(data);
@@ -200,6 +222,7 @@ describe('getPdfContent', () => {
         ],
       },
     ];
+
     const table = [
       {
         table: {
@@ -252,6 +275,7 @@ describe('getPdfContent', () => {
         marginTop: 24,
       },
     ];
+
     const programInfo = {
       columns: [
         { image: 'src/data/pdf/tmp/doct-explication.png', width: 64, style: 'img' },
@@ -260,37 +284,50 @@ describe('getPdfContent', () => {
       marginTop: 24,
       columnGap: 12,
     };
-    const trainerAndContactInfo = {
+
+    const trainersInfo = [
+      {
+        columns: [
+          { image: 'src/data/pdf/tmp/doct-explication.png', width: 64, style: 'img' },
+          [
+            { text: 'Intervenant(e)', style: 'infoTitle' },
+            { text: '', style: 'infoSubTitle' },
+            { text: '', style: 'infoContent' },
+          ],
+        ],
+        marginTop: 24,
+        columnGap: 12,
+      },
+      {
+        columns: [
+          { image: 'src/data/pdf/tmp/doct-explication.png', width: 64, style: 'img' },
+          [
+            { text: 'Intervenant(e)', style: 'infoTitle' },
+            { text: '', style: 'infoSubTitle' },
+            { text: '', style: 'infoContent' },
+          ],
+        ],
+        marginTop: 24,
+        columnGap: 12,
+      },
+    ];
+
+    const contactInfo = {
       columns: [
-        {
-          columns: [
-            { image: 'src/data/pdf/tmp/doct-explication.png', width: 64, style: 'img' },
-            [
-              { text: 'Intervenant(e)', style: 'infoTitle' },
-              { text: '', style: 'infoSubTitle' },
-              { text: '', style: 'infoContent' },
-            ],
-          ],
-          width: 'auto',
-        },
-        {
-          columns: [
-            { image: 'src/data/pdf/tmp/aux-perplexite.png', width: 64, style: 'img' },
-            [
-              { text: 'Votre contact pour la formation', style: 'infoTitle' },
-              { text: '', style: 'infoSubTitle' },
-              { text: '', style: 'infoSubTitle' },
-              { text: '', style: 'infoSubTitle' },
-            ],
-          ],
-          width: 'auto',
-        },
+        { image: 'src/data/pdf/tmp/aux-perplexite.png', width: 64, style: 'img' },
+        [
+          { text: 'Votre contact pour la formation', style: 'infoTitle' },
+          { text: '', style: 'infoSubTitle' },
+          { text: '', style: 'infoSubTitle' },
+          { text: '', style: 'infoSubTitle' },
+        ],
       ],
       marginTop: 24,
       columnGap: 12,
     };
+
     const pdf = {
-      content: [header, table, programInfo, trainerAndContactInfo].flat(),
+      content: [header, table, programInfo, contactInfo, trainersInfo].flat(),
       defaultStyle: { font: 'SourceSans', fontSize: 10 },
       styles: {
         title: { fontSize: 20, bold: true, color: COPPER_500, marginLeft: 24 },
