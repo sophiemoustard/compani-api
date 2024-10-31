@@ -6088,7 +6088,10 @@ describe('formatCourseForConvocationPdf', () => {
     const course = {
       _id: courseId,
       subProgram: { program: { name: 'Comment attraper des Pokemons' } },
-      trainer: { identity: { firstname: 'Ash', lastname: 'Ketchum' } },
+      trainers: [
+        { identity: { firstname: 'Ash', lastname: 'Ketchum' } },
+        { identity: { firstname: 'Toto', lastname: 'Tata' } },
+      ],
       contact: {
         identity: { firstname: 'Pika', lastname: 'CHU' },
         contact: { phone: '0123456789' },
@@ -6108,8 +6111,9 @@ describe('formatCourseForConvocationPdf', () => {
       ],
     };
 
-    formatIdentity.onCall(0).returns('Pika Chu');
-    formatIdentity.onCall(1).returns('Ash Ketchum');
+    formatIdentity.onCall(0).returns('Pika CHU');
+    formatIdentity.onCall(1).returns('Ash KETCHUM');
+    formatIdentity.onCall(2).returns('Toto TATA');
     formatHoursForConvocation.onCall(0).returns('13:30 - 14:30');
     formatHoursForConvocation.onCall(1).returns('18:30 - 20:30');
     groupSlotsByDate.returns([
@@ -6130,16 +6134,33 @@ describe('formatCourseForConvocationPdf', () => {
     expect(result).toEqual({
       _id: courseId,
       subProgram: { program: { name: 'Comment attraper des Pokemons' } },
-      trainer: { identity: { firstname: 'Ash', lastname: 'Ketchum' }, formattedIdentity: 'Ash Ketchum' },
-      contact: { formattedIdentity: 'Pika Chu', formattedPhone: '01 23 45 67 89', email: 'pikachu@coucou.fr' },
+      trainers: [
+        { identity: { firstname: 'Ash', lastname: 'Ketchum' }, formattedIdentity: 'Ash KETCHUM' },
+        { identity: { firstname: 'Toto', lastname: 'Tata' }, formattedIdentity: 'Toto TATA' },
+      ],
+      contact: { formattedIdentity: 'Pika CHU', formattedPhone: '01 23 45 67 89', email: 'pikachu@coucou.fr' },
       slots: [
         { date: '12/10/2020', hours: '13:30 - 14:30', address: '3 rue T' },
         { date: '14/10/2020', hours: '18:30 - 20:30', meetingLink: 'http://eelslap.com/' },
       ],
     });
 
+    sinon.assert.calledOnceWithExactly(
+      groupSlotsByDate,
+      [{
+        startDate: '2020-10-12T12:30:00',
+        endDate: '2020-10-12T13:30:00',
+        address: { fullAddress: '3 rue T' },
+      },
+      {
+        startDate: '2020-10-14T17:30:00',
+        endDate: '2020-10-14T19:30:00',
+        meetingLink: 'http://eelslap.com/',
+      }]
+    );
     sinon.assert.calledWithExactly(formatIdentity.getCall(0), { firstname: 'Pika', lastname: 'CHU' }, 'FL');
     sinon.assert.calledWithExactly(formatIdentity.getCall(1), { firstname: 'Ash', lastname: 'Ketchum' }, 'FL');
+    sinon.assert.calledWithExactly(formatIdentity.getCall(2), { firstname: 'Toto', lastname: 'Tata' }, 'FL');
     sinon.assert.calledWithExactly(
       formatHoursForConvocation.getCall(0),
       [{ startDate: '2020-10-12T12:30:00', endDate: '2020-10-12T13:30:00', address: { fullAddress: '3 rue T' } }]
@@ -6173,7 +6194,10 @@ describe('generateConvocationPdf', () => {
       {
         _id: courseId,
         subProgram: { program: { name: 'Comment attraper des Pokemons' } },
-        trainer: { identity: { firstname: 'Ash', lastname: 'Ketchum' } },
+        formattedTrainers: [
+          { identity: { firstname: 'Ash', lastname: 'Ketchum' } },
+          { identity: { firstname: 'Toto', lastname: 'Tata' } },
+        ],
         contact: { phone: '0123456789' },
         slots: [{
           startDate: '2020-10-12T12:30:00.000+01:00',
@@ -6186,8 +6210,11 @@ describe('generateConvocationPdf', () => {
     formatCourseForConvocationPdf.returns({
       _id: courseId,
       subProgram: { program: { name: 'Comment attraper des Pokemons' } },
-      trainer: { identity: { firstname: 'Ash', lastname: 'Ketchum' } },
-      trainerIdentity: 'Ash Ketchum',
+      formattedTrainers: [
+        { identity: { firstname: 'Ash', lastname: 'Ketchum' } },
+        { identity: { firstname: 'Toto', lastname: 'Tata' } },
+      ],
+      trainersIdentity: ('Ash Ketchum', 'Toto Tata'),
       contact: { phone: '0123456789' },
       contactPhoneNumber: '01 23 45 67 89',
       slots: [{
@@ -6220,7 +6247,7 @@ describe('generateConvocationPdf', () => {
         query: 'populate',
         args: [{ path: 'contact', select: 'identity.firstname identity.lastname contact.phone local.email' }],
       },
-      { query: 'populate', args: [{ path: 'trainer', select: 'identity.firstname identity.lastname biography' }] },
+      { query: 'populate', args: [{ path: 'trainers', select: 'identity.firstname identity.lastname biography' }] },
       { query: 'lean' },
     ]);
     sinon.assert.calledOnceWithExactly(
@@ -6228,7 +6255,10 @@ describe('generateConvocationPdf', () => {
       {
         _id: courseId,
         subProgram: { program: { name: 'Comment attraper des Pokemons' } },
-        trainer: { identity: { firstname: 'Ash', lastname: 'Ketchum' } },
+        formattedTrainers: [
+          { identity: { firstname: 'Ash', lastname: 'Ketchum' } },
+          { identity: { firstname: 'Toto', lastname: 'Tata' } },
+        ],
         contact: { phone: '0123456789' },
         slots: [{
           startDate: '2020-10-12T12:30:00.000+01:00',
@@ -6242,8 +6272,11 @@ describe('generateConvocationPdf', () => {
       {
         _id: courseId,
         subProgram: { program: { name: 'Comment attraper des Pokemons' } },
-        trainer: { identity: { firstname: 'Ash', lastname: 'Ketchum' } },
-        trainerIdentity: 'Ash Ketchum',
+        formattedTrainers: [
+          { identity: { firstname: 'Ash', lastname: 'Ketchum' } },
+          { identity: { firstname: 'Toto', lastname: 'Tata' } },
+        ],
+        trainersIdentity: ('Ash Ketchum', 'Toto Tata'),
         contact: { phone: '0123456789' },
         contactPhoneNumber: '01 23 45 67 89',
         slots: [{

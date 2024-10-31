@@ -1149,7 +1149,7 @@ exports.formatCourseForConvocationPdf = (course) => {
     formattedIdentity: UtilsHelper.formatIdentity(trainer.identity, 'FL'),
   }));
 
-  return { ...course, formattedTrainers, contact, slots };
+  return { ...course, trainers: formattedTrainers, contact, slots };
 };
 
 exports.generateConvocationPdf = async (courseId) => {
