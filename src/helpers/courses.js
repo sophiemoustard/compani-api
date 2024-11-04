@@ -806,7 +806,7 @@ exports.formatIntraCourseForPdf = (course) => {
     name,
     duration: UtilsHelper.getTotalDuration(course.slots),
     company: UtilsHelper.formatName(course.companies),
-    trainer: course.trainer ? UtilsHelper.formatIdentity(course.trainer.identity, 'FL') : '',
+    trainers: course.trainers.map(trainer => UtilsHelper.formatIdentity(trainer.identity, 'FL')).join(', '),
     type: course.type,
   };
 
@@ -833,7 +833,7 @@ exports.formatInterCourseForPdf = async (course) => {
   const courseData = {
     name,
     slots: filteredSlots.map(exports.formatInterCourseSlotsForPdf),
-    trainer: course.trainer ? UtilsHelper.formatIdentity(course.trainer.identity, 'FL') : '',
+    trainers: course.trainers.map(trainer => UtilsHelper.formatIdentity(trainer.identity, 'FL')).join(', '),
     firstDate: filteredSlots.length ? CompaniDate(filteredSlots[0].startDate).format(DD_MM_YYYY) : '',
     lastDate: filteredSlots.length
       ? CompaniDate(filteredSlots[filteredSlots.length - 1].startDate).format(DD_MM_YYYY)
@@ -866,7 +866,7 @@ exports.generateAttendanceSheets = async (courseId) => {
     .populate({ path: 'companies', select: 'name' })
     .populate({ path: 'slots', select: 'step startDate endDate address', populate: { path: 'step', select: 'type' } })
     .populate({ path: 'trainees', select: 'identity' })
-    .populate({ path: 'trainer', select: 'identity' })
+    .populate({ path: 'trainers', select: 'identity' })
     .populate({ path: 'subProgram', select: 'program', populate: { path: 'program', select: 'name' } })
     .lean();
 

@@ -151,14 +151,14 @@ exports.authorizeGetDocuments = async (req) => {
   const { credentials } = req.auth;
 
   const course = await Course
-    .findOne({ _id: req.params._id }, { trainees: 1, companies: 1, trainer: 1, type: 1, holding: 1 })
+    .findOne({ _id: req.params._id }, { trainees: 1, companies: 1, trainers: 1, type: 1, holding: 1 })
     .lean();
   if (!course) throw Boom.notFound();
 
   const isTrainee = UtilsHelper.doesArrayIncludeId(course.trainees, get(credentials, '_id'));
   if (isTrainee && (get(req, 'query.origin') === MOBILE || get(req, 'query.format') === PDF)) return null;
 
-  const courseTrainerId = get(course, 'trainer') || null;
+  const courseTrainerId = get(course, 'trainers') || [];
   const holding = course.type === INTRA_HOLDING ? course.holding : null;
   this.checkAuthorization(credentials, courseTrainerId, course.companies, holding);
 
