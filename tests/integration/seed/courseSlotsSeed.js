@@ -11,7 +11,7 @@ const Step = require('../../../src/models/Step');
 const SubProgram = require('../../../src/models/SubProgram');
 const Attendance = require('../../../src/models/Attendance');
 const { authCompany, otherCompany, companyWithoutSubscription, authHolding } = require('../../seed/authCompaniesSeed');
-const { vendorAdmin } = require('../../seed/authUsersSeed');
+const { vendorAdmin, trainerAndCoach } = require('../../seed/authUsersSeed');
 const { WEBAPP, INTRA, PUBLISHED, LESSON, INTRA_HOLDING } = require('../../../src/helpers/constants');
 const { deleteNonAuthenticationSeeds } = require('../helpers/db');
 const { trainerRoleId, auxiliaryRoleId } = require('../../seed/authRolesSeed');
@@ -100,7 +100,7 @@ const coursesList = [
     misc: 'first session',
     type: INTRA,
     maxTrainees: 8,
-    trainers: [trainer._id],
+    trainers: [trainer._id, trainerAndCoach._id],
     operationsRepresentative: vendorAdmin._id,
   },
   { // 1
