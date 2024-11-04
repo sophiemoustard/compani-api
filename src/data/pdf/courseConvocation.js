@@ -139,7 +139,7 @@ exports.getPdfContent = async (data) => {
   const table = getTable(data.slots, data.slotsToPlan);
   const programInfo = getProgramInfo(explanation, data.subProgram.program);
   const contactInfo = getContactInfo(confused, data.contact);
-  const trainersInfo = getTrainersInfo(quizz, data.formattedTrainers);
+  const trainersInfo = getTrainersInfo(quizz, data.trainers);
 
   return {
     template: {
