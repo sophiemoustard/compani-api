@@ -35,7 +35,7 @@ describe('getPdfContent', () => {
         { date: '15/01/2020', hours: '12h - 14h', meetingLink: 'https://pointerpointer.com/' },
       ],
       slotsToPlan: [{ _id: new ObjectId() }],
-      formattedTrainers: [
+      trainers: [
         { formattedIdentity: 'Toto TITI', biography: 'Voici ma bio' },
         { formattedIdentity: 'Tata TUTU', biography: 'Voici ma bio' },
       ],
@@ -202,7 +202,7 @@ describe('getPdfContent', () => {
         { date: '14/01/2020', hours: '12h - 14h', address: '24 avenue du test' },
         { date: '22/01/2020', hours: '12h - 14h', meetingLink: 'https://mondrianandme.com/' },
       ],
-      formattedTrainers: [
+      trainers: [
         { formattedIdentity: '', biography: '' },
         { formattedIdentity: '', biography: '' },
       ],
