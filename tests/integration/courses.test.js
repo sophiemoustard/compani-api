@@ -3744,7 +3744,7 @@ describe('COURSES ROUTES - DELETE /courses/{_id}/trainees/{traineeId}', () => {
   });
 });
 
-describe('COURSES ROUTES - GET /:_id/attendance-sheets #tag', () => {
+describe('COURSES ROUTES - GET /:_id/attendance-sheets', () => {
   let authToken;
   const intraCourseIdFromAuthCompany = coursesList[2]._id;
   const interCourseIdFromAuthCompany = coursesList[5]._id;
