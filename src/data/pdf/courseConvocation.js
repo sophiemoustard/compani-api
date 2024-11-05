@@ -20,7 +20,7 @@ const getHeader = (image, misc, subProgram) => {
   return [
     {
       columns: [
-        { image, width: 64, style: 'img' },
+        { image, width: 64 },
         [
           { text: 'Vous êtes convoqué(e) à la formation', style: 'surtitle' },
           { text: title, style: 'title' },
@@ -94,7 +94,7 @@ const getTable = (slots, slotsToPlan) => {
 
 const getProgramInfo = (image, program) => ({
   columns: [
-    { image, width: 64, style: 'img' },
+    { image, width: 64 },
     [
       { text: 'Programme de la formation', style: 'infoTitle' },
       { text: program.description || '', style: 'infoContent' },
@@ -105,22 +105,20 @@ const getProgramInfo = (image, program) => ({
 });
 
 const getTrainersInfo = (trainerImg, trainers) =>
-  trainers.map(trainer => ({
-    columns: [
-      { image: trainerImg, width: 64, style: 'img' },
-      [
-        { text: 'Intervenant(e)', style: 'infoTitle' },
-        { text: get(trainer, 'formattedIdentity') || '', style: 'infoSubTitle' },
-        { text: get(trainer, 'biography') || '', style: 'infoContent' },
-      ],
-    ],
-    marginTop: 24,
-    columnGap: 12,
-  }));
+  trainers.map((trainer, index) => {
+    const trainerInfos = [
+      { text: 'Intervenant(e)', style: 'infoTitle' },
+      { text: get(trainer, 'formattedIdentity') || '', style: 'infoSubTitle' },
+      { text: get(trainer, 'biography') || '', style: 'infoContent' },
+    ];
+    return index === 0
+      ? { columns: [{ image: trainerImg, width: 64 }, trainerInfos], marginTop: 24, columnGap: 12 }
+      : { columns: [trainerInfos], marginTop: 24, columnGap: 12, marginLeft: 76 };
+  });
 
 const getContactInfo = (contactImg, contact) => ({
   columns: [
-    { image: contactImg, width: 64, style: 'img' },
+    { image: contactImg, width: 64 },
     [
       { text: 'Votre contact pour la formation', style: 'infoTitle' },
       { text: get(contact, 'formattedIdentity') || '', style: 'infoSubTitle' },
