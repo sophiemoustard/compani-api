@@ -235,11 +235,11 @@ exports.formatSiret = siret => (
     : ''
 );
 
-exports.formatQuantity = (label, quantity, pluralMark = 's') => {
+exports.formatQuantity = (label, quantity, pluralMark = 's', displayQuantity = true) => {
   let itemLabel = label;
   if (quantity > 1) itemLabel = label.split(' ').map(word => `${word}${pluralMark}`).join(' ');
 
-  return `${quantity} ${itemLabel}`;
+  return displayQuantity ? `${quantity} ${itemLabel}` : itemLabel;
 };
 
 exports.hasUserAccessToCompany = (credentials, company) => {
