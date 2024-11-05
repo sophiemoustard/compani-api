@@ -22,7 +22,7 @@ exports.getPdfContent = async (data) => {
         { text: `Dates : du ${trainee.course.firstDate} au ${trainee.course.lastDate}` },
         { text: `Durée : ${trainee.course.duration}` },
         { text: `Structure : ${trainee.registrationCompany}` },
-        { text: `Intervenant(e) : ${trainee.course.trainer}` },
+        { text: `Intervenant(e) : ${trainee.course.trainers}` },
       ],
       { image: decision, width: 64 },
     ];
