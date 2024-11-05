@@ -47,7 +47,7 @@ describe('getPdfContent', () => {
     const header = [
       {
         columns: [
-          { image: 'src/data/pdf/tmp/aux-pouce.png', width: 64, style: 'img' },
+          { image: 'src/data/pdf/tmp/aux-pouce.png', width: 64 },
           [
             { text: 'Vous êtes convoqué(e) à la formation', style: 'surtitle' },
             { text: 'test - groupe 3', style: 'title' },
@@ -111,7 +111,7 @@ describe('getPdfContent', () => {
 
     const programInfo = {
       columns: [
-        { image: 'src/data/pdf/tmp/doct-explication.png', width: 64, style: 'img' },
+        { image: 'src/data/pdf/tmp/doct-explication.png', width: 64 },
         [{ text: 'Programme de la formation', style: 'infoTitle' }, { text: 'on va apprendre', style: 'infoContent' }],
       ],
       marginTop: 24,
@@ -121,7 +121,7 @@ describe('getPdfContent', () => {
     const trainersInfo = [
       {
         columns: [
-          { image: 'src/data/pdf/tmp/doct-explication.png', width: 64, style: 'img' },
+          { image: 'src/data/pdf/tmp/doct-explication.png', width: 64 },
           [
             { text: 'Intervenant(e)', style: 'infoTitle' },
             { text: 'Toto TITI', style: 'infoSubTitle' },
@@ -133,7 +133,6 @@ describe('getPdfContent', () => {
       },
       {
         columns: [
-          { image: 'src/data/pdf/tmp/doct-explication.png', width: 64, style: 'img' },
           [
             { text: 'Intervenant(e)', style: 'infoTitle' },
             { text: 'Tata TUTU', style: 'infoSubTitle' },
@@ -142,12 +141,13 @@ describe('getPdfContent', () => {
         ],
         marginTop: 24,
         columnGap: 12,
+        marginLeft: 76,
       },
     ];
 
     const contactInfo = {
       columns: [
-        { image: 'src/data/pdf/tmp/aux-perplexite.png', width: 64, style: 'img' },
+        { image: 'src/data/pdf/tmp/aux-perplexite.png', width: 64 },
         [
           { text: 'Votre contact pour la formation', style: 'infoTitle' },
           { text: 'Ca roule', style: 'infoSubTitle' },
@@ -213,7 +213,7 @@ describe('getPdfContent', () => {
     const header = [
       {
         columns: [
-          { image: 'src/data/pdf/tmp/aux-pouce.png', width: 64, style: 'img' },
+          { image: 'src/data/pdf/tmp/aux-pouce.png', width: 64 },
           [
             { text: 'Vous êtes convoqué(e) à la formation', style: 'surtitle' },
             { text: 'test', style: 'title' },
@@ -278,7 +278,7 @@ describe('getPdfContent', () => {
 
     const programInfo = {
       columns: [
-        { image: 'src/data/pdf/tmp/doct-explication.png', width: 64, style: 'img' },
+        { image: 'src/data/pdf/tmp/doct-explication.png', width: 64 },
         [{ text: 'Programme de la formation', style: 'infoTitle' }, { text: '', style: 'infoContent' }],
       ],
       marginTop: 24,
@@ -288,7 +288,7 @@ describe('getPdfContent', () => {
     const trainersInfo = [
       {
         columns: [
-          { image: 'src/data/pdf/tmp/doct-explication.png', width: 64, style: 'img' },
+          { image: 'src/data/pdf/tmp/doct-explication.png', width: 64 },
           [
             { text: 'Intervenant(e)', style: 'infoTitle' },
             { text: '', style: 'infoSubTitle' },
@@ -300,7 +300,6 @@ describe('getPdfContent', () => {
       },
       {
         columns: [
-          { image: 'src/data/pdf/tmp/doct-explication.png', width: 64, style: 'img' },
           [
             { text: 'Intervenant(e)', style: 'infoTitle' },
             { text: '', style: 'infoSubTitle' },
@@ -309,12 +308,13 @@ describe('getPdfContent', () => {
         ],
         marginTop: 24,
         columnGap: 12,
+        marginLeft: 76,
       },
     ];
 
     const contactInfo = {
       columns: [
-        { image: 'src/data/pdf/tmp/aux-perplexite.png', width: 64, style: 'img' },
+        { image: 'src/data/pdf/tmp/aux-perplexite.png', width: 64 },
         [
           { text: 'Votre contact pour la formation', style: 'infoTitle' },
           { text: '', style: 'infoSubTitle' },
@@ -385,7 +385,7 @@ describe('getPdf', () => {
       content: [
         {
           columns: [
-            { image: 'src/data/pdf/tmp/aux-pouce.png', width: 64, style: 'img' },
+            { image: 'src/data/pdf/tmp/aux-pouce.png', width: 64 },
             [
               { text: 'Vous êtes convoqué(e) à la formation', style: 'surtitle' },
               { text: 'test', style: 'title' },
@@ -394,7 +394,7 @@ describe('getPdf', () => {
         },
         {
           columns: [
-            { image: 'src/data/pdf/tmp/doct-explication.png', width: 64, style: 'img' },
+            { image: 'src/data/pdf/tmp/doct-explication.png', width: 64 },
             [{ text: 'Programme de la formation', style: 'infoTitle' }, { text: '', style: 'infoContent' }],
           ],
           marginTop: 24,
