@@ -659,6 +659,12 @@ describe('formatQuantity', () => {
 
     expect(result).toBe('4 créneaux');
   });
+
+  it('should return plural label without quantity', () => {
+    const result = UtilsHelper.formatQuantity('formation', 4, 's', false);
+
+    expect(result).toBe('formations');
+  });
 });
 
 describe('hasUserAccessToCompany', () => {
