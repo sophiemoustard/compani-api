@@ -118,32 +118,25 @@ describe('getPdfContent', () => {
       columnGap: 12,
     };
 
-    const trainersInfo = [
-      {
-        columns: [
-          { image: 'src/data/pdf/tmp/doct-explication.png', width: 64 },
+    const trainersInfo = {
+      columns: [
+        { image: 'src/data/pdf/tmp/doct-explication.png', width: 64 },
+        [
           [
             { text: 'Intervenant(e)', style: 'infoTitle' },
             { text: 'Toto TITI', style: 'infoSubTitle' },
-            { text: 'Voici ma bio', style: 'infoContent' },
+            { text: 'Voici ma bio', style: 'infoContent', marginBottom: 12 },
           ],
-        ],
-        marginTop: 24,
-        columnGap: 12,
-      },
-      {
-        columns: [
           [
             { text: 'Intervenant(e)', style: 'infoTitle' },
             { text: 'Tata TUTU', style: 'infoSubTitle' },
-            { text: 'Voici ma bio', style: 'infoContent' },
+            { text: 'Voici ma bio', style: 'infoContent', marginBottom: 12 },
           ],
         ],
-        marginTop: 24,
-        columnGap: 12,
-        marginLeft: 76,
-      },
-    ];
+      ],
+      marginTop: 24,
+      columnGap: 12,
+    };
 
     const contactInfo = {
       columns: [
@@ -285,32 +278,25 @@ describe('getPdfContent', () => {
       columnGap: 12,
     };
 
-    const trainersInfo = [
-      {
-        columns: [
-          { image: 'src/data/pdf/tmp/doct-explication.png', width: 64 },
+    const trainersInfo = {
+      columns: [
+        { image: 'src/data/pdf/tmp/doct-explication.png', width: 64 },
+        [
           [
             { text: 'Intervenant(e)', style: 'infoTitle' },
             { text: '', style: 'infoSubTitle' },
-            { text: '', style: 'infoContent' },
+            { text: '', style: 'infoContent', marginBottom: 12 },
           ],
-        ],
-        marginTop: 24,
-        columnGap: 12,
-      },
-      {
-        columns: [
           [
             { text: 'Intervenant(e)', style: 'infoTitle' },
             { text: '', style: 'infoSubTitle' },
-            { text: '', style: 'infoContent' },
+            { text: '', style: 'infoContent', marginBottom: 12 },
           ],
         ],
-        marginTop: 24,
-        columnGap: 12,
-        marginLeft: 76,
-      },
-    ];
+      ],
+      marginTop: 24,
+      columnGap: 12,
+    };
 
     const contactInfo = {
       columns: [
