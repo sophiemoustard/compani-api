@@ -6190,7 +6190,7 @@ describe('generateConvocationPdf', () => {
       {
         _id: courseId,
         subProgram: { program: { name: 'Comment attraper des Pokemons' } },
-        formattedTrainers: [
+        trainers: [
           { identity: { firstname: 'Ash', lastname: 'Ketchum' } },
           { identity: { firstname: 'Toto', lastname: 'Tata' } },
         ],
@@ -6206,7 +6206,7 @@ describe('generateConvocationPdf', () => {
     formatCourseForConvocationPdf.returns({
       _id: courseId,
       subProgram: { program: { name: 'Comment attraper des Pokemons' } },
-      formattedTrainers: [
+      trainers: [
         { identity: { firstname: 'Ash', lastname: 'Ketchum' } },
         { identity: { firstname: 'Toto', lastname: 'Tata' } },
       ],
@@ -6251,7 +6251,7 @@ describe('generateConvocationPdf', () => {
       {
         _id: courseId,
         subProgram: { program: { name: 'Comment attraper des Pokemons' } },
-        formattedTrainers: [
+        trainers: [
           { identity: { firstname: 'Ash', lastname: 'Ketchum' } },
           { identity: { firstname: 'Toto', lastname: 'Tata' } },
         ],
@@ -6268,7 +6268,7 @@ describe('generateConvocationPdf', () => {
       {
         _id: courseId,
         subProgram: { program: { name: 'Comment attraper des Pokemons' } },
-        formattedTrainers: [
+        trainers: [
           { identity: { firstname: 'Ash', lastname: 'Ketchum' } },
           { identity: { firstname: 'Toto', lastname: 'Tata' } },
         ],
