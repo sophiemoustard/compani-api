@@ -88,7 +88,7 @@ describe('getPdfContent', () => {
                       { text: '- 22 avenue Daumesnil 75012 Paris', marginLeft: 8 },
                     ],
                   },
-                  { text: 'Intervenant·es : Jean BONBEUR, James PENCIL', marginBottom: 16 },
+                  { text: 'Intervenant·e·s : Jean BONBEUR, James PENCIL', marginBottom: 16 },
                   { text: 'Prix total TTC : 12 €' },
                   { text: '(Ce prix comprend les frais de formateurs)', italics: true },
                   {
