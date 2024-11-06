@@ -108,9 +108,9 @@ const getTrainersInfo = (trainerImg, trainers) => ({
   columns: [
     { image: trainerImg, width: 64 },
     trainers.map(trainer => [
-      { text: 'Intervenant(e)', style: 'infoTitle' },
+      { text: 'Intervenant·e', style: 'infoTitle' },
       { text: get(trainer, 'formattedIdentity') || '', style: 'infoSubTitle' },
-      { text: get(trainer, 'biography') || '', style: 'infoContent', marginBottom: 12 },
+      { text: get(trainer, 'biography') || '', style: 'infoContent' },
     ]),
   ],
   marginTop: 24,
@@ -152,7 +152,7 @@ exports.getPdfContent = async (data) => {
         notes: { italics: true, marginTop: 4 },
         infoTitle: { fontSize: 14, bold: true },
         infoSubTitle: { fontSize: 12 },
-        infoContent: { italics: true },
+        infoContent: { italics: true, marginBottom: 12 },
         icon: { font: 'icon' },
       },
     },
