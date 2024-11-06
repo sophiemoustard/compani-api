@@ -808,7 +808,7 @@ exports.formatIntraCourseForPdf = (course) => {
     name,
     duration: UtilsHelper.getTotalDuration(course.slots),
     company: UtilsHelper.formatName(course.companies),
-    trainers: course.trainers.map(trainer => UtilsHelper.formatIdentity(trainer.identity, 'FL')).join(', '),
+    trainers: course.trainers.map(trainer => UtilsHelper.formatIdentity(trainer.identity, 'FL')),
     type: course.type,
   };
 
@@ -835,7 +835,7 @@ exports.formatInterCourseForPdf = async (course) => {
   const courseData = {
     name,
     slots: filteredSlots.map(exports.formatInterCourseSlotsForPdf),
-    trainers: course.trainers.map(trainer => UtilsHelper.formatIdentity(trainer.identity, 'FL')).join(', '),
+    trainers: course.trainers.map(trainer => UtilsHelper.formatIdentity(trainer.identity, 'FL')),
     firstDate: filteredSlots.length ? CompaniDate(filteredSlots[0].startDate).format(DD_MM_YYYY) : '',
     lastDate: filteredSlots.length
       ? CompaniDate(filteredSlots[filteredSlots.length - 1].startDate).format(DD_MM_YYYY)
