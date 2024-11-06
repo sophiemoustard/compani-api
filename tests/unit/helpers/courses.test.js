@@ -6442,7 +6442,10 @@ describe('generateTrainingContract', () => {
         },
       ],
       slotsToPlan: [{ _id: new ObjectId() }],
-      trainer: { identity: { lastname: 'Bonbeur', firstname: 'Jean' } },
+      trainers: [
+        { identity: { lastname: 'Bonbeur', firstname: 'Jean' } },
+        { identity: { lastname: 'Pencil', firstname: 'James' } },
+      ],
     };
 
     const vendorCompany = { name: 'Compani', address: { fullAddress: '140 rue de ponthieu 75008 Paris' } };
@@ -6460,7 +6463,7 @@ describe('generateTrainingContract', () => {
       learnersCount: 5,
       dates: ['03/11/2020'],
       addressList: ['14 rue de ponthieu 75008 Paris', 'Cette formation contient des créneaux en distanciel'],
-      trainer: 'Jean BONBEUR',
+      trainers: ['Jean BONBEUR', 'James PENCIL'],
       price: 12,
     };
 
@@ -6490,7 +6493,7 @@ describe('generateTrainingContract', () => {
             },
             { path: 'slots', select: 'startDate endDate address meetingLink' },
             { path: 'slotsToPlan', select: '_id' },
-            { path: 'trainer', select: 'identity.firstname identity.lastname' },
+            { path: 'trainers', select: 'identity.firstname identity.lastname' },
           ]],
         },
         { query: 'lean' },
@@ -6543,7 +6546,7 @@ describe('generateTrainingContract', () => {
         },
       ],
       slotsToPlan: [],
-      trainer: { identity: { lastname: 'Bonbeur', firstname: 'Jean' } },
+      trainers: [{ identity: { lastname: 'Bonbeur', firstname: 'Jean' } }],
     };
 
     const vendorCompany = { name: 'Compani', address: { fullAddress: '140 rue de ponthieu 75008 Paris' } };
@@ -6561,7 +6564,7 @@ describe('generateTrainingContract', () => {
       learnersCount: 1,
       dates: ['03/11/2020', '04/11/2020', '05/11/2020'],
       addressList: ['Paris'],
-      trainer: 'Jean BONBEUR',
+      trainers: ['Jean BONBEUR'],
       price: 12,
     };
 
@@ -6596,7 +6599,7 @@ describe('generateTrainingContract', () => {
             },
             { path: 'slots', select: 'startDate endDate address meetingLink' },
             { path: 'slotsToPlan', select: '_id' },
-            { path: 'trainer', select: 'identity.firstname identity.lastname' },
+            { path: 'trainers', select: 'identity.firstname identity.lastname' },
           ]],
         },
         { query: 'lean' },
