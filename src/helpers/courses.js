@@ -1228,7 +1228,7 @@ exports.generateTrainingContract = async (courseId, payload) => {
       },
       { path: 'slots', select: 'startDate endDate address meetingLink' },
       { path: 'slotsToPlan', select: '_id' },
-      { path: 'trainer', select: 'identity.firstname identity.lastname' },
+      { path: 'trainers', select: 'identity.firstname identity.lastname' },
     ])
     .lean();
 
