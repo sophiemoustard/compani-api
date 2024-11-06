@@ -113,8 +113,8 @@ const getTrainersInfo = (trainerImg, trainers) => ({
       { text: get(trainer, 'biography') || '', style: 'infoContent', marginBottom: 12 },
     ]),
   ],
-  columnGap: 12,
   marginTop: 24,
+  columnGap: 12,
 });
 
 const getContactInfo = (contactImg, contact) => ({
