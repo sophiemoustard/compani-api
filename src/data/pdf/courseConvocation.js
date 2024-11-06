@@ -104,17 +104,18 @@ const getProgramInfo = (image, program) => ({
   columnGap: 12,
 });
 
-const getTrainersInfo = (trainerImg, trainers) =>
-  trainers.map((trainer, index) => {
-    const trainerInfos = [
+const getTrainersInfo = (trainerImg, trainers) => ({
+  columns: [
+    { image: trainerImg, width: 64 },
+    trainers.map(trainer => [
       { text: 'Intervenant(e)', style: 'infoTitle' },
       { text: get(trainer, 'formattedIdentity') || '', style: 'infoSubTitle' },
-      { text: get(trainer, 'biography') || '', style: 'infoContent' },
-    ];
-    return index === 0
-      ? { columns: [{ image: trainerImg, width: 64 }, trainerInfos], marginTop: 24, columnGap: 12 }
-      : { columns: [trainerInfos], marginTop: 24, columnGap: 12, marginLeft: 76 };
-  });
+      { text: get(trainer, 'biography') || '', style: 'infoContent', marginBottom: 12 },
+    ]),
+  ],
+  columnGap: 12,
+  marginTop: 24,
+});
 
 const getContactInfo = (contactImg, contact) => ({
   columns: [
