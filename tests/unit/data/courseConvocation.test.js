@@ -123,14 +123,14 @@ describe('getPdfContent', () => {
         { image: 'src/data/pdf/tmp/doct-explication.png', width: 64 },
         [
           [
-            { text: 'Intervenant(e)', style: 'infoTitle' },
+            { text: 'Intervenant·e', style: 'infoTitle' },
             { text: 'Toto TITI', style: 'infoSubTitle' },
-            { text: 'Voici ma bio', style: 'infoContent', marginBottom: 12 },
+            { text: 'Voici ma bio', style: 'infoContent' },
           ],
           [
-            { text: 'Intervenant(e)', style: 'infoTitle' },
+            { text: 'Intervenant·e', style: 'infoTitle' },
             { text: 'Tata TUTU', style: 'infoSubTitle' },
-            { text: 'Voici ma bio', style: 'infoContent', marginBottom: 12 },
+            { text: 'Voici ma bio', style: 'infoContent' },
           ],
         ],
       ],
@@ -163,7 +163,7 @@ describe('getPdfContent', () => {
         notes: { italics: true, marginTop: 4 },
         infoTitle: { fontSize: 14, bold: true },
         infoSubTitle: { fontSize: 12 },
-        infoContent: { italics: true },
+        infoContent: { italics: true, marginBottom: 12 },
         icon: { font: 'icon' },
       },
     };
@@ -283,14 +283,14 @@ describe('getPdfContent', () => {
         { image: 'src/data/pdf/tmp/doct-explication.png', width: 64 },
         [
           [
-            { text: 'Intervenant(e)', style: 'infoTitle' },
+            { text: 'Intervenant·e', style: 'infoTitle' },
             { text: '', style: 'infoSubTitle' },
-            { text: '', style: 'infoContent', marginBottom: 12 },
+            { text: '', style: 'infoContent' },
           ],
           [
-            { text: 'Intervenant(e)', style: 'infoTitle' },
+            { text: 'Intervenant·e', style: 'infoTitle' },
             { text: '', style: 'infoSubTitle' },
-            { text: '', style: 'infoContent', marginBottom: 12 },
+            { text: '', style: 'infoContent' },
           ],
         ],
       ],
@@ -323,7 +323,7 @@ describe('getPdfContent', () => {
         notes: { italics: true, marginTop: 4 },
         infoTitle: { fontSize: 14, bold: true },
         infoSubTitle: { fontSize: 12 },
-        infoContent: { italics: true },
+        infoContent: { italics: true, marginBottom: 12 },
         icon: { font: 'icon' },
       },
     };
@@ -392,7 +392,7 @@ describe('getPdf', () => {
         title: { fontSize: 20, bold: true, color: COPPER_500, marginLeft: 24 },
         surtitle: { fontSize: 12, bold: true, marginTop: 24, marginLeft: 24 },
         infoTitle: { fontSize: 14, bold: true },
-        infoContent: { italics: true },
+        infoContent: { italics: true, marginBottom: 12 },
       },
     };
     const images = [
