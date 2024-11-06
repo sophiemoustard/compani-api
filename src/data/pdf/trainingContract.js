@@ -74,6 +74,7 @@ exports.getPdfContent = async (data) => {
 
   const learnersCount = UtilsHelper.formatQuantity('stagiaire', data.learnersCount);
   const totalPrice = data.type === INTER_B2B ? data.learnersCount * data.price : data.price;
+  const formattedTrainersTitle = UtilsHelper.formatQuantity('Intervenant·e', data.trainers.length, 's', false);
 
   const body = [
     [
@@ -96,7 +97,7 @@ exports.getPdfContent = async (data) => {
           },
           { text: `Dates : ${data.dates.join(' - ')}` },
           formatAddressList(data.addressList),
-          { text: `Intervenant(e) : ${data.trainer}`, marginBottom: 16 },
+          { text: `${formattedTrainersTitle} : ${data.trainers.join(', ')}`, marginBottom: 16 },
           ...(data.type === INTER_B2B ? [{ text: `Prix TTC par stagiaire : ${data.price} €` }] : []),
           { text: `Prix total TTC : ${totalPrice} €` },
           { text: '(Ce prix comprend les frais de formateurs)', italics: true },
