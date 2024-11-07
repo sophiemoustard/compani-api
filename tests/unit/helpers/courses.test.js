@@ -6203,8 +6203,8 @@ describe('generateConvocationPdf', () => {
         _id: courseId,
         subProgram: { program: { name: 'Comment attraper des Pokemons' } },
         trainers: [
-          { identity: { firstname: 'Ash', lastname: 'Ketchum' }, formattedIdentity: 'Ash KETCHUM', biography: 'Bio' },
-          { identity: { firstname: 'Toto', lastname: 'Tata' }, formattedIdentity: 'Toto TATA' },
+          { identity: { firstname: 'Ash', lastname: 'Ketchum' }, biography: 'Bio' },
+          { identity: { firstname: 'Toto', lastname: 'Tata' } },
         ],
         contact: { phone: '0123456789' },
         slots: [{
@@ -6219,8 +6219,8 @@ describe('generateConvocationPdf', () => {
       _id: courseId,
       subProgram: { program: { name: 'Comment attraper des Pokemons' } },
       trainers: [
-        { identity: { firstname: 'Ash', lastname: 'Ketchum' }, formattedIdentity: 'Ash KETCHUM', biography: 'Bio' },
-        { identity: { firstname: 'Toto', lastname: 'Tata' }, formattedIdentity: 'Toto TATA' },
+        { identity: { firstname: 'Ash', lastname: 'Ketchum' }, biography: 'Bio' },
+        { identity: { firstname: 'Toto', lastname: 'Tata' } },
       ],
       contact: { phone: '0123456789' },
       contactPhoneNumber: '01 23 45 67 89',
@@ -6263,8 +6263,8 @@ describe('generateConvocationPdf', () => {
         _id: courseId,
         subProgram: { program: { name: 'Comment attraper des Pokemons' } },
         trainers: [
-          { identity: { firstname: 'Ash', lastname: 'Ketchum' }, formattedIdentity: 'Ash KETCHUM', biography: 'Bio' },
-          { identity: { firstname: 'Toto', lastname: 'Tata' }, formattedIdentity: 'Toto TATA' },
+          { identity: { firstname: 'Ash', lastname: 'Ketchum' }, biography: 'Bio' },
+          { identity: { firstname: 'Toto', lastname: 'Tata' } },
         ],
         contact: { phone: '0123456789' },
         slots: [{
@@ -6280,8 +6280,8 @@ describe('generateConvocationPdf', () => {
         _id: courseId,
         subProgram: { program: { name: 'Comment attraper des Pokemons' } },
         trainers: [
-          { identity: { firstname: 'Ash', lastname: 'Ketchum' }, formattedIdentity: 'Ash KETCHUM', biography: 'Bio' },
-          { identity: { firstname: 'Toto', lastname: 'Tata' }, formattedIdentity: 'Toto TATA' },
+          { identity: { firstname: 'Ash', lastname: 'Ketchum' }, biography: 'Bio' },
+          { identity: { firstname: 'Toto', lastname: 'Tata' } },
         ],
         contact: { phone: '0123456789' },
         contactPhoneNumber: '01 23 45 67 89',
