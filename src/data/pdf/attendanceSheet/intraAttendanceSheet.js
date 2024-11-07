@@ -12,14 +12,14 @@ exports.getPdfContent = async (data) => {
   dates.forEach((date, i) => {
     const title = `Feuille d'émargement - ${date.date}`;
     const trainersCount = date.course.trainers.length;
-    const trainerJoin = date.course.trainers.join(', ');
+    const formattedTrainersTitle = UtilsHelper.formatQuantity('Intervenant·e', trainersCount, '·s', false);
     const columns = [
       [
         { text: `Nom de la formation : ${date.course.name}`, bold: true, marginBottom: 10 },
         { text: `Durée : ${date.course.duration}` },
         { text: `Lieu : ${date.address}` },
         { text: `Structure : ${date.course.company}` },
-        { text: `${UtilsHelper.formatQuantity('Intervenant.e', trainersCount, '.s', false)} : ${trainerJoin}` },
+        { text: `${formattedTrainersTitle} : ${date.course.trainers.join(', ')}` },
       ],
       { image: decision, width: 64 },
     ];
