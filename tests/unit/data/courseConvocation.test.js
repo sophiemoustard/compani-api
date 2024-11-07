@@ -196,8 +196,7 @@ describe('getPdfContent', () => {
         { date: '22/01/2020', hours: '12h - 14h', meetingLink: 'https://mondrianandme.com/' },
       ],
       trainers: [
-        { formattedIdentity: '', biography: '' },
-        { formattedIdentity: '', biography: '' },
+        { identity: { firstname: 'Ken', lastname: 'Kaneki' }, formattedIdentity: 'Ken KANEKI', biography: 'Ghoul' },
       ],
     };
 
@@ -284,13 +283,8 @@ describe('getPdfContent', () => {
         [
           [
             { text: 'Intervenant·e', style: 'infoTitle' },
-            { text: '', style: 'infoSubTitle' },
-            { text: '', style: 'infoContent' },
-          ],
-          [
-            { text: 'Intervenant·e', style: 'infoTitle' },
-            { text: '', style: 'infoSubTitle' },
-            { text: '', style: 'infoContent' },
+            { text: 'Ken KANEKI', style: 'infoSubTitle' },
+            { text: 'Ghoul', style: 'infoContent' },
           ],
         ],
       ],
