@@ -30,14 +30,14 @@ exports.getPdfContent = async (data) => {
   trainees.forEach((trainee, i) => {
     const title = `Émargements - ${trainee.traineeName}`;
     const trainersCount = trainee.course.trainers.length;
-    const trainerJoin = trainee.course.trainers.join(', ');
+    const formattedTrainersTitle = UtilsHelper.formatQuantity('Intervenant·e', trainersCount, '·s', false);
     const columns = [
       [
         { text: `Nom de la formation : ${trainee.course.name}`, bold: true, marginBottom: 10 },
         { text: `Dates : du ${trainee.course.firstDate} au ${trainee.course.lastDate}` },
         { text: `Durée : ${trainee.course.duration}` },
         { text: `Structure : ${trainee.registrationCompany}` },
-        { text: `${UtilsHelper.formatQuantity('Intervenant.e', trainersCount, '.s', false)} : ${trainerJoin}` },
+        { text: `${formattedTrainersTitle} : ${trainee.course.trainers.join(', ')}` },
       ],
       { image: decision, width: 64 },
     ];
