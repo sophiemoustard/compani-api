@@ -2234,6 +2234,9 @@ describe('getCourse', () => {
           },
           ],
         },
+        trainers: [
+          { _id: new ObjectId(), identity: { firstname: 'Paul', lastName: 'Durand' }, biography: 'voici ma bio' },
+        ],
       };
 
       findOne.returns(SinonMongoose.stubChainedQueries(course, ['populate', 'select', 'lean']));
@@ -2295,7 +2298,7 @@ describe('getCourse', () => {
           },
           {
             query: 'populate',
-            args: [{ path: 'trainer', select: 'identity.firstname identity.lastname biography picture' }],
+            args: [{ path: 'trainers', select: 'identity.firstname identity.lastname biography picture' }],
           },
           {
             query: 'populate',
@@ -2365,6 +2368,9 @@ describe('getCourse', () => {
             step: stepId,
             attendances: [],
           },
+        ],
+        trainers: [
+          { _id: new ObjectId(), identity: { firstname: 'Paul', lastName: 'Durand' }, biography: 'voici ma bio' },
         ],
       };
 
@@ -2457,7 +2463,7 @@ describe('getCourse', () => {
           },
           {
             query: 'populate',
-            args: [{ path: 'trainer', select: 'identity.firstname identity.lastname biography picture' }],
+            args: [{ path: 'trainers', select: 'identity.firstname identity.lastname biography picture' }],
           },
           {
             query: 'populate',
@@ -2527,6 +2533,9 @@ describe('getCourse', () => {
             step: stepId,
             attendances: [{ _id: new ObjectId() }],
           },
+        ],
+        trainers: [
+          { _id: new ObjectId(), identity: { firstname: 'Paul', lastName: 'Durand' }, biography: 'voici ma bio' },
         ],
       };
 
@@ -2619,7 +2628,7 @@ describe('getCourse', () => {
           },
           {
             query: 'populate',
-            args: [{ path: 'trainer', select: 'identity.firstname identity.lastname biography picture' }],
+            args: [{ path: 'trainers', select: 'identity.firstname identity.lastname biography picture' }],
           },
           {
             query: 'populate',
@@ -2672,7 +2681,7 @@ describe('getCourse', () => {
           ],
         },
         slots: [{ startDate: '2020-11-03T09:00:00.000Z', endDate: '2020-11-03T12:00:00.000Z' }],
-        trainer: { _id: loggedUser._id },
+        trainers: [{ _id: loggedUser._id }],
       };
 
       findOne.returns(SinonMongoose.stubChainedQueries(course, ['populate', 'select', 'lean']));
@@ -2700,7 +2709,7 @@ describe('getCourse', () => {
           ],
         },
         slots: [{ startDate: '2020-11-03T09:00:00.000Z', endDate: '2020-11-03T12:00:00.000Z' }],
-        trainer: { _id: loggedUser._id },
+        trainers: [{ _id: loggedUser._id }],
       });
 
       SinonMongoose.calledOnceWithExactly(
@@ -2741,7 +2750,7 @@ describe('getCourse', () => {
           },
           {
             query: 'populate',
-            args: [{ path: 'trainer', select: 'identity.firstname identity.lastname biography picture' }],
+            args: [{ path: 'trainers', select: 'identity.firstname identity.lastname biography picture' }],
           },
           {
             query: 'populate',
