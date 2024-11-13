@@ -607,7 +607,7 @@ const _getCourseForPedagogy = async (courseId, credentials) => {
     .select('_id misc format')
     .lean({ autopopulate: true, virtuals: true });
 
-  const courseTrainerIds = get(course, 'trainers') ? course.trainers.map(trainer => trainer._id) : [];
+  const courseTrainerIds = course.trainers ? course.trainers.map(trainer => trainer._id) : [];
   if (UtilsHelper.doesArrayIncludeId(courseTrainerIds, credentials._id)) {
     return {
       ...course,
