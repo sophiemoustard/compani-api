@@ -397,7 +397,7 @@ describe('listUnsubscribed', () => {
         misc: 'group 4',
         type: 'inter b2b',
         subProgram: subProgramId,
-        trainer: { _id: new ObjectId(), identity: { lastname: 'Trainer', firstname: 'Jean' } },
+        trainers: [{ _id: new ObjectId(), identity: { lastname: 'Trainer', firstname: 'Jean' } }],
         slots: [
           {
             endDate: new Date('2020-11-18T15:00:00.000Z'),
@@ -419,7 +419,10 @@ describe('listUnsubscribed', () => {
         misc: 'group 1',
         type: 'inter_b2b',
         subProgram: subProgramId,
-        trainer: { _id: new ObjectId(), identity: { lastname: 'Trainer', firstname: 'Paul' } },
+        trainers: [
+          { _id: new ObjectId(), identity: { lastname: 'Trainer', firstname: 'Paul' } },
+          { _id: new ObjectId(), identity: { lastname: 'Trainer', firstname: 'Jean' } },
+        ],
         slots: [
           {
             endDate: new Date('2020-11-20T15:00:00.000Z'),
@@ -445,7 +448,10 @@ describe('listUnsubscribed', () => {
       [userId]: [
         {
           trainee: { _id: userId, identity: { firstname: 'Marie', lastname: 'Test' } },
-          trainer: { identity: { firstname: 'Paul', lastname: 'Trainer' } },
+          trainers: [
+            { identity: { lastname: 'Trainer', firstname: 'Paul' } },
+            { identity: { lastname: 'Trainer', firstname: 'Jean' } },
+          ],
           misc: 'group 1',
           courseSlot: {
             endDate: new Date('2020-11-20T15:00:00.000Z'),
@@ -488,7 +494,7 @@ describe('listUnsubscribed', () => {
             },
           }],
         },
-        { query: 'populate', args: [{ path: 'trainer', select: 'identity' }] },
+        { query: 'populate', args: [{ path: 'trainers', select: 'identity' }] },
         { query: 'lean' },
       ]
     );
@@ -513,7 +519,7 @@ describe('listUnsubscribed', () => {
         misc: 'group 4',
         type: 'inter b2b',
         subProgram: subProgramId,
-        trainer: { _id: new ObjectId(), identity: { lastname: 'Trainer', firstname: 'Jean' } },
+        trainers: [{ _id: new ObjectId(), identity: { lastname: 'Trainer', firstname: 'Jean' } }],
         slots: [
           {
             endDate: new Date('2020-11-18T15:00:00.000Z'),
@@ -535,7 +541,7 @@ describe('listUnsubscribed', () => {
         misc: 'group 1',
         type: 'inter_b2b',
         subProgram: subProgramId,
-        trainer: { _id: new ObjectId(), identity: { lastname: 'Trainer', firstname: 'Paul' } },
+        trainers: [{ _id: new ObjectId(), identity: { lastname: 'Trainer', firstname: 'Jean' } }],
         slots: [
           {
             endDate: new Date('2020-11-20T15:00:00.000Z'),
@@ -561,7 +567,7 @@ describe('listUnsubscribed', () => {
       [userId]: [
         {
           trainee: { _id: userId, identity: { firstname: 'Marie', lastname: 'Test' } },
-          trainer: { identity: { firstname: 'Paul', lastname: 'Trainer' } },
+          trainers: [{ identity: { lastname: 'Trainer', firstname: 'Jean' } }],
           misc: 'group 1',
           courseSlot: {
             endDate: new Date('2020-11-20T15:00:00.000Z'),
@@ -604,7 +610,7 @@ describe('listUnsubscribed', () => {
             },
           }],
         },
-        { query: 'populate', args: [{ path: 'trainer', select: 'identity' }] },
+        { query: 'populate', args: [{ path: 'trainers', select: 'identity' }] },
         { query: 'lean' },
       ]
     );
@@ -627,7 +633,7 @@ describe('listUnsubscribed', () => {
         misc: 'group 4',
         type: 'inter b2b',
         subProgram: subProgramId,
-        trainer: { _id: new ObjectId(), identity: { lastname: 'Trainer', firstname: 'Jean' } },
+        trainers: [{ _id: new ObjectId(), identity: { lastname: 'Trainer', firstname: 'Jean' } }],
         slots: [
           {
             endDate: new Date('2020-11-18T15:00:00.000Z'),
@@ -649,7 +655,7 @@ describe('listUnsubscribed', () => {
         misc: 'group 1',
         type: 'inter_b2b',
         subProgram: subProgramId,
-        trainer: { _id: new ObjectId(), identity: { lastname: 'Trainer', firstname: 'Paul' } },
+        trainers: [{ _id: new ObjectId(), identity: { lastname: 'Trainer', firstname: 'Paul' } }],
         slots: [
           {
             endDate: new Date('2020-11-20T15:00:00.000Z'),
@@ -675,7 +681,7 @@ describe('listUnsubscribed', () => {
       [userId]: [
         {
           trainee: { _id: userId, identity: { firstname: 'Marie', lastname: 'Test' } },
-          trainer: { identity: { firstname: 'Paul', lastname: 'Trainer' } },
+          trainers: [{ identity: { lastname: 'Trainer', firstname: 'Paul' } }],
           misc: 'group 1',
           courseSlot: {
             endDate: new Date('2020-11-20T15:00:00.000Z'),
@@ -717,7 +723,7 @@ describe('listUnsubscribed', () => {
             },
           }],
         },
-        { query: 'populate', args: [{ path: 'trainer', select: 'identity' }] },
+        { query: 'populate', args: [{ path: 'trainers', select: 'identity' }] },
         { query: 'lean' },
       ]
     );
