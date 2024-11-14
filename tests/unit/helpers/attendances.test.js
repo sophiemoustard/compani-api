@@ -767,7 +767,10 @@ describe('getTraineeUnsubscribedAttendances', () => {
         courseSlot: {
           _id: new ObjectId(),
           course: {
-            trainer: { _id: new ObjectId(), identity: { firstname: 'Zinedine', lastname: 'Zidane' } },
+            trainers: [
+              { _id: new ObjectId(), identity: { firstname: 'Zinedine', lastname: 'Zidane' } },
+              { _id: new ObjectId(), identity: { firstname: 'Thierry', lastname: 'Henry' } },
+            ],
             misc: 'équipe 1',
             subProgram: { _id: new ObjectId(), program: { _id: programAId, name: '1000 pompes' } },
           },
@@ -781,7 +784,7 @@ describe('getTraineeUnsubscribedAttendances', () => {
         courseSlot: {
           _id: new ObjectId(),
           course: {
-            trainer: { _id: new ObjectId(), identity: { firstname: 'Zinedine', lastname: 'Zidane' } },
+            trainers: [{ _id: new ObjectId(), identity: { firstname: 'Zinedine', lastname: 'Zidane' } }],
             misc: 'équipe 1',
             subProgram: { _id: new ObjectId(), program: { _id: programAId, name: '1000 pompes' } },
           },
@@ -795,7 +798,7 @@ describe('getTraineeUnsubscribedAttendances', () => {
         courseSlot: {
           _id: new ObjectId(),
           course: {
-            trainer: { _id: new ObjectId(), identity: { firstname: 'Didier', lastname: 'Deschamps' } },
+            trainers: [{ _id: new ObjectId(), identity: { firstname: 'Didier', lastname: 'Deschamps' } }],
             misc: 'équipe 2',
             subProgram: { _id: new ObjectId(), program: { _id: programBId, name: '2 tractions' } },
           },
@@ -818,7 +821,10 @@ describe('getTraineeUnsubscribedAttendances', () => {
             startDate: '2021-11-10T08:00:00.000Z',
           },
           course: {
-            trainer: { identity: { firstname: 'Zinedine', lastname: 'Zidane' } },
+            trainers: [
+              { identity: { firstname: 'Zinedine', lastname: 'Zidane' } },
+              { identity: { firstname: 'Thierry', lastname: 'Henry' } },
+            ],
             misc: 'équipe 1',
           },
           program: { _id: programAId, name: '1000 pompes' },
@@ -829,7 +835,7 @@ describe('getTraineeUnsubscribedAttendances', () => {
             startDate: '2021-12-24T08:00:00.000Z',
           },
           course: {
-            trainer: { identity: { firstname: 'Zinedine', lastname: 'Zidane' } },
+            trainers: [{ identity: { firstname: 'Zinedine', lastname: 'Zidane' } }],
             misc: 'équipe 1',
           },
           program: { _id: programAId, name: '1000 pompes' },
@@ -842,7 +848,7 @@ describe('getTraineeUnsubscribedAttendances', () => {
             startDate: '2022-01-27T08:00:00.000Z',
           },
           course: {
-            trainer: { identity: { firstname: 'Didier', lastname: 'Deschamps' } },
+            trainers: [{ identity: { firstname: 'Didier', lastname: 'Deschamps' } }],
             misc: 'équipe 2',
           },
           program: { _id: programBId, name: '2 tractions' },
@@ -872,10 +878,10 @@ describe('getTraineeUnsubscribedAttendances', () => {
               {
                 path: 'course',
                 match: { trainees: { $ne: traineeId } },
-                select: 'trainer misc subProgram',
+                select: 'trainers misc subProgram',
                 populate: [
                   { path: 'subProgram', select: 'program', populate: { path: 'program', select: 'name' } },
-                  { path: 'trainer', select: 'identity' },
+                  { path: 'trainers', select: 'identity' },
                 ],
               },
             ],
