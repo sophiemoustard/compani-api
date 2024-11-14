@@ -311,6 +311,7 @@ describe('list', () => {
       ]
     );
   });
+
   it('should return courseSlots\' attendances (holding)', async () => {
     const companies = [new ObjectId(), new ObjectId()];
     const credentials = { holding: { _id: new ObjectId(), companies }, role: { holding: { name: HOLDING_ADMIN } } };
