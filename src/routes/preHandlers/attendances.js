@@ -32,7 +32,7 @@ const checkPermissionOnCourse = (course, credentials) => {
   const loggedUserClientRole = get(credentials, 'role.client.name');
 
   const isCourseTrainer = loggedUserVendorRole === TRAINER &&
-    UtilsHelper.areObjectIdsEquals(credentials._id, course.trainer);
+    UtilsHelper.doesArrayIncludeId(course.trainers, credentials._id);
   const isAdminVendor = [TRAINING_ORGANISATION_MANAGER, VENDOR_ADMIN].includes(loggedUserVendorRole);
 
   const isClientOrHoldingAndAuthorized = [COACH, CLIENT_ADMIN].includes(loggedUserClientRole) &&
@@ -47,7 +47,7 @@ const checkPermissionOnCourse = (course, credentials) => {
 exports.authorizeAttendancesGet = async (req) => {
   const courseSlotsQuery = req.query.courseSlot ? { _id: req.query.courseSlot } : { course: req.query.course };
   const courseSlots = await CourseSlot.find(courseSlotsQuery, { course: 1 })
-    .populate({ path: 'course', select: 'trainer companies holding' })
+    .populate({ path: 'course', select: 'trainers companies holding' })
     .lean();
 
   if (!courseSlots.length) throw Boom.notFound();

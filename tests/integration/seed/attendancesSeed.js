@@ -19,7 +19,7 @@ const {
 } = require('../../../src/helpers/constants');
 const { deleteNonAuthenticationSeeds } = require('../helpers/db');
 const { trainerRoleId, vendorAdminRoleId } = require('../../seed/authRolesSeed');
-const { trainer } = require('../../seed/authUsersSeed');
+const { trainer, trainerAndCoach } = require('../../seed/authUsersSeed');
 const CourseHistory = require('../../../src/models/CourseHistory');
 
 const userList = [
@@ -140,7 +140,7 @@ const coursesList = [
     maxTrainees: 8,
     trainees: [traineeList[0]._id, traineeList[3]._id, traineeList[8]._id],
     companies: [authCompany._id],
-    trainers: [userList[0]._id],
+    trainers: [userList[0]._id, trainerAndCoach._id],
     operationsRepresentative: userList[2]._id,
   },
   { // 1
