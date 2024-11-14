@@ -74,7 +74,7 @@ exports.authorizeUnsubscribedAttendancesGet = async (req) => {
       throw Boom.badRequest();
     }
 
-    const course = await Course.findOne({ _id: courseId }, { trainer: 1, companies: 1, holding: 1 }).lean();
+    const course = await Course.findOne({ _id: courseId }, { trainers: 1, companies: 1, holding: 1 }).lean();
     if (!course) throw Boom.notFound();
 
     checkPermissionOnCourse(course, credentials);
