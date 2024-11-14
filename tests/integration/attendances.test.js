@@ -8,11 +8,11 @@ const {
   coursesList,
   slotsList,
   userList,
-  // traineeList,
+  traineeList,
 } = require('./seed/attendancesSeed');
 const { getToken, getTokenByCredentials } = require('./helpers/authentication');
 const {
-  // trainerAndCoach,
+  trainerAndCoach,
   holdingAdminFromOtherCompany,
   holdingAdminFromAuthCompany,
 } = require('../seed/authUsersSeed');
@@ -680,143 +680,143 @@ describe('ATTENDANCES ROUTES - GET /attendances/unsubscribed', () => {
     });
   });
 
-  // describe('REQUEST ON TRAINEE', () => {
-  //   describe('TRAINING_ORGANISATION_MANAGER', () => {
-  //     beforeEach(async () => {
-  //       authToken = await getToken('training_organisation_manager');
-  //     });
+  describe('REQUEST ON TRAINEE', () => {
+    describe('TRAINING_ORGANISATION_MANAGER', () => {
+      beforeEach(async () => {
+        authToken = await getToken('training_organisation_manager');
+      });
 
-  //     it('should get trainee attendances', async () => {
-  //       const response = await app.inject({
-  //         method: 'GET',
-  //         url: `/attendances/unsubscribed?trainee=${traineeList[9]._id}`,
-  //         headers: { Cookie: `alenvi_token=${authToken}` },
-  //       });
+      it('should get trainee attendances', async () => {
+        const response = await app.inject({
+          method: 'GET',
+          url: `/attendances/unsubscribed?trainee=${traineeList[9]._id}`,
+          headers: { Cookie: `alenvi_token=${authToken}` },
+        });
 
-  //       expect(response.statusCode).toBe(200);
+        expect(response.statusCode).toBe(200);
 
-  //       const unsubscribedAttendances = Object.values(response.result.data.unsubscribedAttendances).flat();
-  //       expect(unsubscribedAttendances.length).toEqual(1);
-  //     });
+        const unsubscribedAttendances = Object.values(response.result.data.unsubscribedAttendances).flat();
+        expect(unsubscribedAttendances.length).toEqual(1);
+      });
 
-  //     it('should return 404 if invalid trainee', async () => {
-  //       const response = await app.inject({
-  //         method: 'GET',
-  //         url: `/attendances/unsubscribed?trainee=${new ObjectId()}`,
-  //         headers: { Cookie: `alenvi_token=${authToken}` },
-  //       });
+      it('should return 404 if invalid trainee', async () => {
+        const response = await app.inject({
+          method: 'GET',
+          url: `/attendances/unsubscribed?trainee=${new ObjectId()}`,
+          headers: { Cookie: `alenvi_token=${authToken}` },
+        });
 
-  //       expect(response.statusCode).toBe(404);
-  //     });
-  //   });
+        expect(response.statusCode).toBe(404);
+      });
+    });
 
-  //   describe('COACH', () => {
-  //     beforeEach(async () => {
-  //       authToken = await getToken('coach');
-  //     });
+    describe('COACH', () => {
+      beforeEach(async () => {
+        authToken = await getToken('coach');
+      });
 
-  //     it('should get company trainee\'s attendances', async () => {
-  //       const response = await app.inject({
-  //         method: 'GET',
-  //         url: `/attendances/unsubscribed?trainee=${traineeList[5]._id}`,
-  //         headers: { Cookie: `alenvi_token=${authToken}` },
-  //       });
+      it('should get company trainee\'s attendances', async () => {
+        const response = await app.inject({
+          method: 'GET',
+          url: `/attendances/unsubscribed?trainee=${traineeList[5]._id}`,
+          headers: { Cookie: `alenvi_token=${authToken}` },
+        });
 
-  //       expect(response.statusCode).toBe(200);
+        expect(response.statusCode).toBe(200);
 
-  //       const unsubscribedAttendances = Object.values(response.result.data.unsubscribedAttendances).flat();
-  //       expect(unsubscribedAttendances.length).toEqual(1);
-  //     });
+        const unsubscribedAttendances = Object.values(response.result.data.unsubscribedAttendances).flat();
+        expect(unsubscribedAttendances.length).toEqual(1);
+      });
 
-  //     it('should return 404 if trainee is from other company', async () => {
-  //       const response = await app.inject({
-  //         method: 'GET',
-  //         url: `/attendances/unsubscribed?trainee=${traineeList[1]._id}`,
-  //         headers: { Cookie: `alenvi_token=${authToken}` },
-  //       });
+      it('should return 404 if trainee is from other company', async () => {
+        const response = await app.inject({
+          method: 'GET',
+          url: `/attendances/unsubscribed?trainee=${traineeList[1]._id}`,
+          headers: { Cookie: `alenvi_token=${authToken}` },
+        });
 
-  //       expect(response.statusCode).toBe(404);
-  //     });
-  //   });
+        expect(response.statusCode).toBe(404);
+      });
+    });
 
-  //   describe('HOLDING_ADMIN', () => {
-  //     beforeEach(async () => {
-  //       authToken = await getTokenByCredentials(holdingAdminFromOtherCompany.local);
-  //     });
+    describe('HOLDING_ADMIN', () => {
+      beforeEach(async () => {
+        authToken = await getTokenByCredentials(holdingAdminFromOtherCompany.local);
+      });
 
-  //     it('should get holding trainee\'s attendances', async () => {
-  //       const response = await app.inject({
-  //         method: 'GET',
-  //         url: `/attendances/unsubscribed?trainee=${traineeList[7]._id}`,
-  //         headers: { Cookie: `alenvi_token=${authToken}` },
-  //       });
+      it('should get holding trainee\'s attendances', async () => {
+        const response = await app.inject({
+          method: 'GET',
+          url: `/attendances/unsubscribed?trainee=${traineeList[7]._id}`,
+          headers: { Cookie: `alenvi_token=${authToken}` },
+        });
 
-  //       expect(response.statusCode).toBe(200);
+        expect(response.statusCode).toBe(200);
 
-  //       const unsubscribedAttendances = Object.values(response.result.data.unsubscribedAttendances).flat();
-  //       expect(unsubscribedAttendances.length).toEqual(1);
-  //     });
+        const unsubscribedAttendances = Object.values(response.result.data.unsubscribedAttendances).flat();
+        expect(unsubscribedAttendances.length).toEqual(1);
+      });
 
-  //     it('should return 404 if trainee is from other holding', async () => {
-  //       const response = await app.inject({
-  //         method: 'GET',
-  //         url: `/attendances/unsubscribed?trainee=${traineeList[0]._id}`,
-  //         headers: { Cookie: `alenvi_token=${authToken}` },
-  //       });
+      it('should return 404 if trainee is from other holding', async () => {
+        const response = await app.inject({
+          method: 'GET',
+          url: `/attendances/unsubscribed?trainee=${traineeList[0]._id}`,
+          headers: { Cookie: `alenvi_token=${authToken}` },
+        });
 
-  //       expect(response.statusCode).toBe(404);
-  //     });
-  //   });
+        expect(response.statusCode).toBe(404);
+      });
+    });
 
-  //   describe('TRAINER AND COACH', () => {
-  //     beforeEach(async () => {
-  //       authToken = await getTokenByCredentials(trainerAndCoach.local);
-  //     });
+    describe('TRAINER AND COACH', () => {
+      beforeEach(async () => {
+        authToken = await getTokenByCredentials(trainerAndCoach.local);
+      });
 
-  //     it('should get attendances if trainee is from coach company', async () => {
-  //       const response = await app.inject({
-  //         method: 'GET',
-  //         url: `/attendances/unsubscribed?trainee=${traineeList[5]._id}`,
-  //         headers: { Cookie: `alenvi_token=${authToken}` },
-  //       });
+      it('should get attendances if trainee is from coach company', async () => {
+        const response = await app.inject({
+          method: 'GET',
+          url: `/attendances/unsubscribed?trainee=${traineeList[5]._id}`,
+          headers: { Cookie: `alenvi_token=${authToken}` },
+        });
 
-  //       expect(response.statusCode).toBe(200);
+        expect(response.statusCode).toBe(200);
 
-  //       const unsubscribedAttendances = Object.values(response.result.data.unsubscribedAttendances).flat();
-  //       expect(unsubscribedAttendances.length).toEqual(1);
-  //     });
+        const unsubscribedAttendances = Object.values(response.result.data.unsubscribedAttendances).flat();
+        expect(unsubscribedAttendances.length).toEqual(1);
+      });
 
-  //     it('should return 403 if trainee is not from coach company', async () => {
-  //       const response = await app.inject({
-  //         method: 'GET',
-  //         url: `/attendances/unsubscribed?trainee=${traineeList[1]._id}`,
-  //         headers: { Cookie: `alenvi_token=${authToken}` },
-  //       });
+      it('should return 403 if trainee is not from coach company', async () => {
+        const response = await app.inject({
+          method: 'GET',
+          url: `/attendances/unsubscribed?trainee=${traineeList[1]._id}`,
+          headers: { Cookie: `alenvi_token=${authToken}` },
+        });
 
-  //       expect(response.statusCode).toBe(403);
-  //     });
-  //   });
+        expect(response.statusCode).toBe(403);
+      });
+    });
 
-  //   describe('Other roles', () => {
-  //     const roles = [
-  //       { name: 'helper', expectedCode: 403 },
-  //       { name: 'planning_referent', expectedCode: 403 },
-  //       { name: 'trainer', expectedCode: 403 },
-  //     ];
-  //     roles.forEach((role) => {
-  //       it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
-  //         authToken = await getToken(role.name);
-  //         const response = await app.inject({
-  //           method: 'GET',
-  //           url: `/attendances/unsubscribed?trainee=${traineeList[9]._id}`,
-  //           headers: { Cookie: `alenvi_token=${authToken}` },
-  //         });
+    describe('Other roles', () => {
+      const roles = [
+        { name: 'helper', expectedCode: 403 },
+        { name: 'planning_referent', expectedCode: 403 },
+        { name: 'trainer', expectedCode: 403 },
+      ];
+      roles.forEach((role) => {
+        it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+          authToken = await getToken(role.name);
+          const response = await app.inject({
+            method: 'GET',
+            url: `/attendances/unsubscribed?trainee=${traineeList[9]._id}`,
+            headers: { Cookie: `alenvi_token=${authToken}` },
+          });
 
-  //         expect(response.statusCode).toBe(role.expectedCode);
-  //       });
-  //     });
-  //   });
-  // });
+          expect(response.statusCode).toBe(role.expectedCode);
+        });
+      });
+    });
+  });
 });
 
 // describe('ATTENDANCES ROUTES - DELETE /attendances', () => {
