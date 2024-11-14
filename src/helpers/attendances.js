@@ -84,7 +84,7 @@ const formatAttendances = (course, specificCourseTrainees) =>
         trainee: a.trainee,
         courseSlot: pick(slot, ['step', 'startDate', 'endDate']),
         misc: course.misc,
-        trainer: course.trainer,
+        trainers: course.trainers,
       }));
   });
 
@@ -111,7 +111,7 @@ exports.listUnsubscribed = async (query, credentials) => {
         options: { isVendorUser: VENDOR_ROLES.includes(get(credentials, 'role.vendor.name')) },
       },
     })
-    .populate({ path: 'trainer', select: 'identity' })
+    .populate({ path: 'trainers', select: 'identity' })
     .lean();
 
   const unsubscribedAttendances = coursesWithSameProgram.map(c => formatAttendances(c, course.trainees));
