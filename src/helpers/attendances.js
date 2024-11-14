@@ -131,10 +131,10 @@ exports.getTraineeUnsubscribedAttendances = async (traineeId, credentials) => {
         {
           path: 'course',
           match: { trainees: { $ne: traineeId } },
-          select: 'trainer misc subProgram',
+          select: 'trainers misc subProgram',
           populate: [
             { path: 'subProgram', select: 'program', populate: { path: 'program', select: 'name' } },
-            { path: 'trainer', select: 'identity' },
+            { path: 'trainers', select: 'identity' },
           ],
         },
       ],
@@ -146,7 +146,10 @@ exports.getTraineeUnsubscribedAttendances = async (traineeId, credentials) => {
     .filter(a => a.courseSlot.course)
     .map(a => ({
       courseSlot: pick(a.courseSlot, ['startDate', 'endDate']),
-      course: pick(a.courseSlot.course, ['trainer.identity', 'misc']),
+      course: {
+        misc: get(a, 'courseSlot.course.misc'),
+        trainers: get(a, 'courseSlot.course.trainers').map(t => ({ _id: t._id, identity: t.identity })),
+      },
       program: pick(a.courseSlot.course.subProgram.program, ['_id', 'name']),
     }));
 
