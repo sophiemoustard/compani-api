@@ -198,7 +198,7 @@ const coursesList = [
     type: INTER_B2B,
     trainees: [traineeList[5]._id, traineeList[0]._id],
     companies: [authCompany._id, companyWithoutSubscription._id],
-    trainers: [trainer._id],
+    trainers: [trainer._id, trainerAndCoach._id],
     operationsRepresentative: userList[2]._id,
   },
   { // 7 no company linked
