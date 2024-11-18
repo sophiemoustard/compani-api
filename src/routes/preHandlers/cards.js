@@ -15,13 +15,13 @@ const {
   CHOICE_QUESTION_MAX_ANSWERS_COUNT,
   CHOICE_QUESTION_MIN_ANSWERS_COUNT,
   ORDER_THE_SEQUENCE,
-  ORDER_THE_SEQUENCE_MAX_ANSWERS_COUNT,
-  ORDER_THE_SEQUENCE_MIN_ANSWERS_COUNT,
   FILL_THE_GAPS_MAX_ANSWERS_COUNT,
   FILL_THE_GAPS_MIN_ANSWERS_COUNT,
   QC_ANSWER_MAX_LENGTH,
   SURVEY,
   OPEN_QUESTION,
+  GAP_ANSWER_MAX_LENGTH,
+  FILL_THE_GAPS_MAX_GAPS_COUNT,
 } = require('../../helpers/constants');
 const UtilsHelper = require('../../helpers/utils');
 const Activity = require('../../models/Activity');
@@ -34,21 +34,17 @@ const checkFlashCard = (payload) => {
   return null;
 };
 
-const checkFillTheGap = (payload) => {
+const checkFillTheGap = async (dbCard, payload) => {
   const { gappedText } = payload;
 
   if (!gappedText) return null;
 
-  const { outerAcc, gapAcc } = parseTagCode(gappedText);
-
-  const validTagging = isValidTagging(outerAcc, gapAcc);
-  const validAnswerInTag = isValidAnswerInTag(gapAcc);
-  const validAnswersCaracters = gapAcc.every(answer => isValidAnswerCaracters(answer));
-  const validAnswersLength = isValidAnswersLength(gapAcc);
-  const validTagsCount = isValidTagsCount(gapAcc);
-
-  if (!validTagging || !validAnswersCaracters || !validAnswersLength || !validTagsCount ||
-      !validAnswerInTag) return Boom.badRequest();
+  const tagsCount = (gappedText.match(/<trou>/g) || []).length;
+  const correctAnswers = dbCard.gapAnswers.filter(a => a.correct);
+  const isParentActvityPublished = await Activity.countDocuments({ cards: dbCard._id, status: PUBLISHED });
+  const wrongTagsCount = !tagsCount || tagsCount > FILL_THE_GAPS_MAX_GAPS_COUNT;
+  const notMatchingtagsCount = tagsCount !== correctAnswers.length && isParentActvityPublished;
+  if (wrongTagsCount || notMatchingtagsCount) return Boom.badRequest();
 
   return null;
 };
@@ -77,7 +73,7 @@ exports.authorizeCardUpdate = async (req) => {
 
   switch (card.template) {
     case FILL_THE_GAPS:
-      return checkFillTheGap(req.payload);
+      return checkFillTheGap(card, req.payload);
     case FLASHCARD:
       return checkFlashCard(req.payload);
     case SURVEY:
@@ -102,7 +98,7 @@ exports.authorizeCardAnswerCreation = async (req) => {
     $or: [
       { 'qcAnswers._id': req.params.answerId },
       { 'orderedAnswers._id': req.params.answerId },
-      { 'falsyGapAnswer._id': req.params.answerId },
+      { 'gapAnswer._id': req.params.answerId },
     ],
   }).lean();
   if (!card) throw Boom.notFound();
@@ -115,11 +111,9 @@ exports.authorizeCardAnswerCreation = async (req) => {
     case SINGLE_CHOICE_QUESTION:
       if (card.qcAnswers.length >= CHOICE_QUESTION_MAX_ANSWERS_COUNT) return Boom.forbidden();
       break;
-    case ORDER_THE_SEQUENCE:
-      if (card.orderedAnswers.length >= ORDER_THE_SEQUENCE_MAX_ANSWERS_COUNT) return Boom.forbidden();
-      break;
+    case ORDER_THE_SEQUENCE: return Boom.forbidden();
     case FILL_THE_GAPS:
-      if (card.falsyGapAnswers.length >= FILL_THE_GAPS_MAX_ANSWERS_COUNT) return Boom.forbidden();
+      if (card.gapAnswers.length >= FILL_THE_GAPS_MAX_ANSWERS_COUNT) return Boom.forbidden();
       break;
   }
 
@@ -134,14 +128,15 @@ exports.authorizeCardAnswerUpdate = async (req) => {
     $or: [
       { 'qcAnswers._id': req.params.answerId },
       { 'orderedAnswers._id': req.params.answerId },
-      { 'falsyGapAnswers._id': req.params.answerId },
+      { 'gapAnswers._id': req.params.answerId },
     ],
   }).lean();
   if (!card) throw Boom.notFound();
 
-  if (has(req.payload, 'correct') && card.template !== MULTIPLE_CHOICE_QUESTION) throw Boom.badRequest();
-
-  if (card.template === FILL_THE_GAPS && !isValidAnswerCaracters(req.payload.text)) throw Boom.badRequest();
+  if (has(req.payload, 'correct') && ![MULTIPLE_CHOICE_QUESTION, FILL_THE_GAPS].includes(card.template)) {
+    throw Boom.badRequest();
+  }
+  if (card.template === FILL_THE_GAPS && req.payload.text && !isValidAnswer(req.payload.text)) throw Boom.badRequest();
   if ([SINGLE_CHOICE_QUESTION, MULTIPLE_CHOICE_QUESTION, QUESTION_ANSWER].includes(card.template) &&
     req.payload.text && req.payload.text.length > QC_ANSWER_MAX_LENGTH) throw Boom.badRequest();
 
@@ -154,7 +149,7 @@ exports.authorizeCardAnswerDeletion = async (req) => {
     $or: [
       { 'qcAnswers._id': req.params.answerId },
       { 'orderedAnswers._id': req.params.answerId },
-      { 'falsyGapAnswers._id': req.params.answerId },
+      { 'gapAnswers._id': req.params.answerId },
     ],
   }).lean();
   if (!card) throw Boom.notFound();
@@ -172,11 +167,9 @@ exports.authorizeCardAnswerDeletion = async (req) => {
         return Boom.forbidden();
       }
       break;
-    case ORDER_THE_SEQUENCE:
-      if (card.orderedAnswers.length <= ORDER_THE_SEQUENCE_MIN_ANSWERS_COUNT) return Boom.forbidden();
-      break;
+    case ORDER_THE_SEQUENCE: return Boom.forbidden();
     case FILL_THE_GAPS:
-      if (card.falsyGapAnswers.length <= FILL_THE_GAPS_MIN_ANSWERS_COUNT) return Boom.forbidden();
+      if (card.gapAnswers.length <= FILL_THE_GAPS_MIN_ANSWERS_COUNT) return Boom.forbidden();
       break;
   }
 
@@ -192,26 +185,5 @@ exports.getCardMediaPublicId = async (req) => {
   return get(card, 'media.publicId') || '';
 };
 
-// fill the gap validation
-const parseTagCode = str => parseTagCodeRecursively('', [], str);
-
-const parseTagCodeRecursively = (outerAcc, gapAcc, str) => {
-  const splitedStr = str.match(/(.*?)<trou>(.*?)<\/trou>(.*)/s);
-
-  if (!splitedStr) return { outerAcc: outerAcc.concat(' ', str), gapAcc };
-
-  gapAcc.push(splitedStr[2]);
-  return parseTagCodeRecursively(outerAcc.concat(' ', splitedStr[1]), gapAcc, splitedStr[3]);
-};
-
-const containLonelyTag = value => /<trou>|<\/trou>/g.test(value);
-
-const isValidTagging = (outerAcc, answers) => !containLonelyTag(outerAcc) && !answers.some(v => containLonelyTag(v));
-
-const isValidAnswerInTag = gapAcc => !gapAcc.some(v => v.trim() !== v);
-
-const isValidAnswerCaracters = answer => /^[a-zA-Z0-9àâçéèêëîïôûùü\040'-]*$/.test(answer);
-
-const isValidAnswersLength = answers => answers.every(v => v.length > 0 && v.length < 16);
-
-const isValidTagsCount = answers => answers.length > 0 && answers.length < 3;
+const isValidAnswer = ans => /^[a-zA-Z0-9àâçéèêëîïôûùü\040'-]*$/.test(ans) &&
+  (ans.length > 0 && ans.length <= GAP_ANSWER_MAX_LENGTH);

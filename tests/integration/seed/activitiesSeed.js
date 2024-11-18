@@ -29,7 +29,17 @@ const cardsList = [
   { _id: new ObjectId(), template: TITLE_TEXT, title: 'title', text: 'text' },
   { _id: new ObjectId(), template: TRANSITION, title: 'title' },
   { _id: new ObjectId(), template: FILL_THE_GAPS },
-  { _id: new ObjectId(), template: ORDER_THE_SEQUENCE },
+  {
+    _id: new ObjectId(),
+    template: ORDER_THE_SEQUENCE,
+    question: 'question ?',
+    explanation: 'explanation',
+    orderedAnswers: [
+      { _id: new ObjectId(), text: 'rien' },
+      { _id: new ObjectId(), text: 'des trucs' },
+      { _id: new ObjectId(), text: 'des choses' },
+    ],
+  },
 ];
 
 const activitiesList = [

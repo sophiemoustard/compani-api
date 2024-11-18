@@ -16,14 +16,14 @@ const {
   FILL_THE_GAPS_MAX_ANSWERS_COUNT,
   CHOICE_QUESTION_MIN_ANSWERS_COUNT,
   CHOICE_QUESTION_MAX_ANSWERS_COUNT,
-  ORDER_THE_SEQUENCE_MIN_ANSWERS_COUNT,
-  ORDER_THE_SEQUENCE_MAX_ANSWERS_COUNT,
+  ORDER_THE_SEQUENCE_ANSWERS_COUNT,
   QUESTION_ANSWER_MIN_ANSWERS_COUNT,
   QUESTION_ANSWER_MAX_ANSWERS_COUNT,
   QC_ANSWER_MAX_LENGTH,
   QUESTION_MAX_LENGTH,
   GAP_ANSWER_MAX_LENGTH,
   FILL_THE_GAPS_MIN_ANSWERS_COUNT,
+  FILL_THE_GAPS_MAX_GAPS_COUNT,
 } = require('../../helpers/constants');
 
 const labelsValidation = (labels) => {
@@ -78,13 +78,45 @@ exports.cardValidationByTemplate = (template, labels = {}) => {
         backText: Joi.string().required(),
       });
     case FILL_THE_GAPS:
-      return Joi.object().keys({
-        gappedText: Joi.string().required(),
-        falsyGapAnswers: Joi.array().items(Joi.object({
-          text: Joi.string().max(GAP_ANSWER_MAX_LENGTH).required(),
-        })).min(FILL_THE_GAPS_MIN_ANSWERS_COUNT).max(FILL_THE_GAPS_MAX_ANSWERS_COUNT),
-        explanation: Joi.string().required(),
-      });
+      return Joi.object()
+        .custom((value, helpers) => {
+          const { gappedText, gapAnswers } = value;
+          const tagsCount = (gappedText.match(/<trou>/g) || []).length;
+          const correctAnswersCount = gapAnswers.filter(answer => answer.correct).length;
+
+          if (tagsCount !== correctAnswersCount) {
+            return helpers.message('Gap count must be equal to correct answers count');
+          }
+
+          return value;
+        })
+        .keys({
+          gappedText: Joi.string()
+            .required()
+            .custom((value, helpers) => {
+              const tagsCount = (value.match(/<trou>/g) || []).length;
+              if (!tagsCount || tagsCount > FILL_THE_GAPS_MAX_GAPS_COUNT) {
+                return helpers.message('There must be one or two gaps');
+              }
+
+              return value;
+            }),
+          gapAnswers: Joi.array()
+            .items(Joi.object({
+              text: Joi.string().max(GAP_ANSWER_MAX_LENGTH).required(),
+              correct: Joi.boolean().required(),
+            }))
+            .min(FILL_THE_GAPS_MIN_ANSWERS_COUNT)
+            .max(FILL_THE_GAPS_MAX_ANSWERS_COUNT)
+            .custom((values, helpers) => {
+              const correctAnswers = values.filter(answer => answer.correct);
+              if (!correctAnswers.length || correctAnswers.length > FILL_THE_GAPS_MAX_GAPS_COUNT) {
+                return helpers.message('There must be one or two correct answers');
+              }
+              return values;
+            }),
+          explanation: Joi.string().required(),
+        });
     case SINGLE_CHOICE_QUESTION:
       return Joi.object().keys({
         question: Joi.string().required().max(QUESTION_MAX_LENGTH),
@@ -93,7 +125,6 @@ exports.cardValidationByTemplate = (template, labels = {}) => {
             text: Joi.string().required().max(QC_ANSWER_MAX_LENGTH),
             correct: Joi.boolean().required(),
           }))
-          .has(Joi.object({ correct: true }))
           .min(CHOICE_QUESTION_MIN_ANSWERS_COUNT)
           .max(CHOICE_QUESTION_MAX_ANSWERS_COUNT)
           .custom((values, helpers) => {
@@ -108,9 +139,9 @@ exports.cardValidationByTemplate = (template, labels = {}) => {
     case ORDER_THE_SEQUENCE:
       return Joi.object().keys({
         question: Joi.string().required().max(QUESTION_MAX_LENGTH),
-        orderedAnswers: Joi.array().items(Joi.object({
-          text: Joi.string().required(),
-        })).min(ORDER_THE_SEQUENCE_MIN_ANSWERS_COUNT).max(ORDER_THE_SEQUENCE_MAX_ANSWERS_COUNT),
+        orderedAnswers: Joi.array()
+          .items(Joi.object({ text: Joi.string().required() }))
+          .length(ORDER_THE_SEQUENCE_ANSWERS_COUNT),
         explanation: Joi.string().required(),
       });
     case MULTIPLE_CHOICE_QUESTION:

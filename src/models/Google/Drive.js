@@ -15,7 +15,7 @@ exports.add = async (params) => {
   const fileMetadata = {
     name: params.name,
     mimeType: params.folder ? 'application/vnd.google-apps.folder' : null,
-    parents: [params.parentFolderId] || [],
+    parents: params.parentFolderId ? [params.parentFolderId] : [],
   };
   const media = params.folder ? null : { body: params.body, mimeType: params.type };
 

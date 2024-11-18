@@ -24,6 +24,7 @@ exports.sendWelcome = async (type, email) => {
     try {
       return NodemailerHelper.sendinBlueTransporter().sendMail(mailOptions);
     } catch (error) {
+      console.error(error);
       throw Boom.failedDependency(translate[language].emailNotSent);
     }
   }

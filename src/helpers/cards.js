@@ -24,7 +24,7 @@ exports.updateCard = async (cardId, payload) => {
 
 exports.addCardAnswer = async (card) => {
   const key = exports.getAnswerKeyToUpdate(card.template);
-  const payload = [MULTIPLE_CHOICE_QUESTION, SINGLE_CHOICE_QUESTION].includes(card.template)
+  const payload = [MULTIPLE_CHOICE_QUESTION, SINGLE_CHOICE_QUESTION, FILL_THE_GAPS].includes(card.template)
     ? { text: '', correct: false }
     : { text: '' };
 
@@ -34,7 +34,7 @@ exports.addCardAnswer = async (card) => {
 exports.getAnswerKeyToUpdate = (template) => {
   if ([MULTIPLE_CHOICE_QUESTION, SINGLE_CHOICE_QUESTION, QUESTION_ANSWER].includes(template)) return 'qcAnswers';
   if (template === ORDER_THE_SEQUENCE) return 'orderedAnswers';
-  if (template === FILL_THE_GAPS) return 'falsyGapAnswers';
+  if (template === FILL_THE_GAPS) return 'gapAnswers';
 
   return '';
 };

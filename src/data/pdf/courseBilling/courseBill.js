@@ -1,14 +1,20 @@
 const { COPPER_600, PAYMENT } = require('../../../helpers/constants');
 const UtilsPdfHelper = require('./utils');
 const PdfHelper = require('../../../helpers/pdf');
+const NumbersHelper = require('../../../helpers/numbers');
 const CourseBillHelper = require('../../../helpers/courseBills');
 
 exports.getPdfContent = async (bill) => {
   const { coursePayments, courseCreditNote } = bill;
   const netInclTaxes = CourseBillHelper.getNetInclTaxes(bill);
   const amountPaid = coursePayments
-    .reduce((acc, p) => (p.nature === PAYMENT ? acc + p.netInclTaxes : acc - p.netInclTaxes), 0);
-  const totalBalance = courseCreditNote ? -amountPaid : netInclTaxes - amountPaid;
+    .reduce(
+      (acc, p) =>
+        (p.nature === PAYMENT ? NumbersHelper.add(acc, p.netInclTaxes) : NumbersHelper.subtract(acc, p.netInclTaxes)),
+      NumbersHelper.toString(0)
+    );
+
+  const totalBalance = courseCreditNote ? -amountPaid : NumbersHelper.subtract(netInclTaxes, amountPaid);
   const isPaid = !courseCreditNote && totalBalance <= 0;
 
   const [compani, signature] = await UtilsPdfHelper.getImages(isPaid);

@@ -55,7 +55,7 @@ exports.getHeader = (data, compani, isBill = false, isPaid = false) => {
             { text: `${isBill ? 'Date de facture' : 'Date de l\'avoir'} : ${data.date}` },
             ...(isPaid
               ? [{
-                text: 'Facture acquitée le '
+                text: 'Facture acquittée le '
                 + `${CompaniDate(data.coursePayments.filter(p => p.nature === PAYMENT)[0].date).format(DD_MM_YYYY)} ☑`,
                 color: 'green',
               }]

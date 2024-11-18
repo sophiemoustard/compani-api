@@ -20,7 +20,7 @@ describe('CARDS ROUTES - PUT /cards/{_id}', () => {
   beforeEach(populateDB);
   const transitionId = cardsList[0]._id;
   const flashCardId = cardsList[4]._id;
-  const fillTheGapId = cardsList[5]._id;
+  const fillTheGapId = cardsList[17]._id;
   const orderTheSequenceId = cardsList[8]._id;
   const singleChoiceQuestionId = cardsList[7]._id;
   const multipleChoiceQuestionId = cardsList[6]._id;
@@ -56,7 +56,7 @@ describe('CARDS ROUTES - PUT /cards/{_id}', () => {
       {
         template: 'fill_the_gaps',
         payload: {
-          gappedText: 'Un texte à remplir par <trou>l\'apprenant -e</trou>.',
+          gappedText: 'Un <trou> texte à remplir par <trou>.',
           explanation: 'c\'est evidement la mamie qui remplit le texte',
           canSwitchAnswers: true,
         },
@@ -149,15 +149,10 @@ describe('CARDS ROUTES - PUT /cards/{_id}', () => {
 
     describe('Fill the gaps', () => {
       const requests = [
-        { msg: 'valid gappedText', payload: { gappedText: 'on truc <trou>b\'ien -èï</trou>propre' }, code: 200 },
+        { msg: 'valid gappedText', payload: { gappedText: 'on <trou> truc <trou> propre' }, code: 200 },
         { msg: 'no tagging', payload: { gappedText: 'du text sans balise' }, code: 400 },
-        { msg: 'single open tag', payload: { gappedText: 'lalalalal <trou>lili</trou> djsfbjdsfb<trou>' }, code: 400 },
-        { msg: 'single closing tag', payload: { gappedText: 'lalalalal <trou>lili</trou> djsfbjd</trou>' }, code: 400 },
-        { msg: 'conflicting tags', payload: { gappedText: 'lalaal <trou>l<trou>ili</trou> djsfbd</trou>' }, code: 400 },
-        { msg: 'long content', payload: { gappedText: 'al <trou> rgtrgtghtgtrgtrgtrgtili</trou> djssfbd' }, code: 400 },
-        { msg: 'wrong character in content', payload: { gappedText: 'lalalalal <trou>?</trou> djsfbsfbd' }, code: 400 },
-        { msg: 'line break in content', payload: { gappedText: 'lalalalal <trou>bfh\nee</trou> djsfsfbd' }, code: 400 },
-        { msg: 'spaces around answer', payload: { gappedText: 'on truc <trou> test</trou>propre' }, code: 400 },
+        { msg: 'too many tags', payload: { gappedText: 'lalalalal <trou>lili<trou> djsfbjdsfb <trou>' }, code: 400 },
+        { msg: 'wrong tags count', payload: { gappedText: 'lalalalal <trou>' }, code: 400 },
       ];
 
       requests.forEach((request) => {
@@ -328,23 +323,7 @@ describe('CARDS ROUTES - POST /cards/{_id}/answer', () => {
       expect(cardUpdated).toEqual(1);
     });
 
-    it('should add an ordered answer', async () => {
-      const response = await app.inject({
-        method: 'POST',
-        url: `/cards/${cardsList[16]._id}/answers`,
-        headers: { 'x-access-token': authToken },
-      });
-
-      expect(response.statusCode).toBe(200);
-
-      const cardUpdated = await Card.countDocuments({
-        _id: cardsList[16]._id,
-        orderedAnswers: { $size: cardsList[16].orderedAnswers.length + 1 },
-      });
-      expect(cardUpdated).toEqual(1);
-    });
-
-    it('should add an falsy gap answer', async () => {
+    it('should add a gap answer', async () => {
       const response = await app.inject({
         method: 'POST',
         url: `/cards/${cardsList[5]._id}/answers`,
@@ -352,10 +331,9 @@ describe('CARDS ROUTES - POST /cards/{_id}/answer', () => {
       });
 
       expect(response.statusCode).toBe(200);
-
       const cardUpdated = await Card.countDocuments({
         _id: cardsList[5]._id,
-        falsyGapAnswers: { $size: cardsList[5].falsyGapAnswers.length + 1 },
+        gapAnswers: { $size: cardsList[5].gapAnswers.length + 1 },
       });
       expect(cardUpdated).toEqual(1);
     });
@@ -404,6 +382,16 @@ describe('CARDS ROUTES - POST /cards/{_id}/answer', () => {
         method: 'POST',
         url: `/cards/${cardsList[6]._id}/answers`,
         headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
+
+    it('should return 403 if add an ordered answer', async () => {
+      const response = await app.inject({
+        method: 'POST',
+        url: `/cards/${cardsList[8]._id}/answers`,
+        headers: { 'x-access-token': authToken },
       });
 
       expect(response.statusCode).toBe(403);
@@ -581,12 +569,26 @@ describe('CARDS ROUTES - PUT /cards/{_id}/answers/{answerId}', () => {
 
     it('should return a 400 if fill the gaps and text has invalid char', async () => {
       const card = cardsList[5];
-      const answer = card.falsyGapAnswers[0];
+      const answer = card.gapAnswers[0];
 
       const response = await app.inject({
         method: 'PUT',
         url: `/cards/${card._id}/answers/${answer._id}`,
-        payload: { text: 'invalid char: c\'est tout' },
+        payload: { text: 'invalid char:' },
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
+
+    it('should return a 400 if fill the gaps and text is too long', async () => {
+      const card = cardsList[5];
+      const answer = card.gapAnswers[0];
+
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/cards/${card._id}/answers/${answer._id}`,
+        payload: { text: 'the string is way to long' },
         headers: { 'x-access-token': authToken },
       });
 
@@ -646,9 +648,9 @@ describe('CARDS ROUTES - DELETE /cards/{_id}/answers/{answerId}', () => {
       expect(cardUpdated).toEqual(1);
     });
 
-    it('should delete an ordered answer', async () => {
-      const card = cardsList[8];
-      const answer = card.orderedAnswers[0];
+    it('should delete a false gap answer', async () => {
+      const card = cardsList[19];
+      const answer = card.gapAnswers[0];
 
       const response = await app.inject({
         method: 'DELETE',
@@ -658,31 +660,8 @@ describe('CARDS ROUTES - DELETE /cards/{_id}/answers/{answerId}', () => {
 
       expect(response.statusCode).toBe(200);
 
-      const cardUpdated = await Card
-        .countDocuments({ _id: card._id, orderedAnswers: [card.orderedAnswers[1], card.orderedAnswers[2]] });
-      expect(cardUpdated).toEqual(1);
-    });
-
-    it('should delete a falsy gap answer', async () => {
-      const card = cardsList[17];
-      const answer = card.falsyGapAnswers[0];
-
-      const response = await app.inject({
-        method: 'DELETE',
-        url: `/cards/${card._id}/answers/${answer._id}`,
-        headers: { 'x-access-token': authToken },
-      });
-
-      expect(response.statusCode).toBe(200);
-
-      const falsyGapAnswers = [
-        card.falsyGapAnswers[1],
-        card.falsyGapAnswers[2],
-        card.falsyGapAnswers[3],
-        card.falsyGapAnswers[4],
-        card.falsyGapAnswers[5],
-      ];
-      const cardUpdated = await Card.countDocuments({ _id: card._id, falsyGapAnswers });
+      const gapAnswers = [card.gapAnswers[1], card.gapAnswers[2], card.gapAnswers[3]];
+      const cardUpdated = await Card.countDocuments({ _id: card._id, gapAnswers });
       expect(cardUpdated).toEqual(1);
     });
 
@@ -733,12 +712,24 @@ describe('CARDS ROUTES - DELETE /cards/{_id}/answers/{answerId}', () => {
       expect(response.statusCode).toBe(403);
     });
 
+    it('should return 403 if delete an ordered answer', async () => {
+      const card = cardsList[8];
+      const answer = card.orderedAnswers[0];
+
+      const response = await app.inject({
+        method: 'DELETE',
+        url: `/cards/${card._id}/answers/${answer._id}`,
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
+
     const templates = [
       { name: 'question_answer', card: cardsList[11], key: 'qcAnswers' },
       { name: 'single_choice_question', card: cardsList[14], key: 'qcAnswers' },
       { name: 'multiple_choice_question', card: cardsList[15], key: 'qcAnswers' },
-      { name: 'order_the_sequence', card: cardsList[16], key: 'orderedAnswers' },
-      { name: 'fill_the_gaps', card: cardsList[5], key: 'falsyGapAnswers' },
+      { name: 'fill_the_gaps', card: cardsList[5], key: 'gapAnswers' },
     ];
     templates.forEach((template) => {
       it(`should return 403 if ${template.name} with already min answers`, async () => {
