@@ -244,6 +244,122 @@ describe('create', () => {
       { key: TRAINEE, value: [traineeId] }
     );
   });
+
+  it('should create an attendance sheet with one slot for single course', async () => {
+    const courseId = new ObjectId();
+    const traineeId = new ObjectId();
+    const companyId = new ObjectId();
+    const slotId = new ObjectId();
+
+    const course = { _id: courseId, companies: [new ObjectId()] };
+    const payload = { trainee: traineeId, course: courseId, file: 'test.pdf', slots: slotId };
+    const user = { _id: traineeId, identity: { firstName: 'Eren', lastname: 'JÄGER' } };
+
+    uploadCourseFile.returns({ publicId: 'test', link: 'test' });
+    courseFindOne.returns(SinonMongoose.stubChainedQueries(course, ['lean']));
+    userFindOne.returns(SinonMongoose.stubChainedQueries(user, ['lean']));
+    formatIdentity.returns('ErenJÄGER');
+    getCompanyAtCourseRegistrationList.returns([{ trainee: traineeId, company: companyId }]);
+
+    await attendanceSheetHelper.create(payload);
+
+    SinonMongoose.calledOnceWithExactly(
+      courseFindOne,
+      [
+        { query: 'findOne', args: [{ _id: courseId }, { companies: 1 }] },
+        { query: 'lean' },
+      ]
+    );
+    SinonMongoose.calledOnceWithExactly(
+      userFindOne,
+      [
+        { query: 'findOne', args: [{ _id: traineeId }, { identity: 1 }] },
+        { query: 'lean' },
+      ]
+    );
+    sinon.assert.calledOnceWithExactly(
+      formatIdentity,
+      { firstName: 'Eren', lastname: 'JÄGER' },
+      'FL'
+    );
+    sinon.assert.calledOnceWithExactly(
+      uploadCourseFile,
+      { fileName: 'emargement_ErenJÄGER', file: 'test.pdf' }
+    );
+    sinon.assert.calledOnceWithExactly(
+      create,
+      {
+        trainee: traineeId,
+        course: courseId,
+        slots: [slotId],
+        companies: [companyId],
+        file: { publicId: 'test', link: 'test' },
+      }
+    );
+    sinon.assert.calledOnceWithExactly(
+      getCompanyAtCourseRegistrationList,
+      { key: COURSE, value: courseId },
+      { key: TRAINEE, value: [traineeId] }
+    );
+  });
+
+  it('should create an attendance sheet with multiple slots for single course', async () => {
+    const courseId = new ObjectId();
+    const traineeId = new ObjectId();
+    const companyId = new ObjectId();
+    const slotsIds = [new ObjectId(), new ObjectId()];
+
+    const course = { _id: courseId, companies: [new ObjectId()] };
+    const payload = { trainee: traineeId, course: courseId, file: 'test.pdf', slots: [slotsIds] };
+    const user = { _id: traineeId, identity: { firstName: 'Mikasa', lastname: 'ACKERMAN' } };
+
+    uploadCourseFile.returns({ publicId: 'test', link: 'test' });
+    courseFindOne.returns(SinonMongoose.stubChainedQueries(course, ['lean']));
+    userFindOne.returns(SinonMongoose.stubChainedQueries(user, ['lean']));
+    formatIdentity.returns('MikasaACKERMAN');
+    getCompanyAtCourseRegistrationList.returns([{ trainee: traineeId, company: companyId }]);
+
+    await attendanceSheetHelper.create(payload);
+
+    SinonMongoose.calledOnceWithExactly(
+      courseFindOne,
+      [
+        { query: 'findOne', args: [{ _id: courseId }, { companies: 1 }] },
+        { query: 'lean' },
+      ]
+    );
+    SinonMongoose.calledOnceWithExactly(
+      userFindOne,
+      [
+        { query: 'findOne', args: [{ _id: traineeId }, { identity: 1 }] },
+        { query: 'lean' },
+      ]
+    );
+    sinon.assert.calledOnceWithExactly(
+      formatIdentity,
+      { firstName: 'Mikasa', lastname: 'ACKERMAN' },
+      'FL'
+    );
+    sinon.assert.calledOnceWithExactly(
+      uploadCourseFile,
+      { fileName: 'emargement_MikasaACKERMAN', file: 'test.pdf' }
+    );
+    sinon.assert.calledOnceWithExactly(
+      create,
+      {
+        trainee: traineeId,
+        course: courseId,
+        slots: [slotsIds],
+        companies: [companyId],
+        file: { publicId: 'test', link: 'test' },
+      }
+    );
+    sinon.assert.calledOnceWithExactly(
+      getCompanyAtCourseRegistrationList,
+      { key: COURSE, value: courseId },
+      { key: TRAINEE, value: [traineeId] }
+    );
+  });
 });
 
 describe('delete', () => {

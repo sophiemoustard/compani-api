@@ -12,7 +12,7 @@ const { DAY_MONTH_YEAR, COURSE, TRAINEE } = require('./constants');
 exports.create = async (payload) => {
   let fileName;
   let companies;
-  const slots = [];
+  let slots = [];
 
   const course = await Course.findOne({ _id: payload.course }, { companies: 1 }).lean();
 
@@ -29,8 +29,7 @@ exports.create = async (payload) => {
       );
     companies = [get(traineeCompanyAtCourseRegistration[0], 'company')];
     if (payload.slots) {
-      const slotsIds = Array.isArray(payload.slots) ? payload.slots : [payload.slots];
-      slots.push(...slotsIds);
+      slots = Array.isArray(payload.slots) ? payload.slots : [payload.slots];
     }
   }
 
@@ -39,7 +38,12 @@ exports.create = async (payload) => {
     file: payload.file,
   });
 
-  await AttendanceSheet.create({ ...omit(payload, 'file'), companies, file: fileUploaded, ...slots.length && slots });
+  await AttendanceSheet.create({
+    ...omit(payload, 'file'),
+    companies,
+    file: fileUploaded,
+    ...(slots.length && { slots }),
+  });
 };
 
 exports.list = async (query, credentials) => {
