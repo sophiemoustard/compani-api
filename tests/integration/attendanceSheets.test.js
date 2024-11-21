@@ -137,7 +137,7 @@ describe('ATTENDANCE SHEETS ROUTES - POST /attendancesheets', () => {
       sinon.assert.calledOnce(uploadCourseFile);
     });
 
-    it('should upload attendance sheet to single course with only one slot (webapp) #', async () => {
+    it('should upload attendance sheet to single course with only one slot (webapp)', async () => {
       const formData = {
         slots: slotsList[4]._id.toHexString(),
         course: coursesList[7]._id.toHexString(),
