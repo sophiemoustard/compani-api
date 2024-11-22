@@ -264,10 +264,12 @@ describe('create', () => {
     await attendanceSheetHelper.create(payload);
 
     SinonMongoose.calledOnceWithExactly(
-      courseFindOne, [{ query: 'findOne', args: [{ _id: courseId }, { companies: 1 }] }, { query: 'lean' }]
+      courseFindOne,
+      [{ query: 'findOne', args: [{ _id: courseId }, { companies: 1 }] }, { query: 'lean' }]
     );
     SinonMongoose.calledOnceWithExactly(
-      userFindOne, [{ query: 'findOne', args: [{ _id: traineeId }, { identity: 1 }] }, { query: 'lean' }]
+      userFindOne,
+      [{ query: 'findOne', args: [{ _id: traineeId }, { identity: 1 }] }, { query: 'lean' }]
     );
     sinon.assert.calledOnceWithExactly(formatIdentity, { firstName: 'Eren', lastname: 'JÄGER' }, 'FL');
     sinon.assert.calledOnceWithExactly(uploadCourseFile, { fileName: 'emargement_Eren JÄGER', file: 'test.pdf' });
@@ -307,10 +309,12 @@ describe('create', () => {
     await attendanceSheetHelper.create(payload);
 
     SinonMongoose.calledOnceWithExactly(
-      courseFindOne, [{ query: 'findOne', args: [{ _id: courseId }, { companies: 1 }] }, { query: 'lean' }]
+      courseFindOne,
+      [{ query: 'findOne', args: [{ _id: courseId }, { companies: 1 }] }, { query: 'lean' }]
     );
     SinonMongoose.calledOnceWithExactly(
-      userFindOne, [{ query: 'findOne', args: [{ _id: traineeId }, { identity: 1 }] }, { query: 'lean' }]
+      userFindOne,
+      [{ query: 'findOne', args: [{ _id: traineeId }, { identity: 1 }] }, { query: 'lean' }]
     );
     sinon.assert.calledOnceWithExactly(formatIdentity, { firstName: 'Mikasa', lastname: 'ACKERMAN' }, 'FL');
     sinon.assert.calledOnceWithExactly(uploadCourseFile, { fileName: 'emargement_Mikasa ACKERMAN', file: 'test.pdf' });
