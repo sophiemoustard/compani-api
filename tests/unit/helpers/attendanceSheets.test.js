@@ -201,7 +201,7 @@ describe('create', () => {
     uploadCourseFile.returns({ publicId: 'yo', link: 'yo' });
     courseFindOne.returns(SinonMongoose.stubChainedQueries(course, ['lean']));
     userFindOne.returns(SinonMongoose.stubChainedQueries(user, ['lean']));
-    formatIdentity.returns('monsieurPATATE');
+    formatIdentity.returns('monsieur PATATE');
     getCompanyAtCourseRegistrationList.returns([{ trainee: traineeId, company: companyId }]);
 
     await attendanceSheetHelper.create(payload);
@@ -227,7 +227,7 @@ describe('create', () => {
     );
     sinon.assert.calledOnceWithExactly(
       uploadCourseFile,
-      { fileName: 'emargement_monsieurPATATE', file: 'test.pdf' }
+      { fileName: 'emargement_monsieur PATATE', file: 'test.pdf' }
     );
     sinon.assert.calledOnceWithExactly(
       create,
@@ -258,34 +258,19 @@ describe('create', () => {
     uploadCourseFile.returns({ publicId: 'test', link: 'test' });
     courseFindOne.returns(SinonMongoose.stubChainedQueries(course, ['lean']));
     userFindOne.returns(SinonMongoose.stubChainedQueries(user, ['lean']));
-    formatIdentity.returns('ErenJÄGER');
+    formatIdentity.returns('Eren JÄGER');
     getCompanyAtCourseRegistrationList.returns([{ trainee: traineeId, company: companyId }]);
 
     await attendanceSheetHelper.create(payload);
 
     SinonMongoose.calledOnceWithExactly(
-      courseFindOne,
-      [
-        { query: 'findOne', args: [{ _id: courseId }, { companies: 1 }] },
-        { query: 'lean' },
-      ]
+      courseFindOne, [{ query: 'findOne', args: [{ _id: courseId }, { companies: 1 }] }, { query: 'lean' }]
     );
     SinonMongoose.calledOnceWithExactly(
-      userFindOne,
-      [
-        { query: 'findOne', args: [{ _id: traineeId }, { identity: 1 }] },
-        { query: 'lean' },
-      ]
+      userFindOne, [{ query: 'findOne', args: [{ _id: traineeId }, { identity: 1 }] }, { query: 'lean' }]
     );
-    sinon.assert.calledOnceWithExactly(
-      formatIdentity,
-      { firstName: 'Eren', lastname: 'JÄGER' },
-      'FL'
-    );
-    sinon.assert.calledOnceWithExactly(
-      uploadCourseFile,
-      { fileName: 'emargement_ErenJÄGER', file: 'test.pdf' }
-    );
+    sinon.assert.calledOnceWithExactly(formatIdentity, { firstName: 'Eren', lastname: 'JÄGER' }, 'FL');
+    sinon.assert.calledOnceWithExactly(uploadCourseFile, { fileName: 'emargement_Eren JÄGER', file: 'test.pdf' });
     sinon.assert.calledOnceWithExactly(
       create,
       {
@@ -307,49 +292,34 @@ describe('create', () => {
     const courseId = new ObjectId();
     const traineeId = new ObjectId();
     const companyId = new ObjectId();
-    const slotsIds = [new ObjectId(), new ObjectId()];
+    const slots = [new ObjectId(), new ObjectId()];
 
     const course = { _id: courseId, companies: [new ObjectId()] };
-    const payload = { trainee: traineeId, course: courseId, file: 'test.pdf', slots: [slotsIds] };
+    const payload = { trainee: traineeId, course: courseId, file: 'test.pdf', slots };
     const user = { _id: traineeId, identity: { firstName: 'Mikasa', lastname: 'ACKERMAN' } };
 
     uploadCourseFile.returns({ publicId: 'test', link: 'test' });
     courseFindOne.returns(SinonMongoose.stubChainedQueries(course, ['lean']));
     userFindOne.returns(SinonMongoose.stubChainedQueries(user, ['lean']));
-    formatIdentity.returns('MikasaACKERMAN');
+    formatIdentity.returns('Mikasa ACKERMAN');
     getCompanyAtCourseRegistrationList.returns([{ trainee: traineeId, company: companyId }]);
 
     await attendanceSheetHelper.create(payload);
 
     SinonMongoose.calledOnceWithExactly(
-      courseFindOne,
-      [
-        { query: 'findOne', args: [{ _id: courseId }, { companies: 1 }] },
-        { query: 'lean' },
-      ]
+      courseFindOne, [{ query: 'findOne', args: [{ _id: courseId }, { companies: 1 }] }, { query: 'lean' }]
     );
     SinonMongoose.calledOnceWithExactly(
-      userFindOne,
-      [
-        { query: 'findOne', args: [{ _id: traineeId }, { identity: 1 }] },
-        { query: 'lean' },
-      ]
+      userFindOne, [{ query: 'findOne', args: [{ _id: traineeId }, { identity: 1 }] }, { query: 'lean' }]
     );
-    sinon.assert.calledOnceWithExactly(
-      formatIdentity,
-      { firstName: 'Mikasa', lastname: 'ACKERMAN' },
-      'FL'
-    );
-    sinon.assert.calledOnceWithExactly(
-      uploadCourseFile,
-      { fileName: 'emargement_MikasaACKERMAN', file: 'test.pdf' }
-    );
+    sinon.assert.calledOnceWithExactly(formatIdentity, { firstName: 'Mikasa', lastname: 'ACKERMAN' }, 'FL');
+    sinon.assert.calledOnceWithExactly(uploadCourseFile, { fileName: 'emargement_Mikasa ACKERMAN', file: 'test.pdf' });
     sinon.assert.calledOnceWithExactly(
       create,
       {
         trainee: traineeId,
         course: courseId,
-        slots: [slotsIds],
+        slots,
         companies: [companyId],
         file: { publicId: 'test', link: 'test' },
       }

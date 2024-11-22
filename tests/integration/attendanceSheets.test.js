@@ -138,6 +138,7 @@ describe('ATTENDANCE SHEETS ROUTES - POST /attendancesheets', () => {
     });
 
     it('should upload attendance sheet to single course with only one slot (webapp)', async () => {
+      const attendanceSheetsLengthBefore = await AttendanceSheet.countDocuments({ course: coursesList[7]._id });
       const formData = {
         slots: slotsList[4]._id.toHexString(),
         course: coursesList[7]._id.toHexString(),
@@ -147,8 +148,6 @@ describe('ATTENDANCE SHEETS ROUTES - POST /attendancesheets', () => {
       };
 
       const form = generateFormData(formData);
-      const attendanceSheetsLengthBefore = await AttendanceSheet
-        .countDocuments({ course: coursesList[7]._id });
       uploadCourseFile.returns({ publicId: '1234567890', link: 'https://test.com/file.pdf' });
 
       const response = await app.inject({
@@ -159,14 +158,14 @@ describe('ATTENDANCE SHEETS ROUTES - POST /attendancesheets', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      const attendanceSheetsLengthAfter = await AttendanceSheet
-        .countDocuments({ course: coursesList[7]._id });
+      const attendanceSheetsLengthAfter = await AttendanceSheet.countDocuments({ course: coursesList[7]._id });
       expect(attendanceSheetsLengthAfter).toBe(attendanceSheetsLengthBefore + 1);
       sinon.assert.calledOnce(uploadCourseFile);
     });
 
     it('should upload attendance sheet to single course with several slots (webapp)', async () => {
       const slots = [slotsList[4]._id.toHexString(), slotsList[5]._id.toHexString()];
+      const attendanceSheetsLengthBefore = await AttendanceSheet.countDocuments({ course: coursesList[7]._id });
       const formData = {
         course: coursesList[7]._id.toHexString(),
         file: 'test',
@@ -176,8 +175,6 @@ describe('ATTENDANCE SHEETS ROUTES - POST /attendancesheets', () => {
 
       const form = generateFormData(formData);
       slots.forEach(slot => form.append('slots', slot));
-      const attendanceSheetsLengthBefore = await AttendanceSheet
-        .countDocuments({ course: coursesList[7]._id });
       uploadCourseFile.returns({ publicId: '1234567890', link: 'https://test.com/file.pdf' });
 
       const response = await app.inject({
@@ -188,8 +185,7 @@ describe('ATTENDANCE SHEETS ROUTES - POST /attendancesheets', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      const attendanceSheetsLengthAfter = await AttendanceSheet
-        .countDocuments({ course: coursesList[7]._id });
+      const attendanceSheetsLengthAfter = await AttendanceSheet.countDocuments({ course: coursesList[7]._id });
       expect(attendanceSheetsLengthAfter).toBe(attendanceSheetsLengthBefore + 1);
       sinon.assert.calledOnce(uploadCourseFile);
     });

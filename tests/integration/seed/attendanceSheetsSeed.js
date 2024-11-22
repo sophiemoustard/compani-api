@@ -22,6 +22,8 @@ const User = require('../../../src/models/User');
 const { vendorAdminRoleId, trainerRoleId } = require('../../seed/authRolesSeed');
 const { trainerOrganisationManager, trainer } = require('../../seed/authUsersSeed');
 
+const SINGLE_COURSES_SUBPROGRAM_IDS = process.env.SINGLE_COURSES_SUBPROGRAM_IDS.split(';').map(id => new ObjectId(id));
+
 const userList = [
   {
     _id: new ObjectId(),
@@ -76,8 +78,6 @@ const userCompaniesList = [
 ];
 
 const steps = [{ _id: new ObjectId(), type: 'on_site', name: 'étape', status: PUBLISHED, theoreticalDuration: 60 }];
-
-const SINGLE_COURSES_SUBPROGRAM_IDS = process.env.SINGLE_COURSES_SUBPROGRAM_IDS.split(';').map(id => new ObjectId(id));
 
 const subProgramList = [
   { _id: new ObjectId(), name: 'Subprogram 1', steps: [steps[0]._id], status: PUBLISHED },
@@ -155,7 +155,7 @@ const coursesList = [
     holding: otherHolding._id,
     operationsRepresentative: userList[0]._id,
   },
-  { // 7
+  { // 7 Single course
     _id: new ObjectId(),
     subProgram: subProgramList[1]._id,
     type: INTER_B2B,

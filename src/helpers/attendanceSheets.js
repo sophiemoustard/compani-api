@@ -28,9 +28,8 @@ exports.create = async (payload) => {
         { key: COURSE, value: payload.course }, { key: TRAINEE, value: [payload.trainee] }
       );
     companies = [get(traineeCompanyAtCourseRegistration[0], 'company')];
-    if (payload.slots) {
-      slots = Array.isArray(payload.slots) ? payload.slots : [payload.slots];
-    }
+
+    if (payload.slots) slots = Array.isArray(payload.slots) ? payload.slots : [payload.slots];
   }
 
   const fileUploaded = await GCloudStorageHelper.uploadCourseFile({
