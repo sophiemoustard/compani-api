@@ -21,8 +21,8 @@ const { CompaniDate } = require('../../helpers/dates/companiDates');
 
 const { language } = translate;
 
-const isTrainerAuthorized = (loggedUserId, trainer) => {
-  if (!UtilsHelper.areObjectIdsEquals(loggedUserId, trainer)) throw Boom.forbidden();
+const isTrainerAuthorized = (loggedUserId, trainersIds) => {
+  if (!UtilsHelper.doesArrayIncludeId(trainersIds, loggedUserId)) throw Boom.forbidden();
 
   return null;
 };
@@ -100,7 +100,7 @@ exports.authorizeAttendanceCreation = async (req) => {
   const courseSlot = await CourseSlot.findOne({ _id: req.payload.courseSlot }, { course: 1 })
     .populate({
       path: 'course',
-      select: 'trainer companies archivedAt trainees type holding subProgram',
+      select: 'trainers companies archivedAt trainees type holding subProgram',
       populate: [
         { path: 'holding', populate: { path: 'companies' } },
         { path: 'subProgram', select: 'program', populate: { path: 'program', select: 'subPrograms' } },
@@ -110,7 +110,8 @@ exports.authorizeAttendanceCreation = async (req) => {
   if (!courseSlot) throw Boom.notFound();
 
   const { credentials } = req.auth;
-  if (get(credentials, 'role.vendor.name') === TRAINER) isTrainerAuthorized(credentials._id, courseSlot.course.trainer);
+  const trainersIds = courseSlot.course.trainers;
+  if (get(credentials, 'role.vendor.name') === TRAINER) isTrainerAuthorized(credentials._id, trainersIds);
 
   const { course } = courseSlot;
   if (course.archivedAt) throw Boom.forbidden();
@@ -159,15 +160,14 @@ exports.authorizeAttendanceDeletion = async (req) => {
   }
 
   const courseSlot = await CourseSlot.findById(courseSlotId)
-    .populate({ path: 'course', select: 'trainer archivedAt' })
+    .populate({ path: 'course', select: 'trainers archivedAt' })
     .lean();
   const { course } = courseSlot;
   if (course.archivedAt) throw Boom.forbidden();
 
   const { credentials } = req.auth;
-  if (get(credentials, 'role.vendor.name') === TRAINER) {
-    isTrainerAuthorized(credentials._id, courseSlot.course.trainer);
-  }
+  const trainersIds = courseSlot.course.trainers;
+  if (get(credentials, 'role.vendor.name') === TRAINER) isTrainerAuthorized(credentials._id, trainersIds);
 
   return null;
 };

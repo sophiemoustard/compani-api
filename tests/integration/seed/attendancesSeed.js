@@ -169,7 +169,7 @@ const coursesList = [
     type: INTER_B2B,
     trainees: [traineeList[2]._id, traineeList[3]._id],
     companies: [otherCompany._id, authCompany._id],
-    trainers: [userList[0]._id],
+    trainers: [userList[0]._id, trainerAndCoach._id],
     operationsRepresentative: userList[2]._id,
   },
   { // 4 interb2b with only trainees from otherCompany
