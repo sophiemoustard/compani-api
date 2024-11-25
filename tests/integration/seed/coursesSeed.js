@@ -403,6 +403,7 @@ const coursesList = [
     misc: 'inter b2b session NOT concerning auth company',
     type: INTER_B2B,
     format: BLENDED,
+    trainers: [trainer._id],
     trainees: [noRole._id],
     companies: [thirdCompany._id],
     operationsRepresentative: vendorAdmin._id,
@@ -469,6 +470,7 @@ const coursesList = [
     trainees: [],
     companies: [authCompany._id],
     operationsRepresentative: vendorAdmin._id,
+    trainers: [trainer._id],
   },
   { // 13 course without trainee
     _id: new ObjectId(),
