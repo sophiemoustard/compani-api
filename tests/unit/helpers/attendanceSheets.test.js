@@ -336,6 +336,24 @@ describe('create', () => {
   });
 });
 
+describe('update', () => {
+  let updateOne;
+  beforeEach(() => {
+    updateOne = sinon.stub(AttendanceSheet, 'updateOne');
+  });
+  afterEach(() => {
+    updateOne.restore();
+  });
+
+  it('should update an attendance sheet', async () => {
+    const attendanceSheet = { _id: new ObjectId() };
+    const payload = { slots: new ObjectId() };
+    await attendanceSheetHelper.update(attendanceSheet._id, payload);
+
+    sinon.assert.calledOnceWithExactly(updateOne, { _id: attendanceSheet._id }, { $set: payload });
+  });
+});
+
 describe('delete', () => {
   let findOne;
   let deleteOne;
