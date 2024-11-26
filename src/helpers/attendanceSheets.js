@@ -53,7 +53,8 @@ exports.list = async (query, credentials) => {
 
   const attendanceSheets = await AttendanceSheet
     .find({ course: query.course, ...(companies.length && { companies: { $in: companies } }) })
-    .populate({ path: 'trainee', select: 'identity' }, { path: 'slots', select: 'startDate endDate' })
+    .populate({ path: 'trainee', select: 'identity' })
+    .populate({ path: 'slots', select: 'startDate endDate' })
     .setOptions({ isVendorUser })
     .lean();
 
