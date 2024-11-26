@@ -31,6 +31,17 @@ const create = async (req) => {
   }
 };
 
+const updateAttendanceSheet = async (req) => {
+  try {
+    await AttendanceSheetHelper.update(req.params._id, req.payload);
+
+    return { message: translate[language].attendanceSheetUpdated };
+  } catch (e) {
+    req.log('error', e);
+    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
+  }
+};
+
 const deleteAttendanceSheet = async (req) => {
   try {
     await AttendanceSheetHelper.delete(req.params._id);
@@ -42,4 +53,4 @@ const deleteAttendanceSheet = async (req) => {
   }
 };
 
-module.exports = { list, create, deleteAttendanceSheet };
+module.exports = { list, create, updateAttendanceSheet, deleteAttendanceSheet };

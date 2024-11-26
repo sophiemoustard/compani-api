@@ -257,7 +257,7 @@ const slotsList = [
 ];
 
 const attendanceSheetList = [
-  {
+  { // 0
     _id: new ObjectId(),
     course: coursesList[0]._id,
     file: { publicId: 'mon upload', link: 'www.test.com' },
@@ -265,7 +265,7 @@ const attendanceSheetList = [
     companies: [authCompany._id],
     origin: WEBAPP,
   },
-  {
+  { // 1
     _id: new ObjectId(),
     course: coursesList[1]._id,
     file: { publicId: 'mon upload', link: 'www.test.com' },
@@ -273,7 +273,7 @@ const attendanceSheetList = [
     companies: [authCompany._id],
     origin: WEBAPP,
   },
-  {
+  { // 2
     _id: new ObjectId(),
     course: coursesList[3]._id,
     file: { publicId: 'mon upload', link: 'www.test.com' },
@@ -281,7 +281,7 @@ const attendanceSheetList = [
     companies: [authCompany._id],
     origin: MOBILE,
   },
-  {
+  { // 3
     _id: new ObjectId(),
     course: coursesList[2]._id,
     file: { publicId: 'fromOtherCompany', link: 'www.test.com' },
@@ -289,7 +289,7 @@ const attendanceSheetList = [
     companies: [authCompany._id],
     origin: MOBILE,
   },
-  {
+  { // 4
     _id: new ObjectId(),
     course: coursesList[1]._id,
     file: { publicId: 'fromThirdCompany', link: 'www.test.com' },
@@ -297,7 +297,7 @@ const attendanceSheetList = [
     companies: [companyWithoutSubscription._id],
     origin: MOBILE,
   },
-  {
+  { // 5
     _id: new ObjectId(),
     course: coursesList[7]._id,
     file: { publicId: 'mon upload', link: 'www.test.com' },

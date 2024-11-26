@@ -101,6 +101,28 @@ exports.authorizeAttendanceSheetCreation = async (req) => {
   return null;
 };
 
+exports.authorizeAttendanceSheetEdit = async (req) => {
+  const attendanceSheetEdit = await AttendanceSheet
+    .findOne({ _id: req.params._id })
+    .populate({ path: 'course', select: 'subProgram' })
+    .lean();
+
+  if (!attendanceSheetEdit) throw Boom.notFound();
+
+  const isSingleCourse =
+    UtilsHelper.doesArrayIncludeId(SINGLE_COURSES_SUBPROGRAM_IDS, attendanceSheetEdit.course.subProgram);
+  if (!isSingleCourse) throw Boom.forbidden();
+
+  const courseSlotCount = await CourseSlot
+    .countDocuments({ _id: { $in: req.payload.slots }, course: attendanceSheetEdit.course._id });
+  if (courseSlotCount !== req.payload.slots.length) throw Boom.notFound();
+
+  const attendanceSheetCount = await AttendanceSheet.countDocuments({ slots: { $in: req.payload.slots } });
+  if (attendanceSheetCount) throw Boom.conflict();
+
+  return null;
+};
+
 exports.authorizeAttendanceSheetDeletion = async (req) => {
   const { credentials } = req.auth;
 
