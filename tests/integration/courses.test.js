@@ -3744,7 +3744,7 @@ describe('COURSES ROUTES - DELETE /courses/{_id}/trainees/{traineeId}', () => {
   });
 });
 
-describe('COURSES ROUTES - GET /:_id/attendance-sheets', () => {
+describe('COURSES ROUTES - GET /{_id}/attendance-sheets', () => {
   let authToken;
   const intraCourseIdFromAuthCompany = coursesList[2]._id;
   const interCourseIdFromAuthCompany = coursesList[5]._id;
@@ -3843,8 +3843,7 @@ describe('COURSES ROUTES - GET /:_id/attendance-sheets', () => {
       { name: 'coach', expectedCode: 200 },
     ];
     roles.forEach((role) => {
-      it(`should return ${role.expectedCode} as user is ${role.name}, requesting on his company
-(intra)`, async () => {
+      it(`should return ${role.expectedCode} as user is ${role.name}, requesting on his company (intra)`, async () => {
         authToken = await getToken(role.name);
         const response = await app.inject({
           method: 'GET',
@@ -3855,8 +3854,7 @@ describe('COURSES ROUTES - GET /:_id/attendance-sheets', () => {
         expect(response.statusCode).toBe(role.expectedCode);
       });
 
-      it(`should return ${role.expectedCode} as user is ${role.name}, company in course
- (intra_holding)`, async () => {
+      it(`should return ${role.expectedCode} as user is ${role.name}, company in course (intra_holding)`, async () => {
         authToken = await getToken(role.name);
         const response = await app.inject({
           method: 'GET',

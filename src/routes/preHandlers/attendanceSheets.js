@@ -13,27 +13,27 @@ const {
   TRAINING_ORGANISATION_MANAGER,
 } = require('../../helpers/constants');
 
-const isVendorAndAuthorized = (courseTrainer, credentials) => {
+const isVendorAndAuthorized = (courseTrainers, credentials) => {
   const loggedUserId = get(credentials, '_id');
   const vendorRole = get(credentials, 'role.vendor');
 
   const isRofOrAdmin = [VENDOR_ADMIN, TRAINING_ORGANISATION_MANAGER].includes(get(vendorRole, 'name'));
   if (isRofOrAdmin) return true;
 
-  const loggedUserIsCourseTrainer = courseTrainer && UtilsHelper.areObjectIdsEquals(loggedUserId, courseTrainer);
+  const loggedUserIsCourseTrainer = UtilsHelper.doesArrayIncludeId(courseTrainers, loggedUserId);
 
   return get(vendorRole, 'name') === TRAINER && loggedUserIsCourseTrainer;
 };
 
 exports.authorizeAttendanceSheetsGet = async (req) => {
   const course = await Course
-    .findOne({ _id: req.query.course }, { type: 1, companies: 1, trainer: 1, holding: 1 })
+    .findOne({ _id: req.query.course }, { type: 1, companies: 1, trainers: 1, holding: 1 })
     .lean();
   if (!course) throw Boom.notFound();
 
   const { credentials } = req.auth;
 
-  if (isVendorAndAuthorized(course.trainer, credentials)) return null;
+  if (isVendorAndAuthorized(course.trainers, credentials)) return null;
 
   if (get(req.query, 'company')) {
     const loggedUserCompany = get(credentials, 'company._id');
