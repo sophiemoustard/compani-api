@@ -840,7 +840,7 @@ describe('COURSES ROUTES - GET /courses', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      expect(response.result.data.courses.length).toEqual(15);
+      expect(response.result.data.courses.length).toEqual(13);
     });
 
     it('should get trainer\'s course (ops mobile)', async () => {
@@ -852,7 +852,7 @@ describe('COURSES ROUTES - GET /courses', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      expect(response.result.data.courses.length).toEqual(15);
+      expect(response.result.data.courses.length).toEqual(13);
 
       const course =
          response.result.data.courses.find(c => UtilsHelper.areObjectIdsEquals(coursesList[2]._id, c._id));
@@ -3752,9 +3752,9 @@ describe('COURSES ROUTES - GET /{_id}/attendance-sheets', () => {
   const courseIdFromOtherCompany = coursesList[1]._id;
   beforeEach(populateDB);
 
-  describe('TRAINER', () => {
+  describe('TRAINING_ORGANISATION_MANAGER', () => {
     beforeEach(async () => {
-      authToken = await getToken('trainer');
+      authToken = await getToken('training_organisation_manager');
     });
 
     it('should return 200 for intra course', async () => {
