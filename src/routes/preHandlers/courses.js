@@ -550,7 +550,7 @@ exports.authorizeGetFollowUp = async (req) => {
 exports.authorizeGetQuestionnaires = async (req) => {
   const credentials = get(req, 'auth.credentials');
   const countQuery = get(credentials, 'role.vendor.name') === TRAINER
-    ? { _id: req.params._id, format: BLENDED, trainer: credentials._id }
+    ? { _id: req.params._id, format: BLENDED, trainers: credentials._id }
     : { _id: req.params._id, format: BLENDED };
   const course = await Course.countDocuments(countQuery);
   if (!course) throw Boom.notFound();
