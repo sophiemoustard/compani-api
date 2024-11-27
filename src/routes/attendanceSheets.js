@@ -43,6 +43,7 @@ exports.plugin = {
             trainee: Joi.objectId(),
             date: Joi.date(),
             origin: Joi.string().valid(...ORIGIN_OPTIONS).default(MOBILE),
+            slots: Joi.alternatives().try(Joi.array().items(Joi.objectId()).min(1), Joi.objectId()),
           }).xor('trainee', 'date'),
         },
         auth: { scope: ['attendances:edit'] },

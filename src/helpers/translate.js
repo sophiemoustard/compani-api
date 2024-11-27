@@ -151,6 +151,7 @@ module.exports = {
     courseSlotNotFound: 'Course slot not found.',
     courseSlotConflict: 'Course slot in conflict.',
     courseSlotWithAttendances: 'Course slot has attendances.',
+    courseSlotsAlreadyInAttendanceSheet: 'Course slots already in attendance sheet.',
     /* Course funding organisation */
     courseFundingOrganisationsFound: 'Course funding organisations found.',
     courseFundingOrganisationsNotFound: 'Course funding organisations not found.',
@@ -361,6 +362,7 @@ module.exports = {
     courseSlotNotFound: 'Créneau de formation non trouvé.',
     courseSlotConflict: 'Créneau de formation en conflit.',
     courseSlotWithAttendances: 'Impossible: ce créneau de formation est émargé.',
+    courseSlotsAlreadyInAttendanceSheet: 'Certains créneaux sont déjà rattachés à une feuille d’émargement.',
     /* Course funding organisation */
     courseFundingOrganisationsFound: 'Financeurs trouvés.',
     courseFundingOrganisationsNotFound: 'Financeurs non trouvés.',

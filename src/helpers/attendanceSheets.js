@@ -12,6 +12,7 @@ const { DAY_MONTH_YEAR, COURSE, TRAINEE } = require('./constants');
 exports.create = async (payload) => {
   let fileName;
   let companies;
+  let slots = [];
 
   const course = await Course.findOne({ _id: payload.course }, { companies: 1 }).lean();
 
@@ -27,6 +28,8 @@ exports.create = async (payload) => {
         { key: COURSE, value: payload.course }, { key: TRAINEE, value: [payload.trainee] }
       );
     companies = [get(traineeCompanyAtCourseRegistration[0], 'company')];
+
+    if (payload.slots) slots = Array.isArray(payload.slots) ? payload.slots : [payload.slots];
   }
 
   const fileUploaded = await GCloudStorageHelper.uploadCourseFile({
@@ -34,7 +37,12 @@ exports.create = async (payload) => {
     file: payload.file,
   });
 
-  await AttendanceSheet.create({ ...omit(payload, 'file'), companies, file: fileUploaded });
+  await AttendanceSheet.create({
+    ...omit(payload, 'file'),
+    companies,
+    file: fileUploaded,
+    ...(slots.length && { slots }),
+  });
 };
 
 exports.list = async (query, credentials) => {
