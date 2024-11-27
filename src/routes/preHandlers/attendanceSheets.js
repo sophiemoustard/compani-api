@@ -117,7 +117,8 @@ exports.authorizeAttendanceSheetEdit = async (req) => {
     .countDocuments({ _id: { $in: req.payload.slots }, course: attendanceSheetEdit.course._id });
   if (courseSlotCount !== req.payload.slots.length) throw Boom.notFound();
 
-  const attendanceSheetCount = await AttendanceSheet.countDocuments({ slots: { $in: req.payload.slots } });
+  const attendanceSheetCount = await AttendanceSheet
+    .countDocuments({ _id: { $ne: attendanceSheetEdit._id }, slots: { $in: req.payload.slots } });
   if (attendanceSheetCount) throw Boom.conflict();
 
   return null;
