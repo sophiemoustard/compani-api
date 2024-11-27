@@ -95,7 +95,7 @@ exports.authorizeAttendanceSheetCreation = async (req) => {
     if (courseSlotCount !== slotsIds.length) throw Boom.notFound();
 
     const attendanceSheetCount = await AttendanceSheet.countDocuments({ slots: { $in: slotsIds } });
-    if (attendanceSheetCount) throw Boom.conflict(translate[language].courseSlotsAlreadyInAttendancesSheet);
+    if (attendanceSheetCount) throw Boom.conflict(translate[language].courseSlotsAlreadyInAttendanceSheet);
   }
 
   return null;

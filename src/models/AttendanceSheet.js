@@ -12,7 +12,7 @@ const AttendanceSheetSchema = mongoose.Schema({
   trainee: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
   companies: { type: [mongoose.Schema.Types.ObjectId], ref: 'Company', required: true },
   origin: { type: String, enum: ORIGIN_OPTIONS, required: true, immutable: true },
-  slots: { type: [mongoose.Schema.Types.ObjectId], ref: 'CourseSlot' },
+  slots: { type: [mongoose.Schema.Types.ObjectId], ref: 'CourseSlot', default: undefined },
 }, { timestamps: true, id: false });
 
 AttendanceSheetSchema.pre('find', validateQuery);
