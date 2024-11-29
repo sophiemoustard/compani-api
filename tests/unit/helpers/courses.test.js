@@ -2112,7 +2112,7 @@ describe('getCourse', () => {
                   { path: 'program', select: 'name learningGoals' },
                 ],
               },
-              { path: 'slots', select: 'startDate' },
+              { path: 'slots', select: 'startDate endDate' },
             ]],
           },
           { query: 'lean' },

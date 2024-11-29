@@ -378,7 +378,7 @@ const getCourseForOperations = async (courseId, credentials, origin) => {
           { path: 'contact', select: 'identity.firstname identity.lastname contact.phone' },
           ...(isRofOrAdmin ? [{ path: 'trainerMission', select: '_id', options: { isVendorUser: true } }] : []),
         ]
-        : [{ path: 'slots', select: 'startDate' }]
+        : [{ path: 'slots', select: 'startDate endDate' }]
       ),
     ])
     .lean();
