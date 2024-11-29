@@ -11,11 +11,11 @@ const {
   SELF_POSITIONNING,
 } = require('../../helpers/constants');
 const translate = require('../../helpers/translate');
-const { areObjectIdsEquals } = require('../../helpers/utils');
 const Questionnaire = require('../../models/Questionnaire');
 const Card = require('../../models/Card');
 const Course = require('../../models/Course');
 const Program = require('../../models/Program');
+const UtilsHelper = require('../../helpers/utils');
 
 const { language } = translate;
 
@@ -101,18 +101,18 @@ exports.authorizeGetFollowUp = async (req) => {
       if (questionnaire.type !== SELF_POSITIONNING) throw Boom.notFound();
 
       const course = await Course
-        .findOne({ _id: req.query.course, format: BLENDED }, { trainer: 1, subProgram: 1 })
+        .findOne({ _id: req.query.course, format: BLENDED }, { trainers: 1, subProgram: 1 })
         .populate({ path: 'subProgram', select: 'program', populate: { path: 'program', select: '_id' } })
         .lean();
       if (!course) throw Boom.notFound();
 
-      if (!areObjectIdsEquals(questionnaire.program, course.subProgram.program._id)) throw Boom.notFound();
+      if (!UtilsHelper.areObjectIdsEquals(questionnaire.program, course.subProgram.program._id)) throw Boom.notFound();
 
-      const loggedUserIsCourseTrainer = areObjectIdsEquals(course.trainer, credentials._id);
+      const loggedUserIsCourseTrainer = UtilsHelper.doesArrayIncludeId(course.trainers, credentials._id);
       if (!loggedUserIsCourseTrainer) throw Boom.forbidden();
     } else {
       const countQuery = get(credentials, 'role.vendor.name') === TRAINER
-        ? { _id: req.query.course, format: BLENDED, trainer: credentials._id }
+        ? { _id: req.query.course, format: BLENDED, trainers: credentials._id }
         : { _id: req.query.course, format: BLENDED };
 
       const course = await Course.countDocuments(countQuery);
