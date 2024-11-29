@@ -349,8 +349,9 @@ describe('update', () => {
   });
 
   it('should update an attendance sheet', async () => {
+    const slotId = new ObjectId();
     const attendanceSheet = { _id: new ObjectId() };
-    const payload = { slots: new ObjectId() };
+    const payload = { slots: [slotId] };
     await attendanceSheetHelper.update(attendanceSheet._id, payload);
 
     sinon.assert.calledOnceWithExactly(updateOne, { _id: attendanceSheet._id }, { $set: payload });

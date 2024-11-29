@@ -102,24 +102,31 @@ exports.authorizeAttendanceSheetCreation = async (req) => {
 };
 
 exports.authorizeAttendanceSheetEdit = async (req) => {
-  const attendanceSheetEdit = await AttendanceSheet
+  const attendanceSheet = await AttendanceSheet
     .findOne({ _id: req.params._id })
-    .populate({ path: 'course', select: 'subProgram' })
+    .populate({ path: 'course', select: 'subProgram trainer' })
     .lean();
 
-  if (!attendanceSheetEdit) throw Boom.notFound();
+  if (!attendanceSheet) throw Boom.notFound();
+
+  const { credentials } = req.auth;
+  const userVendorRole = get(credentials, 'role.vendor.name');
+  const loggedUserId = get(credentials, '_id');
+  const isTrainerAndAuthorized = userVendorRole === TRAINER &&
+    UtilsHelper.areObjectIdsEquals(attendanceSheet.course.trainer, loggedUserId);
+  if (!isTrainerAndAuthorized) throw Boom.forbidden();
 
   const isSingleCourse =
-    UtilsHelper.doesArrayIncludeId(SINGLE_COURSES_SUBPROGRAM_IDS, attendanceSheetEdit.course.subProgram);
+    UtilsHelper.doesArrayIncludeId(SINGLE_COURSES_SUBPROGRAM_IDS, attendanceSheet.course.subProgram);
   if (!isSingleCourse) throw Boom.forbidden();
 
   const courseSlotCount = await CourseSlot
-    .countDocuments({ _id: { $in: req.payload.slots }, course: attendanceSheetEdit.course._id });
+    .countDocuments({ _id: { $in: req.payload.slots }, course: attendanceSheet.course._id });
   if (courseSlotCount !== req.payload.slots.length) throw Boom.notFound();
 
-  const attendanceSheetCount = await AttendanceSheet
-    .countDocuments({ _id: { $ne: attendanceSheetEdit._id }, slots: { $in: req.payload.slots } });
-  if (attendanceSheetCount) throw Boom.conflict();
+  const slotAlreadyLinkedToAS = await AttendanceSheet
+    .countDocuments({ _id: { $ne: attendanceSheet._id }, slots: { $in: req.payload.slots } });
+  if (slotAlreadyLinkedToAS) throw Boom.conflict();
 
   return null;
 };

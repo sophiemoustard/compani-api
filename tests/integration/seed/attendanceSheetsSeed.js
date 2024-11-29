@@ -306,6 +306,15 @@ const attendanceSheetList = [
     slots: [slotsList[6]._id],
     origin: WEBAPP,
   },
+  { // 6
+    _id: new ObjectId(),
+    course: coursesList[7]._id,
+    file: { publicId: 'mon upload', link: 'www.test.com' },
+    trainee: userList[1]._id,
+    companies: [authCompany._id],
+    slots: [slotsList[6]._id],
+    origin: WEBAPP,
+  },
 ];
 
 const populateDB = async () => {
