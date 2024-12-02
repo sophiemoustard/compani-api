@@ -836,13 +836,16 @@ describe('ATTENDANCE SHEETS ROUTES - PUT /attendancesheets/{_id}', () => {
   describe('Other roles', () => {
     beforeEach(populateDB);
 
-    const roles = [{ name: 'client_admin', expectedCode: 403 }];
+    const roles = [
+      { name: 'client_admin', expectedCode: 403 },
+      { name: 'training_organisation_manager', expectedCode: 200 },
+    ];
 
     roles.forEach((role) => {
       it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
         authToken = await getToken(role.name);
         const attendanceSheetId = attendanceSheetList[5]._id;
-        const payload = { slots: slotsList[3] };
+        const payload = { slots: [slotsList[4]._id] };
 
         const response = await app.inject({
           method: 'PUT',

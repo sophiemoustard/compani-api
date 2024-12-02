@@ -112,9 +112,10 @@ exports.authorizeAttendanceSheetEdit = async (req) => {
   const { credentials } = req.auth;
   const userVendorRole = get(credentials, 'role.vendor.name');
   const loggedUserId = get(credentials, '_id');
-  const isTrainerAndAuthorized = userVendorRole === TRAINER &&
-    UtilsHelper.areObjectIdsEquals(attendanceSheet.course.trainer, loggedUserId);
-  if (!isTrainerAndAuthorized) throw Boom.forbidden();
+  if (userVendorRole === TRAINER) {
+    const isTrainer = UtilsHelper.areObjectIdsEquals(attendanceSheet.course.trainer, loggedUserId);
+    if (!isTrainer) throw Boom.forbidden();
+  }
 
   const isSingleCourse =
     UtilsHelper.doesArrayIncludeId(SINGLE_COURSES_SUBPROGRAM_IDS, attendanceSheet.course.subProgram);
