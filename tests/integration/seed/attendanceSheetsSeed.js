@@ -303,7 +303,7 @@ const attendanceSheetList = [
     file: { publicId: 'mon upload', link: 'www.test.com' },
     trainee: userList[1]._id,
     companies: [authCompany._id],
-    slots: [slotsList[6]._id],
+    slots: [slotsList[5]._id],
     origin: WEBAPP,
   },
   { // 6

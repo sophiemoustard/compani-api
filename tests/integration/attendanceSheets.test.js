@@ -806,7 +806,7 @@ describe('ATTENDANCE SHEETS ROUTES - PUT /attendancesheets/{_id}', () => {
 
     it('should return 409 if slot is already in an existing attendance sheet', async () => {
       const attendanceSheetId = attendanceSheetList[6]._id;
-      const payload = { slots: [slotsList[6]._id] };
+      const payload = { slots: [slotsList[5]._id] };
 
       const response = await app.inject({
         method: 'PUT',
