@@ -164,7 +164,7 @@ describe('ATTENDANCE SHEETS ROUTES - POST /attendancesheets', () => {
     });
 
     it('should upload attendance sheet to single course with several slots (webapp)', async () => {
-      const slots = [slotsList[4]._id.toHexString(), slotsList[5]._id.toHexString()];
+      const slots = [slotsList[4]._id.toHexString(), slotsList[7]._id.toHexString()];
       const attendanceSheetsLengthBefore = await AttendanceSheet.countDocuments({ course: coursesList[7]._id });
       const formData = {
         course: coursesList[7]._id.toHexString(),
