@@ -164,6 +164,15 @@ const coursesList = [
     operationsRepresentative: userList[0]._id,
     trainer: trainer._id,
   },
+  { // 8 Single course
+    _id: new ObjectId(),
+    subProgram: subProgramList[1]._id,
+    type: INTER_B2B,
+    trainees: [userList[1]._id],
+    companies: [authCompany._id],
+    operationsRepresentative: userList[0]._id,
+    trainer: userList[2]._id,
+  },
 ];
 
 const courseHistoriesList = [
@@ -261,6 +270,13 @@ const slotsList = [
     course: coursesList[7]._id,
     step: steps[0]._id,
   },
+  { // 8
+    _id: new ObjectId(),
+    startDate: '2020-01-26T09:00:00.000Z',
+    endDate: '2020-01-26T11:00:00.000Z',
+    course: coursesList[8]._id,
+    step: steps[0]._id,
+  },
 ];
 
 const attendanceSheetList = [
@@ -320,6 +336,15 @@ const attendanceSheetList = [
     trainee: userList[1]._id,
     companies: [authCompany._id],
     slots: [slotsList[6]._id],
+    origin: WEBAPP,
+  },
+  { // 7
+    _id: new ObjectId(),
+    course: coursesList[8]._id,
+    file: { publicId: 'mon upload', link: 'www.test.com' },
+    trainee: userList[1]._id,
+    companies: [authCompany._id],
+    slots: [slotsList[8]._id],
     origin: WEBAPP,
   },
 ];

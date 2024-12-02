@@ -819,8 +819,8 @@ describe('ATTENDANCE SHEETS ROUTES - PUT /attendancesheets/{_id}', () => {
     });
 
     it('should return 403 if trainer is not trainer of course linked to attendance sheet', async () => {
-      const attendanceSheetId = attendanceSheetList[3]._id;
-      const payload = { slots: [slotsList[1]._id] };
+      const attendanceSheetId = attendanceSheetList[7]._id;
+      const payload = { slots: [slotsList[8]._id] };
 
       const response = await app.inject({
         method: 'PUT',
