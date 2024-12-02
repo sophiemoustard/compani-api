@@ -29,6 +29,7 @@ exports.findCourseAndPopulate = (query, origin, populateVirtual = false) => Cour
       path: 'slots',
       select: origin === MOBILE ? 'startDate endDate step' : 'startDate endDate step address',
       populate: { path: 'step', select: 'type' },
+      options: { sort: { startDate: 1 } },
     },
     { path: 'slotsToPlan', select: '_id' },
     ...(origin === WEBAPP
