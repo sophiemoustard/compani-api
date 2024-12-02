@@ -10,12 +10,12 @@ const {
   REVIEW,
   SELF_POSITIONNING,
 } = require('../../helpers/constants');
+const UtilsHelper = require('../../helpers/utils');
 const translate = require('../../helpers/translate');
 const Questionnaire = require('../../models/Questionnaire');
 const Card = require('../../models/Card');
 const Course = require('../../models/Course');
 const Program = require('../../models/Program');
-const UtilsHelper = require('../../helpers/utils');
 
 const { language } = translate;
 
