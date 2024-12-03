@@ -25,7 +25,7 @@ const { trainerOrganisationManager, trainer } = require('../../seed/authUsersSee
 const SINGLE_COURSES_SUBPROGRAM_IDS = process.env.SINGLE_COURSES_SUBPROGRAM_IDS.split(';').map(id => new ObjectId(id));
 
 const userList = [
-  {
+  { // 0
     _id: new ObjectId(),
     identity: { firstname: 'operations', lastname: 'representative' },
     refreshToken: uuidv4(),
@@ -33,27 +33,27 @@ const userList = [
     role: { vendor: vendorAdminRoleId },
     origin: WEBAPP,
   },
-  {
+  { // 1
     _id: new ObjectId(),
     identity: { firstname: 'learner', lastname: 'from AuthCompany' },
     refreshToken: uuidv4(),
     local: { email: 'learner@compani.fr', password: '123456!eR' },
     origin: WEBAPP,
   },
-  {
+  { // 2
     _id: new ObjectId(),
     identity: { firstname: 'traineeFromINTERB2B', lastname: 'withOtherCompany' },
     local: { email: 'traineeFromINTERB2B@alenvi.io' },
     origin: WEBAPP,
   },
-  {
+  { // 3
     _id: new ObjectId(),
     identity: { firstname: 'trainer', lastname: 'FromOtherCompany' },
     local: { email: 'trainerFromOtherCompany@compani.fr' },
     role: { vendor: trainerRoleId },
     origin: WEBAPP,
   },
-  {
+  { // 4
     _id: new ObjectId(),
     identity: { firstname: 'thirdCompany', lastname: 'User' },
     local: { email: 'trainerFromThirdCompany@compani.fr' },
@@ -164,6 +164,15 @@ const coursesList = [
     operationsRepresentative: userList[0]._id,
     trainer: trainer._id,
   },
+  { // 8 Single course
+    _id: new ObjectId(),
+    subProgram: subProgramList[1]._id,
+    type: INTER_B2B,
+    trainees: [userList[1]._id],
+    companies: [authCompany._id],
+    operationsRepresentative: userList[0]._id,
+    trainer: userList[3]._id,
+  },
 ];
 
 const courseHistoriesList = [
@@ -254,10 +263,24 @@ const slotsList = [
     course: coursesList[7]._id,
     step: steps[0]._id,
   },
+  { // 7
+    _id: new ObjectId(),
+    startDate: '2020-01-26T09:00:00.000Z',
+    endDate: '2020-01-26T11:00:00.000Z',
+    course: coursesList[7]._id,
+    step: steps[0]._id,
+  },
+  { // 8
+    _id: new ObjectId(),
+    startDate: '2020-01-26T09:00:00.000Z',
+    endDate: '2020-01-26T11:00:00.000Z',
+    course: coursesList[8]._id,
+    step: steps[0]._id,
+  },
 ];
 
 const attendanceSheetList = [
-  {
+  { // 0
     _id: new ObjectId(),
     course: coursesList[0]._id,
     file: { publicId: 'mon upload', link: 'www.test.com' },
@@ -265,7 +288,7 @@ const attendanceSheetList = [
     companies: [authCompany._id],
     origin: WEBAPP,
   },
-  {
+  { // 1
     _id: new ObjectId(),
     course: coursesList[1]._id,
     file: { publicId: 'mon upload', link: 'www.test.com' },
@@ -273,7 +296,7 @@ const attendanceSheetList = [
     companies: [authCompany._id],
     origin: WEBAPP,
   },
-  {
+  { // 2
     _id: new ObjectId(),
     course: coursesList[3]._id,
     file: { publicId: 'mon upload', link: 'www.test.com' },
@@ -281,7 +304,7 @@ const attendanceSheetList = [
     companies: [authCompany._id],
     origin: MOBILE,
   },
-  {
+  { // 3
     _id: new ObjectId(),
     course: coursesList[2]._id,
     file: { publicId: 'fromOtherCompany', link: 'www.test.com' },
@@ -289,7 +312,7 @@ const attendanceSheetList = [
     companies: [authCompany._id],
     origin: MOBILE,
   },
-  {
+  { // 4
     _id: new ObjectId(),
     course: coursesList[1]._id,
     file: { publicId: 'fromThirdCompany', link: 'www.test.com' },
@@ -297,13 +320,31 @@ const attendanceSheetList = [
     companies: [companyWithoutSubscription._id],
     origin: MOBILE,
   },
-  {
+  { // 5
+    _id: new ObjectId(),
+    course: coursesList[7]._id,
+    file: { publicId: 'mon upload', link: 'www.test.com' },
+    trainee: userList[1]._id,
+    companies: [authCompany._id],
+    slots: [slotsList[5]._id],
+    origin: WEBAPP,
+  },
+  { // 6
     _id: new ObjectId(),
     course: coursesList[7]._id,
     file: { publicId: 'mon upload', link: 'www.test.com' },
     trainee: userList[1]._id,
     companies: [authCompany._id],
     slots: [slotsList[6]._id],
+    origin: WEBAPP,
+  },
+  { // 7
+    _id: new ObjectId(),
+    course: coursesList[8]._id,
+    file: { publicId: 'mon upload', link: 'www.test.com' },
+    trainee: userList[1]._id,
+    companies: [authCompany._id],
+    slots: [slotsList[8]._id],
     origin: WEBAPP,
   },
 ];

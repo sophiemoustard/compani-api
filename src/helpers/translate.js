@@ -163,6 +163,7 @@ module.exports = {
     activityHistoriesFound: 'Activity histories found.',
     /* AttendanceSheets */
     attendanceSheetCreated: 'AttendanceSheet created.',
+    attendanceSheetUpdated: 'AttendanceSheet updated.',
     attendanceSheetsFound: 'AttendanceSheets found.',
     attendanceSheetsNotFound: 'AttendanceSheets not found.',
     attendanceSheetDeleted: 'AttendanceSheet deleted.',
@@ -374,6 +375,7 @@ module.exports = {
     activityHistoriesFound: 'Historiques d\'activité trouvés.',
     /* AttendanceSheets */
     attendanceSheetCreated: 'Feuille d\'émargement créée.',
+    attendanceSheetUpdated: 'Feuille d\'émargement modifiée.',
     attendanceSheetsFound: 'Feuilles d\'émargement trouvées.',
     attendanceSheetsNotFound: 'Feuilles d\'émargement non trouvées.',
     attendanceSheetDeleted: 'Feuille d\'émargement supprimée.',

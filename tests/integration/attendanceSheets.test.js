@@ -164,7 +164,7 @@ describe('ATTENDANCE SHEETS ROUTES - POST /attendancesheets', () => {
     });
 
     it('should upload attendance sheet to single course with several slots (webapp)', async () => {
-      const slots = [slotsList[4]._id.toHexString(), slotsList[5]._id.toHexString()];
+      const slots = [slotsList[4]._id.toHexString(), slotsList[7]._id.toHexString()];
       const attendanceSheetsLengthBefore = await AttendanceSheet.countDocuments({ course: coursesList[7]._id });
       const formData = {
         course: coursesList[7]._id.toHexString(),
@@ -729,6 +729,129 @@ describe('ATTENDANCE SHEETS ROUTES - GET /attendancesheets', () => {
           method: 'GET',
           url: `/attendancesheets?course=${coursesList[0]._id}&company=${authCompany._id}`,
           headers: { Cookie: `alenvi_token=${authToken}` },
+        });
+
+        expect(response.statusCode).toBe(role.expectedCode);
+      });
+    });
+  });
+});
+
+describe('ATTENDANCE SHEETS ROUTES - PUT /attendancesheets/{_id}', () => {
+  let authToken;
+  beforeEach(populateDB);
+
+  describe('TRAINER', () => {
+    beforeEach(async () => {
+      authToken = await getToken('trainer');
+    });
+
+    it('should update an attendance sheet for a single course', async () => {
+      const attendanceSheetId = attendanceSheetList[5]._id;
+      const payload = { slots: [slotsList[4]._id] };
+
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/attendancesheets/${attendanceSheetId}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload,
+      });
+
+      expect(response.statusCode).toBe(200);
+
+      const attendanceSheetUpdated = await AttendanceSheet.countDocuments({ _id: attendanceSheetId, ...payload });
+      expect(attendanceSheetUpdated).toEqual(1);
+    });
+
+    it('should return 404 if attendance sheet doesn\'t exist', async () => {
+      const payload = { slots: [slotsList[4]._id] };
+
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/attendancesheets/${new ObjectId()}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload,
+      });
+
+      expect(response.statusCode).toBe(404);
+    });
+
+    it('should return 403 if is course is not single', async () => {
+      const attendanceSheetId = attendanceSheetList[3]._id;
+      const payload = { slots: [slotsList[1]._id] };
+
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/attendancesheets/${attendanceSheetId}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload,
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
+
+    it('should return 404 if slot is not in course', async () => {
+      const attendanceSheetId = attendanceSheetList[5]._id;
+      const payload = { slots: [slotsList[3]._id] };
+
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/attendancesheets/${attendanceSheetId}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload,
+      });
+
+      expect(response.statusCode).toBe(404);
+    });
+
+    it('should return 409 if slot is already in an existing attendance sheet', async () => {
+      const attendanceSheetId = attendanceSheetList[6]._id;
+      const payload = { slots: [slotsList[5]._id] };
+
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/attendancesheets/${attendanceSheetId}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload,
+      });
+
+      expect(response.statusCode).toBe(409);
+    });
+
+    it('should return 403 if trainer is not trainer of course linked to attendance sheet', async () => {
+      const attendanceSheetId = attendanceSheetList[7]._id;
+      const payload = { slots: [slotsList[8]._id] };
+
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/attendancesheets/${attendanceSheetId}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload,
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
+  });
+
+  describe('Other roles', () => {
+    beforeEach(populateDB);
+
+    const roles = [
+      { name: 'client_admin', expectedCode: 403 },
+      { name: 'training_organisation_manager', expectedCode: 200 },
+    ];
+
+    roles.forEach((role) => {
+      it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+        authToken = await getToken(role.name);
+        const attendanceSheetId = attendanceSheetList[5]._id;
+        const payload = { slots: [slotsList[4]._id] };
+
+        const response = await app.inject({
+          method: 'PUT',
+          url: `/attendancesheets/${attendanceSheetId}`,
+          headers: { Cookie: `alenvi_token=${authToken}` },
+          payload,
         });
 
         expect(response.statusCode).toBe(role.expectedCode);
