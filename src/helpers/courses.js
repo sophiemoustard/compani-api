@@ -354,7 +354,7 @@ const getCourseForOperations = async (courseId, credentials, origin) => {
                 populate: { path: 'activityHistories', select: 'user' },
               },
             }]
-            : []
+            : [{ path: 'steps', select: 'name' }]
           ),
         ],
       },
@@ -378,7 +378,7 @@ const getCourseForOperations = async (courseId, credentials, origin) => {
           { path: 'contact', select: 'identity.firstname identity.lastname contact.phone' },
           ...(isRofOrAdmin ? [{ path: 'trainerMission', select: '_id', options: { isVendorUser: true } }] : []),
         ]
-        : [{ path: 'slots', select: 'startDate endDate' }]
+        : [{ path: 'slots', select: 'step startDate endDate' }]
       ),
     ])
     .lean();
