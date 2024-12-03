@@ -25,7 +25,7 @@ const { trainerOrganisationManager, trainer } = require('../../seed/authUsersSee
 const SINGLE_COURSES_SUBPROGRAM_IDS = process.env.SINGLE_COURSES_SUBPROGRAM_IDS.split(';').map(id => new ObjectId(id));
 
 const userList = [
-  {
+  { // 0
     _id: new ObjectId(),
     identity: { firstname: 'operations', lastname: 'representative' },
     refreshToken: uuidv4(),
@@ -33,27 +33,27 @@ const userList = [
     role: { vendor: vendorAdminRoleId },
     origin: WEBAPP,
   },
-  {
+  { // 1
     _id: new ObjectId(),
     identity: { firstname: 'learner', lastname: 'from AuthCompany' },
     refreshToken: uuidv4(),
     local: { email: 'learner@compani.fr', password: '123456!eR' },
     origin: WEBAPP,
   },
-  {
+  { // 2
     _id: new ObjectId(),
     identity: { firstname: 'traineeFromINTERB2B', lastname: 'withOtherCompany' },
     local: { email: 'traineeFromINTERB2B@alenvi.io' },
     origin: WEBAPP,
   },
-  {
+  { // 3
     _id: new ObjectId(),
     identity: { firstname: 'trainer', lastname: 'FromOtherCompany' },
     local: { email: 'trainerFromOtherCompany@compani.fr' },
     role: { vendor: trainerRoleId },
     origin: WEBAPP,
   },
-  {
+  { // 4
     _id: new ObjectId(),
     identity: { firstname: 'thirdCompany', lastname: 'User' },
     local: { email: 'trainerFromThirdCompany@compani.fr' },
@@ -171,7 +171,7 @@ const coursesList = [
     trainees: [userList[1]._id],
     companies: [authCompany._id],
     operationsRepresentative: userList[0]._id,
-    trainer: userList[2]._id,
+    trainer: userList[3]._id,
   },
 ];
 
