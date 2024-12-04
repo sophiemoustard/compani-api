@@ -30,7 +30,7 @@ exports.getPdfContent = async (data) => {
   trainees.forEach((trainee, i) => {
     const title = `Émargements - ${trainee.traineeName}`;
     const trainersCount = trainee.course.trainers.length;
-    const formattedTrainersTitle = UtilsHelper.formatQuantity('Intervenant·e', trainersCount, '·s', false);
+    const formattedTrainersTitle = UtilsHelper.formatQuantity('Intervenant·e', trainersCount, 's', false);
     const columns = [
       [
         { text: `Nom de la formation : ${trainee.course.name}`, bold: true, marginBottom: 10 },
