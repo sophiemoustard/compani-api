@@ -41,7 +41,7 @@ describe('list', () => {
       [
         { query: 'find', args: [{ course: courseId }] },
         { query: 'populate', args: [{ path: 'trainee', select: 'identity' }] },
-        { query: 'populate', args: [{ path: 'slots', select: 'startDate endDate' }] },
+        { query: 'populate', args: [{ path: 'slots', select: 'startDate endDate step' }] },
         { query: 'setOptions', args: [{ isVendorUser: !!get(credentials, 'role.vendor') }] },
         { query: 'lean' },
       ]
@@ -79,7 +79,7 @@ describe('list', () => {
       [
         { query: 'find', args: [{ course: courseId, companies: { $in: [authCompanyId] } }] },
         { query: 'populate', args: [{ path: 'trainee', select: 'identity' }] },
-        { query: 'populate', args: [{ path: 'slots', select: 'startDate endDate' }] },
+        { query: 'populate', args: [{ path: 'slots', select: 'startDate endDate step' }] },
         { query: 'setOptions', args: [{ isVendorUser: !!get(credentials, 'role.vendor') }] },
         { query: 'lean' },
       ]
@@ -122,7 +122,7 @@ describe('list', () => {
       [
         { query: 'find', args: [{ course: courseId, companies: { $in: [authCompanyId, otherCompanyId] } }] },
         { query: 'populate', args: [{ path: 'trainee', select: 'identity' }] },
-        { query: 'populate', args: [{ path: 'slots', select: 'startDate endDate' }] },
+        { query: 'populate', args: [{ path: 'slots', select: 'startDate endDate step' }] },
         { query: 'setOptions', args: [{ isVendorUser: !!get(credentials, 'role.vendor') }] },
         { query: 'lean' },
       ]
