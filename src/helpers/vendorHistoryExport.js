@@ -1,4 +1,5 @@
 const get = require('lodash/get');
+const keyBy = require('lodash/keyBy');
 const uniqBy = require('lodash/uniqBy');
 const groupBy = require('lodash/groupBy');
 const {
@@ -23,6 +24,7 @@ const {
   HH_MM_SS,
   DAY,
   ESTIMATED_START_DATE_EDITION,
+  E_LEARNING,
 } = require('./constants');
 const { CompaniDate } = require('./dates/companiDates');
 const DatesUtilsHelper = require('./dates/utils');
@@ -40,6 +42,7 @@ const QuestionnaireHistory = require('../models/QuestionnaireHistory');
 const CourseHistory = require('../models/CourseHistory');
 const Questionnaire = require('../models/Questionnaire');
 const CoursePayment = require('../models/CoursePayment');
+const ActivityHistory = require('../models/ActivityHistory');
 
 const getEndOfCourse = (slotsGroupedByDate, slotsToPlan) => {
   if (slotsToPlan.length) return 'à planifier';
@@ -116,6 +119,50 @@ const getBillsInfos = (course) => {
 const getProgress = (pastSlots, course) =>
   UtilsHelper.formatFloatForExport(pastSlots / (course.slots.length + course.slotsToPlan.length));
 
+const getCourseCompletion = async (course) => {
+  const courseActivities = course.subProgram.steps.map(s => s.activities.map(a => a._id)).flat();
+  const courseTrainees = course.trainees.map(t => t._id);
+  const activityHistories = await ActivityHistory
+    .find({ $and: [{ activity: { $in: courseActivities }, user: { $in: courseTrainees } }] })
+    .lean();
+
+  const activityHistoriesGroupedByUser = groupBy(activityHistories, 'user');
+
+  const courseSteps = course.subProgram.steps
+    .filter(step => step.type === E_LEARNING)
+    .map(s => ({ _id: s._id, activities: s.activities.map(a => a._id) }));
+  const courseStepsById = keyBy(courseSteps, '_id');
+
+  const progressByTrainee = [];
+  for (const trainee of course.trainees) {
+    if (!UtilsHelper.doesArrayIncludeId(Object.keys(activityHistoriesGroupedByUser), trainee._id)) {
+      progressByTrainee.push(0);
+    } else {
+      const traineeActivityHistoriesIds = activityHistoriesGroupedByUser[trainee._id].map(a => a.activity);
+      const stepProgress = {};
+      for (const step of courseSteps) {
+        const activityValidatedCount = courseStepsById[step._id].activities
+          .filter(a => UtilsHelper.doesArrayIncludeId(traineeActivityHistoriesIds, a))
+          .length;
+
+        stepProgress[step._id] = courseStepsById[step._id].activities.length
+          ? NumbersHelper.divide(activityValidatedCount, courseStepsById[step._id].activities.length)
+          : 0;
+      }
+      const stepCount = Object.keys(courseSteps).length;
+      const stepProgressSum = Object.values(stepProgress)
+        .reduce((acc, progress) => NumbersHelper.add(acc, progress), 0);
+      const progress = NumbersHelper.divide(stepProgressSum, stepCount);
+      progressByTrainee.push(NumbersHelper.toFixedToFloat(progress));
+    }
+  }
+
+  const courseProgressSum = progressByTrainee.reduce((acc, progress) => NumbersHelper.add(acc, progress), 0);
+  const courseProgressMean = NumbersHelper.divide(courseProgressSum, course.trainees.length);
+
+  return NumbersHelper.toFixedToFloat(courseProgressMean);
+};
+
 exports.exportCourseHistory = async (startDate, endDate, credentials) => {
   const courses = await CourseRepository.findCoursesForExport(startDate, endDate, credentials);
 
@@ -172,14 +219,11 @@ exports.exportCourseHistory = async (startDate, endDate, credentials) => {
       .filter(qh => qh.questionnaire.type === END_OF_COURSE)
       .length;
 
-    const traineeProgressList = CourseHelper.getTraineesWithElearningProgress(course.trainees, course.subProgram.steps)
-      .filter(trainee => trainee.progress.eLearning >= 0)
-      .map(trainee => trainee.progress.eLearning);
-    const combinedElearningProgress = traineeProgressList.reduce((acc, value) => acc + value, 0);
-
     const { isBilled, billsCountForExport, payerList, netInclTaxes, paid, total } = getBillsInfos(course);
 
     const companiesName = course.companies.map(co => co.name).sort((a, b) => a.localeCompare(b)).toString();
+
+    const courseCompletion = await getCourseCompletion(course);
 
     rows.push({
       Identifiant: course._id,
@@ -200,9 +244,7 @@ exports.exportCourseHistory = async (startDate, endDate, credentials) => {
       'Nombre de SMS envoyés': smsCount,
       'Nombre de personnes connectées à l\'app': course.trainees
         .filter(trainee => trainee.firstMobileConnectionDate).length,
-      'Complétion eLearning moyenne': traineeProgressList.length
-        ? UtilsHelper.formatFloatForExport(combinedElearningProgress / course.trainees.length)
-        : '',
+      'Complétion eLearning moyenne': UtilsHelper.formatFloatForExport(courseCompletion),
       'Nombre de réponses au questionnaire de recueil des attentes': expectactionQuestionnaireAnswers,
       'Nombre de réponses au questionnaire de satisfaction': endQuestionnaireAnswers,
       'Date de démarrage souhaitée': course.estimatedStartDate
