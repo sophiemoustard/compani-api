@@ -74,7 +74,7 @@ exports.getPdfContent = async (data) => {
 
   const learnersCount = UtilsHelper.formatQuantity('stagiaire', data.learnersCount);
   const totalPrice = data.type === INTER_B2B ? data.learnersCount * data.price : data.price;
-  const formattedTrainersTitle = UtilsHelper.formatQuantity('Intervenant·e', data.trainers.length, '·s', false);
+  const formattedTrainersTitle = UtilsHelper.formatQuantity('Intervenant·e', data.trainers.length, 's', false);
 
   const body = [
     [
