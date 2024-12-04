@@ -12,7 +12,7 @@ exports.getPdfContent = async (data) => {
   dates.forEach((date, i) => {
     const title = `Feuille d'émargement - ${date.date}`;
     const trainersCount = date.course.trainers.length;
-    const formattedTrainersTitle = UtilsHelper.formatQuantity('Intervenant·e', trainersCount, '·s', false);
+    const formattedTrainersTitle = UtilsHelper.formatQuantity('Intervenant·e', trainersCount, 's', false);
     const columns = [
       [
         { text: `Nom de la formation : ${date.course.name}`, bold: true, marginBottom: 10 },
