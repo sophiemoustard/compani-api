@@ -45,12 +45,16 @@ exports.plugin = {
         validate: {
           payload: Joi.object({
             course: Joi.objectId().required(),
-            file: Joi.any().required(),
+            file: Joi.any(),
             trainee: Joi.objectId(),
             date: Joi.date(),
             origin: Joi.string().valid(...ORIGIN_OPTIONS).default(MOBILE),
-            slots: Joi.alternatives().try(Joi.array().items(Joi.objectId()).min(1), Joi.objectId()),
-          }).xor('trainee', 'date'),
+            slots: Joi
+              .alternatives()
+              .try(Joi.array().items(Joi.objectId()).min(1), Joi.objectId())
+              .when('signature', { is: Joi.exist(), then: Joi.required() }),
+            signature: Joi.any(),
+          }).xor('trainee', 'date').xor('file', 'signature'),
         },
         auth: { scope: ['attendances:edit'] },
         pre: [{ method: authorizeAttendanceSheetCreation }],
