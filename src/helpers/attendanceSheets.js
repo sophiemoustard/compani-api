@@ -13,6 +13,8 @@ exports.create = async (payload) => {
   let fileName;
   let companies;
   let slots = [];
+  let signature = {};
+  let fileUploaded = {};
 
   const course = await Course.findOne({ _id: payload.course }, { companies: 1 }).lean();
 
@@ -32,15 +34,25 @@ exports.create = async (payload) => {
     if (payload.slots) slots = Array.isArray(payload.slots) ? payload.slots : [payload.slots];
   }
 
-  const fileUploaded = await GCloudStorageHelper.uploadCourseFile({
-    fileName: `emargement_${fileName}`,
-    file: payload.file,
-  });
+  if (payload.file) {
+    fileUploaded = await GCloudStorageHelper.uploadCourseFile({
+      fileName: `emargement_${fileName}`,
+      file: payload.file,
+    });
+  } else {
+    signature = await GCloudStorageHelper.uploadCourseFile({
+      fileName: `trainer_signature_${fileName}`,
+      file: payload.signature,
+    });
+  }
 
   await AttendanceSheet.create({
-    ...omit(payload, 'file'),
+    ...omit(payload, 'signature'),
     companies,
-    file: fileUploaded,
+    ...(Object.keys(fileUploaded).length
+      ? { file: fileUploaded }
+      : { signatures: { trainer: signature.link } }
+    ),
     ...(slots.length && { slots }),
   });
 };
