@@ -120,12 +120,11 @@ const getProgress = (pastSlots, course) =>
   UtilsHelper.formatFloatForExport(pastSlots / (course.slots.length + course.slotsToPlan.length));
 
 const getCourseCompletion = async (course) => {
-  const courseActivities = course.subProgram.steps.map(s => s.activities.map(a => a._id)).flat();
-  const courseTrainees = course.trainees.map(t => t._id);
+  const courseActivitiesIds = course.subProgram.steps.map(s => s.activities.map(a => a._id)).flat();
+  const courseTraineesIds = course.trainees.map(t => t._id);
   const activityHistories = await ActivityHistory
-    .find({ $and: [{ activity: { $in: courseActivities }, user: { $in: courseTrainees } }] })
+    .find({ $and: [{ activity: { $in: courseActivitiesIds }, user: { $in: courseTraineesIds } }] })
     .lean();
-
   const activityHistoriesGroupedByUser = groupBy(activityHistories, 'user');
 
   const courseSteps = course.subProgram.steps
@@ -138,7 +137,7 @@ const getCourseCompletion = async (course) => {
     if (!UtilsHelper.doesArrayIncludeId(Object.keys(activityHistoriesGroupedByUser), trainee._id)) {
       progressByTrainee.push(0);
     } else {
-      const traineeActivityHistoriesIds = activityHistoriesGroupedByUser[trainee._id].map(a => a.activity);
+      const traineeActivityHistoriesIds = activityHistoriesGroupedByUser[trainee._id].map(aH => aH.activity);
       const stepProgress = {};
       for (const step of courseSteps) {
         const activityValidatedCount = courseStepsById[step._id].activities
@@ -158,7 +157,9 @@ const getCourseCompletion = async (course) => {
   }
 
   const courseProgressSum = progressByTrainee.reduce((acc, progress) => NumbersHelper.add(acc, progress), 0);
-  const courseProgressMean = NumbersHelper.divide(courseProgressSum, course.trainees.length);
+  const courseProgressMean = course.trainees.length
+    ? NumbersHelper.divide(courseProgressSum, course.trainees.length)
+    : 0;
 
   return NumbersHelper.toFixedToFloat(courseProgressMean);
 };
