@@ -99,7 +99,7 @@ const coursesList = [
     trainees: [userList[1]._id],
     companies: [authCompany._id],
     operationsRepresentative: userList[0]._id,
-    trainers: [trainer._id],
+    trainers: [trainer._id, trainerOrganisationManager._id],
   },
   { // 1
     _id: new ObjectId(),
@@ -108,7 +108,7 @@ const coursesList = [
     trainees: [userList[1]._id, userList[2]._id, userList[4]._id],
     companies: [authCompany._id, otherCompany._id, companyWithoutSubscription._id],
     operationsRepresentative: userList[0]._id,
-    trainers: [trainer._id],
+    trainers: [trainer._id, trainerOrganisationManager._id],
   },
   { // 2
     _id: new ObjectId(),
@@ -168,7 +168,7 @@ const coursesList = [
     trainees: [userList[1]._id],
     companies: [authCompany._id],
     operationsRepresentative: userList[0]._id,
-    trainers: [trainer._id],
+    trainers: [trainer._id, trainerOrganisationManager._id],
   },
   { // 8 Single course
     _id: new ObjectId(),
