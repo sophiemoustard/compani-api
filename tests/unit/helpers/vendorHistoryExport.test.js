@@ -493,11 +493,11 @@ describe('exportCourseHistory', () => {
       [{ course: courseList[0]._id }],
       ['select', 'setOptions', 'lean']
     ));
-    findActivityHistory.onCall(0).returns(SinonMongoose.stubChainedQueries([], ['find', 'lean']));
-    findActivityHistory.onCall(1).returns(SinonMongoose.stubChainedQueries(activityHistoryList, ['find', 'lean']));
-    findActivityHistory.onCall(2).returns(SinonMongoose.stubChainedQueries([], ['find', 'lean']));
-    findActivityHistory.onCall(3).returns(SinonMongoose.stubChainedQueries([], ['find', 'lean']));
-    findActivityHistory.onCall(4).returns(SinonMongoose.stubChainedQueries([], ['find', 'lean']));
+    findActivityHistory.onCall(0).returns(SinonMongoose.stubChainedQueries([], ['lean']));
+    findActivityHistory.onCall(1).returns(SinonMongoose.stubChainedQueries(activityHistoryList, ['lean']));
+    findActivityHistory.onCall(2).returns(SinonMongoose.stubChainedQueries([], ['lean']));
+    findActivityHistory.onCall(3).returns(SinonMongoose.stubChainedQueries([], ['lean']));
+    findActivityHistory.onCall(4).returns(SinonMongoose.stubChainedQueries([], ['lean']));
 
     const result = await ExportHelper
       .exportCourseHistory('2021-01-14T23:00:00.000Z', '2022-01-20T22:59:59.000Z', credentials);
