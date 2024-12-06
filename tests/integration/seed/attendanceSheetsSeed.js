@@ -21,7 +21,7 @@ const { deleteNonAuthenticationSeeds } = require('../helpers/db');
 const UserCompany = require('../../../src/models/UserCompany');
 const User = require('../../../src/models/User');
 const { vendorAdminRoleId, trainerRoleId } = require('../../seed/authRolesSeed');
-const { trainerOrganisationManager, trainer } = require('../../seed/authUsersSeed');
+const { trainerOrganisationManager, trainer, trainerAndCoach } = require('../../seed/authUsersSeed');
 
 const SINGLE_COURSES_SUBPROGRAM_IDS = process.env.SINGLE_COURSES_SUBPROGRAM_IDS.split(';').map(id => new ObjectId(id));
 
@@ -99,7 +99,7 @@ const coursesList = [
     trainees: [userList[1]._id],
     companies: [authCompany._id],
     operationsRepresentative: userList[0]._id,
-    trainers: [trainer._id, trainerOrganisationManager._id],
+    trainers: [trainer._id, trainerAndCoach._id],
   },
   { // 1
     _id: new ObjectId(),
@@ -108,7 +108,7 @@ const coursesList = [
     trainees: [userList[1]._id, userList[2]._id, userList[4]._id],
     companies: [authCompany._id, otherCompany._id, companyWithoutSubscription._id],
     operationsRepresentative: userList[0]._id,
-    trainers: [trainer._id, trainerOrganisationManager._id],
+    trainers: [trainer._id, trainerAndCoach._id],
   },
   { // 2
     _id: new ObjectId(),
@@ -168,7 +168,7 @@ const coursesList = [
     trainees: [userList[1]._id],
     companies: [authCompany._id],
     operationsRepresentative: userList[0]._id,
-    trainers: [trainer._id, trainerOrganisationManager._id],
+    trainers: [trainer._id, trainerAndCoach._id],
   },
   { // 8 Single course
     _id: new ObjectId(),
