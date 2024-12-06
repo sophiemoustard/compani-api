@@ -122,46 +122,31 @@ const getProgress = (pastSlots, course) =>
 const getCourseCompletion = async (course) => {
   const courseActivitiesIds = course.subProgram.steps.map(s => s.activities.map(a => a._id)).flat();
   const courseTraineesIds = course.trainees.map(t => t._id);
-  const activityHistories = await ActivityHistory
+  const courseActivityHistories = await ActivityHistory
     .find({ $and: [{ activity: { $in: courseActivitiesIds }, user: { $in: courseTraineesIds } }] })
     .lean();
-  const activityHistoriesGroupedByUser = groupBy(activityHistories, 'user');
+  const activityHistoriesGroupedByActivity = groupBy(courseActivityHistories, 'activity');
+  const elearningSteps = course.subProgram.steps.filter(s => s.type === E_LEARNING);
 
-  const courseSteps = course.subProgram.steps
-    .filter(step => step.type === E_LEARNING)
-    .map(s => ({ _id: s._id, activities: s.activities.map(a => a._id) }));
-  const courseStepsById = keyBy(courseSteps, '_id');
+  let totalStepProgress = 0;
+  for (const step of elearningSteps) {
+    let totalActivityProgress = 0;
+    for (const activity of step.activities) {
+      const activityHistories = Object.keys(groupBy(activityHistoriesGroupedByActivity[activity._id], 'user'));
 
-  const progressByTrainee = [];
-  for (const trainee of course.trainees) {
-    if (!UtilsHelper.doesArrayIncludeId(Object.keys(activityHistoriesGroupedByUser), trainee._id)) {
-      progressByTrainee.push(0);
-    } else {
-      const traineeActivityHistoriesIds = activityHistoriesGroupedByUser[trainee._id].map(aH => aH.activity);
-      const stepProgress = {};
-      for (const step of courseSteps) {
-        const activityValidatedCount = courseStepsById[step._id].activities
-          .filter(a => UtilsHelper.doesArrayIncludeId(traineeActivityHistoriesIds, a))
-          .length;
-
-        stepProgress[step._id] = courseStepsById[step._id].activities.length
-          ? NumbersHelper.divide(activityValidatedCount, courseStepsById[step._id].activities.length)
-          : 0;
-      }
-      const stepCount = Object.keys(courseSteps).length;
-      const stepProgressSum = Object.values(stepProgress)
-        .reduce((acc, progress) => NumbersHelper.add(acc, progress), 0);
-      const progress = NumbersHelper.divide(stepProgressSum, stepCount);
-      progressByTrainee.push(NumbersHelper.toFixedToFloat(progress));
+      const activityAverageProgress = course.trainees.length
+        ? NumbersHelper.divide(activityHistories.length, course.trainees.length)
+        : 0;
+      totalActivityProgress = NumbersHelper.add(totalActivityProgress, activityAverageProgress);
     }
+    totalStepProgress = NumbersHelper.add(
+      totalStepProgress,
+      NumbersHelper.divide(totalActivityProgress, step.activities.length)
+    );
   }
-
-  const courseProgressSum = progressByTrainee.reduce((acc, progress) => NumbersHelper.add(acc, progress), 0);
-  const courseProgressMean = course.trainees.length
-    ? NumbersHelper.divide(courseProgressSum, course.trainees.length)
+  return elearningSteps.length
+    ? NumbersHelper.toFixedToFloat(NumbersHelper.divide(totalStepProgress, elearningSteps.length))
     : 0;
-
-  return NumbersHelper.toFixedToFloat(courseProgressMean);
 };
 
 exports.exportCourseHistory = async (startDate, endDate, credentials) => {
