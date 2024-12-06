@@ -65,7 +65,7 @@ exports.authorizeAttendanceSheetCreation = async (req) => {
   const course = await Course
     .findOne(
       { _id: req.payload.course },
-      { archivedAt: 1, type: 1, slots: 1, trainees: 1, trainer: 1, companies: 1, subProgram: 1 }
+      { archivedAt: 1, type: 1, slots: 1, trainees: 1, trainers: 1, companies: 1, subProgram: 1 }
     )
     .populate('slots')
     .lean();
@@ -73,7 +73,7 @@ exports.authorizeAttendanceSheetCreation = async (req) => {
   if (!course.companies.length) throw Boom.forbidden();
 
   const { credentials } = req.auth;
-  if (!isVendorAndAuthorized(course.trainer, credentials)) throw Boom.forbidden();
+  if (!isVendorAndAuthorized(course.trainers, credentials)) throw Boom.forbidden();
 
   if ([INTRA, INTRA_HOLDING].includes(course.type)) {
     if (req.payload.trainee) throw Boom.badRequest();
@@ -104,18 +104,13 @@ exports.authorizeAttendanceSheetCreation = async (req) => {
 exports.authorizeAttendanceSheetEdit = async (req) => {
   const attendanceSheet = await AttendanceSheet
     .findOne({ _id: req.params._id })
-    .populate({ path: 'course', select: 'subProgram trainer' })
+    .populate({ path: 'course', select: 'subProgram trainers' })
     .lean();
 
   if (!attendanceSheet) throw Boom.notFound();
 
   const { credentials } = req.auth;
-  const userVendorRole = get(credentials, 'role.vendor.name');
-  const loggedUserId = get(credentials, '_id');
-  if (userVendorRole === TRAINER) {
-    const isCourseTrainer = UtilsHelper.areObjectIdsEquals(attendanceSheet.course.trainer, loggedUserId);
-    if (!isCourseTrainer) throw Boom.forbidden();
-  }
+  if (!isVendorAndAuthorized(attendanceSheet.course.trainers, credentials)) throw Boom.forbidden();
 
   const isSingleCourse = UtilsHelper
     .doesArrayIncludeId(SINGLE_COURSES_SUBPROGRAM_IDS, attendanceSheet.course.subProgram);
@@ -156,14 +151,14 @@ exports.authorizeAttendanceSheetDeletion = async (req) => {
 
   const attendanceSheet = await AttendanceSheet
     .findOne({ _id: req.params._id })
-    .populate({ path: 'course', select: 'archivedAt trainer' })
+    .populate({ path: 'course', select: 'archivedAt trainers' })
     .setOptions({ isVendorUser: !!get(credentials, 'role.vendor') })
     .lean();
   if (!attendanceSheet) throw Boom.notFound();
 
   if (get(attendanceSheet, 'course.archivedAt')) throw Boom.forbidden();
 
-  if (!isVendorAndAuthorized(get(attendanceSheet, 'course.trainer'), credentials)) throw Boom.forbidden();
+  if (!isVendorAndAuthorized(get(attendanceSheet, 'course.trainers'), credentials)) throw Boom.forbidden();
 
   return null;
 };
