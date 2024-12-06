@@ -131,17 +131,16 @@ const getCourseCompletion = async (course) => {
   for (const step of elearningSteps) {
     let totalActivityProgress = 0;
     for (const activity of step.activities) {
-      const activityHistories = Object.keys(groupBy(activityHistoriesGroupedByActivity[activity._id], 'user'));
+      const traineesWithAH = Object.keys(groupBy(activityHistoriesGroupedByActivity[activity._id], 'user'));
 
       const activityAverageProgress = course.trainees.length
-        ? NumbersHelper.divide(activityHistories.length, course.trainees.length)
+        ? NumbersHelper.divide(traineesWithAH.length, course.trainees.length)
         : 0;
       totalActivityProgress = NumbersHelper.add(totalActivityProgress, activityAverageProgress);
     }
-    totalStepProgress = NumbersHelper.add(
-      totalStepProgress,
-      NumbersHelper.divide(totalActivityProgress, step.activities.length)
-    );
+
+    const stepAverageProgress = NumbersHelper.divide(totalActivityProgress, step.activities.length);
+    totalStepProgress = NumbersHelper.add(totalStepProgress, stepAverageProgress);
   }
   return elearningSteps.length
     ? NumbersHelper.toFixedToFloat(NumbersHelper.divide(totalStepProgress, elearningSteps.length))
