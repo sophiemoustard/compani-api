@@ -14,7 +14,6 @@ const {
   ON_SITE,
   REMOTE,
   E_LEARNING,
-  LESSON,
   PUBLISHED,
   EXPECTATIONS,
   END_OF_COURSE,
@@ -38,6 +37,7 @@ const CourseBill = require('../../../src/models/CourseBill');
 const CourseCreditNote = require('../../../src/models/CourseCreditNote');
 const CoursePayment = require('../../../src/models/CoursePayment');
 const CourseHistory = require('../../../src/models/CourseHistory');
+const ActivityHistory = require('../../../src/models/ActivityHistory');
 
 describe('exportCourseHistory', () => {
   const traineeList = [
@@ -55,35 +55,10 @@ describe('exportCourseHistory', () => {
     { _id: new ObjectId(), user: traineeList[4]._id, activity: activityListIds[2] },
   ];
 
-  const activityList = [
-    {
-      _id: activityListIds[0],
-      name: 'activity 1',
-      type: LESSON,
-      status: PUBLISHED,
-      activityHistories: [activityHistoryList[0]],
-    },
-    {
-      _id: activityListIds[1],
-      name: 'activity 2',
-      type: LESSON,
-      status: PUBLISHED,
-      activityHistories: [activityHistoryList[1]],
-
-    },
-    {
-      _id: activityListIds[2],
-      name: 'activity 3',
-      type: LESSON,
-      status: PUBLISHED,
-      activityHistories: [activityHistoryList[2], activityHistoryList[3]],
-    },
-  ];
-
   const stepList = [
     { _id: new ObjectId(), name: 'étape 1', type: ON_SITE, activities: [] },
     { _id: new ObjectId(), name: 'étape 2', type: REMOTE, activities: [] },
-    { _id: new ObjectId(), name: 'étape 3', type: E_LEARNING, activities: activityList.map(activity => activity) },
+    { _id: new ObjectId(), name: 'étape 3', type: E_LEARNING, activities: activityListIds },
   ];
 
   const subProgramList = [
@@ -338,7 +313,6 @@ describe('exportCourseHistory', () => {
         },
       ],
     },
-
   ];
 
   const questionnaireList = [
@@ -371,35 +345,35 @@ describe('exportCourseHistory', () => {
   let findCourseSlot;
   let findCourse;
   let groupSlotsByDate;
-  let getTraineesWithElearningProgress;
   let getTotalDurationForExport;
   let findCourseSmsHistory;
   let findAttendanceSheet;
   let findQuestionnaireHistory;
   let findCourseHistory;
+  let findActivityHistory;
 
   beforeEach(() => {
     findCourseSlot = sinon.stub(CourseSlot, 'find');
     findCourse = sinon.stub(Course, 'find');
     groupSlotsByDate = sinon.stub(CourseHelper, 'groupSlotsByDate');
-    getTraineesWithElearningProgress = sinon.stub(CourseHelper, 'getTraineesWithElearningProgress');
     getTotalDurationForExport = sinon.stub(UtilsHelper, 'getTotalDurationForExport');
     findCourseSmsHistory = sinon.stub(CourseSmsHistory, 'find');
     findAttendanceSheet = sinon.stub(AttendanceSheet, 'find');
     findQuestionnaireHistory = sinon.stub(QuestionnaireHistory, 'find');
     findCourseHistory = sinon.stub(CourseHistory, 'find');
+    findActivityHistory = sinon.stub(ActivityHistory, 'find');
   });
 
   afterEach(() => {
     findCourseSlot.restore();
     findCourse.restore();
     groupSlotsByDate.restore();
-    getTraineesWithElearningProgress.restore();
     getTotalDurationForExport.restore();
     findCourseSmsHistory.restore();
     findAttendanceSheet.restore();
     findQuestionnaireHistory.restore();
     findCourseHistory.restore();
+    findActivityHistory.restore();
   });
 
   it('should return an empty array if no course', async () => {
@@ -442,14 +416,7 @@ describe('exportCourseHistory', () => {
             {
               path: 'subProgram',
               select: 'name steps program',
-              populate: [
-                { path: 'program', select: 'name' },
-                {
-                  path: 'steps',
-                  select: 'type activities',
-                  populate: { path: 'activities', populate: { path: 'activityHistories' } },
-                },
-              ],
+              populate: [{ path: 'program', select: 'name' }, { path: 'steps', select: 'type activities' }],
             }],
         },
         { query: 'populate', args: [{ path: 'trainer', select: 'identity' }] },
@@ -493,12 +460,12 @@ describe('exportCourseHistory', () => {
       ]
     );
     sinon.assert.notCalled(groupSlotsByDate);
-    sinon.assert.notCalled(getTraineesWithElearningProgress);
     sinon.assert.notCalled(getTotalDurationForExport);
     sinon.assert.notCalled(findQuestionnaireHistory);
     sinon.assert.notCalled(findCourseSmsHistory);
     sinon.assert.notCalled(findAttendanceSheet);
     sinon.assert.notCalled(findCourseHistory);
+    sinon.assert.notCalled(findActivityHistory);
   });
 
   it('should return an array with the header and 4 rows', async () => {
@@ -526,29 +493,11 @@ describe('exportCourseHistory', () => {
       [{ course: courseList[0]._id }],
       ['select', 'setOptions', 'lean']
     ));
-    getTraineesWithElearningProgress.onCall(0).returns([
-      { _id: traineeList[0]._id, firstMobileConnectionDate: traineeList[0].firstMobileConnectionDate, steps: [], progress: {} },
-      { _id: traineeList[1]._id, firstMobileConnectionDate: traineeList[1].firstMobileConnectionDate, steps: [], progress: {} },
-      { _id: traineeList[2]._id, steps: [], progress: {} },
-    ]);
-    getTraineesWithElearningProgress.onCall(1).returns([
-      { _id: traineeList[3]._id, steps: [stepList[2]], progress: { blended: 1, eLearning: 1 } },
-      {
-        _id: traineeList[1]._id,
-        steps: [stepList[2]],
-        progress: { blended: 0.3333333333333333, eLearning: 0.3333333333333333 },
-      },
-    ]);
-    getTraineesWithElearningProgress.onCall(2).returns([]);
-    getTraineesWithElearningProgress.onCall(3).returns([
-      { _id: traineeList[0]._id, firstMobileConnectionDate: traineeList[0].firstMobileConnectionDate, steps: [], progress: {} },
-      { _id: traineeList[1]._id, firstMobileConnectionDate: traineeList[1].firstMobileConnectionDate, steps: [], progress: {} },
-      { _id: traineeList[2]._id, steps: [], progress: {} },
-    ]);
-    getTraineesWithElearningProgress.onCall(4).returns([
-      { _id: traineeList[0]._id, firstMobileConnectionDate: traineeList[0].firstMobileConnectionDate, steps: [], progress: {} },
-      { _id: traineeList[1]._id, firstMobileConnectionDate: traineeList[1].firstMobileConnectionDate, steps: [], progress: {} },
-    ]);
+    findActivityHistory.onCall(0).returns(SinonMongoose.stubChainedQueries([], ['lean']));
+    findActivityHistory.onCall(1).returns(SinonMongoose.stubChainedQueries(activityHistoryList, ['lean']));
+    findActivityHistory.onCall(2).returns(SinonMongoose.stubChainedQueries([], ['lean']));
+    findActivityHistory.onCall(3).returns(SinonMongoose.stubChainedQueries([], ['lean']));
+    findActivityHistory.onCall(4).returns(SinonMongoose.stubChainedQueries([], ['lean']));
 
     const result = await ExportHelper
       .exportCourseHistory('2021-01-14T23:00:00.000Z', '2022-01-20T22:59:59.000Z', credentials);
@@ -611,7 +560,7 @@ describe('exportCourseHistory', () => {
         '4,00',
         2,
         2,
-        '',
+        '0,00',
         2,
         2,
         '',
@@ -689,7 +638,7 @@ describe('exportCourseHistory', () => {
         '0,00',
         0,
         0,
-        '',
+        '0,00',
         0,
         0,
         '01/01/2022',
@@ -728,7 +677,7 @@ describe('exportCourseHistory', () => {
         '0,00',
         0,
         2,
-        '',
+        '0,00',
         0,
         0,
         '',
@@ -767,7 +716,7 @@ describe('exportCourseHistory', () => {
         '2,00',
         0,
         2,
-        '',
+        '0,00',
         0,
         0,
         '',
@@ -823,14 +772,7 @@ describe('exportCourseHistory', () => {
             {
               path: 'subProgram',
               select: 'name steps program',
-              populate: [
-                { path: 'program', select: 'name' },
-                {
-                  path: 'steps',
-                  select: 'type activities',
-                  populate: { path: 'activities', populate: { path: 'activityHistories' } },
-                },
-              ],
+              populate: [{ path: 'program', select: 'name' }, { path: 'steps', select: 'type activities' }],
             }],
         },
         { query: 'populate', args: [{ path: 'trainer', select: 'identity' }] },
@@ -916,29 +858,24 @@ describe('exportCourseHistory', () => {
       { course: 1, update: 1 }
     );
     sinon.assert.calledWithExactly(
-      getTraineesWithElearningProgress.getCall(0),
-      courseList[0].trainees,
-      courseList[0].subProgram.steps
+      findActivityHistory,
+      { $and: [{ activity: { $in: [] }, user: { $in: [traineeList[0]._id, traineeList[1]._id, traineeList[2]._id] } }] }
     );
     sinon.assert.calledWithExactly(
-      getTraineesWithElearningProgress.getCall(1),
-      courseList[1].trainees,
-      courseList[1].subProgram.steps
+      findActivityHistory,
+      { $and: [{ activity: { $in: activityListIds }, user: { $in: [traineeList[3]._id, traineeList[4]._id] } }] }
     );
     sinon.assert.calledWithExactly(
-      getTraineesWithElearningProgress.getCall(2),
-      courseList[2].trainees,
-      courseList[2].subProgram.steps
+      findActivityHistory,
+      { $and: [{ activity: { $in: activityListIds }, user: { $in: [] } }] }
     );
     sinon.assert.calledWithExactly(
-      getTraineesWithElearningProgress.getCall(3),
-      courseList[3].trainees,
-      courseList[3].subProgram.steps
+      findActivityHistory,
+      { $and: [{ activity: { $in: [] }, user: { $in: [traineeList[0]._id, traineeList[1]._id, traineeList[2]._id] } }] }
     );
     sinon.assert.calledWithExactly(
-      getTraineesWithElearningProgress.getCall(4),
-      courseList[4].trainees,
-      courseList[4].subProgram.steps
+      findActivityHistory,
+      { $and: [{ activity: { $in: [] }, user: { $in: [traineeList[0]._id, traineeList[1]._id] } }] }
     );
   });
 });

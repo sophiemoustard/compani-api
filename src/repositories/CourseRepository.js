@@ -68,14 +68,7 @@ exports.findCoursesForExport = async (startDate, endDate, credentials) => {
     .populate({
       path: 'subProgram',
       select: 'name steps program',
-      populate: [
-        { path: 'program', select: 'name' },
-        {
-          path: 'steps',
-          select: 'type activities',
-          populate: { path: 'activities', populate: { path: 'activityHistories' } },
-        },
-      ],
+      populate: [{ path: 'program', select: 'name' }, { path: 'steps', select: 'type activities' }],
     })
     .populate({ path: 'trainer', select: 'identity' })
     .populate({ path: 'operationsRepresentative', select: 'identity' })

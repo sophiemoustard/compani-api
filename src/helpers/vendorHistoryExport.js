@@ -23,6 +23,7 @@ const {
   HH_MM_SS,
   DAY,
   ESTIMATED_START_DATE_EDITION,
+  E_LEARNING,
 } = require('./constants');
 const { CompaniDate } = require('./dates/companiDates');
 const DatesUtilsHelper = require('./dates/utils');
@@ -40,6 +41,7 @@ const QuestionnaireHistory = require('../models/QuestionnaireHistory');
 const CourseHistory = require('../models/CourseHistory');
 const Questionnaire = require('../models/Questionnaire');
 const CoursePayment = require('../models/CoursePayment');
+const ActivityHistory = require('../models/ActivityHistory');
 
 const getEndOfCourse = (slotsGroupedByDate, slotsToPlan) => {
   if (slotsToPlan.length) return 'à planifier';
@@ -116,6 +118,35 @@ const getBillsInfos = (course) => {
 const getProgress = (pastSlots, course) =>
   UtilsHelper.formatFloatForExport(pastSlots / (course.slots.length + course.slotsToPlan.length));
 
+const getCourseCompletion = async (course) => {
+  const courseActivitiesIds = course.subProgram.steps.map(s => s.activities).flat();
+  const courseTraineesIds = course.trainees.map(t => t._id);
+  const courseActivityHistories = await ActivityHistory
+    .find({ $and: [{ activity: { $in: courseActivitiesIds }, user: { $in: courseTraineesIds } }] })
+    .lean();
+  const activityHistoriesGroupedByActivity = groupBy(courseActivityHistories, 'activity');
+  const elearningSteps = course.subProgram.steps.filter(s => s.type === E_LEARNING);
+
+  let totalStepProgress = 0;
+  for (const step of elearningSteps) {
+    let totalActivityProgress = 0;
+    for (const activity of step.activities) {
+      const traineesWithAH = Object.keys(groupBy(activityHistoriesGroupedByActivity[activity._id], 'user'));
+
+      const activityAverageProgress = course.trainees.length
+        ? NumbersHelper.divide(traineesWithAH.length, course.trainees.length)
+        : 0;
+      totalActivityProgress = NumbersHelper.add(totalActivityProgress, activityAverageProgress);
+    }
+
+    const stepAverageProgress = NumbersHelper.divide(totalActivityProgress, step.activities.length);
+    totalStepProgress = NumbersHelper.add(totalStepProgress, stepAverageProgress);
+  }
+  return elearningSteps.length
+    ? NumbersHelper.toFixedToFloat(NumbersHelper.divide(totalStepProgress, elearningSteps.length))
+    : 0;
+};
+
 exports.exportCourseHistory = async (startDate, endDate, credentials) => {
   const courses = await CourseRepository.findCoursesForExport(startDate, endDate, credentials);
 
@@ -172,14 +203,11 @@ exports.exportCourseHistory = async (startDate, endDate, credentials) => {
       .filter(qh => qh.questionnaire.type === END_OF_COURSE)
       .length;
 
-    const traineeProgressList = CourseHelper.getTraineesWithElearningProgress(course.trainees, course.subProgram.steps)
-      .filter(trainee => trainee.progress.eLearning >= 0)
-      .map(trainee => trainee.progress.eLearning);
-    const combinedElearningProgress = traineeProgressList.reduce((acc, value) => acc + value, 0);
-
     const { isBilled, billsCountForExport, payerList, netInclTaxes, paid, total } = getBillsInfos(course);
 
     const companiesName = course.companies.map(co => co.name).sort((a, b) => a.localeCompare(b)).toString();
+
+    const courseCompletion = await getCourseCompletion(course);
 
     rows.push({
       Identifiant: course._id,
@@ -200,9 +228,7 @@ exports.exportCourseHistory = async (startDate, endDate, credentials) => {
       'Nombre de SMS envoyés': smsCount,
       'Nombre de personnes connectées à l\'app': course.trainees
         .filter(trainee => trainee.firstMobileConnectionDate).length,
-      'Complétion eLearning moyenne': traineeProgressList.length
-        ? UtilsHelper.formatFloatForExport(combinedElearningProgress / course.trainees.length)
-        : '',
+      'Complétion eLearning moyenne': UtilsHelper.formatFloatForExport(courseCompletion),
       'Nombre de réponses au questionnaire de recueil des attentes': expectactionQuestionnaireAnswers,
       'Nombre de réponses au questionnaire de satisfaction': endQuestionnaireAnswers,
       'Date de démarrage souhaitée': course.estimatedStartDate
