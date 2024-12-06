@@ -14,7 +14,6 @@ const {
   ON_SITE,
   REMOTE,
   E_LEARNING,
-  LESSON,
   PUBLISHED,
   EXPECTATIONS,
   END_OF_COURSE,
@@ -56,35 +55,10 @@ describe('exportCourseHistory', () => {
     { _id: new ObjectId(), user: traineeList[4]._id, activity: activityListIds[2] },
   ];
 
-  const activityList = [
-    {
-      _id: activityListIds[0],
-      name: 'activity 1',
-      type: LESSON,
-      status: PUBLISHED,
-      activityHistories: [activityHistoryList[0]],
-    },
-    {
-      _id: activityListIds[1],
-      name: 'activity 2',
-      type: LESSON,
-      status: PUBLISHED,
-      activityHistories: [activityHistoryList[1]],
-
-    },
-    {
-      _id: activityListIds[2],
-      name: 'activity 3',
-      type: LESSON,
-      status: PUBLISHED,
-      activityHistories: [activityHistoryList[2], activityHistoryList[3]],
-    },
-  ];
-
   const stepList = [
     { _id: new ObjectId(), name: 'étape 1', type: ON_SITE, activities: [] },
     { _id: new ObjectId(), name: 'étape 2', type: REMOTE, activities: [] },
-    { _id: new ObjectId(), name: 'étape 3', type: E_LEARNING, activities: activityList.map(activity => activity) },
+    { _id: new ObjectId(), name: 'étape 3', type: E_LEARNING, activities: activityListIds },
   ];
 
   const subProgramList = [
@@ -371,7 +345,6 @@ describe('exportCourseHistory', () => {
   let findCourseSlot;
   let findCourse;
   let groupSlotsByDate;
-  let getTraineesWithElearningProgress;
   let getTotalDurationForExport;
   let findCourseSmsHistory;
   let findAttendanceSheet;
@@ -383,7 +356,6 @@ describe('exportCourseHistory', () => {
     findCourseSlot = sinon.stub(CourseSlot, 'find');
     findCourse = sinon.stub(Course, 'find');
     groupSlotsByDate = sinon.stub(CourseHelper, 'groupSlotsByDate');
-    getTraineesWithElearningProgress = sinon.stub(CourseHelper, 'getTraineesWithElearningProgress');
     getTotalDurationForExport = sinon.stub(UtilsHelper, 'getTotalDurationForExport');
     findCourseSmsHistory = sinon.stub(CourseSmsHistory, 'find');
     findAttendanceSheet = sinon.stub(AttendanceSheet, 'find');
@@ -396,7 +368,6 @@ describe('exportCourseHistory', () => {
     findCourseSlot.restore();
     findCourse.restore();
     groupSlotsByDate.restore();
-    getTraineesWithElearningProgress.restore();
     getTotalDurationForExport.restore();
     findCourseSmsHistory.restore();
     findAttendanceSheet.restore();
@@ -445,14 +416,7 @@ describe('exportCourseHistory', () => {
             {
               path: 'subProgram',
               select: 'name steps program',
-              populate: [
-                { path: 'program', select: 'name' },
-                {
-                  path: 'steps',
-                  select: 'type activities',
-                  populate: { path: 'activities', populate: { path: 'activityHistories' } },
-                },
-              ],
+              populate: [{ path: 'program', select: 'name' }, { path: 'steps', select: 'type activities' }],
             }],
         },
         { query: 'populate', args: [{ path: 'trainer', select: 'identity' }] },
@@ -496,7 +460,6 @@ describe('exportCourseHistory', () => {
       ]
     );
     sinon.assert.notCalled(groupSlotsByDate);
-    sinon.assert.notCalled(getTraineesWithElearningProgress);
     sinon.assert.notCalled(getTotalDurationForExport);
     sinon.assert.notCalled(findQuestionnaireHistory);
     sinon.assert.notCalled(findCourseSmsHistory);
@@ -809,14 +772,7 @@ describe('exportCourseHistory', () => {
             {
               path: 'subProgram',
               select: 'name steps program',
-              populate: [
-                { path: 'program', select: 'name' },
-                {
-                  path: 'steps',
-                  select: 'type activities',
-                  populate: { path: 'activities', populate: { path: 'activityHistories' } },
-                },
-              ],
+              populate: [{ path: 'program', select: 'name' }, { path: 'steps', select: 'type activities' }],
             }],
         },
         { query: 'populate', args: [{ path: 'trainer', select: 'identity' }] },

@@ -1,5 +1,4 @@
 const get = require('lodash/get');
-const keyBy = require('lodash/keyBy');
 const uniqBy = require('lodash/uniqBy');
 const groupBy = require('lodash/groupBy');
 const {
@@ -120,7 +119,7 @@ const getProgress = (pastSlots, course) =>
   UtilsHelper.formatFloatForExport(pastSlots / (course.slots.length + course.slotsToPlan.length));
 
 const getCourseCompletion = async (course) => {
-  const courseActivitiesIds = course.subProgram.steps.map(s => s.activities.map(a => a._id)).flat();
+  const courseActivitiesIds = course.subProgram.steps.map(s => s.activities).flat();
   const courseTraineesIds = course.trainees.map(t => t._id);
   const courseActivityHistories = await ActivityHistory
     .find({ $and: [{ activity: { $in: courseActivitiesIds }, user: { $in: courseTraineesIds } }] })
