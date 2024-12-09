@@ -359,7 +359,7 @@ const coursesList = [
     subProgram: subProgramsList[0]._id,
     contact: vendorAdmin._id,
     misc: 'second session',
-    trainers: [trainer._id],
+    trainers: [trainer._id, trainerAndCoach._id],
     type: INTRA,
     maxTrainees: 8,
     trainees: [
