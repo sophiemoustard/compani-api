@@ -32,12 +32,12 @@ exports.authorizeQuestionnaireHistoryUpdate = async (req) => {
       { _id: questionnaireHistoryId, timeline: END_COURSE },
       { questionnaire: 1, questionnaireAnswersList: 1, course: 1 }
     )
-    .populate({ path: 'course', select: 'trainer' })
+    .populate({ path: 'course', select: 'trainers' })
     .lean();
   if (!questionnaireHistory) throw Boom.notFound();
 
-  const courseTrainer = questionnaireHistory.course.trainer;
-  const loggedUserIsCourseTrainer = UtilsHelper.areObjectIdsEquals(courseTrainer, credentials._id);
+  const courseTrainer = questionnaireHistory.course.trainers;
+  const loggedUserIsCourseTrainer = UtilsHelper.doesArrayIncludeId(courseTrainer, credentials._id);
   if (!loggedUserIsCourseTrainer) throw Boom.forbidden();
 
   const cardIds = trainerAnswers.map(answer => answer.card);
