@@ -1020,8 +1020,8 @@ const generateCompletionCertificateWord = async (course, attendances, trainee, t
 
 const getTraineeList = async (course, credentials) => {
   const isRofOrAdmin = [VENDOR_ADMIN, TRAINING_ORGANISATION_MANAGER].includes(get(credentials, 'role.vendor.name'));
-  const isCourseTrainer = [TRAINER].includes(get(credentials, 'role.vendor.name')) &&
-    UtilsHelper.areObjectIdsEquals(credentials._id, course.trainer);
+  const isCourseTrainer = get(credentials, 'role.vendor.name') === TRAINER &&
+    UtilsHelper.doesArrayIncludeId(course.trainers, credentials._id);
   const canAccessAllTrainees = isRofOrAdmin || isCourseTrainer;
 
   const traineesCompanyAtCourseRegistration = await CourseHistoriesHelper
