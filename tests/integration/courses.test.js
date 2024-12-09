@@ -1,6 +1,6 @@
 const { expect } = require('expect');
 const sinon = require('sinon');
-// const path = require('path');
+const path = require('path');
 const { ObjectId } = require('mongodb');
 const omit = require('lodash/omit');
 const pick = require('lodash/pick');
@@ -8,7 +8,7 @@ const get = require('lodash/get');
 const app = require('../../server');
 const Course = require('../../src/models/Course');
 const CourseSlot = require('../../src/models/CourseSlot');
-// const drive = require('../../src/models/Google/Drive');
+const drive = require('../../src/models/Google/Drive');
 const CourseSmsHistory = require('../../src/models/CourseSmsHistory');
 const CourseHistory = require('../../src/models/CourseHistory');
 const {
@@ -24,11 +24,11 @@ const {
   COMPANY_DELETION,
   ON_SITE,
   INTRA_HOLDING,
-  // ALL_PDF,
-  // ALL_WORD,
-  // PDF,
-  // OFFICIAL,
-  // CUSTOM,
+  ALL_PDF,
+  ALL_WORD,
+  PDF,
+  OFFICIAL,
+  CUSTOM,
 } = require('../../src/helpers/constants');
 const {
   populateDB,
@@ -67,7 +67,7 @@ const {
   trainerOrganisationManager,
 } = require('../seed/authUsersSeed');
 const SmsHelper = require('../../src/helpers/sms');
-// const DocxHelper = require('../../src/helpers/docx');
+const DocxHelper = require('../../src/helpers/docx');
 const NotificationHelper = require('../../src/helpers/notifications');
 const UtilsHelper = require('../../src/helpers/utils');
 const translate = require('../../src/helpers/translate');
@@ -3923,258 +3923,258 @@ describe('COURSES ROUTES - GET /{_id}/attendance-sheets', () => {
   });
 });
 
-// describe('COURSES ROUTES - GET /{_id}/completion-certificates', () => {
-//   let authToken;
-//   const courseIdFromAuthCompany = coursesList[2]._id;
-//   const courseIdFromOtherCompany = coursesList[1]._id;
+describe('COURSES ROUTES - GET /{_id}/completion-certificates', () => {
+  let authToken;
+  const courseIdFromAuthCompany = coursesList[2]._id;
+  const courseIdFromOtherCompany = coursesList[1]._id;
 
-//   describe('TRAINING_ORGANISATION_MANAGER', () => {
-//     beforeEach(populateDB);
+  describe('TRAINING_ORGANISATION_MANAGER', () => {
+    beforeEach(populateDB);
 
-//     let downloadFileByIdStub;
-//     let createDocxStub;
-//     beforeEach(async () => {
-//       downloadFileByIdStub = sinon.stub(drive, 'downloadFileById');
-//       createDocxStub = sinon.stub(DocxHelper, 'createDocx');
-//       createDocxStub.returns(path.join(__dirname, 'assets/certificate_template.docx'));
-//       process.env.GOOGLE_DRIVE_TRAINING_CERTIFICATE_TEMPLATE_ID = '1234';
+    let downloadFileByIdStub;
+    let createDocxStub;
+    beforeEach(async () => {
+      downloadFileByIdStub = sinon.stub(drive, 'downloadFileById');
+      createDocxStub = sinon.stub(DocxHelper, 'createDocx');
+      createDocxStub.returns(path.join(__dirname, 'assets/certificate_template.docx'));
+      process.env.GOOGLE_DRIVE_TRAINING_CERTIFICATE_TEMPLATE_ID = '1234';
 
-//       authToken = await getToken('training_organisation_manager');
-//     });
+      authToken = await getToken('training_organisation_manager');
+    });
 
-//     afterEach(() => {
-//       downloadFileByIdStub.restore();
-//       createDocxStub.restore();
-//       process.env.GOOGLE_DRIVE_TRAINING_CERTIFICATE_TEMPLATE_ID = '';
-//     });
+    afterEach(() => {
+      downloadFileByIdStub.restore();
+      createDocxStub.restore();
+      process.env.GOOGLE_DRIVE_TRAINING_CERTIFICATE_TEMPLATE_ID = '';
+    });
 
-//     it('should return 200 if type is CUSTOM', async () => {
-//       const response = await app.inject({
-//         method: 'GET',
-//         url: `/courses/${courseIdFromAuthCompany}/completion-certificates?format=${ALL_WORD}`,
-//         headers: { Cookie: `alenvi_token=${authToken}` },
-//       });
+    it('should return 200 if type is CUSTOM', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/courses/${courseIdFromAuthCompany}/completion-certificates?format=${ALL_WORD}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
 
-//       expect(response.statusCode).toBe(200);
-//     });
+      expect(response.statusCode).toBe(200);
+    });
 
-//     it('should return 200 if type is OFFICIAL', async () => {
-//       const response = await app.inject({
-//         method: 'GET',
-//         url: `/courses/${courseIdFromAuthCompany}/completion-certificates?format=${ALL_WORD}&type=${OFFICIAL}`,
-//         headers: { Cookie: `alenvi_token=${authToken}` },
-//       });
+    it('should return 200 if type is OFFICIAL', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/courses/${courseIdFromAuthCompany}/completion-certificates?format=${ALL_WORD}&type=${OFFICIAL}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
 
-//       expect(response.statusCode).toBe(200);
-//     });
+      expect(response.statusCode).toBe(200);
+    });
 
-//     it('should return 404 if course does not exist', async () => {
-//       const invalidId = (new ObjectId()).toHexString();
-//       const response = await app.inject({
-//         method: 'GET',
-//         url: `/courses/${invalidId}/completion-certificates?format=${ALL_WORD}`,
-//         headers: { Cookie: `alenvi_token=${authToken}` },
-//       });
+    it('should return 404 if course does not exist', async () => {
+      const invalidId = (new ObjectId()).toHexString();
+      const response = await app.inject({
+        method: 'GET',
+        url: `/courses/${invalidId}/completion-certificates?format=${ALL_WORD}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
 
-//       expect(response.statusCode).toBe(404);
-//     });
-//   });
+      expect(response.statusCode).toBe(404);
+    });
+  });
 
-//   describe('NO_ROLE', () => {
-//     beforeEach(populateDB);
-//     beforeEach(async () => {
-//       authToken = await getTokenByCredentials(noRole.local);
-//     });
+  describe('NO_ROLE', () => {
+    beforeEach(populateDB);
+    beforeEach(async () => {
+      authToken = await getTokenByCredentials(noRole.local);
+    });
 
-//     it('should return 200 if user is course trainee', async () => {
-//       const response = await app.inject({
-//         method: 'GET',
-//         url: `/courses/${coursesList[5]._id}/completion-certificates?format=${PDF}`,
-//         headers: { Cookie: `alenvi_token=${authToken}` },
-//       });
+    it('should return 200 if user is course trainee', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/courses/${coursesList[5]._id}/completion-certificates?format=${PDF}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
 
-//       expect(response.statusCode).toBe(200);
-//     });
+      expect(response.statusCode).toBe(200);
+    });
 
-//     it('should return a 403 if user is not course trainee', async () => {
-//       const response = await app.inject({
-//         method: 'GET',
-//         url: `/courses/${courseIdFromAuthCompany}/completion-certificates?format=${PDF}`,
-//         headers: { Cookie: `alenvi_token=${authToken}` },
-//       });
+    it('should return a 403 if user is not course trainee', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/courses/${courseIdFromAuthCompany}/completion-certificates?format=${PDF}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
 
-//       expect(response.statusCode).toBe(403);
-//     });
+      expect(response.statusCode).toBe(403);
+    });
 
-//     it('should return 403 if user is accessing certificate with an other format than PDF', async () => {
-//       const response = await app.inject({
-//         method: 'GET',
-//         url: `/courses/${coursesList[5]._id}/completion-certificates?format=${ALL_WORD}`,
-//         headers: { Cookie: `alenvi_token=${authToken}` },
-//       });
+    it('should return 403 if user is accessing certificate with an other format than PDF', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/courses/${coursesList[5]._id}/completion-certificates?format=${ALL_WORD}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
 
-//       expect(response.statusCode).toBe(403);
-//     });
-//   });
+      expect(response.statusCode).toBe(403);
+    });
+  });
 
-//   describe('TRAINER', () => {
-//     beforeEach(populateDB);
+  describe('TRAINER', () => {
+    beforeEach(populateDB);
 
-//     let downloadFileByIdStub;
-//     let createDocxStub;
-//     beforeEach(async () => {
-//       downloadFileByIdStub = sinon.stub(drive, 'downloadFileById');
-//       createDocxStub = sinon.stub(DocxHelper, 'createDocx');
-//       createDocxStub.returns(path.join(__dirname, 'assets/certificate_template.docx'));
-//       process.env.GOOGLE_DRIVE_TRAINING_CERTIFICATE_TEMPLATE_ID = '1234';
+    let downloadFileByIdStub;
+    let createDocxStub;
+    beforeEach(async () => {
+      downloadFileByIdStub = sinon.stub(drive, 'downloadFileById');
+      createDocxStub = sinon.stub(DocxHelper, 'createDocx');
+      createDocxStub.returns(path.join(__dirname, 'assets/certificate_template.docx'));
+      process.env.GOOGLE_DRIVE_TRAINING_CERTIFICATE_TEMPLATE_ID = '1234';
 
-//       authToken = await getToken('trainer');
-//     });
+      authToken = await getToken('trainer');
+    });
 
-//     afterEach(() => {
-//       downloadFileByIdStub.restore();
-//       createDocxStub.restore();
-//       process.env.GOOGLE_DRIVE_TRAINING_CERTIFICATE_TEMPLATE_ID = '';
-//     });
+    afterEach(() => {
+      downloadFileByIdStub.restore();
+      createDocxStub.restore();
+      process.env.GOOGLE_DRIVE_TRAINING_CERTIFICATE_TEMPLATE_ID = '';
+    });
 
-//     it('should return 200 as user is the course trainer', async () => {
-//       const response = await app.inject({
-//         method: 'GET',
-//         url: `/courses/${courseIdFromAuthCompany}/completion-certificates?format=${ALL_PDF}`,
-//         headers: { Cookie: `alenvi_token=${authToken}` },
-//       });
+    it('should return 200 as user is the course trainer', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/courses/${courseIdFromAuthCompany}/completion-certificates?format=${ALL_PDF}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
 
-//       expect(response.statusCode).toBe(200);
-//     });
+      expect(response.statusCode).toBe(200);
+    });
 
-//     it('should return 403 as user is trainer if not one of his courses', async () => {
-//       const response = await app.inject({
-//         method: 'GET',
-//         url: `/courses/${coursesList[1]._id}/completion-certificates?format=${ALL_PDF}`,
-//         headers: { Cookie: `alenvi_token=${authToken}` },
-//       });
+    it('should return 403 as user is trainer if not one of his courses', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/courses/${coursesList[1]._id}/completion-certificates?format=${ALL_PDF}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
 
-//       expect(response.statusCode).toBe(403);
-//     });
+      expect(response.statusCode).toBe(403);
+    });
 
-//     it('should return 403 as user is the course trainer and access ALL_WORD', async () => {
-//       const response = await app.inject({
-//         method: 'GET',
-//         url: `/courses/${courseIdFromAuthCompany}/completion-certificates?format=${ALL_WORD}`,
-//         headers: { Cookie: `alenvi_token=${authToken}` },
-//       });
+    it('should return 403 as user is the course trainer and access ALL_WORD', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/courses/${courseIdFromAuthCompany}/completion-certificates?format=${ALL_WORD}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
 
-//       expect(response.statusCode).toBe(403);
-//     });
+      expect(response.statusCode).toBe(403);
+    });
 
-//     it('should return 403 as user is trainer and type is OFFICIAL', async () => {
-//       const response = await app.inject({
-//         method: 'GET',
-//         url: `/courses/${courseIdFromAuthCompany}/completion-certificates?format=${ALL_PDF}&type=${OFFICIAL}`,
-//         headers: { Cookie: `alenvi_token=${authToken}` },
-//       });
+    it('should return 403 as user is trainer and type is OFFICIAL', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/courses/${courseIdFromAuthCompany}/completion-certificates?format=${ALL_PDF}&type=${OFFICIAL}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
 
-//       expect(response.statusCode).toBe(403);
-//     });
-//   });
+      expect(response.statusCode).toBe(403);
+    });
+  });
 
-//   describe('COACH', () => {
-//     beforeEach(populateDB);
+  describe('COACH', () => {
+    beforeEach(populateDB);
 
-//     let downloadFileByIdStub;
-//     let createDocxStub;
-//     beforeEach(async () => {
-//       downloadFileByIdStub = sinon.stub(drive, 'downloadFileById');
-//       createDocxStub = sinon.stub(DocxHelper, 'createDocx');
-//       createDocxStub.returns(path.join(__dirname, 'assets/certificate_template.docx'));
-//       process.env.GOOGLE_DRIVE_TRAINING_CERTIFICATE_TEMPLATE_ID = '1234';
+    let downloadFileByIdStub;
+    let createDocxStub;
+    beforeEach(async () => {
+      downloadFileByIdStub = sinon.stub(drive, 'downloadFileById');
+      createDocxStub = sinon.stub(DocxHelper, 'createDocx');
+      createDocxStub.returns(path.join(__dirname, 'assets/certificate_template.docx'));
+      process.env.GOOGLE_DRIVE_TRAINING_CERTIFICATE_TEMPLATE_ID = '1234';
 
-//       authToken = await getToken('coach');
-//     });
+      authToken = await getToken('coach');
+    });
 
-//     afterEach(() => {
-//       downloadFileByIdStub.restore();
-//       createDocxStub.restore();
-//       process.env.GOOGLE_DRIVE_TRAINING_CERTIFICATE_TEMPLATE_ID = '';
-//     });
+    afterEach(() => {
+      downloadFileByIdStub.restore();
+      createDocxStub.restore();
+      process.env.GOOGLE_DRIVE_TRAINING_CERTIFICATE_TEMPLATE_ID = '';
+    });
 
-//     it('should return 200 as user is coach, course is inter_b2b and type is CUSTOM', async () => {
-//       const response = await app.inject({
-//         method: 'GET',
-//         url: `/courses/${coursesList[7]._id}/completion-certificates?format=${ALL_PDF}&type=${CUSTOM}`,
-//         headers: { Cookie: `alenvi_token=${authToken}` },
-//       });
+    it('should return 200 as user is coach, course is inter_b2b and type is CUSTOM', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/courses/${coursesList[7]._id}/completion-certificates?format=${ALL_PDF}&type=${CUSTOM}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
 
-//       expect(response.statusCode).toBe(200);
-//     });
+      expect(response.statusCode).toBe(200);
+    });
 
-//     it('should return 200 as user is coach, course is inter_b2b and type is OFFICIAL', async () => {
-//       const response = await app.inject({
-//         method: 'GET',
-//         url: `/courses/${coursesList[7]._id}/completion-certificates?format=${ALL_PDF}&type=${OFFICIAL}`,
-//         headers: { Cookie: `alenvi_token=${authToken}` },
-//       });
+    it('should return 200 as user is coach, course is inter_b2b and type is OFFICIAL', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/courses/${coursesList[7]._id}/completion-certificates?format=${ALL_PDF}&type=${OFFICIAL}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
 
-//       expect(response.statusCode).toBe(200);
-//     });
+      expect(response.statusCode).toBe(200);
+    });
 
-//     it('should return 403 as user is coach and access ALL_WORD', async () => {
-//       const response = await app.inject({
-//         method: 'GET',
-//         url: `/courses/${courseIdFromAuthCompany}/completion-certificates?format=${ALL_WORD}`,
-//         headers: { Cookie: `alenvi_token=${authToken}` },
-//       });
+    it('should return 403 as user is coach and access ALL_WORD', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/courses/${courseIdFromAuthCompany}/completion-certificates?format=${ALL_WORD}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
 
-//       expect(response.statusCode).toBe(403);
-//     });
-//   });
+      expect(response.statusCode).toBe(403);
+    });
+  });
 
-//   describe('Other roles', () => {
-//     beforeEach(populateDB);
+  describe('Other roles', () => {
+    beforeEach(populateDB);
 
-//     let downloadFileByIdStub;
-//     let createDocxStub;
-//     beforeEach(async () => {
-//       downloadFileByIdStub = sinon.stub(drive, 'downloadFileById');
-//       createDocxStub = sinon.stub(DocxHelper, 'createDocx');
-//       createDocxStub.returns(path.join(__dirname, 'assets/certificate_template.docx'));
-//       process.env.GOOGLE_DRIVE_TRAINING_CERTIFICATE_TEMPLATE_ID = '1234';
-//       UtilsMock.mockCurrentDate('2019-01-24T15:00:00.000Z');
-//     });
+    let downloadFileByIdStub;
+    let createDocxStub;
+    beforeEach(async () => {
+      downloadFileByIdStub = sinon.stub(drive, 'downloadFileById');
+      createDocxStub = sinon.stub(DocxHelper, 'createDocx');
+      createDocxStub.returns(path.join(__dirname, 'assets/certificate_template.docx'));
+      process.env.GOOGLE_DRIVE_TRAINING_CERTIFICATE_TEMPLATE_ID = '1234';
+      UtilsMock.mockCurrentDate('2019-01-24T15:00:00.000Z');
+    });
 
-//     afterEach(() => {
-//       downloadFileByIdStub.restore();
-//       createDocxStub.restore();
-//       process.env.GOOGLE_DRIVE_TRAINING_CERTIFICATE_TEMPLATE_ID = '';
-//       UtilsMock.unmockCurrentDate();
-//     });
+    afterEach(() => {
+      downloadFileByIdStub.restore();
+      createDocxStub.restore();
+      process.env.GOOGLE_DRIVE_TRAINING_CERTIFICATE_TEMPLATE_ID = '';
+      UtilsMock.unmockCurrentDate();
+    });
 
-//     const roles = [{ name: 'helper', expectedCode: 403 }, { name: 'planning_referent', expectedCode: 403 }];
-//     roles.forEach((role) => {
-//       it(`should return ${role.expectedCode} as user is ${role.name}, requesting on his company`, async () => {
-//         authToken = await getToken(role.name);
-//         const response = await app.inject({
-//           method: 'GET',
-//           url: `/courses/${courseIdFromAuthCompany}/completion-certificates?format=${ALL_PDF}`,
-//           headers: { Cookie: `alenvi_token=${authToken}` },
-//         });
+    const roles = [{ name: 'helper', expectedCode: 403 }, { name: 'planning_referent', expectedCode: 403 }];
+    roles.forEach((role) => {
+      it(`should return ${role.expectedCode} as user is ${role.name}, requesting on his company`, async () => {
+        authToken = await getToken(role.name);
+        const response = await app.inject({
+          method: 'GET',
+          url: `/courses/${courseIdFromAuthCompany}/completion-certificates?format=${ALL_PDF}`,
+          headers: { Cookie: `alenvi_token=${authToken}` },
+        });
 
-//         expect(response.statusCode).toBe(role.expectedCode);
-//       });
-//     });
+        expect(response.statusCode).toBe(role.expectedCode);
+      });
+    });
 
-//     it('should return 403 as user is client_admin requesting on an other company', async () => {
-//       authToken = await getToken('client_admin');
-//       const response = await app.inject({
-//         method: 'GET',
-//         url: `/courses/${courseIdFromOtherCompany}/completion-certificates?format=${ALL_PDF}`,
-//         headers: { Cookie: `alenvi_token=${authToken}` },
-//       });
+    it('should return 403 as user is client_admin requesting on an other company', async () => {
+      authToken = await getToken('client_admin');
+      const response = await app.inject({
+        method: 'GET',
+        url: `/courses/${courseIdFromOtherCompany}/completion-certificates?format=${ALL_PDF}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
 
-//       expect(response.statusCode).toBe(403);
-//     });
-//   });
-// });
+      expect(response.statusCode).toBe(403);
+    });
+  });
+});
 
 describe('COURSES ROUTES - POST /:_id/accessrules', () => {
   let authToken;
