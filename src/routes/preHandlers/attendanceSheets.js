@@ -1,8 +1,10 @@
 const Boom = require('@hapi/boom');
 const get = require('lodash/get');
+const { ObjectId } = require('mongodb');
 const { CompaniDate } = require('../../helpers/dates/companiDates');
 const UtilsHelper = require('../../helpers/utils');
 const Course = require('../../models/Course');
+const CourseSlot = require('../../models/CourseSlot');
 const AttendanceSheet = require('../../models/AttendanceSheet');
 const {
   INTRA,
@@ -12,6 +14,11 @@ const {
   VENDOR_ADMIN,
   TRAINING_ORGANISATION_MANAGER,
 } = require('../../helpers/constants');
+const translate = require('../../helpers/translate');
+
+const { language } = translate;
+
+const SINGLE_COURSES_SUBPROGRAM_IDS = process.env.SINGLE_COURSES_SUBPROGRAM_IDS.split(';').map(id => new ObjectId(id));
 
 const isVendorAndAuthorized = (courseTrainer, credentials) => {
   const loggedUserId = get(credentials, '_id');
@@ -56,7 +63,10 @@ exports.authorizeAttendanceSheetsGet = async (req) => {
 
 exports.authorizeAttendanceSheetCreation = async (req) => {
   const course = await Course
-    .findOne({ _id: req.payload.course }, { archivedAt: 1, type: 1, slots: 1, trainees: 1, trainer: 1, companies: 1 })
+    .findOne(
+      { _id: req.payload.course },
+      { archivedAt: 1, type: 1, slots: 1, trainees: 1, trainer: 1, companies: 1, subProgram: 1 }
+    )
     .populate('slots')
     .lean();
   if (course.archivedAt) throw Boom.forbidden();
@@ -74,6 +84,50 @@ exports.authorizeAttendanceSheetCreation = async (req) => {
   }
   if (req.payload.date) throw Boom.badRequest();
   if (!course.trainees.some(t => UtilsHelper.areObjectIdsEquals(t, req.payload.trainee))) throw Boom.forbidden();
+
+  const isSingleCourse = UtilsHelper.doesArrayIncludeId(SINGLE_COURSES_SUBPROGRAM_IDS, course.subProgram);
+  if (isSingleCourse && !(req.payload.slots && req.payload.trainee)) throw Boom.badRequest();
+  if (req.payload.slots) {
+    if (!isSingleCourse) throw Boom.badRequest();
+
+    const slotsIds = Array.isArray(req.payload.slots) ? req.payload.slots : [req.payload.slots];
+    const courseSlotCount = await CourseSlot.countDocuments({ _id: { $in: slotsIds }, course: course._id });
+    if (courseSlotCount !== slotsIds.length) throw Boom.notFound();
+
+    const attendanceSheetCount = await AttendanceSheet.countDocuments({ slots: { $in: slotsIds } });
+    if (attendanceSheetCount) throw Boom.conflict(translate[language].courseSlotsAlreadyInAttendanceSheet);
+  }
+
+  return null;
+};
+
+exports.authorizeAttendanceSheetEdit = async (req) => {
+  const attendanceSheet = await AttendanceSheet
+    .findOne({ _id: req.params._id })
+    .populate({ path: 'course', select: 'subProgram trainer' })
+    .lean();
+
+  if (!attendanceSheet) throw Boom.notFound();
+
+  const { credentials } = req.auth;
+  const userVendorRole = get(credentials, 'role.vendor.name');
+  const loggedUserId = get(credentials, '_id');
+  if (userVendorRole === TRAINER) {
+    const isCourseTrainer = UtilsHelper.areObjectIdsEquals(attendanceSheet.course.trainer, loggedUserId);
+    if (!isCourseTrainer) throw Boom.forbidden();
+  }
+
+  const isSingleCourse = UtilsHelper
+    .doesArrayIncludeId(SINGLE_COURSES_SUBPROGRAM_IDS, attendanceSheet.course.subProgram);
+  if (!isSingleCourse) throw Boom.forbidden();
+
+  const courseSlotCount = await CourseSlot
+    .countDocuments({ _id: { $in: req.payload.slots }, course: attendanceSheet.course._id });
+  if (courseSlotCount !== req.payload.slots.length) throw Boom.notFound();
+
+  const slotAlreadyLinkedToAS = await AttendanceSheet
+    .countDocuments({ _id: { $ne: attendanceSheet._id }, slots: { $in: req.payload.slots } });
+  if (slotAlreadyLinkedToAS) throw Boom.conflict();
 
   return null;
 };

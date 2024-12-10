@@ -29,6 +29,7 @@ exports.findCourseAndPopulate = (query, origin, populateVirtual = false) => Cour
       path: 'slots',
       select: origin === MOBILE ? 'startDate endDate step' : 'startDate endDate step address',
       populate: { path: 'step', select: 'type' },
+      options: { sort: { startDate: 1 } },
     },
     { path: 'slotsToPlan', select: '_id' },
     ...(origin === WEBAPP
@@ -67,14 +68,7 @@ exports.findCoursesForExport = async (startDate, endDate, credentials) => {
     .populate({
       path: 'subProgram',
       select: 'name steps program',
-      populate: [
-        { path: 'program', select: 'name' },
-        {
-          path: 'steps',
-          select: 'type activities',
-          populate: { path: 'activities', populate: { path: 'activityHistories' } },
-        },
-      ],
+      populate: [{ path: 'program', select: 'name' }, { path: 'steps', select: 'type activities' }],
     })
     .populate({ path: 'trainer', select: 'identity' })
     .populate({ path: 'operationsRepresentative', select: 'identity' })

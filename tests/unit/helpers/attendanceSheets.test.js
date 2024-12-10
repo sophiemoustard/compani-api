@@ -41,6 +41,7 @@ describe('list', () => {
       [
         { query: 'find', args: [{ course: courseId }] },
         { query: 'populate', args: [{ path: 'trainee', select: 'identity' }] },
+        { query: 'populate', args: [{ path: 'slots', select: 'startDate endDate step' }] },
         { query: 'setOptions', args: [{ isVendorUser: !!get(credentials, 'role.vendor') }] },
         { query: 'lean' },
       ]
@@ -78,6 +79,7 @@ describe('list', () => {
       [
         { query: 'find', args: [{ course: courseId, companies: { $in: [authCompanyId] } }] },
         { query: 'populate', args: [{ path: 'trainee', select: 'identity' }] },
+        { query: 'populate', args: [{ path: 'slots', select: 'startDate endDate step' }] },
         { query: 'setOptions', args: [{ isVendorUser: !!get(credentials, 'role.vendor') }] },
         { query: 'lean' },
       ]
@@ -120,6 +122,7 @@ describe('list', () => {
       [
         { query: 'find', args: [{ course: courseId, companies: { $in: [authCompanyId, otherCompanyId] } }] },
         { query: 'populate', args: [{ path: 'trainee', select: 'identity' }] },
+        { query: 'populate', args: [{ path: 'slots', select: 'startDate endDate step' }] },
         { query: 'setOptions', args: [{ isVendorUser: !!get(credentials, 'role.vendor') }] },
         { query: 'lean' },
       ]
@@ -201,7 +204,7 @@ describe('create', () => {
     uploadCourseFile.returns({ publicId: 'yo', link: 'yo' });
     courseFindOne.returns(SinonMongoose.stubChainedQueries(course, ['lean']));
     userFindOne.returns(SinonMongoose.stubChainedQueries(user, ['lean']));
-    formatIdentity.returns('monsieurPATATE');
+    formatIdentity.returns('monsieur PATATE');
     getCompanyAtCourseRegistrationList.returns([{ trainee: traineeId, company: companyId }]);
 
     await attendanceSheetHelper.create(payload);
@@ -227,7 +230,7 @@ describe('create', () => {
     );
     sinon.assert.calledOnceWithExactly(
       uploadCourseFile,
-      { fileName: 'emargement_monsieurPATATE', file: 'test.pdf' }
+      { fileName: 'emargement_monsieur PATATE', file: 'test.pdf' }
     );
     sinon.assert.calledOnceWithExactly(
       create,
@@ -243,6 +246,115 @@ describe('create', () => {
       { key: COURSE, value: courseId },
       { key: TRAINEE, value: [traineeId] }
     );
+  });
+
+  it('should create an attendance sheet with one slot for single course', async () => {
+    const courseId = new ObjectId();
+    const traineeId = new ObjectId();
+    const companyId = new ObjectId();
+    const slotId = new ObjectId();
+
+    const course = { _id: courseId, companies: [new ObjectId()] };
+    const payload = { trainee: traineeId, course: courseId, file: 'test.pdf', slots: slotId };
+    const user = { _id: traineeId, identity: { firstName: 'Eren', lastname: 'JÄGER' } };
+
+    uploadCourseFile.returns({ publicId: 'test', link: 'test' });
+    courseFindOne.returns(SinonMongoose.stubChainedQueries(course, ['lean']));
+    userFindOne.returns(SinonMongoose.stubChainedQueries(user, ['lean']));
+    formatIdentity.returns('Eren JÄGER');
+    getCompanyAtCourseRegistrationList.returns([{ trainee: traineeId, company: companyId }]);
+
+    await attendanceSheetHelper.create(payload);
+
+    SinonMongoose.calledOnceWithExactly(
+      courseFindOne,
+      [{ query: 'findOne', args: [{ _id: courseId }, { companies: 1 }] }, { query: 'lean' }]
+    );
+    SinonMongoose.calledOnceWithExactly(
+      userFindOne,
+      [{ query: 'findOne', args: [{ _id: traineeId }, { identity: 1 }] }, { query: 'lean' }]
+    );
+    sinon.assert.calledOnceWithExactly(formatIdentity, { firstName: 'Eren', lastname: 'JÄGER' }, 'FL');
+    sinon.assert.calledOnceWithExactly(uploadCourseFile, { fileName: 'emargement_Eren JÄGER', file: 'test.pdf' });
+    sinon.assert.calledOnceWithExactly(
+      create,
+      {
+        trainee: traineeId,
+        course: courseId,
+        slots: [slotId],
+        companies: [companyId],
+        file: { publicId: 'test', link: 'test' },
+      }
+    );
+    sinon.assert.calledOnceWithExactly(
+      getCompanyAtCourseRegistrationList,
+      { key: COURSE, value: courseId },
+      { key: TRAINEE, value: [traineeId] }
+    );
+  });
+
+  it('should create an attendance sheet with multiple slots for single course', async () => {
+    const courseId = new ObjectId();
+    const traineeId = new ObjectId();
+    const companyId = new ObjectId();
+    const slots = [new ObjectId(), new ObjectId()];
+
+    const course = { _id: courseId, companies: [new ObjectId()] };
+    const payload = { trainee: traineeId, course: courseId, file: 'test.pdf', slots };
+    const user = { _id: traineeId, identity: { firstName: 'Mikasa', lastname: 'ACKERMAN' } };
+
+    uploadCourseFile.returns({ publicId: 'test', link: 'test' });
+    courseFindOne.returns(SinonMongoose.stubChainedQueries(course, ['lean']));
+    userFindOne.returns(SinonMongoose.stubChainedQueries(user, ['lean']));
+    formatIdentity.returns('Mikasa ACKERMAN');
+    getCompanyAtCourseRegistrationList.returns([{ trainee: traineeId, company: companyId }]);
+
+    await attendanceSheetHelper.create(payload);
+
+    SinonMongoose.calledOnceWithExactly(
+      courseFindOne,
+      [{ query: 'findOne', args: [{ _id: courseId }, { companies: 1 }] }, { query: 'lean' }]
+    );
+    SinonMongoose.calledOnceWithExactly(
+      userFindOne,
+      [{ query: 'findOne', args: [{ _id: traineeId }, { identity: 1 }] }, { query: 'lean' }]
+    );
+    sinon.assert.calledOnceWithExactly(formatIdentity, { firstName: 'Mikasa', lastname: 'ACKERMAN' }, 'FL');
+    sinon.assert.calledOnceWithExactly(uploadCourseFile, { fileName: 'emargement_Mikasa ACKERMAN', file: 'test.pdf' });
+    sinon.assert.calledOnceWithExactly(
+      create,
+      {
+        trainee: traineeId,
+        course: courseId,
+        slots,
+        companies: [companyId],
+        file: { publicId: 'test', link: 'test' },
+      }
+    );
+    sinon.assert.calledOnceWithExactly(
+      getCompanyAtCourseRegistrationList,
+      { key: COURSE, value: courseId },
+      { key: TRAINEE, value: [traineeId] }
+    );
+  });
+});
+
+describe('update', () => {
+  let updateOne;
+  beforeEach(() => {
+    updateOne = sinon.stub(AttendanceSheet, 'updateOne');
+  });
+  afterEach(() => {
+    updateOne.restore();
+  });
+
+  it('should update an attendance sheet', async () => {
+    const slotId = new ObjectId();
+    const attendanceSheet = { _id: new ObjectId() };
+    const payload = { slots: [slotId] };
+    await attendanceSheetHelper.update(attendanceSheet._id, payload);
+
+    sinon.assert.calledOnceWithExactly(updateOne, { _id: attendanceSheet._id }, { $set: payload });
   });
 });
 

@@ -2110,9 +2110,10 @@ describe('getCourse', () => {
                 select: 'program steps',
                 populate: [
                   { path: 'program', select: 'name learningGoals' },
+                  { path: 'steps', select: 'name' },
                 ],
               },
-              { path: 'slots', select: 'startDate' },
+              { path: 'slots', select: 'step startDate endDate' },
             ]],
           },
           { query: 'lean' },

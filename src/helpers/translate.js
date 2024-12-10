@@ -151,6 +151,7 @@ module.exports = {
     courseSlotNotFound: 'Course slot not found.',
     courseSlotConflict: 'Course slot in conflict.',
     courseSlotWithAttendances: 'Course slot has attendances.',
+    courseSlotsAlreadyInAttendanceSheet: 'Course slots already in attendance sheet.',
     /* Course funding organisation */
     courseFundingOrganisationsFound: 'Course funding organisations found.',
     courseFundingOrganisationsNotFound: 'Course funding organisations not found.',
@@ -162,6 +163,7 @@ module.exports = {
     activityHistoriesFound: 'Activity histories found.',
     /* AttendanceSheets */
     attendanceSheetCreated: 'AttendanceSheet created.',
+    attendanceSheetUpdated: 'AttendanceSheet updated.',
     attendanceSheetsFound: 'AttendanceSheets found.',
     attendanceSheetsNotFound: 'AttendanceSheets not found.',
     attendanceSheetDeleted: 'AttendanceSheet deleted.',
@@ -361,6 +363,7 @@ module.exports = {
     courseSlotNotFound: 'Créneau de formation non trouvé.',
     courseSlotConflict: 'Créneau de formation en conflit.',
     courseSlotWithAttendances: 'Impossible: ce créneau de formation est émargé.',
+    courseSlotsAlreadyInAttendanceSheet: 'Certains créneaux sont déjà rattachés à une feuille d’émargement.',
     /* Course funding organisation */
     courseFundingOrganisationsFound: 'Financeurs trouvés.',
     courseFundingOrganisationsNotFound: 'Financeurs non trouvés.',
@@ -372,6 +375,7 @@ module.exports = {
     activityHistoriesFound: 'Historiques d\'activité trouvés.',
     /* AttendanceSheets */
     attendanceSheetCreated: 'Feuille d\'émargement créée.',
+    attendanceSheetUpdated: 'Feuille d\'émargement modifiée.',
     attendanceSheetsFound: 'Feuilles d\'émargement trouvées.',
     attendanceSheetsNotFound: 'Feuilles d\'émargement non trouvées.',
     attendanceSheetDeleted: 'Feuille d\'émargement supprimée.',

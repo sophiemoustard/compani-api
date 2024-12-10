@@ -1,4 +1,5 @@
 const { expect } = require('expect');
+const { ObjectId } = require('mongodb');
 const groupBy = require('lodash/groupBy');
 const get = require('lodash/get');
 const has = require('lodash/has');
@@ -375,7 +376,7 @@ describe('SEEDS VERIFICATION', () => {
             .populate({ path: 'trainee', select: 'id', populate: { path: 'userCompanyList' } })
             .populate({
               path: 'course',
-              select: '_id type companies',
+              select: '_id type companies subProgram',
               populate: { path: 'slots', select: 'startDate' },
             })
             .populate({ path: 'companies', select: '_id' })
@@ -412,6 +413,23 @@ describe('SEEDS VERIFICATION', () => {
           expect(someIntraOrIntraHoldingAttendanceSheetHasTrainee).toBeFalsy();
         });
 
+        it('should pass if only single courses have slots in attendance sheet', () => {
+          const SINGLE_COURSES_SUBPROGRAM_IDS = process.env.SINGLE_COURSES_SUBPROGRAM_IDS
+            .split(';').map(id => new ObjectId(id));
+
+          const everySingleASHasSlots = attendanceSheetList
+            .every(a => !UtilsHelper.doesArrayIncludeId(SINGLE_COURSES_SUBPROGRAM_IDS, a.course.subProgram) ||
+              a.slots);
+
+          expect(everySingleASHasSlots).toBeTruthy();
+
+          const someNonSingleASHasSlots = attendanceSheetList
+            .some(a => !UtilsHelper.doesArrayIncludeId(SINGLE_COURSES_SUBPROGRAM_IDS, a.course.subProgram) &&
+              a.slots);
+
+          expect(someNonSingleASHasSlots).toBeFalsy();
+        });
+
         it('should pass if only intra_holding courses have several companies in attendance sheet', () => {
           const doSheetsHaveGoodCompaniesNumber = attendanceSheetList
             .every(a => a.companies.length === 1 || a.course.type === INTRA_HOLDING);
@@ -426,6 +444,21 @@ describe('SEEDS VERIFICATION', () => {
               const slotsDates = a.course.slots.map(slot => CompaniDate(slot.startDate).format(DD_MM_YYYY));
 
               return slotsDates.includes(CompaniDate(a.date).format(DD_MM_YYYY));
+            });
+
+          expect(everySheetDateIsSlotDate).toBeTruthy();
+        });
+
+        it('should pass if attendance sheet slots are course slots', () => {
+          const SINGLE_COURSES_SUBPROGRAM_IDS = process.env.SINGLE_COURSES_SUBPROGRAM_IDS
+            .split(';').map(id => new ObjectId(id));
+
+          const everySheetDateIsSlotDate = attendanceSheetList
+            .filter(a => UtilsHelper.doesArrayIncludeId(SINGLE_COURSES_SUBPROGRAM_IDS, a.course.subProgram))
+            .every((a) => {
+              const slotsIds = a.course.slots.map(slot => slot._id);
+
+              return a.slots.every(slot => UtilsHelper.doesArrayIncludeId(slotsIds, slot));
             });
 
           expect(everySheetDateIsSlotDate).toBeTruthy();
