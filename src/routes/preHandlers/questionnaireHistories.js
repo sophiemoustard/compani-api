@@ -36,8 +36,8 @@ exports.authorizeQuestionnaireHistoryUpdate = async (req) => {
     .lean();
   if (!questionnaireHistory) throw Boom.notFound();
 
-  const courseTrainer = questionnaireHistory.course.trainers;
-  const loggedUserIsCourseTrainer = UtilsHelper.doesArrayIncludeId(courseTrainer, credentials._id);
+  const courseTrainerIds = questionnaireHistory.course.trainers;
+  const loggedUserIsCourseTrainer = UtilsHelper.doesArrayIncludeId(courseTrainerIds, credentials._id);
   if (!loggedUserIsCourseTrainer) throw Boom.forbidden();
 
   const cardIds = trainerAnswers.map(answer => answer.card);
