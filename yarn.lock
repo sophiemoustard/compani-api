@@ -254,10 +254,12 @@
   dependencies:
     "@hapi/boom" "^10.0.1"
 
-"@hapi/eslint-plugin@~6.0.0":
-  version "6.0.0"
-  resolved "https://registry.yarnpkg.com/@hapi/eslint-plugin/-/eslint-plugin-6.0.0.tgz#49c594a927c74fe821c4c5d235b90efcd3c74e80"
-  integrity sha512-6eN1fnBO742nTTSpQtYB35aFGAT9I7r4u2v/+R2c9ToYTQp4QBoPOBA5R3+C7+Az3I0ugs+lTIqAsMPDLpsRAg==
+"@hapi/eslint-plugin@~7.0.0":
+  version "7.0.0"
+  resolved "https://registry.yarnpkg.com/@hapi/eslint-plugin/-/eslint-plugin-7.0.0.tgz#842b5c47b0d8060f304c76efbb04b8df98464e6a"
+  integrity sha512-u11LSTnBbSwZ6veyXRR4ULW0TfGDRYlg5mpNN0y2A2SoINN9f8za4jIxxzAfZKlFDKkqqowG5wxKBrquNfxmCg==
+  dependencies:
+    globals "^15.11.0"
 
 "@hapi/file@^3.0.0":
   version "3.0.0"
@@ -2382,6 +2384,11 @@ globals@^14.0.0:
   version "14.0.0"
   resolved "https://registry.yarnpkg.com/globals/-/globals-14.0.0.tgz#898d7413c29babcf6bafe56fcadded858ada724e"
   integrity sha512-oahGvuMGQlPw/ivIYBjVSrWAfWLBeku5tpPE2fOPLi+WHffIWbuh2tCjhyQhTBPMf5E9jDEH4FOmTYgYwbKwtQ==
+
+globals@^15.11.0:
+  version "15.13.0"
+  resolved "https://registry.yarnpkg.com/globals/-/globals-15.13.0.tgz#bbec719d69aafef188ecd67954aae76a696010fc"
+  integrity sha512-49TewVEz0UxZjr1WYYsWpPrhyC/B/pA8Bq0fUmet2n+eR7yn0IvNzNaoBwnK6mdkzcN+se7Ez9zUgULTz2QH4g==
 
 globalthis@^1.0.3:
   version "1.0.3"
