@@ -1404,157 +1404,157 @@ describe('COURSES ROUTES - GET /courses/{_id}', () => {
   });
 });
 
-// describe('COURSES ROUTES - GET /courses/{_id}/follow-up', () => {
-//   let authToken;
-//   const intraCourseFromAuthCompany = coursesList[0];
-//   beforeEach(populateDB);
+describe('COURSES ROUTES - GET /courses/{_id}/follow-up', () => {
+  let authToken;
+  const intraCourseFromAuthCompany = coursesList[0];
+  beforeEach(populateDB);
 
-//   describe('TRANING_ORGANISATION_MANAGER', () => {
-//     beforeEach(async () => {
-//       authToken = await getToken('training_organisation_manager');
-//     });
+  describe('TRANING_ORGANISATION_MANAGER', () => {
+    beforeEach(async () => {
+      authToken = await getToken('training_organisation_manager');
+    });
 
-//     it('should get course with follow up', async () => {
-//       const response = await app.inject({
-//         method: 'GET',
-//         url: `/courses/${coursesList[0]._id.toHexString()}/follow-up`,
-//         headers: { Cookie: `alenvi_token=${authToken}` },
-//       });
+    it('should get course with follow up', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/courses/${coursesList[0]._id.toHexString()}/follow-up`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
 
-//       expect(response.statusCode).toBe(200);
-//       expect(response.result.data.followUp._id.toHexString()).toBe(intraCourseFromAuthCompany._id.toHexString());
-//     });
-//   });
+      expect(response.statusCode).toBe(200);
+      expect(response.result.data.followUp._id.toHexString()).toBe(intraCourseFromAuthCompany._id.toHexString());
+    });
+  });
 
-//   describe('COACH', () => {
-//     beforeEach(async () => {
-//       authToken = await getToken('coach');
-//     });
+  describe('COACH', () => {
+    beforeEach(async () => {
+      authToken = await getToken('coach');
+    });
 
-//     it('should get course with follow up', async () => {
-//       const response = await app.inject({
-//         method: 'GET',
-//         url: `/courses/${coursesList[0]._id.toHexString()}/follow-up?company=${authCompany._id.toHexString()}`,
-//         headers: { Cookie: `alenvi_token=${authToken}` },
-//       });
+    it('should get course with follow up', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/courses/${coursesList[0]._id.toHexString()}/follow-up?company=${authCompany._id.toHexString()}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
 
-//       expect(response.statusCode).toBe(200);
-//     });
+      expect(response.statusCode).toBe(200);
+    });
 
-//     it('should return 403 if user company is not query company', async () => {
-//       const response = await app.inject({
-//         method: 'GET',
-//         url: `/courses/${coursesList[0]._id.toHexString()}/follow-up?company=${otherCompany._id.toHexString()}`,
-//         headers: { Cookie: `alenvi_token=${authToken}` },
-//       });
+    it('should return 403 if user company is not query company', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/courses/${coursesList[0]._id.toHexString()}/follow-up?company=${otherCompany._id.toHexString()}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
 
-//       expect(response.statusCode).toBe(403);
-//     });
-//   });
+      expect(response.statusCode).toBe(403);
+    });
+  });
 
-//   describe('HOLDING_ADMIN', () => {
-//     beforeEach(async () => {
-//       authToken = await getTokenByCredentials(holdingAdminFromOtherCompany.local);
-//     });
+  describe('HOLDING_ADMIN', () => {
+    beforeEach(async () => {
+      authToken = await getTokenByCredentials(holdingAdminFromOtherCompany.local);
+    });
 
-//     it('should get course with follow up', async () => {
-//       const response = await app.inject({
-//         method: 'GET',
-//         url: `/courses/${coursesList[7]._id.toHexString()}/follow-up?holding=${otherHolding._id.toHexString()}`,
-//         headers: { Cookie: `alenvi_token=${authToken}` },
-//       });
+    it('should get course with follow up', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/courses/${coursesList[7]._id.toHexString()}/follow-up?holding=${otherHolding._id.toHexString()}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
 
-//       expect(response.statusCode).toBe(200);
-//     });
+      expect(response.statusCode).toBe(200);
+    });
 
-//     it('should return 400 if holding and company in query', async () => {
-//       const response = await app.inject({
-//         method: 'GET',
-//         url: `/courses/${coursesList[4]._id.toHexString()}/follow-up?holding=${otherHolding._id.toHexString()}`
-//           + `&company=${otherCompany._id.toHexString()}`,
-//         headers: { Cookie: `alenvi_token=${authToken}` },
-//       });
+    it('should return 400 if holding and company in query', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/courses/${coursesList[4]._id.toHexString()}/follow-up?holding=${otherHolding._id.toHexString()}`
+          + `&company=${otherCompany._id.toHexString()}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
 
-//       expect(response.statusCode).toBe(400);
-//     });
+      expect(response.statusCode).toBe(400);
+    });
 
-//     it('should return 403 if user holding is not query holding', async () => {
-//       const response = await app.inject({
-//         method: 'GET',
-//         url: `/courses/${coursesList[7]._id.toHexString()}/follow-up?holding=${authHolding._id.toHexString()}`,
-//         headers: { Cookie: `alenvi_token=${authToken}` },
-//       });
+    it('should return 403 if user holding is not query holding', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/courses/${coursesList[7]._id.toHexString()}/follow-up?holding=${authHolding._id.toHexString()}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
 
-//       expect(response.statusCode).toBe(403);
-//     });
-//   });
+      expect(response.statusCode).toBe(403);
+    });
+  });
 
-//   describe('TRAINER', () => {
-//     beforeEach(async () => {
-//       authToken = await getToken('trainer');
-//     });
+  describe('TRAINER', () => {
+    beforeEach(async () => {
+      authToken = await getToken('trainer');
+    });
 
-//     it('should return 200 as user trainer and course trainer', async () => {
-//       const response = await app.inject({
-//         method: 'GET',
-//         url: `/courses/${coursesList[0]._id.toHexString()}/follow-up`,
-//         headers: { Cookie: `alenvi_token=${authToken}` },
-//       });
+    it('should return 200 as user trainer and course trainer', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/courses/${coursesList[0]._id.toHexString()}/follow-up`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
 
-//       expect(response.statusCode).toEqual(200);
-//     });
+      expect(response.statusCode).toEqual(200);
+    });
 
-//     it('should return 403 as user trainer but not course trainer', async () => {
-//       const response = await app.inject({
-//         method: 'GET',
-//         url: `/courses/${coursesList[1]._id.toHexString()}/follow-up`,
-//         headers: { Cookie: `alenvi_token=${authToken}` },
-//       });
+    it('should return 403 as user trainer but not course trainer', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/courses/${coursesList[1]._id.toHexString()}/follow-up`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
 
-//       expect(response.statusCode).toEqual(403);
-//     });
-//   });
+      expect(response.statusCode).toEqual(403);
+    });
+  });
 
-//   describe('Other roles', () => {
-//     it('should return 403 if user has no company and query has no company', async () => {
-//       authToken = await getToken('auxiliary_without_company');
+  describe('Other roles', () => {
+    it('should return 403 if user has no company and query has no company', async () => {
+      authToken = await getToken('auxiliary_without_company');
 
-//       const response = await app.inject({
-//         method: 'GET',
-//         url: `/courses/${coursesList[0]._id.toHexString()}/follow-up`,
-//         headers: { Cookie: `alenvi_token=${authToken}` },
-//       });
+      const response = await app.inject({
+        method: 'GET',
+        url: `/courses/${coursesList[0]._id.toHexString()}/follow-up`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
 
-//       expect(response.statusCode).toBe(403);
-//     });
+      expect(response.statusCode).toBe(403);
+    });
 
-//     it('should return 200 as user is coach and trainer, but not course trainer', async () => {
-//       authToken = await getTokenByCredentials(trainerAndCoach.local);
-//       const response = await app.inject({
-//         method: 'GET',
-//         url: `/courses/${coursesList[0]._id.toHexString()}/follow-up?company=${authCompany._id.toHexString()}`,
-//         headers: { Cookie: `alenvi_token=${authToken}` },
-//       });
+    it('should return 200 as user is coach and trainer, but not course trainer', async () => {
+      authToken = await getTokenByCredentials(trainerAndCoach.local);
+      const response = await app.inject({
+        method: 'GET',
+        url: `/courses/${coursesList[0]._id.toHexString()}/follow-up?company=${authCompany._id.toHexString()}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
 
-//       expect(response.statusCode).toEqual(200);
-//     });
+      expect(response.statusCode).toEqual(200);
+    });
 
-//     const roles = [{ name: 'helper', expectedCode: 403 }, { name: 'planning_referent', expectedCode: 403 }];
-//     roles.forEach((role) => {
-//       it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
-//         authToken = await getToken(role.name);
+    const roles = [{ name: 'helper', expectedCode: 403 }, { name: 'planning_referent', expectedCode: 403 }];
+    roles.forEach((role) => {
+      it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+        authToken = await getToken(role.name);
 
-//         const response = await app.inject({
-//           method: 'GET',
-//           url: `/courses/${coursesList[0]._id.toHexString()}/follow-up?company=${authCompany._id.toHexString()}`,
-//           headers: { Cookie: `alenvi_token=${authToken}` },
-//         });
+        const response = await app.inject({
+          method: 'GET',
+          url: `/courses/${coursesList[0]._id.toHexString()}/follow-up?company=${authCompany._id.toHexString()}`,
+          headers: { Cookie: `alenvi_token=${authToken}` },
+        });
 
-//         expect(response.statusCode).toBe(role.expectedCode);
-//       });
-//     });
-//   });
-// });
+        expect(response.statusCode).toBe(role.expectedCode);
+      });
+    });
+  });
+});
 
 describe('COURSES ROUTES - GET /courses/{_id}/activities', () => {
   let authToken;
