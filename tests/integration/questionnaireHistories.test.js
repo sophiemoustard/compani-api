@@ -11,10 +11,7 @@ const {
   coursesList,
   questionnaireHistoriesList,
 } = require('./seed/questionnaireHistoriesSeed');
-const {
-  getTokenByCredentials,
-  getToken,
-} = require('./helpers/authentication');
+const { getTokenByCredentials, getToken } = require('./helpers/authentication');
 const { companyWithoutSubscription } = require('../seed/authCompaniesSeed');
 const { noRoleNoCompany } = require('../seed/authUsersSeed');
 const QuestionnaireHistory = require('../../src/models/QuestionnaireHistory');
