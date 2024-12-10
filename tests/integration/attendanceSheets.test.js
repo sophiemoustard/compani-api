@@ -416,6 +416,7 @@ describe('ATTENDANCE SHEETS ROUTES - POST /attendancesheets', () => {
 
       expect(response.statusCode).toBe(400);
     });
+
     it('should return 400 if trying to pass signature and file', async () => {
       const slots = [slotsList[4]._id.toHexString(), slotsList[7]._id.toHexString()];
       const formData = {
