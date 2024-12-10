@@ -18,7 +18,7 @@ const AttendanceSheetSchema = mongoose.Schema({
     default: undefined,
     required() { return !!this.signatures; },
   },
-  signatures: { type: { trainer: { type: String, trim: true } }, default: undefined },
+  signatures: { type: { trainer: { type: String, trim: true } }, default: undefined, _id: false, id: false },
 }, { timestamps: true, id: false });
 
 AttendanceSheetSchema.pre('find', validateQuery);
