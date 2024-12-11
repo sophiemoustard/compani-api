@@ -596,6 +596,7 @@ const _getCourseForPedagogy = async (courseId, credentials) => {
     })
     .populate({ path: 'trainer', select: 'identity.firstname identity.lastname biography picture' })
     .populate({ path: 'contact', select: 'identity.firstname identity.lastname contact.phone local.email' })
+    .populate({ path: 'attendanceSheets', match: { trainee: credentials._id } })
     .select('_id misc')
     .lean({ autopopulate: true, virtuals: true });
 
