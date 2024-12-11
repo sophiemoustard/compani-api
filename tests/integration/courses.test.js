@@ -1470,8 +1470,7 @@ describe('COURSES ROUTES - GET /courses/{_id}/follow-up', () => {
     it('should return 400 if holding and company in query', async () => {
       const response = await app.inject({
         method: 'GET',
-        url: `/courses/${coursesList[4]}/follow-up?holding=${otherHolding}`
-          + `&company=${otherCompany._id}`,
+        url: `/courses/${coursesList[4]._id}/follow-up?holding=${otherHolding._id}&company=${otherCompany._id}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
