@@ -1304,10 +1304,10 @@ cookie@^0.4.1:
   resolved "https://registry.yarnpkg.com/cookie/-/cookie-0.4.2.tgz#0e41f24de5ecf317947c82fc789e06a884824432"
   integrity sha512-aSWTXFzaKWkvHO1Ny/s+ePFpvKsPnjc551iI41v3ny/ow6tBG5Vd+FuqGNhh1LxOmVzOlGUriIlOaokOvhaStA==
 
-cookie@^0.6.0:
-  version "0.6.0"
-  resolved "https://registry.yarnpkg.com/cookie/-/cookie-0.6.0.tgz#2798b04b071b0ecbff0dbb62a505a8efa4e19051"
-  integrity sha512-U71cyTamuh1CRNCfpGY6to28lxvNwPG4Guz/EVjgf3Jmzv0vlDp1atT9eS5dDjMYHucpHbWns6Lwf3BKz6svdw==
+cookie@^1.0.1:
+  version "1.0.2"
+  resolved "https://registry.yarnpkg.com/cookie/-/cookie-1.0.2.tgz#27360701532116bd3f1f9416929d176afe1e4610"
+  integrity sha512-9Kr/j4O16ISv8zBBhJoi4bXOYNTkFLOqSL3UDB0njXxCXNezjeyVrJyGOWtgfs/q2km1gwBcfH8q1yEGoMYunA==
 
 core-util-is@~1.0.0:
   version "1.0.3"
@@ -2475,13 +2475,13 @@ gtoken@^7.0.0:
     gaxios "^6.0.0"
     jws "^4.0.0"
 
-hapi-auth-jwt2@~10.6.0:
-  version "10.6.0"
-  resolved "https://registry.yarnpkg.com/hapi-auth-jwt2/-/hapi-auth-jwt2-10.6.0.tgz#a038de4726bb475353b93c650ac44b5ec4afe9e2"
-  integrity sha512-0241i3yeKSA+Gq51/7Lw3brkQ5w2sjalsbpeVU+1G0XD+QM3FDWZuCjWbnRh4MOISo2e/6poRA0ddqYjyKUN1A==
+hapi-auth-jwt2@~10.7.0:
+  version "10.7.0"
+  resolved "https://registry.yarnpkg.com/hapi-auth-jwt2/-/hapi-auth-jwt2-10.7.0.tgz#80ba2ecdae5a01e2111cc1fa388c9a22b289c6e9"
+  integrity sha512-jYSsgm191IpRfBPw9MvwJ2sbw/rKeo6V1w2shM+DLytHAt/EvGLwhqFkA3v3Db7sMpsBHRfSuiF4eJWMZcG0Jw==
   dependencies:
     "@hapi/boom" "^10.0.0"
-    cookie "^0.6.0"
+    cookie "^1.0.1"
     jsonwebtoken "^9.0.0"
 
 hapi-sentry@~4.0.0:
