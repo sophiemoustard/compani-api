@@ -1406,7 +1406,7 @@ describe('COURSES ROUTES - GET /courses/{_id}', () => {
 
 describe('COURSES ROUTES - GET /courses/{_id}/follow-up', () => {
   let authToken;
-  const intraCourseFromAuthCompany = coursesList[0];
+  const intraCourseFromAuthCompanyId = coursesList[0]._id;
   beforeEach(populateDB);
 
   describe('TRANING_ORGANISATION_MANAGER', () => {
@@ -1417,12 +1417,12 @@ describe('COURSES ROUTES - GET /courses/{_id}/follow-up', () => {
     it('should get course with follow up', async () => {
       const response = await app.inject({
         method: 'GET',
-        url: `/courses/${coursesList[0]._id.toHexString()}/follow-up`,
+        url: `/courses/${intraCourseFromAuthCompanyId}/follow-up`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(response.statusCode).toBe(200);
-      expect(response.result.data.followUp._id.toHexString()).toBe(intraCourseFromAuthCompany._id.toHexString());
+      expect(response.result.data.followUp._id.toHexString()).toBe(intraCourseFromAuthCompanyId.toHexString());
     });
   });
 
@@ -1434,7 +1434,7 @@ describe('COURSES ROUTES - GET /courses/{_id}/follow-up', () => {
     it('should get course with follow up', async () => {
       const response = await app.inject({
         method: 'GET',
-        url: `/courses/${coursesList[0]._id.toHexString()}/follow-up?company=${authCompany._id.toHexString()}`,
+        url: `/courses/${intraCourseFromAuthCompanyId}/follow-up?company=${authCompany._id.toHexString()}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -1444,7 +1444,7 @@ describe('COURSES ROUTES - GET /courses/{_id}/follow-up', () => {
     it('should return 403 if user company is not query company', async () => {
       const response = await app.inject({
         method: 'GET',
-        url: `/courses/${coursesList[0]._id.toHexString()}/follow-up?company=${otherCompany._id.toHexString()}`,
+        url: `/courses/${intraCourseFromAuthCompanyId}/follow-up?company=${otherCompany._id.toHexString()}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -1497,7 +1497,7 @@ describe('COURSES ROUTES - GET /courses/{_id}/follow-up', () => {
     it('should return 200 as user trainer and course trainer', async () => {
       const response = await app.inject({
         method: 'GET',
-        url: `/courses/${coursesList[0]._id.toHexString()}/follow-up`,
+        url: `/courses/${intraCourseFromAuthCompanyId}/follow-up`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -1521,7 +1521,7 @@ describe('COURSES ROUTES - GET /courses/{_id}/follow-up', () => {
 
       const response = await app.inject({
         method: 'GET',
-        url: `/courses/${coursesList[0]._id.toHexString()}/follow-up`,
+        url: `/courses/${intraCourseFromAuthCompanyId}/follow-up`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -1532,7 +1532,7 @@ describe('COURSES ROUTES - GET /courses/{_id}/follow-up', () => {
       authToken = await getTokenByCredentials(trainerAndCoach.local);
       const response = await app.inject({
         method: 'GET',
-        url: `/courses/${coursesList[0]._id.toHexString()}/follow-up?company=${authCompany._id.toHexString()}`,
+        url: `/courses/${intraCourseFromAuthCompanyId}/follow-up?company=${authCompany._id.toHexString()}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -1546,7 +1546,7 @@ describe('COURSES ROUTES - GET /courses/{_id}/follow-up', () => {
 
         const response = await app.inject({
           method: 'GET',
-          url: `/courses/${coursesList[0]._id.toHexString()}/follow-up?company=${authCompany._id.toHexString()}`,
+          url: `/courses/${intraCourseFromAuthCompanyId}/follow-up?company=${authCompany._id.toHexString()}`,
           headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
