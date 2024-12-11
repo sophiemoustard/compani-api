@@ -2315,6 +2315,7 @@ describe('getCourse', () => {
             args: [{
               path: 'attendanceSheets',
               match: { trainee: loggedUser._id },
+              options: { requestingOwnInfos: true },
               populate: { path: 'slots', select: 'startDate endDate step' },
             }],
           },
@@ -2476,6 +2477,7 @@ describe('getCourse', () => {
             args: [{
               path: 'attendanceSheets',
               match: { trainee: loggedUser._id },
+              options: { requestingOwnInfos: true },
               populate: { path: 'slots', select: 'startDate endDate step' },
             }],
           },
@@ -2637,6 +2639,7 @@ describe('getCourse', () => {
             args: [{
               path: 'attendanceSheets',
               match: { trainee: loggedUser._id },
+              options: { requestingOwnInfos: true },
               populate: { path: 'slots', select: 'startDate endDate step' },
             }],
           },
@@ -2758,6 +2761,7 @@ describe('getCourse', () => {
             args: [{
               path: 'attendanceSheets',
               match: { trainee: loggedUser._id },
+              options: { requestingOwnInfos: true },
               populate: { path: 'slots', select: 'startDate endDate step' },
             }],
           },

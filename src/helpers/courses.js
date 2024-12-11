@@ -599,6 +599,7 @@ const _getCourseForPedagogy = async (courseId, credentials) => {
     .populate({
       path: 'attendanceSheets',
       match: { trainee: credentials._id },
+      options: { requestingOwnInfos: true },
       populate: { path: 'slots', select: 'startDate endDate step' },
     })
     .select('_id misc')
