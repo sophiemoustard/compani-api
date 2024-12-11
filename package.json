@@ -41,7 +41,7 @@
     "bignumber.js": "~9.1.2",
     "date-holidays": "~3.23.13",
     "docxtemplater": "~3.55.5",
-    "dotenv": "~16.4.5",
+    "dotenv": "~16.4.7",
     "flat": "~5.0.2",
     "form-data": "~4.0.0",
     "hapi-auth-jwt2": "~10.6.0",
