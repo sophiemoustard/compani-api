@@ -9,7 +9,7 @@ const UtilsHelper = require('./utils');
 const { CompaniDate } = require('./dates/companiDates');
 const { DAY_MONTH_YEAR, COURSE, TRAINEE } = require('./constants');
 
-exports.create = async (payload) => {
+exports.create = async (payload, credentials) => {
   let fileName;
   let companies;
   let slots = [];
@@ -40,6 +40,7 @@ exports.create = async (payload) => {
       file: payload.file,
     });
   } else {
+    fileName = `${credentials._id}_course_${payload.course}`;
     signature = await GCloudStorageHelper.uploadCourseFile({
       fileName: `trainer_signature_${fileName}`,
       file: payload.signature,

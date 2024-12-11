@@ -22,7 +22,7 @@ const list = async (req) => {
 
 const create = async (req) => {
   try {
-    await AttendanceSheetHelper.create(req.payload);
+    await AttendanceSheetHelper.create(req.payload, req.auth.credentials);
 
     return { message: translate[language].attendanceSheetCreated };
   } catch (e) {

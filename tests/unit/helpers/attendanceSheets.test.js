@@ -161,11 +161,12 @@ describe('create', () => {
     const courseId = new ObjectId();
     const course = { _id: courseId, companies: [new ObjectId()] };
     const payload = { date: '2020-04-03T10:00:00.000Z', course: courseId, file: 'test.pdf' };
+    const credentials = { _id: new ObjectId() };
 
     uploadCourseFile.returns({ publicId: 'yo', link: 'yo' });
     courseFindOne.returns(SinonMongoose.stubChainedQueries(course, ['lean']));
 
-    await attendanceSheetHelper.create(payload);
+    await attendanceSheetHelper.create(payload, credentials);
 
     sinon.assert.calledOnceWithExactly(
       uploadCourseFile,
@@ -196,6 +197,7 @@ describe('create', () => {
     const courseId = new ObjectId();
     const traineeId = new ObjectId();
     const companyId = new ObjectId();
+    const credentials = { _id: new ObjectId() };
 
     const course = { _id: courseId, companies: [new ObjectId()] };
     const payload = { trainee: traineeId, course: courseId, file: 'test.pdf' };
@@ -207,7 +209,7 @@ describe('create', () => {
     formatIdentity.returns('monsieur PATATE');
     getCompanyAtCourseRegistrationList.returns([{ trainee: traineeId, company: companyId }]);
 
-    await attendanceSheetHelper.create(payload);
+    await attendanceSheetHelper.create(payload, credentials);
 
     SinonMongoose.calledOnceWithExactly(
       courseFindOne,
@@ -253,6 +255,7 @@ describe('create', () => {
     const traineeId = new ObjectId();
     const companyId = new ObjectId();
     const slotId = new ObjectId();
+    const credentials = { _id: new ObjectId() };
 
     const course = { _id: courseId, companies: [new ObjectId()] };
     const payload = { trainee: traineeId, course: courseId, file: 'test.pdf', slots: slotId };
@@ -264,7 +267,7 @@ describe('create', () => {
     formatIdentity.returns('Eren JÄGER');
     getCompanyAtCourseRegistrationList.returns([{ trainee: traineeId, company: companyId }]);
 
-    await attendanceSheetHelper.create(payload);
+    await attendanceSheetHelper.create(payload, credentials);
 
     SinonMongoose.calledOnceWithExactly(
       courseFindOne,
@@ -298,6 +301,7 @@ describe('create', () => {
     const traineeId = new ObjectId();
     const companyId = new ObjectId();
     const slots = [new ObjectId(), new ObjectId()];
+    const credentials = { _id: new ObjectId() };
 
     const course = { _id: courseId, companies: [new ObjectId()] };
     const payload = { trainee: traineeId, course: courseId, file: 'test.pdf', slots };
@@ -309,7 +313,7 @@ describe('create', () => {
     formatIdentity.returns('Mikasa ACKERMAN');
     getCompanyAtCourseRegistrationList.returns([{ trainee: traineeId, company: companyId }]);
 
-    await attendanceSheetHelper.create(payload);
+    await attendanceSheetHelper.create(payload, credentials);
 
     SinonMongoose.calledOnceWithExactly(
       courseFindOne,
@@ -343,6 +347,7 @@ describe('create', () => {
     const traineeId = new ObjectId();
     const companyId = new ObjectId();
     const slots = [new ObjectId(), new ObjectId()];
+    const credentials = { _id: new ObjectId() };
 
     const course = { _id: courseId, companies: [new ObjectId()] };
     const payload = { trainee: traineeId, course: courseId, signature: 'signature.png', slots };
@@ -354,7 +359,7 @@ describe('create', () => {
     formatIdentity.returns('Mikasa ACKERMAN');
     getCompanyAtCourseRegistrationList.returns([{ trainee: traineeId, company: companyId }]);
 
-    await attendanceSheetHelper.create(payload);
+    await attendanceSheetHelper.create(payload, credentials);
 
     SinonMongoose.calledOnceWithExactly(
       courseFindOne,
@@ -367,7 +372,7 @@ describe('create', () => {
     sinon.assert.calledOnceWithExactly(formatIdentity, { firstName: 'Mikasa', lastname: 'ACKERMAN' }, 'FL');
     sinon.assert.calledOnceWithExactly(
       uploadCourseFile,
-      { fileName: 'trainer_signature_Mikasa ACKERMAN', file: 'signature.png' }
+      { fileName: `trainer_signature_${credentials._id}_course_${courseId}`, file: 'signature.png' }
     );
     sinon.assert.calledOnceWithExactly(
       create,
