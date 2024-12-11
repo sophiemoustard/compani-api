@@ -2310,7 +2310,14 @@ describe('getCourse', () => {
             query: 'populate',
             args: [{ path: 'contact', select: 'identity.firstname identity.lastname contact.phone local.email' }],
           },
-          { query: 'populate', args: [{ path: 'attendanceSheets', match: { trainee: loggedUser._id } }] },
+          {
+            query: 'populate',
+            args: [{
+              path: 'attendanceSheets',
+              match: { trainee: loggedUser._id },
+              populate: { path: 'slots', select: 'startDate endDate step' },
+            }],
+          },
           { query: 'select', args: ['_id misc'] },
           { query: 'lean', args: [{ virtuals: true, autopopulate: true }] },
         ]
@@ -2464,7 +2471,14 @@ describe('getCourse', () => {
             query: 'populate',
             args: [{ path: 'contact', select: 'identity.firstname identity.lastname contact.phone local.email' }],
           },
-          { query: 'populate', args: [{ path: 'attendanceSheets', match: { trainee: loggedUser._id } }] },
+          {
+            query: 'populate',
+            args: [{
+              path: 'attendanceSheets',
+              match: { trainee: loggedUser._id },
+              populate: { path: 'slots', select: 'startDate endDate step' },
+            }],
+          },
           { query: 'select', args: ['_id misc'] },
           { query: 'lean', args: [{ virtuals: true, autopopulate: true }] },
         ]
@@ -2618,7 +2632,14 @@ describe('getCourse', () => {
             query: 'populate',
             args: [{ path: 'contact', select: 'identity.firstname identity.lastname contact.phone local.email' }],
           },
-          { query: 'populate', args: [{ path: 'attendanceSheets', match: { trainee: loggedUser._id } }] },
+          {
+            query: 'populate',
+            args: [{
+              path: 'attendanceSheets',
+              match: { trainee: loggedUser._id },
+              populate: { path: 'slots', select: 'startDate endDate step' },
+            }],
+          },
           { query: 'select', args: ['_id misc'] },
           { query: 'lean', args: [{ virtuals: true, autopopulate: true }] },
         ]
@@ -2732,7 +2753,14 @@ describe('getCourse', () => {
             query: 'populate',
             args: [{ path: 'contact', select: 'identity.firstname identity.lastname contact.phone local.email' }],
           },
-          { query: 'populate', args: [{ path: 'attendanceSheets', match: { trainee: loggedUser._id } }] },
+          {
+            query: 'populate',
+            args: [{
+              path: 'attendanceSheets',
+              match: { trainee: loggedUser._id },
+              populate: { path: 'slots', select: 'startDate endDate step' },
+            }],
+          },
           { query: 'select', args: ['_id misc'] },
           { query: 'lean', args: [{ virtuals: true, autopopulate: true }] },
         ]
