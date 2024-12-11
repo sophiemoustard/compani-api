@@ -1434,7 +1434,7 @@ describe('COURSES ROUTES - GET /courses/{_id}/follow-up', () => {
     it('should get course with follow up', async () => {
       const response = await app.inject({
         method: 'GET',
-        url: `/courses/${intraCourseFromAuthCompanyId}/follow-up?company=${authCompany._id.toHexString()}`,
+        url: `/courses/${intraCourseFromAuthCompanyId}/follow-up?company=${authCompany._id}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -1444,7 +1444,7 @@ describe('COURSES ROUTES - GET /courses/{_id}/follow-up', () => {
     it('should return 403 if user company is not query company', async () => {
       const response = await app.inject({
         method: 'GET',
-        url: `/courses/${intraCourseFromAuthCompanyId}/follow-up?company=${otherCompany._id.toHexString()}`,
+        url: `/courses/${intraCourseFromAuthCompanyId}/follow-up?company=${otherCompany._id}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -1460,7 +1460,7 @@ describe('COURSES ROUTES - GET /courses/{_id}/follow-up', () => {
     it('should get course with follow up', async () => {
       const response = await app.inject({
         method: 'GET',
-        url: `/courses/${coursesList[7]._id.toHexString()}/follow-up?holding=${otherHolding._id.toHexString()}`,
+        url: `/courses/${coursesList[7]._id}/follow-up?holding=${otherHolding._id}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -1470,8 +1470,8 @@ describe('COURSES ROUTES - GET /courses/{_id}/follow-up', () => {
     it('should return 400 if holding and company in query', async () => {
       const response = await app.inject({
         method: 'GET',
-        url: `/courses/${coursesList[4]._id.toHexString()}/follow-up?holding=${otherHolding._id.toHexString()}`
-          + `&company=${otherCompany._id.toHexString()}`,
+        url: `/courses/${coursesList[4]}/follow-up?holding=${otherHolding}`
+          + `&company=${otherCompany._id}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -1481,7 +1481,7 @@ describe('COURSES ROUTES - GET /courses/{_id}/follow-up', () => {
     it('should return 403 if user holding is not query holding', async () => {
       const response = await app.inject({
         method: 'GET',
-        url: `/courses/${coursesList[7]._id.toHexString()}/follow-up?holding=${authHolding._id.toHexString()}`,
+        url: `/courses/${coursesList[7]._id}/follow-up?holding=${authHolding._id}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -1507,7 +1507,7 @@ describe('COURSES ROUTES - GET /courses/{_id}/follow-up', () => {
     it('should return 403 as user trainer but not course trainer', async () => {
       const response = await app.inject({
         method: 'GET',
-        url: `/courses/${coursesList[1]._id.toHexString()}/follow-up`,
+        url: `/courses/${coursesList[1]._id}/follow-up`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -1532,7 +1532,7 @@ describe('COURSES ROUTES - GET /courses/{_id}/follow-up', () => {
       authToken = await getTokenByCredentials(trainerAndCoach.local);
       const response = await app.inject({
         method: 'GET',
-        url: `/courses/${intraCourseFromAuthCompanyId}/follow-up?company=${authCompany._id.toHexString()}`,
+        url: `/courses/${intraCourseFromAuthCompanyId}/follow-up?company=${authCompany._id}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -1546,7 +1546,7 @@ describe('COURSES ROUTES - GET /courses/{_id}/follow-up', () => {
 
         const response = await app.inject({
           method: 'GET',
-          url: `/courses/${intraCourseFromAuthCompanyId}/follow-up?company=${authCompany._id.toHexString()}`,
+          url: `/courses/${intraCourseFromAuthCompanyId}/follow-up?company=${authCompany._id}`,
           headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
