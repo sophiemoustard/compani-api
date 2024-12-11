@@ -65,7 +65,6 @@
     "pdfmake": "~0.2.15",
     "pizzip": "~3.1.7",
     "qrcode": "git+https://github.com/sophiemoustard/node-qrcode.git",
-    "qs": "~6.13.0",
     "randomatic": "~3.1.1",
     "shelljs": "~0.8.5",
     "util": "~0.12.3",
