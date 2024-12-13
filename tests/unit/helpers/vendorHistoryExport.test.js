@@ -213,7 +213,7 @@ describe('exportCourseHistory', () => {
         },
       ],
     },
-    // 3
+    // 2
     {
       _id: courseIdList[2],
       type: INTER_B2B,
