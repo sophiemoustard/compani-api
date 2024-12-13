@@ -147,6 +147,9 @@ const getCourseCompletion = async (course) => {
     : 0;
 };
 
+const formatTrainersName = courseTrainers => courseTrainers
+  .map(trainer => UtilsHelper.formatIdentity(get(trainer, 'identity'), 'FL')).join(', ');
+
 exports.exportCourseHistory = async (startDate, endDate, credentials) => {
   const courses = await CourseRepository.findCoursesForExport(startDate, endDate, credentials);
 
@@ -217,7 +220,7 @@ exports.exportCourseHistory = async (startDate, endDate, credentials) => {
       Programme: get(course, 'subProgram.program.name') || '',
       'Sous-Programme': get(course, 'subProgram.name') || '',
       'Infos complémentaires': course.misc,
-      Formateur: UtilsHelper.formatIdentity(get(course, 'trainer.identity') || '', 'FL'),
+      Intervenant·e: formatTrainersName(get(course, 'trainers', [])),
       'Chargé des opérations': UtilsHelper.formatIdentity(get(course, 'operationsRepresentative.identity') || '', 'FL'),
       'Contact pour la formation': UtilsHelper.formatIdentity(get(course, 'contact.identity') || '', 'FL'),
       'Nombre d\'inscrits': get(course, 'trainees.length'),
@@ -346,7 +349,7 @@ exports.exportEndOfCourseQuestionnaireHistory = async (startDate, endDate, crede
           select: 'subProgram',
           populate: [
             { path: 'subProgram', select: 'name program', populate: { path: 'program', select: 'name' } },
-            { path: 'trainer', select: 'identity' },
+            { path: 'trainers', select: 'identity' },
           ],
         },
         { path: 'user', select: 'identity local.email contact.phone' },
@@ -368,7 +371,7 @@ exports.exportEndOfCourseQuestionnaireHistory = async (startDate, endDate, crede
       'Id formation': get(qHistory, 'course._id') || '',
       Programme: get(qHistory, 'course.subProgram.program.name') || '',
       'Sous-programme': get(qHistory, 'course.subProgram.name') || '',
-      'Prénom Nom intervenant(e)': UtilsHelper.formatIdentity(get(qHistory, 'course.trainer.identity') || '', 'FL'),
+      'Prénom Nom intervenant·e': formatTrainersName(get(qHistory, 'course.trainers', [])),
       Structure: get(qHistory, 'company.name'),
       'Date de réponse': CompaniDate(qHistory.createdAt).format(`${DD_MM_YYYY} ${HH_MM_SS}`),
       'Origine de réponse': qHistory.origin,

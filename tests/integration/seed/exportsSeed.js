@@ -95,6 +95,7 @@ const {
   trainerRoleId,
   trainingOrganisationManagerRoleId,
 } = require('../../seed/authRolesSeed');
+const { trainerAndCoach } = require('../../seed/authUsersSeed');
 const CourseBillsNumber = require('../../../src/models/CourseBillsNumber');
 const CoursePaymentNumber = require('../../../src/models/CoursePaymentNumber');
 const CourseCreditNoteNumber = require('../../../src/models/CourseCreditNoteNumber');
@@ -1192,7 +1193,7 @@ const coursesList = [
     maxTrainees: 8,
     subProgram: subProgramList[0]._id,
     misc: 'group 1',
-    trainers: [trainer._id],
+    trainers: [trainer._id, trainerAndCoach._id],
     operationsRepresentative: operationsRepresentative._id,
     contact: operationsRepresentative._id,
     expectedBillsCount: 1,
