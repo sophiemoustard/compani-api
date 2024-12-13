@@ -2113,7 +2113,7 @@ describe('getCourse', () => {
                   { path: 'steps', select: 'name' },
                 ],
               },
-              { path: 'slots', select: 'step startDate endDate' },
+              { path: 'slots', select: 'step startDate endDate', options: { sort: { startDate: 1 } } },
             ]],
           },
           { query: 'lean' },
