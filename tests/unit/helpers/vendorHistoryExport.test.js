@@ -1242,16 +1242,13 @@ describe('exportEndOfCourseQuestionnaireHistory', () => {
     ],
   };
   let findOneQuestionnaire;
-  let formatIdentity;
 
   beforeEach(() => {
     findOneQuestionnaire = sinon.stub(Questionnaire, 'findOne');
-    formatIdentity = sinon.stub(UtilsHelper, 'formatIdentity');
   });
 
   afterEach(() => {
     findOneQuestionnaire.restore();
-    formatIdentity.restore();
   });
 
   it('should return an empty array if no questionnaire history', async () => {
@@ -1263,17 +1260,10 @@ describe('exportEndOfCourseQuestionnaireHistory', () => {
     );
 
     expect(exportArray).toEqual([['Aucune donnée sur la période sélectionnée']]);
-    sinon.assert.notCalled(formatIdentity);
   });
 
   it('should return an array with the header and 2 rows', async () => {
     findOneQuestionnaire.returns(SinonMongoose.stubChainedQueries(questionnaire));
-    formatIdentity.onCall(0).returns('Didier DESCHAMPS');
-    formatIdentity.onCall(1).returns('ZIZOU');
-    formatIdentity.onCall(2).returns('Shia LABEOUF');
-    formatIdentity.onCall(3).returns('Rihanna FENTY');
-    formatIdentity.onCall(4).returns('Bob MARLEY');
-    formatIdentity.onCall(5).returns('Bob MARLEY');
 
     const exportArray = await ExportHelper.exportEndOfCourseQuestionnaireHistory(
       '2021-06-25T12:00:00.000Z',
@@ -1375,12 +1365,6 @@ describe('exportEndOfCourseQuestionnaireHistory', () => {
         { query: 'lean', args: [{ virtuals: true }] },
       ]
     );
-    sinon.assert.calledWithExactly(formatIdentity.getCall(0), { firstname: 'Didier', lastname: 'Deschamps' }, 'FL');
-    sinon.assert.calledWithExactly(formatIdentity.getCall(1), { firstname: '', lastname: 'Zizou' }, 'FL');
-    sinon.assert.calledWithExactly(formatIdentity.getCall(2), { firstname: 'Shia', lastname: 'labeouf' }, 'FL');
-    sinon.assert.calledWithExactly(formatIdentity.getCall(3), { firstname: 'Rihanna', lastname: 'Fenty' }, 'FL');
-    sinon.assert.calledWithExactly(formatIdentity.getCall(4), { firstname: 'Bob', lastname: 'Marley' }, 'FL');
-    sinon.assert.calledWithExactly(formatIdentity.getCall(5), { firstname: 'Bob', lastname: 'Marley' }, 'FL');
   });
 });
 
