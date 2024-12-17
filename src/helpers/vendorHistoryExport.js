@@ -148,7 +148,8 @@ const getCourseCompletion = async (course) => {
 };
 
 const formatTrainersName = courseTrainers => courseTrainers
-  .map(trainer => UtilsHelper.formatIdentity(get(trainer, 'identity'), 'FL')).join(', ');
+  .map(trainer => UtilsHelper.formatIdentity(trainer.identity, 'FL'))
+  .join(', ');
 
 exports.exportCourseHistory = async (startDate, endDate, credentials) => {
   const courses = await CourseRepository.findCoursesForExport(startDate, endDate, credentials);
