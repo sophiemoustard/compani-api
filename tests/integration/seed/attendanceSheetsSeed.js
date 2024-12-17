@@ -29,7 +29,7 @@ const userList = [
     _id: new ObjectId(),
     identity: { firstname: 'operations', lastname: 'representative' },
     refreshToken: uuidv4(),
-    local: { email: 'operationsrep@compani.fr' },
+    local: { email: 'operationsrep@compani.fr', password: '123456!eR' },
     role: { vendor: vendorAdminRoleId },
     origin: WEBAPP,
   },
@@ -277,6 +277,20 @@ const slotsList = [
     course: coursesList[8]._id,
     step: steps[0]._id,
   },
+  { // 9
+    _id: new ObjectId(),
+    startDate: '2020-02-26T09:00:00.000Z',
+    endDate: '2020-02-26T11:00:00.000Z',
+    course: coursesList[8]._id,
+    step: steps[0]._id,
+  },
+  { // 10
+    _id: new ObjectId(),
+    startDate: '2020-03-26T09:00:00.000Z',
+    endDate: '2020-03-26T11:00:00.000Z',
+    course: coursesList[8]._id,
+    step: steps[0]._id,
+  },
 ];
 
 const attendanceSheetList = [
@@ -347,6 +361,24 @@ const attendanceSheetList = [
     slots: [slotsList[8]._id],
     origin: WEBAPP,
   },
+  { // 8
+    _id: new ObjectId(),
+    course: coursesList[8]._id,
+    signatures: { trainer: 'www.test.com' },
+    trainee: userList[1]._id,
+    companies: [authCompany._id],
+    slots: [slotsList[9]._id],
+    origin: MOBILE,
+  },
+  { // 9
+    _id: new ObjectId(),
+    course: coursesList[8]._id,
+    signatures: { trainer: 'www.test.com', trainee: 'www.test.com' },
+    trainee: userList[1]._id,
+    companies: [authCompany._id],
+    slots: [slotsList[10]._id],
+    origin: MOBILE,
+  },
 ];
 
 const populateDB = async () => {
@@ -369,4 +401,5 @@ module.exports = {
   attendanceSheetList,
   coursesList,
   slotsList,
+  userList,
 };

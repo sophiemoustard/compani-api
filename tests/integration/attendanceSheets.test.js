@@ -3,7 +3,7 @@ const sinon = require('sinon');
 const { ObjectId } = require('mongodb');
 const GCloudStorageHelper = require('../../src/helpers/gCloudStorage');
 const app = require('../../server');
-const { populateDB, coursesList, attendanceSheetList, slotsList } = require('./seed/attendanceSheetsSeed');
+const { populateDB, coursesList, attendanceSheetList, slotsList, userList } = require('./seed/attendanceSheetsSeed');
 const { getToken, getTokenByCredentials } = require('./helpers/authentication');
 const { generateFormData, getStream } = require('./utils');
 const { WEBAPP, MOBILE } = require('../../src/helpers/constants');
@@ -947,6 +947,125 @@ describe('ATTENDANCE SHEETS ROUTES - PUT /attendancesheets/{_id}', () => {
 
         expect(response.statusCode).toBe(role.expectedCode);
       });
+    });
+  });
+});
+
+describe('ATTENDANCE SHEETS ROUTES - PUT /attendancesheets/{_id}/signature', () => {
+  let authToken;
+  let uploadCourseFile;
+  beforeEach(populateDB);
+
+  describe('TRAINEE', () => {
+    beforeEach(async () => {
+      authToken = await getTokenByCredentials(userList[1].local);
+      uploadCourseFile = sinon.stub(GCloudStorageHelper, 'uploadCourseFile');
+    });
+    afterEach(() => {
+      uploadCourseFile.restore();
+    });
+
+    it('should upload trainee signature for single course (mobile)', async () => {
+      const formData = { signature: 'test' };
+
+      const form = generateFormData(formData);
+      uploadCourseFile.returns({ publicId: '1234567890', link: 'https://test.com/signature.pdf' });
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/attendancesheets/${attendanceSheetList[8]._id}/signature`,
+        payload: getStream(form),
+        headers: { ...form.getHeaders(), Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(200);
+      const attendanceSheetsWithBothSignatures = await AttendanceSheet.countDocuments({
+        _id: attendanceSheetList[8]._id,
+        'signatures.trainer': { $exists: true },
+        'signatures.trainee': { $exists: true },
+      });
+      expect(attendanceSheetsWithBothSignatures).toBe(1);
+      sinon.assert.calledOnce(uploadCourseFile);
+    });
+
+    it('should return 400 if no signature', async () => {
+      const formData = {};
+
+      const form = generateFormData(formData);
+
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/attendancesheets/${attendanceSheetList[8]._id}/signature`,
+        payload: getStream(form),
+        headers: { ...form.getHeaders(), Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
+
+    it('should return 404 if attendance sheet doesn\'t exist', async () => {
+      const formData = { signature: 'test' };
+
+      const form = generateFormData(formData);
+
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/attendancesheets/${new ObjectId()}/signature`,
+        payload: getStream(form),
+        headers: { ...form.getHeaders(), Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(404);
+    });
+
+    it('should return 403 if attendance sheet has no trainer signature', async () => {
+      const formData = { signature: 'test' };
+
+      const form = generateFormData(formData);
+
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/attendancesheets/${attendanceSheetList[7]._id}/signature`,
+        payload: getStream(form),
+        headers: { ...form.getHeaders(), Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
+
+    it('should return 403 if attendance has already been signed by trainee', async () => {
+      const formData = { signature: 'test' };
+
+      const form = generateFormData(formData);
+
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/attendancesheets/${attendanceSheetList[9]._id}/signature`,
+        payload: getStream(form),
+        headers: { ...form.getHeaders(), Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
+  });
+
+  describe('Other roles', () => {
+    it('should return 403 if user is not attendance sheet trainee', async () => {
+      authToken = await getTokenByCredentials(userList[0].local);
+
+      const formData = {
+        signature: 'test',
+      };
+
+      const form = generateFormData(formData);
+
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/attendancesheets/${attendanceSheetList[8]._id}/signature`,
+        payload: getStream(form),
+        headers: { ...form.getHeaders(), Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(403);
     });
   });
 });

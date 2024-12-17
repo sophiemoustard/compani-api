@@ -132,6 +132,22 @@ exports.authorizeAttendanceSheetEdit = async (req) => {
   return null;
 };
 
+exports.authorizeAttendanceSheetSignature = async (req) => {
+  const attendanceSheet = await AttendanceSheet
+    .findOne({ _id: req.params._id })
+    .populate({ path: 'course', select: 'trainees' })
+    .lean();
+
+  if (!attendanceSheet) throw Boom.notFound();
+  if (!get(attendanceSheet, 'signatures.trainer') || get(attendanceSheet, 'signatures.trainee')) throw Boom.forbidden();
+
+  const { credentials } = req.auth;
+  const loggedUserId = get(credentials, '_id');
+  if (!UtilsHelper.doesArrayIncludeId(attendanceSheet.course.trainees, loggedUserId)) throw Boom.forbidden();
+
+  return null;
+};
+
 exports.authorizeAttendanceSheetDeletion = async (req) => {
   const { credentials } = req.auth;
 
