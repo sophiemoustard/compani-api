@@ -121,13 +121,18 @@ exports.authorizeAttendanceSheetEdit = async (req) => {
     .doesArrayIncludeId(SINGLE_COURSES_SUBPROGRAM_IDS, attendanceSheet.course.subProgram);
   if (!isSingleCourse) throw Boom.forbidden();
 
-  const courseSlotCount = await CourseSlot
-    .countDocuments({ _id: { $in: req.payload.slots }, course: attendanceSheet.course._id });
-  if (courseSlotCount !== req.payload.slots.length) throw Boom.notFound();
+  const hasBothSignatures = get(attendanceSheet, 'signatures.trainer') && get(attendanceSheet, 'signatures.trainee');
+  if (req.payload.method) {
+    if (!hasBothSignatures) throw Boom.forbidden();
+  } else {
+    const courseSlotCount = await CourseSlot
+      .countDocuments({ _id: { $in: req.payload.slots }, course: attendanceSheet.course._id });
+    if (courseSlotCount !== req.payload.slots.length) throw Boom.notFound();
 
-  const slotAlreadyLinkedToAS = await AttendanceSheet
-    .countDocuments({ _id: { $ne: attendanceSheet._id }, slots: { $in: req.payload.slots } });
-  if (slotAlreadyLinkedToAS) throw Boom.conflict();
+    const slotAlreadyLinkedToAS = await AttendanceSheet
+      .countDocuments({ _id: { $ne: attendanceSheet._id }, slots: { $in: req.payload.slots } });
+    if (slotAlreadyLinkedToAS) throw Boom.conflict();
+  }
 
   return null;
 };

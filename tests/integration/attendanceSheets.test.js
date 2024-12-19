@@ -6,7 +6,7 @@ const app = require('../../server');
 const { populateDB, coursesList, attendanceSheetList, slotsList, userList } = require('./seed/attendanceSheetsSeed');
 const { getToken, getTokenByCredentials } = require('./helpers/authentication');
 const { generateFormData, getStream } = require('./utils');
-const { WEBAPP, MOBILE } = require('../../src/helpers/constants');
+const { WEBAPP, MOBILE, GENERATION } = require('../../src/helpers/constants');
 const AttendanceSheet = require('../../src/models/AttendanceSheet');
 const { holdingAdminFromOtherCompany, trainerAndCoach } = require('../seed/authUsersSeed');
 const { authCompany, otherCompany, otherHolding, authHolding } = require('../seed/authCompaniesSeed');
@@ -830,14 +830,20 @@ describe('ATTENDANCE SHEETS ROUTES - GET /attendancesheets', () => {
 
 describe('ATTENDANCE SHEETS ROUTES - PUT /attendancesheets/{_id}', () => {
   let authToken;
+  let uploadCourseFile;
+
   beforeEach(populateDB);
 
   describe('TRAINER', () => {
     beforeEach(async () => {
       authToken = await getToken('trainer');
+      uploadCourseFile = sinon.stub(GCloudStorageHelper, 'uploadCourseFile');
+    });
+    afterEach(() => {
+      uploadCourseFile.restore();
     });
 
-    it('should update an attendance sheet for a single course', async () => {
+    it('should update attendance sheet slots for a single course', async () => {
       const attendanceSheetId = attendanceSheetList[5]._id;
       const payload = { slots: [slotsList[4]._id] };
 
@@ -852,6 +858,27 @@ describe('ATTENDANCE SHEETS ROUTES - PUT /attendancesheets/{_id}', () => {
 
       const attendanceSheetUpdated = await AttendanceSheet.countDocuments({ _id: attendanceSheetId, ...payload });
       expect(attendanceSheetUpdated).toEqual(1);
+      sinon.assert.notCalled(uploadCourseFile);
+    });
+
+    it('should generate attendance sheet file for a single course', async () => {
+      const attendanceSheetId = attendanceSheetList[9]._id;
+      const payload = { method: GENERATION };
+      uploadCourseFile.returns({ publicId: '1234567890', link: 'https://test.com/signature.pdf' });
+
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/attendancesheets/${attendanceSheetId}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload,
+      });
+
+      expect(response.statusCode).toBe(200);
+
+      const attendanceSheetUpdated = await AttendanceSheet
+        .countDocuments({ _id: attendanceSheetId, file: { $exists: true } });
+      expect(attendanceSheetUpdated).toEqual(1);
+      sinon.assert.calledOnce(uploadCourseFile);
     });
 
     it('should return 404 if attendance sheet doesn\'t exist', async () => {
@@ -867,9 +894,37 @@ describe('ATTENDANCE SHEETS ROUTES - PUT /attendancesheets/{_id}', () => {
       expect(response.statusCode).toBe(404);
     });
 
+    it('should return 400 if slots and method in payload', async () => {
+      const attendanceSheetId = attendanceSheetList[5]._id;
+      const payload = { method: GENERATION, slots: [slotsList[4]._id] };
+
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/attendancesheets/${attendanceSheetId}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload,
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
+
     it('should return 403 if is course is not single', async () => {
       const attendanceSheetId = attendanceSheetList[3]._id;
       const payload = { slots: [slotsList[1]._id] };
+
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/attendancesheets/${attendanceSheetId}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload,
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
+
+    it('should return 403 if generation and trainer or trainee signature missing', async () => {
+      const attendanceSheetId = attendanceSheetList[8]._id;
+      const payload = { method: GENERATION };
 
       const response = await app.inject({
         method: 'PUT',

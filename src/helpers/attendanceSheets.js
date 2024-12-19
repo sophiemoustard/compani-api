@@ -1,9 +1,11 @@
 const omit = require('lodash/omit');
 const get = require('lodash/get');
 const AttendanceSheet = require('../models/AttendanceSheet');
+const InterAttendanceSheet = require('../data/pdf/attendanceSheet/interAttendanceSheet');
 const User = require('../models/User');
 const Course = require('../models/Course');
 const CourseHistoriesHelper = require('./courseHistories');
+const CoursesHelper = require('./courses');
 const GCloudStorageHelper = require('./gCloudStorage');
 const UtilsHelper = require('./utils');
 const { CompaniDate } = require('./dates/companiDates');
@@ -84,6 +86,41 @@ exports.sign = async (attendanceSheetId, payload, credentials) => {
   });
 
   return AttendanceSheet.updateOne({ _id: attendanceSheetId }, { $set: { 'signatures.trainee': signature.link } });
+};
+
+exports.generate = async (attendanceSheetId) => {
+  const attendanceSheet = await AttendanceSheet
+    .findOne({ _id: attendanceSheetId })
+    .populate({ path: 'slots', select: 'step startDate endDate address', populate: { path: 'step', select: 'type' } })
+    .populate({
+      path: 'course',
+      select: 'type misc companies trainees trainer subProgram',
+      populate: [
+        { path: 'companies', select: 'name' },
+        { path: 'trainees', select: 'identity' },
+        { path: 'trainer', select: 'identity' },
+        { path: 'subProgram', select: 'program', populate: { path: 'program', select: 'name' } },
+      ],
+    })
+    .lean();
+
+  const formattedCourse = {
+    ...attendanceSheet.course,
+    slots: attendanceSheet.slots,
+    trainees: [
+      attendanceSheet.course.trainees.find(t => UtilsHelper.areObjectIdsEquals(t._id, attendanceSheet.trainee)),
+    ],
+  };
+  const formattedCourseForInter = await CoursesHelper.formatInterCourseForPdf(formattedCourse);
+  const pdf = await InterAttendanceSheet.getPdf({ ...formattedCourseForInter, signatures: attendanceSheet.signatures });
+
+  const slotsDates = [...new Set(formattedCourseForInter.slots.map(slot => slot.date))].join(', ');
+  const fileName = `emargements_${formattedCourseForInter.trainees[0].traineeName}_${slotsDates}`
+    .replaceAll(/ - | |'/g, '_');
+  const fileUploaded = await GCloudStorageHelper
+    .uploadCourseFile({ fileName, pdf, contentType: 'application/pdf' });
+
+  await AttendanceSheet.updateOne({ _id: attendanceSheetId }, { $set: { file: fileUploaded } });
 };
 
 exports.delete = async (attendanceSheetId) => {

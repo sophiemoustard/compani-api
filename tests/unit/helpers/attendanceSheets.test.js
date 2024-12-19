@@ -6,11 +6,13 @@ const User = require('../../../src/models/User');
 const Course = require('../../../src/models/Course');
 const AttendanceSheet = require('../../../src/models/AttendanceSheet');
 const attendanceSheetHelper = require('../../../src/helpers/attendanceSheets');
+const CoursesHelper = require('../../../src/helpers/courses');
 const CourseHistoriesHelper = require('../../../src/helpers/courseHistories');
 const SinonMongoose = require('../sinonMongoose');
 const GCloudStorageHelper = require('../../../src/helpers/gCloudStorage');
+const InterAttendanceSheet = require('../../../src/data/pdf/attendanceSheet/interAttendanceSheet');
 const UtilsHelper = require('../../../src/helpers/utils');
-const { VENDOR_ADMIN, COACH, COURSE, TRAINEE, HOLDING_ADMIN } = require('../../../src/helpers/constants');
+const { VENDOR_ADMIN, COACH, COURSE, TRAINEE, HOLDING_ADMIN, INTER_B2B } = require('../../../src/helpers/constants');
 
 describe('list', () => {
   let find;
@@ -442,6 +444,117 @@ describe('sign', () => {
       updateOne,
       { _id: attendanceSheetId },
       { $set: { 'signatures.trainee': 'link' } }
+    );
+  });
+});
+
+describe('generate', () => {
+  let findOne;
+  let formatInterCourseForPdf;
+  let getPdf;
+  let uploadCourseFile;
+  let updateOne;
+  beforeEach(() => {
+    findOne = sinon.stub(AttendanceSheet, 'findOne');
+    formatInterCourseForPdf = sinon.stub(CoursesHelper, 'formatInterCourseForPdf');
+    getPdf = sinon.stub(InterAttendanceSheet, 'getPdf');
+    uploadCourseFile = sinon.stub(GCloudStorageHelper, 'uploadCourseFile');
+    updateOne = sinon.stub(AttendanceSheet, 'updateOne');
+  });
+  afterEach(() => {
+    findOne.restore();
+    formatInterCourseForPdf.restore();
+    getPdf.restore();
+    uploadCourseFile.restore();
+    updateOne.restore();
+  });
+
+  it('should generate attendance sheet', async () => {
+    const attendanceSheetId = new ObjectId();
+    const traineeId = new ObjectId();
+    const attendanceSheet = {
+      _id: attendanceSheetId,
+      misc: 'misc',
+      trainee: traineeId,
+      signatures: { trainer: 'https://trainer.com', trainee: 'https://trainee.com' },
+      slots: [{ startDate: '2020-03-04T09:00:00', endDate: '2020-03-04T11:00:00', step: { type: 'on_site' } }],
+      course: {
+        type: INTER_B2B,
+        misc: 'misc',
+        companies: [{ name: 'Alenvi' }],
+        trainees: [
+          { _id: new ObjectId(), identity: { lastname: 'Albon', firstname: 'Alex' } },
+          { _id: traineeId, identity: { lastname: 'Sainz', firstname: 'Carlos' } },
+        ],
+        trainer: { identity: { lastname: 'Hamilton', firstname: 'Lewis' } },
+        subProgram: { program: { name: 'Program 1' } },
+      },
+    };
+
+    const formattedCourse = {
+      type: INTER_B2B,
+      misc: 'misc',
+      companies: [{ name: 'Alenvi' }],
+      slots: [{ startDate: '2020-03-04T09:00:00', endDate: '2020-03-04T11:00:00', step: { type: 'on_site' } }],
+      trainees: [{ _id: traineeId, identity: { lastname: 'Sainz', firstname: 'Carlos' } }],
+      trainer: { identity: { lastname: 'Hamilton', firstname: 'Lewis' } },
+      subProgram: { program: { name: 'Program 1' } },
+    };
+
+    findOne.returns(SinonMongoose.stubChainedQueries(attendanceSheet));
+    formatInterCourseForPdf.returns({
+      name: 'la formation - des infos en plus',
+      slots: [{ date: '04/03/2020' }],
+      trainees: [{ traineeName: 'Carlos SAINZ' }],
+    });
+
+    getPdf.returns('pdf');
+    uploadCourseFile.returns({ publicId: 'yo', link: 'yo' });
+    await attendanceSheetHelper.generate(attendanceSheetId);
+
+    SinonMongoose.calledOnceWithExactly(
+      findOne,
+      [{ query: 'findOne', args: [{ _id: attendanceSheetId }] },
+        {
+          query: 'populate',
+          args: [{
+            path: 'slots',
+            select: 'step startDate endDate address',
+            populate: { path: 'step', select: 'type' },
+          }],
+        },
+        {
+          query: 'populate',
+          args: [{
+            path: 'course',
+            select: 'type misc companies trainees trainer subProgram',
+            populate: [
+              { path: 'companies', select: 'name' },
+              { path: 'trainees', select: 'identity' },
+              { path: 'trainer', select: 'identity' },
+              { path: 'subProgram', select: 'program', populate: { path: 'program', select: 'name' } },
+            ],
+          }],
+        },
+        { query: 'lean' }]
+    );
+    sinon.assert.calledOnceWithExactly(formatInterCourseForPdf, formattedCourse);
+    sinon.assert.calledOnceWithExactly(
+      getPdf,
+      {
+        name: 'la formation - des infos en plus',
+        slots: [{ date: '04/03/2020' }],
+        trainees: [{ traineeName: 'Carlos SAINZ' }],
+        signatures: { trainer: 'https://trainer.com', trainee: 'https://trainee.com' },
+      });
+    sinon.assert.calledOnceWithExactly(
+      uploadCourseFile,
+      { fileName: 'emargements_Carlos_SAINZ_04/03/2020', pdf: 'pdf', contentType: 'application/pdf' }
+    );
+    sinon.assert.calledOnceWithExactly(
+      updateOne,
+      { _id: attendanceSheetId },
+      { $set: { file: { publicId: 'yo', link: 'yo' } } }
     );
   });
 });
