@@ -134,16 +134,14 @@ exports.authorizeAttendanceSheetEdit = async (req) => {
 
 exports.authorizeAttendanceSheetSignature = async (req) => {
   const attendanceSheet = await AttendanceSheet
-    .findOne({ _id: req.params._id })
-    .populate({ path: 'course', select: 'trainees' })
+    .findOne({ _id: req.params._id, 'signatures.trainer': { $exists: true }, 'signatures.trainee': { $exists: false } })
     .lean();
 
   if (!attendanceSheet) throw Boom.notFound();
-  if (!get(attendanceSheet, 'signatures.trainer') || get(attendanceSheet, 'signatures.trainee')) throw Boom.forbidden();
 
   const { credentials } = req.auth;
   const loggedUserId = get(credentials, '_id');
-  if (!UtilsHelper.doesArrayIncludeId(attendanceSheet.course.trainees, loggedUserId)) throw Boom.forbidden();
+  if (!UtilsHelper.areObjectIdsEquals(attendanceSheet.trainee, loggedUserId)) throw Boom.forbidden();
 
   return null;
 };
