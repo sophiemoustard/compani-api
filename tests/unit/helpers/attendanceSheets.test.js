@@ -403,11 +403,46 @@ describe('update', () => {
 
   it('should update an attendance sheet', async () => {
     const slotId = new ObjectId();
-    const attendanceSheet = { _id: new ObjectId() };
+    const attendanceSheetId = new ObjectId();
     const payload = { slots: [slotId] };
-    await attendanceSheetHelper.update(attendanceSheet._id, payload);
+    await attendanceSheetHelper.update(attendanceSheetId, payload);
 
-    sinon.assert.calledOnceWithExactly(updateOne, { _id: attendanceSheet._id }, { $set: payload });
+    sinon.assert.calledOnceWithExactly(updateOne, { _id: attendanceSheetId }, { $set: payload });
+  });
+});
+
+describe('sign', () => {
+  let uploadCourseFile;
+  let updateOne;
+
+  beforeEach(() => {
+    uploadCourseFile = sinon.stub(GCloudStorageHelper, 'uploadCourseFile');
+    updateOne = sinon.stub(AttendanceSheet, 'updateOne');
+  });
+  afterEach(() => {
+    uploadCourseFile.restore();
+    updateOne.restore();
+  });
+
+  it('should add trainee signature in attendance sheet', async () => {
+    const credentials = { _id: new ObjectId() };
+    const attendanceSheetId = new ObjectId();
+    const payload = { signature: 'test.png' };
+
+    uploadCourseFile.returns({ publicId: 'id', link: 'link' });
+
+    await attendanceSheetHelper.sign(attendanceSheetId, payload, credentials);
+
+    sinon.assert.calledOnceWithExactly(
+      uploadCourseFile,
+      { fileName: `trainee_signature_${credentials._id}`, file: 'test.png' }
+    );
+
+    sinon.assert.calledOnceWithExactly(
+      updateOne,
+      { _id: attendanceSheetId },
+      { $set: { 'signatures.trainee': 'link' } }
+    );
   });
 });
 

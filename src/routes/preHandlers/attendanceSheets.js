@@ -132,6 +132,20 @@ exports.authorizeAttendanceSheetEdit = async (req) => {
   return null;
 };
 
+exports.authorizeAttendanceSheetSignature = async (req) => {
+  const attendanceSheet = await AttendanceSheet
+    .findOne({ _id: req.params._id, 'signatures.trainer': { $exists: true }, 'signatures.trainee': { $exists: false } })
+    .lean();
+
+  if (!attendanceSheet) throw Boom.notFound();
+
+  const { credentials } = req.auth;
+  const loggedUserId = get(credentials, '_id');
+  if (!UtilsHelper.areObjectIdsEquals(attendanceSheet.trainee, loggedUserId)) throw Boom.forbidden();
+
+  return null;
+};
+
 exports.authorizeAttendanceSheetDeletion = async (req) => {
   const { credentials } = req.auth;
 
