@@ -411,6 +411,41 @@ describe('update', () => {
   });
 });
 
+describe('sign', () => {
+  let uploadCourseFile;
+  let updateOne;
+
+  beforeEach(() => {
+    uploadCourseFile = sinon.stub(GCloudStorageHelper, 'uploadCourseFile');
+    updateOne = sinon.stub(AttendanceSheet, 'updateOne');
+  });
+  afterEach(() => {
+    uploadCourseFile.restore();
+    updateOne.restore();
+  });
+
+  it('should add trainee signature in attendance sheet', async () => {
+    const credentials = { _id: new ObjectId() };
+    const attendanceSheet = { _id: new ObjectId() };
+    const payload = { signature: 'test.png' };
+
+    uploadCourseFile.returns({ publicId: 'id', link: 'link' });
+
+    await attendanceSheetHelper.sign(attendanceSheet._id, payload, credentials);
+
+    sinon.assert.calledOnceWithExactly(
+      uploadCourseFile,
+      { fileName: `trainee_signature_${credentials._id}`, file: 'test.png' }
+    );
+
+    sinon.assert.calledOnceWithExactly(
+      updateOne,
+      { _id: attendanceSheet._id },
+      { $set: { 'signatures.trainee': 'link' } }
+    );
+  });
+});
+
 describe('delete', () => {
   let findOne;
   let deleteOne;

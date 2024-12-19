@@ -7,6 +7,7 @@ const {
   create,
   deleteAttendanceSheet,
   updateAttendanceSheet,
+  signAttendanceSheet,
 } = require('../controllers/attendanceSheetController');
 const { formDataPayload } = require('./validations/utils');
 const {
@@ -14,6 +15,7 @@ const {
   authorizeAttendanceSheetDeletion,
   authorizeAttendanceSheetsGet,
   authorizeAttendanceSheetEdit,
+  authorizeAttendanceSheetSignature,
 } = require('./preHandlers/attendanceSheets');
 const { ORIGIN_OPTIONS, MOBILE } = require('../helpers/constants');
 
@@ -76,6 +78,21 @@ exports.plugin = {
         pre: [{ method: authorizeAttendanceSheetEdit }],
       },
       handler: updateAttendanceSheet,
+    });
+
+    server.route({
+      method: 'PUT',
+      path: '/{_id}/signature',
+      options: {
+        auth: { mode: 'required' },
+        payload: formDataPayload(),
+        validate: {
+          params: Joi.object({ _id: Joi.objectId().required() }),
+          payload: Joi.object({ signature: Joi.any().required() }),
+        },
+        pre: [{ method: authorizeAttendanceSheetSignature }],
+      },
+      handler: signAttendanceSheet,
     });
 
     server.route({

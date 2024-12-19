@@ -74,10 +74,16 @@ exports.list = async (query, credentials) => {
   return attendanceSheets;
 };
 
-exports.update = async (attendanceSheetId, payload) => {
-  const attendanceSheet = await AttendanceSheet.updateOne({ _id: attendanceSheetId }, { $set: payload });
+exports.update = async (attendanceSheetId, payload) =>
+  AttendanceSheet.updateOne({ _id: attendanceSheetId }, { $set: payload });
 
-  return attendanceSheet;
+exports.sign = async (attendanceSheetId, payload, credentials) => {
+  const signature = await GCloudStorageHelper.uploadCourseFile({
+    fileName: `trainee_signature_${credentials._id}`,
+    file: payload.signature,
+  });
+
+  return AttendanceSheet.updateOne({ _id: attendanceSheetId }, { $set: { 'signatures.trainee': signature.link } });
 };
 
 exports.delete = async (attendanceSheetId) => {
