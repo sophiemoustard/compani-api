@@ -593,6 +593,7 @@ const _getCourseForPedagogy = async (courseId, credentials) => {
       path: 'slots',
       select: 'startDate endDate step address meetingLink',
       populate: { path: 'step', select: 'type' },
+      options: { sort: { startDate: 1 } },
     })
     .populate({ path: 'trainer', select: 'identity.firstname identity.lastname biography picture' })
     .populate({ path: 'contact', select: 'identity.firstname identity.lastname contact.phone local.email' })
@@ -619,7 +620,7 @@ const _getCourseForPedagogy = async (courseId, credentials) => {
   }
 
   if (!course.subProgram.isStrictlyELearning) {
-    const lastSlot = course.slots.sort(DatesUtilsHelper.descendingSortBy('startDate'))[0];
+    const lastSlot = course.slots[course.slots.length - 1];
     const areLastSlotAttendancesValidated = !!(lastSlot &&
       await Attendance.countDocuments({ courseSlot: lastSlot._id }));
 
