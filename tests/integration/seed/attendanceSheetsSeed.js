@@ -37,7 +37,7 @@ const userList = [
     _id: new ObjectId(),
     identity: { firstname: 'learner', lastname: 'from AuthCompany' },
     refreshToken: uuidv4(),
-    local: { email: 'learner@compani.fr', password: '123456!eR' },
+    local: { email: 'learnerfromauthcompany@compani.fr', password: '123456!eR' },
     origin: WEBAPP,
   },
   { // 2
