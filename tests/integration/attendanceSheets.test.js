@@ -1017,7 +1017,7 @@ describe('ATTENDANCE SHEETS ROUTES - PUT /attendancesheets/{_id}/signature', () 
       expect(response.statusCode).toBe(404);
     });
 
-    it('should return 403 if attendance sheet has no trainer signature', async () => {
+    it('should return 404 if attendance sheet has no trainer signature', async () => {
       const formData = { signature: 'test' };
 
       const form = generateFormData(formData);
@@ -1029,10 +1029,10 @@ describe('ATTENDANCE SHEETS ROUTES - PUT /attendancesheets/{_id}/signature', () 
         headers: { ...form.getHeaders(), Cookie: `alenvi_token=${authToken}` },
       });
 
-      expect(response.statusCode).toBe(403);
+      expect(response.statusCode).toBe(404);
     });
 
-    it('should return 403 if attendance has already been signed by trainee', async () => {
+    it('should return 404 if attendance has already been signed by trainee', async () => {
       const formData = { signature: 'test' };
 
       const form = generateFormData(formData);
@@ -1044,7 +1044,7 @@ describe('ATTENDANCE SHEETS ROUTES - PUT /attendancesheets/{_id}/signature', () 
         headers: { ...form.getHeaders(), Cookie: `alenvi_token=${authToken}` },
       });
 
-      expect(response.statusCode).toBe(403);
+      expect(response.statusCode).toBe(404);
     });
   });
 
@@ -1052,9 +1052,7 @@ describe('ATTENDANCE SHEETS ROUTES - PUT /attendancesheets/{_id}/signature', () 
     it('should return 403 if user is not attendance sheet trainee', async () => {
       authToken = await getTokenByCredentials(userList[0].local);
 
-      const formData = {
-        signature: 'test',
-      };
+      const formData = { signature: 'test' };
 
       const form = generateFormData(formData);
 

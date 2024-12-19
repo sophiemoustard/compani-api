@@ -403,11 +403,11 @@ describe('update', () => {
 
   it('should update an attendance sheet', async () => {
     const slotId = new ObjectId();
-    const attendanceSheet = { _id: new ObjectId() };
+    const attendanceSheetId = new ObjectId();
     const payload = { slots: [slotId] };
-    await attendanceSheetHelper.update(attendanceSheet._id, payload);
+    await attendanceSheetHelper.update(attendanceSheetId, payload);
 
-    sinon.assert.calledOnceWithExactly(updateOne, { _id: attendanceSheet._id }, { $set: payload });
+    sinon.assert.calledOnceWithExactly(updateOne, { _id: attendanceSheetId }, { $set: payload });
   });
 });
 
@@ -426,12 +426,12 @@ describe('sign', () => {
 
   it('should add trainee signature in attendance sheet', async () => {
     const credentials = { _id: new ObjectId() };
-    const attendanceSheet = { _id: new ObjectId() };
+    const attendanceSheetId = new ObjectId();
     const payload = { signature: 'test.png' };
 
     uploadCourseFile.returns({ publicId: 'id', link: 'link' });
 
-    await attendanceSheetHelper.sign(attendanceSheet._id, payload, credentials);
+    await attendanceSheetHelper.sign(attendanceSheetId, payload, credentials);
 
     sinon.assert.calledOnceWithExactly(
       uploadCourseFile,
@@ -440,7 +440,7 @@ describe('sign', () => {
 
     sinon.assert.calledOnceWithExactly(
       updateOne,
-      { _id: attendanceSheet._id },
+      { _id: attendanceSheetId },
       { $set: { 'signatures.trainee': 'link' } }
     );
   });
