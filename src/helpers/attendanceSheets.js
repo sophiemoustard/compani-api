@@ -113,12 +113,11 @@ exports.generate = async (attendanceSheetId) => {
   };
   const formattedCourseForInter = await CoursesHelper.formatInterCourseForPdf(formattedCourse);
   const pdf = await InterAttendanceSheet.getPdf({ ...formattedCourseForInter, signatures: attendanceSheet.signatures });
-
-  const slotsDates = [...new Set(formattedCourseForInter.slots.map(slot => slot.date))].join(', ');
+  const slotsDates = [...new Set(formattedCourseForInter.trainees[0].course.slots.map(slot => slot.date))].join(', ');
   const fileName = `emargements_${formattedCourseForInter.trainees[0].traineeName}_${slotsDates}`
     .replaceAll(/ - | |'/g, '_');
   const fileUploaded = await GCloudStorageHelper
-    .uploadCourseFile({ fileName, pdf, contentType: 'application/pdf' });
+    .uploadCourseFile({ fileName, file: pdf, contentType: 'application/pdf' });
 
   await AttendanceSheet.updateOne({ _id: attendanceSheetId }, { $set: { file: fileUploaded } });
 };

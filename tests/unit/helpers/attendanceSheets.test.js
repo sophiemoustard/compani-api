@@ -503,9 +503,7 @@ describe('generate', () => {
 
     findOne.returns(SinonMongoose.stubChainedQueries(attendanceSheet));
     formatInterCourseForPdf.returns({
-      name: 'la formation - des infos en plus',
-      slots: [{ date: '04/03/2020' }],
-      trainees: [{ traineeName: 'Carlos SAINZ' }],
+      trainees: [{ traineeName: 'Carlos SAINZ', course: { slots: [{ date: '04/03/2020' }] } }],
     });
 
     getPdf.returns('pdf');
@@ -542,14 +540,12 @@ describe('generate', () => {
     sinon.assert.calledOnceWithExactly(
       getPdf,
       {
-        name: 'la formation - des infos en plus',
-        slots: [{ date: '04/03/2020' }],
-        trainees: [{ traineeName: 'Carlos SAINZ' }],
+        trainees: [{ traineeName: 'Carlos SAINZ', course: { slots: [{ date: '04/03/2020' }] } }],
         signatures: { trainer: 'https://trainer.com', trainee: 'https://trainee.com' },
       });
     sinon.assert.calledOnceWithExactly(
       uploadCourseFile,
-      { fileName: 'emargements_Carlos_SAINZ_04/03/2020', pdf: 'pdf', contentType: 'application/pdf' }
+      { fileName: 'emargements_Carlos_SAINZ_04/03/2020', file: 'pdf', contentType: 'application/pdf' }
     );
     sinon.assert.calledOnceWithExactly(
       updateOne,

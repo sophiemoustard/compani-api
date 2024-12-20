@@ -378,7 +378,10 @@ const attendanceSheetList = [
   { // 9
     _id: new ObjectId(),
     course: coursesList[7]._id,
-    signatures: { trainer: 'www.test.com', trainee: 'www.test.com' },
+    signatures: {
+      trainer: 'https://storage.googleapis.com/compani-main/aux-conscience-eclairee.png',
+      trainee: 'https://storage.googleapis.com/compani-main/aux-conscience-eclairee.png',
+    },
     trainee: userList[1]._id,
     companies: [authCompany._id],
     slots: [slotsList[10]._id],

@@ -6,8 +6,8 @@ const { COPPER_500 } = require('../../../helpers/constants');
 const getSlotTableContent = (slot, trainerSignature, traineeSignature) => [
   { stack: [{ text: `${slot.date}` }, { text: `${slot.address || ''}`, fontSize: 8 }] },
   { stack: [{ text: `${slot.duration}` }, { text: `${slot.startHour} - ${slot.endHour}`, fontSize: 8 }] },
-  ...trainerSignature ? [{ image: trainerSignature, width: 24 }] : [{ text: '' }],
-  ...traineeSignature ? [{ image: traineeSignature, width: 24 }] : [{ text: '' }],
+  ...trainerSignature ? [{ image: trainerSignature, width: 64, alignment: 'center' }] : [{ text: '' }],
+  ...traineeSignature ? [{ image: traineeSignature, width: 64, alignment: 'center' }] : [{ text: '' }],
 ];
 
 exports.getPdfContent = async (data) => {
@@ -70,7 +70,13 @@ exports.getPdfContent = async (data) => {
       },
       footer: UtilsPdfHelper.getFooter(signature),
     },
-    images: [conscience, compani, decision, signature],
+    images: [
+      conscience,
+      compani,
+      decision,
+      signature,
+      ...trainerSignature && traineeSignature ? [trainerSignature, traineeSignature] : [],
+    ],
   };
 };
 

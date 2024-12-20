@@ -222,14 +222,14 @@ describe('getPdfContent', () => {
         [
           { stack: [{ text: '16/09/2021' }, { text: '24 Avenue Daumesnil 75012 Paris', fontSize: 8 }] },
           { stack: [{ text: '3h' }, { text: '10:00 - 13:00', fontSize: 8 }] },
-          { image: signaturePaths[0], width: 24 },
-          { image: signaturePaths[1], width: 24 },
+          { image: signaturePaths[0], width: 64, alignment: 'center' },
+          { image: signaturePaths[1], width: 64, alignment: 'center' },
         ],
         [
           { stack: [{ text: '16/09/2021' }, { text: '24 Avenue Daumesnil 75012 Paris', fontSize: 8 }] },
           { stack: [{ text: '4h' }, { text: '14:00 - 18:00', fontSize: 8 }] },
-          { image: signaturePaths[0], width: 24 },
-          { image: signaturePaths[1], width: 24 },
+          { image: signaturePaths[0], width: 64, alignment: 'center' },
+          { image: signaturePaths[1], width: 64, alignment: 'center' },
         ],
       ],
       widths: ['auto', 'auto', '*', '*'],
@@ -323,7 +323,7 @@ describe('getPdfContent', () => {
     const result = await InterAttendanceSheet.getPdfContent(data);
 
     expect(JSON.stringify(result.template)).toEqual(JSON.stringify(pdf));
-    expect(result.images).toEqual(paths);
+    expect(result.images).toEqual([...paths, ...signaturePaths]);
     sinon.assert.calledWithExactly(downloadImages.getCall(0), imageList);
     sinon.assert.calledWithExactly(
       downloadImages.getCall(1),
