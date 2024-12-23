@@ -178,7 +178,7 @@ const formatQuestionnaireAnswersWithCourse = async (courseId, questionnaireAnswe
 };
 
 const getFollowUpForReview = async (questionnaire, courseId) => {
-  const fieldsToPick = ['user', 'questionnaireAnswersList', 'timeline', '_id', 'isValidated'];
+  const fieldsToPick = ['user', 'questionnaireAnswersList', 'timeline', '_id', 'isValidated', 'trainerComment'];
   const followUp = questionnaire.histories.map(h => pick(h, fieldsToPick));
 
   const course = await Course.findOne({ _id: courseId })
