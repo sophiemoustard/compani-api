@@ -23,7 +23,18 @@ exports.hasConflicts = async (slot) => {
   return !!slotsInConflict;
 };
 
-exports.createCourseSlot = async payload => (new CourseSlot(payload)).save();
+exports.createCourseSlot = async (payload) => {
+  const slots = new Array(payload.quantity)
+    .fill(null)
+    .map(() => ({ step: payload.step, course: payload.course }));
+
+    console.log('Slots', slots);
+
+  const result = await CourseSlot.insertMany(slots);
+
+  console.log('Result', result);
+  return result;
+};
 
 exports.updateCourseSlot = async (courseSlotId, payload, user) => {
   const courseSlot = await CourseSlot

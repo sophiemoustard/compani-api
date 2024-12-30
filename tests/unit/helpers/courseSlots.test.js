@@ -64,19 +64,35 @@ describe('hasConflicts', () => {
 });
 
 describe('createCourseSlot', () => {
-  let save;
+  let insertMany;
   beforeEach(() => {
-    save = sinon.stub(CourseSlot.prototype, 'save').returnsThis();
+    insertMany = sinon.stub(CourseSlot, 'insertMany');
   });
   afterEach(() => {
-    save.restore();
+    insertMany.restore();
   });
 
-  it('should create a course slot', async () => {
-    const newSlot = { course: new ObjectId(), step: new ObjectId() };
+  it('should create multiple courses slots #tag', async () => {
+    const newSlot = { course: new ObjectId(), step: new ObjectId(), quantity: 3 };
 
     const result = await CourseSlotsHelper.createCourseSlot(newSlot);
+
+    SinonMongoose.calledOnceWithExactly(insertMany, [
+      {
+        query: 'insertMany',
+        args: [
+          [
+            { course: newSlot.course, step: newSlot.step },
+            { course: newSlot.course, step: newSlot.step },
+            { course: newSlot.course, step: newSlot.step },
+          ],
+        ],
+      },
+    ]);
     expect(UtilsHelper.areObjectIdsEquals(result.course, newSlot.course)).toBeTruthy();
+    expect(insertMany.calledOnce).toBeTruthy();
+    sinon.assert.notCalled(insertMany);
+    sinon.assert.calledOnceWithExactly(insertMany, newSlot);
   });
 });
 
