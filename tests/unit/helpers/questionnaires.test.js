@@ -1399,6 +1399,7 @@ describe('getFollowUp', () => {
             ],
             timeline: END_COURSE,
             isValidated: true,
+            trainerComment: 'commentaire de validation',
           },
         ],
       };
@@ -1455,6 +1456,7 @@ describe('getFollowUp', () => {
             user: trainees[1],
             timeline: END_COURSE,
             isValidated: true,
+            trainerComment: 'commentaire de validation',
             questionnaireAnswersList: [
               {
                 card: {
