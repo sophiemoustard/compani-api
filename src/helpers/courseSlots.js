@@ -28,11 +28,7 @@ exports.createCourseSlot = async (payload) => {
     .fill(null)
     .map(() => ({ step: payload.step, course: payload.course }));
 
-    console.log('Slots', slots);
-
   const result = await CourseSlot.insertMany(slots);
-
-  console.log('Result', result);
   return result;
 };
 
