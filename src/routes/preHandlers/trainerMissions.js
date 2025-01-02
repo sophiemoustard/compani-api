@@ -11,11 +11,11 @@ exports.authorizeTrainerMissionCreation = async (req) => {
   const { trainer, courses } = req.payload;
   const coursesId = Array.isArray(courses) ? courses : [courses];
 
-  const coursesCount = await Course.countDocuments({ _id: { $in: coursesId }, trainer });
+  const coursesCount = await Course.countDocuments({ _id: { $in: coursesId }, trainers: trainer });
   if (coursesCount !== coursesId.length) throw Boom.notFound();
 
   const trainerMission = await TrainerMission
-    .countDocuments({ courses: { $in: coursesId }, cancelledAt: { $exists: false } });
+    .countDocuments({ courses: { $in: coursesId }, cancelledAt: { $exists: false }, trainer });
   if (trainerMission) throw Boom.conflict(translate[language].trainerMissionAlreadyExist);
 
   return null;
