@@ -1,3 +1,4 @@
+const get = require('lodash/get');
 const GCloudStorageHelper = require('./gCloudStorage');
 const UtilsHelper = require('./utils');
 const CourseSlotsHelper = require('./courseSlots');
@@ -10,8 +11,8 @@ const TrainerMissionPdf = require('../data/pdf/trainerMission');
 const getFileName = (programName, trainerIdentity) =>
   `ordre mission ${programName} ${UtilsHelper.formatIdentity(trainerIdentity, 'FL')}`;
 
-const uploadDocument = async (payload, course, file, method, credentials) => {
-  const fileName = getFileName(course.subProgram.program.name, course.trainer.identity);
+const uploadDocument = async (payload, course, file, method, credentials, trainerIdentity) => {
+  const fileName = getFileName(course.subProgram.program.name, trainerIdentity);
   const fileUploaded = await GCloudStorageHelper
     .uploadCourseFile({ fileName, file, ...(method === GENERATION && { contentType: 'application/pdf' }) });
 
@@ -27,14 +28,17 @@ const uploadDocument = async (payload, course, file, method, credentials) => {
 exports.upload = async (payload, credentials) => {
   const courseIds = Array.isArray(payload.courses) ? payload.courses : [payload.courses];
   const course = await Course
-    .findOne({ _id: courseIds[0] }, { trainer: 1, subProgram: 1 })
+    .findOne({ _id: courseIds[0] }, { trainers: 1, subProgram: 1 })
     .populate([
-      { path: 'trainer', select: 'identity' },
+      { path: 'trainers', select: 'identity' },
       { path: 'subProgram', select: 'program', populate: [{ path: 'program', select: 'name' }] },
     ])
     .lean();
+  const trainerIdentity = course.trainers
+    .find(trainer => UtilsHelper.areObjectIdsEquals(trainer._id, payload.trainer))
+    .identity;
 
-  return uploadDocument(payload, course, payload.file, UPLOAD, credentials);
+  return uploadDocument(payload, course, payload.file, UPLOAD, credentials, trainerIdentity);
 };
 
 exports.list = async (query) => {
@@ -54,11 +58,11 @@ exports.list = async (query) => {
     .lean();
 };
 
-const formatData = (courses, fee, credentials) => {
-  const { trainer, subProgram, slots, slotsToPlan } = courses[0];
+const formatData = (courses, fee, credentials, trainerIdentity) => {
+  const { subProgram, slots, slotsToPlan } = courses[0];
 
   return {
-    trainerIdentity: trainer.identity,
+    trainerIdentity,
     program: subProgram.program.name,
     slotsCount: slots.length + slotsToPlan.length,
     liveDuration: StepsHelper.computeLiveDuration(slots, slotsToPlan, subProgram.steps),
@@ -78,7 +82,7 @@ exports.generate = async (payload, credentials) => {
   const courses = await Course
     .find({ _id: { $in: courseIds } }, { hasCertifyingTest: 1, misc: 1, type: 1 })
     .populate({ path: 'companies', select: 'name' })
-    .populate({ path: 'trainer', select: 'identity' })
+    .populate({ path: 'trainers', select: 'identity' })
     .populate({
       path: 'subProgram',
       select: 'program steps',
@@ -88,11 +92,14 @@ exports.generate = async (payload, credentials) => {
     .populate({ path: 'slotsToPlan', select: '_id' })
     .lean();
 
-  const data = formatData(courses, payload.fee, credentials);
+  const trainer = get(courses[0], 'trainers', [])
+    .find(t => UtilsHelper.areObjectIdsEquals(t._id, payload.trainer));
+
+  const data = formatData(courses, payload.fee, credentials, trainer.identity);
 
   const pdf = await TrainerMissionPdf.getPdf(data);
 
-  return uploadDocument(payload, courses[0], pdf, GENERATION, credentials);
+  return uploadDocument(payload, courses[0], pdf, GENERATION, credentials, trainer.identity);
 };
 
 exports.update = async (trainerMissionId, payload) =>
