@@ -908,6 +908,19 @@ describe('ATTENDANCE SHEETS ROUTES - PUT /attendancesheets/{_id}', () => {
       expect(response.statusCode).toBe(400);
     });
 
+    it('should return 400 if neither slots nor action in payload', async () => {
+      const attendanceSheetId = attendanceSheetList[5]._id;
+
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/attendancesheets/${attendanceSheetId}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload: {},
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
+
     it('should return 403 if is course is not single', async () => {
       const attendanceSheetId = attendanceSheetList[3]._id;
       const payload = { slots: [slotsList[1]._id] };
