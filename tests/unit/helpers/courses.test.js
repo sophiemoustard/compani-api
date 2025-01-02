@@ -699,10 +699,7 @@ describe('list', () => {
                   populate: {
                     path: 'activities',
                     select: 'name type cards activityHistories',
-                    populate: [
-                      { path: 'activityHistories', match: { user: trainee._id } },
-                      { path: 'cards', select: 'template' },
-                    ],
+                    populate: [{ path: 'activityHistories', match: { user: trainee._id } }],
                   },
                 },
               ],
@@ -957,10 +954,7 @@ describe('list', () => {
                   populate: {
                     path: 'activities',
                     select: 'name type cards activityHistories',
-                    populate: [
-                      { path: 'activityHistories', match: { user: trainee._id } },
-                      { path: 'cards', select: 'template' },
-                    ],
+                    populate: [{ path: 'activityHistories', match: { user: trainee._id } }],
                   },
                 },
               ],
@@ -1219,10 +1213,7 @@ describe('list', () => {
                   populate: {
                     path: 'activities',
                     select: 'name type cards activityHistories',
-                    populate: [
-                      { path: 'activityHistories', match: { user: trainee._id } },
-                      { path: 'cards', select: 'template' },
-                    ],
+                    populate: [{ path: 'activityHistories', match: { user: trainee._id } }],
                   },
                 },
               ],
@@ -1435,10 +1426,7 @@ describe('list', () => {
                   populate: {
                     path: 'activities',
                     select: 'name type cards activityHistories',
-                    populate: [
-                      { path: 'activityHistories', match: { user: trainee._id } },
-                      { path: 'cards', select: 'template' },
-                    ],
+                    populate: [{ path: 'activityHistories', match: { user: trainee._id } }],
                   },
                 },
               ],
@@ -2285,7 +2273,6 @@ describe('getCourse', () => {
                     select: 'name type cards activityHistories',
                     populate: [
                       { path: 'activityHistories', match: { user: loggedUser._id } },
-                      { path: 'cards', select: 'template' },
                     ],
                   },
                 },
@@ -2320,7 +2307,7 @@ describe('getCourse', () => {
               populate: { path: 'slots', select: 'startDate endDate step' },
             }],
           },
-          { query: 'select', args: ['_id misc'] },
+          { query: 'select', args: ['_id misc format'] },
           { query: 'lean', args: [{ virtuals: true, autopopulate: true }] },
         ]
       );
@@ -2448,7 +2435,6 @@ describe('getCourse', () => {
                     select: 'name type cards activityHistories',
                     populate: [
                       { path: 'activityHistories', match: { user: loggedUser._id } },
-                      { path: 'cards', select: 'template' },
                     ],
                   },
                 },
@@ -2483,7 +2469,7 @@ describe('getCourse', () => {
               populate: { path: 'slots', select: 'startDate endDate step' },
             }],
           },
-          { query: 'select', args: ['_id misc'] },
+          { query: 'select', args: ['_id misc format'] },
           { query: 'lean', args: [{ virtuals: true, autopopulate: true }] },
         ]
       );
@@ -2611,7 +2597,6 @@ describe('getCourse', () => {
                     select: 'name type cards activityHistories',
                     populate: [
                       { path: 'activityHistories', match: { user: loggedUser._id } },
-                      { path: 'cards', select: 'template' },
                     ],
                   },
                 },
@@ -2646,7 +2631,7 @@ describe('getCourse', () => {
               populate: { path: 'slots', select: 'startDate endDate step' },
             }],
           },
-          { query: 'select', args: ['_id misc'] },
+          { query: 'select', args: ['_id misc format'] },
           { query: 'lean', args: [{ virtuals: true, autopopulate: true }] },
         ]
       );
@@ -2734,7 +2719,6 @@ describe('getCourse', () => {
                     select: 'name type cards activityHistories',
                     populate: [
                       { path: 'activityHistories', match: { user: loggedUser._id } },
-                      { path: 'cards', select: 'template' },
                     ],
                   },
                 },
@@ -2769,7 +2753,7 @@ describe('getCourse', () => {
               populate: { path: 'slots', select: 'startDate endDate step' },
             }],
           },
-          { query: 'select', args: ['_id misc'] },
+          { query: 'select', args: ['_id misc format'] },
           { query: 'lean', args: [{ virtuals: true, autopopulate: true }] },
         ]
       );

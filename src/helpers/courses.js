@@ -223,10 +223,7 @@ const listForPedagogy = async (query, credentials) => {
           populate: {
             path: 'activities',
             select: 'name type cards activityHistories',
-            populate: [
-              { path: 'activityHistories', match: { user: trainee._id } },
-              { path: 'cards', select: 'template' },
-            ],
+            populate: [{ path: 'activityHistories', match: { user: trainee._id } }],
           },
         },
       ],
@@ -583,7 +580,6 @@ const _getCourseForPedagogy = async (courseId, credentials) => {
             select: 'name type cards activityHistories',
             populate: [
               { path: 'activityHistories', match: { user: credentials._id } },
-              { path: 'cards', select: 'template' },
             ],
           },
         },
@@ -603,7 +599,7 @@ const _getCourseForPedagogy = async (courseId, credentials) => {
       options: { requestingOwnInfos: true },
       populate: { path: 'slots', select: 'startDate endDate step' },
     })
-    .select('_id misc')
+    .select('_id misc format')
     .lean({ autopopulate: true, virtuals: true });
 
   if (course.trainer && UtilsHelper.areObjectIdsEquals(course.trainer._id, credentials._id)) {
