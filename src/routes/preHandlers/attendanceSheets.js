@@ -122,7 +122,7 @@ exports.authorizeAttendanceSheetEdit = async (req) => {
   if (!isSingleCourse) throw Boom.forbidden();
 
   const hasBothSignatures = get(attendanceSheet, 'signatures.trainer') && get(attendanceSheet, 'signatures.trainee');
-  if (req.payload.method) {
+  if (req.payload.action) {
     if (!hasBothSignatures) throw Boom.forbidden();
   } else {
     const courseSlotCount = await CourseSlot

@@ -73,8 +73,8 @@ exports.plugin = {
           params: Joi.object({ _id: Joi.objectId().required() }),
           payload: Joi.object({
             slots: Joi.array().items(Joi.objectId()).min(1),
-            method: Joi.string().valid(GENERATION),
-          }).xor('slots', 'method'),
+            action: Joi.string().valid(GENERATION),
+          }).xor('slots', 'action'),
         },
         pre: [{ method: authorizeAttendanceSheetEdit }],
       },

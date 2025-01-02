@@ -863,7 +863,7 @@ describe('ATTENDANCE SHEETS ROUTES - PUT /attendancesheets/{_id}', () => {
 
     it('should generate attendance sheet file for a single course', async () => {
       const attendanceSheetId = attendanceSheetList[9]._id;
-      const payload = { method: GENERATION };
+      const payload = { action: GENERATION };
       uploadCourseFile.returns({ publicId: '1234567890', link: 'https://test.com/signature.pdf' });
 
       const response = await app.inject({
@@ -894,9 +894,9 @@ describe('ATTENDANCE SHEETS ROUTES - PUT /attendancesheets/{_id}', () => {
       expect(response.statusCode).toBe(404);
     });
 
-    it('should return 400 if slots and method in payload', async () => {
+    it('should return 400 if slots and action in payload', async () => {
       const attendanceSheetId = attendanceSheetList[5]._id;
-      const payload = { method: GENERATION, slots: [slotsList[4]._id] };
+      const payload = { action: GENERATION, slots: [slotsList[4]._id] };
 
       const response = await app.inject({
         method: 'PUT',
@@ -924,7 +924,7 @@ describe('ATTENDANCE SHEETS ROUTES - PUT /attendancesheets/{_id}', () => {
 
     it('should return 403 if generation and trainer or trainee signature missing', async () => {
       const attendanceSheetId = attendanceSheetList[8]._id;
-      const payload = { method: GENERATION };
+      const payload = { action: GENERATION };
 
       const response = await app.inject({
         method: 'PUT',
