@@ -24,9 +24,7 @@ exports.hasConflicts = async (slot) => {
 };
 
 exports.createCourseSlot = async (payload) => {
-  const slots = new Array(payload.quantity)
-    .fill(null)
-    .map(() => ({ step: payload.step, course: payload.course }));
+  const slots = new Array(payload.quantity).fill(slots.quantity);
 
   const result = await CourseSlot.insertMany(slots);
   return result;
