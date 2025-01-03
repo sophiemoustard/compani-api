@@ -196,7 +196,7 @@ describe('getPdfContent', () => {
           duration: '4h',
         },
       ],
-      trainer: 'Anne ONYME',
+      trainers: ['Anne ONYME'],
       firstDate: '16/09/2021',
       lastDate: '28/01/2022',
       duration: '56h',
