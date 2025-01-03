@@ -5,6 +5,7 @@ const Course = require('../../../src/models/Course');
 const CourseHistory = require('../../../src/models/CourseHistory');
 const CourseSlot = require('../../../src/models/CourseSlot');
 const Step = require('../../../src/models/Step');
+const Program = require('../../../src/models/Program');
 const SubProgram = require('../../../src/models/SubProgram');
 const { authCompany, otherCompany, companyWithoutSubscription, otherHolding } = require('../../seed/authCompaniesSeed');
 const {
@@ -82,6 +83,10 @@ const steps = [{ _id: new ObjectId(), type: 'on_site', name: 'étape', status: P
 const subProgramList = [
   { _id: new ObjectId(), name: 'Subprogram 1', steps: [steps[0]._id], status: PUBLISHED },
   { _id: SINGLE_COURSES_SUBPROGRAM_IDS[0], name: 'Subprogram 2', steps: [steps[0]._id], status: PUBLISHED },
+];
+
+const programsList = [
+  { _id: new ObjectId(), name: 'Program 1', subPrograms: [subProgramList[0]._id, subProgramList[1]._id] },
 ];
 
 const coursesList = [
@@ -288,7 +293,7 @@ const slotsList = [
     _id: new ObjectId(),
     startDate: '2020-03-26T09:00:00.000Z',
     endDate: '2020-03-26T11:00:00.000Z',
-    course: coursesList[8]._id,
+    course: coursesList[7]._id,
     step: steps[0]._id,
   },
 ];
@@ -372,8 +377,11 @@ const attendanceSheetList = [
   },
   { // 9
     _id: new ObjectId(),
-    course: coursesList[8]._id,
-    signatures: { trainer: 'www.test.com', trainee: 'www.test.com' },
+    course: coursesList[7]._id,
+    signatures: {
+      trainer: 'https://storage.googleapis.com/compani-main/aux-conscience-eclairee.png',
+      trainee: 'https://storage.googleapis.com/compani-main/aux-conscience-eclairee.png',
+    },
     trainee: userList[1]._id,
     companies: [authCompany._id],
     slots: [slotsList[10]._id],
@@ -393,6 +401,7 @@ const populateDB = async () => {
     CourseHistory.create(courseHistoriesList),
     Step.create(steps),
     SubProgram.create(subProgramList),
+    Program.create(programsList),
   ]);
 };
 

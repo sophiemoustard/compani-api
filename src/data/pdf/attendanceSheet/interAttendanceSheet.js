@@ -1,17 +1,29 @@
 const UtilsPdfHelper = require('./utils');
 const PdfHelper = require('../../../helpers/pdf');
+const FileHelper = require('../../../helpers/file');
 const { COPPER_500 } = require('../../../helpers/constants');
 
-const getSlotTableContent = slot => [
+const getSlotTableContent = (slot, trainerSignature, traineeSignature) => [
   { stack: [{ text: `${slot.date}` }, { text: `${slot.address || ''}`, fontSize: 8 }] },
   { stack: [{ text: `${slot.duration}` }, { text: `${slot.startHour} - ${slot.endHour}`, fontSize: 8 }] },
-  { text: '' },
-  { text: '' },
+  ...trainerSignature ? [{ image: trainerSignature, width: 64, alignment: 'center' }] : [{ text: '' }],
+  ...traineeSignature ? [{ image: traineeSignature, width: 64, alignment: 'center' }] : [{ text: '' }],
 ];
 
 exports.getPdfContent = async (data) => {
-  const { trainees } = data;
+  const { trainees, signatures } = data;
+  let trainerSignature = null;
+  let traineeSignature = null;
   const [conscience, compani, decision, signature] = await UtilsPdfHelper.getImages();
+  if (signatures) {
+    const signatureImages = [
+      { url: signatures.trainer, name: 'trainer_signature.png' },
+      { url: signatures.trainee, name: 'trainee_signature.png' },
+    ];
+    const [trainer, trainee] = await FileHelper.downloadImages(signatureImages);
+    trainerSignature = trainer;
+    traineeSignature = trainee;
+  }
 
   const content = [];
   trainees.forEach((trainee, i) => {
@@ -36,7 +48,7 @@ exports.getPdfContent = async (data) => {
         { text: 'Signature de l\'intervenant(e)', style: 'header' },
       ],
     ];
-    trainee.course.slots.forEach(slot => body.push(getSlotTableContent(slot)));
+    trainee.course.slots.forEach(slot => body.push(getSlotTableContent(slot, trainerSignature, traineeSignature)));
 
     const table = [{
       table: { body, widths: ['auto', 'auto', '*', '*'], dontBreakRows: true },
@@ -58,7 +70,13 @@ exports.getPdfContent = async (data) => {
       },
       footer: UtilsPdfHelper.getFooter(signature),
     },
-    images: [conscience, compani, decision, signature],
+    images: [
+      conscience,
+      compani,
+      decision,
+      signature,
+      ...trainerSignature && traineeSignature ? [trainerSignature, traineeSignature] : [],
+    ],
   };
 };
 

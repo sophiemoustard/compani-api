@@ -17,7 +17,7 @@ const {
   authorizeAttendanceSheetEdit,
   authorizeAttendanceSheetSignature,
 } = require('./preHandlers/attendanceSheets');
-const { ORIGIN_OPTIONS, MOBILE } = require('../helpers/constants');
+const { ORIGIN_OPTIONS, MOBILE, GENERATION } = require('../helpers/constants');
 
 exports.plugin = {
   name: 'routes-attendancesheets',
@@ -72,8 +72,9 @@ exports.plugin = {
         validate: {
           params: Joi.object({ _id: Joi.objectId().required() }),
           payload: Joi.object({
-            slots: Joi.array().items(Joi.objectId()).min(1).required(),
-          }),
+            slots: Joi.array().items(Joi.objectId()).min(1),
+            action: Joi.string().valid(GENERATION),
+          }).xor('slots', 'action'),
         },
         pre: [{ method: authorizeAttendanceSheetEdit }],
       },
