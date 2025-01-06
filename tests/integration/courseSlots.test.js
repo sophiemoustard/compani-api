@@ -25,7 +25,7 @@ describe('COURSE SLOTS ROUTES - POST /courseslots', () => {
     });
 
     it('should create course slot to plan for a specific step', async () => {
-      const payload = { course: courseSlotsList[0].course, step: stepsList[0]._id };
+      const payload = { course: courseSlotsList[0].course, step: stepsList[0]._id, quantity: 2 };
       const response = await app.inject({
         method: 'POST',
         url: '/courseslots',
@@ -37,7 +37,7 @@ describe('COURSE SLOTS ROUTES - POST /courseslots', () => {
     });
 
     it('should return 403 if course is archived', async () => {
-      const payload = { course: courseSlotsList[5].course, step: stepsList[4]._id };
+      const payload = { course: courseSlotsList[5].course, step: stepsList[4]._id, quantity: 3 };
       const response = await app.inject({
         method: 'POST',
         url: '/courseslots',
