@@ -32,7 +32,10 @@ describe('upload', () => {
     const trainerId = new ObjectId();
     const course = {
       _id: courseId,
-      trainers: [{ _id: trainerId, identity: { lastname: 'For', firstname: 'Matrice' } }],
+      trainers: [
+        { _id: trainerId, identity: { lastname: 'For', firstname: 'Matrice' } },
+        { _id: new ObjectId(), identity: { lastname: 'Vador', firstname: 'Dark' } },
+      ],
       subProgram: { program: { name: 'program' } },
     };
     const payload = { courses: courseId, file: 'test.pdf', fee: 1200, trainer: trainerId };

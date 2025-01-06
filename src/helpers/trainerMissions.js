@@ -34,11 +34,9 @@ exports.upload = async (payload, credentials) => {
       { path: 'subProgram', select: 'program', populate: [{ path: 'program', select: 'name' }] },
     ])
     .lean();
-  const trainerIdentity = course.trainers
-    .find(trainer => UtilsHelper.areObjectIdsEquals(trainer._id, payload.trainer))
-    .identity;
+  const trainer = course.trainers.find(t => UtilsHelper.areObjectIdsEquals(t._id, payload.trainer));
 
-  return uploadDocument(payload, course, payload.file, UPLOAD, credentials, trainerIdentity);
+  return uploadDocument(payload, course, payload.file, UPLOAD, credentials, trainer.identity);
 };
 
 exports.list = async (query) => {
