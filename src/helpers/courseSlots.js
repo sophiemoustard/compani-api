@@ -2,6 +2,7 @@ const Boom = require('@hapi/boom');
 const compact = require('lodash/compact');
 const get = require('lodash/get');
 const pick = require('lodash/pick');
+const omit = require('lodash/omit');
 const translate = require('./translate');
 const CourseSlot = require('../models/CourseSlot');
 const CourseHistoriesHelper = require('./courseHistories');
@@ -24,7 +25,7 @@ exports.hasConflicts = async (slot) => {
 };
 
 exports.createCourseSlot = async (payload) => {
-  const slots = new Array(payload.quantity).fill(slots.quantity);
+  const slots = new Array(payload.quantity).fill(omit(payload, ['quantity']));
 
   const result = await CourseSlot.insertMany(slots);
   return result;
