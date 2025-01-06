@@ -7,6 +7,7 @@ const Course = require('../models/Course');
 const CourseHistoriesHelper = require('./courseHistories');
 const CoursesHelper = require('./courses');
 const GCloudStorageHelper = require('./gCloudStorage');
+const NotificationHelper = require('./notifications');
 const UtilsHelper = require('./utils');
 const { CompaniDate } = require('./dates/companiDates');
 const { DAY_MONTH_YEAR, COURSE, TRAINEE } = require('./constants');
@@ -17,6 +18,7 @@ exports.create = async (payload, credentials) => {
   let slots = [];
   let signature = {};
   let fileUploaded = {};
+  const formationExpoTokens = [];
 
   const course = await Course.findOne({ _id: payload.course }, { companies: 1 }).lean();
 
@@ -24,7 +26,9 @@ exports.create = async (payload, credentials) => {
     fileName = CompaniDate(payload.date).format(DAY_MONTH_YEAR);
     companies = course.companies;
   } else {
-    const { identity } = await User.findOne({ _id: payload.trainee }, { identity: 1 }).lean();
+    const { identity, formationExpoTokenList } = await User
+      .findOne({ _id: payload.trainee }, { identity: 1, formationExpoTokenList: 1 })
+      .lean();
     fileName = UtilsHelper.formatIdentity(identity, 'FL');
 
     const traineeCompanyAtCourseRegistration = await CourseHistoriesHelper
@@ -33,7 +37,10 @@ exports.create = async (payload, credentials) => {
       );
     companies = [get(traineeCompanyAtCourseRegistration[0], 'company')];
 
-    if (payload.slots) slots = Array.isArray(payload.slots) ? payload.slots : [payload.slots];
+    if (payload.slots) {
+      slots = Array.isArray(payload.slots) ? payload.slots : [payload.slots];
+      formationExpoTokens.push(...formationExpoTokenList);
+    }
   }
 
   if (payload.file) {
@@ -49,7 +56,7 @@ exports.create = async (payload, credentials) => {
     });
   }
 
-  await AttendanceSheet.create({
+  const attendanceSheet = await AttendanceSheet.create({
     ...omit(payload, 'signature'),
     companies,
     ...(Object.keys(fileUploaded).length
@@ -58,6 +65,10 @@ exports.create = async (payload, credentials) => {
     ),
     ...(slots.length && { slots }),
   });
+
+  if (attendanceSheet.signatures) {
+    await NotificationHelper.sendAttendanceSheetSignatureRequestNotification(attendanceSheet._id, formationExpoTokens);
+  }
 };
 
 exports.list = async (query, credentials) => {

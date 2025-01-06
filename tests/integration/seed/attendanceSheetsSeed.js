@@ -40,6 +40,7 @@ const userList = [
     refreshToken: uuidv4(),
     local: { email: 'learnerfromauthcompany@compani.fr', password: '123456!eR' },
     origin: WEBAPP,
+    formationExpoTokenList: ['ExponentPushToken[jeSuisUnTokenExpo]', 'ExponentPushToken[jeSuisUnAutreTokenExpo]'],
   },
   { // 2
     _id: new ObjectId(),
