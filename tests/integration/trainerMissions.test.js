@@ -69,7 +69,7 @@ describe('TRAINER MISSIONS ROUTES - POST /trainermissions', () => {
       expect(trainerMissionCount).toBe(1);
     });
 
-    it('should upload trainer mission when there\'s already a trainer mission for trainer in single course',
+    it('should upload trainer mission when there\'s already a trainer mission for another trainer',
       async () => {
         const formData = {
           courses: courseList[3]._id.toHexString(),
