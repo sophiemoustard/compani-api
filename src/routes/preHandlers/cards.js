@@ -40,7 +40,7 @@ const checkFillTheGap = async (dbCard, payload) => {
   if (!gappedText) return null;
 
   const tagsCount = (gappedText.match(/<trou>/g) || []).length;
-  const correctAnswers = dbCard.gapAnswers.filter(a => a.correct);
+  const correctAnswers = dbCard.gapAnswers.filter(a => a.isCorrect);
   const isParentActvityPublished = await Activity.countDocuments({ cards: dbCard._id, status: PUBLISHED });
   const wrongTagsCount = !tagsCount || tagsCount > FILL_THE_GAPS_MAX_GAPS_COUNT;
   const notMatchingtagsCount = tagsCount !== correctAnswers.length && isParentActvityPublished;
@@ -133,7 +133,7 @@ exports.authorizeCardAnswerUpdate = async (req) => {
   }).lean();
   if (!card) throw Boom.notFound();
 
-  if (has(req.payload, 'correct') && ![MULTIPLE_CHOICE_QUESTION, FILL_THE_GAPS].includes(card.template)) {
+  if (has(req.payload, 'isCorrect') && ![MULTIPLE_CHOICE_QUESTION, FILL_THE_GAPS].includes(card.template)) {
     throw Boom.badRequest();
   }
   if (card.template === FILL_THE_GAPS && req.payload.text && !isValidAnswer(req.payload.text)) throw Boom.badRequest();
@@ -163,7 +163,7 @@ exports.authorizeCardAnswerDeletion = async (req) => {
       break;
     case SINGLE_CHOICE_QUESTION:
       if (card.qcAnswers.length <= CHOICE_QUESTION_MIN_ANSWERS_COUNT) return Boom.forbidden();
-      if (card.qcAnswers.find(a => UtilsHelper.areObjectIdsEquals(a._id, req.params.answerId)).correct) {
+      if (card.qcAnswers.find(a => UtilsHelper.areObjectIdsEquals(a._id, req.params.answerId)).isCorrect) {
         return Boom.forbidden();
       }
       break;

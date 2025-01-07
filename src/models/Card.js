@@ -50,13 +50,13 @@ const CardSchema = mongoose.Schema({
   gappedText: { type: String },
   question: { type: String },
   gapAnswers: {
-    type: [mongoose.Schema({ text: { type: String }, correct: { type: Boolean } }, { id: false })],
+    type: [mongoose.Schema({ text: { type: String }, isCorrect: { type: Boolean } }, { id: false })],
     default: undefined,
   },
   canSwitchAnswers: { type: Boolean },
   isMandatory: { type: Boolean },
   qcAnswers: {
-    type: [mongoose.Schema({ text: { type: String }, correct: { type: Boolean } }, { id: false })],
+    type: [mongoose.Schema({ text: { type: String }, isCorrect: { type: Boolean } }, { id: false })],
     default: undefined,
   },
   isQuestionAnswerMultipleChoiced: { type: Boolean },
@@ -83,12 +83,16 @@ function save(next) {
     switch (this.template) {
       case FILL_THE_GAPS:
         if (!this.gapAnswers) {
-          this.gapAnswers = [{ text: '', correct: true }, { text: '', correct: false }, { text: '', correct: false }];
+          this.gapAnswers = [
+            { text: '', isCorrect: true },
+            { text: '', isCorrect: false },
+            { text: '', isCorrect: false },
+          ];
         }
         if (!this.canSwitchAnswers) this.canSwitchAnswers = false;
         break;
       case SINGLE_CHOICE_QUESTION:
-        if (!this.qcAnswers) this.qcAnswers = [{ text: '', correct: true }, { text: '', correct: false }];
+        if (!this.qcAnswers) this.qcAnswers = [{ text: '', isCorrect: true }, { text: '', isCorrect: false }];
         break;
       case QUESTION_ANSWER:
         if (!this.qcAnswers) this.qcAnswers = [{ text: '' }, { text: '' }];
@@ -99,7 +103,7 @@ function save(next) {
         if (!this.orderedAnswers) this.orderedAnswers = [{ text: '' }, { text: '' }, { text: '' }];
         break;
       case MULTIPLE_CHOICE_QUESTION:
-        if (!this.qcAnswers) this.qcAnswers = [{ text: '', correct: false }, { text: '', correct: false }];
+        if (!this.qcAnswers) this.qcAnswers = [{ text: '', isCorrect: false }, { text: '', isCorrect: false }];
         break;
       case SURVEY:
         if (!this.labels) this.labels = { 1: '', 5: '' };

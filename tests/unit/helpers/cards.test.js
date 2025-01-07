@@ -63,7 +63,7 @@ describe('addCardAnswer', () => {
     getAnswerKeyToUpdate.restore();
   });
 
-  it('should add card answer without correct', async () => {
+  it('should add card answer without isCorrect', async () => {
     const card = { _id: new ObjectId(), template: QUESTION_ANSWER };
     getAnswerKeyToUpdate.returns('qcAnswers');
 
@@ -72,7 +72,7 @@ describe('addCardAnswer', () => {
     sinon.assert.calledOnceWithExactly(updateOne, { _id: card._id }, { $push: { qcAnswers: { text: '' } } });
   });
 
-  it('should add card answer with correct', async () => {
+  it('should add card answer with isCorrect', async () => {
     const card = { _id: new ObjectId(), template: MULTIPLE_CHOICE_QUESTION };
     getAnswerKeyToUpdate.returns('qcAnswers');
 
@@ -81,7 +81,7 @@ describe('addCardAnswer', () => {
     sinon.assert.calledOnceWithExactly(
       updateOne,
       { _id: card._id },
-      { $push: { qcAnswers: { text: '', correct: false } } }
+      { $push: { qcAnswers: { text: '', isCorrect: false } } }
     );
   });
 });

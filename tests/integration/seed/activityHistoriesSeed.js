@@ -65,9 +65,9 @@ const cardsList = [
     template: SINGLE_CHOICE_QUESTION,
     question: 'test3?',
     qcAnswers: [
-      { _id: new ObjectId(), text: 'test', correct: true },
-      { _id: new ObjectId(), text: 'test2', correct: false },
-      { _id: new ObjectId(), text: 'test3', correct: false },
+      { _id: new ObjectId(), text: 'test', isCorrect: true },
+      { _id: new ObjectId(), text: 'test2', isCorrect: false },
+      { _id: new ObjectId(), text: 'test3', isCorrect: false },
     ],
     explanation: 'test',
   },
@@ -92,8 +92,8 @@ const cardsList = [
     template: MULTIPLE_CHOICE_QUESTION,
     question: 'test7?',
     qcAnswers: [
-      { _id: new ObjectId(), text: 'test7', correct: false },
-      { _id: new ObjectId(), text: 'test7 good', correct: true },
+      { _id: new ObjectId(), text: 'test7', isCorrect: false },
+      { _id: new ObjectId(), text: 'test7 good', isCorrect: true },
     ],
     explanation: 'test',
   },
@@ -116,9 +116,9 @@ const cardsList = [
     gappedText: 'texte à <trou>',
     explanation: 'explanation',
     gapAnswers: [
-      { _id: new ObjectId(), text: 'vide', correct: false },
-      { _id: new ObjectId(), text: 'trou', correct: true },
-      { _id: new ObjectId(), text: 'texte', correct: false },
+      { _id: new ObjectId(), text: 'vide', isCorrect: false },
+      { _id: new ObjectId(), text: 'trou', isCorrect: true },
+      { _id: new ObjectId(), text: 'texte', isCorrect: false },
     ],
   },
 ];

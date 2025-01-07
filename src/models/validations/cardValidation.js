@@ -82,7 +82,7 @@ exports.cardValidationByTemplate = (template, labels = {}) => {
         .custom((value, helpers) => {
           const { gappedText, gapAnswers } = value;
           const tagsCount = (gappedText.match(/<trou>/g) || []).length;
-          const correctAnswersCount = gapAnswers.filter(answer => answer.correct).length;
+          const correctAnswersCount = gapAnswers.filter(answer => answer.isCorrect).length;
 
           if (tagsCount !== correctAnswersCount) {
             return helpers.message('Gap count must be equal to correct answers count');
@@ -104,12 +104,12 @@ exports.cardValidationByTemplate = (template, labels = {}) => {
           gapAnswers: Joi.array()
             .items(Joi.object({
               text: Joi.string().max(GAP_ANSWER_MAX_LENGTH).required(),
-              correct: Joi.boolean().required(),
+              isCorrect: Joi.boolean().required(),
             }))
             .min(FILL_THE_GAPS_MIN_ANSWERS_COUNT)
             .max(FILL_THE_GAPS_MAX_ANSWERS_COUNT)
             .custom((values, helpers) => {
-              const correctAnswers = values.filter(answer => answer.correct);
+              const correctAnswers = values.filter(answer => answer.isCorrect);
               if (!correctAnswers.length || correctAnswers.length > FILL_THE_GAPS_MAX_GAPS_COUNT) {
                 return helpers.message('There must be one or two correct answers');
               }
@@ -123,12 +123,12 @@ exports.cardValidationByTemplate = (template, labels = {}) => {
         qcAnswers: Joi.array()
           .items(Joi.object({
             text: Joi.string().required().max(QC_ANSWER_MAX_LENGTH),
-            correct: Joi.boolean().required(),
+            isCorrect: Joi.boolean().required(),
           }))
           .min(CHOICE_QUESTION_MIN_ANSWERS_COUNT)
           .max(CHOICE_QUESTION_MAX_ANSWERS_COUNT)
           .custom((values, helpers) => {
-            const correctAnswers = values.filter(answer => answer.correct);
+            const correctAnswers = values.filter(answer => answer.isCorrect);
             if (correctAnswers.length !== 1) {
               return helpers.message('There must be exactly one correct answer');
             }
@@ -150,9 +150,9 @@ exports.cardValidationByTemplate = (template, labels = {}) => {
         qcAnswers: Joi.array()
           .items(Joi.object({
             text: Joi.string().required().max(QC_ANSWER_MAX_LENGTH),
-            correct: Joi.boolean().required(),
+            isCorrect: Joi.boolean().required(),
           }))
-          .has(Joi.object({ correct: true }))
+          .has(Joi.object({ isCorrect: true }))
           .min(CHOICE_QUESTION_MIN_ANSWERS_COUNT)
           .max(CHOICE_QUESTION_MAX_ANSWERS_COUNT),
         explanation: Joi.string().required(),
