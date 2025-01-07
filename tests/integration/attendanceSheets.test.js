@@ -2,6 +2,7 @@ const { expect } = require('expect');
 const sinon = require('sinon');
 const { ObjectId } = require('mongodb');
 const GCloudStorageHelper = require('../../src/helpers/gCloudStorage');
+const NotificationHelper = require('../../src/helpers/notifications');
 const app = require('../../server');
 const { populateDB, coursesList, attendanceSheetList, slotsList, userList } = require('./seed/attendanceSheetsSeed');
 const { getToken, getTokenByCredentials } = require('./helpers/authentication');
@@ -20,14 +21,18 @@ describe('NODE ENV', () => {
 describe('ATTENDANCE SHEETS ROUTES - POST /attendancesheets', () => {
   let authToken;
   let uploadCourseFile;
+  let sendNotificationToUser;
+
   describe('TRAINER', () => {
     beforeEach(populateDB);
     beforeEach(async () => {
       authToken = await getToken('trainer');
       uploadCourseFile = sinon.stub(GCloudStorageHelper, 'uploadCourseFile');
+      sendNotificationToUser = sinon.stub(NotificationHelper, 'sendNotificationToUser');
     });
     afterEach(() => {
       uploadCourseFile.restore();
+      sendNotificationToUser.restore();
     });
 
     it('should upload attendance sheet to intra course (webapp)', async () => {
@@ -215,6 +220,7 @@ describe('ATTENDANCE SHEETS ROUTES - POST /attendancesheets', () => {
       const attendanceSheetsLengthAfter = await AttendanceSheet.countDocuments({ course: coursesList[7]._id });
       expect(attendanceSheetsLengthAfter).toBe(attendanceSheetsLengthBefore + 1);
       sinon.assert.calledOnce(uploadCourseFile);
+      sinon.assert.calledTwice(sendNotificationToUser);
     });
 
     it('should  return 400 if single course but slot is missing', async () => {
