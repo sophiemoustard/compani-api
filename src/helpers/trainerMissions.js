@@ -90,8 +90,7 @@ exports.generate = async (payload, credentials) => {
     .populate({ path: 'slotsToPlan', select: '_id' })
     .lean();
 
-  const trainer = get(courses[0], 'trainers', [])
-    .find(t => UtilsHelper.areObjectIdsEquals(t._id, payload.trainer));
+  const trainer = get(courses[0], 'trainers', []).find(t => UtilsHelper.areObjectIdsEquals(t._id, payload.trainer));
 
   const data = formatData(courses, payload.fee, credentials, trainer.identity);
 
