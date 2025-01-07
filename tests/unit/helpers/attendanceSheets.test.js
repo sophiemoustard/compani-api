@@ -566,7 +566,7 @@ describe('delete', () => {
     deleteCourseFile.restore();
   });
 
-  it('should remove an attendance sheet', async () => {
+  it('should remove an attendance sheet (without signatures)', async () => {
     const attendanceSheetId = new ObjectId();
     const attendanceSheet = { _id: attendanceSheetId, file: { publicId: 'yo' } };
 
@@ -574,7 +574,32 @@ describe('delete', () => {
 
     await attendanceSheetHelper.delete(attendanceSheetId);
 
-    sinon.assert.calledWithExactly(deleteCourseFile, 'yo');
+    sinon.assert.calledOnceWithExactly(deleteCourseFile, 'yo');
+    sinon.assert.calledOnceWithExactly(deleteOne, { _id: attendanceSheetId });
+    SinonMongoose.calledOnceWithExactly(
+      findOne,
+      [{ query: 'findOne', args: [{ _id: attendanceSheetId }] }, { query: 'lean' }]
+    );
+  });
+
+  it('should remove an attendance sheet (with signatures)', async () => {
+    const attendanceSheetId = new ObjectId();
+    const attendanceSheet = {
+      _id: attendanceSheetId,
+      file: { publicId: 'yo' },
+      signatures: {
+        trainer: 'gcs.com/bucket/media-trainer_signature_12345_course_67890',
+        trainee: 'gcs.com/bucket/media-trainee_signature_12345_course_67890',
+      },
+    };
+
+    findOne.returns(SinonMongoose.stubChainedQueries(attendanceSheet, ['lean']));
+
+    await attendanceSheetHelper.delete(attendanceSheetId);
+
+    sinon.assert.calledWithExactly(deleteCourseFile.getCall(0), 'media-trainer_signature_12345_course_67890');
+    sinon.assert.calledWithExactly(deleteCourseFile.getCall(1), 'media-trainee_signature_12345_course_67890');
+    sinon.assert.calledWithExactly(deleteCourseFile.getCall(2), 'yo');
     sinon.assert.calledOnceWithExactly(deleteOne, { _id: attendanceSheetId });
     SinonMongoose.calledOnceWithExactly(
       findOne,

@@ -296,6 +296,13 @@ const slotsList = [
     course: coursesList[7]._id,
     step: steps[0]._id,
   },
+  { // 11
+    _id: new ObjectId(),
+    startDate: '2021-03-26T09:00:00.000Z',
+    endDate: '2021-03-26T11:00:00.000Z',
+    course: coursesList[7]._id,
+    step: steps[0]._id,
+  },
 ];
 
 const attendanceSheetList = [
@@ -385,6 +392,19 @@ const attendanceSheetList = [
     trainee: userList[1]._id,
     companies: [authCompany._id],
     slots: [slotsList[10]._id],
+    origin: MOBILE,
+  },
+  { // 10
+    _id: new ObjectId(),
+    course: coursesList[7]._id,
+    signatures: {
+      trainer: 'https://storage.googleapis.com/compani-main/aux-conscience-eclairee.png',
+      trainee: 'https://storage.googleapis.com/compani-main/aux-conscience-eclairee.png',
+    },
+    trainee: userList[1]._id,
+    companies: [authCompany._id],
+    slots: [slotsList[11]._id],
+    file: { publicId: 'yo', link: 'www.test.com' },
     origin: MOBILE,
   },
 ];

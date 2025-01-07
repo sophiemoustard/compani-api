@@ -125,5 +125,14 @@ exports.delete = async (attendanceSheetId) => {
 
   await AttendanceSheet.deleteOne({ _id: attendanceSheet._id });
 
+  if (attendanceSheet.signatures) {
+    const trainerPublicId = attendanceSheet.signatures.trainer.split('/').pop();
+    const traineePublicId = attendanceSheet.signatures.trainee.split('/').pop();
+    await Promise.all([
+      GCloudStorageHelper.deleteCourseFile(trainerPublicId),
+      GCloudStorageHelper.deleteCourseFile(traineePublicId),
+    ]);
+  }
+
   return GCloudStorageHelper.deleteCourseFile(attendanceSheet.file.publicId);
 };
