@@ -1160,7 +1160,8 @@ describe('ATTENDANCE SHEETS ROUTES - DELETE /attendancesheets/{_id}', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      expect(await AttendanceSheet.countDocuments()).toEqual(attendanceSheetsLength - 1);
+      const attendanceSheetsLengthAfter = await AttendanceSheet.countDocuments();
+      expect(attendanceSheetsLengthAfter).toEqual(attendanceSheetsLength - 1);
       sinon.assert.calledOnce(deleteCourseFile);
     });
 
@@ -1174,7 +1175,8 @@ describe('ATTENDANCE SHEETS ROUTES - DELETE /attendancesheets/{_id}', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      expect(await AttendanceSheet.countDocuments()).toEqual(attendanceSheetsLength - 1);
+      const attendanceSheetsLengthAfter = await AttendanceSheet.countDocuments();
+      expect(attendanceSheetsLengthAfter).toEqual(attendanceSheetsLength - 1);
       sinon.assert.calledThrice(deleteCourseFile);
     });
 

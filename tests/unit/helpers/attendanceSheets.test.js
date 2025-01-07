@@ -588,7 +588,7 @@ describe('delete', () => {
       _id: attendanceSheetId,
       file: { publicId: 'yo' },
       signatures: {
-        trainer: 'gcs.com/bucket/media-trainer_signature_12345_course_67890',
+        trainer: 'gcs.com/bucket/media-trainer_signature_abcde_course_67890',
         trainee: 'gcs.com/bucket/media-trainee_signature_12345_course_67890',
       },
     };
@@ -597,7 +597,7 @@ describe('delete', () => {
 
     await attendanceSheetHelper.delete(attendanceSheetId);
 
-    sinon.assert.calledWithExactly(deleteCourseFile.getCall(0), 'media-trainer_signature_12345_course_67890');
+    sinon.assert.calledWithExactly(deleteCourseFile.getCall(0), 'media-trainer_signature_abcde_course_67890');
     sinon.assert.calledWithExactly(deleteCourseFile.getCall(1), 'media-trainee_signature_12345_course_67890');
     sinon.assert.calledWithExactly(deleteCourseFile.getCall(2), 'yo');
     sinon.assert.calledOnceWithExactly(deleteOne, { _id: attendanceSheetId });
