@@ -17,7 +17,7 @@ exports.plugin = {
           payload: Joi.object({
             course: Joi.objectId().required(),
             step: Joi.objectId().required(),
-            quantity: Joi.number().positive().required(),
+            quantity: Joi.number().integer().positive().required(),
           }),
         },
         pre: [{ method: authorizeCreate }],

@@ -86,6 +86,22 @@ describe('COURSE SLOTS ROUTES - POST /courseslots', () => {
         expect(response.statusCode).toBe(400);
       });
     });
+
+    const wrongQuantity = [0, -2, 1.5];
+    wrongQuantity.forEach((q) => {
+      it('should return 400 if quantity is not an integer or negatif number', async () => {
+        const payload = { course: courseSlotsList[0].course, step: stepsList[0]._id, quantity: q };
+
+        const response = await app.inject({
+          method: 'POST',
+          url: '/courseslots',
+          headers: { Cookie: `alenvi_token=${authToken}` },
+          payload,
+        });
+
+        expect(response.statusCode).toBe(400);
+      });
+    });
   });
 
   describe('Other roles', () => {
