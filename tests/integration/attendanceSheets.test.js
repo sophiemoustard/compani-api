@@ -1156,7 +1156,7 @@ describe('ATTENDANCE SHEETS ROUTES - DELETE /attendancesheets/{_id}', () => {
       deleteCourseFile.restore();
     });
 
-    it('should delete an attendance sheet', async () => {
+    it('should delete an attendance sheet (without signatures)', async () => {
       const attendanceSheetId = attendanceSheetList[0]._id;
       const attendanceSheetsLength = await AttendanceSheet.countDocuments();
       const response = await app.inject({
@@ -1166,8 +1166,24 @@ describe('ATTENDANCE SHEETS ROUTES - DELETE /attendancesheets/{_id}', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      expect(await AttendanceSheet.countDocuments()).toEqual(attendanceSheetsLength - 1);
+      const attendanceSheetsLengthAfter = await AttendanceSheet.countDocuments();
+      expect(attendanceSheetsLengthAfter).toEqual(attendanceSheetsLength - 1);
       sinon.assert.calledOnce(deleteCourseFile);
+    });
+
+    it('should delete an attendance sheet (with signatures)', async () => {
+      const attendanceSheetId = attendanceSheetList[10]._id;
+      const attendanceSheetsLength = await AttendanceSheet.countDocuments();
+      const response = await app.inject({
+        method: 'DELETE',
+        url: `/attendancesheets/${attendanceSheetId}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(200);
+      const attendanceSheetsLengthAfter = await AttendanceSheet.countDocuments();
+      expect(attendanceSheetsLengthAfter).toEqual(attendanceSheetsLength - 1);
+      sinon.assert.calledThrice(deleteCourseFile);
     });
 
     it('should return a 404 if attendance sheet does not exist', async () => {
