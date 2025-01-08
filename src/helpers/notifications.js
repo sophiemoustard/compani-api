@@ -3,6 +3,7 @@ const axios = require('axios');
 const AttendanceSheet = require('../models/AttendanceSheet');
 const Course = require('../models/Course');
 const User = require('../models/User');
+const UtilsHelper = require('./utils');
 const {
   BLENDED_COURSE_REGISTRATION,
   NEW_ELEARNING_COURSE,
@@ -78,6 +79,7 @@ exports.sendAttendanceSheetSignatureRequestNotification = async (attendanceSheet
   if (!formationExpoTokenList.length) return;
 
   const attendanceSheet = await AttendanceSheet.findOne({ _id: attendanceSheetId }, { course: 1 })
+    .populate({ path: 'trainer', select: 'identity' })
     .populate({
       path: 'course',
       select: 'subProgram misc',
@@ -86,13 +88,14 @@ exports.sendAttendanceSheetSignatureRequestNotification = async (attendanceSheet
     .lean();
 
   const courseName = getCourseName(attendanceSheet.course);
+  const trainerName = UtilsHelper.formatIdentity(attendanceSheet.trainer.identity, 'FL');
 
   const notifications = [];
   for (const expoToken of formationExpoTokenList) {
     notifications.push(
       this.sendNotificationToUser({
         title: 'Vous avez une demande d\'émargement à signer',
-        body: `Votre formateur vous demande d'émarger des créneaux pour la formation ${courseName}.`,
+        body: `${trainerName} vous demande d'émarger des créneaux pour la formation ${courseName}.`,
         data: {
           _id: attendanceSheetId,
           courseId: attendanceSheet.course._id,
