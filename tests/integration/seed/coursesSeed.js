@@ -469,6 +469,7 @@ const coursesList = [
     trainees: [],
     companies: [authCompany._id],
     operationsRepresentative: vendorAdmin._id,
+    trainers: [trainer._id],
   },
   { // 13 course without trainee
     _id: new ObjectId(),
@@ -1190,6 +1191,7 @@ const attendanceSheetList = [
     file: { publicId: 'publicId', link: 'https://link.com' },
     companies: [authCompany._id],
     origin: WEBAPP,
+    trainer: trainer._id,
   },
 ];
 

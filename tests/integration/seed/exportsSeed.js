@@ -1641,6 +1641,7 @@ const attendanceSheetList = [
     file: { link: 'link', publicId: '123' },
     companies: [authCompany._id],
     origin: WEBAPP,
+    trainer: trainer._id,
   },
 ];
 

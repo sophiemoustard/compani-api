@@ -104,12 +104,12 @@ exports.generate = async (attendanceSheetId) => {
     .findOne({ _id: attendanceSheetId })
     .populate({ path: 'slots', select: 'step startDate endDate address', populate: { path: 'step', select: 'type' } })
     .populate({ path: 'trainee', select: 'identity' })
+    .populate({ path: 'trainer', select: 'identity' })
     .populate({
       path: 'course',
-      select: 'type misc companies trainer subProgram',
+      select: 'type misc companies subProgram',
       populate: [
         { path: 'companies', select: 'name' },
-        { path: 'trainer', select: 'identity' },
         { path: 'subProgram', select: 'program', populate: { path: 'program', select: 'name' } },
       ],
     })
@@ -119,6 +119,7 @@ exports.generate = async (attendanceSheetId) => {
     ...attendanceSheet.course,
     slots: attendanceSheet.slots,
     trainees: [attendanceSheet.trainee],
+    trainers: [attendanceSheet.trainer],
   };
   const formattedCourseForInter = await CoursesHelper.formatInterCourseForPdf(formattedCourse);
   const pdf = await InterAttendanceSheet.getPdf({ ...formattedCourseForInter, signatures: attendanceSheet.signatures });

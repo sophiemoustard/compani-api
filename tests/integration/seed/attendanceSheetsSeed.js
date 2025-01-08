@@ -157,6 +157,7 @@ const coursesList = [
     type: INTRA_HOLDING,
     maxTrainees: 8,
     trainees: [],
+    trainers: [trainer._id],
     companies: [],
     holding: otherHolding._id,
     operationsRepresentative: userList[0]._id,
@@ -314,6 +315,7 @@ const attendanceSheetList = [
     date: '2020-01-23T09:00:00.000Z',
     companies: [authCompany._id],
     origin: WEBAPP,
+    trainer: trainer._id,
   },
   { // 1
     _id: new ObjectId(),
@@ -322,6 +324,7 @@ const attendanceSheetList = [
     trainee: userList[1]._id,
     companies: [authCompany._id],
     origin: WEBAPP,
+    trainer: trainer._id,
   },
   { // 2
     _id: new ObjectId(),
@@ -330,6 +333,7 @@ const attendanceSheetList = [
     trainee: userList[1]._id,
     companies: [authCompany._id],
     origin: MOBILE,
+    trainer: trainer._id,
   },
   { // 3
     _id: new ObjectId(),
@@ -338,6 +342,7 @@ const attendanceSheetList = [
     date: '2020-01-25T09:00:00.000Z',
     companies: [authCompany._id],
     origin: MOBILE,
+    trainer: userList[3]._id,
   },
   { // 4
     _id: new ObjectId(),
@@ -346,6 +351,7 @@ const attendanceSheetList = [
     trainee: userList[4]._id,
     companies: [companyWithoutSubscription._id],
     origin: MOBILE,
+    trainer: trainer._id,
   },
   { // 5
     _id: new ObjectId(),
@@ -355,6 +361,7 @@ const attendanceSheetList = [
     companies: [authCompany._id],
     slots: [slotsList[5]._id],
     origin: WEBAPP,
+    trainer: trainer._id,
   },
   { // 6
     _id: new ObjectId(),
@@ -364,6 +371,7 @@ const attendanceSheetList = [
     companies: [authCompany._id],
     slots: [slotsList[6]._id],
     origin: WEBAPP,
+    trainer: trainer._id,
   },
   { // 7
     _id: new ObjectId(),
@@ -373,6 +381,7 @@ const attendanceSheetList = [
     companies: [authCompany._id],
     slots: [slotsList[8]._id],
     origin: WEBAPP,
+    trainer: userList[3]._id,
   },
   { // 8
     _id: new ObjectId(),
@@ -382,6 +391,7 @@ const attendanceSheetList = [
     companies: [authCompany._id],
     slots: [slotsList[9]._id],
     origin: MOBILE,
+    trainer: userList[3]._id,
   },
   { // 9
     _id: new ObjectId(),
@@ -394,6 +404,7 @@ const attendanceSheetList = [
     companies: [authCompany._id],
     slots: [slotsList[10]._id],
     origin: MOBILE,
+    trainer: trainer._id,
   },
   { // 10
     _id: new ObjectId(),
