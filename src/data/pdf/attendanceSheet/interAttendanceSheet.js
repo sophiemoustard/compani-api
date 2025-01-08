@@ -1,5 +1,4 @@
 const UtilsPdfHelper = require('./utils');
-const UtilsHelper = require('../../../helpers/utils');
 const PdfHelper = require('../../../helpers/pdf');
 const FileHelper = require('../../../helpers/file');
 const { COPPER_500 } = require('../../../helpers/constants');
@@ -29,15 +28,13 @@ exports.getPdfContent = async (data) => {
   const content = [];
   trainees.forEach((trainee, i) => {
     const title = `Émargements - ${trainee.traineeName}`;
-    const trainersCount = trainee.course.trainers.length;
-    const formattedTrainersTitle = UtilsHelper.formatQuantity('Intervenant·e', trainersCount, 's', false);
     const columns = [
       [
         { text: `Nom de la formation : ${trainee.course.name}`, bold: true, marginBottom: 10 },
         { text: `Dates : du ${trainee.course.firstDate} au ${trainee.course.lastDate}` },
         { text: `Durée : ${trainee.course.duration}` },
         { text: `Structure : ${trainee.registrationCompany}` },
-        { text: `${formattedTrainersTitle} : ${trainee.course.trainers.join(', ')}` },
+        { text: `Intervenant·e : ${trainee.course.trainer}` },
       ],
       { image: decision, width: 64 },
     ];

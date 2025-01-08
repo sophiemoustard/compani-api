@@ -2310,7 +2310,7 @@ describe('getCourse', () => {
               path: 'attendanceSheets',
               match: { trainee: loggedUser._id },
               options: { requestingOwnInfos: true },
-              populate: { path: 'slots', select: 'startDate endDate step' },
+              populate: [{ path: 'slots', select: 'startDate endDate step' }, { path: 'trainer', select: 'identity' }],
             }],
           },
           { query: 'select', args: ['_id misc format'] },
@@ -2475,7 +2475,7 @@ describe('getCourse', () => {
               path: 'attendanceSheets',
               match: { trainee: loggedUser._id },
               options: { requestingOwnInfos: true },
-              populate: { path: 'slots', select: 'startDate endDate step' },
+              populate: [{ path: 'slots', select: 'startDate endDate step' }, { path: 'trainer', select: 'identity' }],
             }],
           },
           { query: 'select', args: ['_id misc format'] },
@@ -2640,7 +2640,7 @@ describe('getCourse', () => {
               path: 'attendanceSheets',
               match: { trainee: loggedUser._id },
               options: { requestingOwnInfos: true },
-              populate: { path: 'slots', select: 'startDate endDate step' },
+              populate: [{ path: 'slots', select: 'startDate endDate step' }, { path: 'trainer', select: 'identity' }],
             }],
           },
           { query: 'select', args: ['_id misc format'] },
@@ -2762,7 +2762,7 @@ describe('getCourse', () => {
               path: 'attendanceSheets',
               match: { trainee: loggedUser._id },
               options: { requestingOwnInfos: true },
-              populate: { path: 'slots', select: 'startDate endDate step' },
+              populate: [{ path: 'slots', select: 'startDate endDate step' }, { path: 'trainer', select: 'identity' }],
             }],
           },
           { query: 'select', args: ['_id misc format'] },
@@ -4190,8 +4190,6 @@ describe('formatIntraCourseForPdf', () => {
     };
 
     getTotalDuration.returns('8h');
-    formatIdentity.onCall(0).returns('MasterClass');
-    formatIdentity.onCall(1).returns('MasterCompani');
     groupSlotsByDate.returns([[{
       startDate: '2020-03-20T09:00:00',
       endDate: '2020-03-20T11:00:00',
@@ -4214,7 +4212,7 @@ describe('formatIntraCourseForPdf', () => {
             name: 'programme - des infos en plus',
             duration: '8h',
             company: 'alenvi',
-            trainers: ['MasterClass', 'MasterCompani'],
+            trainer: '',
             type: INTRA,
           },
           address: '37 rue de Ponthieu 75008 Paris',
@@ -4226,7 +4224,7 @@ describe('formatIntraCourseForPdf', () => {
             name: 'programme - des infos en plus',
             duration: '8h',
             company: 'alenvi',
-            trainers: ['MasterClass', 'MasterCompani'],
+            trainer: '',
             type: INTRA,
           },
           address: '',
@@ -4235,8 +4233,7 @@ describe('formatIntraCourseForPdf', () => {
         }],
     });
     sinon.assert.calledOnceWithExactly(getTotalDuration, course.slots);
-    sinon.assert.calledWithExactly(formatIdentity.getCall(0), { lastname: 'MasterClass' }, 'FL');
-    sinon.assert.calledWithExactly(formatIdentity.getCall(1), { lastname: 'MasterCompani' }, 'FL');
+    sinon.assert.notCalled(formatIdentity);
     sinon.assert.calledOnceWithExactly(groupSlotsByDate, [
       {
         startDate: '2020-03-20T09:00:00',
@@ -4256,10 +4253,7 @@ describe('formatIntraCourseForPdf', () => {
   it('should format course for pdf (intra_holding)', () => {
     const course = {
       misc: 'des infos en plus',
-      trainers: [
-        { identity: { lastname: 'MasterClass' } },
-        { identity: { lastname: 'MasterCompani' } },
-      ],
+      trainers: [{ identity: { lastname: 'MasterClass' } }],
       subProgram: { program: { name: 'programme' } },
       slots: [
         {
@@ -4277,8 +4271,7 @@ describe('formatIntraCourseForPdf', () => {
     };
 
     getTotalDuration.returns('8h');
-    formatIdentity.onCall(0).returns('MasterClass');
-    formatIdentity.onCall(1).returns('MasterCompani');
+    formatIdentity.returns('MasterClass');
     groupSlotsByDate.returns([[{
       startDate: '2020-03-20T09:00:00',
       endDate: '2020-03-20T11:00:00',
@@ -4300,7 +4293,7 @@ describe('formatIntraCourseForPdf', () => {
           name: 'programme - des infos en plus',
           duration: '8h',
           company: 'alenvi, biens communs',
-          trainers: ['MasterClass', 'MasterCompani'],
+          trainer: 'MasterClass',
           type: INTRA_HOLDING,
         },
         address: '37 rue de Ponthieu 75008 Paris',
@@ -4311,7 +4304,7 @@ describe('formatIntraCourseForPdf', () => {
           name: 'programme - des infos en plus',
           duration: '8h',
           company: 'alenvi, biens communs',
-          trainers: ['MasterClass', 'MasterCompani'],
+          trainer: 'MasterClass',
           type: INTRA_HOLDING,
         },
         address: '',
@@ -4320,8 +4313,7 @@ describe('formatIntraCourseForPdf', () => {
       }],
     });
     sinon.assert.calledOnceWithExactly(getTotalDuration, course.slots);
-    sinon.assert.calledWithExactly(formatIdentity.getCall(0), { lastname: 'MasterClass' }, 'FL');
-    sinon.assert.calledWithExactly(formatIdentity.getCall(1), { lastname: 'MasterCompani' }, 'FL');
+    sinon.assert.calledOnceWithExactly(formatIdentity, { lastname: 'MasterClass' }, 'FL');
     sinon.assert.calledOnceWithExactly(groupSlotsByDate, [
       {
         startDate: '2020-03-20T09:00:00',
@@ -4389,10 +4381,8 @@ describe('formatInterCourseForPdf', () => {
       { startDate: '2020-04-21T09:00:00', endDate: '2020-04-21T11:30:00', step: { type: 'on_site' } },
     ];
     formatInterCourseSlotsForPdf.returns('slot');
-    formatIdentity.onCall(0).returns('MasterClass');
-    formatIdentity.onCall(1).returns('MasterCompani');
-    formatIdentity.onCall(2).returns('trainee 1');
-    formatIdentity.onCall(3).returns('trainee 2');
+    formatIdentity.onCall(0).returns('trainee 1');
+    formatIdentity.onCall(1).returns('trainee 2');
     getTotalDuration.returns('7h');
     getCompanyAtCourseRegistrationList
       .returns([{ trainee: traineeIds[0], company: companyId }, { trainee: traineeIds[1], company: companyId }]);
@@ -4408,7 +4398,7 @@ describe('formatInterCourseForPdf', () => {
           course: {
             name: 'programme de formation - des infos en plus',
             slots: ['slot', 'slot', 'slot'],
-            trainers: ['MasterClass', 'MasterCompani'],
+            trainer: '',
             firstDate: '20/03/2020',
             lastDate: '21/04/2020',
             duration: '7h',
@@ -4420,7 +4410,7 @@ describe('formatInterCourseForPdf', () => {
           course: {
             name: 'programme de formation - des infos en plus',
             slots: ['slot', 'slot', 'slot'],
-            trainers: ['MasterClass', 'MasterCompani'],
+            trainer: '',
             firstDate: '20/03/2020',
             lastDate: '21/04/2020',
             duration: '7h',
@@ -4428,10 +4418,8 @@ describe('formatInterCourseForPdf', () => {
         },
       ],
     });
-    sinon.assert.calledWithExactly(formatIdentity.getCall(0), { lastname: 'MasterClass' }, 'FL');
-    sinon.assert.calledWithExactly(formatIdentity.getCall(1), { lastname: 'MasterCompani' }, 'FL');
-    sinon.assert.calledWithExactly(formatIdentity.getCall(2), { lastname: 'trainee 1' }, 'FL');
-    sinon.assert.calledWithExactly(formatIdentity.getCall(3), { lastname: 'trainee 2' }, 'FL');
+    sinon.assert.calledWithExactly(formatIdentity.getCall(0), { lastname: 'trainee 1' }, 'FL');
+    sinon.assert.calledWithExactly(formatIdentity.getCall(1), { lastname: 'trainee 2' }, 'FL');
     sinon.assert.calledOnceWithExactly(getTotalDuration, sortedSlots);
     sinon.assert.calledOnceWithExactly(
       getCompanyAtCourseRegistrationList,
@@ -4458,10 +4446,7 @@ describe('formatInterCourseForPdf', () => {
         { startDate: '2020-04-12T09:00:00', endDate: '2020-04-15T11:30:00', step: { type: 'remote' } },
       ],
       misc: 'des infos en plus',
-      trainers: [
-        { identity: { lastname: 'MasterClass' } },
-        { identity: { lastname: 'MasterCompani' } },
-      ],
+      trainers: [{ identity: { lastname: 'MasterClass' } }],
       trainees: [],
       subProgram: { program: { name: 'programme de formation' } },
     };
@@ -4471,8 +4456,7 @@ describe('formatInterCourseForPdf', () => {
       { startDate: '2020-04-21T09:00:00', endDate: '2020-04-21T11:30:00', step: { type: 'on_site' } },
     ];
     formatInterCourseSlotsForPdf.returns('slot');
-    formatIdentity.onCall(0).returns('MasterClass');
-    formatIdentity.onCall(1).returns('MasterCompani');
+    formatIdentity.returns('MasterClass');
     getTotalDuration.returns('7h');
     getCompanyAtCourseRegistrationList.returns([]);
     findCompanies.returns(SinonMongoose.stubChainedQueries([], ['lean']));
@@ -4487,7 +4471,7 @@ describe('formatInterCourseForPdf', () => {
           course: {
             name: 'programme de formation - des infos en plus',
             slots: ['slot', 'slot', 'slot'],
-            trainers: ['MasterClass', 'MasterCompani'],
+            trainer: 'MasterClass',
             firstDate: '20/03/2020',
             lastDate: '21/04/2020',
             duration: '7h',
@@ -4495,8 +4479,7 @@ describe('formatInterCourseForPdf', () => {
         },
       ],
     });
-    sinon.assert.calledWithExactly(formatIdentity.getCall(0), { lastname: 'MasterClass' }, 'FL');
-    sinon.assert.calledWithExactly(formatIdentity.getCall(1), { lastname: 'MasterCompani' }, 'FL');
+    sinon.assert.calledOnceWithExactly(formatIdentity, { lastname: 'MasterClass' }, 'FL');
     sinon.assert.calledOnceWithExactly(getTotalDuration, sortedSlots);
     sinon.assert.calledOnceWithExactly(
       getCompanyAtCourseRegistrationList,
