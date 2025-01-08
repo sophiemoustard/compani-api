@@ -376,7 +376,7 @@ describe('SEEDS VERIFICATION', () => {
             .populate({ path: 'trainee', select: 'id', populate: { path: 'userCompanyList' } })
             .populate({
               path: 'course',
-              select: '_id type companies subProgram',
+              select: '_id type companies subProgram trainers',
               populate: { path: 'slots', select: 'startDate' },
             })
             .populate({ path: 'companies', select: '_id' })
@@ -484,6 +484,13 @@ describe('SEEDS VERIFICATION', () => {
             .every(a => a.companies.every(c => UtilsHelper.doesArrayIncludeId(a.course.companies, c._id)));
 
           expect(everyCompanyIsInCourse).toBeTruthy();
+        });
+
+        it('should pass if all attendance sheet\'s trainers are course trainers', () => {
+          const areTrainerInCourse = attendanceSheetList
+            .every(attendanceSheet => !!attendanceSheet.trainer &&
+              UtilsHelper.doesArrayIncludeId(attendanceSheet.course.trainers, attendanceSheet.trainer));
+          expect(areTrainerInCourse).toBeTruthy();
         });
       });
 

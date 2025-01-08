@@ -75,6 +75,8 @@ exports.authorizeAttendanceSheetCreation = async (req) => {
   const { credentials } = req.auth;
   if (!isVendorAndAuthorized(course.trainers, credentials)) throw Boom.forbidden();
 
+  if (!UtilsHelper.doesArrayIncludeId(course.trainers, req.payload.trainer)) throw Boom.forbidden();
+
   if ([INTRA, INTRA_HOLDING].includes(course.type)) {
     if (req.payload.trainee) throw Boom.badRequest();
     const isCourseSlotDate = course.slots.some(slot => CompaniDate(slot.startDate).isSame(req.payload.date, DAY));

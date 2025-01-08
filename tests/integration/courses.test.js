@@ -840,7 +840,7 @@ describe('COURSES ROUTES - GET /courses', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      expect(response.result.data.courses.length).toEqual(13);
+      expect(response.result.data.courses.length).toEqual(14);
     });
 
     it('should get trainer\'s course (ops mobile)', async () => {
@@ -852,7 +852,7 @@ describe('COURSES ROUTES - GET /courses', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      expect(response.result.data.courses.length).toEqual(13);
+      expect(response.result.data.courses.length).toEqual(14);
 
       const course =
          response.result.data.courses.find(c => UtilsHelper.areObjectIdsEquals(coursesList[2]._id, c._id));

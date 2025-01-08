@@ -49,6 +49,7 @@ exports.plugin = {
             course: Joi.objectId().required(),
             file: Joi.any(),
             trainee: Joi.objectId(),
+            trainer: Joi.objectId().required(),
             date: Joi.date(),
             origin: Joi.string().valid(...ORIGIN_OPTIONS).default(MOBILE),
             slots: Joi

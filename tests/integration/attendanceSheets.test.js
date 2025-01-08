@@ -9,7 +9,7 @@ const { getToken, getTokenByCredentials } = require('./helpers/authentication');
 const { generateFormData, getStream } = require('./utils');
 const { WEBAPP, MOBILE, GENERATION } = require('../../src/helpers/constants');
 const AttendanceSheet = require('../../src/models/AttendanceSheet');
-const { holdingAdminFromOtherCompany, trainerAndCoach } = require('../seed/authUsersSeed');
+const { holdingAdminFromOtherCompany, trainerAndCoach, trainer } = require('../seed/authUsersSeed');
 const { authCompany, otherCompany, otherHolding, authHolding } = require('../seed/authCompaniesSeed');
 
 describe('NODE ENV', () => {
@@ -41,6 +41,7 @@ describe('ATTENDANCE SHEETS ROUTES - POST /attendancesheets', () => {
         file: 'test',
         date: new Date('2020-01-23').toISOString(),
         origin: WEBAPP,
+        trainer: trainer._id.toHexString(),
       };
 
       const form = generateFormData(formData);
@@ -67,6 +68,7 @@ describe('ATTENDANCE SHEETS ROUTES - POST /attendancesheets', () => {
         course: coursesList[0]._id.toHexString(),
         file: 'test',
         date: new Date('2020-01-23').toISOString(),
+        trainer: trainer._id.toHexString(),
       };
 
       const form = generateFormData(formData);
@@ -94,6 +96,7 @@ describe('ATTENDANCE SHEETS ROUTES - POST /attendancesheets', () => {
         file: 'test',
         trainee: coursesList[1].trainees[0].toHexString(),
         origin: MOBILE,
+        trainer: trainer._id.toHexString(),
       };
 
       const form = generateFormData(formData);
@@ -121,6 +124,7 @@ describe('ATTENDANCE SHEETS ROUTES - POST /attendancesheets', () => {
         file: 'test',
         date: new Date('2020-01-25').toISOString(),
         origin: WEBAPP,
+        trainer: trainer._id.toHexString(),
       };
 
       const form = generateFormData(formData);
@@ -150,6 +154,7 @@ describe('ATTENDANCE SHEETS ROUTES - POST /attendancesheets', () => {
         file: 'test',
         trainee: coursesList[7].trainees[0].toHexString(),
         origin: WEBAPP,
+        trainer: trainer._id.toHexString(),
       };
 
       const form = generateFormData(formData);
@@ -176,6 +181,7 @@ describe('ATTENDANCE SHEETS ROUTES - POST /attendancesheets', () => {
         file: 'test',
         trainee: coursesList[7].trainees[0].toHexString(),
         origin: WEBAPP,
+        trainer: trainer._id.toHexString(),
       };
 
       const form = generateFormData(formData);
@@ -203,6 +209,7 @@ describe('ATTENDANCE SHEETS ROUTES - POST /attendancesheets', () => {
         signature: 'test',
         trainee: coursesList[7].trainees[0].toHexString(),
         origin: MOBILE,
+        trainer: trainer._id.toHexString(),
       };
 
       const form = generateFormData(formData);
@@ -229,6 +236,7 @@ describe('ATTENDANCE SHEETS ROUTES - POST /attendancesheets', () => {
         file: 'test',
         trainee: coursesList[7].trainees[0].toHexString(),
         origin: WEBAPP,
+        trainer: trainer._id.toHexString(),
       };
 
       const form = generateFormData(formData);
@@ -249,6 +257,7 @@ describe('ATTENDANCE SHEETS ROUTES - POST /attendancesheets', () => {
         course: coursesList[7]._id.toHexString(),
         file: 'test',
         origin: WEBAPP,
+        trainer: trainer._id.toHexString(),
       };
 
       const form = generateFormData(formData);
@@ -270,6 +279,7 @@ describe('ATTENDANCE SHEETS ROUTES - POST /attendancesheets', () => {
         file: 'test',
         trainee: coursesList[5].trainees[0].toHexString(),
         origin: WEBAPP,
+        trainer: trainer._id.toHexString(),
       };
 
       const form = generateFormData(formData);
@@ -291,6 +301,7 @@ describe('ATTENDANCE SHEETS ROUTES - POST /attendancesheets', () => {
         file: 'test',
         trainee: coursesList[7].trainees[0].toHexString(),
         origin: WEBAPP,
+        trainer: trainer._id.toHexString(),
       };
 
       const form = generateFormData(formData);
@@ -313,6 +324,7 @@ describe('ATTENDANCE SHEETS ROUTES - POST /attendancesheets', () => {
         file: 'test',
         trainee: coursesList[7].trainees[0].toHexString(),
         origin: WEBAPP,
+        trainer: trainer._id.toHexString(),
       };
 
       const form = generateFormData(formData);
@@ -333,6 +345,7 @@ describe('ATTENDANCE SHEETS ROUTES - POST /attendancesheets', () => {
         course: coursesList[0]._id.toHexString(),
         file: 'test',
         trainee: coursesList[0].trainees[0]._id.toHexString(),
+        trainer: trainer._id.toHexString(),
       };
 
       const form = generateFormData(formData);
@@ -352,6 +365,7 @@ describe('ATTENDANCE SHEETS ROUTES - POST /attendancesheets', () => {
         course: coursesList[5]._id.toHexString(),
         file: 'test',
         trainee: coursesList[5].trainees[0]._id.toHexString(),
+        trainer: trainer._id.toHexString(),
       };
 
       const form = generateFormData(formData);
@@ -371,6 +385,7 @@ describe('ATTENDANCE SHEETS ROUTES - POST /attendancesheets', () => {
         course: coursesList[1]._id.toHexString(),
         file: 'test',
         date: new Date('2020-01-23').toISOString(),
+        trainer: trainer._id.toHexString(),
       };
 
       const form = generateFormData(formData);
@@ -389,6 +404,7 @@ describe('ATTENDANCE SHEETS ROUTES - POST /attendancesheets', () => {
       const formData = {
         course: coursesList[2]._id.toHexString(),
         file: 'test',
+        trainer: userList[3]._id.toHexString(),
       };
 
       const form = generateFormData(formData);
@@ -409,6 +425,7 @@ describe('ATTENDANCE SHEETS ROUTES - POST /attendancesheets', () => {
         signature: 'test',
         trainee: coursesList[7].trainees[0].toHexString(),
         origin: MOBILE,
+        trainer: trainer._id.toHexString(),
       };
 
       const form = generateFormData(formData);
@@ -431,6 +448,7 @@ describe('ATTENDANCE SHEETS ROUTES - POST /attendancesheets', () => {
         file: 'test2',
         trainee: coursesList[7].trainees[0].toHexString(),
         origin: MOBILE,
+        trainer: trainer._id.toHexString(),
       };
 
       const form = generateFormData(formData);
@@ -452,6 +470,7 @@ describe('ATTENDANCE SHEETS ROUTES - POST /attendancesheets', () => {
         course: coursesList[7]._id.toHexString(),
         trainee: coursesList[7].trainees[0].toHexString(),
         origin: MOBILE,
+        trainer: trainer._id.toHexString(),
       };
 
       const form = generateFormData(formData);
@@ -473,6 +492,7 @@ describe('ATTENDANCE SHEETS ROUTES - POST /attendancesheets', () => {
         file: 'test',
         date: new Date('2020-01-23').toISOString(),
         origin: 'poiuytr',
+        trainer: trainer._id.toHexString(),
       };
 
       const form = generateFormData(formData);
@@ -492,6 +512,27 @@ describe('ATTENDANCE SHEETS ROUTES - POST /attendancesheets', () => {
         course: coursesList[2]._id.toHexString(),
         file: 'test',
         date: '2020-01-25T09:00:00.000Z',
+        trainer: userList[3]._id.toHexString(),
+      };
+
+      const form = generateFormData(formData);
+
+      const response = await app.inject({
+        method: 'POST',
+        url: '/attendancesheets',
+        payload: getStream(form),
+        headers: { ...form.getHeaders(), Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
+
+    it('should return a 403 if trainer in payload is not course trainer', async () => {
+      const formData = {
+        course: coursesList[3]._id.toHexString(),
+        file: 'test',
+        date: '2020-01-25T09:00:00.000Z',
+        trainer: trainerAndCoach._id.toHexString(),
       };
 
       const form = generateFormData(formData);
@@ -511,6 +552,7 @@ describe('ATTENDANCE SHEETS ROUTES - POST /attendancesheets', () => {
         course: coursesList[1]._id.toHexString(),
         file: 'test',
         trainee: new ObjectId().toHexString(),
+        trainer: trainer._id.toHexString(),
       };
 
       const form = generateFormData(formData);
@@ -530,6 +572,7 @@ describe('ATTENDANCE SHEETS ROUTES - POST /attendancesheets', () => {
         course: coursesList[0]._id.toHexString(),
         file: 'test',
         date: new Date('2018-01-23').toISOString(),
+        trainer: trainer._id.toHexString(),
       };
 
       const form = generateFormData(formData);
@@ -550,6 +593,7 @@ describe('ATTENDANCE SHEETS ROUTES - POST /attendancesheets', () => {
         course: course._id.toHexString(),
         file: 'test',
         trainee: course.trainees[0].toHexString(),
+        trainer: trainer._id.toHexString(),
       };
 
       const form = generateFormData(formData);
@@ -569,6 +613,7 @@ describe('ATTENDANCE SHEETS ROUTES - POST /attendancesheets', () => {
         course: coursesList[6]._id.toHexString(),
         file: 'test',
         date: new Date('2020-01-25').toISOString(),
+        trainer: trainer._id.toHexString(),
       };
 
       const form = generateFormData(formData);
@@ -606,6 +651,7 @@ describe('ATTENDANCE SHEETS ROUTES - POST /attendancesheets', () => {
           course: coursesList[0]._id.toHexString(),
           file: 'test',
           date: new Date('2020-01-23').toISOString(),
+          trainer: trainer._id.toHexString(),
         };
         const form = generateFormData(formData);
 
@@ -867,25 +913,25 @@ describe('ATTENDANCE SHEETS ROUTES - PUT /attendancesheets/{_id}', () => {
       sinon.assert.notCalled(uploadCourseFile);
     });
 
-    // it('should generate attendance sheet file for a single course', async () => {
-    //   const attendanceSheetId = attendanceSheetList[9]._id;
-    //   const payload = { action: GENERATION };
-    //   uploadCourseFile.returns({ publicId: '1234567890', link: 'https://test.com/signature.pdf' });
+    it('should generate attendance sheet file for a single course', async () => {
+      const attendanceSheetId = attendanceSheetList[9]._id;
+      const payload = { action: GENERATION };
+      uploadCourseFile.returns({ publicId: '1234567890', link: 'https://test.com/signature.pdf' });
 
-    //   const response = await app.inject({
-    //     method: 'PUT',
-    //     url: `/attendancesheets/${attendanceSheetId}`,
-    //     headers: { Cookie: `alenvi_token=${authToken}` },
-    //     payload,
-    //   });
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/attendancesheets/${attendanceSheetId}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload,
+      });
 
-    //   expect(response.statusCode).toBe(200);
+      expect(response.statusCode).toBe(200);
 
-    //   const attendanceSheetUpdated = await AttendanceSheet
-    //     .countDocuments({ _id: attendanceSheetId, file: { $exists: true } });
-    //   expect(attendanceSheetUpdated).toEqual(1);
-    //   sinon.assert.calledOnce(uploadCourseFile);
-    // });
+      const attendanceSheetUpdated = await AttendanceSheet
+        .countDocuments({ _id: attendanceSheetId, file: { $exists: true } });
+      expect(attendanceSheetUpdated).toEqual(1);
+      sinon.assert.calledOnce(uploadCourseFile);
+    });
 
     it('should return 404 if attendance sheet doesn\'t exist', async () => {
       const payload = { slots: [slotsList[4]._id] };
