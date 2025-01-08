@@ -603,7 +603,7 @@ const _getCourseForPedagogy = async (courseId, credentials) => {
       path: 'attendanceSheets',
       match: { trainee: credentials._id },
       options: { requestingOwnInfos: true },
-      populate: { path: 'slots', select: 'startDate endDate step' },
+      populate: [{ path: 'slots', select: 'startDate endDate step' }, { path: 'trainer', select: 'identity' }],
     })
     .select('_id misc format')
     .lean({ autopopulate: true, virtuals: true });
@@ -807,7 +807,7 @@ exports.formatIntraCourseForPdf = (course) => {
     name,
     duration: UtilsHelper.getTotalDuration(course.slots),
     company: UtilsHelper.formatName(course.companies),
-    trainers: course.trainers.map(trainer => UtilsHelper.formatIdentity(trainer.identity, 'FL')),
+    trainer: course.trainers.length === 1 ? UtilsHelper.formatIdentity(course.trainers[0].identity, 'FL') : '',
     type: course.type,
   };
 
@@ -834,7 +834,7 @@ exports.formatInterCourseForPdf = async (course) => {
   const courseData = {
     name,
     slots: filteredSlots.map(exports.formatInterCourseSlotsForPdf),
-    trainers: course.trainers.map(trainer => UtilsHelper.formatIdentity(trainer.identity, 'FL')),
+    trainer: course.trainers.length === 1 ? UtilsHelper.formatIdentity(course.trainers[0].identity, 'FL') : '',
     firstDate: filteredSlots.length ? CompaniDate(filteredSlots[0].startDate).format(DD_MM_YYYY) : '',
     lastDate: filteredSlots.length
       ? CompaniDate(filteredSlots[filteredSlots.length - 1].startDate).format(DD_MM_YYYY)

@@ -1,5 +1,4 @@
 const UtilsPdfHelper = require('./utils');
-const UtilsHelper = require('../../../helpers/utils');
 const PdfHelper = require('../../../helpers/pdf');
 const { COPPER_500, INTRA_HOLDING } = require('../../../helpers/constants');
 
@@ -11,15 +10,13 @@ exports.getPdfContent = async (data) => {
   const isIntraHoldingCourse = dates[0].course.type === INTRA_HOLDING;
   dates.forEach((date, i) => {
     const title = `Feuille d'émargement - ${date.date}`;
-    const trainersCount = date.course.trainers.length;
-    const formattedTrainersTitle = UtilsHelper.formatQuantity('Intervenant·e', trainersCount, 's', false);
     const columns = [
       [
         { text: `Nom de la formation : ${date.course.name}`, bold: true, marginBottom: 10 },
         { text: `Durée : ${date.course.duration}` },
         { text: `Lieu : ${date.address}` },
         { text: `Structure : ${date.course.company}` },
-        { text: `${formattedTrainersTitle} : ${date.course.trainers.join(', ')}` },
+        { text: `Intervenant·e : ${date.course.trainer}` },
       ],
       { image: decision, width: 64 },
     ];

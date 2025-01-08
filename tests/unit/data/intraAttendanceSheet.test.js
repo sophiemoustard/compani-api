@@ -27,7 +27,7 @@ describe('getPdfContent', () => {
       name: 'La communication empathique - Groupe 3',
       duration: '5h',
       company: 'Alenvi Home SAS',
-      trainers: ['Ken Kaneki'],
+      trainer: 'Ken Kaneki',
       type: INTRA,
     };
     const data = {
@@ -166,7 +166,7 @@ describe('getPdfContent', () => {
       name: 'La communication empathique - Groupe 3',
       duration: '5h',
       company: 'Alenvi Home SAS, Biens Communs',
-      trainers: ['Anne Onyme', 'Ken Kaneki'],
+      trainer: '',
       type: INTRA_HOLDING,
     };
     const data = {
@@ -230,7 +230,7 @@ describe('getPdfContent', () => {
               { text: 'Durée : 5h' },
               { text: 'Lieu : Rue Jean Jaurès 59620 Aulnoye-Aymeries' },
               { text: 'Structure : Alenvi Home SAS, Biens Communs' },
-              { text: 'Intervenant·es : Anne Onyme, Ken Kaneki' },
+              { text: 'Intervenant·e : ' },
             ],
             { image: paths[2], width: 64 },
           ],
@@ -258,7 +258,7 @@ describe('getPdfContent', () => {
               { text: 'Durée : 5h' },
               { text: 'Lieu : 2 Place de la Concorde 59600 Maubeuge' },
               { text: 'Structure : Alenvi Home SAS, Biens Communs' },
-              { text: 'Intervenant·es : Anne Onyme, Ken Kaneki' },
+              { text: 'Intervenant·e : ' },
             ],
             { image: paths[2], width: 64 },
           ],
@@ -309,7 +309,7 @@ describe('getPdfContent', () => {
       name: 'La communication empathique - Groupe 3',
       duration: '5h',
       company: 'Alenvi Home SAS, Biens Communs',
-      trainers: ['Anne Onyme', 'Ken Kaneki'],
+      trainer: 'Anne Onyme',
       type: INTRA_HOLDING,
     };
     const data = {
@@ -372,7 +372,7 @@ describe('getPdfContent', () => {
               { text: 'Durée : 5h' },
               { text: 'Lieu : Rue Jean Jaurès 59620 Aulnoye-Aymeries' },
               { text: 'Structure : Alenvi Home SAS, Biens Communs' },
-              { text: 'Intervenant·es : Anne Onyme, Ken Kaneki' },
+              { text: 'Intervenant·e : Anne Onyme' },
             ],
             { image: paths[2], width: 64 },
           ],
