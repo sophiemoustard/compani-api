@@ -39,7 +39,7 @@ exports.create = async (payload, credentials) => {
 
     if (payload.slots) {
       slots = Array.isArray(payload.slots) ? payload.slots : [payload.slots];
-      formationExpoTokens.push(...formationExpoTokenList);
+      if (formationExpoTokenList) formationExpoTokens.push(...formationExpoTokenList);
     }
   }
 

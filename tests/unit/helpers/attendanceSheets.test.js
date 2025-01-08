@@ -331,7 +331,6 @@ describe('create', () => {
     const user = {
       _id: traineeId,
       identity: { firstName: 'Mikasa', lastname: 'ACKERMAN' },
-      formationExpoTokenList: [],
     };
 
     uploadCourseFile.returns({ publicId: 'test', link: 'test' });

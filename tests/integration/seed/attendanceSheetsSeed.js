@@ -418,6 +418,7 @@ const attendanceSheetList = [
     slots: [slotsList[11]._id],
     file: { publicId: 'yo', link: 'www.test.com' },
     origin: MOBILE,
+    trainer: trainer._id,
   },
 ];
 
