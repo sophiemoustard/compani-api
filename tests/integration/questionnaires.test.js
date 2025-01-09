@@ -16,6 +16,8 @@ const {
   EXPECTATIONS,
   END_OF_COURSE,
   SELF_POSITIONNING,
+  START_COURSE,
+  END_COURSE,
 } = require('../../src/helpers/constants');
 const { companyWithoutSubscription, authCompany } = require('../seed/authCompaniesSeed');
 
@@ -1090,10 +1092,25 @@ describe('QUESTIONNAIRES ROUTES - GET /questionnaires/qrcode', () => {
       authToken = await getToken('trainer');
     });
 
+    const courseTimeline = [START_COURSE, END_COURSE];
+
+    courseTimeline.forEach((timeline) => {
+      it('should get qrcode that links to each questionnaires', async () => {
+        const response = await app.inject({
+          method: 'GET',
+          url: `/questionnaires/qrcode?course=${coursesList[0]._id}&courseTimeline=${timeline}`,
+          headers: { Cookie: `alenvi_token=${authToken}` },
+        });
+
+        expect(response.statusCode).toBe(200);
+        expect(response.result).toBeDefined();
+      });
+    });
+
     it('should get qrcode that links to the questionnaire', async () => {
       const response = await app.inject({
         method: 'GET',
-        url: `/questionnaires/qrcode?course=${coursesList[0]._id}`,
+        url: `/questionnaires/qrcode?course=${coursesList[0]._id}&courseTimeline=${START_COURSE}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -1104,11 +1121,23 @@ describe('QUESTIONNAIRES ROUTES - GET /questionnaires/qrcode', () => {
     it('should return 404 if course doesn\'t exist', async () => {
       const response = await app.inject({
         method: 'GET',
-        url: `/questionnaires/qrcode?course=${new ObjectId()}`,
+        url: `/questionnaires/qrcode?course=${new ObjectId()}&courseTimeline=${END_COURSE}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(response.statusCode).toBe(404);
+    });
+
+    courseTimeline.forEach((timeline) => {
+      it('should return 404 if course doesn\'t exist', async () => {
+        const response = await app.inject({
+          method: 'GET',
+          url: `/questionnaires/qrcode?course=${new ObjectId()}&courseTimeline=${timeline}`,
+          headers: { Cookie: `alenvi_token=${authToken}` },
+        });
+
+        expect(response.statusCode).toBe(404);
+      });
     });
   });
 
