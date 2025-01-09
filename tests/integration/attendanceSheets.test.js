@@ -529,7 +529,7 @@ describe('ATTENDANCE SHEETS ROUTES - POST /attendancesheets', () => {
 
     it('should return a 403 if trainer in payload is not course trainer', async () => {
       const formData = {
-        course: coursesList[3]._id.toHexString(),
+        course: coursesList[5]._id.toHexString(),
         file: 'test',
         date: '2020-01-25T09:00:00.000Z',
         trainer: trainerAndCoach._id.toHexString(),
