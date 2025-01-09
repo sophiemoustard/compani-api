@@ -74,7 +74,7 @@ exports.list = async (credentials, query = {}) => {
 
   if (isStrictlyELearning) return [];
 
-  if (isVendorUser) {
+  if (!credentials || isVendorUser) {
     return Questionnaire
       .find({
         $or: [{ program: { $exists: false } }, { program: programId }],
@@ -264,10 +264,10 @@ exports.getFollowUp = async (questionnaireId, query, credentials) => {
 };
 
 exports.generateQRCode = async (query) => {
+  const { courseId, courseTimeline } = query;
   const qrCode = await QRCode
     .toDataURL(
-      `${process.env.WEBSITE_HOSTNAME}/ni/questionnaires?courseId=${query.courseId}
-      &courseTimeline=${query.courseTimeline}`,
+      `${process.env.WEBSITE_HOSTNAME}/ni/questionnaires?courseId=${courseId}&courseTimeline=${courseTimeline}`,
       { margin: 0 });
 
   return qrCode;
