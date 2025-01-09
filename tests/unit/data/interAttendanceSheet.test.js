@@ -222,14 +222,14 @@ describe('getPdfContent', () => {
         [
           { stack: [{ text: '16/09/2021' }, { text: '24 Avenue Daumesnil 75012 Paris', fontSize: 8 }] },
           { stack: [{ text: '3h' }, { text: '10:00 - 13:00', fontSize: 8 }] },
-          { image: signaturePaths[0], width: 64, alignment: 'center' },
           { image: signaturePaths[1], width: 64, alignment: 'center' },
+          { image: signaturePaths[0], width: 64, alignment: 'center' },
         ],
         [
           { stack: [{ text: '16/09/2021' }, { text: '24 Avenue Daumesnil 75012 Paris', fontSize: 8 }] },
           { stack: [{ text: '4h' }, { text: '14:00 - 18:00', fontSize: 8 }] },
-          { image: signaturePaths[0], width: 64, alignment: 'center' },
           { image: signaturePaths[1], width: 64, alignment: 'center' },
+          { image: signaturePaths[0], width: 64, alignment: 'center' },
         ],
       ],
       widths: ['auto', 'auto', '*', '*'],
