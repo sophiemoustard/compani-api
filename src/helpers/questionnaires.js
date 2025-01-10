@@ -74,7 +74,7 @@ exports.list = async (credentials, query = {}) => {
 
   if (isStrictlyELearning) return [];
 
-  if (!credentials || isVendorUser) {
+  if (isVendorUser) {
     return Questionnaire
       .find({
         $or: [{ program: { $exists: false } }, { program: programId }],
