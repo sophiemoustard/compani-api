@@ -6,8 +6,8 @@ const { COPPER_500 } = require('../../../helpers/constants');
 const getSlotTableContent = (slot, trainerSignature, traineeSignature) => [
   { stack: [{ text: `${slot.date}` }, { text: `${slot.address || ''}`, fontSize: 8 }] },
   { stack: [{ text: `${slot.duration}` }, { text: `${slot.startHour} - ${slot.endHour}`, fontSize: 8 }] },
-  ...trainerSignature ? [{ image: trainerSignature, width: 64, alignment: 'center' }] : [{ text: '' }],
   ...traineeSignature ? [{ image: traineeSignature, width: 64, alignment: 'center' }] : [{ text: '' }],
+  ...trainerSignature ? [{ image: trainerSignature, width: 64, alignment: 'center' }] : [{ text: '' }],
 ];
 
 exports.getPdfContent = async (data) => {

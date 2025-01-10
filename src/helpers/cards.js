@@ -25,7 +25,7 @@ exports.updateCard = async (cardId, payload) => {
 exports.addCardAnswer = async (card) => {
   const key = exports.getAnswerKeyToUpdate(card.template);
   const payload = [MULTIPLE_CHOICE_QUESTION, SINGLE_CHOICE_QUESTION, FILL_THE_GAPS].includes(card.template)
-    ? { text: '', correct: false }
+    ? { text: '', isCorrect: false }
     : { text: '' };
 
   return Card.updateOne({ _id: card._id }, { $push: { [key]: payload } });

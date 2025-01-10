@@ -76,7 +76,7 @@ exports.plugin = {
       options: {
         validate: {
           params: Joi.object({ _id: Joi.objectId().required(), answerId: Joi.objectId().required() }),
-          payload: Joi.object({ text: Joi.string(), correct: Joi.boolean() }).min(1),
+          payload: Joi.object({ text: Joi.string(), isCorrect: Joi.boolean() }).min(1),
         },
         auth: { scope: ['programs:edit'] },
         pre: [{ method: authorizeCardAnswerUpdate, assign: 'card' }],

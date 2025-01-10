@@ -2273,6 +2273,7 @@ describe('getCourse', () => {
                     select: 'name type cards activityHistories',
                     populate: [
                       { path: 'activityHistories', match: { user: loggedUser._id } },
+                      { path: 'cards', select: 'template' },
                     ],
                   },
                 },
@@ -2435,6 +2436,7 @@ describe('getCourse', () => {
                     select: 'name type cards activityHistories',
                     populate: [
                       { path: 'activityHistories', match: { user: loggedUser._id } },
+                      { path: 'cards', select: 'template' },
                     ],
                   },
                 },
@@ -2597,6 +2599,7 @@ describe('getCourse', () => {
                     select: 'name type cards activityHistories',
                     populate: [
                       { path: 'activityHistories', match: { user: loggedUser._id } },
+                      { path: 'cards', select: 'template' },
                     ],
                   },
                 },
@@ -2719,6 +2722,7 @@ describe('getCourse', () => {
                     select: 'name type cards activityHistories',
                     populate: [
                       { path: 'activityHistories', match: { user: loggedUser._id } },
+                      { path: 'cards', select: 'template' },
                     ],
                   },
                 },
