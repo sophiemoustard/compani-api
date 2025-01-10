@@ -223,10 +223,7 @@ const listForPedagogy = async (query, credentials) => {
           populate: {
             path: 'activities',
             select: 'name type cards activityHistories',
-            populate: [
-              { path: 'activityHistories', match: { user: trainee._id } },
-              { path: 'cards', select: 'template' },
-            ],
+            populate: [{ path: 'activityHistories', match: { user: trainee._id } }],
           },
         },
       ],
