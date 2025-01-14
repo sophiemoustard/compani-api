@@ -1145,7 +1145,7 @@ describe('QUESTIONNAIRES ROUTES - GET /questionnaires/qrcode', () => {
       expect(response.result).toBeDefined();
     });
 
-    it('should return 404 if course doesn\'t exist with START COURSE timeline', async () => {
+    it('should return 404 if course doesn\'t exist', async () => {
       const response = await app.inject({
         method: 'GET',
         url: `/questionnaires/qrcode?course=${new ObjectId()}&courseTimeline=${START_COURSE}`,
@@ -1155,14 +1155,14 @@ describe('QUESTIONNAIRES ROUTES - GET /questionnaires/qrcode', () => {
       expect(response.statusCode).toBe(404);
     });
 
-    it('should return 404 if course doesn\'t exist with END_COURSE timeline', async () => {
+    it('should return 400 if courseTimeline is invalid', async () => {
       const response = await app.inject({
         method: 'GET',
-        url: `/questionnaires/qrcode?course=${new ObjectId()}&courseTimeline=${END_COURSE}`,
+        url: `/questionnaires/qrcode?course=${coursesList[0]._id}&courseTimeline=test`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
-      expect(response.statusCode).toBe(404);
+      expect(response.statusCode).toBe(400);
     });
   });
 
