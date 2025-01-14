@@ -21,7 +21,7 @@ const { deleteNonAuthenticationSeeds } = require('../helpers/db');
 const UserCompany = require('../../../src/models/UserCompany');
 const User = require('../../../src/models/User');
 const { vendorAdminRoleId, trainerRoleId } = require('../../seed/authRolesSeed');
-const { trainerOrganisationManager, trainer } = require('../../seed/authUsersSeed');
+const { trainerOrganisationManager, trainer, trainerAndCoach } = require('../../seed/authUsersSeed');
 
 const SINGLE_COURSES_SUBPROGRAM_IDS = process.env.SINGLE_COURSES_SUBPROGRAM_IDS.split(';').map(id => new ObjectId(id));
 
@@ -99,7 +99,7 @@ const coursesList = [
     trainees: [userList[1]._id],
     companies: [authCompany._id],
     operationsRepresentative: userList[0]._id,
-    trainer: trainer._id,
+    trainers: [trainer._id, trainerAndCoach._id],
   },
   { // 1
     _id: new ObjectId(),
@@ -108,7 +108,7 @@ const coursesList = [
     trainees: [userList[1]._id, userList[2]._id, userList[4]._id],
     companies: [authCompany._id, otherCompany._id, companyWithoutSubscription._id],
     operationsRepresentative: userList[0]._id,
-    trainer: trainer._id,
+    trainers: [trainer._id, trainerAndCoach._id],
   },
   { // 2
     _id: new ObjectId(),
@@ -117,7 +117,7 @@ const coursesList = [
     maxTrainees: 8,
     trainees: [userList[1]._id],
     companies: [authCompany._id],
-    trainer: userList[3]._id,
+    trainers: [userList[3]._id],
     operationsRepresentative: userList[0]._id,
   },
   { // 3 - archived
@@ -128,7 +128,7 @@ const coursesList = [
     trainees: [userList[1]._id],
     companies: [authCompany._id],
     operationsRepresentative: userList[0]._id,
-    trainer: trainer._id,
+    trainers: [trainer._id],
   },
   { // 4
     _id: new ObjectId(),
@@ -137,7 +137,7 @@ const coursesList = [
     maxTrainees: 8,
     trainees: [userList[2]._id],
     companies: [otherCompany._id],
-    trainer: userList[3]._id,
+    trainers: [userList[3]._id],
     operationsRepresentative: userList[0]._id,
   },
   { // 5
@@ -148,7 +148,7 @@ const coursesList = [
     trainees: [userList[2]._id],
     companies: [otherCompany._id],
     holding: otherHolding._id,
-    trainer: trainer._id,
+    trainers: [trainer._id],
     operationsRepresentative: userList[0]._id,
   },
   { // 6
@@ -157,6 +157,7 @@ const coursesList = [
     type: INTRA_HOLDING,
     maxTrainees: 8,
     trainees: [],
+    trainers: [trainer._id],
     companies: [],
     holding: otherHolding._id,
     operationsRepresentative: userList[0]._id,
@@ -168,7 +169,7 @@ const coursesList = [
     trainees: [userList[1]._id],
     companies: [authCompany._id],
     operationsRepresentative: userList[0]._id,
-    trainer: trainer._id,
+    trainers: [trainer._id, trainerAndCoach._id],
   },
   { // 8 Single course
     _id: new ObjectId(),
@@ -177,7 +178,7 @@ const coursesList = [
     trainees: [userList[1]._id],
     companies: [authCompany._id],
     operationsRepresentative: userList[0]._id,
-    trainer: userList[3]._id,
+    trainers: [userList[3]._id],
   },
 ];
 
@@ -314,6 +315,7 @@ const attendanceSheetList = [
     date: '2020-01-23T09:00:00.000Z',
     companies: [authCompany._id],
     origin: WEBAPP,
+    trainer: trainer._id,
   },
   { // 1
     _id: new ObjectId(),
@@ -322,6 +324,7 @@ const attendanceSheetList = [
     trainee: userList[1]._id,
     companies: [authCompany._id],
     origin: WEBAPP,
+    trainer: trainer._id,
   },
   { // 2
     _id: new ObjectId(),
@@ -330,6 +333,7 @@ const attendanceSheetList = [
     trainee: userList[1]._id,
     companies: [authCompany._id],
     origin: MOBILE,
+    trainer: trainer._id,
   },
   { // 3
     _id: new ObjectId(),
@@ -338,6 +342,7 @@ const attendanceSheetList = [
     date: '2020-01-25T09:00:00.000Z',
     companies: [authCompany._id],
     origin: MOBILE,
+    trainer: userList[3]._id,
   },
   { // 4
     _id: new ObjectId(),
@@ -346,6 +351,7 @@ const attendanceSheetList = [
     trainee: userList[4]._id,
     companies: [companyWithoutSubscription._id],
     origin: MOBILE,
+    trainer: trainer._id,
   },
   { // 5
     _id: new ObjectId(),
@@ -355,6 +361,7 @@ const attendanceSheetList = [
     companies: [authCompany._id],
     slots: [slotsList[5]._id],
     origin: WEBAPP,
+    trainer: trainer._id,
   },
   { // 6
     _id: new ObjectId(),
@@ -364,6 +371,7 @@ const attendanceSheetList = [
     companies: [authCompany._id],
     slots: [slotsList[6]._id],
     origin: WEBAPP,
+    trainer: trainer._id,
   },
   { // 7
     _id: new ObjectId(),
@@ -373,6 +381,7 @@ const attendanceSheetList = [
     companies: [authCompany._id],
     slots: [slotsList[8]._id],
     origin: WEBAPP,
+    trainer: userList[3]._id,
   },
   { // 8
     _id: new ObjectId(),
@@ -382,6 +391,7 @@ const attendanceSheetList = [
     companies: [authCompany._id],
     slots: [slotsList[9]._id],
     origin: MOBILE,
+    trainer: userList[3]._id,
   },
   { // 9
     _id: new ObjectId(),
@@ -394,6 +404,7 @@ const attendanceSheetList = [
     companies: [authCompany._id],
     slots: [slotsList[10]._id],
     origin: MOBILE,
+    trainer: trainer._id,
   },
   { // 10
     _id: new ObjectId(),
@@ -407,6 +418,7 @@ const attendanceSheetList = [
     slots: [slotsList[11]._id],
     file: { publicId: 'yo', link: 'www.test.com' },
     origin: MOBILE,
+    trainer: trainer._id,
   },
 ];
 

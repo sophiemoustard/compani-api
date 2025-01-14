@@ -35,7 +35,10 @@ describe('getPdfContent', () => {
         { date: '15/01/2020', hours: '12h - 14h', meetingLink: 'https://pointerpointer.com/' },
       ],
       slotsToPlan: [{ _id: new ObjectId() }],
-      trainer: { formattedIdentity: 'test OK', biography: 'Voici ma bio' },
+      trainers: [
+        { formattedIdentity: 'Toto TITI', biography: 'Voici ma bio' },
+        { formattedIdentity: 'Tata TUTU', biography: 'Voici ma bio' },
+      ],
       contact: { formattedIdentity: 'Ca roule', formattedPhone: '09 87 65 43 21', email: 'test@test.fr' },
     };
 
@@ -44,7 +47,7 @@ describe('getPdfContent', () => {
     const header = [
       {
         columns: [
-          { image: 'src/data/pdf/tmp/aux-pouce.png', width: 64, style: 'img' },
+          { image: 'src/data/pdf/tmp/aux-pouce.png', width: 64 },
           [
             { text: 'Vous êtes convoqué(e) à la formation', style: 'surtitle' },
             { text: 'test - groupe 3', style: 'title' },
@@ -53,6 +56,7 @@ describe('getPdfContent', () => {
         ],
       },
     ];
+
     const table = [
       {
         table: {
@@ -104,45 +108,52 @@ describe('getPdfContent', () => {
       },
       { text: 'Il reste 1 créneau(x) à planifier.', style: 'notes' },
     ];
+
     const programInfo = {
       columns: [
-        { image: 'src/data/pdf/tmp/doct-explication.png', width: 64, style: 'img' },
+        { image: 'src/data/pdf/tmp/doct-explication.png', width: 64 },
         [{ text: 'Programme de la formation', style: 'infoTitle' }, { text: 'on va apprendre', style: 'infoContent' }],
       ],
       marginTop: 24,
       columnGap: 12,
     };
-    const trainerAndContactInfo = {
+
+    const trainersInfo = {
       columns: [
-        {
-          columns: [
-            { image: 'src/data/pdf/tmp/doct-explication.png', width: 64, style: 'img' },
-            [
-              { text: 'Intervenant(e)', style: 'infoTitle' },
-              { text: 'test OK', style: 'infoSubTitle' },
-              { text: 'Voici ma bio', style: 'infoContent' },
-            ],
+        { image: 'src/data/pdf/tmp/doct-explication.png', width: 64 },
+        [
+          [
+            { text: 'Intervenant·e', style: 'infoTitle' },
+            { text: 'Toto TITI', style: 'infoSubTitle' },
+            { text: 'Voici ma bio', style: 'infoContent' },
           ],
-          width: 'auto',
-        },
-        {
-          columns: [
-            { image: 'src/data/pdf/tmp/aux-perplexite.png', width: 64, style: 'img' },
-            [
-              { text: 'Votre contact pour la formation', style: 'infoTitle' },
-              { text: 'Ca roule', style: 'infoSubTitle' },
-              { text: '09 87 65 43 21', style: 'infoSubTitle' },
-              { text: 'test@test.fr', style: 'infoSubTitle' },
-            ],
+          [
+            { text: 'Intervenant·e', style: 'infoTitle' },
+            { text: 'Tata TUTU', style: 'infoSubTitle' },
+            { text: 'Voici ma bio', style: 'infoContent' },
           ],
-          width: 'auto',
-        },
+        ],
       ],
       marginTop: 24,
       columnGap: 12,
     };
+
+    const contactInfo = {
+      columns: [
+        { image: 'src/data/pdf/tmp/aux-perplexite.png', width: 64 },
+        [
+          { text: 'Votre contact pour la formation', style: 'infoTitle' },
+          { text: 'Ca roule', style: 'infoSubTitle' },
+          { text: '09 87 65 43 21', style: 'infoSubTitle' },
+          { text: 'test@test.fr', style: 'infoSubTitle' },
+        ],
+      ],
+      marginTop: 24,
+      columnGap: 12,
+    };
+
     const pdf = {
-      content: [header, table, programInfo, trainerAndContactInfo].flat(),
+      content: [header, table, programInfo, contactInfo, trainersInfo].flat(),
       defaultStyle: { font: 'SourceSans', fontSize: 10 },
       styles: {
         title: { fontSize: 20, bold: true, color: COPPER_500, marginLeft: 24 },
@@ -152,7 +163,7 @@ describe('getPdfContent', () => {
         notes: { italics: true, marginTop: 4 },
         infoTitle: { fontSize: 14, bold: true },
         infoSubTitle: { fontSize: 12 },
-        infoContent: { italics: true },
+        infoContent: { italics: true, marginBottom: 12 },
         icon: { font: 'icon' },
       },
     };
@@ -184,6 +195,9 @@ describe('getPdfContent', () => {
         { date: '14/01/2020', hours: '12h - 14h', address: '24 avenue du test' },
         { date: '22/01/2020', hours: '12h - 14h', meetingLink: 'https://mondrianandme.com/' },
       ],
+      trainers: [
+        { identity: { firstname: 'Ken', lastname: 'Kaneki' }, formattedIdentity: 'Ken KANEKI', biography: 'Ghoul' },
+      ],
     };
 
     const result = await CourseConvocation.getPdfContent(data);
@@ -191,7 +205,7 @@ describe('getPdfContent', () => {
     const header = [
       {
         columns: [
-          { image: 'src/data/pdf/tmp/aux-pouce.png', width: 64, style: 'img' },
+          { image: 'src/data/pdf/tmp/aux-pouce.png', width: 64 },
           [
             { text: 'Vous êtes convoqué(e) à la formation', style: 'surtitle' },
             { text: 'test', style: 'title' },
@@ -200,6 +214,7 @@ describe('getPdfContent', () => {
         ],
       },
     ];
+
     const table = [
       {
         table: {
@@ -252,45 +267,47 @@ describe('getPdfContent', () => {
         marginTop: 24,
       },
     ];
+
     const programInfo = {
       columns: [
-        { image: 'src/data/pdf/tmp/doct-explication.png', width: 64, style: 'img' },
+        { image: 'src/data/pdf/tmp/doct-explication.png', width: 64 },
         [{ text: 'Programme de la formation', style: 'infoTitle' }, { text: '', style: 'infoContent' }],
       ],
       marginTop: 24,
       columnGap: 12,
     };
-    const trainerAndContactInfo = {
+
+    const trainersInfo = {
       columns: [
-        {
-          columns: [
-            { image: 'src/data/pdf/tmp/doct-explication.png', width: 64, style: 'img' },
-            [
-              { text: 'Intervenant(e)', style: 'infoTitle' },
-              { text: '', style: 'infoSubTitle' },
-              { text: '', style: 'infoContent' },
-            ],
+        { image: 'src/data/pdf/tmp/doct-explication.png', width: 64 },
+        [
+          [
+            { text: 'Intervenant·e', style: 'infoTitle' },
+            { text: 'Ken KANEKI', style: 'infoSubTitle' },
+            { text: 'Ghoul', style: 'infoContent' },
           ],
-          width: 'auto',
-        },
-        {
-          columns: [
-            { image: 'src/data/pdf/tmp/aux-perplexite.png', width: 64, style: 'img' },
-            [
-              { text: 'Votre contact pour la formation', style: 'infoTitle' },
-              { text: '', style: 'infoSubTitle' },
-              { text: '', style: 'infoSubTitle' },
-              { text: '', style: 'infoSubTitle' },
-            ],
-          ],
-          width: 'auto',
-        },
+        ],
       ],
       marginTop: 24,
       columnGap: 12,
     };
+
+    const contactInfo = {
+      columns: [
+        { image: 'src/data/pdf/tmp/aux-perplexite.png', width: 64 },
+        [
+          { text: 'Votre contact pour la formation', style: 'infoTitle' },
+          { text: '', style: 'infoSubTitle' },
+          { text: '', style: 'infoSubTitle' },
+          { text: '', style: 'infoSubTitle' },
+        ],
+      ],
+      marginTop: 24,
+      columnGap: 12,
+    };
+
     const pdf = {
-      content: [header, table, programInfo, trainerAndContactInfo].flat(),
+      content: [header, table, programInfo, contactInfo, trainersInfo].flat(),
       defaultStyle: { font: 'SourceSans', fontSize: 10 },
       styles: {
         title: { fontSize: 20, bold: true, color: COPPER_500, marginLeft: 24 },
@@ -300,7 +317,7 @@ describe('getPdfContent', () => {
         notes: { italics: true, marginTop: 4 },
         infoTitle: { fontSize: 14, bold: true },
         infoSubTitle: { fontSize: 12 },
-        infoContent: { italics: true },
+        infoContent: { italics: true, marginBottom: 12 },
         icon: { font: 'icon' },
       },
     };
@@ -348,7 +365,7 @@ describe('getPdf', () => {
       content: [
         {
           columns: [
-            { image: 'src/data/pdf/tmp/aux-pouce.png', width: 64, style: 'img' },
+            { image: 'src/data/pdf/tmp/aux-pouce.png', width: 64 },
             [
               { text: 'Vous êtes convoqué(e) à la formation', style: 'surtitle' },
               { text: 'test', style: 'title' },
@@ -357,7 +374,7 @@ describe('getPdf', () => {
         },
         {
           columns: [
-            { image: 'src/data/pdf/tmp/doct-explication.png', width: 64, style: 'img' },
+            { image: 'src/data/pdf/tmp/doct-explication.png', width: 64 },
             [{ text: 'Programme de la formation', style: 'infoTitle' }, { text: '', style: 'infoContent' }],
           ],
           marginTop: 24,
@@ -369,7 +386,7 @@ describe('getPdf', () => {
         title: { fontSize: 20, bold: true, color: COPPER_500, marginLeft: 24 },
         surtitle: { fontSize: 12, bold: true, marginTop: 24, marginLeft: 24 },
         infoTitle: { fontSize: 14, bold: true },
-        infoContent: { italics: true },
+        infoContent: { italics: true, marginBottom: 12 },
       },
     };
     const images = [

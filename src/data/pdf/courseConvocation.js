@@ -20,7 +20,7 @@ const getHeader = (image, misc, subProgram) => {
   return [
     {
       columns: [
-        { image, width: 64, style: 'img' },
+        { image, width: 64 },
         [
           { text: 'Vous êtes convoqué(e) à la formation', style: 'surtitle' },
           { text: title, style: 'title' },
@@ -94,7 +94,7 @@ const getTable = (slots, slotsToPlan) => {
 
 const getProgramInfo = (image, program) => ({
   columns: [
-    { image, width: 64, style: 'img' },
+    { image, width: 64 },
     [
       { text: 'Programme de la formation', style: 'infoTitle' },
       { text: program.description || '', style: 'infoContent' },
@@ -104,31 +104,28 @@ const getProgramInfo = (image, program) => ({
   columnGap: 12,
 });
 
-const getTrainerAndContactInfo = (trainerImg, trainer, contactImg, contact) => ({
+const getTrainersInfo = (trainerImg, trainers) => ({
   columns: [
-    {
-      columns: [
-        { image: trainerImg, width: 64, style: 'img' },
-        [
-          { text: 'Intervenant(e)', style: 'infoTitle' },
-          { text: get(trainer, 'formattedIdentity') || '', style: 'infoSubTitle' },
-          { text: get(trainer, 'biography') || '', style: 'infoContent' },
-        ],
-      ],
-      width: 'auto',
-    },
-    {
-      columns: [
-        { image: contactImg, width: 64, style: 'img' },
-        [
-          { text: 'Votre contact pour la formation', style: 'infoTitle' },
-          { text: get(contact, 'formattedIdentity') || '', style: 'infoSubTitle' },
-          { text: get(contact, 'formattedPhone') || '', style: 'infoSubTitle' },
-          { text: get(contact, 'email') || '', style: 'infoSubTitle' },
-        ],
-      ],
-      width: 'auto',
-    },
+    { image: trainerImg, width: 64 },
+    trainers.map(trainer => [
+      { text: 'Intervenant·e', style: 'infoTitle' },
+      { text: get(trainer, 'formattedIdentity') || '', style: 'infoSubTitle' },
+      { text: get(trainer, 'biography') || '', style: 'infoContent' },
+    ]),
+  ],
+  marginTop: 24,
+  columnGap: 12,
+});
+
+const getContactInfo = (contactImg, contact) => ({
+  columns: [
+    { image: contactImg, width: 64 },
+    [
+      { text: 'Votre contact pour la formation', style: 'infoTitle' },
+      { text: get(contact, 'formattedIdentity') || '', style: 'infoSubTitle' },
+      { text: get(contact, 'formattedPhone') || '', style: 'infoSubTitle' },
+      { text: get(contact, 'email') || '', style: 'infoSubTitle' },
+    ],
   ],
   marginTop: 24,
   columnGap: 12,
@@ -140,11 +137,12 @@ exports.getPdfContent = async (data) => {
   const header = getHeader(thumb, data.misc, data.subProgram);
   const table = getTable(data.slots, data.slotsToPlan);
   const programInfo = getProgramInfo(explanation, data.subProgram.program);
-  const trainerAndContactInfo = getTrainerAndContactInfo(quizz, data.trainer, confused, data.contact);
+  const contactInfo = getContactInfo(confused, data.contact);
+  const trainersInfo = getTrainersInfo(quizz, data.trainers);
 
   return {
     template: {
-      content: [header, table, programInfo, trainerAndContactInfo].flat(),
+      content: [header, table, programInfo, contactInfo, trainersInfo].flat(),
       defaultStyle: { font: 'SourceSans', fontSize: 10 },
       styles: {
         title: { fontSize: 20, bold: true, color: COPPER_500, marginLeft: 24 },
@@ -154,7 +152,7 @@ exports.getPdfContent = async (data) => {
         notes: { italics: true, marginTop: 4 },
         infoTitle: { fontSize: 14, bold: true },
         infoSubTitle: { fontSize: 12 },
-        infoContent: { italics: true },
+        infoContent: { italics: true, marginBottom: 12 },
         icon: { font: 'icon' },
       },
     },

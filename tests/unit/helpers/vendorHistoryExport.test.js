@@ -75,7 +75,10 @@ describe('exportCourseHistory', () => {
       steps: [stepList[0], stepList[2]],
     },
   ];
-  const trainer = { _id: new ObjectId(), identity: { firstname: 'Gilles', lastname: 'Formateur' } };
+  const trainersList = [
+    { _id: new ObjectId(), identity: { firstname: 'Gilles', lastname: 'Formateur' } },
+    { _id: new ObjectId(), identity: { firstname: 'Rihanna', lastname: 'Fenty' } },
+  ];
   const operationsRepresentative = { _id: new ObjectId(), identity: { firstname: 'Aline', lastname: 'Contact-Com' } };
 
   const courseIdList = [new ObjectId(), new ObjectId(), new ObjectId(), new ObjectId(), new ObjectId()];
@@ -125,13 +128,14 @@ describe('exportCourseHistory', () => {
   const company = { _id: new ObjectId(), name: 'Test SAS' };
   const otherCompany = { _id: new ObjectId(), name: 'Autre structure' };
   const courseList = [
+    // 0
     {
       _id: courseIdList[0],
       type: INTRA,
       companies: [company],
       subProgram: subProgramList[0],
       misc: 'group 1',
-      trainer,
+      trainers: [trainersList[0]],
       operationsRepresentative,
       contact: operationsRepresentative,
       trainees: [traineeList[0], traineeList[1], traineeList[2]],
@@ -162,6 +166,7 @@ describe('exportCourseHistory', () => {
         },
       ],
     },
+    // 1
     {
       _id: courseIdList[1],
       type: INTER_B2B,
@@ -169,7 +174,7 @@ describe('exportCourseHistory', () => {
       subProgram: subProgramList[1],
       misc: 'group 2',
       estimatedStartDate: '2019-01-01T08:00:00',
-      trainer,
+      trainers: [trainersList[0], trainersList[1]],
       operationsRepresentative,
       contact: operationsRepresentative,
       trainees: [traineeList[3], traineeList[4]],
@@ -208,6 +213,7 @@ describe('exportCourseHistory', () => {
         },
       ],
     },
+    // 2
     {
       _id: courseIdList[2],
       type: INTER_B2B,
@@ -215,7 +221,7 @@ describe('exportCourseHistory', () => {
       subProgram: subProgramList[1],
       misc: 'group 3',
       estimatedStartDate: '2022-01-01T08:00:00',
-      trainer,
+      trainers: [trainersList[0]],
       operationsRepresentative,
       contact: operationsRepresentative,
       trainees: [],
@@ -223,13 +229,14 @@ describe('exportCourseHistory', () => {
       slots: [],
       bills: [],
     },
+    // 3
     {
       _id: courseIdList[3],
       type: INTRA,
       companies: [company],
       subProgram: subProgramList[0],
       misc: 'group 1',
-      trainer,
+      trainers: [trainersList[0]],
       operationsRepresentative,
       contact: operationsRepresentative,
       trainees: [traineeList[0], traineeList[1], traineeList[2]],
@@ -287,13 +294,14 @@ describe('exportCourseHistory', () => {
         },
       ],
     },
+    // 4
     {
       _id: courseIdList[4],
       type: INTER_B2B,
       companies: [otherCompany],
       subProgram: subProgramList[0],
       misc: 'group 1',
-      trainer,
+      trainers: [trainersList[0]],
       operationsRepresentative,
       contact: operationsRepresentative,
       trainees: [traineeList[0], traineeList[1]],
@@ -419,7 +427,7 @@ describe('exportCourseHistory', () => {
               populate: [{ path: 'program', select: 'name' }, { path: 'steps', select: 'type activities' }],
             }],
         },
-        { query: 'populate', args: [{ path: 'trainer', select: 'identity' }] },
+        { query: 'populate', args: [{ path: 'trainers', select: 'identity' }] },
         { query: 'populate', args: [{ path: 'operationsRepresentative', select: 'identity' }] },
         { query: 'populate', args: [{ path: 'contact', select: 'identity' }] },
         {
@@ -511,7 +519,7 @@ describe('exportCourseHistory', () => {
         'Programme',
         'Sous-Programme',
         'Infos complémentaires',
-        'Formateur',
+        'Intervenant·e',
         'Chargé des opérations',
         'Contact pour la formation',
         'Nombre d\'inscrits',
@@ -589,7 +597,7 @@ describe('exportCourseHistory', () => {
         'Program 2',
         'subProgram 2',
         'group 2',
-        'Gilles FORMATEUR',
+        'Gilles FORMATEUR, Rihanna FENTY',
         'Aline CONTACT-COM',
         'Aline CONTACT-COM',
         2,
@@ -775,7 +783,7 @@ describe('exportCourseHistory', () => {
               populate: [{ path: 'program', select: 'name' }, { path: 'steps', select: 'type activities' }],
             }],
         },
-        { query: 'populate', args: [{ path: 'trainer', select: 'identity' }] },
+        { query: 'populate', args: [{ path: 'trainers', select: 'identity' }] },
         { query: 'populate', args: [{ path: 'operationsRepresentative', select: 'identity' }] },
         { query: 'populate', args: [{ path: 'contact', select: 'identity' }] },
         {
@@ -1146,7 +1154,7 @@ describe('exportEndOfCourseQuestionnaireHistory', () => {
         course: {
           _id: new ObjectId(),
           subProgram: { name: 'Je suis Présentiel', program: { name: 'Programme files' } },
-          trainer: { identity: { firstname: 'Didier', lastname: 'Deschamps' } },
+          trainers: [{ identity: { firstname: 'Didier', lastname: 'Deschamps' } }],
         },
         user: {
           _id: new ObjectId(),
@@ -1177,7 +1185,10 @@ describe('exportEndOfCourseQuestionnaireHistory', () => {
         course: {
           _id: new ObjectId(),
           subProgram: { name: 'JUST', program: { name: 'DO IT !' } },
-          trainer: { identity: { firstname: 'Shia', lastname: 'labeouf' } },
+          trainers: [
+            { identity: { firstname: 'Shia', lastname: 'labeouf' } },
+            { identity: { firstname: 'Rihanna', lastname: 'Fenty' } },
+          ],
         },
         user: {
           _id: new ObjectId(),
@@ -1265,7 +1276,7 @@ describe('exportEndOfCourseQuestionnaireHistory', () => {
         'Id formation',
         'Programme',
         'Sous-programme',
-        'Prénom Nom intervenant(e)',
+        'Prénom Nom intervenant·e',
         'Structure',
         'Date de réponse',
         'Origine de réponse',
@@ -1295,7 +1306,7 @@ describe('exportEndOfCourseQuestionnaireHistory', () => {
         questionnaire.histories[1].course._id,
         'DO IT !',
         'JUST',
-        'Shia LABEOUF',
+        'Shia LABEOUF, Rihanna FENTY',
         'Reggae Music',
         '30/06/2021 14:40:29',
         MOBILE,
@@ -1342,7 +1353,7 @@ describe('exportEndOfCourseQuestionnaireHistory', () => {
                 select: 'subProgram',
                 populate: [
                   { path: 'subProgram', select: 'name program', populate: { path: 'program', select: 'name' } },
-                  { path: 'trainer', select: 'identity' },
+                  { path: 'trainers', select: 'identity' },
                 ],
               },
               { path: 'user', select: 'identity local.email contact.phone' },

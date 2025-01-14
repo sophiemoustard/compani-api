@@ -20,6 +20,7 @@ const CourseSmsHistory = require('../models/CourseSmsHistory');
 const Attendance = require('../models/Attendance');
 const SubProgram = require('../models/SubProgram');
 const TrainingContract = require('../models/TrainingContract');
+const TrainerMission = require('../models/TrainerMission');
 const CourseRepository = require('../repositories/CourseRepository');
 const UtilsHelper = require('./utils');
 const DatesUtilsHelper = require('./dates/utils');
@@ -163,13 +164,15 @@ const listBlendedForCompany = async (query, origin) => {
 };
 
 const formatQuery = (query, credentials) => {
-  const formattedQuery = omit(query, ['isArchived', 'holding']);
+  const formattedQuery = omit(query, ['isArchived', 'holding', 'trainer']);
 
   if (has(query, 'isArchived')) set(formattedQuery, 'archivedAt', { $exists: !!query.isArchived });
 
   if (has(query, 'holding')) {
     set(formattedQuery, '$or', [{ companies: { $in: credentials.holding.companies } }, { holding: query.holding }]);
   }
+
+  if (has(query, 'trainer')) set(formattedQuery, 'trainers', query.trainer);
 
   return formattedQuery;
 };
@@ -360,7 +363,7 @@ const getCourseForOperations = async (courseId, credentials, origin) => {
           { path: 'slots', select: 'step startDate endDate address meetingLink' },
           { path: 'slotsToPlan', select: '_id step' },
           {
-            path: 'trainer',
+            path: 'trainers',
             select: 'identity.firstname identity.lastname contact.phone local.email picture.link',
           },
           { path: 'accessRules', select: 'name' },
@@ -373,7 +376,9 @@ const getCourseForOperations = async (courseId, credentials, origin) => {
             select: 'identity.firstname identity.lastname contact.phone local.email picture.link',
           },
           { path: 'contact', select: 'identity.firstname identity.lastname contact.phone' },
-          ...(isRofOrAdmin ? [{ path: 'trainerMission', select: '_id', options: { isVendorUser: true } }] : []),
+          ...(isRofOrAdmin
+            ? [{ path: 'trainerMissions', select: '_id trainer', options: { isVendorUser: true } }]
+            : []),
         ]
         : [{ path: 'slots', select: 'step startDate endDate', options: { sort: { startDate: 1 } } }]
       ),
@@ -405,9 +410,9 @@ const getCourseForOperations = async (courseId, credentials, origin) => {
 };
 
 const getCourseForQuestionnaire = async courseId => Course
-  .findOne({ _id: courseId }, { subProgram: 1, type: 1, trainer: 1, trainees: 1, misc: 1 })
+  .findOne({ _id: courseId }, { subProgram: 1, type: 1, trainers: 1, trainees: 1, misc: 1 })
   .populate({ path: 'subProgram', select: 'program', populate: [{ path: 'program', select: 'name' }] })
-  .populate({ path: 'trainer', select: 'identity.firstname identity.lastname' })
+  .populate({ path: 'trainers', select: 'identity.firstname identity.lastname' })
   .populate({ path: 'trainees', select: 'identity.firstname identity.lastname local.email' })
   .lean({ virtuals: true });
 
@@ -592,18 +597,19 @@ const _getCourseForPedagogy = async (courseId, credentials) => {
       populate: { path: 'step', select: 'type' },
       options: { sort: { startDate: 1 } },
     })
-    .populate({ path: 'trainer', select: 'identity.firstname identity.lastname biography picture' })
+    .populate({ path: 'trainers', select: 'identity.firstname identity.lastname biography picture' })
     .populate({ path: 'contact', select: 'identity.firstname identity.lastname contact.phone local.email' })
     .populate({
       path: 'attendanceSheets',
       match: { trainee: credentials._id },
       options: { requestingOwnInfos: true },
-      populate: { path: 'slots', select: 'startDate endDate step' },
+      populate: [{ path: 'slots', select: 'startDate endDate step' }, { path: 'trainer', select: 'identity' }],
     })
     .select('_id misc format')
     .lean({ autopopulate: true, virtuals: true });
 
-  if (course.trainer && UtilsHelper.areObjectIdsEquals(course.trainer._id, credentials._id)) {
+  const courseTrainerIds = course.trainers ? course.trainers.map(trainer => trainer._id) : [];
+  if (UtilsHelper.doesArrayIncludeId(courseTrainerIds, credentials._id)) {
     return {
       ...course,
       subProgram: {
@@ -644,11 +650,6 @@ exports.updateCourse = async (courseId, payload, credentials) => {
   if (payload.salesRepresentative === '') {
     setFields = omit(setFields, 'salesRepresentative');
     unsetFields = { ...unsetFields, salesRepresentative: '' };
-  }
-
-  if (payload.trainer === '') {
-    setFields = omit(setFields, 'trainer');
-    unsetFields = { ...unsetFields, trainer: '' };
   }
 
   if (payload.contact === '') {
@@ -806,7 +807,7 @@ exports.formatIntraCourseForPdf = (course) => {
     name,
     duration: UtilsHelper.getTotalDuration(course.slots),
     company: UtilsHelper.formatName(course.companies),
-    trainer: course.trainer ? UtilsHelper.formatIdentity(course.trainer.identity, 'FL') : '',
+    trainer: course.trainers.length === 1 ? UtilsHelper.formatIdentity(course.trainers[0].identity, 'FL') : '',
     type: course.type,
   };
 
@@ -833,7 +834,7 @@ exports.formatInterCourseForPdf = async (course) => {
   const courseData = {
     name,
     slots: filteredSlots.map(exports.formatInterCourseSlotsForPdf),
-    trainer: course.trainer ? UtilsHelper.formatIdentity(course.trainer.identity, 'FL') : '',
+    trainer: course.trainers.length === 1 ? UtilsHelper.formatIdentity(course.trainers[0].identity, 'FL') : '',
     firstDate: filteredSlots.length ? CompaniDate(filteredSlots[0].startDate).format(DD_MM_YYYY) : '',
     lastDate: filteredSlots.length
       ? CompaniDate(filteredSlots[filteredSlots.length - 1].startDate).format(DD_MM_YYYY)
@@ -866,7 +867,7 @@ exports.generateAttendanceSheets = async (courseId) => {
     .populate({ path: 'companies', select: 'name' })
     .populate({ path: 'slots', select: 'step startDate endDate address', populate: { path: 'step', select: 'type' } })
     .populate({ path: 'trainees', select: 'identity' })
-    .populate({ path: 'trainer', select: 'identity' })
+    .populate({ path: 'trainers', select: 'identity' })
     .populate({ path: 'subProgram', select: 'program', populate: { path: 'program', select: 'name' } })
     .lean();
 
@@ -1019,8 +1020,8 @@ const generateCompletionCertificateWord = async (course, attendances, trainee, t
 
 const getTraineeList = async (course, credentials) => {
   const isRofOrAdmin = [VENDOR_ADMIN, TRAINING_ORGANISATION_MANAGER].includes(get(credentials, 'role.vendor.name'));
-  const isCourseTrainer = [TRAINER].includes(get(credentials, 'role.vendor.name')) &&
-    UtilsHelper.areObjectIdsEquals(credentials._id, course.trainer);
+  const isCourseTrainer = get(credentials, 'role.vendor.name') === TRAINER &&
+    UtilsHelper.doesArrayIncludeId(course.trainers, credentials._id);
   const canAccessAllTrainees = isRofOrAdmin || isCourseTrainer;
 
   const traineesCompanyAtCourseRegistration = await CourseHistoriesHelper
@@ -1144,12 +1145,12 @@ exports.formatCourseForConvocationPdf = (course) => {
     email: get(course, 'contact.local.email'),
     formattedPhone: UtilsHelper.formatPhoneNumber(get(course, 'contact.contact.phone')),
   };
-  const trainer = {
-    ...course.trainer,
-    formattedIdentity: UtilsHelper.formatIdentity(get(course, 'trainer.identity'), 'FL'),
-  };
+  const formattedTrainers = course.trainers.map(trainer => ({
+    ...trainer,
+    formattedIdentity: UtilsHelper.formatIdentity(trainer.identity, 'FL'),
+  }));
 
-  return { ...course, trainer, contact, slots };
+  return { ...course, trainers: formattedTrainers, contact, slots };
 };
 
 exports.generateConvocationPdf = async (courseId) => {
@@ -1162,7 +1163,7 @@ exports.generateConvocationPdf = async (courseId) => {
     .populate({ path: 'slots', select: 'startDate endDate address meetingLink' })
     .populate({ path: 'slotsToPlan', select: '_id' })
     .populate({ path: 'contact', select: 'identity.firstname identity.lastname contact.phone local.email' })
-    .populate({ path: 'trainer', select: 'identity.firstname identity.lastname biography' })
+    .populate({ path: 'trainers', select: 'identity.firstname identity.lastname biography' })
     .lean();
 
   const courseName = get(course, 'subProgram.program.name', '').split(' ').join('-') || 'Formation';
@@ -1226,7 +1227,7 @@ exports.generateTrainingContract = async (courseId, payload) => {
       },
       { path: 'slots', select: 'startDate endDate address meetingLink' },
       { path: 'slotsToPlan', select: '_id' },
-      { path: 'trainer', select: 'identity.firstname identity.lastname' },
+      { path: 'trainers', select: 'identity.firstname identity.lastname' },
     ])
     .lean();
 
@@ -1244,4 +1245,24 @@ exports.composeCourseName = (course) => {
   const misc = course.misc ? ` - ${course.misc}` : '';
 
   return companyName + course.subProgram.program.name + misc;
+};
+
+exports.addTrainer = async (courseId, payload) => Course
+  .updateOne({ _id: courseId }, { $addToSet: { trainers: payload.trainer } });
+
+exports.removeTrainer = async (courseId, trainerId) => {
+  await TrainerMission
+    .findOneAndUpdate(
+      { courses: courseId, trainer: trainerId, cancelledAt: { $exists: false } },
+      { $set: { cancelledAt: CompaniDate().startOf(DAY).toISO() } }
+    ).lean();
+
+  const course = await Course.findOne({ _id: courseId }).lean();
+  const trainerIsContact = UtilsHelper.areObjectIdsEquals(get(course, 'contact'), trainerId);
+
+  const query = trainerIsContact
+    ? { $pull: { trainers: trainerId }, $unset: { contact: '' } }
+    : { $pull: { trainers: trainerId } };
+
+  await Course.updateOne({ _id: courseId }, query);
 };

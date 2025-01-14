@@ -4,7 +4,11 @@ const { ObjectId } = require('mongodb');
 const app = require('../../server');
 const TrainerMission = require('../../src/models/TrainerMission');
 const { trainer, coach, trainerAndCoach } = require('../seed/authUsersSeed');
-const { populateDB, courseList, trainerMissionList } = require('./seed/trainerMissionsSeed');
+const {
+  populateDB,
+  courseList,
+  trainerMissionList,
+} = require('./seed/trainerMissionsSeed');
 const { getToken } = require('./helpers/authentication');
 const { generateFormData, getStream } = require('./utils');
 const { CompaniDate } = require('../../src/helpers/dates/companiDates');
@@ -64,6 +68,37 @@ describe('TRAINER MISSIONS ROUTES - POST /trainermissions', () => {
       });
       expect(trainerMissionCount).toBe(1);
     });
+
+    it('should upload trainer mission when there\'s already a trainer mission for another trainer',
+      async () => {
+        const formData = {
+          courses: courseList[3]._id.toHexString(),
+          trainer: trainerAndCoach._id.toHexString(),
+          file: 'test',
+          fee: 0,
+        };
+        const form = generateFormData(formData);
+
+        uploadCourseFileStub.returns({ publicId: '1234567890', link: 'ceciestunautrelien' });
+
+        const response = await app.inject({
+          method: 'POST',
+          url: '/trainermissions',
+          headers: { ...form.getHeaders(), Cookie: `alenvi_token=${authToken}` },
+          payload: getStream(form),
+        });
+
+        expect(response.statusCode).toBe(200);
+        const trainerMissionCount = await TrainerMission.countDocuments({
+          courses: [courseList[3]._id],
+          date: CompaniDate().startOf(DAY).toISO(),
+          trainer: trainerAndCoach._id,
+          fee: 0,
+          file: { publicId: '1234567890', link: 'ceciestunautrelien' },
+          creationMethod: UPLOAD,
+        });
+        expect(trainerMissionCount).toBe(1);
+      });
 
     it('should upload trainer mission for several courses', async () => {
       const courses = [courseList[0]._id.toHexString(), courseList[1]._id.toHexString()];

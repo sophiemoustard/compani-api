@@ -8,7 +8,13 @@ const Step = require('../../../src/models/Step');
 const SubProgram = require('../../../src/models/SubProgram');
 const CourseSlot = require('../../../src/models/CourseSlot');
 const Program = require('../../../src/models/Program');
-const { userList, trainerOrganisationManager, vendorAdmin, trainer } = require('../../seed/authUsersSeed');
+const {
+  userList,
+  trainerOrganisationManager,
+  vendorAdmin,
+  trainer,
+  trainerAndCoach,
+} = require('../../seed/authUsersSeed');
 const { deleteNonAuthenticationSeeds } = require('../helpers/db');
 const {
   INTER_B2B,
@@ -103,7 +109,7 @@ const coursesList = [
     _id: new ObjectId(),
     format: 'blended',
     subProgram: subProgramsList[1]._id,
-    trainer: trainer._id,
+    trainers: [trainer._id, trainerAndCoach._id],
     type: INTER_B2B,
     operationsRepresentative: vendorAdmin._id,
     trainees: [questionnaireHistoriesUsersList[1]],

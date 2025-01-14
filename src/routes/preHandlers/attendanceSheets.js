@@ -20,27 +20,27 @@ const { language } = translate;
 
 const SINGLE_COURSES_SUBPROGRAM_IDS = process.env.SINGLE_COURSES_SUBPROGRAM_IDS.split(';').map(id => new ObjectId(id));
 
-const isVendorAndAuthorized = (courseTrainer, credentials) => {
+const isVendorAndAuthorized = (courseTrainers, credentials) => {
   const loggedUserId = get(credentials, '_id');
   const vendorRole = get(credentials, 'role.vendor');
 
   const isRofOrAdmin = [VENDOR_ADMIN, TRAINING_ORGANISATION_MANAGER].includes(get(vendorRole, 'name'));
   if (isRofOrAdmin) return true;
 
-  const loggedUserIsCourseTrainer = courseTrainer && UtilsHelper.areObjectIdsEquals(loggedUserId, courseTrainer);
+  const loggedUserIsCourseTrainer = UtilsHelper.doesArrayIncludeId(courseTrainers, loggedUserId);
 
   return get(vendorRole, 'name') === TRAINER && loggedUserIsCourseTrainer;
 };
 
 exports.authorizeAttendanceSheetsGet = async (req) => {
   const course = await Course
-    .findOne({ _id: req.query.course }, { type: 1, companies: 1, trainer: 1, holding: 1 })
+    .findOne({ _id: req.query.course }, { type: 1, companies: 1, trainers: 1, holding: 1 })
     .lean();
   if (!course) throw Boom.notFound();
 
   const { credentials } = req.auth;
 
-  if (isVendorAndAuthorized(course.trainer, credentials)) return null;
+  if (isVendorAndAuthorized(course.trainers, credentials)) return null;
 
   if (get(req.query, 'company')) {
     const loggedUserCompany = get(credentials, 'company._id');
@@ -65,7 +65,7 @@ exports.authorizeAttendanceSheetCreation = async (req) => {
   const course = await Course
     .findOne(
       { _id: req.payload.course },
-      { archivedAt: 1, type: 1, slots: 1, trainees: 1, trainer: 1, companies: 1, subProgram: 1 }
+      { archivedAt: 1, type: 1, slots: 1, trainees: 1, trainers: 1, companies: 1, subProgram: 1 }
     )
     .populate('slots')
     .lean();
@@ -73,7 +73,9 @@ exports.authorizeAttendanceSheetCreation = async (req) => {
   if (!course.companies.length) throw Boom.forbidden();
 
   const { credentials } = req.auth;
-  if (!isVendorAndAuthorized(course.trainer, credentials)) throw Boom.forbidden();
+  if (!isVendorAndAuthorized(course.trainers, credentials)) throw Boom.forbidden();
+
+  if (!UtilsHelper.doesArrayIncludeId(course.trainers, req.payload.trainer)) throw Boom.forbidden();
 
   if ([INTRA, INTRA_HOLDING].includes(course.type)) {
     if (req.payload.trainee) throw Boom.badRequest();
@@ -104,18 +106,13 @@ exports.authorizeAttendanceSheetCreation = async (req) => {
 exports.authorizeAttendanceSheetEdit = async (req) => {
   const attendanceSheet = await AttendanceSheet
     .findOne({ _id: req.params._id })
-    .populate({ path: 'course', select: 'subProgram trainer' })
+    .populate({ path: 'course', select: 'subProgram trainers' })
     .lean();
 
   if (!attendanceSheet) throw Boom.notFound();
 
   const { credentials } = req.auth;
-  const userVendorRole = get(credentials, 'role.vendor.name');
-  const loggedUserId = get(credentials, '_id');
-  if (userVendorRole === TRAINER) {
-    const isCourseTrainer = UtilsHelper.areObjectIdsEquals(attendanceSheet.course.trainer, loggedUserId);
-    if (!isCourseTrainer) throw Boom.forbidden();
-  }
+  if (!isVendorAndAuthorized(attendanceSheet.course.trainers, credentials)) throw Boom.forbidden();
 
   const isSingleCourse = UtilsHelper
     .doesArrayIncludeId(SINGLE_COURSES_SUBPROGRAM_IDS, attendanceSheet.course.subProgram);
@@ -156,14 +153,14 @@ exports.authorizeAttendanceSheetDeletion = async (req) => {
 
   const attendanceSheet = await AttendanceSheet
     .findOne({ _id: req.params._id })
-    .populate({ path: 'course', select: 'archivedAt trainer' })
+    .populate({ path: 'course', select: 'archivedAt trainers' })
     .setOptions({ isVendorUser: !!get(credentials, 'role.vendor') })
     .lean();
   if (!attendanceSheet) throw Boom.notFound();
 
   if (get(attendanceSheet, 'course.archivedAt')) throw Boom.forbidden();
 
-  if (!isVendorAndAuthorized(get(attendanceSheet, 'course.trainer'), credentials)) throw Boom.forbidden();
+  if (!isVendorAndAuthorized(get(attendanceSheet, 'course.trainers'), credentials)) throw Boom.forbidden();
 
   return null;
 };

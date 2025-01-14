@@ -331,7 +331,6 @@ describe('create', () => {
     const user = {
       _id: traineeId,
       identity: { firstName: 'Mikasa', lastname: 'ACKERMAN' },
-      formationExpoTokenList: [],
     };
 
     uploadCourseFile.returns({ publicId: 'test', link: 'test' });
@@ -515,12 +514,12 @@ describe('generate', () => {
       misc: 'misc',
       trainee: { _id: traineeId, identity: { lastname: 'Sainz', firstname: 'Carlos' } },
       signatures: { trainer: 'https://trainer.com', trainee: 'https://trainee.com' },
+      trainer: { identity: { lastname: 'Hamilton', firstname: 'Lewis' } },
       slots: [{ startDate: '2020-03-04T09:00:00', endDate: '2020-03-04T11:00:00', step: { type: 'on_site' } }],
       course: {
         type: INTER_B2B,
         misc: 'misc',
         companies: [{ name: 'Alenvi' }],
-        trainer: { identity: { lastname: 'Hamilton', firstname: 'Lewis' } },
         subProgram: { program: { name: 'Program 1' } },
       },
     };
@@ -531,7 +530,7 @@ describe('generate', () => {
       companies: [{ name: 'Alenvi' }],
       slots: [{ startDate: '2020-03-04T09:00:00', endDate: '2020-03-04T11:00:00', step: { type: 'on_site' } }],
       trainees: [{ _id: traineeId, identity: { lastname: 'Sainz', firstname: 'Carlos' } }],
-      trainer: { identity: { lastname: 'Hamilton', firstname: 'Lewis' } },
+      trainers: [{ identity: { lastname: 'Hamilton', firstname: 'Lewis' } }],
       subProgram: { program: { name: 'Program 1' } },
     };
 
@@ -556,14 +555,14 @@ describe('generate', () => {
           }],
         },
         { query: 'populate', args: [{ path: 'trainee', select: 'identity' }] },
+        { query: 'populate', args: [{ path: 'trainer', select: 'identity' }] },
         {
           query: 'populate',
           args: [{
             path: 'course',
-            select: 'type misc companies trainer subProgram',
+            select: 'type misc companies subProgram',
             populate: [
               { path: 'companies', select: 'name' },
-              { path: 'trainer', select: 'identity' },
               { path: 'subProgram', select: 'program', populate: { path: 'program', select: 'name' } },
             ],
           }],

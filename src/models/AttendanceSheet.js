@@ -10,6 +10,7 @@ const AttendanceSheetSchema = mongoose.Schema({
   },
   date: { type: Date },
   trainee: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+  trainer: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
   companies: { type: [mongoose.Schema.Types.ObjectId], ref: 'Company', required: true },
   origin: { type: String, enum: ORIGIN_OPTIONS, required: true, immutable: true },
   slots: {

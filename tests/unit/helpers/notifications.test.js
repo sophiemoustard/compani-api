@@ -291,6 +291,7 @@ describe('sendAttendanceSheetSignatureRequestNotification', () => {
     const courseId = new ObjectId();
     const attendanceSheet = {
       _id: attendanceSheetId,
+      trainer: { _id: new ObjectId(), identity: { firstname: 'Paul', lastname: 'Seul' } },
       course: { _id: courseId, misc: 'skusku', subProgram: { program: { name: 'La communication avec Patrick' } } },
     };
 
@@ -302,6 +303,7 @@ describe('sendAttendanceSheetSignatureRequestNotification', () => {
       findOne,
       [
         { query: 'findOne', args: [{ _id: attendanceSheetId }, { course: 1 }] },
+        { query: 'populate', args: [{ path: 'trainer', select: 'identity' }] },
         {
           query: 'populate',
           args: [{
@@ -317,7 +319,7 @@ describe('sendAttendanceSheetSignatureRequestNotification', () => {
       sendNotificationToUser.getCall(0),
       {
         title: 'Vous avez une demande d\'émargement à signer',
-        body: 'Votre formateur vous demande d\'émarger des créneaux pour la formation La communication avec '
+        body: 'Paul SEUL vous demande d\'émarger des créneaux pour la formation La communication avec '
         + 'Patrick - skusku.',
         data: { _id: attendanceSheetId, courseId, type: ATTENDANCE_SHEET_SIGNATURE_REQUEST },
         expoToken: 'ExponentPushToken[jeSuisUnTokenExpo]',
@@ -327,7 +329,7 @@ describe('sendAttendanceSheetSignatureRequestNotification', () => {
       sendNotificationToUser.getCall(1),
       {
         title: 'Vous avez une demande d\'émargement à signer',
-        body: 'Votre formateur vous demande d\'émarger des créneaux pour la formation La communication avec '
+        body: 'Paul SEUL vous demande d\'émarger des créneaux pour la formation La communication avec '
         + 'Patrick - skusku.',
         data: { _id: attendanceSheetId, courseId, type: ATTENDANCE_SHEET_SIGNATURE_REQUEST },
         expoToken: 'ExponentPushToken[jeSuisUnAutreTokenExpo]',
