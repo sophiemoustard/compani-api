@@ -76,10 +76,7 @@ exports.list = async (credentials, query = {}) => {
 
   if (isVendorUser) {
     return Questionnaire
-      .find({
-        $or: [{ program: { $exists: false } }, { program: programId }],
-        status: PUBLISHED,
-      })
+      .find({ $or: [{ program: { $exists: false } }, { program: programId }], status: PUBLISHED })
       .populate({ path: 'cards', select: '-__v -createdAt -updatedAt' })
       .lean();
   }
