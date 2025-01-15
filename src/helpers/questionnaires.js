@@ -74,6 +74,13 @@ exports.list = async (credentials, query = {}) => {
 
   if (isStrictlyELearning) return [];
 
+  if (isVendorUser) {
+    return Questionnaire
+      .find({ $or: [{ program: { $exists: false } }, { program: programId }], status: PUBLISHED })
+      .populate({ path: 'cards', select: '-__v -createdAt -updatedAt' })
+      .lean();
+  }
+
   switch (courseTimeline) {
     case BETWEEN_MID_AND_END_COURSE:
       return [];
@@ -253,9 +260,12 @@ exports.getFollowUp = async (questionnaireId, query, credentials) => {
     : getFollowUpForList(questionnaire, course);
 };
 
-exports.generateQRCode = async (courseId) => {
+exports.generateQRCode = async (query) => {
+  const { courseId, courseTimeline } = query;
   const qrCode = await QRCode
-    .toDataURL(`${process.env.WEBSITE_HOSTNAME}/ni/questionnaires?courseId=${courseId}`, { margin: 0 });
+    .toDataURL(
+      `${process.env.WEBSITE_HOSTNAME}/ni/questionnaires?courseId=${courseId}&courseTimeline=${courseTimeline}`,
+      { margin: 0 });
 
   return qrCode;
 };
