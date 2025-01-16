@@ -79,7 +79,8 @@ const getLearnersCount = async (course) => {
 
 // make sure code is similar to front part in TrainingContractInfoModal
 exports.formatCourseForTrainingContract = async (course, vendorCompany, price) => {
-  const { companies, subProgram, slots, slotsToPlan, trainer } = course;
+  const { companies, subProgram, slots, slotsToPlan, trainers } = course;
+  const trainersName = trainers.map(trainer => UtilsHelper.formatIdentity(trainer.identity, 'FL'));
 
   return {
     type: course.type,
@@ -94,7 +95,7 @@ exports.formatCourseForTrainingContract = async (course, vendorCompany, price) =
     learnersCount: await getLearnersCount(course),
     dates: CourseSlotsHelper.formatSlotDates(slots),
     addressList: CourseSlotsHelper.getAddressList(slots, subProgram.steps),
-    trainer: UtilsHelper.formatIdentity(get(trainer, 'identity'), 'FL'),
+    trainers: trainersName,
     price,
   };
 };

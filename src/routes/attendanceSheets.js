@@ -7,6 +7,7 @@ const {
   create,
   deleteAttendanceSheet,
   updateAttendanceSheet,
+  signAttendanceSheet,
 } = require('../controllers/attendanceSheetController');
 const { formDataPayload } = require('./validations/utils');
 const {
@@ -14,8 +15,9 @@ const {
   authorizeAttendanceSheetDeletion,
   authorizeAttendanceSheetsGet,
   authorizeAttendanceSheetEdit,
+  authorizeAttendanceSheetSignature,
 } = require('./preHandlers/attendanceSheets');
-const { ORIGIN_OPTIONS, MOBILE } = require('../helpers/constants');
+const { ORIGIN_OPTIONS, MOBILE, GENERATION } = require('../helpers/constants');
 
 exports.plugin = {
   name: 'routes-attendancesheets',
@@ -45,12 +47,17 @@ exports.plugin = {
         validate: {
           payload: Joi.object({
             course: Joi.objectId().required(),
-            file: Joi.any().required(),
+            file: Joi.any(),
             trainee: Joi.objectId(),
+            trainer: Joi.objectId().required(),
             date: Joi.date(),
             origin: Joi.string().valid(...ORIGIN_OPTIONS).default(MOBILE),
-            slots: Joi.alternatives().try(Joi.array().items(Joi.objectId()).min(1), Joi.objectId()),
-          }).xor('trainee', 'date'),
+            slots: Joi
+              .alternatives()
+              .try(Joi.array().items(Joi.objectId()).min(1), Joi.objectId())
+              .when('signature', { is: Joi.exist(), then: Joi.required() }),
+            signature: Joi.any(),
+          }).xor('trainee', 'date').xor('file', 'signature'),
         },
         auth: { scope: ['attendances:edit'] },
         pre: [{ method: authorizeAttendanceSheetCreation }],
@@ -66,12 +73,28 @@ exports.plugin = {
         validate: {
           params: Joi.object({ _id: Joi.objectId().required() }),
           payload: Joi.object({
-            slots: Joi.array().items(Joi.objectId()).min(1).required(),
-          }),
+            slots: Joi.array().items(Joi.objectId()).min(1),
+            action: Joi.string().valid(GENERATION),
+          }).xor('slots', 'action'),
         },
         pre: [{ method: authorizeAttendanceSheetEdit }],
       },
       handler: updateAttendanceSheet,
+    });
+
+    server.route({
+      method: 'PUT',
+      path: '/{_id}/signature',
+      options: {
+        auth: { mode: 'required' },
+        payload: formDataPayload(),
+        validate: {
+          params: Joi.object({ _id: Joi.objectId().required() }),
+          payload: Joi.object({ signature: Joi.any().required() }),
+        },
+        pre: [{ method: authorizeAttendanceSheetSignature }],
+      },
+      handler: signAttendanceSheet,
     });
 
     server.route({

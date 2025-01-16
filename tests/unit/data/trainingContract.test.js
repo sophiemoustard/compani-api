@@ -38,7 +38,7 @@ describe('getPdfContent', () => {
       learnersCount: 8,
       dates: ['03/11/2020', '04/11/2020', '05/11/2020'],
       addressList: ['14 rue de ponthieu 75008 Paris', '22 avenue Daumesnil 75012 Paris'],
-      trainer: 'Jean BONBEUR',
+      trainers: ['Jean BONBEUR', 'James PENCIL'],
       price: 12,
     };
 
@@ -88,7 +88,7 @@ describe('getPdfContent', () => {
                       { text: '- 22 avenue Daumesnil 75012 Paris', marginLeft: 8 },
                     ],
                   },
-                  { text: 'Intervenant(e) : Jean BONBEUR', marginBottom: 16 },
+                  { text: 'Intervenant·es : Jean BONBEUR, James PENCIL', marginBottom: 16 },
                   { text: 'Prix total TTC : 12 €' },
                   { text: '(Ce prix comprend les frais de formateurs)', italics: true },
                   {
@@ -171,7 +171,7 @@ describe('getPdfContent', () => {
       learnersCount: 8,
       dates: ['03/11/2020', '04/11/2020', '05/11/2020'],
       addressList: ['Paris'],
-      trainer: 'Jean BONBEUR',
+      trainers: ['Jean BONBEUR'],
       price: 12,
     };
 
@@ -213,7 +213,7 @@ describe('getPdfContent', () => {
                   { text: 'Effectif formé : Groupe 1, 8 stagiaires' },
                   { text: 'Dates : 03/11/2020 - 04/11/2020 - 05/11/2020' },
                   { text: 'Lieu : Paris' },
-                  { text: 'Intervenant(e) : Jean BONBEUR', marginBottom: 16 },
+                  { text: 'Intervenant·e : Jean BONBEUR', marginBottom: 16 },
                   { text: 'Prix TTC par stagiaire : 12 €' },
                   { text: 'Prix total TTC : 96 €' },
                   { text: '(Ce prix comprend les frais de formateurs)', italics: true },
@@ -308,7 +308,7 @@ describe('getPdf', () => {
       learnersCount: 8,
       dates: ['03/11/2020', '04/11/2020', '05/11/2020'],
       addressList: ['14 rue de ponthieu 75008 Paris', '22 avenue Daumesnil 75012 Paris'],
-      trainer: 'Jean BONBEUR',
+      trainers: ['Jean BONBEUR', 'james PENCIL'],
       price: 12,
     };
     const template = {

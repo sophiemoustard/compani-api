@@ -476,7 +476,7 @@ describe('CARDS ROUTES - PUT /cards/{_id}/answers/{answerId}', () => {
       const response = await app.inject({
         method: 'PUT',
         url: `/cards/${card._id}/answers/${answer._id}`,
-        payload: { text: '', correct: true },
+        payload: { text: '', isCorrect: true },
         headers: { 'x-access-token': authToken },
       });
 
@@ -490,21 +490,21 @@ describe('CARDS ROUTES - PUT /cards/{_id}/answers/{answerId}', () => {
       const response = await app.inject({
         method: 'PUT',
         url: `/cards/${card._id}/answers/${answer._id}`,
-        payload: { text: 'Je suis un text vraiment vraiment vraiment tres tres tres tres tres long', correct: true },
+        payload: { text: 'Je suis un text vraiment vraiment vraiment tres tres tres tres tres long', isCorrect: true },
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(response.statusCode).toBe(400);
     });
 
-    it('should return 400 if correct is null', async () => {
+    it('should return 400 if isCorrect is null', async () => {
       const card = cardsList[6];
       const answer = card.qcAnswers[0];
 
       const response = await app.inject({
         method: 'PUT',
         url: `/cards/${card._id}/answers/${answer._id}`,
-        payload: { correct: null, text: 'Avery' },
+        payload: { isCorrect: null, text: 'Avery' },
         headers: { 'x-access-token': authToken },
       });
 
@@ -553,14 +553,14 @@ describe('CARDS ROUTES - PUT /cards/{_id}/answers/{answerId}', () => {
       expect(response.statusCode).toBe(404);
     });
 
-    it('should return a 400 if field correct is given and template isn\'t qcm', async () => {
+    it('should return a 400 if field isCorrect is given and template isn\'t qcm', async () => {
       const card = cardsList[11];
       const answer = card.qcAnswers[0];
 
       const response = await app.inject({
         method: 'PUT',
         url: `/cards/${card._id}/answers/${answer._id}`,
-        payload: { correct: false },
+        payload: { isCorrect: false },
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 

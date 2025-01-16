@@ -5,6 +5,7 @@ const Course = require('../../../src/models/Course');
 const CourseHistory = require('../../../src/models/CourseHistory');
 const CourseSlot = require('../../../src/models/CourseSlot');
 const Step = require('../../../src/models/Step');
+const Program = require('../../../src/models/Program');
 const SubProgram = require('../../../src/models/SubProgram');
 const { authCompany, otherCompany, companyWithoutSubscription, otherHolding } = require('../../seed/authCompaniesSeed');
 const {
@@ -20,7 +21,7 @@ const { deleteNonAuthenticationSeeds } = require('../helpers/db');
 const UserCompany = require('../../../src/models/UserCompany');
 const User = require('../../../src/models/User');
 const { vendorAdminRoleId, trainerRoleId } = require('../../seed/authRolesSeed');
-const { trainerOrganisationManager, trainer } = require('../../seed/authUsersSeed');
+const { trainerOrganisationManager, trainer, trainerAndCoach } = require('../../seed/authUsersSeed');
 
 const SINGLE_COURSES_SUBPROGRAM_IDS = process.env.SINGLE_COURSES_SUBPROGRAM_IDS.split(';').map(id => new ObjectId(id));
 
@@ -29,7 +30,7 @@ const userList = [
     _id: new ObjectId(),
     identity: { firstname: 'operations', lastname: 'representative' },
     refreshToken: uuidv4(),
-    local: { email: 'operationsrep@compani.fr' },
+    local: { email: 'operationsrep@compani.fr', password: '123456!eR' },
     role: { vendor: vendorAdminRoleId },
     origin: WEBAPP,
   },
@@ -37,8 +38,9 @@ const userList = [
     _id: new ObjectId(),
     identity: { firstname: 'learner', lastname: 'from AuthCompany' },
     refreshToken: uuidv4(),
-    local: { email: 'learner@compani.fr', password: '123456!eR' },
+    local: { email: 'learnerfromauthcompany@compani.fr', password: '123456!eR' },
     origin: WEBAPP,
+    formationExpoTokenList: ['ExponentPushToken[jeSuisUnTokenExpo]', 'ExponentPushToken[jeSuisUnAutreTokenExpo]'],
   },
   { // 2
     _id: new ObjectId(),
@@ -84,6 +86,10 @@ const subProgramList = [
   { _id: SINGLE_COURSES_SUBPROGRAM_IDS[0], name: 'Subprogram 2', steps: [steps[0]._id], status: PUBLISHED },
 ];
 
+const programsList = [
+  { _id: new ObjectId(), name: 'Program 1', subPrograms: [subProgramList[0]._id, subProgramList[1]._id] },
+];
+
 const coursesList = [
   { // 0
     _id: new ObjectId(),
@@ -93,7 +99,7 @@ const coursesList = [
     trainees: [userList[1]._id],
     companies: [authCompany._id],
     operationsRepresentative: userList[0]._id,
-    trainer: trainer._id,
+    trainers: [trainer._id, trainerAndCoach._id],
   },
   { // 1
     _id: new ObjectId(),
@@ -102,7 +108,7 @@ const coursesList = [
     trainees: [userList[1]._id, userList[2]._id, userList[4]._id],
     companies: [authCompany._id, otherCompany._id, companyWithoutSubscription._id],
     operationsRepresentative: userList[0]._id,
-    trainer: trainer._id,
+    trainers: [trainer._id, trainerAndCoach._id],
   },
   { // 2
     _id: new ObjectId(),
@@ -111,7 +117,7 @@ const coursesList = [
     maxTrainees: 8,
     trainees: [userList[1]._id],
     companies: [authCompany._id],
-    trainer: userList[3]._id,
+    trainers: [userList[3]._id],
     operationsRepresentative: userList[0]._id,
   },
   { // 3 - archived
@@ -122,7 +128,7 @@ const coursesList = [
     trainees: [userList[1]._id],
     companies: [authCompany._id],
     operationsRepresentative: userList[0]._id,
-    trainer: trainer._id,
+    trainers: [trainer._id],
   },
   { // 4
     _id: new ObjectId(),
@@ -131,7 +137,7 @@ const coursesList = [
     maxTrainees: 8,
     trainees: [userList[2]._id],
     companies: [otherCompany._id],
-    trainer: userList[3]._id,
+    trainers: [userList[3]._id],
     operationsRepresentative: userList[0]._id,
   },
   { // 5
@@ -142,7 +148,7 @@ const coursesList = [
     trainees: [userList[2]._id],
     companies: [otherCompany._id],
     holding: otherHolding._id,
-    trainer: trainer._id,
+    trainers: [trainer._id],
     operationsRepresentative: userList[0]._id,
   },
   { // 6
@@ -151,6 +157,7 @@ const coursesList = [
     type: INTRA_HOLDING,
     maxTrainees: 8,
     trainees: [],
+    trainers: [trainer._id],
     companies: [],
     holding: otherHolding._id,
     operationsRepresentative: userList[0]._id,
@@ -162,7 +169,7 @@ const coursesList = [
     trainees: [userList[1]._id],
     companies: [authCompany._id],
     operationsRepresentative: userList[0]._id,
-    trainer: trainer._id,
+    trainers: [trainer._id, trainerAndCoach._id],
   },
   { // 8 Single course
     _id: new ObjectId(),
@@ -171,7 +178,7 @@ const coursesList = [
     trainees: [userList[1]._id],
     companies: [authCompany._id],
     operationsRepresentative: userList[0]._id,
-    trainer: userList[3]._id,
+    trainers: [userList[3]._id],
   },
 ];
 
@@ -277,6 +284,27 @@ const slotsList = [
     course: coursesList[8]._id,
     step: steps[0]._id,
   },
+  { // 9
+    _id: new ObjectId(),
+    startDate: '2020-02-26T09:00:00.000Z',
+    endDate: '2020-02-26T11:00:00.000Z',
+    course: coursesList[8]._id,
+    step: steps[0]._id,
+  },
+  { // 10
+    _id: new ObjectId(),
+    startDate: '2020-03-26T09:00:00.000Z',
+    endDate: '2020-03-26T11:00:00.000Z',
+    course: coursesList[7]._id,
+    step: steps[0]._id,
+  },
+  { // 11
+    _id: new ObjectId(),
+    startDate: '2021-03-26T09:00:00.000Z',
+    endDate: '2021-03-26T11:00:00.000Z',
+    course: coursesList[7]._id,
+    step: steps[0]._id,
+  },
 ];
 
 const attendanceSheetList = [
@@ -287,6 +315,7 @@ const attendanceSheetList = [
     date: '2020-01-23T09:00:00.000Z',
     companies: [authCompany._id],
     origin: WEBAPP,
+    trainer: trainer._id,
   },
   { // 1
     _id: new ObjectId(),
@@ -295,6 +324,7 @@ const attendanceSheetList = [
     trainee: userList[1]._id,
     companies: [authCompany._id],
     origin: WEBAPP,
+    trainer: trainer._id,
   },
   { // 2
     _id: new ObjectId(),
@@ -303,6 +333,7 @@ const attendanceSheetList = [
     trainee: userList[1]._id,
     companies: [authCompany._id],
     origin: MOBILE,
+    trainer: trainer._id,
   },
   { // 3
     _id: new ObjectId(),
@@ -311,6 +342,7 @@ const attendanceSheetList = [
     date: '2020-01-25T09:00:00.000Z',
     companies: [authCompany._id],
     origin: MOBILE,
+    trainer: userList[3]._id,
   },
   { // 4
     _id: new ObjectId(),
@@ -319,6 +351,7 @@ const attendanceSheetList = [
     trainee: userList[4]._id,
     companies: [companyWithoutSubscription._id],
     origin: MOBILE,
+    trainer: trainer._id,
   },
   { // 5
     _id: new ObjectId(),
@@ -328,6 +361,7 @@ const attendanceSheetList = [
     companies: [authCompany._id],
     slots: [slotsList[5]._id],
     origin: WEBAPP,
+    trainer: trainer._id,
   },
   { // 6
     _id: new ObjectId(),
@@ -337,6 +371,7 @@ const attendanceSheetList = [
     companies: [authCompany._id],
     slots: [slotsList[6]._id],
     origin: WEBAPP,
+    trainer: trainer._id,
   },
   { // 7
     _id: new ObjectId(),
@@ -346,6 +381,44 @@ const attendanceSheetList = [
     companies: [authCompany._id],
     slots: [slotsList[8]._id],
     origin: WEBAPP,
+    trainer: userList[3]._id,
+  },
+  { // 8
+    _id: new ObjectId(),
+    course: coursesList[8]._id,
+    signatures: { trainer: 'www.test.com' },
+    trainee: userList[1]._id,
+    companies: [authCompany._id],
+    slots: [slotsList[9]._id],
+    origin: MOBILE,
+    trainer: userList[3]._id,
+  },
+  { // 9
+    _id: new ObjectId(),
+    course: coursesList[7]._id,
+    signatures: {
+      trainer: 'https://storage.googleapis.com/compani-main/aux-conscience-eclairee.png',
+      trainee: 'https://storage.googleapis.com/compani-main/aux-conscience-eclairee.png',
+    },
+    trainee: userList[1]._id,
+    companies: [authCompany._id],
+    slots: [slotsList[10]._id],
+    origin: MOBILE,
+    trainer: trainer._id,
+  },
+  { // 10
+    _id: new ObjectId(),
+    course: coursesList[7]._id,
+    signatures: {
+      trainer: 'https://storage.googleapis.com/compani-main/aux-conscience-eclairee.png',
+      trainee: 'https://storage.googleapis.com/compani-main/aux-conscience-eclairee.png',
+    },
+    trainee: userList[1]._id,
+    companies: [authCompany._id],
+    slots: [slotsList[11]._id],
+    file: { publicId: 'yo', link: 'www.test.com' },
+    origin: MOBILE,
+    trainer: trainer._id,
   },
 ];
 
@@ -361,6 +434,7 @@ const populateDB = async () => {
     CourseHistory.create(courseHistoriesList),
     Step.create(steps),
     SubProgram.create(subProgramList),
+    Program.create(programsList),
   ]);
 };
 
@@ -369,4 +443,5 @@ module.exports = {
   attendanceSheetList,
   coursesList,
   slotsList,
+  userList,
 };

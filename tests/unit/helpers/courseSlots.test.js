@@ -5,7 +5,6 @@ const { ObjectId } = require('mongodb');
 const CourseSlot = require('../../../src/models/CourseSlot');
 const CourseSlotsHelper = require('../../../src/helpers/courseSlots');
 const CourseHistoriesHelper = require('../../../src/helpers/courseHistories');
-const UtilsHelper = require('../../../src/helpers/utils');
 const SinonMongoose = require('../sinonMongoose');
 const { REMOTE, ON_SITE } = require('../../../src/helpers/constants');
 
@@ -64,19 +63,25 @@ describe('hasConflicts', () => {
 });
 
 describe('createCourseSlot', () => {
-  let save;
+  let insertMany;
   beforeEach(() => {
-    save = sinon.stub(CourseSlot.prototype, 'save').returnsThis();
+    insertMany = sinon.stub(CourseSlot, 'insertMany');
   });
   afterEach(() => {
-    save.restore();
+    insertMany.restore();
   });
 
-  it('should create a course slot', async () => {
-    const newSlot = { course: new ObjectId(), step: new ObjectId() };
+  it('should create multiple courses slots', async () => {
+    const courseId = new ObjectId();
+    const stepId = new ObjectId();
+    const payload = { course: courseId, step: stepId, quantity: 3 };
 
-    const result = await CourseSlotsHelper.createCourseSlot(newSlot);
-    expect(UtilsHelper.areObjectIdsEquals(result.course, newSlot.course)).toBeTruthy();
+    await CourseSlotsHelper.createCourseSlot(payload);
+
+    sinon.assert.calledOnceWithExactly(
+      insertMany,
+      [{ course: courseId, step: stepId }, { course: courseId, step: stepId }, { course: courseId, step: stepId }]
+    );
   });
 });
 

@@ -74,6 +74,13 @@ exports.list = async (credentials, query = {}) => {
 
   if (isStrictlyELearning) return [];
 
+  if (isVendorUser) {
+    return Questionnaire
+      .find({ $or: [{ program: { $exists: false } }, { program: programId }], status: PUBLISHED })
+      .populate({ path: 'cards', select: '-__v -createdAt -updatedAt' })
+      .lean();
+  }
+
   switch (courseTimeline) {
     case BETWEEN_MID_AND_END_COURSE:
       return [];
@@ -178,7 +185,7 @@ const formatQuestionnaireAnswersWithCourse = async (courseId, questionnaireAnswe
 };
 
 const getFollowUpForReview = async (questionnaire, courseId) => {
-  const fieldsToPick = ['user', 'questionnaireAnswersList', 'timeline', '_id', 'isValidated'];
+  const fieldsToPick = ['user', 'questionnaireAnswersList', 'timeline', '_id', 'isValidated', 'trainerComment'];
   const followUp = questionnaire.histories.map(h => pick(h, fieldsToPick));
 
   const course = await Course.findOne({ _id: courseId })
@@ -238,7 +245,7 @@ exports.getFollowUp = async (questionnaireId, query, credentials) => {
         { path: 'questionnaireAnswersList.card', select: '-__v -createdAt -updatedAt' },
         {
           path: 'course',
-          select: 'trainer subProgram misc companies type',
+          select: 'trainers subProgram misc companies type',
           populate: [
             { path: 'subProgram', select: 'program', populate: { path: 'program', select: '_id name' } },
             { path: 'companies', select: 'name' },
@@ -253,9 +260,12 @@ exports.getFollowUp = async (questionnaireId, query, credentials) => {
     : getFollowUpForList(questionnaire, course);
 };
 
-exports.generateQRCode = async (courseId) => {
+exports.generateQRCode = async (query) => {
+  const { courseId, courseTimeline } = query;
   const qrCode = await QRCode
-    .toDataURL(`${process.env.WEBSITE_HOSTNAME}/ni/questionnaires?courseId=${courseId}`, { margin: 0 });
+    .toDataURL(
+      `${process.env.WEBSITE_HOSTNAME}/ni/questionnaires?courseId=${courseId}&courseTimeline=${courseTimeline}`,
+      { margin: 0 });
 
   return qrCode;
 };

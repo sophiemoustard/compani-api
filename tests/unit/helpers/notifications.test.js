@@ -1,8 +1,13 @@
 const axios = require('axios');
 const { ObjectId } = require('mongodb');
 const sinon = require('sinon');
-const { BLENDED_COURSE_REGISTRATION, NEW_ELEARNING_COURSE } = require('../../../src/helpers/constants');
+const {
+  BLENDED_COURSE_REGISTRATION,
+  NEW_ELEARNING_COURSE,
+  ATTENDANCE_SHEET_SIGNATURE_REQUEST,
+} = require('../../../src/helpers/constants');
 const NotificationHelper = require('../../../src/helpers/notifications');
+const AttendanceSheet = require('../../../src/models/AttendanceSheet');
 const Course = require('../../../src/models/Course');
 const User = require('../../../src/models/User');
 const SinonMongoose = require('../sinonMongoose');
@@ -261,6 +266,83 @@ describe('sendNewElearningCourseNotification', () => {
         { query: 'lean', args: [] },
       ]
     );
+    sinon.assert.notCalled(sendNotificationToUser);
+  });
+});
+
+describe('sendAttendanceSheetSignatureRequestNotification', () => {
+  let sendNotificationToUser;
+  let findOne;
+  beforeEach(() => {
+    sendNotificationToUser = sinon.stub(NotificationHelper, 'sendNotificationToUser');
+    findOne = sinon.stub(AttendanceSheet, 'findOne');
+  });
+  afterEach(() => {
+    sendNotificationToUser.restore();
+    findOne.restore();
+  });
+
+  it('should format payload and call sendNotificationToUser', async () => {
+    const formationExpoTokenList = [
+      'ExponentPushToken[jeSuisUnTokenExpo]',
+      'ExponentPushToken[jeSuisUnAutreTokenExpo]',
+    ];
+    const attendanceSheetId = new ObjectId();
+    const courseId = new ObjectId();
+    const attendanceSheet = {
+      _id: attendanceSheetId,
+      trainer: { _id: new ObjectId(), identity: { firstname: 'Paul', lastname: 'Seul' } },
+      course: { _id: courseId, misc: 'skusku', subProgram: { program: { name: 'La communication avec Patrick' } } },
+    };
+
+    findOne.returns(SinonMongoose.stubChainedQueries(attendanceSheet));
+
+    await NotificationHelper.sendAttendanceSheetSignatureRequestNotification(attendanceSheetId, formationExpoTokenList);
+
+    SinonMongoose.calledOnceWithExactly(
+      findOne,
+      [
+        { query: 'findOne', args: [{ _id: attendanceSheetId }, { course: 1 }] },
+        { query: 'populate', args: [{ path: 'trainer', select: 'identity' }] },
+        {
+          query: 'populate',
+          args: [{
+            path: 'course',
+            select: 'subProgram misc',
+            populate: { path: 'subProgram', select: 'program', populate: [{ path: 'program', select: 'name' }] },
+          }],
+        },
+        { query: 'lean', args: [] },
+      ]
+    );
+    sinon.assert.calledWithExactly(
+      sendNotificationToUser.getCall(0),
+      {
+        title: 'Vous avez une demande d\'émargement à signer',
+        body: 'Paul SEUL vous demande d\'émarger des créneaux pour la formation La communication avec '
+        + 'Patrick - skusku.',
+        data: { _id: attendanceSheetId, courseId, type: ATTENDANCE_SHEET_SIGNATURE_REQUEST },
+        expoToken: 'ExponentPushToken[jeSuisUnTokenExpo]',
+      }
+    );
+    sinon.assert.calledWithExactly(
+      sendNotificationToUser.getCall(1),
+      {
+        title: 'Vous avez une demande d\'émargement à signer',
+        body: 'Paul SEUL vous demande d\'émarger des créneaux pour la formation La communication avec '
+        + 'Patrick - skusku.',
+        data: { _id: attendanceSheetId, courseId, type: ATTENDANCE_SHEET_SIGNATURE_REQUEST },
+        expoToken: 'ExponentPushToken[jeSuisUnAutreTokenExpo]',
+      }
+    );
+  });
+
+  it('should do nothing if trainee has no formationExpoTokenList', async () => {
+    const attendanceSheetId = new ObjectId();
+
+    await NotificationHelper.sendAttendanceSheetSignatureRequestNotification(attendanceSheetId, []);
+
+    sinon.assert.notCalled(findOne);
     sinon.assert.notCalled(sendNotificationToUser);
   });
 });

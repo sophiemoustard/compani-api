@@ -111,7 +111,7 @@ describe('list', () => {
     );
   });
 
-  it('should return questionnaires if course has no slots', async () => {
+  it('should return all published or linked to a program published questionnaire if user has vendor role', async () => {
     const credentials = { role: { vendor: { name: TRAINING_ORGANISATION_MANAGER } } };
     const courseId = new ObjectId();
     const programId = new ObjectId();
@@ -124,7 +124,8 @@ describe('list', () => {
 
     const questionnairesList = [
       { name: 'test', type: EXPECTATIONS, status: PUBLISHED },
-      { name: 'test2', type: SELF_POSITIONNING, status: PUBLISHED },
+      { name: 'test2', type: SELF_POSITIONNING, status: PUBLISHED, program: new ObjectId() },
+      { name: 'test 3', type: END_OF_COURSE, status: PUBLISHED },
     ];
 
     findOneCourse.returns(SinonMongoose.stubChainedQueries(course));
@@ -151,13 +152,7 @@ describe('list', () => {
       [
         {
           query: 'find',
-          args: [
-            {
-              type: { $in: [EXPECTATIONS, SELF_POSITIONNING] },
-              $or: [{ program: { $exists: false } }, { program: programId }],
-              status: PUBLISHED,
-            },
-          ],
+          args: [{ $or: [{ program: { $exists: false } }, { program: programId }], status: PUBLISHED }],
         },
         { query: 'populate', args: [{ path: 'cards', select: '-__v -createdAt -updatedAt' }] },
         { query: 'lean' },
@@ -165,8 +160,39 @@ describe('list', () => {
     );
   });
 
+  it('should return [] if half of course has been completed and there are still slots to plan', async () => {
+    const courseId = new ObjectId();
+    const programId = new ObjectId();
+    const credentials = { _id: new ObjectId(), company: { _id: new ObjectId() } };
+    const course = {
+      _id: courseId,
+      slots: [{ startDate: '2021-04-11T09:00:00.000Z', endDate: '2021-04-11T11:00:00.000Z' }],
+      slotsToPlan: [{ _id: new ObjectId() }],
+      subProgram: { program: { _id: programId } },
+    };
+
+    findOneCourse.returns(SinonMongoose.stubChainedQueries(course));
+    const result = await QuestionnaireHelper.list(credentials, { course: courseId });
+
+    expect(result).toMatchObject([]);
+    SinonMongoose.calledOnceWithExactly(
+      findOneCourse,
+      [
+        { query: 'findOne', args: [{ _id: courseId }] },
+        { query: 'populate', args: [{ path: 'slots', select: '-__v -createdAt -updatedAt' }] },
+        { query: 'populate', args: [{ path: 'slotsToPlan', select: '_id' }] },
+        {
+          query: 'populate',
+          args: [{ path: 'subProgram', select: 'program', populate: { path: 'program', select: '_id' } }],
+        },
+        { query: 'lean', args: [{ virtuals: true }] },
+      ]
+    );
+    sinon.assert.notCalled(findQuestionnaires);
+  });
+
   it('should return questionnaires if course has slots and mid course has to be planned', async () => {
-    const credentials = { role: { vendor: { name: TRAINING_ORGANISATION_MANAGER } } };
+    const credentials = { _id: new ObjectId(), company: { _id: new ObjectId() } };
     const courseId = new ObjectId();
     const programId = new ObjectId();
     const course = {
@@ -205,13 +231,11 @@ describe('list', () => {
       [
         {
           query: 'find',
-          args: [
-            {
-              type: { $in: [EXPECTATIONS, SELF_POSITIONNING] },
-              $or: [{ program: { $exists: false } }, { program: programId }],
-              status: PUBLISHED,
-            },
-          ],
+          args: [{
+            type: { $in: [EXPECTATIONS, SELF_POSITIONNING] },
+            $or: [{ program: { $exists: false } }, { program: programId }],
+            status: PUBLISHED,
+          }],
         },
         { query: 'populate', args: [{ path: 'cards', select: '-__v -createdAt -updatedAt' }] },
         { query: 'lean' },
@@ -223,7 +247,7 @@ describe('list', () => {
     + '(EXPECTATION and SELF_POSITIONNING)', async () => {
     const courseId = new ObjectId();
     const programId = new ObjectId();
-    const credentials = { role: { vendor: { name: TRAINING_ORGANISATION_MANAGER } } };
+    const credentials = { _id: new ObjectId(), company: { _id: new ObjectId() } };
     const course = {
       _id: courseId,
       slots: [{ startDate: '2021-04-20T09:00:00.000Z', endDate: '2021-04-20T11:00:00.000Z' }],
@@ -279,41 +303,10 @@ describe('list', () => {
     );
   });
 
-  it('should return [] if half of course has been completed and there are still slots to plan', async () => {
-    const courseId = new ObjectId();
-    const programId = new ObjectId();
-    const credentials = { role: { vendor: { name: TRAINING_ORGANISATION_MANAGER } } };
-    const course = {
-      _id: courseId,
-      slots: [{ startDate: '2021-04-11T09:00:00.000Z', endDate: '2021-04-11T11:00:00.000Z' }],
-      slotsToPlan: [{ _id: new ObjectId() }],
-      subProgram: { program: { _id: programId } },
-    };
-
-    findOneCourse.returns(SinonMongoose.stubChainedQueries(course));
-    const result = await QuestionnaireHelper.list(credentials, { course: courseId });
-
-    expect(result).toMatchObject([]);
-    SinonMongoose.calledOnceWithExactly(
-      findOneCourse,
-      [
-        { query: 'findOne', args: [{ _id: courseId }] },
-        { query: 'populate', args: [{ path: 'slots', select: '-__v -createdAt -updatedAt' }] },
-        { query: 'populate', args: [{ path: 'slotsToPlan', select: '_id' }] },
-        {
-          query: 'populate',
-          args: [{ path: 'subProgram', select: 'program', populate: { path: 'program', select: '_id' } }],
-        },
-        { query: 'lean', args: [{ virtuals: true }] },
-      ]
-    );
-    sinon.assert.notCalled(findQuestionnaires);
-  });
-
   it('should return published questionnaires if course ends today (END_OF_COURSE and SELF_POSITIONNING)', async () => {
     const courseId = new ObjectId();
     const programId = new ObjectId();
-    const credentials = { role: { vendor: { name: TRAINING_ORGANISATION_MANAGER } } };
+    const credentials = { _id: new ObjectId(), company: { _id: new ObjectId() } };
     const course = {
       _id: courseId,
       slots: [
@@ -1399,6 +1392,7 @@ describe('getFollowUp', () => {
             ],
             timeline: END_COURSE,
             isValidated: true,
+            trainerComment: 'commentaire de validation',
           },
         ],
       };
@@ -1455,6 +1449,7 @@ describe('getFollowUp', () => {
             user: trainees[1],
             timeline: END_COURSE,
             isValidated: true,
+            trainerComment: 'commentaire de validation',
             questionnaireAnswersList: [
               {
                 card: {
@@ -1497,7 +1492,7 @@ describe('getFollowUp', () => {
                 { path: 'questionnaireAnswersList.card', select: '-__v -createdAt -updatedAt' },
                 {
                   path: 'course',
-                  select: 'trainer subProgram misc companies type',
+                  select: 'trainers subProgram misc companies type',
                   populate: [
                     { path: 'subProgram', select: 'program', populate: { path: 'program', select: '_id name' } },
                     { path: 'companies', select: 'name' },
@@ -1587,7 +1582,7 @@ describe('getFollowUp', () => {
                 { path: 'questionnaireAnswersList.card', select: '-__v -createdAt -updatedAt' },
                 {
                   path: 'course',
-                  select: 'trainer subProgram misc companies type',
+                  select: 'trainers subProgram misc companies type',
                   populate: [
                     { path: 'subProgram', select: 'program', populate: { path: 'program', select: '_id name' } },
                     { path: 'companies', select: 'name' },
@@ -1787,7 +1782,7 @@ describe('getFollowUp', () => {
                 { path: 'questionnaireAnswersList.card', select: '-__v -createdAt -updatedAt' },
                 {
                   path: 'course',
-                  select: 'trainer subProgram misc companies type',
+                  select: 'trainers subProgram misc companies type',
                   populate: [
                     { path: 'subProgram', select: 'program', populate: { path: 'program', select: '_id name' } },
                     { path: 'companies', select: 'name' },
@@ -1941,7 +1936,7 @@ describe('getFollowUp', () => {
                 { path: 'questionnaireAnswersList.card', select: '-__v -createdAt -updatedAt' },
                 {
                   path: 'course',
-                  select: 'trainer subProgram misc companies type',
+                  select: 'trainers subProgram misc companies type',
                   populate: [
                     { path: 'subProgram', select: 'program', populate: { path: 'program', select: '_id name' } },
                     { path: 'companies', select: 'name' },
@@ -2025,7 +2020,7 @@ describe('getFollowUp', () => {
                 { path: 'questionnaireAnswersList.card', select: '-__v -createdAt -updatedAt' },
                 {
                   path: 'course',
-                  select: 'trainer subProgram misc companies type',
+                  select: 'trainers subProgram misc companies type',
                   populate: [
                     { path: 'subProgram', select: 'program', populate: { path: 'program', select: '_id name' } },
                     { path: 'companies', select: 'name' },
@@ -2100,7 +2095,7 @@ describe('getFollowUp', () => {
                 { path: 'questionnaireAnswersList.card', select: '-__v -createdAt -updatedAt' },
                 {
                   path: 'course',
-                  select: 'trainer subProgram misc companies type',
+                  select: 'trainers subProgram misc companies type',
                   populate: [
                     { path: 'subProgram', select: 'program', populate: { path: 'program', select: '_id name' } },
                     { path: 'companies', select: 'name' },
@@ -2181,7 +2176,7 @@ describe('getFollowUp', () => {
                 { path: 'questionnaireAnswersList.card', select: '-__v -createdAt -updatedAt' },
                 {
                   path: 'course',
-                  select: 'trainer subProgram misc companies type',
+                  select: 'trainers subProgram misc companies type',
                   populate: [
                     { path: 'subProgram', select: 'program', populate: { path: 'program', select: '_id name' } },
                     { path: 'companies', select: 'name' },

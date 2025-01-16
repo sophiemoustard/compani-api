@@ -10,7 +10,7 @@ exports.uploadUserMedia = async payload => uploadMedia(payload, process.env.GCS_
 exports.uploadCourseFile = async payload => uploadMedia(payload, process.env.GCS_COURSE_BUCKET);
 
 const formatFileName = fileName =>
-  `media-${fileName.replace(/[^a-zA-Z0-9]/g, '')}-${CompaniDate().format(UPLOAD_DATE_FORMAT)}`;
+  `media-${fileName.replace(/[^a-zA-Z0-9_]/g, '')}-${CompaniDate().format(UPLOAD_DATE_FORMAT)}`;
 
 const uploadMedia = async (payload, bucketName) => new Promise((resolve, reject) => {
   const { file } = payload;

@@ -2,13 +2,14 @@ const { expect } = require('expect');
 const sinon = require('sinon');
 const { ObjectId } = require('mongodb');
 const GCloudStorageHelper = require('../../src/helpers/gCloudStorage');
+const NotificationHelper = require('../../src/helpers/notifications');
 const app = require('../../server');
-const { populateDB, coursesList, attendanceSheetList, slotsList } = require('./seed/attendanceSheetsSeed');
+const { populateDB, coursesList, attendanceSheetList, slotsList, userList } = require('./seed/attendanceSheetsSeed');
 const { getToken, getTokenByCredentials } = require('./helpers/authentication');
 const { generateFormData, getStream } = require('./utils');
-const { WEBAPP, MOBILE } = require('../../src/helpers/constants');
+const { WEBAPP, MOBILE, GENERATION } = require('../../src/helpers/constants');
 const AttendanceSheet = require('../../src/models/AttendanceSheet');
-const { holdingAdminFromOtherCompany, trainerAndCoach } = require('../seed/authUsersSeed');
+const { holdingAdminFromOtherCompany, trainerAndCoach, trainer } = require('../seed/authUsersSeed');
 const { authCompany, otherCompany, otherHolding, authHolding } = require('../seed/authCompaniesSeed');
 
 describe('NODE ENV', () => {
@@ -20,14 +21,18 @@ describe('NODE ENV', () => {
 describe('ATTENDANCE SHEETS ROUTES - POST /attendancesheets', () => {
   let authToken;
   let uploadCourseFile;
+  let sendNotificationToUser;
+
   describe('TRAINER', () => {
     beforeEach(populateDB);
     beforeEach(async () => {
       authToken = await getToken('trainer');
       uploadCourseFile = sinon.stub(GCloudStorageHelper, 'uploadCourseFile');
+      sendNotificationToUser = sinon.stub(NotificationHelper, 'sendNotificationToUser');
     });
     afterEach(() => {
       uploadCourseFile.restore();
+      sendNotificationToUser.restore();
     });
 
     it('should upload attendance sheet to intra course (webapp)', async () => {
@@ -36,6 +41,7 @@ describe('ATTENDANCE SHEETS ROUTES - POST /attendancesheets', () => {
         file: 'test',
         date: new Date('2020-01-23').toISOString(),
         origin: WEBAPP,
+        trainer: trainer._id.toHexString(),
       };
 
       const form = generateFormData(formData);
@@ -62,6 +68,7 @@ describe('ATTENDANCE SHEETS ROUTES - POST /attendancesheets', () => {
         course: coursesList[0]._id.toHexString(),
         file: 'test',
         date: new Date('2020-01-23').toISOString(),
+        trainer: trainer._id.toHexString(),
       };
 
       const form = generateFormData(formData);
@@ -89,6 +96,7 @@ describe('ATTENDANCE SHEETS ROUTES - POST /attendancesheets', () => {
         file: 'test',
         trainee: coursesList[1].trainees[0].toHexString(),
         origin: MOBILE,
+        trainer: trainer._id.toHexString(),
       };
 
       const form = generateFormData(formData);
@@ -116,6 +124,7 @@ describe('ATTENDANCE SHEETS ROUTES - POST /attendancesheets', () => {
         file: 'test',
         date: new Date('2020-01-25').toISOString(),
         origin: WEBAPP,
+        trainer: trainer._id.toHexString(),
       };
 
       const form = generateFormData(formData);
@@ -145,6 +154,7 @@ describe('ATTENDANCE SHEETS ROUTES - POST /attendancesheets', () => {
         file: 'test',
         trainee: coursesList[7].trainees[0].toHexString(),
         origin: WEBAPP,
+        trainer: trainer._id.toHexString(),
       };
 
       const form = generateFormData(formData);
@@ -171,6 +181,7 @@ describe('ATTENDANCE SHEETS ROUTES - POST /attendancesheets', () => {
         file: 'test',
         trainee: coursesList[7].trainees[0].toHexString(),
         origin: WEBAPP,
+        trainer: trainer._id.toHexString(),
       };
 
       const form = generateFormData(formData);
@@ -190,12 +201,42 @@ describe('ATTENDANCE SHEETS ROUTES - POST /attendancesheets', () => {
       sinon.assert.calledOnce(uploadCourseFile);
     });
 
+    it('should upload trainer signature and create attendance sheet for single course (mobile)', async () => {
+      const slots = [slotsList[4]._id.toHexString(), slotsList[7]._id.toHexString()];
+      const attendanceSheetsLengthBefore = await AttendanceSheet.countDocuments({ course: coursesList[7]._id });
+      const formData = {
+        course: coursesList[7]._id.toHexString(),
+        signature: 'test',
+        trainee: coursesList[7].trainees[0].toHexString(),
+        origin: MOBILE,
+        trainer: trainer._id.toHexString(),
+      };
+
+      const form = generateFormData(formData);
+      slots.forEach(slot => form.append('slots', slot));
+      uploadCourseFile.returns({ publicId: '1234567890', link: 'https://test.com/signature.pdf' });
+
+      const response = await app.inject({
+        method: 'POST',
+        url: '/attendancesheets',
+        payload: getStream(form),
+        headers: { ...form.getHeaders(), Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(200);
+      const attendanceSheetsLengthAfter = await AttendanceSheet.countDocuments({ course: coursesList[7]._id });
+      expect(attendanceSheetsLengthAfter).toBe(attendanceSheetsLengthBefore + 1);
+      sinon.assert.calledOnce(uploadCourseFile);
+      sinon.assert.calledTwice(sendNotificationToUser);
+    });
+
     it('should  return 400 if single course but slot is missing', async () => {
       const formData = {
         course: coursesList[7]._id.toHexString(),
         file: 'test',
         trainee: coursesList[7].trainees[0].toHexString(),
         origin: WEBAPP,
+        trainer: trainer._id.toHexString(),
       };
 
       const form = generateFormData(formData);
@@ -216,6 +257,7 @@ describe('ATTENDANCE SHEETS ROUTES - POST /attendancesheets', () => {
         course: coursesList[7]._id.toHexString(),
         file: 'test',
         origin: WEBAPP,
+        trainer: trainer._id.toHexString(),
       };
 
       const form = generateFormData(formData);
@@ -237,6 +279,7 @@ describe('ATTENDANCE SHEETS ROUTES - POST /attendancesheets', () => {
         file: 'test',
         trainee: coursesList[5].trainees[0].toHexString(),
         origin: WEBAPP,
+        trainer: trainer._id.toHexString(),
       };
 
       const form = generateFormData(formData);
@@ -258,6 +301,7 @@ describe('ATTENDANCE SHEETS ROUTES - POST /attendancesheets', () => {
         file: 'test',
         trainee: coursesList[7].trainees[0].toHexString(),
         origin: WEBAPP,
+        trainer: trainer._id.toHexString(),
       };
 
       const form = generateFormData(formData);
@@ -280,6 +324,7 @@ describe('ATTENDANCE SHEETS ROUTES - POST /attendancesheets', () => {
         file: 'test',
         trainee: coursesList[7].trainees[0].toHexString(),
         origin: WEBAPP,
+        trainer: trainer._id.toHexString(),
       };
 
       const form = generateFormData(formData);
@@ -300,6 +345,7 @@ describe('ATTENDANCE SHEETS ROUTES - POST /attendancesheets', () => {
         course: coursesList[0]._id.toHexString(),
         file: 'test',
         trainee: coursesList[0].trainees[0]._id.toHexString(),
+        trainer: trainer._id.toHexString(),
       };
 
       const form = generateFormData(formData);
@@ -319,6 +365,7 @@ describe('ATTENDANCE SHEETS ROUTES - POST /attendancesheets', () => {
         course: coursesList[5]._id.toHexString(),
         file: 'test',
         trainee: coursesList[5].trainees[0]._id.toHexString(),
+        trainer: trainer._id.toHexString(),
       };
 
       const form = generateFormData(formData);
@@ -338,6 +385,7 @@ describe('ATTENDANCE SHEETS ROUTES - POST /attendancesheets', () => {
         course: coursesList[1]._id.toHexString(),
         file: 'test',
         date: new Date('2020-01-23').toISOString(),
+        trainer: trainer._id.toHexString(),
       };
 
       const form = generateFormData(formData);
@@ -356,9 +404,77 @@ describe('ATTENDANCE SHEETS ROUTES - POST /attendancesheets', () => {
       const formData = {
         course: coursesList[2]._id.toHexString(),
         file: 'test',
+        trainer: userList[3]._id.toHexString(),
       };
 
       const form = generateFormData(formData);
+
+      const response = await app.inject({
+        method: 'POST',
+        url: '/attendancesheets',
+        payload: getStream(form),
+        headers: { ...form.getHeaders(), Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
+
+    it('should return 400 if trying to pass signature without slots', async () => {
+      const formData = {
+        course: coursesList[7]._id.toHexString(),
+        signature: 'test',
+        trainee: coursesList[7].trainees[0].toHexString(),
+        origin: MOBILE,
+        trainer: trainer._id.toHexString(),
+      };
+
+      const form = generateFormData(formData);
+
+      const response = await app.inject({
+        method: 'POST',
+        url: '/attendancesheets',
+        payload: getStream(form),
+        headers: { ...form.getHeaders(), Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
+
+    it('should return 400 if trying to pass signature and file', async () => {
+      const slots = [slotsList[4]._id.toHexString(), slotsList[7]._id.toHexString()];
+      const formData = {
+        course: coursesList[7]._id.toHexString(),
+        signature: 'test',
+        file: 'test2',
+        trainee: coursesList[7].trainees[0].toHexString(),
+        origin: MOBILE,
+        trainer: trainer._id.toHexString(),
+      };
+
+      const form = generateFormData(formData);
+      slots.forEach(slot => form.append('slots', slot));
+
+      const response = await app.inject({
+        method: 'POST',
+        url: '/attendancesheets',
+        payload: getStream(form),
+        headers: { ...form.getHeaders(), Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
+
+    it('should return 400 if trying to pass neither signature or file', async () => {
+      const slots = [slotsList[4]._id.toHexString(), slotsList[7]._id.toHexString()];
+      const formData = {
+        course: coursesList[7]._id.toHexString(),
+        trainee: coursesList[7].trainees[0].toHexString(),
+        origin: MOBILE,
+        trainer: trainer._id.toHexString(),
+      };
+
+      const form = generateFormData(formData);
+      slots.forEach(slot => form.append('slots', slot));
 
       const response = await app.inject({
         method: 'POST',
@@ -376,6 +492,7 @@ describe('ATTENDANCE SHEETS ROUTES - POST /attendancesheets', () => {
         file: 'test',
         date: new Date('2020-01-23').toISOString(),
         origin: 'poiuytr',
+        trainer: trainer._id.toHexString(),
       };
 
       const form = generateFormData(formData);
@@ -395,6 +512,27 @@ describe('ATTENDANCE SHEETS ROUTES - POST /attendancesheets', () => {
         course: coursesList[2]._id.toHexString(),
         file: 'test',
         date: '2020-01-25T09:00:00.000Z',
+        trainer: userList[3]._id.toHexString(),
+      };
+
+      const form = generateFormData(formData);
+
+      const response = await app.inject({
+        method: 'POST',
+        url: '/attendancesheets',
+        payload: getStream(form),
+        headers: { ...form.getHeaders(), Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
+
+    it('should return a 403 if trainer in payload is not course trainer', async () => {
+      const formData = {
+        course: coursesList[5]._id.toHexString(),
+        file: 'test',
+        date: '2020-01-25T09:00:00.000Z',
+        trainer: trainerAndCoach._id.toHexString(),
       };
 
       const form = generateFormData(formData);
@@ -414,6 +552,7 @@ describe('ATTENDANCE SHEETS ROUTES - POST /attendancesheets', () => {
         course: coursesList[1]._id.toHexString(),
         file: 'test',
         trainee: new ObjectId().toHexString(),
+        trainer: trainer._id.toHexString(),
       };
 
       const form = generateFormData(formData);
@@ -433,6 +572,7 @@ describe('ATTENDANCE SHEETS ROUTES - POST /attendancesheets', () => {
         course: coursesList[0]._id.toHexString(),
         file: 'test',
         date: new Date('2018-01-23').toISOString(),
+        trainer: trainer._id.toHexString(),
       };
 
       const form = generateFormData(formData);
@@ -453,6 +593,7 @@ describe('ATTENDANCE SHEETS ROUTES - POST /attendancesheets', () => {
         course: course._id.toHexString(),
         file: 'test',
         trainee: course.trainees[0].toHexString(),
+        trainer: trainer._id.toHexString(),
       };
 
       const form = generateFormData(formData);
@@ -472,6 +613,7 @@ describe('ATTENDANCE SHEETS ROUTES - POST /attendancesheets', () => {
         course: coursesList[6]._id.toHexString(),
         file: 'test',
         date: new Date('2020-01-25').toISOString(),
+        trainer: trainer._id.toHexString(),
       };
 
       const form = generateFormData(formData);
@@ -509,6 +651,7 @@ describe('ATTENDANCE SHEETS ROUTES - POST /attendancesheets', () => {
           course: coursesList[0]._id.toHexString(),
           file: 'test',
           date: new Date('2020-01-23').toISOString(),
+          trainer: trainer._id.toHexString(),
         };
         const form = generateFormData(formData);
 
@@ -739,14 +882,20 @@ describe('ATTENDANCE SHEETS ROUTES - GET /attendancesheets', () => {
 
 describe('ATTENDANCE SHEETS ROUTES - PUT /attendancesheets/{_id}', () => {
   let authToken;
+  let uploadCourseFile;
+
   beforeEach(populateDB);
 
   describe('TRAINER', () => {
     beforeEach(async () => {
       authToken = await getToken('trainer');
+      uploadCourseFile = sinon.stub(GCloudStorageHelper, 'uploadCourseFile');
+    });
+    afterEach(() => {
+      uploadCourseFile.restore();
     });
 
-    it('should update an attendance sheet for a single course', async () => {
+    it('should update attendance sheet slots for a single course', async () => {
       const attendanceSheetId = attendanceSheetList[5]._id;
       const payload = { slots: [slotsList[4]._id] };
 
@@ -761,6 +910,27 @@ describe('ATTENDANCE SHEETS ROUTES - PUT /attendancesheets/{_id}', () => {
 
       const attendanceSheetUpdated = await AttendanceSheet.countDocuments({ _id: attendanceSheetId, ...payload });
       expect(attendanceSheetUpdated).toEqual(1);
+      sinon.assert.notCalled(uploadCourseFile);
+    });
+
+    it('should generate attendance sheet file for a single course', async () => {
+      const attendanceSheetId = attendanceSheetList[9]._id;
+      const payload = { action: GENERATION };
+      uploadCourseFile.returns({ publicId: '1234567890', link: 'https://test.com/signature.pdf' });
+
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/attendancesheets/${attendanceSheetId}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload,
+      });
+
+      expect(response.statusCode).toBe(200);
+
+      const attendanceSheetUpdated = await AttendanceSheet
+        .countDocuments({ _id: attendanceSheetId, file: { $exists: true } });
+      expect(attendanceSheetUpdated).toEqual(1);
+      sinon.assert.calledOnce(uploadCourseFile);
     });
 
     it('should return 404 if attendance sheet doesn\'t exist', async () => {
@@ -776,9 +946,50 @@ describe('ATTENDANCE SHEETS ROUTES - PUT /attendancesheets/{_id}', () => {
       expect(response.statusCode).toBe(404);
     });
 
+    it('should return 400 if slots and action in payload', async () => {
+      const attendanceSheetId = attendanceSheetList[5]._id;
+      const payload = { action: GENERATION, slots: [slotsList[4]._id] };
+
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/attendancesheets/${attendanceSheetId}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload,
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
+
+    it('should return 400 if neither slots nor action in payload', async () => {
+      const attendanceSheetId = attendanceSheetList[5]._id;
+
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/attendancesheets/${attendanceSheetId}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload: {},
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
+
     it('should return 403 if is course is not single', async () => {
       const attendanceSheetId = attendanceSheetList[3]._id;
       const payload = { slots: [slotsList[1]._id] };
+
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/attendancesheets/${attendanceSheetId}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload,
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
+
+    it('should return 403 if generation and trainer or trainee signature missing', async () => {
+      const attendanceSheetId = attendanceSheetList[8]._id;
+      const payload = { action: GENERATION };
 
       const response = await app.inject({
         method: 'PUT',
@@ -860,6 +1071,123 @@ describe('ATTENDANCE SHEETS ROUTES - PUT /attendancesheets/{_id}', () => {
   });
 });
 
+describe('ATTENDANCE SHEETS ROUTES - PUT /attendancesheets/{_id}/signature', () => {
+  let authToken;
+  let uploadCourseFile;
+  beforeEach(populateDB);
+
+  describe('TRAINEE', () => {
+    beforeEach(async () => {
+      authToken = await getTokenByCredentials(userList[1].local);
+      uploadCourseFile = sinon.stub(GCloudStorageHelper, 'uploadCourseFile');
+    });
+    afterEach(() => {
+      uploadCourseFile.restore();
+    });
+
+    it('should upload trainee signature for single course (mobile)', async () => {
+      const formData = { signature: 'test' };
+
+      const form = generateFormData(formData);
+      uploadCourseFile.returns({ publicId: '1234567890', link: 'https://test.com/signature.pdf' });
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/attendancesheets/${attendanceSheetList[8]._id}/signature`,
+        payload: getStream(form),
+        headers: { ...form.getHeaders(), Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(200);
+      const attendanceSheetsWithBothSignatures = await AttendanceSheet.countDocuments({
+        _id: attendanceSheetList[8]._id,
+        'signatures.trainer': { $exists: true },
+        'signatures.trainee': { $exists: true },
+      });
+      expect(attendanceSheetsWithBothSignatures).toBe(1);
+      sinon.assert.calledOnce(uploadCourseFile);
+    });
+
+    it('should return 400 if no signature', async () => {
+      const formData = {};
+
+      const form = generateFormData(formData);
+
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/attendancesheets/${attendanceSheetList[8]._id}/signature`,
+        payload: getStream(form),
+        headers: { ...form.getHeaders(), Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
+
+    it('should return 404 if attendance sheet doesn\'t exist', async () => {
+      const formData = { signature: 'test' };
+
+      const form = generateFormData(formData);
+
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/attendancesheets/${new ObjectId()}/signature`,
+        payload: getStream(form),
+        headers: { ...form.getHeaders(), Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(404);
+    });
+
+    it('should return 404 if attendance sheet has no trainer signature', async () => {
+      const formData = { signature: 'test' };
+
+      const form = generateFormData(formData);
+
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/attendancesheets/${attendanceSheetList[7]._id}/signature`,
+        payload: getStream(form),
+        headers: { ...form.getHeaders(), Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(404);
+    });
+
+    it('should return 404 if attendance has already been signed by trainee', async () => {
+      const formData = { signature: 'test' };
+
+      const form = generateFormData(formData);
+
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/attendancesheets/${attendanceSheetList[9]._id}/signature`,
+        payload: getStream(form),
+        headers: { ...form.getHeaders(), Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(404);
+    });
+  });
+
+  describe('Other roles', () => {
+    it('should return 403 if user is not attendance sheet trainee', async () => {
+      authToken = await getTokenByCredentials(userList[0].local);
+
+      const formData = { signature: 'test' };
+
+      const form = generateFormData(formData);
+
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/attendancesheets/${attendanceSheetList[8]._id}/signature`,
+        payload: getStream(form),
+        headers: { ...form.getHeaders(), Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
+  });
+});
+
 describe('ATTENDANCE SHEETS ROUTES - DELETE /attendancesheets/{_id}', () => {
   let authToken;
   let deleteCourseFile;
@@ -874,7 +1202,7 @@ describe('ATTENDANCE SHEETS ROUTES - DELETE /attendancesheets/{_id}', () => {
       deleteCourseFile.restore();
     });
 
-    it('should delete an attendance sheet', async () => {
+    it('should delete an attendance sheet (without signatures)', async () => {
       const attendanceSheetId = attendanceSheetList[0]._id;
       const attendanceSheetsLength = await AttendanceSheet.countDocuments();
       const response = await app.inject({
@@ -884,8 +1212,24 @@ describe('ATTENDANCE SHEETS ROUTES - DELETE /attendancesheets/{_id}', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      expect(await AttendanceSheet.countDocuments()).toEqual(attendanceSheetsLength - 1);
+      const attendanceSheetsLengthAfter = await AttendanceSheet.countDocuments();
+      expect(attendanceSheetsLengthAfter).toEqual(attendanceSheetsLength - 1);
       sinon.assert.calledOnce(deleteCourseFile);
+    });
+
+    it('should delete an attendance sheet (with signatures)', async () => {
+      const attendanceSheetId = attendanceSheetList[10]._id;
+      const attendanceSheetsLength = await AttendanceSheet.countDocuments();
+      const response = await app.inject({
+        method: 'DELETE',
+        url: `/attendancesheets/${attendanceSheetId}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(200);
+      const attendanceSheetsLengthAfter = await AttendanceSheet.countDocuments();
+      expect(attendanceSheetsLengthAfter).toEqual(attendanceSheetsLength - 1);
+      sinon.assert.calledThrice(deleteCourseFile);
     });
 
     it('should return a 404 if attendance sheet does not exist', async () => {

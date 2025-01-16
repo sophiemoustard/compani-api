@@ -16,7 +16,7 @@ exports.getPdfContent = async (data) => {
         { text: `Durée : ${date.course.duration}` },
         { text: `Lieu : ${date.address}` },
         { text: `Structure : ${date.course.company}` },
-        { text: `Intervenant(e) : ${date.course.trainer}` },
+        { text: `Intervenant·e : ${date.course.trainer}` },
       ],
       { image: decision, width: 64 },
     ];
@@ -35,7 +35,7 @@ exports.getPdfContent = async (data) => {
       const numberOfColumns = isIntraHoldingCourse ? date.slots.length + 1 : date.slots.length;
       for (let column = 0; column <= numberOfColumns; column++) {
         if (row === numberOfRows && column === 0) {
-          body[row].push({ text: 'Signature de l\'intervenant(e)', italics: true, margin: [0, 8, 0, 0] });
+          body[row].push({ text: 'Signature de l\'intervenant·e', italics: true, margin: [0, 8, 0, 0] });
         } else body[row].push({ text: '' });
       }
     }

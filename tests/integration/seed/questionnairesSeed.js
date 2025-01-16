@@ -1,4 +1,5 @@
 const { ObjectId } = require('mongodb');
+const { v4: uuidv4 } = require('uuid');
 const Activity = require('../../../src/models/Activity');
 const Questionnaire = require('../../../src/models/Questionnaire');
 const Card = require('../../../src/models/Card');
@@ -129,9 +130,10 @@ const courseTrainer = userList.find(user => user.role.vendor === trainerRoleId);
 const traineeList = [{
   _id: new ObjectId(),
   serialNumber: '274124',
-  local: { email: 'trainee@email.it' },
+  local: { email: 'trainee@email.it', password: '1234567890' },
   identity: { lastname: 'Personne' },
   origin: 'webapp',
+  refreshToken: uuidv4(),
 }];
 
 const coursesList = [
@@ -141,7 +143,7 @@ const coursesList = [
     subProgram: subProgramsList[0]._id,
     type: INTER_B2B,
     operationsRepresentative: vendorAdmin._id,
-    trainer: courseTrainer._id,
+    trainers: [courseTrainer._id],
     trainees: [traineeList[0]._id],
     companies: [authCompany._id],
   },
@@ -158,7 +160,7 @@ const coursesList = [
     subProgram: subProgramsList[0]._id,
     type: INTER_B2B,
     operationsRepresentative: vendorAdmin._id,
-    trainer: trainerAndCoach._id,
+    trainers: [trainerAndCoach._id],
     trainees: [traineeList[0]._id],
     companies: [companyWithoutSubscription._id],
   },
@@ -168,7 +170,7 @@ const coursesList = [
     subProgram: subProgramsList[1]._id,
     type: INTRA,
     operationsRepresentative: vendorAdmin._id,
-    trainer: courseTrainer._id,
+    trainers: [courseTrainer._id],
     maxTrainees: 4,
     trainees: [traineeList[0]._id],
     companies: [authCompany._id],
@@ -314,4 +316,5 @@ module.exports = {
   cardsList,
   coursesList,
   programsList,
+  traineeList,
 };

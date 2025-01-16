@@ -32,7 +32,10 @@ describe('upload', () => {
     const trainerId = new ObjectId();
     const course = {
       _id: courseId,
-      trainer: { _id: trainerId, identity: { lastname: 'For', firstname: 'Matrice' } },
+      trainers: [
+        { _id: trainerId, identity: { lastname: 'For', firstname: 'Matrice' } },
+        { _id: new ObjectId(), identity: { lastname: 'Vador', firstname: 'Dark' } },
+      ],
       subProgram: { program: { name: 'program' } },
     };
     const payload = { courses: courseId, file: 'test.pdf', fee: 1200, trainer: trainerId };
@@ -60,11 +63,11 @@ describe('upload', () => {
     SinonMongoose.calledOnceWithExactly(
       courseFindOne,
       [
-        { query: 'findOne', args: [{ _id: courseId }, { trainer: 1, subProgram: 1 }] },
+        { query: 'findOne', args: [{ _id: courseId }, { trainers: 1, subProgram: 1 }] },
         {
           query: 'populate',
           args: [[
-            { path: 'trainer', select: 'identity' },
+            { path: 'trainers', select: 'identity' },
             { path: 'subProgram', select: 'program', populate: [{ path: 'program', select: 'name' }] },
           ]],
         },
@@ -79,7 +82,7 @@ describe('upload', () => {
     const trainerId = new ObjectId();
     const course = {
       _id: courseIds[0],
-      trainer: { _id: trainerId, identity: { lastname: 'For', firstname: 'Matrice' } },
+      trainers: [{ _id: trainerId, identity: { lastname: 'For', firstname: 'Matrice' } }],
       subProgram: { program: { name: 'program' } },
     };
     const payload = { courses: courseIds, file: 'test.pdf', fee: 1200, trainer: trainerId };
@@ -107,11 +110,11 @@ describe('upload', () => {
     SinonMongoose.calledOnceWithExactly(
       courseFindOne,
       [
-        { query: 'findOne', args: [{ _id: courseIds[0] }, { trainer: 1, subProgram: 1 }] },
+        { query: 'findOne', args: [{ _id: courseIds[0] }, { trainers: 1, subProgram: 1 }] },
         {
           query: 'populate',
           args: [[
-            { path: 'trainer', select: 'identity' },
+            { path: 'trainers', select: 'identity' },
             { path: 'subProgram', select: 'program', populate: [{ path: 'program', select: 'name' }] },
           ]],
         },
@@ -198,7 +201,7 @@ describe('generate', () => {
       type: INTRA,
       hasCertifyingTest: false,
       companies: [{ name: 'Alenvi' }],
-      trainer: { _id: trainerId, identity: { lastname: 'For', firstname: 'Matrice' } },
+      trainers: [{ _id: trainerId, identity: { lastname: 'For', firstname: 'Matrice' } }],
       subProgram: {
         program: { name: 'program' },
         steps: [
@@ -266,7 +269,7 @@ describe('generate', () => {
       [
         { query: 'find', args: [{ _id: { $in: [courseId] } }, { hasCertifyingTest: 1, misc: 1, type: 1 }] },
         { query: 'populate', args: [{ path: 'companies', select: 'name' }] },
-        { query: 'populate', args: [{ path: 'trainer', select: 'identity' }] },
+        { query: 'populate', args: [{ path: 'trainers', select: 'identity' }] },
         {
           query: 'populate',
           args: [
@@ -295,7 +298,7 @@ describe('generate', () => {
         type: INTRA,
         hasCertifyingTest: false,
         companies: [{ name: 'Alenvi' }],
-        trainer: { _id: trainerId, identity: { lastname: 'For', firstname: 'Matrice' } },
+        trainers: [{ _id: trainerId, identity: { lastname: 'For', firstname: 'Matrice' } }],
         subProgram: {
           program: { name: 'program' },
           steps: [
@@ -398,7 +401,7 @@ describe('generate', () => {
       [
         { query: 'find', args: [{ _id: { $in: courseIds } }, { hasCertifyingTest: 1, misc: 1, type: 1 }] },
         { query: 'populate', args: [{ path: 'companies', select: 'name' }] },
-        { query: 'populate', args: [{ path: 'trainer', select: 'identity' }] },
+        { query: 'populate', args: [{ path: 'trainers', select: 'identity' }] },
         {
           query: 'populate',
           args: [

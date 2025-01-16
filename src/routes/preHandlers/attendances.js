@@ -21,8 +21,8 @@ const { CompaniDate } = require('../../helpers/dates/companiDates');
 
 const { language } = translate;
 
-const isTrainerAuthorized = (loggedUserId, trainer) => {
-  if (!UtilsHelper.areObjectIdsEquals(loggedUserId, trainer)) throw Boom.forbidden();
+const isTrainerAuthorized = (loggedUserId, trainersIds) => {
+  if (!UtilsHelper.doesArrayIncludeId(trainersIds, loggedUserId)) throw Boom.forbidden();
 
   return null;
 };
@@ -32,7 +32,7 @@ const checkPermissionOnCourse = (course, credentials) => {
   const loggedUserClientRole = get(credentials, 'role.client.name');
 
   const isCourseTrainer = loggedUserVendorRole === TRAINER &&
-    UtilsHelper.areObjectIdsEquals(credentials._id, course.trainer);
+    UtilsHelper.doesArrayIncludeId(course.trainers, credentials._id);
   const isAdminVendor = [TRAINING_ORGANISATION_MANAGER, VENDOR_ADMIN].includes(loggedUserVendorRole);
 
   const isClientOrHoldingAndAuthorized = [COACH, CLIENT_ADMIN].includes(loggedUserClientRole) &&
@@ -47,7 +47,7 @@ const checkPermissionOnCourse = (course, credentials) => {
 exports.authorizeAttendancesGet = async (req) => {
   const courseSlotsQuery = req.query.courseSlot ? { _id: req.query.courseSlot } : { course: req.query.course };
   const courseSlots = await CourseSlot.find(courseSlotsQuery, { course: 1 })
-    .populate({ path: 'course', select: 'trainer companies holding' })
+    .populate({ path: 'course', select: 'trainers companies holding' })
     .lean();
 
   if (!courseSlots.length) throw Boom.notFound();
@@ -74,7 +74,7 @@ exports.authorizeUnsubscribedAttendancesGet = async (req) => {
       throw Boom.badRequest();
     }
 
-    const course = await Course.findOne({ _id: courseId }, { trainer: 1, companies: 1, holding: 1 }).lean();
+    const course = await Course.findOne({ _id: courseId }, { trainers: 1, companies: 1, holding: 1 }).lean();
     if (!course) throw Boom.notFound();
 
     checkPermissionOnCourse(course, credentials);
@@ -100,7 +100,7 @@ exports.authorizeAttendanceCreation = async (req) => {
   const courseSlot = await CourseSlot.findOne({ _id: req.payload.courseSlot }, { course: 1 })
     .populate({
       path: 'course',
-      select: 'trainer companies archivedAt trainees type holding subProgram',
+      select: 'trainers companies archivedAt trainees type holding subProgram',
       populate: [
         { path: 'holding', populate: { path: 'companies' } },
         { path: 'subProgram', select: 'program', populate: { path: 'program', select: 'subPrograms' } },
@@ -110,7 +110,8 @@ exports.authorizeAttendanceCreation = async (req) => {
   if (!courseSlot) throw Boom.notFound();
 
   const { credentials } = req.auth;
-  if (get(credentials, 'role.vendor.name') === TRAINER) isTrainerAuthorized(credentials._id, courseSlot.course.trainer);
+  const trainersIds = courseSlot.course.trainers;
+  if (get(credentials, 'role.vendor.name') === TRAINER) isTrainerAuthorized(credentials._id, trainersIds);
 
   const { course } = courseSlot;
   if (course.archivedAt) throw Boom.forbidden();
@@ -159,15 +160,14 @@ exports.authorizeAttendanceDeletion = async (req) => {
   }
 
   const courseSlot = await CourseSlot.findById(courseSlotId)
-    .populate({ path: 'course', select: 'trainer archivedAt' })
+    .populate({ path: 'course', select: 'trainers archivedAt' })
     .lean();
   const { course } = courseSlot;
   if (course.archivedAt) throw Boom.forbidden();
 
   const { credentials } = req.auth;
-  if (get(credentials, 'role.vendor.name') === TRAINER) {
-    isTrainerAuthorized(credentials._id, courseSlot.course.trainer);
-  }
+  const trainersIds = courseSlot.course.trainers;
+  if (get(credentials, 'role.vendor.name') === TRAINER) isTrainerAuthorized(credentials._id, trainersIds);
 
   return null;
 };

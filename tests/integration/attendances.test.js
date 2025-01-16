@@ -11,13 +11,17 @@ const {
   traineeList,
 } = require('./seed/attendancesSeed');
 const { getToken, getTokenByCredentials } = require('./helpers/authentication');
-const { trainerAndCoach, holdingAdminFromOtherCompany, holdingAdminFromAuthCompany } = require('../seed/authUsersSeed');
+const {
+  trainerAndCoach,
+  holdingAdminFromOtherCompany,
+  holdingAdminFromAuthCompany,
+} = require('../seed/authUsersSeed');
 const {
   authCompany,
-  companyWithoutSubscription,
   otherCompany,
   otherHolding,
   authHolding,
+  companyWithoutSubscription,
 } = require('../seed/authCompaniesSeed');
 
 describe('NODE ENV', () => {
@@ -56,9 +60,8 @@ describe('ATTENDANCES ROUTES - POST /attendances', () => {
       expect(courseSlotAttendancesAfter).toBe(courseSlotAttendancesBefore + 1);
     });
 
-    it('should create attendance if no company linked to the course but trainee belongs to holding and registered in'
-      + ' another group (intra_holding)',
-    async () => {
+    it('should create attendance if no company linked to the course but trainee belongs to holding and registered'
+      + ' in another group (intra_holding)', async () => {
       const response = await app.inject({
         method: 'POST',
         url: '/attendances',
@@ -152,18 +155,17 @@ describe('ATTENDANCES ROUTES - POST /attendances', () => {
       expect(response.statusCode).toBe(404);
     });
 
-    it(
-      'should return 403 if trainee is not registered and doesn\'t belong to a company related to course (intra/inter)',
-      async () => {
-        const response = await app.inject({
-          method: 'POST',
-          url: '/attendances',
-          headers: { Cookie: `alenvi_token=${authToken}` },
-          payload: { trainee: traineeList[2]._id, courseSlot: slotsList[0]._id },
-        });
+    it('should return 403 if trainee is not registered and doesn\'t belong to a company related'
+      + 'to course (intra/inter)', async () => {
+      const response = await app.inject({
+        method: 'POST',
+        url: '/attendances',
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload: { trainee: traineeList[2]._id, courseSlot: slotsList[0]._id },
+      });
 
-        expect(response.statusCode).toBe(403);
-      }
+      expect(response.statusCode).toBe(403);
+    }
     );
 
     it('should return 409 if trainee and courseSlot are already added', async () => {
@@ -189,8 +191,7 @@ describe('ATTENDANCES ROUTES - POST /attendances', () => {
     });
 
     it('should return 403 if trainee from holding but not registered in another group and company not in course'
-    + '(intra_holding)',
-    async () => {
+    + '(intra_holding)', async () => {
       const response = await app.inject({
         method: 'POST',
         url: '/attendances',

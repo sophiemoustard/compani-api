@@ -35,6 +35,8 @@ const {
   SELF_POSITIONNING,
   REVIEW,
   LIST,
+  START_COURSE,
+  END_COURSE,
 } = require('../helpers/constants');
 
 const QUESTIONNAIRE_CARD_TEMPLATES = [
@@ -178,7 +180,10 @@ exports.plugin = {
       options: {
         auth: { scope: ['questionnaires:read'] },
         validate: {
-          query: Joi.object({ course: Joi.objectId().required() }),
+          query: Joi.object({
+            course: Joi.objectId().required(),
+            courseTimeline: Joi.string().required().valid(START_COURSE, END_COURSE),
+          }),
         },
         pre: [{ method: authorizeQuestionnaireQRCodeGet }],
       },

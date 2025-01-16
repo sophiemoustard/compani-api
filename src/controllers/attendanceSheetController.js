@@ -22,7 +22,7 @@ const list = async (req) => {
 
 const create = async (req) => {
   try {
-    await AttendanceSheetHelper.create(req.payload);
+    await AttendanceSheetHelper.create(req.payload, req.auth.credentials);
 
     return { message: translate[language].attendanceSheetCreated };
   } catch (e) {
@@ -33,7 +33,19 @@ const create = async (req) => {
 
 const updateAttendanceSheet = async (req) => {
   try {
-    await AttendanceSheetHelper.update(req.params._id, req.payload);
+    if (req.payload.slots) await AttendanceSheetHelper.update(req.params._id, req.payload);
+    else await AttendanceSheetHelper.generate(req.params._id);
+
+    return { message: translate[language].attendanceSheetUpdated };
+  } catch (e) {
+    req.log('error', e);
+    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
+  }
+};
+
+const signAttendanceSheet = async (req) => {
+  try {
+    await AttendanceSheetHelper.sign(req.params._id, req.payload, req.auth.credentials);
 
     return { message: translate[language].attendanceSheetUpdated };
   } catch (e) {
@@ -53,4 +65,4 @@ const deleteAttendanceSheet = async (req) => {
   }
 };
 
-module.exports = { list, create, updateAttendanceSheet, deleteAttendanceSheet };
+module.exports = { list, create, updateAttendanceSheet, deleteAttendanceSheet, signAttendanceSheet };
