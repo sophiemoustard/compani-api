@@ -6711,3 +6711,25 @@ describe('removeTrainer', () => {
     );
   });
 });
+
+describe('add tutor', () => {
+  let courseUpdateOne;
+
+  beforeEach(() => {
+    courseUpdateOne = sinon.stub(Course, 'updateOne');
+  });
+
+  afterEach(() => {
+    courseUpdateOne.restore();
+  });
+
+  it('should add tutor to course', async () => {
+    const tutorId = new ObjectId();
+    const course = { _id: new ObjectId(), misc: 'Test', tutors: [new ObjectId()] };
+    const payload = { tutor: tutorId };
+
+    await CourseHelper.addTutor(course._id, payload);
+
+    sinon.assert.calledOnceWithExactly(courseUpdateOne, { _id: course._id }, { $addToSet: { tutors: tutorId } });
+  });
+});

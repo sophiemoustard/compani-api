@@ -1,4 +1,5 @@
 const Boom = require('@hapi/boom');
+const { ObjectId } = require('mongodb');
 const get = require('lodash/get');
 const has = require('lodash/has');
 const pick = require('lodash/pick');
@@ -763,6 +764,34 @@ exports.authorizeTrainerDeletion = async (req) => {
 
   const trainerIsCourseTrainer = UtilsHelper.doesArrayIncludeId(course.trainers, params.trainerId);
   if (!trainerIsCourseTrainer) throw Boom.forbidden();
+
+  return null;
+};
+
+exports.authorizeTutorAddition = async (req) => {
+  const { params, payload } = req;
+
+  const course = await Course.findOne({ _id: params._id },
+    { tutors: 1, trainees: 1, archivedAt: 1, companies: 1, subProgram: 1 })
+    .lean();
+  if (!course) throw Boom.notFound();
+  if (course.archivedAt) throw Boom.forbidden();
+
+  const SINGLE_COURSES_SUBPROGRAM_IDS = process.env.SINGLE_COURSES_SUBPROGRAM_IDS
+    .split(';')
+    .map(id => new ObjectId(id));
+  const isSingleCourse = UtilsHelper.doesArrayIncludeId(SINGLE_COURSES_SUBPROGRAM_IDS, course.subProgram);
+  if (!isSingleCourse) throw Boom.forbidden();
+
+  const user = await User.findOne({ _id: payload.tutor }).populate({ path: 'company' }).lean();
+  const userInCompany = UtilsHelper.doesArrayIncludeId(course.companies, user.company);
+  if (!userInCompany) throw Boom.forbidden();
+
+  const tutorIsTrainee = UtilsHelper.doesArrayIncludeId(course.trainees, payload.tutor);
+  if (tutorIsTrainee) throw Boom.forbidden(translate[language].courseTutorIsTrainee);
+
+  const tutorAlreadyInCourse = UtilsHelper.doesArrayIncludeId(get(course, 'tutors', []), payload.tutor);
+  if (tutorAlreadyInCourse) throw Boom.conflict(translate[language].courseTutorAlreadyAdded);
 
   return null;
 };
