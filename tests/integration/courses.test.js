@@ -5065,7 +5065,7 @@ describe('COURSES ROUTES - DELETE /courses/{_id}/trainers/{trainerId}', () => {
   });
 });
 
-describe('COURSES ROUTES - PUT /courses/{_id}/tutors #tag', () => {
+describe('COURSES ROUTES - PUT /courses/{_id}/tutors', () => {
   let authToken;
 
   beforeEach(populateDB);
