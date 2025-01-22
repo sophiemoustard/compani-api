@@ -261,7 +261,8 @@ exports.getFollowUp = async (questionnaireId, query, credentials) => {
 };
 
 exports.generateQRCode = async (query) => {
-  const { courseId, courseTimeline } = query;
+  const { course: courseId, courseTimeline } = query;
+
   const qrCode = await QRCode
     .toDataURL(
       `${process.env.WEBSITE_HOSTNAME}/ni/questionnaires?courseId=${courseId}&courseTimeline=${courseTimeline}`,
