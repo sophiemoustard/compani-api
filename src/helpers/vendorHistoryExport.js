@@ -218,6 +218,7 @@ exports.exportCourseHistory = async (startDate, endDate, credentials) => {
       Type: course.type,
       Payeur: payerList || '',
       Structure: companiesName || '',
+      'Société mère': get(course, 'holding.name') || '',
       Programme: get(course, 'subProgram.program.name') || '',
       'Sous-Programme': get(course, 'subProgram.name') || '',
       'Infos complémentaires': course.misc,
