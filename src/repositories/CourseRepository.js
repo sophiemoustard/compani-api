@@ -49,8 +49,8 @@ exports.findCourseAndPopulate = (query, origin, populateVirtual = false) => Cour
   ])
   .lean({ virtuals: populateVirtual });
 
-exports.findCoursesForExport = async (startDate, endDate, credentials) => {
-  const slots = await CourseSlot.find({ startDate: { $lte: endDate }, endDate: { $gte: startDate } }).lean();
+exports.findCoursesForExport = async (credentials) => {
+  const slots = await CourseSlot.find({}).lean();
   const courseIds = slots.map(slot => slot.course);
   const isVendorUser = [TRAINING_ORGANISATION_MANAGER, VENDOR_ADMIN].includes(get(credentials, 'role.vendor.name'));
 
@@ -59,12 +59,12 @@ exports.findCoursesForExport = async (startDate, endDate, credentials) => {
       {
         $or: [
           { _id: { $in: courseIds } },
-          { estimatedStartDate: { $lte: endDate, $gte: startDate }, archivedAt: { $exists: false } },
+          // { estimatedStartDate: { $lte: endDate, $gte: startDate }, archivedAt: { $exists: false } },
         ],
       }
     )
     .select('_id type misc estimatedStartDate expectedBillsCount archivedAt createdAt')
-    .populate({ path: 'companies', select: 'name' })
+    .populate({ path: 'companies', select: 'name', populate: { path: 'holding', populate: { path: 'holding' } } })
     .populate({ path: 'holding', select: 'name' })
     .populate({
       path: 'subProgram',
@@ -83,7 +83,7 @@ exports.findCoursesForExport = async (startDate, endDate, credentials) => {
     .populate({ path: 'trainees', select: 'firstMobileConnectionDate' })
     .populate({
       path: 'bills',
-      select: 'payer billedAt mainFee billingPurchaseList',
+      select: 'payer billedAt mainFee billingPurchaseList companies',
       options: { isVendorUser },
       populate: [
         { path: 'payer.fundingOrganisation', select: 'name' },
