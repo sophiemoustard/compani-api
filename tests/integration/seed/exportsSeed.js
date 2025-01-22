@@ -88,6 +88,7 @@ const {
   MOBILE,
   LOGIN_CODE,
   IDENTITY_VERIFICATION,
+  INTRA_HOLDING,
 } = require('../../../src/helpers/constants');
 const {
   auxiliaryRoleId,
@@ -99,6 +100,7 @@ const { trainerAndCoach } = require('../../seed/authUsersSeed');
 const CourseBillsNumber = require('../../../src/models/CourseBillsNumber');
 const CoursePaymentNumber = require('../../../src/models/CoursePaymentNumber');
 const CourseCreditNoteNumber = require('../../../src/models/CourseCreditNoteNumber');
+const Holding = require('../../../src/models/Holding');
 
 const sector = { _id: new ObjectId(), name: 'Etoile', company: authCompany._id };
 
@@ -1186,6 +1188,8 @@ const userCompanies = [
   { _id: new ObjectId(), user: traineeList[4]._id, company: otherCompany._id, startDate: '2019-05-01T08:00:00.000Z' },
 ];
 
+const holding = { _id: new ObjectId(), name: 'Société mère' };
+
 const coursesList = [
   { // 0 with 1 bill
     _id: new ObjectId(),
@@ -1200,6 +1204,7 @@ const coursesList = [
     trainees: [traineeList[0]._id, traineeList[2]._id, traineeList[3]._id],
     companies: [authCompany._id],
     archivedAt: '2024-07-07T22:00:00.000Z',
+    createdAt: '2018-01-07T22:00:00.000Z',
   },
   { // 1 with 2 bills
     _id: new ObjectId(),
@@ -1211,6 +1216,7 @@ const coursesList = [
     trainees: [traineeList[3]._id, traineeList[4]._id],
     estimatedStartDate: '2019-01-01T08:00:00.000Z',
     companies: [authCompany._id, otherCompany._id],
+    createdAt: '2018-01-07T22:00:00.000Z',
   },
   { // 2 without bills
     _id: new ObjectId(),
@@ -1223,6 +1229,7 @@ const coursesList = [
     trainees: [traineeList[3]._id, traineeList[4]._id, auxiliaryList[0]._id],
     estimatedStartDate: '2022-01-12T08:00:00.000Z',
     companies: [authCompany._id, otherCompany._id, companyWithoutSubscription._id],
+    createdAt: '2018-01-07T22:00:00.000Z',
   },
   { // 3 with 1 bill
     _id: new ObjectId(),
@@ -1236,6 +1243,7 @@ const coursesList = [
     trainees: [traineeList[0]._id, traineeList[2]._id],
     companies: [authCompany._id],
     expectedBillsCount: 1,
+    createdAt: '2018-01-07T22:00:00.000Z',
   },
   { // 4 with 1 bill
     _id: new ObjectId(),
@@ -1249,6 +1257,7 @@ const coursesList = [
     contact: operationsRepresentative._id,
     trainees: [traineeList[0]._id, traineeList[2]._id],
     expectedBillsCount: 1,
+    createdAt: '2018-01-07T22:00:00.000Z',
   },
   { // 5 with 3 bills and 1 creditNote
     _id: new ObjectId(),
@@ -1262,6 +1271,7 @@ const coursesList = [
     contact: operationsRepresentative._id,
     trainees: [traineeList[0]._id, traineeList[2]._id, traineeList[3]._id],
     expectedBillsCount: 3,
+    createdAt: '2018-01-07T22:00:00.000Z',
   },
   { // 6 without bills
     _id: new ObjectId(),
@@ -1275,17 +1285,21 @@ const coursesList = [
     contact: operationsRepresentative._id,
     trainees: [],
     expectedBillsCount: 0,
+    createdAt: '2018-01-07T22:00:00.000Z',
   },
   { // 7 without trainee
     _id: new ObjectId(),
-    type: INTER_B2B,
+    type: INTRA_HOLDING,
     companies: [],
+    holding: holding._id,
     subProgram: subProgramList[0]._id,
     misc: 'group 8',
     trainers: [trainer._id],
     operationsRepresentative: operationsRepresentative._id,
     contact: operationsRepresentative._id,
     trainees: [],
+    createdAt: '2018-01-07T22:00:00.000Z',
+    maxTrainees: 8,
   },
   { // 8 intra with other Company
     _id: new ObjectId(),
@@ -1299,6 +1313,7 @@ const coursesList = [
     expectedBillsCount: 1,
     trainees: [traineeList[1]._id],
     companies: [otherCompany._id],
+    createdAt: '2018-01-07T22:00:00.000Z',
   },
 ];
 
@@ -2043,6 +2058,7 @@ const populateDB = async () => {
     EventHistory.create(eventHistoriesList),
     FinalPay.create(finalPayList),
     Helper.create(helpersList),
+    Holding.create(holding),
     InternalHour.create(internalHour),
     Pay.create(payList),
     Payment.create(paymentsList),
@@ -2071,6 +2087,7 @@ module.exports = {
   auxiliaryList,
   establishment,
   thirdPartyPayer,
+  holding,
   coursesList,
   courseSlotList,
   distanceMatrixList,

@@ -183,7 +183,7 @@ const formatCourseForExport = async (course, courseQH, smsCount, asCount, estima
     Programme: get(course, 'subProgram.program.name') || '',
     'Sous-Programme': get(course, 'subProgram.name') || '',
     'Infos complémentaires': course.misc,
-    Intervenant·e: formatTrainersName(get(course, 'trainers', [])),
+    Intervenant·es: formatTrainersName(get(course, 'trainers', [])),
     'Début de formation': getStartOfCourse(slotsGroupedByDate),
     'Fin de formation': getEndOfCourse(slotsGroupedByDate, course.slotsToPlan),
     'Chargé des opérations': UtilsHelper.formatIdentity(get(course, 'operationsRepresentative.identity') || '', 'FL'),
