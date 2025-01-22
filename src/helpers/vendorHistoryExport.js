@@ -257,6 +257,7 @@ exports.exportCourseHistory = async (startDate, endDate, credentials) => {
       'Montant facturé': UtilsHelper.formatFloatForExport(netInclTaxes),
       'Montant réglé': UtilsHelper.formatFloatForExport(paid),
       Solde: UtilsHelper.formatFloatForExport(total),
+      'Date de création': CompaniDate(course.createdAt).format(DD_MM_YYYY),
     });
   }
 
