@@ -752,7 +752,7 @@ describe('SEEDS VERIFICATION', () => {
             .lean({ virtuals: true });
         });
 
-        it('should pass if all trainees are in course companies #tag', () => {
+        it('should pass if all trainees are in course companies', () => {
           const isEveryTraineeCompanyAttachedToCourse = courseList
             .filter(course => course.format === BLENDED)
             .every(course => course.trainees
@@ -971,7 +971,7 @@ describe('SEEDS VERIFICATION', () => {
           expect(haveTrainersVendorRole).toBeTruthy();
         });
 
-        it('should pass if contact is trainer, company representative or operations representative #tag', () => {
+        it('should pass if contact is trainer, company representative or operations representative', () => {
           const isContactGoodUser = courseList
             .filter(c => has(c, 'contact'))
             .every((c) => {

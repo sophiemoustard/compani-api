@@ -911,7 +911,7 @@ describe('COURSES ROUTES - GET /courses', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      expect(response.result.data.courses.length).toEqual(12);
+      expect(response.result.data.courses.length).toEqual(13);
       const course =
          response.result.data.courses.find(c => UtilsHelper.areObjectIdsEquals(coursesList[2]._id, c._id));
       expect(course.companies).toEqual([pick(authCompany, ['_id', 'name'])]);
@@ -926,7 +926,7 @@ describe('COURSES ROUTES - GET /courses', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      expect(response.result.data.courses.length).toEqual(12);
+      expect(response.result.data.courses.length).toEqual(10);
     });
 
     it('should return 200 if coach and same company (pedagogy webapp)', async () => {
@@ -5076,7 +5076,7 @@ describe('COURSES ROUTES - PUT /courses/{_id}/tutors', () => {
       authToken = await getToken('training_organisation_manager');
     });
 
-    it('should add tutor to course #tag', async () => {
+    it('should add tutor to course', async () => {
       const response = await app.inject({
         method: 'PUT',
         url: `/courses/${coursesList[24]._id}/tutors`,
@@ -5150,7 +5150,7 @@ describe('COURSES ROUTES - PUT /courses/{_id}/tutors', () => {
         method: 'PUT',
         url: `/courses/${coursesList[25]._id}/tutors`,
         headers: { Cookie: `alenvi_token=${authToken}` },
-        payload: { tutor: traineeFromThirdCompany._id },
+        payload: { tutor: traineeFromAuthCompanyWithFormationExpoToken._id },
       });
 
       expect(response.statusCode).toBe(409);
