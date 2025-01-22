@@ -26,6 +26,7 @@ const {
   ESTIMATED_START_DATE_EDITION,
   WEBAPP,
   MOBILE,
+  INTRA_HOLDING,
 } = require('../../../src/helpers/constants');
 const CourseSlot = require('../../../src/models/CourseSlot');
 const Course = require('../../../src/models/Course');
@@ -127,6 +128,7 @@ describe('exportCourseHistory', () => {
   ];
   const company = { _id: new ObjectId(), name: 'Test SAS' };
   const otherCompany = { _id: new ObjectId(), name: 'Autre structure' };
+  const holding = { _id: new ObjectId(), name: 'Société mère' };
   const courseList = [
     // 0
     {
@@ -143,6 +145,7 @@ describe('exportCourseHistory', () => {
       slots: [courseSlotList[0], courseSlotList[1]],
       expectedBillsCount: 2,
       archivedAt: '2024-07-07T22:00:00.000Z',
+      createdAt: '2018-01-07T17:33:55.000Z',
       bills: [
         {
           course: courseIdList[0],
@@ -180,6 +183,7 @@ describe('exportCourseHistory', () => {
       trainees: [traineeList[3], traineeList[4]],
       slotsToPlan: [courseSlotList[4]],
       slots: [courseSlotList[2], courseSlotList[3]],
+      createdAt: '2018-01-07T17:33:55.000Z',
       bills: [
         {
           course: courseIdList[1],
@@ -216,7 +220,8 @@ describe('exportCourseHistory', () => {
     // 2
     {
       _id: courseIdList[2],
-      type: INTER_B2B,
+      type: INTRA_HOLDING,
+      holding,
       companies: [],
       subProgram: subProgramList[1],
       misc: 'group 3',
@@ -228,6 +233,7 @@ describe('exportCourseHistory', () => {
       slotsToPlan: [],
       slots: [],
       bills: [],
+      createdAt: '2018-01-07T17:33:55.000Z',
     },
     // 3
     {
@@ -243,6 +249,7 @@ describe('exportCourseHistory', () => {
       slotsToPlan: [],
       slots: [],
       expectedBillsCount: 3,
+      createdAt: '2018-01-07T17:33:55.000Z',
       bills: [
         {
           course: courseIdList[3],
@@ -301,6 +308,7 @@ describe('exportCourseHistory', () => {
       companies: [otherCompany],
       subProgram: subProgramList[0],
       misc: 'group 1',
+      createdAt: '2018-01-07T17:33:55.000Z',
       trainers: [trainersList[0]],
       operationsRepresentative,
       contact: operationsRepresentative,
@@ -416,8 +424,9 @@ describe('exportCourseHistory', () => {
             ],
           }],
         },
-        { query: 'select', args: ['_id type misc estimatedStartDate expectedBillsCount archivedAt'] },
+        { query: 'select', args: ['_id type misc estimatedStartDate expectedBillsCount archivedAt createdAt'] },
         { query: 'populate', args: [{ path: 'companies', select: 'name' }] },
+        { query: 'populate', args: [{ path: 'holding', select: 'name' }] },
         {
           query: 'populate',
           args: [
@@ -516,10 +525,13 @@ describe('exportCourseHistory', () => {
         'Type',
         'Payeur',
         'Structure',
+        'Société mère',
         'Programme',
         'Sous-Programme',
         'Infos complémentaires',
-        'Intervenant·e',
+        'Intervenant·es',
+        'Début de formation',
+        'Fin de formation',
         'Chargé des opérations',
         'Contact pour la formation',
         'Nombre d\'inscrits',
@@ -534,8 +546,6 @@ describe('exportCourseHistory', () => {
         'Nombre de réponses au questionnaire de satisfaction',
         'Date de démarrage souhaitée',
         'Première date de démarrage souhaitée',
-        'Début de formation',
-        'Fin de formation',
         'Nombre de feuilles d\'émargement chargées',
         'Nombre de présences',
         'Nombre d\'absences',
@@ -549,16 +559,20 @@ describe('exportCourseHistory', () => {
         'Montant facturé',
         'Montant réglé',
         'Solde',
+        'Date de création',
       ],
       [
         courseList[0]._id,
         'intra',
         'APA Paris',
         'Test SAS',
+        '',
         'Program 1',
         'subProgram 1',
         'group 1',
         'Gilles FORMATEUR',
+        '01/05/2021',
+        '01/05/2021',
         'Aline CONTACT-COM',
         'Aline CONTACT-COM',
         3,
@@ -573,8 +587,6 @@ describe('exportCourseHistory', () => {
         2,
         '',
         '',
-        '01/05/2021 10:00:00',
-        '01/05/2021 18:00:00',
         1,
         3,
         3,
@@ -588,16 +600,20 @@ describe('exportCourseHistory', () => {
         '120,00',
         '110,00',
         '-10,00',
+        '07/01/2018',
       ],
       [
         courseList[1]._id,
         'inter_b2b',
         'APA Paris',
         'Autre structure,Test SAS',
+        '',
         'Program 2',
         'subProgram 2',
         'group 2',
         'Gilles FORMATEUR, Rihanna FENTY',
+        '01/02/2021',
+        '',
         'Aline CONTACT-COM',
         'Aline CONTACT-COM',
         2,
@@ -612,8 +628,6 @@ describe('exportCourseHistory', () => {
         1,
         '01/01/2019',
         '01/01/2019',
-        '01/02/2021 09:00:00',
-        'à planifier',
         0,
         2,
         2,
@@ -627,16 +641,20 @@ describe('exportCourseHistory', () => {
         '240,00',
         '120,00',
         '-120,00',
+        '07/01/2018',
       ],
       [
         courseList[2]._id,
-        'inter_b2b',
+        'intra_holding',
         '',
         '',
+        'Société mère',
         'Program 2',
         'subProgram 2',
         'group 3',
         'Gilles FORMATEUR',
+        '',
+        '',
         'Aline CONTACT-COM',
         'Aline CONTACT-COM',
         0,
@@ -651,8 +669,6 @@ describe('exportCourseHistory', () => {
         0,
         '01/01/2022',
         '01/12/2021',
-        '',
-        '',
         0,
         0,
         0,
@@ -666,16 +682,20 @@ describe('exportCourseHistory', () => {
         '',
         '',
         '',
+        '07/01/2018',
       ],
       [
         courseList[3]._id,
         'intra',
         'Alenvi,APA Paris,Compani Test',
         'Test SAS',
+        '',
         'Program 1',
         'subProgram 1',
         'group 1',
         'Gilles FORMATEUR',
+        '',
+        '',
         'Aline CONTACT-COM',
         'Aline CONTACT-COM',
         3,
@@ -688,8 +708,6 @@ describe('exportCourseHistory', () => {
         '0,00',
         0,
         0,
-        '',
-        '',
         '',
         '',
         0,
@@ -705,16 +723,20 @@ describe('exportCourseHistory', () => {
         '560,00',
         '120,00',
         '-440,00',
+        '07/01/2018',
       ],
       [
         courseList[4]._id,
         'inter_b2b',
         'APA Paris',
         'Autre structure',
+        '',
         'Program 1',
         'subProgram 1',
         'group 1',
         'Gilles FORMATEUR',
+        '09/02/2021',
+        '09/02/2021',
         'Aline CONTACT-COM',
         'Aline CONTACT-COM',
         2,
@@ -729,8 +751,6 @@ describe('exportCourseHistory', () => {
         0,
         '',
         '',
-        '09/02/2021 09:00:00',
-        '09/02/2021 11:00:00',
         0,
         1,
         1,
@@ -744,6 +764,7 @@ describe('exportCourseHistory', () => {
         '120,00',
         '10,00',
         '-110,00',
+        '07/01/2018',
       ],
 
     ]);
@@ -772,8 +793,9 @@ describe('exportCourseHistory', () => {
             ],
           }],
         },
-        { query: 'select', args: ['_id type misc estimatedStartDate expectedBillsCount archivedAt'] },
+        { query: 'select', args: ['_id type misc estimatedStartDate expectedBillsCount archivedAt createdAt'] },
         { query: 'populate', args: [{ path: 'companies', select: 'name' }] },
+        { query: 'populate', args: [{ path: 'holding', select: 'name' }] },
         {
           query: 'populate',
           args: [
