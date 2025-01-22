@@ -65,6 +65,7 @@ const {
   holdingAdminFromAuthCompany,
   holdingAdminFromOtherCompany,
   trainerOrganisationManager,
+  auxiliary,
 } = require('../seed/authUsersSeed');
 const SmsHelper = require('../../src/helpers/sms');
 const DocxHelper = require('../../src/helpers/docx');
@@ -5075,17 +5076,17 @@ describe('COURSES ROUTES - PUT /courses/{_id}/tutors', () => {
       authToken = await getToken('training_organisation_manager');
     });
 
-    it('should add tutor to course', async () => {
+    it('should add tutor to course #tag', async () => {
       const response = await app.inject({
         method: 'PUT',
         url: `/courses/${coursesList[24]._id}/tutors`,
         headers: { Cookie: `alenvi_token=${authToken}` },
-        payload: { tutor: traineeFromThirdCompany._id },
+        payload: { tutor: auxiliary._id },
       });
 
       expect(response.statusCode).toBe(200);
 
-      const course = await Course.countDocuments({ _id: coursesList[24]._id, tutors: traineeFromThirdCompany._id });
+      const course = await Course.countDocuments({ _id: coursesList[24]._id, tutors: auxiliary._id });
       expect(course).toEqual(1);
     });
 
@@ -5127,7 +5128,7 @@ describe('COURSES ROUTES - PUT /courses/{_id}/tutors', () => {
         method: 'PUT',
         url: `/courses/${coursesList[25]._id}/tutors`,
         headers: { Cookie: `alenvi_token=${authToken}` },
-        payload: { tutor: traineeFromAuthCompanyWithFormationExpoToken._id },
+        payload: { tutor: traineeFromThirdCompany._id },
       });
 
       expect(response.statusCode).toBe(403);

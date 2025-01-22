@@ -748,10 +748,11 @@ describe('SEEDS VERIFICATION', () => {
             .populate({ path: 'subProgram', select: '_id status steps', populate: { path: 'steps', select: 'type' } })
             .populate({ path: 'slots', select: 'endDate' })
             .populate({ path: 'slotsToPlan' })
+            // .populate({ path: 'tutors', select: '_id' populate: { path: } })
             .lean({ virtuals: true });
         });
 
-        it('should pass if all trainees are in course companies', () => {
+        it('should pass if all trainees are in course companies #tag', () => {
           const isEveryTraineeCompanyAttachedToCourse = courseList
             .filter(course => course.format === BLENDED)
             .every(course => course.trainees
@@ -970,7 +971,7 @@ describe('SEEDS VERIFICATION', () => {
           expect(haveTrainersVendorRole).toBeTruthy();
         });
 
-        it('should pass if contact is trainer, company representative or operations representative', () => {
+        it('should pass if contact is trainer, company representative or operations representative #tag', () => {
           const isContactGoodUser = courseList
             .filter(c => has(c, 'contact'))
             .every((c) => {
