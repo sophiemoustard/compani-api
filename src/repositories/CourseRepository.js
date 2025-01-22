@@ -50,21 +50,24 @@ exports.findCourseAndPopulate = (query, origin, populateVirtual = false) => Cour
   .lean({ virtuals: populateVirtual });
 
 exports.findCoursesForExport = async (startDate, endDate, credentials) => {
-  const slots = await CourseSlot.find({ startDate: { $lte: endDate }, endDate: { $gte: startDate } }).lean();
+  const slotsQuery = startDate && endDate ? { startDate: { $lte: endDate }, endDate: { $gte: startDate } } : {};
+  const slots = await CourseSlot.find(slotsQuery).lean();
   const courseIds = slots.map(slot => slot.course);
   const isVendorUser = [TRAINING_ORGANISATION_MANAGER, VENDOR_ADMIN].includes(get(credentials, 'role.vendor.name'));
-
   return Course
     .find(
       {
-        $or: [
-          { _id: { $in: courseIds } },
-          { estimatedStartDate: { $lte: endDate, $gte: startDate }, archivedAt: { $exists: false } },
-        ],
+        $or: startDate && endDate
+          ? [
+            { _id: { $in: courseIds } },
+            { estimatedStartDate: { $lte: endDate, $gte: startDate }, archivedAt: { $exists: false } },
+          ]
+          : [{ _id: { $in: courseIds } }],
       }
     )
-    .select('_id type misc estimatedStartDate expectedBillsCount archivedAt')
-    .populate({ path: 'companies', select: 'name' })
+    .select('_id type misc estimatedStartDate expectedBillsCount archivedAt createdAt')
+    .populate({ path: 'companies', select: 'name', populate: { path: 'holding', populate: { path: 'holding' } } })
+    .populate({ path: 'holding', select: 'name' })
     .populate({
       path: 'subProgram',
       select: 'name steps program',
@@ -75,14 +78,14 @@ exports.findCoursesForExport = async (startDate, endDate, credentials) => {
     .populate({ path: 'contact', select: 'identity' })
     .populate({
       path: 'slots',
-      select: 'attendances startDate endDate',
+      select: 'attendances startDate endDate address',
       populate: { path: 'attendances', options: { isVendorUser } },
     })
     .populate({ path: 'slotsToPlan', select: '_id' })
     .populate({ path: 'trainees', select: 'firstMobileConnectionDate' })
     .populate({
       path: 'bills',
-      select: 'payer billedAt mainFee billingPurchaseList',
+      select: 'payer billedAt mainFee billingPurchaseList companies',
       options: { isVendorUser },
       populate: [
         { path: 'payer.fundingOrganisation', select: 'name' },
