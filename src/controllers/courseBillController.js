@@ -97,7 +97,7 @@ const generateBillPdf = async (req, h) => {
 const deleteBill = async (req) => {
   try {
     const { _id: courseBillId } = req.params;
-    await CourseBillHelper.delete(courseBillId);
+    await CourseBillHelper.deleteBill(courseBillId);
 
     return { message: translate[language].courseBillDelete };
   } catch (e) {

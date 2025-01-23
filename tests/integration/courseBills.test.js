@@ -1362,14 +1362,24 @@ describe('COURSE BILL ROUTES - DELETE /coursebills/{_id}', () => {
       authToken = await getToken('training_organisation_manager');
     });
 
-    it('should delete course bill #tag', async () => {
+    it('should delete course bill', async () => {
       const response = await app.inject({
         method: 'DELETE',
         url: `/coursebills/${courseBillId}`,
-        headers: { Cookie: ` alenvi_token=${authToken}` },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(response.statusCode).toBe(200);
+    });
+
+    it('should return 404 if course bill doesn\'t exist #tag', async () => {
+      const response = await app.inject({
+        method: 'DELETE',
+        url: `/coursebills/${new ObjectId()}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(404);
     });
   });
 });
