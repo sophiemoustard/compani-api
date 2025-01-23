@@ -185,3 +185,12 @@ exports.authorizeBillPdfGet = async (req) => {
 
   return [...new Set([...bill.companies.map(c => c.toHexString()), bill.payer.toHexString()])];
 };
+
+exports.deleteCourseBills = async (req) => {
+  const { _id: courseBillId } = req.params;
+
+  const courseBill = CourseBill.findOne({ _id: courseBillId }).lean();
+  if (!courseBill) throw Boom.notFound();
+
+  if (courseBill.billedAt) throw Boom.forbidden();
+};

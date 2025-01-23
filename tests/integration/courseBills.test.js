@@ -1351,3 +1351,25 @@ describe('COURSE BILL ROUTES - DELETE /coursebills/{_id}/billingpurchases/{billi
     });
   });
 });
+
+describe('COURSE BILL ROUTES - DELETE /coursebills/{_id}', () => {
+  let authToken;
+  beforeEach(populateDB);
+  const courseBillId = courseBillsList[0]._id;
+
+  describe('TRAINING_ORGANISATION_MANAGER', () => {
+    beforeEach(async () => {
+      authToken = await getToken('training_organisation_manager');
+    });
+
+    it('should delete course bill #tag', async () => {
+      const response = await app.inject({
+        method: 'DELETE',
+        url: `/coursebills/${courseBillId}`,
+        headers: { Cookie: ` alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(200);
+    });
+  });
+});
