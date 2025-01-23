@@ -745,3 +745,27 @@ describe('generateBillPdf', () => {
       ]);
   });
 });
+
+describe('deleteBill', () => {
+  let findOne;
+  let deleteOne;
+
+  beforeEach(() => {
+    findOne = sinon.stub(CourseBill, 'findOne');
+    deleteOne = sinon.stub(CourseBill, 'deleteOne');
+  });
+
+  afterEach(() => {
+    findOne.restore();
+    deleteOne.restore();
+  });
+
+  it('should delete course bill #tag', async () => {
+    const courseBillId = new ObjectId();
+
+    await CourseBillHelper.deleteBill(courseBillId);
+
+    sinon.assert.calledOnceWithExactly(findOne, { _id: courseBillId });
+    sinon.assert.calledOnceWithExactly(deleteOne, { _id: courseBillId });
+  });
+});

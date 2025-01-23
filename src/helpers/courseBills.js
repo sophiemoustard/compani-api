@@ -201,7 +201,7 @@ exports.generateBillPdf = async (billId, companies, credentials) => {
 };
 
 exports.deleteBill = async (courseBillId) => {
-  const courseBill = await CourseBill.findOne({ _id: courseBillId }).lean();
-  console.log('helpers', courseBill);
+  const courseBill = await CourseBill.findOne({ _id: courseBillId });
+  console.log(courseBill);
   CourseBill.deleteOne({ _id: courseBill._id });
 };

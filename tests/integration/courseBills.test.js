@@ -1355,7 +1355,6 @@ describe('COURSE BILL ROUTES - DELETE /coursebills/{_id}/billingpurchases/{billi
 describe('COURSE BILL ROUTES - DELETE /coursebills/{_id}', () => {
   let authToken;
   beforeEach(populateDB);
-  const courseBillId = courseBillsList[0]._id;
 
   describe('TRAINING_ORGANISATION_MANAGER', () => {
     beforeEach(async () => {
@@ -1365,14 +1364,14 @@ describe('COURSE BILL ROUTES - DELETE /coursebills/{_id}', () => {
     it('should delete course bill', async () => {
       const response = await app.inject({
         method: 'DELETE',
-        url: `/coursebills/${courseBillId}`,
+        url: `/coursebills/${courseBillsList[0]._id}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(response.statusCode).toBe(200);
     });
 
-    it('should return 404 if course bill doesn\'t exist #tag', async () => {
+    it('should return 404 if course bill doesn\'t exist', async () => {
       const response = await app.inject({
         method: 'DELETE',
         url: `/coursebills/${new ObjectId()}`,
@@ -1380,6 +1379,16 @@ describe('COURSE BILL ROUTES - DELETE /coursebills/{_id}', () => {
       });
 
       expect(response.statusCode).toBe(404);
+    });
+
+    it('should return 403 if course bill have billedAt', async () => {
+      const response = await app.inject({
+        method: 'DELETE',
+        url: `/coursebills/${courseBillsList[2]._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(403);
     });
   });
 });
