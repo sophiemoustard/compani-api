@@ -195,8 +195,7 @@ const listForOperations = async (query, origin, credentials) => {
 };
 
 const listForPedagogy = async (query, credentials) => {
-  const traineeId = query.trainee || get(credentials, '_id');
-  const trainee = await User.findOne({ _id: traineeId }).lean();
+  const traineeOrTutorId = query.trainee || get(credentials, '_id');
   const shouldQueryCompanies = !!query.holding || !!query.company;
   const companies = [];
   if (query.holding) companies.push(...credentials.holding.companies);
@@ -204,16 +203,20 @@ const listForPedagogy = async (query, credentials) => {
 
   const courses = await Course.find(
     {
-      trainees: trainee._id,
-      $or: [
+      $and: [
+        { $or: [{ trainees: traineeOrTutorId }, { tutors: traineeOrTutorId }] },
         {
-          format: STRICTLY_E_LEARNING,
-          ...(shouldQueryCompanies && { $or: [{ accessRules: [] }, { accessRules: { $in: companies } }] }),
+          $or: [
+            {
+              format: STRICTLY_E_LEARNING,
+              ...(shouldQueryCompanies && { $or: [{ accessRules: [] }, { accessRules: { $in: companies } }] }),
+            },
+            { format: BLENDED, ...(shouldQueryCompanies && { companies: { $in: companies } }) },
+          ],
         },
-        { format: BLENDED, ...(shouldQueryCompanies && { companies: { $in: companies } }) },
       ],
     },
-    { format: 1 }
+    { format: 1, tutors: 1 }
   )
     .populate({
       path: 'subProgram',
@@ -226,7 +229,7 @@ const listForPedagogy = async (query, credentials) => {
           populate: {
             path: 'activities',
             select: 'name type cards activityHistories',
-            populate: [{ path: 'activityHistories', match: { user: trainee._id } }],
+            populate: [{ path: 'activityHistories', match: { user: traineeOrTutorId } }],
           },
         },
       ],
@@ -238,10 +241,10 @@ const listForPedagogy = async (query, credentials) => {
         { path: 'step', select: 'type' },
         {
           path: 'attendances',
-          match: { trainee: trainee._id, ...(shouldQueryCompanies && { company: { $in: companies } }) },
+          match: { trainee: traineeOrTutorId, ...(shouldQueryCompanies && { company: { $in: companies } }) },
           options: {
             isVendorUser: [TRAINING_ORGANISATION_MANAGER, VENDOR_ADMIN].includes(get(credentials, 'role.vendor.name')),
-            requestingOwnInfos: UtilsHelper.areObjectIdsEquals(traineeId, credentials._id),
+            requestingOwnInfos: UtilsHelper.areObjectIdsEquals(traineeOrTutorId, credentials._id),
           },
         },
       ],
@@ -252,7 +255,7 @@ const listForPedagogy = async (query, credentials) => {
   let filteredCourses = courses;
   if (shouldQueryCompanies) {
     const companyAtCourseRegistration = await CourseHistoriesHelper.getCompanyAtCourseRegistrationList(
-      { key: TRAINEE, value: traineeId }, { key: COURSE, value: courses.map(course => course._id) }
+      { key: TRAINEE, value: traineeOrTutorId }, { key: COURSE, value: courses.map(course => course._id) }
     );
     const traineeCompanies = mapValues(keyBy(companyAtCourseRegistration, 'course'), 'company');
     filteredCourses = courses
