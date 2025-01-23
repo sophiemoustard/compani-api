@@ -360,6 +360,10 @@ const getCourseForOperations = async (courseId, credentials, origin) => {
       },
       ...(origin === WEBAPP
         ? [
+          {
+            path: 'tutors',
+            select: 'identity.firstname identity.lastname contact.phone local.email picture.link',
+          },
           { path: 'slots', select: 'step startDate endDate address meetingLink' },
           { path: 'slotsToPlan', select: '_id step' },
           {
@@ -1266,3 +1270,6 @@ exports.removeTrainer = async (courseId, trainerId) => {
 
   await Course.updateOne({ _id: courseId }, query);
 };
+
+exports.addTutor = async (courseId, payload) =>
+  Course.updateOne({ _id: courseId }, { $addToSet: { tutors: payload.tutor } });

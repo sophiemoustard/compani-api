@@ -1823,6 +1823,10 @@ describe('getCourse', () => {
                   },
                 ],
               },
+              {
+                path: 'tutors',
+                select: 'identity.firstname identity.lastname contact.phone local.email picture.link',
+              },
               { path: 'slots', select: 'step startDate endDate address meetingLink' },
               { path: 'slotsToPlan', select: '_id step' },
               {
@@ -1922,6 +1926,10 @@ describe('getCourse', () => {
                     },
                   ],
                 },
+                {
+                  path: 'tutors',
+                  select: 'identity.firstname identity.lastname contact.phone local.email picture.link',
+                },
                 { path: 'slots', select: 'step startDate endDate address meetingLink' },
                 { path: 'slotsToPlan', select: '_id step' },
                 {
@@ -2019,6 +2027,10 @@ describe('getCourse', () => {
                       },
                     },
                   ],
+                },
+                {
+                  path: 'tutors',
+                  select: 'identity.firstname identity.lastname contact.phone local.email picture.link',
                 },
                 { path: 'slots', select: 'step startDate endDate address meetingLink' },
                 { path: 'slotsToPlan', select: '_id step' },
@@ -2184,6 +2196,10 @@ describe('getCourse', () => {
                     },
                   },
                 ],
+              },
+              {
+                path: 'tutors',
+                select: 'identity.firstname identity.lastname contact.phone local.email picture.link',
               },
               { path: 'slots', select: 'step startDate endDate address meetingLink' },
               { path: 'slotsToPlan', select: '_id step' },
@@ -6709,5 +6725,27 @@ describe('removeTrainer', () => {
       { _id: course._id },
       { $pull: { trainers: trainerId }, $unset: { contact: '' } }
     );
+  });
+});
+
+describe('add tutor', () => {
+  let courseUpdateOne;
+
+  beforeEach(() => {
+    courseUpdateOne = sinon.stub(Course, 'updateOne');
+  });
+
+  afterEach(() => {
+    courseUpdateOne.restore();
+  });
+
+  it('should add tutor to course', async () => {
+    const tutorId = new ObjectId();
+    const course = { _id: new ObjectId(), misc: 'Test', tutors: [new ObjectId()] };
+    const payload = { tutor: tutorId };
+
+    await CourseHelper.addTutor(course._id, payload);
+
+    sinon.assert.calledOnceWithExactly(courseUpdateOne, { _id: course._id }, { $addToSet: { tutors: tutorId } });
   });
 });
