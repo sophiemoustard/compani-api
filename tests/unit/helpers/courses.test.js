@@ -527,10 +527,11 @@ describe('list', () => {
     it('should return courses for trainees, vendor', async () => {
       const traineeOrTutorId = new ObjectId();
       const stepId = new ObjectId();
+      const courseIds = [new ObjectId(), new ObjectId()];
       const coursesList = [
         {
           misc: 'name',
-          _id: new ObjectId(),
+          _id: courseIds[0],
           format: BLENDED,
           subProgram: {
             steps: [{
@@ -567,7 +568,7 @@ describe('list', () => {
         },
         {
           misc: 'program',
-          _id: new ObjectId(),
+          _id: courseIds[1],
           format: BLENDED,
           subProgram: {
             steps: [{
@@ -603,7 +604,8 @@ describe('list', () => {
       ];
       const query = { action: 'pedagogy', origin: 'webapp', trainee: traineeOrTutorId };
 
-      find.returns(SinonMongoose.stubChainedQueries(coursesList, ['populate', 'select', 'lean']));
+      find.onCall(0).returns(SinonMongoose.stubChainedQueries(courseIds.map(_id => ({ _id })), ['lean']));
+      find.onCall(1).returns(SinonMongoose.stubChainedQueries(coursesList, ['populate', 'lean']));
 
       formatCourseWithProgress.onCall(0).returns({
         ...coursesList[0],
@@ -670,7 +672,7 @@ describe('list', () => {
         )
       ));
 
-      SinonMongoose.calledOnceWithExactly(
+      SinonMongoose.calledWithExactly(
         find,
         [
           {
@@ -682,8 +684,20 @@ describe('list', () => {
                   { $or: [{ format: STRICTLY_E_LEARNING }, { format: BLENDED }] },
                 ],
               },
-              { format: 1, tutors: 1 },
+              { _id: 1, tutors: 1 },
             ],
+          },
+          { query: 'lean' },
+        ],
+        0
+      );
+
+      SinonMongoose.calledWithExactly(
+        find,
+        [
+          {
+            query: 'find',
+            args: [{ _id: { $in: courseIds } }, { _id: 1, misc: 1, type: 1, format: 1 }],
           },
           {
             query: 'populate',
@@ -719,9 +733,9 @@ describe('list', () => {
               ],
             }],
           },
-          { query: 'select', args: ['_id misc type'] },
           { query: 'lean', args: [{ autopopulate: true, virtuals: true }] },
-        ]
+        ],
+        1
       );
 
       sinon.assert.calledWithExactly(formatCourseWithProgress.getCall(0), coursesList[0], true);
@@ -733,10 +747,11 @@ describe('list', () => {
       const traineeCompany = new ObjectId();
       const traineeOrTutorId = new ObjectId();
       const stepId = new ObjectId();
+      const courseIds = [new ObjectId(), new ObjectId(), new ObjectId()];
       const coursesList = [
         {
           misc: 'name',
-          _id: new ObjectId(),
+          _id: courseIds[0],
           format: BLENDED,
           subProgram: {
             steps: [{
@@ -773,7 +788,7 @@ describe('list', () => {
         },
         {
           misc: 'program',
-          _id: new ObjectId(),
+          _id: courseIds[1],
           format: BLENDED,
           subProgram: {
             steps: [{
@@ -808,7 +823,7 @@ describe('list', () => {
         },
         {
           misc: 'program',
-          _id: new ObjectId(),
+          _id: courseIds[2],
           format: BLENDED,
           subProgram: {
             steps: [{
@@ -844,7 +859,8 @@ describe('list', () => {
       ];
       const query = { action: 'pedagogy', company: traineeCompany, origin: 'webapp', trainee: traineeOrTutorId };
 
-      find.returns(SinonMongoose.stubChainedQueries(coursesList, ['populate', 'select', 'lean']));
+      find.onCall(0).returns(SinonMongoose.stubChainedQueries(courseIds.map(_id => ({ _id })), ['lean']));
+      find.onCall(1).returns(SinonMongoose.stubChainedQueries(coursesList, ['populate', 'lean']));
 
       formatCourseWithProgress.onCall(0).returns({
         ...coursesList[0],
@@ -916,7 +932,7 @@ describe('list', () => {
         )
       ));
 
-      SinonMongoose.calledOnceWithExactly(
+      SinonMongoose.calledWithExactly(
         find,
         [
           {
@@ -936,8 +952,20 @@ describe('list', () => {
                   },
                 ],
               },
-              { format: 1, tutors: 1 },
+              { _id: 1, tutors: 1 },
             ],
+          },
+          { query: 'lean' },
+        ],
+        0
+      );
+
+      SinonMongoose.calledWithExactly(
+        find,
+        [
+          {
+            query: 'find',
+            args: [{ _id: { $in: courseIds } }, { _id: 1, misc: 1, type: 1, format: 1 }],
           },
           {
             query: 'populate',
@@ -973,9 +1001,9 @@ describe('list', () => {
               ],
             }],
           },
-          { query: 'select', args: ['_id misc type'] },
           { query: 'lean', args: [{ autopopulate: true, virtuals: true }] },
-        ]
+        ],
+        1
       );
 
       sinon.assert.calledWithExactly(formatCourseWithProgress.getCall(0), coursesList[0], true);
@@ -991,10 +1019,11 @@ describe('list', () => {
       const traineeCompany = credentials.holding.companies[0];
       const traineeOrTutorId = new ObjectId();
       const stepId = new ObjectId();
+      const courseIds = [new ObjectId(), new ObjectId(), new ObjectId()];
       const coursesList = [
         {
           misc: 'name',
-          _id: new ObjectId(),
+          _id: courseIds[0],
           format: BLENDED,
           subProgram: {
             steps: [{
@@ -1031,7 +1060,7 @@ describe('list', () => {
         },
         {
           misc: 'program',
-          _id: new ObjectId(),
+          _id: courseIds[1],
           format: BLENDED,
           subProgram: {
             steps: [{
@@ -1066,7 +1095,7 @@ describe('list', () => {
         },
         {
           misc: 'program',
-          _id: new ObjectId(),
+          _id: courseIds[2],
           format: BLENDED,
           subProgram: {
             steps: [{
@@ -1107,7 +1136,8 @@ describe('list', () => {
         trainee: traineeOrTutorId,
       };
 
-      find.returns(SinonMongoose.stubChainedQueries(coursesList, ['populate', 'select', 'lean']));
+      find.onCall(0).returns(SinonMongoose.stubChainedQueries(courseIds.map(_id => ({ _id })), ['lean']));
+      find.onCall(1).returns(SinonMongoose.stubChainedQueries(coursesList, ['populate', 'lean']));
 
       formatCourseWithProgress.onCall(0).returns({
         ...coursesList[0],
@@ -1179,7 +1209,7 @@ describe('list', () => {
         )
       ));
 
-      SinonMongoose.calledOnceWithExactly(
+      SinonMongoose.calledWithExactly(
         find,
         [
           {
@@ -1199,8 +1229,20 @@ describe('list', () => {
                   },
                 ],
               },
-              { format: 1, tutors: 1 },
+              { _id: 1, tutors: 1 },
             ],
+          },
+          { query: 'lean' },
+        ],
+        0
+      );
+
+      SinonMongoose.calledWithExactly(
+        find,
+        [
+          {
+            query: 'find',
+            args: [{ _id: { $in: courseIds } }, { _id: 1, misc: 1, type: 1, format: 1 }],
           },
           {
             query: 'populate',
@@ -1236,9 +1278,9 @@ describe('list', () => {
               ],
             }],
           },
-          { query: 'select', args: ['_id misc type'] },
           { query: 'lean', args: [{ autopopulate: true, virtuals: true }] },
-        ]
+        ],
+        1
       );
 
       sinon.assert.calledWithExactly(formatCourseWithProgress.getCall(0), coursesList[0], true);
@@ -1253,10 +1295,11 @@ describe('list', () => {
     it('should return courses for loggedUser', async () => {
       const traineeOrTutorId = credentials._id;
       const stepId = new ObjectId();
+      const courseIds = [new ObjectId(), new ObjectId()];
       const coursesList = [
         {
           misc: 'name',
-          _id: new ObjectId(),
+          _id: courseIds[0],
           format: BLENDED,
           subProgram: {
             steps: [{
@@ -1293,7 +1336,7 @@ describe('list', () => {
         },
         {
           misc: 'program',
-          _id: new ObjectId(),
+          _id: courseIds[1],
           format: BLENDED,
           subProgram: {
             steps: [{
@@ -1329,7 +1372,8 @@ describe('list', () => {
       ];
       const query = { action: 'pedagogy', origin: 'mobile' };
 
-      find.returns(SinonMongoose.stubChainedQueries(coursesList, ['populate', 'select', 'lean']));
+      find.onCall(0).returns(SinonMongoose.stubChainedQueries(courseIds.map(_id => ({ _id })), ['lean']));
+      find.onCall(1).returns(SinonMongoose.stubChainedQueries(coursesList, ['populate', 'lean']));
 
       formatCourseWithProgress.onCall(0).returns({
         ...coursesList[0],
@@ -1396,7 +1440,7 @@ describe('list', () => {
         )
       ));
 
-      SinonMongoose.calledOnceWithExactly(
+      SinonMongoose.calledWithExactly(
         find,
         [
           {
@@ -1408,8 +1452,20 @@ describe('list', () => {
                   { $or: [{ format: STRICTLY_E_LEARNING }, { format: BLENDED }] },
                 ],
               },
-              { format: 1, tutors: 1 },
+              { _id: 1, tutors: 1 },
             ],
+          },
+          { query: 'lean' },
+        ],
+        0
+      );
+
+      SinonMongoose.calledWithExactly(
+        find,
+        [
+          {
+            query: 'find',
+            args: [{ _id: { $in: courseIds } }, { _id: 1, misc: 1, type: 1, format: 1 }],
           },
           {
             query: 'populate',
@@ -1445,13 +1501,211 @@ describe('list', () => {
               ],
             }],
           },
-          { query: 'select', args: ['_id misc type'] },
           { query: 'lean', args: [{ autopopulate: true, virtuals: true }] },
-        ]
+        ],
+        1
       );
 
       sinon.assert.calledWithExactly(formatCourseWithProgress.getCall(0), coursesList[0], true);
       sinon.assert.calledWithExactly(formatCourseWithProgress.getCall(1), coursesList[1], true);
+    });
+
+    it('should return courses for tutor', async () => {
+      const traineeOrTutorId = credentials._id;
+      const stepId = new ObjectId();
+      const tutorCourseIds = [new ObjectId()];
+      const traineeCourseIds = [new ObjectId()];
+      const coursesList = [
+        {
+          misc: 'name',
+          _id: tutorCourseIds[0],
+          format: BLENDED,
+          tutors: [credentials._id],
+          subProgram: { _id: new ObjectId(), program: { name: 'Programme' } },
+        },
+        {
+          misc: 'program',
+          _id: traineeCourseIds[0],
+          format: BLENDED,
+          subProgram: {
+            steps: [{
+              _id: new ObjectId(),
+              activities: [{ activityHistories: [{}, {}] }],
+              name: 'Brochure : le mal de dos',
+              type: 'e_learning',
+              theoreticalDuration: 'PT5400S',
+              areActivitiesValid: false,
+            }, {
+              _id: stepId,
+              activities: [],
+              name: 'Enjailler son équipe autonome',
+              type: 'on_site',
+              areActivitiesValid: true,
+            }],
+          },
+          slots: [
+            {
+              startDate: '2019-11-06T09:00:00.000Z',
+              endDate: '2019-11-06T12:00:00.000Z',
+              step: stepId,
+              attendances: [{ _id: new ObjectId() }],
+            },
+            {
+              startDate: '2019-12-22T09:00:00.000Z',
+              endDate: '2019-12-22T16:01:00.000Z',
+              step: stepId,
+              attendances: [],
+            },
+          ],
+        },
+      ];
+      const query = { action: 'pedagogy', origin: 'mobile' };
+
+      find
+        .onCall(0)
+        .returns(
+          SinonMongoose
+            .stubChainedQueries(
+              [{ _id: tutorCourseIds[0], tutors: [credentials._id] }, { _id: traineeCourseIds[0] }],
+              ['lean']
+            )
+        );
+      find.onCall(1).returns(SinonMongoose.stubChainedQueries([coursesList[1]], ['populate', 'lean']));
+      find.onCall(2).returns(SinonMongoose.stubChainedQueries([coursesList[0]], ['populate', 'lean']));
+
+      formatCourseWithProgress.onCall(0).returns({
+        ...coursesList[1],
+        subProgram: {
+          ...coursesList[1].subProgram,
+          steps: [
+            { ...coursesList[1].subProgram.steps[0], progress: { eLearning: 1 } },
+            {
+              ...coursesList[1].subProgram.steps[1],
+              progress: { live: 1, presence: { attendanceDuration: { minutes: 180 }, maxDuration: { minutes: 601 } } },
+            },
+          ],
+        },
+        progress: {
+          eLearning: 1,
+          live: 1,
+          presence: { attendanceDuration: { minutes: 180 }, maxDuration: { minutes: 601 } },
+        },
+      });
+
+      const result = await CourseHelper.list(query, credentials);
+
+      expect(result).toMatchObject(
+        [
+          coursesList[0],
+          {
+            ...coursesList[1],
+            subProgram: {
+              ...coursesList[1].subProgram,
+              steps: [
+                { ...coursesList[1].subProgram.steps[0], progress: { eLearning: 1 } },
+                {
+                  ...coursesList[1].subProgram.steps[1],
+                  progress: {
+                    live: 1,
+                    presence: { attendanceDuration: { minutes: 180 }, maxDuration: { minutes: 601 } },
+                  },
+                },
+              ],
+            },
+            progress: {
+              eLearning: 1,
+              live: 1,
+              presence: { attendanceDuration: { minutes: 180 }, maxDuration: { minutes: 601 } },
+            },
+          },
+        ]
+      );
+
+      SinonMongoose.calledWithExactly(
+        find,
+        [
+          {
+            query: 'find',
+            args: [
+              {
+                $and: [
+                  { $or: [{ trainees: traineeOrTutorId }, { tutors: traineeOrTutorId }] },
+                  { $or: [{ format: STRICTLY_E_LEARNING }, { format: BLENDED }] },
+                ],
+              },
+              { _id: 1, tutors: 1 },
+            ],
+          },
+          { query: 'lean' },
+        ],
+        0
+      );
+      SinonMongoose.calledWithExactly(
+        find,
+        [
+          {
+            query: 'find',
+            args: [{ _id: { $in: traineeCourseIds } }, { _id: 1, misc: 1, type: 1, format: 1 }],
+          },
+          {
+            query: 'populate',
+            args: [{
+              path: 'subProgram',
+              select: 'program steps',
+              populate: [
+                { path: 'program', select: 'name image description' },
+                {
+                  path: 'steps',
+                  select: 'name type activities theoreticalDuration',
+                  populate: {
+                    path: 'activities',
+                    select: 'name type cards activityHistories',
+                    populate: [{ path: 'activityHistories', match: { user: traineeOrTutorId } }],
+                  },
+                },
+              ],
+            }],
+          },
+          {
+            query: 'populate',
+            args: [{
+              path: 'slots',
+              select: 'startDate endDate step',
+              populate: [
+                { path: 'step', select: 'type' },
+                {
+                  path: 'attendances',
+                  match: { trainee: traineeOrTutorId },
+                  options: { isVendorUser, requestingOwnInfos: true },
+                },
+              ],
+            }],
+          },
+          { query: 'lean', args: [{ autopopulate: true, virtuals: true }] },
+        ],
+        1
+      );
+      SinonMongoose.calledWithExactly(
+        find,
+        [
+          {
+            query: 'find',
+            args: [{ _id: { $in: tutorCourseIds } }, { _id: 1, misc: 1, type: 1, format: 1, tutors: 1 }],
+          },
+          {
+            query: 'populate',
+            args: [{
+              path: 'subProgram',
+              select: 'program',
+              populate: [{ path: 'program', select: 'name image description' }],
+            }],
+          },
+          { query: 'lean' },
+        ],
+        2
+      );
+
+      sinon.assert.calledOnceWithExactly(formatCourseWithProgress, coursesList[1], true);
     });
   });
 });
