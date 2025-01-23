@@ -3271,6 +3271,17 @@ describe('COURSES ROUTES - PUT /courses/{_id}/trainees', () => {
 
       expect(response.statusCode).toBe(422);
     });
+
+    it('should return 403 if trainee is course tutor', async () => {
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/courses/${coursesList[25]._id}/trainees`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload: { trainee: traineeFromAuthCompanyWithFormationExpoToken._id, company: authCompany._id },
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
   });
 
   describe('TRAINING_ORGANISATION_MANAGER intra_holding', () => {
@@ -5137,9 +5148,9 @@ describe('COURSES ROUTES - PUT /courses/{_id}/tutors', () => {
     it('should return 403 if tutor is trainee', async () => {
       const response = await app.inject({
         method: 'PUT',
-        url: `/courses/${coursesList[0]._id}/tutors`,
+        url: `/courses/${coursesList[24]._id}/tutors`,
         headers: { Cookie: `alenvi_token=${authToken}` },
-        payload: { tutor: vendorAdmin._id },
+        payload: { tutor: traineeFromAuthFormerlyInOther._id },
       });
 
       expect(response.statusCode).toBe(403);

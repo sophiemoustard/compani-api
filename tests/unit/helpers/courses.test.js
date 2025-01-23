@@ -2116,10 +2116,6 @@ describe('getCourse', () => {
                   { path: 'steps', select: 'name' },
                 ],
               },
-              {
-                path: 'tutors',
-                select: 'identity.firstname identity.lastname contact.phone local.email picture.link',
-              },
               { path: 'slots', select: 'step startDate endDate', options: { sort: { startDate: 1 } } },
             ]],
           },

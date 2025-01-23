@@ -45,6 +45,7 @@ const UserCompaniesHelper = require('../../helpers/userCompanies');
 const { checkVendorUserExistsAndHasRightRole } = require('./utils');
 
 const { language } = translate;
+const SINGLE_COURSES_SUBPROGRAM_IDS = process.env.SINGLE_COURSES_SUBPROGRAM_IDS.split(';').map(id => new ObjectId(id));
 
 exports.checkAuthorization = (credentials, courseTrainerIds, companies, holding = null) => {
   const userVendorRole = get(credentials, 'role.vendor.name');
@@ -334,7 +335,7 @@ exports.authorizeTraineeAddition = async (req) => {
     const course = await Course
       .findOne(
         { _id: req.params._id },
-        { trainees: 1, type: 1, companies: 1, maxTrainees: 1, trainers: 1, hasCertifyingTest: 1 }
+        { trainees: 1, type: 1, companies: 1, maxTrainees: 1, trainers: 1, hasCertifyingTest: 1, tutors: 1 }
       )
       .lean();
 
@@ -342,6 +343,9 @@ exports.authorizeTraineeAddition = async (req) => {
 
     const traineeIsTrainer = UtilsHelper.doesArrayIncludeId(course.trainers, payload.trainee);
     if (traineeIsTrainer) throw Boom.forbidden(translate[language].courseTraineeIsTrainer);
+
+    const traineeIsTutor = UtilsHelper.doesArrayIncludeId(course.tutors, payload.trainee);
+    if (traineeIsTutor) throw Boom.forbidden(translate[language].courseTraineeIsTutor);
 
     const traineeAlreadyRegistered = course.trainees.some(t => UtilsHelper.areObjectIdsEquals(t, payload.trainee));
     if (traineeAlreadyRegistered) throw Boom.conflict(translate[language].courseTraineeAlreadyExists);
@@ -771,15 +775,12 @@ exports.authorizeTrainerDeletion = async (req) => {
 exports.authorizeTutorAddition = async (req) => {
   const { params, payload } = req;
 
-  const course = await Course.findOne({ _id: params._id },
-    { tutors: 1, trainees: 1, archivedAt: 1, companies: 1, subProgram: 1 })
+  const course = await Course
+    .findOne({ _id: params._id }, { tutors: 1, trainees: 1, archivedAt: 1, companies: 1, subProgram: 1 })
     .lean();
   if (!course) throw Boom.notFound();
   if (course.archivedAt) throw Boom.forbidden();
 
-  const SINGLE_COURSES_SUBPROGRAM_IDS = process.env.SINGLE_COURSES_SUBPROGRAM_IDS
-    .split(';')
-    .map(id => new ObjectId(id));
   const isSingleCourse = UtilsHelper.doesArrayIncludeId(SINGLE_COURSES_SUBPROGRAM_IDS, course.subProgram);
   if (!isSingleCourse) throw Boom.forbidden();
 

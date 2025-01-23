@@ -487,7 +487,7 @@ const coursesList = [
   },
   { // 14 archived course
     _id: new ObjectId(),
-    subProgram: subProgramsList[0]._id,
+    subProgram: subProgramsList[4]._id,
     misc: 'old session',
     trainers: [trainer._id],
     trainees: [coach._id, helper._id, clientAdmin._id],

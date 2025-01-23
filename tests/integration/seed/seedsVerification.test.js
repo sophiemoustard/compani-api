@@ -748,12 +748,6 @@ describe('SEEDS VERIFICATION', () => {
             .populate({ path: 'subProgram', select: '_id status steps', populate: { path: 'steps', select: 'type' } })
             .populate({ path: 'slots', select: 'endDate' })
             .populate({ path: 'slotsToPlan' })
-            .populate({
-              path: 'tutors',
-              select: '_id',
-              populate: { path: 'userCompanyList' },
-              transform,
-            })
             .lean({ virtuals: true });
         });
 
