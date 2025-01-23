@@ -5117,7 +5117,7 @@ describe('COURSES ROUTES - PUT /courses/{_id}/tutors', () => {
         method: 'PUT',
         url: `/courses/${coursesList[14]._id}/tutors`,
         headers: { Cookie: `alenvi_token=${authToken}` },
-        payload: { tutor: traineeFromThirdCompany._id },
+        payload: { tutor: traineeFromAuthFormerlyInOther._id },
       });
 
       expect(response.statusCode).toBe(403);
