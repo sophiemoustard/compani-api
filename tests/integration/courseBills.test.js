@@ -1394,4 +1394,27 @@ describe('COURSE BILL ROUTES - DELETE /coursebills/{_id}', () => {
       expect(response.statusCode).toBe(403);
     });
   });
+
+  describe('Other roles', () => {
+    const roles = [
+      { name: 'helper', expectedCode: 403 },
+      { name: 'planning_referent', expectedCode: 403 },
+      { name: 'client_admin', expectedCode: 403 },
+      { name: 'trainer', expectedCode: 403 },
+    ];
+
+    roles.forEach((role) => {
+      it(`should return ${role.expectedCode} as user is ${role.name} #tag`, async () => {
+        authToken = await getToken(role.name);
+
+        const response = await app.inject({
+          method: 'DELETE',
+          url: `/coursebills/${courseBillsList[0]._id}`,
+          headers: { Cookie: `alenvi_token=${authToken}` },
+        });
+
+        expect(response.statusCode).toBe(role.expectedCode);
+      });
+    });
+  });
 });
