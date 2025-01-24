@@ -273,8 +273,11 @@ const listForPedagogy = async (query, credentials) => {
       .find({ _id: { $in: tutorCourseIds } }, { _id: 1, misc: 1, type: 1, format: 1, tutors: 1 })
       .populate({
         path: 'subProgram',
-        select: 'program',
-        populate: [{ path: 'program', select: 'name image description' }],
+        select: 'program steps',
+        populate: [
+          { path: 'program', select: 'name image description' },
+          { path: 'steps', select: 'type theoreticalDuration' },
+        ],
       })
       .lean();
   }
