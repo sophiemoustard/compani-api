@@ -345,6 +345,13 @@ describe('doesArrayIncludeId', () => {
 
     expect(result).toBe(false);
   });
+
+  it('should return false if no array', () => {
+    const result = UtilsHelper.doesArrayIncludeId(undefined, new ObjectId());
+
+    expect(result).toBe(false);
+    sinon.assert.notCalled(areObjectIdsEqualStub);
+  });
 });
 
 describe('isStringedObjectId', () => {
