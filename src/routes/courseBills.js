@@ -21,7 +21,7 @@ const {
   authorizeCourseBillingPurchaseUpdate,
   authorizeCourseBillingPurchaseDelete,
   authorizeBillPdfGet,
-  deleteCourseBills,
+  authorizeCourseBillDeletion,
 } = require('./preHandlers/courseBills');
 const { requiredDateToISOString } = require('./validations/utils');
 
@@ -170,7 +170,7 @@ exports.plugin = {
         validate: {
           params: Joi.object({ _id: Joi.objectId().required() }),
         },
-        pre: [{ method: deleteCourseBills }],
+        pre: [{ method: authorizeCourseBillDeletion }],
       },
       handler: deleteBill,
     });

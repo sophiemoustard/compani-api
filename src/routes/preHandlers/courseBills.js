@@ -186,7 +186,7 @@ exports.authorizeBillPdfGet = async (req) => {
   return [...new Set([...bill.companies.map(c => c.toHexString()), bill.payer.toHexString()])];
 };
 
-exports.deleteCourseBills = async (req) => {
+exports.authorizeCourseBillDeletion = async (req) => {
   const { _id: courseBillId } = req.params;
 
   const courseBill = await CourseBill.findOne({ _id: courseBillId }).lean();

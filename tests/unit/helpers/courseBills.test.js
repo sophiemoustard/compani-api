@@ -762,11 +762,9 @@ describe('deleteBill', () => {
 
   it('should delete course bill', async () => {
     const courseBillId = new ObjectId();
-    findOne.returns(SinonMongoose.stubChainedQueries(courseBillId));
 
     await CourseBillHelper.deleteBill(courseBillId);
 
-    sinon.assert.calledOnceWithExactly(findOne, { _id: courseBillId });
-    sinon.assert.calledOnceWithExactly(deleteOne, { _id: courseBillId._id });
+    sinon.assert.calledOnceWithExactly(deleteOne, { _id: courseBillId });
   });
 });
