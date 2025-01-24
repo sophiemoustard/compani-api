@@ -203,5 +203,6 @@ exports.generateBillPdf = async (billId, companies, credentials) => {
 exports.deleteBill = async (courseBillId) => {
   const courseBill = await CourseBill.findOne({ _id: courseBillId }).lean();
 
-  CourseBill.deleteOne({ _id: courseBill._id });
+  const deleteCourseBill = CourseBill.deleteOne({ _id: courseBill._id });
+  return deleteCourseBill;
 };
