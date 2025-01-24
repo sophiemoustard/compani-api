@@ -578,7 +578,8 @@ describe('list', () => {
               type: 'e_learning',
               theoreticalDuration: 'PT5400S',
               areActivitiesValid: false,
-            }, {
+            },
+            {
               _id: stepId,
               activities: [],
               name: 'Enjailler son équipe autonome',
@@ -605,7 +606,7 @@ describe('list', () => {
       const query = { action: 'pedagogy', origin: 'webapp', trainee: traineeOrTutorId };
 
       find.onCall(0).returns(SinonMongoose.stubChainedQueries(courseIds.map(_id => ({ _id })), ['lean']));
-      find.onCall(1).returns(SinonMongoose.stubChainedQueries(coursesList, ['populate', 'lean']));
+      find.onCall(1).returns(SinonMongoose.stubChainedQueries(coursesList));
 
       formatCourseWithProgress.onCall(0).returns({
         ...coursesList[0],
@@ -798,7 +799,8 @@ describe('list', () => {
               type: 'e_learning',
               theoreticalDuration: 'PT5400S',
               areActivitiesValid: false,
-            }, {
+            },
+            {
               _id: stepId,
               activities: [],
               name: 'Enjailler son équipe autonome',
@@ -833,7 +835,8 @@ describe('list', () => {
               type: 'e_learning',
               theoreticalDuration: 'PT5400S',
               areActivitiesValid: false,
-            }, {
+            },
+            {
               _id: stepId,
               activities: [],
               name: 'Enjailler ses bénéficiaires',
@@ -860,7 +863,7 @@ describe('list', () => {
       const query = { action: 'pedagogy', company: traineeCompany, origin: 'webapp', trainee: traineeOrTutorId };
 
       find.onCall(0).returns(SinonMongoose.stubChainedQueries(courseIds.map(_id => ({ _id })), ['lean']));
-      find.onCall(1).returns(SinonMongoose.stubChainedQueries(coursesList, ['populate', 'lean']));
+      find.onCall(1).returns(SinonMongoose.stubChainedQueries(coursesList));
 
       formatCourseWithProgress.onCall(0).returns({
         ...coursesList[0],
@@ -1070,7 +1073,8 @@ describe('list', () => {
               type: 'e_learning',
               theoreticalDuration: 'PT5400S',
               areActivitiesValid: false,
-            }, {
+            },
+            {
               _id: stepId,
               activities: [],
               name: 'Enjailler son équipe autonome',
@@ -1105,7 +1109,8 @@ describe('list', () => {
               type: 'e_learning',
               theoreticalDuration: 'PT5400S',
               areActivitiesValid: false,
-            }, {
+            },
+            {
               _id: stepId,
               activities: [],
               name: 'Enjailler ses bénéficiaires',
@@ -1137,7 +1142,7 @@ describe('list', () => {
       };
 
       find.onCall(0).returns(SinonMongoose.stubChainedQueries(courseIds.map(_id => ({ _id })), ['lean']));
-      find.onCall(1).returns(SinonMongoose.stubChainedQueries(coursesList, ['populate', 'lean']));
+      find.onCall(1).returns(SinonMongoose.stubChainedQueries(coursesList));
 
       formatCourseWithProgress.onCall(0).returns({
         ...coursesList[0],
@@ -1346,7 +1351,8 @@ describe('list', () => {
               type: 'e_learning',
               theoreticalDuration: 'PT5400S',
               areActivitiesValid: false,
-            }, {
+            },
+            {
               _id: stepId,
               activities: [],
               name: 'Enjailler son équipe autonome',
@@ -1373,7 +1379,7 @@ describe('list', () => {
       const query = { action: 'pedagogy', origin: 'mobile' };
 
       find.onCall(0).returns(SinonMongoose.stubChainedQueries(courseIds.map(_id => ({ _id })), ['lean']));
-      find.onCall(1).returns(SinonMongoose.stubChainedQueries(coursesList, ['populate', 'lean']));
+      find.onCall(1).returns(SinonMongoose.stubChainedQueries(coursesList));
 
       formatCourseWithProgress.onCall(0).returns({
         ...coursesList[0],
@@ -1521,7 +1527,14 @@ describe('list', () => {
           _id: tutorCourseIds[0],
           format: BLENDED,
           tutors: [credentials._id],
-          subProgram: { _id: new ObjectId(), program: { name: 'Programme' } },
+          subProgram: {
+            _id: new ObjectId(),
+            program: { name: 'Programme' },
+            steps: [
+              { _id: new ObjectId(), type: 'e_learning', theoreticalDuration: 'PT5400S' },
+              { _id: new ObjectId(), type: 'on_site' },
+            ],
+          },
         },
         {
           misc: 'program',
@@ -1535,7 +1548,8 @@ describe('list', () => {
               type: 'e_learning',
               theoreticalDuration: 'PT5400S',
               areActivitiesValid: false,
-            }, {
+            },
+            {
               _id: stepId,
               activities: [],
               name: 'Enjailler son équipe autonome',
@@ -1570,8 +1584,8 @@ describe('list', () => {
               ['lean']
             )
         );
-      find.onCall(1).returns(SinonMongoose.stubChainedQueries([coursesList[1]], ['populate', 'lean']));
-      find.onCall(2).returns(SinonMongoose.stubChainedQueries([coursesList[0]], ['populate', 'lean']));
+      find.onCall(1).returns(SinonMongoose.stubChainedQueries([coursesList[1]]));
+      find.onCall(2).returns(SinonMongoose.stubChainedQueries([coursesList[0]]));
 
       formatCourseWithProgress.onCall(0).returns({
         ...coursesList[1],
@@ -1696,8 +1710,11 @@ describe('list', () => {
             query: 'populate',
             args: [{
               path: 'subProgram',
-              select: 'program',
-              populate: [{ path: 'program', select: 'name image description' }],
+              select: 'program steps',
+              populate: [
+                { path: 'program', select: 'name image description' },
+                { path: 'steps', select: 'type theoreticalDuration' },
+              ],
             }],
           },
           { query: 'lean' },
