@@ -747,16 +747,13 @@ describe('generateBillPdf', () => {
 });
 
 describe('deleteBill', () => {
-  let findOne;
   let deleteOne;
 
   beforeEach(() => {
-    findOne = sinon.stub(CourseBill, 'findOne');
     deleteOne = sinon.stub(CourseBill, 'deleteOne');
   });
 
   afterEach(() => {
-    findOne.restore();
     deleteOne.restore();
   });
 

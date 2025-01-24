@@ -1369,6 +1369,9 @@ describe('COURSE BILL ROUTES - DELETE /coursebills/{_id}', () => {
       });
 
       expect(response.statusCode).toBe(200);
+
+      const countBill = await CourseBill.countDocuments();
+      expect(countBill).toBe(courseBillsList.length - 1);
     });
 
     it('should return 404 if course bill doesn\'t exist', async () => {
