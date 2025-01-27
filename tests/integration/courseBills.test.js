@@ -1370,8 +1370,8 @@ describe('COURSE BILL ROUTES - DELETE /coursebills/{_id}', () => {
 
       expect(response.statusCode).toBe(200);
 
-      const countBill = await CourseBill.countDocuments();
-      expect(countBill).toBe(courseBillsList.length - 1);
+      const countBill = await CourseBill.countDocuments(courseBillsList[0]._id);
+      expect(countBill).toBe(0);
     });
 
     it('should return 404 if course bill doesn\'t exist', async () => {
@@ -1404,7 +1404,7 @@ describe('COURSE BILL ROUTES - DELETE /coursebills/{_id}', () => {
     ];
 
     roles.forEach((role) => {
-      it(`should return ${role.expectedCode} as user is ${role.name} #tag`, async () => {
+      it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
         authToken = await getToken(role.name);
 
         const response = await app.inject({
