@@ -154,7 +154,7 @@ exports.formatIdsArray = ids => (Array.isArray(ids) ? ids : [ids]);
 exports.areObjectIdsEquals = (id1, id2) => !!id1 && !!id2 &&
   new ObjectId(id1).toHexString() === new ObjectId(id2).toHexString();
 
-exports.doesArrayIncludeId = (array, id) => array.some(item => exports.areObjectIdsEquals(item, id));
+exports.doesArrayIncludeId = (array, id) => !!array && array.some(item => exports.areObjectIdsEquals(item, id));
 
 exports.isStringedObjectId = value => typeof value === 'string' && !!value.match(/^[0-9a-fA-F]{24}$/);
 
