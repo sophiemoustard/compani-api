@@ -659,12 +659,12 @@ describe('COURSES ROUTES - GET /courses', () => {
     expect(response.statusCode).toBe(200);
 
     const courseIds = response.result.data.courses.map(c => c._id);
-    const coursesHasTrainee = coursesList.filter(c => UtilsHelper.doesArrayIncludeId(courseIds, c._id) &&
+    const coursesAsTrainee = coursesList.filter(c => UtilsHelper.doesArrayIncludeId(courseIds, c._id) &&
       UtilsHelper.doesArrayIncludeId(c.trainees || [], noRole._id));
-    const coursesHasTutor = coursesList.filter(c => UtilsHelper.doesArrayIncludeId(courseIds, c._id) &&
+    const coursesAsTutor = coursesList.filter(c => UtilsHelper.doesArrayIncludeId(courseIds, c._id) &&
       UtilsHelper.doesArrayIncludeId(c.tutors || [], noRole._id));
-    expect(coursesHasTrainee.length).toBe(2);
-    expect(coursesHasTutor.length).toBe(1);
+    expect(coursesAsTrainee.length).toBe(2);
+    expect(coursesAsTutor.length).toBe(1);
   });
 
   describe('TRAINING_ORGANISATION_MANAGER', () => {

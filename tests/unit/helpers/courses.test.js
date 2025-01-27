@@ -605,7 +605,7 @@ describe('list', () => {
       ];
       const query = { action: 'pedagogy', origin: 'webapp', trainee: traineeOrTutorId };
 
-      find.onCall(0).returns(SinonMongoose.stubChainedQueries(courseIds.map(_id => ({ _id })), ['lean']));
+      find.onCall(0).returns(SinonMongoose.stubChainedQueries(courseIds, ['lean']));
       find.onCall(1).returns(SinonMongoose.stubChainedQueries(coursesList));
 
       formatCourseWithProgress.onCall(0).returns({
@@ -862,7 +862,7 @@ describe('list', () => {
       ];
       const query = { action: 'pedagogy', company: traineeCompany, origin: 'webapp', trainee: traineeOrTutorId };
 
-      find.onCall(0).returns(SinonMongoose.stubChainedQueries(courseIds.map(_id => ({ _id })), ['lean']));
+      find.onCall(0).returns(SinonMongoose.stubChainedQueries(courseIds, ['lean']));
       find.onCall(1).returns(SinonMongoose.stubChainedQueries(coursesList));
 
       formatCourseWithProgress.onCall(0).returns({
@@ -1141,7 +1141,7 @@ describe('list', () => {
         trainee: traineeOrTutorId,
       };
 
-      find.onCall(0).returns(SinonMongoose.stubChainedQueries(courseIds.map(_id => ({ _id })), ['lean']));
+      find.onCall(0).returns(SinonMongoose.stubChainedQueries(courseIds, ['lean']));
       find.onCall(1).returns(SinonMongoose.stubChainedQueries(coursesList));
 
       formatCourseWithProgress.onCall(0).returns({
@@ -1297,7 +1297,7 @@ describe('list', () => {
       );
     });
 
-    it('should return courses for loggedUser', async () => {
+    it('should return courses for loggedUser (as trainee)', async () => {
       const traineeOrTutorId = credentials._id;
       const stepId = new ObjectId();
       const courseIds = [new ObjectId(), new ObjectId()];
@@ -1378,7 +1378,7 @@ describe('list', () => {
       ];
       const query = { action: 'pedagogy', origin: 'mobile' };
 
-      find.onCall(0).returns(SinonMongoose.stubChainedQueries(courseIds.map(_id => ({ _id })), ['lean']));
+      find.onCall(0).returns(SinonMongoose.stubChainedQueries(courseIds, ['lean']));
       find.onCall(1).returns(SinonMongoose.stubChainedQueries(coursesList));
 
       formatCourseWithProgress.onCall(0).returns({
