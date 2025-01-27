@@ -6749,3 +6749,24 @@ describe('add tutor', () => {
     sinon.assert.calledOnceWithExactly(courseUpdateOne, { _id: course._id }, { $addToSet: { tutors: tutorId } });
   });
 });
+
+describe('removeTutor', () => {
+  let updateOne;
+
+  beforeEach(() => {
+    updateOne = sinon.stub(Course, 'updateOne');
+  });
+
+  afterEach(() => {
+    updateOne.restore();
+  });
+
+  it('should remove tutor to course', async () => {
+    const tutorId = new ObjectId();
+    const course = { _id: new ObjectId(), misc: 'Test', tutors: [new ObjectId()] };
+
+    await CourseHelper.removeTutor(course._id, tutorId);
+
+    sinon.assert.calledOnceWithExactly(updateOne, { _id: course._id }, { $pull: { tutors: tutorId } });
+  });
+});
