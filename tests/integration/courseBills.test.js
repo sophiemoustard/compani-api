@@ -1364,13 +1364,13 @@ describe('COURSE BILL ROUTES - DELETE /coursebills/{_id}', () => {
     it('should delete course bill', async () => {
       const response = await app.inject({
         method: 'DELETE',
-        url: `/coursebills/${courseBillsList[2]._id}`,
+        url: `/coursebills/${courseBillsList[0]._id}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(response.statusCode).toBe(200);
 
-      const countBill = await CourseBill.countDocuments(courseBillsList[2]._id);
+      const countBill = await CourseBill.countDocuments(courseBillsList[0]._id);
       expect(countBill).toBe(0);
     });
 
