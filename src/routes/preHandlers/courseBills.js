@@ -189,7 +189,7 @@ exports.authorizeBillPdfGet = async (req) => {
 exports.authorizeCourseBillDeletion = async (req) => {
   const { _id: courseBillId } = req.params;
 
-  const courseBill = await CourseBill.findOne({ _id: courseBillId }).lean();
+  const courseBill = await CourseBill.findOne({ _id: courseBillId, billedAt: { $exists: true, $type: 'date' } }).lean();
   if (!courseBill) throw Boom.notFound();
 
   if (courseBill.billedAt) throw Boom.forbidden();
