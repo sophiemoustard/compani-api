@@ -321,6 +321,17 @@ const addTutor = async (req) => {
   }
 };
 
+const removeTutor = async (req) => {
+  try {
+    await CoursesHelper.removeTutor(req.params._id, req.params.tutorId);
+
+    return { message: translate[language].courseTutorRemoved };
+  } catch (e) {
+    req.log('error', e);
+    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
+  }
+};
+
 module.exports = {
   list,
   create,
@@ -346,4 +357,5 @@ module.exports = {
   addTrainer,
   removeTrainer,
   addTutor,
+  removeTutor,
 };

@@ -796,3 +796,16 @@ exports.authorizeTutorAddition = async (req) => {
 
   return null;
 };
+
+exports.authorizeTutorDeletion = async (req) => {
+  const { params } = req;
+
+  const course = await Course.findOne({ _id: params._id }, { tutors: 1, archivedAt: 1 }).lean();
+  if (!course) throw Boom.notFound();
+  if (course.archivedAt) throw Boom.forbidden();
+
+  const tutorIsCourseTutor = UtilsHelper.doesArrayIncludeId(course.tutors, params.tutorId);
+  if (!tutorIsCourseTutor) throw Boom.forbidden();
+
+  return null;
+};

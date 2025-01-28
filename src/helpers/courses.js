@@ -1273,3 +1273,7 @@ exports.removeTrainer = async (courseId, trainerId) => {
 
 exports.addTutor = async (courseId, payload) =>
   Course.updateOne({ _id: courseId }, { $addToSet: { tutors: payload.tutor } });
+
+exports.removeTutor = async (courseId, tutorId) => {
+  await Course.updateOne({ _id: courseId }, { $pull: { tutors: tutorId } });
+};

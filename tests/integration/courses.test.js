@@ -5168,3 +5168,74 @@ describe('COURSES ROUTES - PUT /courses/{_id}/tutors', () => {
     });
   });
 });
+
+describe('COURSE ROUTES - DELETE /course/{_id}/tutors/{tutorId}', () => {
+  let authToken;
+
+  beforeEach(populateDB);
+
+  describe('TRAINING_ORGANISATION_MANAGER', () => {
+    before(async () => {
+      authToken = await getToken('training_organisation_manager');
+    });
+
+    it('should remove tutor from course', async () => {
+      const response = await app.inject({
+        method: 'DELETE',
+        url: `/courses/${coursesList[25]._id}/tutors/${traineeFromAuthCompanyWithFormationExpoToken._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(200);
+    });
+
+    it('should return 404 if course doesn\'t exist', async () => {
+      const response = await app.inject({
+        method: 'DELETE',
+        url: `/courses/${new ObjectId()}/tutors/${traineeFromAuthCompanyWithFormationExpoToken._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(404);
+    });
+
+    it('should return 403 if course is archived', async () => {
+      const response = await app.inject({
+        method: 'DELETE',
+        url: `/courses/${coursesList[14]._id}/tutors/${traineeFromAuthFormerlyInOther._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
+
+    it('should return 403 if tutorId is not in course tutors', async () => {
+      const response = await app.inject({
+        method: 'DELETE',
+        url: `/courses/${coursesList[25]._id}/tutors/${traineeFromAuthFormerlyInOther._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
+  });
+
+  describe('OTHER ROLE', () => {
+    const roles = [
+      { name: 'client_admin', expectedCode: 403 },
+      { name: 'trainer', expectedCode: 403 },
+    ];
+    roles.forEach((role) => {
+      it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+        authToken = await getToken(role.name);
+        const response = await app.inject({
+          method: 'DELETE',
+          url: `/courses/${coursesList[25]._id}/tutors/${traineeFromAuthCompanyWithFormationExpoToken._id}`,
+          headers: { Cookie: `alenvi_token=${authToken}` },
+        });
+
+        expect(response.statusCode).toBe(role.expectedCode);
+      });
+    });
+  });
+});
