@@ -657,12 +657,8 @@ describe('COURSES ROUTES - GET /courses', () => {
     });
 
     expect(response.statusCode).toBe(200);
-
-    const courseIds = response.result.data.courses.map(c => c._id);
-    const coursesAsTrainee = coursesList.filter(c => UtilsHelper.doesArrayIncludeId(courseIds, c._id) &&
-      UtilsHelper.doesArrayIncludeId(c.trainees || [], noRole._id));
-    const coursesAsTutor = coursesList.filter(c => UtilsHelper.doesArrayIncludeId(courseIds, c._id) &&
-      UtilsHelper.doesArrayIncludeId(c.tutors || [], noRole._id));
+    const coursesAsTrainee = response.result.data.courses.traineeCourses;
+    const coursesAsTutor = response.result.data.courses.tutorCourses;
     expect(coursesAsTrainee.length).toBe(2);
     expect(coursesAsTutor.length).toBe(1);
   });
@@ -764,7 +760,7 @@ describe('COURSES ROUTES - GET /courses', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      expect(response.result.data.courses.length).toEqual(7);
+      expect(response.result.data.courses.traineeCourses.length).toEqual(7);
     });
 
     it('should return 400 if no action', async () => {
@@ -949,7 +945,7 @@ describe('COURSES ROUTES - GET /courses', () => {
 
       expect(response.statusCode).toBe(200);
 
-      const resultCourseIds = response.result.data.courses.map(course => course._id);
+      const resultCourseIds = response.result.data.courses.traineeCourses.map(course => course._id);
       expect(resultCourseIds.length).toBe(2);
       expect(UtilsHelper.doesArrayIncludeId(resultCourseIds, coursesList[19]._id)).toBeFalsy();
       [coursesList[7]._id, coursesList[8]._id]
@@ -983,7 +979,7 @@ describe('COURSES ROUTES - GET /courses', () => {
 
       expect(response.statusCode).toBe(200);
 
-      const resultCourseIds = response.result.data.courses.map(course => course._id);
+      const resultCourseIds = response.result.data.courses.traineeCourses.map(course => course._id);
       expect(resultCourseIds.length).toBe(2);
       expect(UtilsHelper.doesArrayIncludeId(resultCourseIds, coursesList[20]._id)).toBeTruthy();
     });

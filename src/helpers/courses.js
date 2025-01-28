@@ -298,10 +298,11 @@ const listForPedagogy = async (query, credentials) => {
   }
 
   const shouldComputePresence = true;
-  return [
-    ...filteredTutorCourses,
-    ...filteredTraineeCourses.map(course => exports.formatCourseWithProgress(course, shouldComputePresence)),
-  ];
+  return {
+    tutorCourses: filteredTutorCourses,
+    traineeCourses: filteredTraineeCourses
+      .map(course => exports.formatCourseWithProgress(course, shouldComputePresence)),
+  };
 };
 
 exports.list = async (query, credentials) => {

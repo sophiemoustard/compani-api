@@ -647,31 +647,34 @@ describe('list', () => {
 
       const result = await CourseHelper.list(query, credentials);
 
-      expect(result).toMatchObject(coursesList.map(
-        course => (
-          {
-            ...course,
-            subProgram: {
-              ...course.subProgram,
-              steps: [
-                { ...course.subProgram.steps[0], progress: { eLearning: 1 } },
-                {
-                  ...course.subProgram.steps[1],
-                  progress: {
-                    live: 1,
-                    presence: { attendanceDuration: { minutes: 180 }, maxDuration: { minutes: 601 } },
+      expect(result).toMatchObject({
+        tutorCourses: [],
+        traineeCourses: coursesList.map(
+          course => (
+            {
+              ...course,
+              subProgram: {
+                ...course.subProgram,
+                steps: [
+                  { ...course.subProgram.steps[0], progress: { eLearning: 1 } },
+                  {
+                    ...course.subProgram.steps[1],
+                    progress: {
+                      live: 1,
+                      presence: { attendanceDuration: { minutes: 180 }, maxDuration: { minutes: 601 } },
+                    },
                   },
-                },
-              ],
-            },
-            progress: {
-              eLearning: 1,
-              live: 1,
-              presence: { attendanceDuration: { minutes: 180 }, maxDuration: { minutes: 601 } },
-            },
-          }
-        )
-      ));
+                ],
+              },
+              progress: {
+                eLearning: 1,
+                live: 1,
+                presence: { attendanceDuration: { minutes: 180 }, maxDuration: { minutes: 601 } },
+              },
+            }
+          )
+        ),
+      });
 
       SinonMongoose.calledWithExactly(
         find,
@@ -909,31 +912,34 @@ describe('list', () => {
 
       const result = await CourseHelper.list(query, credentials);
 
-      expect(result).toMatchObject([coursesList[0], coursesList[1]].map(
-        course => (
-          {
-            ...course,
-            subProgram: {
-              ...course.subProgram,
-              steps: [
-                { ...course.subProgram.steps[0], progress: { eLearning: 1 } },
-                {
-                  ...course.subProgram.steps[1],
-                  progress: {
-                    live: 1,
-                    presence: { attendanceDuration: { minutes: 180 }, maxDuration: { minutes: 601 } },
+      expect(result).toMatchObject({
+        tutorCourses: [],
+        traineeCourses: [coursesList[0], coursesList[1]].map(
+          course => (
+            {
+              ...course,
+              subProgram: {
+                ...course.subProgram,
+                steps: [
+                  { ...course.subProgram.steps[0], progress: { eLearning: 1 } },
+                  {
+                    ...course.subProgram.steps[1],
+                    progress: {
+                      live: 1,
+                      presence: { attendanceDuration: { minutes: 180 }, maxDuration: { minutes: 601 } },
+                    },
                   },
-                },
-              ],
-            },
-            progress: {
-              eLearning: 1,
-              live: 1,
-              presence: { attendanceDuration: { minutes: 180 }, maxDuration: { minutes: 601 } },
-            },
-          }
-        )
-      ));
+                ],
+              },
+              progress: {
+                eLearning: 1,
+                live: 1,
+                presence: { attendanceDuration: { minutes: 180 }, maxDuration: { minutes: 601 } },
+              },
+            }
+          )
+        ),
+      });
 
       SinonMongoose.calledWithExactly(
         find,
@@ -1188,31 +1194,34 @@ describe('list', () => {
 
       const result = await CourseHelper.list(query, credentials);
 
-      expect(result).toMatchObject([coursesList[0], coursesList[1]].map(
-        course => (
-          {
-            ...course,
-            subProgram: {
-              ...course.subProgram,
-              steps: [
-                { ...course.subProgram.steps[0], progress: { eLearning: 1 } },
-                {
-                  ...course.subProgram.steps[1],
-                  progress: {
-                    live: 1,
-                    presence: { attendanceDuration: { minutes: 180 }, maxDuration: { minutes: 601 } },
+      expect(result).toMatchObject({
+        tutorCourses: [],
+        traineeCourses: [coursesList[0], coursesList[1]].map(
+          course => (
+            {
+              ...course,
+              subProgram: {
+                ...course.subProgram,
+                steps: [
+                  { ...course.subProgram.steps[0], progress: { eLearning: 1 } },
+                  {
+                    ...course.subProgram.steps[1],
+                    progress: {
+                      live: 1,
+                      presence: { attendanceDuration: { minutes: 180 }, maxDuration: { minutes: 601 } },
+                    },
                   },
-                },
-              ],
-            },
-            progress: {
-              eLearning: 1,
-              live: 1,
-              presence: { attendanceDuration: { minutes: 180 }, maxDuration: { minutes: 601 } },
-            },
-          }
-        )
-      ));
+                ],
+              },
+              progress: {
+                eLearning: 1,
+                live: 1,
+                presence: { attendanceDuration: { minutes: 180 }, maxDuration: { minutes: 601 } },
+              },
+            }
+          )
+        ),
+      });
 
       SinonMongoose.calledWithExactly(
         find,
@@ -1420,31 +1429,34 @@ describe('list', () => {
 
       const result = await CourseHelper.list(query, credentials);
 
-      expect(result).toMatchObject(coursesList.map(
-        course => (
-          {
-            ...course,
-            subProgram: {
-              ...course.subProgram,
-              steps: [
-                { ...course.subProgram.steps[0], progress: { eLearning: 1 } },
-                {
-                  ...course.subProgram.steps[1],
-                  progress: {
-                    live: 1,
-                    presence: { attendanceDuration: { minutes: 180 }, maxDuration: { minutes: 601 } },
+      expect(result).toMatchObject({
+        tutorCourses: [],
+        traineeCourses: coursesList.map(
+          course => (
+            {
+              ...course,
+              subProgram: {
+                ...course.subProgram,
+                steps: [
+                  { ...course.subProgram.steps[0], progress: { eLearning: 1 } },
+                  {
+                    ...course.subProgram.steps[1],
+                    progress: {
+                      live: 1,
+                      presence: { attendanceDuration: { minutes: 180 }, maxDuration: { minutes: 601 } },
+                    },
                   },
-                },
-              ],
-            },
-            progress: {
-              eLearning: 1,
-              live: 1,
-              presence: { attendanceDuration: { minutes: 180 }, maxDuration: { minutes: 601 } },
-            },
-          }
-        )
-      ));
+                ],
+              },
+              progress: {
+                eLearning: 1,
+                live: 1,
+                presence: { attendanceDuration: { minutes: 180 }, maxDuration: { minutes: 601 } },
+              },
+            }
+          )
+        ),
+      });
 
       SinonMongoose.calledWithExactly(
         find,
@@ -1608,32 +1620,30 @@ describe('list', () => {
 
       const result = await CourseHelper.list(query, credentials);
 
-      expect(result).toMatchObject(
-        [
-          coursesList[0],
-          {
-            ...coursesList[1],
-            subProgram: {
-              ...coursesList[1].subProgram,
-              steps: [
-                { ...coursesList[1].subProgram.steps[0], progress: { eLearning: 1 } },
-                {
-                  ...coursesList[1].subProgram.steps[1],
-                  progress: {
-                    live: 1,
-                    presence: { attendanceDuration: { minutes: 180 }, maxDuration: { minutes: 601 } },
-                  },
+      expect(result).toMatchObject({
+        tutorCourses: [coursesList[0]],
+        traineeCourses: [{
+          ...coursesList[1],
+          subProgram: {
+            ...coursesList[1].subProgram,
+            steps: [
+              { ...coursesList[1].subProgram.steps[0], progress: { eLearning: 1 } },
+              {
+                ...coursesList[1].subProgram.steps[1],
+                progress: {
+                  live: 1,
+                  presence: { attendanceDuration: { minutes: 180 }, maxDuration: { minutes: 601 } },
                 },
-              ],
-            },
-            progress: {
-              eLearning: 1,
-              live: 1,
-              presence: { attendanceDuration: { minutes: 180 }, maxDuration: { minutes: 601 } },
-            },
+              },
+            ],
           },
-        ]
-      );
+          progress: {
+            eLearning: 1,
+            live: 1,
+            presence: { attendanceDuration: { minutes: 180 }, maxDuration: { minutes: 601 } },
+          },
+        }],
+      });
 
       SinonMongoose.calledWithExactly(
         find,
