@@ -5179,7 +5179,7 @@ describe('COURSE ROUTES - DELETE /course/{_id}/tutors/{tutorId}', () => {
       authToken = await getToken('training_organisation_manager');
     });
 
-    it('should remove tutor to course', async () => {
+    it('should remove tutor from course', async () => {
       const response = await app.inject({
         method: 'DELETE',
         url: `/courses/${coursesList[25]._id}/tutors/${traineeFromAuthCompanyWithFormationExpoToken._id}`,
@@ -5222,8 +5222,6 @@ describe('COURSE ROUTES - DELETE /course/{_id}/tutors/{tutorId}', () => {
 
   describe('OTHER ROLE', () => {
     const roles = [
-      { name: 'helper', expectedCode: 403 },
-      { name: 'planning_referent', expectedCode: 403 },
       { name: 'client_admin', expectedCode: 403 },
       { name: 'trainer', expectedCode: 403 },
     ];

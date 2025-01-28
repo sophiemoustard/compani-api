@@ -497,6 +497,7 @@ const coursesList = [
     operationsRepresentative: vendorAdmin._id,
     archivedAt: '2021-01-01T00:00:00.000Z',
     estimatedStartDate: '2020-11-03T10:00:00.000Z',
+    tutors: [traineeFromAuthFormerlyInOther._id],
   },
   { // 15 course billed INTRA without trainees and slots
     _id: new ObjectId(),

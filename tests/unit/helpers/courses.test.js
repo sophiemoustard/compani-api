@@ -6761,7 +6761,7 @@ describe('removeTutor', () => {
     updateOne.restore();
   });
 
-  it('should remove tutor to course', async () => {
+  it('should remove tutor from course', async () => {
     const tutorId = new ObjectId();
     const course = { _id: new ObjectId(), misc: 'Test', tutors: [new ObjectId()] };
 
