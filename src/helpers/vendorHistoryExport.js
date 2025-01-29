@@ -1,6 +1,7 @@
 const get = require('lodash/get');
 const uniqBy = require('lodash/uniqBy');
 const groupBy = require('lodash/groupBy');
+const pick = require('lodash/pick');
 const {
   NO_DATA,
   INTRA,
@@ -604,6 +605,7 @@ exports.exportSelfPositionningQuestionnaireHistory = async (startDate, endDate, 
 
   const rows = [];
   for (const course of courses) {
+    const progressByCard = {};
     const selfPositionningHistories = qHistoriesGroupByCourse[course._id];
     if (!selfPositionningHistories) continue;
 
@@ -631,6 +633,57 @@ exports.exportSelfPositionningQuestionnaireHistory = async (startDate, endDate, 
       );
     }
 
+    const formattedStartAnswers = startSelfPositionningHistories
+      .flatMap(h => h.questionnaireAnswersList.map(q => pick(q, ['card', 'answerList'])));
+    const startAnswersByCard = groupBy(formattedStartAnswers, 'card.question');
+
+    const formattedEndAnswers = endSelfPositionningHistories
+      .flatMap(h => h.questionnaireAnswersList.map(q => pick(q, ['card', 'answerList'])));
+    const endAnswersByCard = groupBy(formattedEndAnswers, 'card.question');
+
+    const startAverageByCard = {};
+    const endAverageByCard = {};
+    for (const cardQuestion of Object.keys(startAnswersByCard)) {
+      const startHistories = startAnswersByCard[cardQuestion] || [];
+      const startAnswers = startHistories.flatMap(h => h.answerList);
+
+      let startAverage;
+      if (startAnswers.length) {
+        startAverage = NumbersHelper.divide(
+          startAnswers.reduce((acc, val) => NumbersHelper.add(acc, val), 0),
+          startAnswers.length
+        );
+      }
+
+      startAverageByCard[cardQuestion] = startAverage;
+
+      const endHistories = endAnswersByCard[cardQuestion] || [];
+      const endAnswers = endHistories.flatMap(h => h.answerList);
+
+      let endAverage;
+      if (endAnswers.length) {
+        endAverage = NumbersHelper.divide(
+          endAnswers.reduce((acc, val) => NumbersHelper.add(acc, val), 0),
+          endAnswers.length
+        );
+      }
+
+      endAverageByCard[cardQuestion] = endAverage;
+
+      if (startAverage && endAverage) progressByCard[cardQuestion] = NumbersHelper.subtract(endAverage, startAverage);
+    }
+
+    const [maxProgressQuestion, maxProgress] = Object.entries(progressByCard)
+      .reduce(([questionMax, valueMax], [question, value]) =>
+        (NumbersHelper.isGreaterThan(value, valueMax) ? [question, value] : [questionMax, valueMax]),
+      ['', 0]
+      );
+    const [minProgressQuestion, minProgress] = Object.entries(progressByCard)
+      .reduce(([questionMin, valueMin], [question, value]) =>
+        (NumbersHelper.isLessThan(value, valueMin) ? [question, value] : [questionMin, valueMin]),
+      ['', 0]
+      );
+
     rows.push({
       'Id formation': course._id,
       Programme: course.subProgram.program.name || '',
@@ -648,6 +701,10 @@ exports.exportSelfPositionningQuestionnaireHistory = async (startDate, endDate, 
       'Delta entre la moyenne de début et de fin': endAnswersAverage && startAnswersAverage
         ? UtilsHelper.formatFloatForExport(NumbersHelper.subtract(endAnswersAverage, startAnswersAverage))
         : '',
+      'Question ayant la plus grande progression': maxProgressQuestion,
+      'Progression maximale associée': maxProgressQuestion && UtilsHelper.formatFloatForExport(maxProgress),
+      'Question ayant la plus faible progression': minProgressQuestion,
+      'Progression minimale associée': minProgressQuestion && UtilsHelper.formatFloatForExport(minProgress),
     });
   }
 
