@@ -568,7 +568,8 @@ exports.exportSelfPositionningQuestionnaireHistory = async (startDate, endDate, 
 
   const sortedSlots = slots.map(s => ({
     ...s,
-    course: { ...s.course, slots: s.course.slots.sort(DatesUtilsHelper.descendingSortBy('endDate')) } }));
+    course: { ...s.course, slots: s.course.slots.sort(DatesUtilsHelper.descendingSortBy('endDate')) },
+  }));
 
   const slotsGroupByCourse = groupBy(sortedSlots, 'course._id');
 
@@ -585,7 +586,7 @@ exports.exportSelfPositionningQuestionnaireHistory = async (startDate, endDate, 
 
   const courses = await Course
     .find({ _id: { $in: courseIds } }, { type: 1, subProgram: 1, trainees: 1, trainers: 1 })
-    .populate({ path: 'subProgram', select: 'program', populate: [{ path: 'program', select: 'name' }] })
+    .populate({ path: 'subProgram', select: 'program name', populate: [{ path: 'program', select: 'name' }] })
     .populate({ path: 'trainers', select: 'identity' })
     .lean();
 
@@ -594,13 +595,16 @@ exports.exportSelfPositionningQuestionnaireHistory = async (startDate, endDate, 
     .populate({ path: 'questionnaire', select: 'type' })
     .populate({ path: 'questionnaireAnswersList.card' })
     .setOptions({ isVendorUser })
-    .lean({ autopopulate: true });
+    .lean();
 
-  const qHistoriesGroupByCourse = groupBy(questionnaireHistories, 'course');
+  const qHistoriesGroupByCourse = groupBy(
+    questionnaireHistories.filter(qH => qH.questionnaire.type === SELF_POSITIONNING),
+    'course'
+  );
+
   const rows = [];
   for (const course of courses) {
     const selfPositionningHistories = qHistoriesGroupByCourse[course._id];
-    console.log(selfPositionningHistories);
     if (!selfPositionningHistories) continue;
 
     const startSelfPositionningHistories = selfPositionningHistories.filter(h => h.timeline === START_COURSE) || [];
@@ -609,7 +613,7 @@ exports.exportSelfPositionningQuestionnaireHistory = async (startDate, endDate, 
     const startSelfPositionningAnswers = startSelfPositionningHistories
       .flatMap(h => h.questionnaireAnswersList.map(q => q.answerList));
 
-    let startAnswersAverage = 0;
+    let startAnswersAverage;
     if (startSelfPositionningAnswers.length) {
       startAnswersAverage = NumbersHelper.divide(
         startSelfPositionningAnswers.reduce((acc, val) => NumbersHelper.add(acc, val), 0),
@@ -619,8 +623,8 @@ exports.exportSelfPositionningQuestionnaireHistory = async (startDate, endDate, 
 
     const endSelfPositionningAnswers = endSelfPositionningHistories
       .flatMap(h => h.questionnaireAnswersList.map(q => q.answerList));
-    let endAnswersAverage = 0;
-    if (endSelfPositionningAnswers) {
+    let endAnswersAverage;
+    if (endSelfPositionningAnswers.length) {
       endAnswersAverage = NumbersHelper.divide(
         endSelfPositionningAnswers.reduce((acc, val) => NumbersHelper.add(acc, val), 0),
         endSelfPositionningAnswers.length
@@ -634,11 +638,16 @@ exports.exportSelfPositionningQuestionnaireHistory = async (startDate, endDate, 
       'Prénom Nom intervenant': formatTrainersName(course.trainers),
       'Nombre d\'apprenants inscrits': course.trainees.length,
       'Nombre de réponses au questionnaire de début': startSelfPositionningHistories.length,
-      'Moyenne de l’auto-positionnement de début': UtilsHelper.formatFloatForExport(startAnswersAverage),
+      'Moyenne de l’auto-positionnement de début': startAnswersAverage
+        ? UtilsHelper.formatFloatForExport(startAnswersAverage)
+        : '',
       'Nombre de réponses au questionnaire de fin': endSelfPositionningHistories.length,
-      'Moyenne de l’auto-positionnement de fin': UtilsHelper.formatFloatForExport(endAnswersAverage),
-      'Delta entre la moyenne de début et de fin':
-        UtilsHelper.formatFloatForExport(NumbersHelper.subtract(endAnswersAverage, startAnswersAverage)),
+      'Moyenne de l’auto-positionnement de fin': endAnswersAverage
+        ? UtilsHelper.formatFloatForExport(endAnswersAverage)
+        : '',
+      'Delta entre la moyenne de début et de fin': endAnswersAverage && startAnswersAverage
+        ? UtilsHelper.formatFloatForExport(NumbersHelper.subtract(endAnswersAverage, startAnswersAverage))
+        : '',
     });
   }
 
