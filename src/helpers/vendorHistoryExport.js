@@ -24,6 +24,9 @@ const {
   DAY,
   ESTIMATED_START_DATE_EDITION,
   E_LEARNING,
+  SELF_POSITIONNING,
+  START_COURSE,
+  END_COURSE,
 } = require('./constants');
 const { CompaniDate } = require('./dates/companiDates');
 const DatesUtilsHelper = require('./dates/utils');
@@ -42,6 +45,7 @@ const CourseHistory = require('../models/CourseHistory');
 const Questionnaire = require('../models/Questionnaire');
 const CoursePayment = require('../models/CoursePayment');
 const ActivityHistory = require('../models/ActivityHistory');
+const Course = require('../models/Course');
 
 const getEndOfCourse = (slotsGroupedByDate, slotsToPlan) => {
   if (slotsToPlan.length) return '';
@@ -548,4 +552,97 @@ exports.exportCoursePaymentHistory = async (startDate, endDate, credentials) => 
     );
 
   return [Object.keys(rows[0]), ...rows.map(d => Object.values(d))];
+};
+
+exports.exportSelfPositionningQuestionnaireHistory = async (startDate, endDate, credentials) => {
+  const isVendorUser = [TRAINING_ORGANISATION_MANAGER, VENDOR_ADMIN].includes(get(credentials, 'role.vendor.name'));
+
+  const slots = await CourseSlot
+    .find({ startDate: { $lte: endDate }, endDate: { $gte: startDate } })
+    .populate({
+      path: 'course',
+      select: 'slots slotsToPlan',
+      populate: { path: 'slots', select: 'startDate endDate' },
+    })
+    .lean({ autopopulate: true, virtuals: true });
+
+  const sortedSlots = slots.map(s => ({
+    ...s,
+    course: { ...s.course, slots: s.course.slots.sort(DatesUtilsHelper.descendingSortBy('endDate')) } }));
+
+  const slotsGroupByCourse = groupBy(sortedSlots, 'course._id');
+
+  const courseIds = [];
+  for (const courseId of Object.keys(slotsGroupByCourse)) {
+    if ((slotsGroupByCourse[courseId][0].slotsToPlan || []).length) continue;
+    else {
+      const lastEndSlots = slotsGroupByCourse[courseId][0].course.slots[0].endDate;
+      if (CompaniDate(lastEndSlots).isAfter(startDate) && CompaniDate(lastEndSlots).isBefore(endDate)) {
+        courseIds.push(courseId);
+      }
+    }
+  }
+
+  const courses = await Course
+    .find({ _id: { $in: courseIds } }, { type: 1, subProgram: 1, trainees: 1, trainers: 1 })
+    .populate({ path: 'subProgram', select: 'program', populate: [{ path: 'program', select: 'name' }] })
+    .populate({ path: 'trainers', select: 'identity' })
+    .lean();
+
+  const questionnaireHistories = await QuestionnaireHistory
+    .find({ course: { $in: courseIds } }, { questionnaire: 1, course: 1, timeline: 1, questionnaireAnswersList: 1 })
+    .populate({ path: 'questionnaire', select: 'type' })
+    .populate({ path: 'questionnaireAnswersList.card' })
+    .setOptions({ isVendorUser })
+    .lean({ autopopulate: true });
+
+  const qHistoriesGroupByCourse = groupBy(questionnaireHistories, 'course');
+  const rows = [];
+  for (const course of courses) {
+    const selfPositionningHistories = qHistoriesGroupByCourse[course._id];
+    console.log(selfPositionningHistories);
+    if (!selfPositionningHistories) continue;
+
+    const startSelfPositionningHistories = selfPositionningHistories.filter(h => h.timeline === START_COURSE) || [];
+    const endSelfPositionningHistories = selfPositionningHistories.filter(h => h.timeline === END_COURSE) || [];
+
+    const startSelfPositionningAnswers = startSelfPositionningHistories
+      .flatMap(h => h.questionnaireAnswersList.map(q => q.answerList));
+
+    let startAnswersAverage = 0;
+    if (startSelfPositionningAnswers.length) {
+      startAnswersAverage = NumbersHelper.divide(
+        startSelfPositionningAnswers.reduce((acc, val) => NumbersHelper.add(acc, val), 0),
+        startSelfPositionningAnswers.length
+      );
+    }
+
+    const endSelfPositionningAnswers = endSelfPositionningHistories
+      .flatMap(h => h.questionnaireAnswersList.map(q => q.answerList));
+    let endAnswersAverage = 0;
+    if (endSelfPositionningAnswers) {
+      endAnswersAverage = NumbersHelper.divide(
+        endSelfPositionningAnswers.reduce((acc, val) => NumbersHelper.add(acc, val), 0),
+        endSelfPositionningAnswers.length
+      );
+    }
+
+    rows.push({
+      'Id formation': course._id,
+      Programme: course.subProgram.program.name || '',
+      'Sous-programme': course.subProgram.name || '',
+      'Prénom Nom intervenant': formatTrainersName(course.trainers),
+      'Nombre d\'apprenants inscrits': course.trainees.length,
+      'Nombre de réponses au questionnaire de début': startSelfPositionningHistories.length,
+      'Moyenne de l’auto-positionnement de début': UtilsHelper.formatFloatForExport(startAnswersAverage),
+      'Nombre de réponses au questionnaire de fin': endSelfPositionningHistories.length,
+      'Moyenne de l’auto-positionnement de fin': UtilsHelper.formatFloatForExport(endAnswersAverage),
+      'Delta entre la moyenne de début et de fin':
+        UtilsHelper.formatFloatForExport(NumbersHelper.subtract(endAnswersAverage, startAnswersAverage)),
+    });
+  }
+
+  return rows.length
+    ? [Object.keys(rows[0]), ...rows.map(d => Object.values(d))]
+    : [['Aucun historique sur cette période']];
 };

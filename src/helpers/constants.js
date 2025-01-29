@@ -592,6 +592,7 @@ module.exports = {
       this.END_OF_COURSE,
       this.COURSE_BILL,
       this.COURSE_PAYMENT,
+      this.SELF_POSITIONNING,
     ];
   },
   get CLIENT_EXPORT_TYPES() {

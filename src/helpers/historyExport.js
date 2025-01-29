@@ -38,6 +38,7 @@ const Contract = require('../models/Contract');
 const Pay = require('../models/Pay');
 const Payment = require('../models/Payment');
 const FinalPay = require('../models/FinalPay');
+const CourseSlot = require('../models/CourseSlot');
 const EventRepository = require('../repositories/EventRepository');
 const UserRepository = require('../repositories/UserRepository');
 
