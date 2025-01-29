@@ -5185,7 +5185,7 @@ describe('COURSE ROUTES - DELETE /course/{_id}/tutors/{tutorId}', () => {
     it('should remove tutor from course', async () => {
       const response = await app.inject({
         method: 'DELETE',
-        url: `/courses/${coursesList[25]._id}/tutors/${traineeFromAuthCompanyWithFormationExpoToken._id}`,
+        url: `/courses/${coursesList[25]._id}/tutors/${noRole._id}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
