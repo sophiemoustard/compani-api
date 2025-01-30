@@ -283,7 +283,6 @@ const listForPedagogy = async (query, credentials) => {
   }
 
   let filteredTraineeCourses = traineeCourses;
-  let filteredTutorCourses = tutorCourses;
   if (shouldQueryCompanies) {
     const companyAtCourseRegistration = await CourseHistoriesHelper.getCompanyAtCourseRegistrationList(
       { key: TRAINEE, value: traineeOrTutorId }, { key: COURSE, value: courses.map(course => course._id) }
@@ -292,14 +291,11 @@ const listForPedagogy = async (query, credentials) => {
     filteredTraineeCourses = traineeCourses
       .filter(course => course.format === STRICTLY_E_LEARNING ||
         UtilsHelper.doesArrayIncludeId(companies, traineeCompanies[course._id]));
-
-    filteredTutorCourses = tutorCourses
-      .filter(course => UtilsHelper.doesArrayIncludeId(companies, traineeCompanies[course._id]));
   }
 
   const shouldComputePresence = true;
   return {
-    tutorCourses: filteredTutorCourses,
+    tutorCourses,
     traineeCourses: filteredTraineeCourses
       .map(course => exports.formatCourseWithProgress(course, shouldComputePresence)),
   };
