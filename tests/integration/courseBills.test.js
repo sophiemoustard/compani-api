@@ -1370,7 +1370,7 @@ describe('COURSE BILL ROUTES - DELETE /coursebills/{_id}', () => {
 
       expect(response.statusCode).toBe(200);
 
-      const countBill = await CourseBill.countDocuments(courseBillsList[0]._id);
+      const countBill = await CourseBill.countDocuments({ _id: courseBillsList[0]._id });
       expect(countBill).toBe(0);
     });
 
