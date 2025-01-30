@@ -657,7 +657,10 @@ describe('COURSES ROUTES - GET /courses', () => {
     });
 
     expect(response.statusCode).toBe(200);
-    expect(response.result.data.courses.length).toBe(2);
+    const coursesAsTrainee = response.result.data.courses.traineeCourses;
+    const coursesAsTutor = response.result.data.courses.tutorCourses;
+    expect(coursesAsTrainee.length).toBe(2);
+    expect(coursesAsTutor.length).toBe(1);
   });
 
   describe('TRAINING_ORGANISATION_MANAGER', () => {
@@ -757,7 +760,7 @@ describe('COURSES ROUTES - GET /courses', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      expect(response.result.data.courses.length).toEqual(7);
+      expect(response.result.data.courses.traineeCourses.length).toEqual(7);
     });
 
     it('should return 400 if no action', async () => {
@@ -942,7 +945,7 @@ describe('COURSES ROUTES - GET /courses', () => {
 
       expect(response.statusCode).toBe(200);
 
-      const resultCourseIds = response.result.data.courses.map(course => course._id);
+      const resultCourseIds = response.result.data.courses.traineeCourses.map(course => course._id);
       expect(resultCourseIds.length).toBe(2);
       expect(UtilsHelper.doesArrayIncludeId(resultCourseIds, coursesList[19]._id)).toBeFalsy();
       [coursesList[7]._id, coursesList[8]._id]
@@ -976,7 +979,7 @@ describe('COURSES ROUTES - GET /courses', () => {
 
       expect(response.statusCode).toBe(200);
 
-      const resultCourseIds = response.result.data.courses.map(course => course._id);
+      const resultCourseIds = response.result.data.courses.traineeCourses.map(course => course._id);
       expect(resultCourseIds.length).toBe(2);
       expect(UtilsHelper.doesArrayIncludeId(resultCourseIds, coursesList[20]._id)).toBeTruthy();
     });
@@ -3277,7 +3280,7 @@ describe('COURSES ROUTES - PUT /courses/{_id}/trainees', () => {
         method: 'PUT',
         url: `/courses/${coursesList[25]._id}/trainees`,
         headers: { Cookie: `alenvi_token=${authToken}` },
-        payload: { trainee: traineeFromAuthCompanyWithFormationExpoToken._id, company: authCompany._id },
+        payload: { trainee: noRole._id, company: authCompany._id },
       });
 
       expect(response.statusCode).toBe(403);
@@ -5161,7 +5164,7 @@ describe('COURSES ROUTES - PUT /courses/{_id}/tutors', () => {
         method: 'PUT',
         url: `/courses/${coursesList[25]._id}/tutors`,
         headers: { Cookie: `alenvi_token=${authToken}` },
-        payload: { tutor: traineeFromAuthCompanyWithFormationExpoToken._id },
+        payload: { tutor: noRole._id },
       });
 
       expect(response.statusCode).toBe(409);
@@ -5182,7 +5185,7 @@ describe('COURSE ROUTES - DELETE /course/{_id}/tutors/{tutorId}', () => {
     it('should remove tutor from course', async () => {
       const response = await app.inject({
         method: 'DELETE',
-        url: `/courses/${coursesList[25]._id}/tutors/${traineeFromAuthCompanyWithFormationExpoToken._id}`,
+        url: `/courses/${coursesList[25]._id}/tutors/${noRole._id}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 

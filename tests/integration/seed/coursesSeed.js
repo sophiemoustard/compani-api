@@ -645,7 +645,7 @@ const coursesList = [
     companies: [authCompany._id],
     trainers: [trainer._id],
     operationsRepresentative: vendorAdmin._id,
-    tutors: [traineeFromAuthCompanyWithFormationExpoToken._id],
+    tutors: [noRole._id],
   },
 ];
 

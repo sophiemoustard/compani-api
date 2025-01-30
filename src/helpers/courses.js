@@ -195,8 +195,7 @@ const listForOperations = async (query, origin, credentials) => {
 };
 
 const listForPedagogy = async (query, credentials) => {
-  const traineeId = query.trainee || get(credentials, '_id');
-  const trainee = await User.findOne({ _id: traineeId }).lean();
+  const traineeOrTutorId = query.trainee || get(credentials, '_id');
   const shouldQueryCompanies = !!query.holding || !!query.company;
   const companies = [];
   if (query.holding) companies.push(...credentials.holding.companies);
@@ -204,64 +203,102 @@ const listForPedagogy = async (query, credentials) => {
 
   const courses = await Course.find(
     {
-      trainees: trainee._id,
-      $or: [
+      $and: [
+        { $or: [{ trainees: traineeOrTutorId }, { tutors: traineeOrTutorId }] },
         {
-          format: STRICTLY_E_LEARNING,
-          ...(shouldQueryCompanies && { $or: [{ accessRules: [] }, { accessRules: { $in: companies } }] }),
+          $or: [
+            {
+              format: STRICTLY_E_LEARNING,
+              ...(shouldQueryCompanies && { $or: [{ accessRules: [] }, { accessRules: { $in: companies } }] }),
+            },
+            { format: BLENDED, ...(shouldQueryCompanies && { companies: { $in: companies } }) },
+          ],
         },
-        { format: BLENDED, ...(shouldQueryCompanies && { companies: { $in: companies } }) },
       ],
     },
-    { format: 1 }
+    { _id: 1, tutors: 1 }
   )
-    .populate({
-      path: 'subProgram',
-      select: 'program steps',
-      populate: [
-        { path: 'program', select: 'name image description' },
-        {
-          path: 'steps',
-          select: 'name type activities theoreticalDuration',
-          populate: {
-            path: 'activities',
-            select: 'name type cards activityHistories',
-            populate: [{ path: 'activityHistories', match: { user: trainee._id } }],
-          },
-        },
-      ],
-    })
-    .populate({
-      path: 'slots',
-      select: 'startDate endDate step',
-      populate: [
-        { path: 'step', select: 'type' },
-        {
-          path: 'attendances',
-          match: { trainee: trainee._id, ...(shouldQueryCompanies && { company: { $in: companies } }) },
-          options: {
-            isVendorUser: [TRAINING_ORGANISATION_MANAGER, VENDOR_ADMIN].includes(get(credentials, 'role.vendor.name')),
-            requestingOwnInfos: UtilsHelper.areObjectIdsEquals(traineeId, credentials._id),
-          },
-        },
-      ],
-    })
-    .select('_id misc type')
-    .lean({ autopopulate: true, virtuals: true });
+    .lean();
 
-  let filteredCourses = courses;
+  const traineeCourseIds = [];
+  const tutorCourseIds = [];
+  courses.forEach((course) => {
+    if (UtilsHelper.doesArrayIncludeId(course.tutors, traineeOrTutorId)) tutorCourseIds.push(course._id);
+    else traineeCourseIds.push(course._id);
+  });
+
+  let traineeCourses = [];
+  let tutorCourses = [];
+
+  if (traineeCourseIds.length) {
+    traineeCourses = await Course
+      .find({ _id: { $in: traineeCourseIds } }, { _id: 1, misc: 1, type: 1, format: 1 })
+      .populate({
+        path: 'subProgram',
+        select: 'program steps',
+        populate: [
+          { path: 'program', select: 'name image description' },
+          {
+            path: 'steps',
+            select: 'name type activities theoreticalDuration',
+            populate: {
+              path: 'activities',
+              select: 'name type cards activityHistories',
+              populate: [{ path: 'activityHistories', match: { user: traineeOrTutorId } }],
+            },
+          },
+        ],
+      })
+      .populate({
+        path: 'slots',
+        select: 'startDate endDate step',
+        populate: [
+          { path: 'step', select: 'type' },
+          {
+            path: 'attendances',
+            match: { trainee: traineeOrTutorId, ...(shouldQueryCompanies && { company: { $in: companies } }) },
+            options: {
+              isVendorUser: [TRAINING_ORGANISATION_MANAGER, VENDOR_ADMIN]
+                .includes(get(credentials, 'role.vendor.name')),
+              requestingOwnInfos: UtilsHelper.areObjectIdsEquals(traineeOrTutorId, credentials._id),
+            },
+          },
+        ],
+      })
+      .lean({ autopopulate: true, virtuals: true });
+  }
+
+  if (tutorCourseIds.length) {
+    tutorCourses = await Course
+      .find({ _id: { $in: tutorCourseIds } }, { _id: 1, misc: 1, type: 1, format: 1, tutors: 1 })
+      .populate({
+        path: 'subProgram',
+        select: 'program steps',
+        populate: [
+          { path: 'program', select: 'name image description' },
+          { path: 'steps', select: 'type theoreticalDuration' },
+        ],
+      })
+      .lean();
+  }
+
+  let filteredTraineeCourses = traineeCourses;
   if (shouldQueryCompanies) {
     const companyAtCourseRegistration = await CourseHistoriesHelper.getCompanyAtCourseRegistrationList(
-      { key: TRAINEE, value: traineeId }, { key: COURSE, value: courses.map(course => course._id) }
+      { key: TRAINEE, value: traineeOrTutorId }, { key: COURSE, value: courses.map(course => course._id) }
     );
     const traineeCompanies = mapValues(keyBy(companyAtCourseRegistration, 'course'), 'company');
-    filteredCourses = courses
+    filteredTraineeCourses = traineeCourses
       .filter(course => course.format === STRICTLY_E_LEARNING ||
         UtilsHelper.doesArrayIncludeId(companies, traineeCompanies[course._id]));
   }
 
   const shouldComputePresence = true;
-  return filteredCourses.map(course => exports.formatCourseWithProgress(course, shouldComputePresence));
+  return {
+    tutorCourses,
+    traineeCourses: filteredTraineeCourses
+      .map(course => exports.formatCourseWithProgress(course, shouldComputePresence)),
+  };
 };
 
 exports.list = async (query, credentials) => {
