@@ -2529,6 +2529,7 @@ describe('getCourse', () => {
         trainers: [
           { _id: new ObjectId(), identity: { firstname: 'Paul', lastName: 'Durand' }, biography: 'voici ma bio' },
         ],
+        tutors: [{ _id: new ObjectId(), identity: { firstname: 'Pauline', lastName: 'Durand' } }],
       };
 
       findOne.returns(SinonMongoose.stubChainedQueries(course, ['populate', 'select', 'lean']));
@@ -2593,6 +2594,7 @@ describe('getCourse', () => {
             query: 'populate',
             args: [{ path: 'trainers', select: 'identity.firstname identity.lastname biography picture' }],
           },
+          { query: 'populate', args: [{ path: 'tutors', select: 'identity.firstname identity.lastname picture' }] },
           {
             query: 'populate',
             args: [{ path: 'contact', select: 'identity.firstname identity.lastname contact.phone local.email' }],
@@ -2759,6 +2761,7 @@ describe('getCourse', () => {
             query: 'populate',
             args: [{ path: 'trainers', select: 'identity.firstname identity.lastname biography picture' }],
           },
+          { query: 'populate', args: [{ path: 'tutors', select: 'identity.firstname identity.lastname picture' }] },
           {
             query: 'populate',
             args: [{ path: 'contact', select: 'identity.firstname identity.lastname contact.phone local.email' }],
@@ -2925,6 +2928,7 @@ describe('getCourse', () => {
             query: 'populate',
             args: [{ path: 'trainers', select: 'identity.firstname identity.lastname biography picture' }],
           },
+          { query: 'populate', args: [{ path: 'tutors', select: 'identity.firstname identity.lastname picture' }] },
           {
             query: 'populate',
             args: [{ path: 'contact', select: 'identity.firstname identity.lastname contact.phone local.email' }],
@@ -3048,6 +3052,130 @@ describe('getCourse', () => {
             query: 'populate',
             args: [{ path: 'trainers', select: 'identity.firstname identity.lastname biography picture' }],
           },
+          { query: 'populate', args: [{ path: 'tutors', select: 'identity.firstname identity.lastname picture' }] },
+          {
+            query: 'populate',
+            args: [{ path: 'contact', select: 'identity.firstname identity.lastname contact.phone local.email' }],
+          },
+          {
+            query: 'populate',
+            args: [{
+              path: 'attendanceSheets',
+              match: { trainee: loggedUser._id },
+              options: { requestingOwnInfos: true },
+              populate: [{ path: 'slots', select: 'startDate endDate step' }, { path: 'trainer', select: 'identity' }],
+            }],
+          },
+          { query: 'select', args: ['_id misc format'] },
+          { query: 'lean', args: [{ virtuals: true, autopopulate: true }] },
+        ]
+      );
+
+      sinon.assert.notCalled(formatCourseWithProgress);
+      sinon.assert.notCalled(attendanceCountDocuments);
+    });
+
+    it('should return course as tutor', async () => {
+      const authCompanyId = new ObjectId();
+      const loggedUser = {
+        _id: new ObjectId(),
+        company: { _id: authCompanyId },
+      };
+      const courseId = new ObjectId();
+      const course = {
+        _id: courseId,
+        subProgram: {
+          isStrictlyELearning: false,
+          steps: [{
+            activities: [{ activityHistories: [{ user: loggedUser._id }, { user: loggedUser._id }] }],
+            name: 'Développement personnel full stack',
+            type: 'e_learning',
+            areActivitiesValid: false,
+            theoreticalDuration: 'PT1800S',
+          },
+          {
+            activities: [],
+            name: 'Développer des équipes agiles et autonomes',
+            type: 'on_site',
+            areActivitiesValid: true,
+            theoreticalDuration: 'PT12600S',
+          },
+          ],
+        },
+        slots: [{ startDate: '2020-11-03T09:00:00.000Z', endDate: '2020-11-03T12:00:00.000Z' }],
+        tutors: [{ _id: loggedUser._id }],
+      };
+
+      findOne.returns(SinonMongoose.stubChainedQueries(course, ['populate', 'select', 'lean']));
+
+      const result = await CourseHelper.getCourse({ action: PEDAGOGY }, { _id: course._id }, loggedUser);
+
+      expect(result).toMatchObject({
+        _id: courseId,
+        subProgram: {
+          isStrictlyELearning: false,
+          steps: [{
+            activities: [{ }],
+            name: 'Développement personnel full stack',
+            type: 'e_learning',
+            areActivitiesValid: false,
+            theoreticalDuration: 'PT1800S',
+          },
+          {
+            activities: [],
+            name: 'Développer des équipes agiles et autonomes',
+            type: 'on_site',
+            areActivitiesValid: true,
+            theoreticalDuration: 'PT12600S',
+          },
+          ],
+        },
+        slots: [{ startDate: '2020-11-03T09:00:00.000Z', endDate: '2020-11-03T12:00:00.000Z' }],
+        tutors: [{ _id: loggedUser._id }],
+      });
+
+      SinonMongoose.calledOnceWithExactly(
+        findOne,
+        [
+          { query: 'findOne', args: [{ _id: course._id }] },
+          {
+            query: 'populate',
+            args: [{
+              path: 'subProgram',
+              select: 'program steps',
+              populate: [
+                { path: 'program', select: 'name image description learningGoals' },
+                {
+                  path: 'steps',
+                  select: 'name type activities theoreticalDuration',
+                  populate: {
+                    path: 'activities',
+                    select: 'name type cards activityHistories',
+                    populate: [
+                      { path: 'activityHistories', match: { user: loggedUser._id } },
+                      { path: 'cards', select: 'template' },
+                    ],
+                  },
+                },
+              ],
+            }],
+          },
+          {
+            query: 'populate',
+            args: [
+              {
+                path: 'slots',
+                select: 'startDate endDate step address meetingLink',
+                populate: { path: 'step', select: 'type' },
+                options: { sort: { startDate: 1 } },
+              },
+            ],
+          },
+          {
+            query: 'populate',
+            args: [{ path: 'trainers', select: 'identity.firstname identity.lastname biography picture' }],
+          },
+          { query: 'populate', args: [{ path: 'tutors', select: 'identity.firstname identity.lastname picture' }] },
           {
             query: 'populate',
             args: [{ path: 'contact', select: 'identity.firstname identity.lastname contact.phone local.email' }],

@@ -470,7 +470,7 @@ exports.authorizeGetCourse = async (req) => {
     const course = await Course
       .findOne(
         { _id: req.params._id },
-        { trainers: 1, format: 1, trainees: 1, companies: 1, accessRules: 1, holding: 1 }
+        { trainers: 1, format: 1, trainees: 1, companies: 1, accessRules: 1, holding: 1, tutors: 1 }
       )
       .lean();
     if (!course) throw Boom.notFound();
@@ -488,8 +488,9 @@ exports.authorizeGetCourse = async (req) => {
     if (isTOM || isAdminVendor) return null;
 
     const isTrainee = UtilsHelper.doesArrayIncludeId(course.trainees, credentials._id);
+    const isTutor = UtilsHelper.doesArrayIncludeId(course.tutors, credentials._id);
 
-    if (isTrainee) return null;
+    if (isTrainee || isTutor) return null;
 
     const isTrainerAndAuthorized = userVendorRole === TRAINER &&
       UtilsHelper.doesArrayIncludeId(course.trainers, credentials._id);
