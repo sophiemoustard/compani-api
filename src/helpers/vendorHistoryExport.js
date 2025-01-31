@@ -2,6 +2,7 @@ const get = require('lodash/get');
 const uniqBy = require('lodash/uniqBy');
 const groupBy = require('lodash/groupBy');
 const pick = require('lodash/pick');
+const { ObjectId } = require('mongodb');
 const {
   NO_DATA,
   INTRA,
@@ -565,7 +566,7 @@ exports.exportSelfPositionningQuestionnaireHistory = async (startDate, endDate, 
       select: 'slots slotsToPlan',
       populate: { path: 'slots', select: 'startDate endDate' },
     })
-    .lean({ autopopulate: true, virtuals: true });
+    .lean();
 
   const sortedSlots = slots.map(s => ({
     ...s,
@@ -580,7 +581,7 @@ exports.exportSelfPositionningQuestionnaireHistory = async (startDate, endDate, 
     else {
       const lastEndSlots = slotsGroupByCourse[courseId][0].course.slots[0].endDate;
       if (CompaniDate(lastEndSlots).isAfter(startDate) && CompaniDate(lastEndSlots).isBefore(endDate)) {
-        courseIds.push(courseId);
+        courseIds.push(new ObjectId(courseId));
       }
     }
   }
@@ -609,8 +610,14 @@ exports.exportSelfPositionningQuestionnaireHistory = async (startDate, endDate, 
     const selfPositionningHistories = qHistoriesGroupByCourse[course._id];
     if (!selfPositionningHistories) continue;
 
-    const startSelfPositionningHistories = selfPositionningHistories.filter(h => h.timeline === START_COURSE) || [];
-    const endSelfPositionningHistories = selfPositionningHistories.filter(h => h.timeline === END_COURSE) || [];
+    const {
+      startSelfPositionningHistories,
+      endSelfPositionningHistories,
+    } = selfPositionningHistories.reduce((acc, h) => {
+      if (h.timeline === START_COURSE) acc.startSelfPositionningHistories.push(h);
+      if (h.timeline === END_COURSE) acc.endSelfPositionningHistories.push(h);
+      return acc;
+    }, { startSelfPositionningHistories: [], endSelfPositionningHistories: [] });
 
     const startSelfPositionningAnswers = startSelfPositionningHistories
       .flatMap(h => h.questionnaireAnswersList.map(q => q.answerList));
@@ -673,16 +680,13 @@ exports.exportSelfPositionningQuestionnaireHistory = async (startDate, endDate, 
       if (startAverage && endAverage) progressByCard[cardQuestion] = NumbersHelper.subtract(endAverage, startAverage);
     }
 
-    const [maxProgressQuestion, maxProgress] = Object.entries(progressByCard)
-      .reduce(([questionMax, valueMax], [question, value]) =>
-        (NumbersHelper.isGreaterThan(value, valueMax) ? [question, value] : [questionMax, valueMax]),
-      ['', 0]
-      );
-    const [minProgressQuestion, minProgress] = Object.entries(progressByCard)
-      .reduce(([questionMin, valueMin], [question, value]) =>
-        (NumbersHelper.isLessThan(value, valueMin) ? [question, value] : [questionMin, valueMin]),
-      ['', 0]
-      );
+    const { maxProgressQuestion, maxProgress, minProgressQuestion, minProgress } = Object.entries(progressByCard)
+      .reduce((acc, [question, value]) => ({
+        maxProgressQuestion: NumbersHelper.isGreaterThan(value, acc.maxProgress) ? question : acc.maxProgressQuestion,
+        maxProgress: NumbersHelper.isGreaterThan(value, acc.maxProgress) ? value : acc.maxProgress,
+        minProgressQuestion: NumbersHelper.isLessThan(value, acc.minProgress) ? question : acc.minProgressQuestion,
+        minProgress: NumbersHelper.isLessThan(value, acc.minProgress) ? value : acc.minProgress,
+      }), { maxProgressQuestion: '', maxProgress: -5, minProgressQuestion: '', minProgress: 5 });
 
     rows.push({
       'Id formation': course._id,
@@ -710,5 +714,5 @@ exports.exportSelfPositionningQuestionnaireHistory = async (startDate, endDate, 
 
   return rows.length
     ? [Object.keys(rows[0]), ...rows.map(d => Object.values(d))]
-    : [['Aucun historique sur cette période']];
+    : [['Aucune donnée sur la période sélectionnée']];
 };
