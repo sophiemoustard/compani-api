@@ -568,18 +568,14 @@ exports.exportSelfPositionningQuestionnaireHistory = async (startDate, endDate, 
     })
     .lean();
 
-  const sortedSlots = slots.map(s => ({
-    ...s,
-    course: { ...s.course, slots: s.course.slots.sort(DatesUtilsHelper.descendingSortBy('endDate')) },
-  }));
-
-  const slotsGroupByCourse = groupBy(sortedSlots, 'course._id');
+  const slotsGroupByCourse = groupBy(slots, 'course._id');
 
   const courseIds = [];
   for (const courseId of Object.keys(slotsGroupByCourse)) {
     if ((slotsGroupByCourse[courseId][0].slotsToPlan || []).length) continue;
     else {
-      const lastEndSlots = slotsGroupByCourse[courseId][0].course.slots[0].endDate;
+      const slotsCount = slotsGroupByCourse[courseId][0].course.slots.length;
+      const lastEndSlots = slotsGroupByCourse[courseId][0].course.slots[slotsCount - 1].endDate;
       if (CompaniDate(lastEndSlots).isAfter(startDate) && CompaniDate(lastEndSlots).isBefore(endDate)) {
         courseIds.push(new ObjectId(courseId));
       }
