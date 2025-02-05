@@ -2,7 +2,6 @@ const get = require('lodash/get');
 const uniqBy = require('lodash/uniqBy');
 const groupBy = require('lodash/groupBy');
 const pick = require('lodash/pick');
-const { ObjectId } = require('mongodb');
 const {
   NO_DATA,
   INTRA,
@@ -560,34 +559,28 @@ exports.exportSelfPositionningQuestionnaireHistory = async (startDate, endDate, 
   const isVendorUser = [TRAINING_ORGANISATION_MANAGER, VENDOR_ADMIN].includes(get(credentials, 'role.vendor.name'));
 
   const slots = await CourseSlot
-    .find({ startDate: { $lte: endDate }, endDate: { $gte: startDate } })
-    .populate({
-      path: 'course',
-      select: 'slots slotsToPlan',
-      populate: { path: 'slots', select: 'startDate endDate' },
-    })
+    .find({ startDate: { $lte: endDate }, endDate: { $gte: startDate } }, { course: 1 })
     .lean();
 
-  const slotsGroupByCourse = groupBy(slots, 'course._id');
-
-  const courseIds = [];
-  for (const courseId of Object.keys(slotsGroupByCourse)) {
-    if ((slotsGroupByCourse[courseId][0].slotsToPlan || []).length) continue;
-    else {
-      const slotsCount = slotsGroupByCourse[courseId][0].course.slots.length;
-      const lastEndSlots = slotsGroupByCourse[courseId][0].course.slots[slotsCount - 1].endDate;
-      if (CompaniDate(lastEndSlots).isAfter(startDate) && CompaniDate(lastEndSlots).isBefore(endDate)) {
-        courseIds.push(new ObjectId(courseId));
-      }
-    }
-  }
-
   const courses = await Course
-    .find({ _id: { $in: courseIds } }, { type: 1, subProgram: 1, trainees: 1, trainers: 1 })
+    .find(
+      { _id: { $in: [...new Set(slots.map(s => s.course))] } },
+      { slots: 1, slotsToPlan: 1, type: 1, subProgram: 1, trainees: 1, trainers: 1, misc: 1 }
+    )
+    .populate({ path: 'slots', select: 'startDate endDate' })
     .populate({ path: 'subProgram', select: 'program name', populate: [{ path: 'program', select: 'name' }] })
     .populate({ path: 'trainers', select: 'identity' })
     .lean();
 
+  const filteredCourses = courses.filter((course) => {
+    if ((course.slotsToPlan || []).length) return false;
+
+    const slotsCount = course.slots.length;
+    const lastEndSlot = course.slots[slotsCount - 1].endDate;
+    return lastEndSlot && CompaniDate(lastEndSlot).isAfter(startDate) && CompaniDate(lastEndSlot).isBefore(endDate);
+  });
+
+  const courseIds = filteredCourses.map(c => c._id);
   const questionnaireHistories = await QuestionnaireHistory
     .find({ course: { $in: courseIds } }, { questionnaire: 1, course: 1, timeline: 1, questionnaireAnswersList: 1 })
     .populate({ path: 'questionnaire', select: 'type' })
@@ -687,6 +680,7 @@ exports.exportSelfPositionningQuestionnaireHistory = async (startDate, endDate, 
     rows.push({
       'Id formation': course._id,
       Programme: course.subProgram.program.name || '',
+      'Infos complémentaires': course.misc,
       'Sous-programme': course.subProgram.name || '',
       'Prénom Nom intervenant': formatTrainersName(course.trainers),
       'Nombre d\'apprenants inscrits': course.trainees.length,

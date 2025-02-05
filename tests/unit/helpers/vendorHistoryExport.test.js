@@ -1864,7 +1864,7 @@ describe('exportCoursePaymentHistory', () => {
   });
 });
 
-describe('exportSelfPositionningQuestionnaireHistory #tag', () => {
+describe('exportSelfPositionningQuestionnaireHistory', () => {
   let findCourseSlot;
   let findCourse;
   let findQuestionnaireHistory;
@@ -1886,7 +1886,7 @@ describe('exportSelfPositionningQuestionnaireHistory #tag', () => {
   });
 
   it('should return an empty array if no course', async () => {
-    findCourseSlot.returns(SinonMongoose.stubChainedQueries([]));
+    findCourseSlot.returns(SinonMongoose.stubChainedQueries([], ['lean']));
     findCourse.returns(SinonMongoose.stubChainedQueries([]));
     findQuestionnaireHistory.returns(SinonMongoose.stubChainedQueries([], ['populate', 'setOptions', 'lean']));
 
@@ -1897,15 +1897,15 @@ describe('exportSelfPositionningQuestionnaireHistory #tag', () => {
     SinonMongoose.calledOnceWithExactly(
       findCourseSlot,
       [
-        { query: 'find', args: [{ startDate: { $lte: endDate }, endDate: { $gte: startDate } }] },
-        { query: 'populate', args: [{ path: 'course', select: 'slots slotsToPlan', populate: { path: 'slots', select: 'startDate endDate' } }] },
+        { query: 'find', args: [{ startDate: { $lte: endDate }, endDate: { $gte: startDate } }, { course: 1 }] },
         { query: 'lean' },
       ]
     );
     SinonMongoose.calledOnceWithExactly(
       findCourse,
       [
-        { query: 'find', args: [{ _id: { $in: [] } }, { type: 1, subProgram: 1, trainees: 1, trainers: 1 }] },
+        { query: 'find', args: [{ _id: { $in: [] } }, { slots: 1, slotsToPlan: 1, type: 1, subProgram: 1, trainees: 1, trainers: 1, misc: 1 }] },
+        { query: 'populate', args: [{ path: 'slots', select: 'startDate endDate' }] },
         { query: 'populate', args: [{ path: 'subProgram', select: 'program name', populate: [{ path: 'program', select: 'name' }] }] },
         { query: 'populate', args: [{ path: 'trainers', select: 'identity' }] },
         { query: 'lean' },
@@ -1932,6 +1932,7 @@ describe('exportSelfPositionningQuestionnaireHistory #tag', () => {
     const courseList = [
       {
         _id: courseIdList[0],
+        misc: 'Groupe 1',
         slots: [{ _id: courseSlotIdList[0], startDate: '2021-01-03T08:00:00.000Z', endDate: '2021-01-03T10:00:00.000Z' }, { _id: courseSlotIdList[1], startDate: '2020-02-01T10:00:00.000Z', endDate: '2021-02-01T16:00:00.000Z' }],
         slotsToPlan: [],
         subProgram: { _id: new ObjectId(), name: 'Sous-programme 1', program: { _id: new ObjectId(), name: 'Programme 1' } },
@@ -1940,6 +1941,7 @@ describe('exportSelfPositionningQuestionnaireHistory #tag', () => {
       },
       {
         _id: courseIdList[1],
+        misc: 'Groupe 2',
         slots: [{ _id: courseSlotIdList[2], startDate: '2021-02-01T08:00:00.000Z', endDate: '2021-02-01T10:00:00.000Z' }, { _id: courseSlotIdList[3], startDate: '2021-04-02T08:00:00.000Z', endDate: '2021-04-02T10:00:00.000Z' }],
         slotsToPlan: [],
         subProgram: { _id: new ObjectId(), name: 'Sous-programme 1', program: { _id: programIdList[0], name: 'Programme 2' } },
@@ -1947,6 +1949,7 @@ describe('exportSelfPositionningQuestionnaireHistory #tag', () => {
       },
       {
         _id: courseIdList[2],
+        misc: 'Groupe 3',
         slots: [{ _id: courseSlotIdList[4], startDate: '2021-04-02T08:00:00.000Z', endDate: '2021-04-02T10:00:00.000Z' }],
         slotsToPlan: [{ _id: courseSlotIdList[5] }],
         subProgram: { _id: new ObjectId(), name: 'Sous-programme 1', program: { _id: programIdList[1], name: 'Programme 3' } },
@@ -1955,11 +1958,11 @@ describe('exportSelfPositionningQuestionnaireHistory #tag', () => {
     ];
 
     const courseSlotList = [
-      { _id: courseSlotIdList[0], course: courseList[0], startDate: '2021-01-03T08:00:00.000Z', endDate: '2021-05-03T10:00:00.000Z' },
-      { _id: courseSlotIdList[1], course: courseList[0], startDate: '2021-02-01T10:00:00.000Z', endDate: '2021-02-01T16:00:00.000Z' },
-      { _id: courseSlotIdList[2], course: courseList[1], startDate: '2021-02-01T08:00:00.000Z', endDate: '2021-02-01T10:00:00.000Z' },
-      { _id: courseSlotIdList[3], course: courseList[1], startDate: '2021-04-02T08:00:00.000Z', endDate: '2021-04-02T10:00:00.000Z' },
-      { _id: courseSlotIdList[4], course: courseList[2], startDate: '2021-04-02T08:00:00.000Z', endDate: '2021-04-02T10:00:00.000Z' },
+      { _id: courseSlotIdList[0], course: courseList[0]._id, startDate: '2021-01-03T08:00:00.000Z', endDate: '2021-05-03T10:00:00.000Z' },
+      { _id: courseSlotIdList[1], course: courseList[0]._id, startDate: '2021-02-01T10:00:00.000Z', endDate: '2021-02-01T16:00:00.000Z' },
+      { _id: courseSlotIdList[2], course: courseList[1]._id, startDate: '2021-02-01T08:00:00.000Z', endDate: '2021-02-01T10:00:00.000Z' },
+      { _id: courseSlotIdList[3], course: courseList[1]._id, startDate: '2021-04-02T08:00:00.000Z', endDate: '2021-04-02T10:00:00.000Z' },
+      { _id: courseSlotIdList[4], course: courseList[2]._id, startDate: '2021-04-02T08:00:00.000Z', endDate: '2021-04-02T10:00:00.000Z' },
     ];
 
     const cardIdList = [new ObjectId(), new ObjectId(), new ObjectId()];
@@ -2020,8 +2023,8 @@ describe('exportSelfPositionningQuestionnaireHistory #tag', () => {
       timeline: 'end_course',
       questionnaireAnswersList: [{ card: cardList[0], answerList: ['3'] }, { card: cardList[1], answerList: ['2'] }, { card: cardList[1], answerList: ['3'] }],
     }];
-    findCourseSlot.returns(SinonMongoose.stubChainedQueries(courseSlotList));
-    findCourse.returns(SinonMongoose.stubChainedQueries([courseList[0]]));
+    findCourseSlot.returns(SinonMongoose.stubChainedQueries(courseSlotList, ['lean']));
+    findCourse.returns(SinonMongoose.stubChainedQueries([courseList[0], courseList[1], courseList[2]], ['populate', 'populate', 'populate', 'lean']));
     findQuestionnaireHistory.returns(SinonMongoose.stubChainedQueries(questionnaireHistories, ['populate', 'setOptions', 'lean']));
 
     const result = await ExportHelper.exportSelfPositionningQuestionnaireHistory(startDate, endDate, credentials);
@@ -2030,6 +2033,7 @@ describe('exportSelfPositionningQuestionnaireHistory #tag', () => {
       [
         'Id formation',
         'Programme',
+        'Infos complémentaires',
         'Sous-programme',
         'Prénom Nom intervenant',
         'Nombre d\'apprenants inscrits',
@@ -2046,6 +2050,7 @@ describe('exportSelfPositionningQuestionnaireHistory #tag', () => {
       [
         courseIdList[0],
         'Programme 1',
+        'Groupe 1',
         'Sous-programme 1',
         'Albert EINSTEIN',
         6,
@@ -2064,15 +2069,15 @@ describe('exportSelfPositionningQuestionnaireHistory #tag', () => {
     SinonMongoose.calledOnceWithExactly(
       findCourseSlot,
       [
-        { query: 'find', args: [{ startDate: { $lte: endDate }, endDate: { $gte: startDate } }] },
-        { query: 'populate', args: [{ path: 'course', select: 'slots slotsToPlan', populate: { path: 'slots', select: 'startDate endDate' } }] },
+        { query: 'find', args: [{ startDate: { $lte: endDate }, endDate: { $gte: startDate } }, { course: 1 }] },
         { query: 'lean' },
       ]
     );
     SinonMongoose.calledOnceWithExactly(
       findCourse,
       [
-        { query: 'find', args: [{ _id: { $in: [courseIdList[0]] } }, { type: 1, subProgram: 1, trainees: 1, trainers: 1 }] },
+        { query: 'find', args: [{ _id: { $in: [courseList[0]._id, courseList[1]._id, courseList[2]._id] } }, { slots: 1, slotsToPlan: 1, type: 1, subProgram: 1, trainees: 1, trainers: 1, misc: 1 }] },
+        { query: 'populate', args: [{ path: 'slots', select: 'startDate endDate' }] },
         { query: 'populate', args: [{ path: 'subProgram', select: 'program name', populate: [{ path: 'program', select: 'name' }] }] },
         { query: 'populate', args: [{ path: 'trainers', select: 'identity' }] },
         { query: 'lean' },
