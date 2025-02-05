@@ -1388,31 +1388,31 @@ date-chinese@^2.1.4:
   dependencies:
     astronomia "^4.1.0"
 
-date-easter@^1.0.2:
-  version "1.0.2"
-  resolved "https://registry.yarnpkg.com/date-easter/-/date-easter-1.0.2.tgz#b56161d535a57a21ba46ec33b653785616d7e8e2"
-  integrity sha512-mpC1izx7lUSLYl4B88V2W57eNB4xS2ic+ahxK2AYUsaBTsCeHzT6K5ymUKzL9YPFf/GlygFqpiD4/NO1hxDsLw==
+date-easter@^1.0.3:
+  version "1.0.3"
+  resolved "https://registry.yarnpkg.com/date-easter/-/date-easter-1.0.3.tgz#b7e01f2d2b7cabd9451f8dd09377f76b8de46442"
+  integrity sha512-aOViyIgpM4W0OWUiLqivznwTtuMlD/rdUWhc5IatYnplhPiWrLv75cnifaKYhmQwUBLAMWLNG4/9mlLIbXoGBQ==
 
-date-holidays-parser@^3.4.4:
-  version "3.4.4"
-  resolved "https://registry.yarnpkg.com/date-holidays-parser/-/date-holidays-parser-3.4.4.tgz#57501fcbb38d000953b178d34fb8136d284ebab3"
-  integrity sha512-R5aO4oT8H51ZKdvApqHrqYEiNBrqT6tRj2PFXNcZfqMI4nxY7KKKly0ZsmquR5gY+x9ldKR8SAMdozzIInaoXg==
+date-holidays-parser@^3.4.7:
+  version "3.4.7"
+  resolved "https://registry.yarnpkg.com/date-holidays-parser/-/date-holidays-parser-3.4.7.tgz#301b32a83e8ca7b658e7d490a3ca27f2bfdb2c6e"
+  integrity sha512-h09ZEtM6u5cYM6m1bX+1Ny9f+nLO9KVZUKNPEnH7lhbXYTfqZogaGTnhONswGeIJFF91UImIftS3CdM9HLW5oQ==
   dependencies:
     astronomia "^4.1.1"
     caldate "^2.0.5"
     date-bengali-revised "^2.0.2"
     date-chinese "^2.1.4"
-    date-easter "^1.0.2"
+    date-easter "^1.0.3"
     deepmerge "^4.3.1"
-    jalaali-js "^1.2.6"
-    moment-timezone "^0.5.43"
+    jalaali-js "^1.2.7"
+    moment-timezone "^0.5.47"
 
-date-holidays@~3.23.13:
-  version "3.23.13"
-  resolved "https://registry.yarnpkg.com/date-holidays/-/date-holidays-3.23.13.tgz#a34144a50694af83717185c37db36c8f175b6de3"
-  integrity sha512-nH+49imIxbn2LsCrOIcY5cNMS7fw0J6fqy/AZ5u8BM34uM68/92dVJ8EoaCUPsZHKlK4gkLkhkBoPMbQdpWPDA==
+date-holidays@~3.23.20:
+  version "3.23.20"
+  resolved "https://registry.yarnpkg.com/date-holidays/-/date-holidays-3.23.20.tgz#98098c8e325d3fec5b19f78c8e663551630facc6"
+  integrity sha512-lRJ91UNeSxdAZk66+RZtNx2ilqy00cgH6vtaq2+9NhjKUzCBd4ODXAMNhxslUyOXFi/8M9rey/ybD233ftmx3A==
   dependencies:
-    date-holidays-parser "^3.4.4"
+    date-holidays-parser "^3.4.7"
     js-yaml "^4.1.0"
     lodash "^4.17.21"
     prepin "^1.0.3"
@@ -2916,10 +2916,10 @@ jackspeak@^3.1.2:
   optionalDependencies:
     "@pkgjs/parseargs" "^0.11.0"
 
-jalaali-js@^1.2.6:
-  version "1.2.6"
-  resolved "https://registry.yarnpkg.com/jalaali-js/-/jalaali-js-1.2.6.tgz#f4ee4bf686ed32bb9656f101225be4b7a1c3fd21"
-  integrity sha512-io974va+Qyu+UfuVX3UIAgJlxLhAMx9Y8VMfh+IG00Js7hXQo1qNQuwSiSa0xxco0SVgx5HWNkaiCcV+aZ8WPw==
+jalaali-js@^1.2.7:
+  version "1.2.7"
+  resolved "https://registry.yarnpkg.com/jalaali-js/-/jalaali-js-1.2.7.tgz#7694cab2d0ca21830766faf08278e71c204cc4fe"
+  integrity sha512-gE+YHWSbygYAoJa+Xg8LWxGILqFOxZSBQQw39ghel01fVFUxV7bjL0x1JFsHcLQ3uPjvn81HQMa+kxwyPWnxGQ==
 
 jest-diff@^29.7.0:
   version "29.7.0"
@@ -3387,6 +3387,13 @@ moment-timezone@^0.5.43, moment-timezone@~0.5.34:
   version "0.5.43"
   resolved "https://registry.yarnpkg.com/moment-timezone/-/moment-timezone-0.5.43.tgz#3dd7f3d0c67f78c23cd1906b9b2137a09b3c4790"
   integrity sha512-72j3aNyuIsDxdF1i7CEgV2FfxM1r6aaqJyLB2vwb33mXYyoyLly+F1zbWqhA3/bVIoJ4szlUoMbUnVdid32NUQ==
+  dependencies:
+    moment "^2.29.4"
+
+moment-timezone@^0.5.47:
+  version "0.5.47"
+  resolved "https://registry.yarnpkg.com/moment-timezone/-/moment-timezone-0.5.47.tgz#d4d1a21b78372d914d6d69ae285454732a429749"
+  integrity sha512-UbNt/JAWS0m/NJOebR0QMRHBk0hu03r5dx9GK8Cs0AS3I81yDcOc9k+DytPItgVvBP7J6Mf6U2n3BPAacAV9oA==
   dependencies:
     moment "^2.29.4"
 
