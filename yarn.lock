@@ -2488,10 +2488,10 @@ gtoken@^7.0.0:
     gaxios "^6.0.0"
     jws "^4.0.0"
 
-hapi-auth-jwt2@~10.7.0:
-  version "10.7.0"
-  resolved "https://registry.yarnpkg.com/hapi-auth-jwt2/-/hapi-auth-jwt2-10.7.0.tgz#80ba2ecdae5a01e2111cc1fa388c9a22b289c6e9"
-  integrity sha512-jYSsgm191IpRfBPw9MvwJ2sbw/rKeo6V1w2shM+DLytHAt/EvGLwhqFkA3v3Db7sMpsBHRfSuiF4eJWMZcG0Jw==
+hapi-auth-jwt2@~11.0.0:
+  version "11.0.0"
+  resolved "https://registry.yarnpkg.com/hapi-auth-jwt2/-/hapi-auth-jwt2-11.0.0.tgz#770545989f469b8ac85fccf3623589f9ad666d54"
+  integrity sha512-zikQOlFvTBLKgDQRA+57T9VObSn4bUAImcJwDWrHmE3xPcLsX6UYgtfwZZhiFRpbbacs9AP/Xe4pabAUo34gGA==
   dependencies:
     "@hapi/boom" "^10.0.0"
     cookie "^1.0.1"
