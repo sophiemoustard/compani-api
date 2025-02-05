@@ -639,6 +639,7 @@ const _getCourseForPedagogy = async (courseId, credentials) => {
       options: { sort: { startDate: 1 } },
     })
     .populate({ path: 'trainers', select: 'identity.firstname identity.lastname biography picture' })
+    .populate({ path: 'tutors', select: 'identity.firstname identity.lastname picture' })
     .populate({ path: 'contact', select: 'identity.firstname identity.lastname contact.phone local.email' })
     .populate({
       path: 'attendanceSheets',
@@ -650,7 +651,10 @@ const _getCourseForPedagogy = async (courseId, credentials) => {
     .lean({ autopopulate: true, virtuals: true });
 
   const courseTrainerIds = course.trainers ? course.trainers.map(trainer => trainer._id) : [];
-  if (UtilsHelper.doesArrayIncludeId(courseTrainerIds, credentials._id)) {
+  const isTrainer = UtilsHelper.doesArrayIncludeId(courseTrainerIds, credentials._id);
+  const courseTutorIds = course.tutors ? course.tutors.map(tutor => tutor._id) : [];
+  const isTutor = UtilsHelper.doesArrayIncludeId(courseTutorIds, credentials._id);
+  if (isTrainer || isTutor) {
     return {
       ...course,
       subProgram: {
