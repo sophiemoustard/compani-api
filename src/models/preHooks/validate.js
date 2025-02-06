@@ -1,7 +1,7 @@
 const Boom = require('@hapi/boom');
 const get = require('lodash/get');
 const { ObjectId } = require('mongodb');
-const { flatQuery } = require('../../helpers/utils');
+const UtilsHelper = require('../../helpers/utils');
 
 const getDocListMiddlewareList = ['find'];
 
@@ -44,7 +44,7 @@ module.exports = {
       const isValueAnObject = value && typeof value === 'object' && !Array.isArray(value);
       const doesValueNotStartWithDollarSign = value && Object.keys(value)[0] && Object.keys(value)[0].charAt(0) !== '$';
       if (isValueAnObject && doesValueNotStartWithDollarSign) {
-        const flattenEntry = flatQuery({ [key]: value });
+        const flattenEntry = UtilsHelper.flatQuery({ [key]: value });
         Object.assign(flattenQuery, flattenEntry);
       } else {
         const untouchedEntry = { [key]: value };
