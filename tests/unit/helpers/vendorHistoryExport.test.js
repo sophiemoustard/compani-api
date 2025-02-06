@@ -1905,6 +1905,7 @@ describe('exportSelfPositionningQuestionnaireHistory', () => {
       findCourse,
       [
         { query: 'find', args: [{ _id: { $in: [] } }, { slots: 1, slotsToPlan: 1, type: 1, subProgram: 1, trainees: 1, trainers: 1, misc: 1 }] },
+        { query: 'populate', args: [{ path: 'slotsToPlan' }] },
         { query: 'populate', args: [{ path: 'slots', select: 'startDate endDate' }] },
         { query: 'populate', args: [{ path: 'subProgram', select: 'program name', populate: [{ path: 'program', select: 'name' }] }] },
         { query: 'populate', args: [{ path: 'trainers', select: 'identity' }] },
@@ -2077,6 +2078,7 @@ describe('exportSelfPositionningQuestionnaireHistory', () => {
       findCourse,
       [
         { query: 'find', args: [{ _id: { $in: [courseList[0]._id, courseList[1]._id, courseList[2]._id] } }, { slots: 1, slotsToPlan: 1, type: 1, subProgram: 1, trainees: 1, trainers: 1, misc: 1 }] },
+        { query: 'populate', args: [{ path: 'slotsToPlan' }] },
         { query: 'populate', args: [{ path: 'slots', select: 'startDate endDate' }] },
         { query: 'populate', args: [{ path: 'subProgram', select: 'program name', populate: [{ path: 'program', select: 'name' }] }] },
         { query: 'populate', args: [{ path: 'trainers', select: 'identity' }] },

@@ -567,6 +567,7 @@ exports.exportSelfPositionningQuestionnaireHistory = async (startDate, endDate, 
       { _id: { $in: [...new Set(slots.map(s => s.course))] } },
       { slots: 1, slotsToPlan: 1, type: 1, subProgram: 1, trainees: 1, trainers: 1, misc: 1 }
     )
+    .populate({ path: 'slotsToPlan' })
     .populate({ path: 'slots', select: 'startDate endDate' })
     .populate({ path: 'subProgram', select: 'program name', populate: [{ path: 'program', select: 'name' }] })
     .populate({ path: 'trainers', select: 'identity' })
@@ -594,7 +595,7 @@ exports.exportSelfPositionningQuestionnaireHistory = async (startDate, endDate, 
   );
 
   const rows = [];
-  for (const course of courses) {
+  for (const course of filteredCourses) {
     const progressByCard = {};
     const selfPositionningHistories = qHistoriesGroupByCourse[course._id];
     if (!selfPositionningHistories) continue;
@@ -621,6 +622,7 @@ exports.exportSelfPositionningQuestionnaireHistory = async (startDate, endDate, 
 
     const endSelfPositionningAnswers = endSelfPositionningHistories
       .flatMap(h => h.questionnaireAnswersList.map(q => q.answerList));
+
     let endAnswersAverage;
     if (endSelfPositionningAnswers.length) {
       endAnswersAverage = NumbersHelper.divide(
@@ -637,8 +639,6 @@ exports.exportSelfPositionningQuestionnaireHistory = async (startDate, endDate, 
       .flatMap(h => h.questionnaireAnswersList.map(q => pick(q, ['card', 'answerList'])));
     const endAnswersByCard = groupBy(formattedEndAnswers, 'card.question');
 
-    const startAverageByCard = {};
-    const endAverageByCard = {};
     for (const cardQuestion of Object.keys(startAnswersByCard)) {
       const startHistories = startAnswersByCard[cardQuestion] || [];
       const startAnswers = startHistories.flatMap(h => h.answerList);
@@ -651,8 +651,6 @@ exports.exportSelfPositionningQuestionnaireHistory = async (startDate, endDate, 
         );
       }
 
-      startAverageByCard[cardQuestion] = startAverage;
-
       const endHistories = endAnswersByCard[cardQuestion] || [];
       const endAnswers = endHistories.flatMap(h => h.answerList);
 
@@ -663,8 +661,6 @@ exports.exportSelfPositionningQuestionnaireHistory = async (startDate, endDate, 
           endAnswers.length
         );
       }
-
-      endAverageByCard[cardQuestion] = endAverage;
 
       if (startAverage && endAverage) progressByCard[cardQuestion] = NumbersHelper.subtract(endAverage, startAverage);
     }
