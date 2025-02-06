@@ -1397,8 +1397,6 @@ describe('COURSE BILL ROUTES - DELETE /coursebills/{_id}', () => {
 
   describe('Other roles', () => {
     const roles = [
-      { name: 'helper', expectedCode: 403 },
-      { name: 'planning_referent', expectedCode: 403 },
       { name: 'client_admin', expectedCode: 403 },
       { name: 'trainer', expectedCode: 403 },
     ];

@@ -98,7 +98,7 @@ const deleteBill = async (req) => {
   try {
     await CourseBillHelper.deleteBill(req.params._id);
 
-    return { message: translate[language].courseBillDelete };
+    return { message: translate[language].courseBillDeleted };
   } catch (e) {
     req.log('error', e);
     return Boom.isBoom(e) ? e : Boom.badImplementation(e);

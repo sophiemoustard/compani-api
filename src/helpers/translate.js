@@ -142,7 +142,7 @@ module.exports = {
     courseBillsNotFound: 'Course bills not found.',
     courseBillCreated: 'Course bill created.',
     courseBillUpdated: 'Course bill updated.',
-    courseBillDelete: 'Course bill deleted.',
+    courseBillDeleted: 'Course bill deleted.',
     courseBillingItemAlreadyAdded: 'Course billing item already added to bill.',
     courseCompanyAddressMissing: 'Course company address missing.',
     /* Course billing items */
@@ -360,7 +360,7 @@ module.exports = {
     courseBillsNotFound: 'Factures de la formation non trouvées.',
     courseBillCreated: 'Facture de la formation créée.',
     courseBillUpdated: 'Facture de la formation mise à jour.',
-    courseBillDelete: 'Facture de la formation supprimée.',
+    courseBillDeleted: 'Facture de la formation supprimée.',
     courseBillingItemAlreadyAdded: 'Article déjà ajouté à la facture.',
     courseCompanyAddressMissing: 'L\'adresse de la structure cliente est manquante.',
     /* Course billing items */
