@@ -610,7 +610,7 @@ exports.exportSelfPositionningQuestionnaireHistory = async (startDate, endDate, 
     }, { startSelfPositionningHistories: [], endSelfPositionningHistories: [] });
 
     const startSelfPositionningAnswers = startSelfPositionningHistories
-      .flatMap(h => h.questionnaireAnswersList.map(q => q.answerList));
+      .flatMap(h => h.questionnaireAnswersList.filter(a => a.card.template === SURVEY).map(q => q.answerList));
 
     let startAnswersAverage;
     if (startSelfPositionningAnswers.length) {
@@ -621,7 +621,7 @@ exports.exportSelfPositionningQuestionnaireHistory = async (startDate, endDate, 
     }
 
     const endSelfPositionningAnswers = endSelfPositionningHistories
-      .flatMap(h => h.questionnaireAnswersList.map(q => q.answerList));
+      .flatMap(h => h.questionnaireAnswersList.filter(a => a.card.template === SURVEY).map(q => q.answerList));
 
     let endAnswersAverage;
     if (endSelfPositionningAnswers.length) {
